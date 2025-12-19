@@ -35,11 +35,12 @@
 
 **IMPORTANT**: All comprehensive planning and architecture documentation is stored in the `/docs/` folder.
 
-The `/docs/` folder contains **22 documents** totaling **130,000+ words** of detailed planning:
+The `/docs/` folder contains **33 documents** totaling **170,000+ words** of detailed planning:
 
 - Product strategy and feature prioritization
 - Technical architecture and domain models
 - Cloud architecture and Kubernetes deployment
+- UX research and UI design system
 - Implementation roadmap and risk analysis
 - Event chain specifications
 - Visual roadmaps and summaries
@@ -49,6 +50,7 @@ The `/docs/` folder contains **22 documents** totaling **130,000+ words** of det
 - Product vision and strategy
 - Feature priorities and backlog
 - Technical architecture decisions
+- UX research and UI design patterns
 - Implementation phases and timeline
 - Domain models and microservices structure
 - Event chain workflows
@@ -77,6 +79,20 @@ Start here to understand technical architecture:
 4. [`/docs/implementation-roadmap.md`](docs/implementation-roadmap.md) - **6-phase plan** (12-18 months) with deliverables
 5. [`/docs/event-chains-reference.md`](docs/event-chains-reference.md) - Event chain specifications and patterns
 6. [`/docs/risk-register.md`](docs/risk-register.md) - 35 risks with mitigation strategies
+
+### For UX/UI Designers
+
+Start here to understand user experience and design system:
+
+1. [`/docs/ux-research-report.md`](docs/ux-research-report.md) - **6 personas**, user journeys, competitive analysis (2,700+ reviews)
+2. [`/docs/information-architecture.md`](docs/information-architecture.md) - Site map, role-based navigation, permission matrix
+3. [`/docs/wireframes.md`](docs/wireframes.md) - Complete wireframes for all MVP screens
+4. [`/docs/design-system.md`](docs/design-system.md) - Visual design system, color palette, typography, **22+ components**
+5. [`/docs/angular-component-specs.md`](docs/angular-component-specs.md) - Angular v21 component architecture
+6. [`/docs/accessibility-strategy.md`](docs/accessibility-strategy.md) - **WCAG 2.1 AA** + **COPPA** compliance
+7. [`/docs/event-chain-ux.md`](docs/event-chain-ux.md) - Event chain UX design (flagship feature)
+8. [`/docs/responsive-design-guide.md`](docs/responsive-design-guide.md) - Mobile-first responsive strategy
+9. [`/docs/interaction-design-guide.md`](docs/interaction-design-guide.md) - Micro-interactions and animations
 
 ### For Stakeholders
 
@@ -272,6 +288,103 @@ Start here for high-level overview:
    - Critical architectural decisions documented
    - Next steps for implementation
 
+### UX Research & UI Design (Issue #7 Deliverables)
+
+1. **`ux-research-report.md`** (~50KB)
+
+   - **6 Detailed Personas**: Sarah (Primary Parent), Mike (Co-Parent), Emma (Teen), Noah (Child), Margaret (Extended Family), Jessica (Guest)
+   - **5 User Journey Maps**: Complete emotional arcs for key workflows
+   - **Competitive Analysis**: 2,700+ user reviews analyzed (Cozi, FamilyWall, TimeTree, Picniic)
+   - **10 Key Findings**: Privacy concerns (487 mentions), automation gaps (312 mentions), fragmentation pain
+   - **10 Design Recommendations**: Privacy-first design, event chain discoverability, mobile-first
+
+2. **`information-architecture.md`** (~35KB)
+
+   - **Complete Site Map**: 6 top-level sections with 40+ screens
+   - **Role-Based Navigation**: Custom navigation for 6 user personas
+   - **Permission Matrix**: Detailed access control (Parent, Co-Parent, Teen, Child, Extended Family, Guest)
+   - **Deep-Linking Strategy**: URL patterns for all major screens
+   - **Multi-Role Experience**: Parent vs Teen vs Child dashboard designs
+
+3. **`wireframes.md`** (~162KB)
+
+   - Complete wireframes for all MVP screens (onboarding, dashboards, calendar, lists, tasks, event chains)
+   - Multi-persona dashboards (Parent, Teen, Child with gamification)
+   - Calendar views (Month, Week, Day) for desktop + mobile
+   - Shopping lists with swipe gestures
+   - Task & chore management with points/badges
+   - Event chain visual builder
+   - Mobile layouts with bottom navigation
+
+4. **`design-system.md`** (~42KB)
+
+   - **Brand Identity**: Visual guidelines, logo usage, brand voice
+   - **Color System**: 60+ WCAG AA compliant tokens (4.5:1 contrast ratio)
+   - **Typography**: Inter font family, 9 sizes, responsive scale
+   - **Component Library**: 22+ production-ready components (Button, Input, Modal, Card, etc.)
+   - **Design Tokens**: Tailwind CSS configuration
+   - **Iconography**: Heroicons library (200+ icons)
+   - **Dark Mode**: Full support with semantic color tokens
+   - **Spacing & Layout**: 8px grid system
+
+5. **`angular-component-specs.md`** (~28KB)
+
+   - **25+ Angular v21 Components**: TypeScript implementations with standalone components
+   - Button, Input, Checkbox, Toggle, Modal, Dropdown, Tabs, Card, Avatar, Badge, Toast, etc.
+   - ARIA labels and accessibility patterns
+   - Reactive forms integration
+   - Input/Output decorators
+   - Component composition patterns
+
+6. **`accessibility-strategy.md`** (~25KB)
+
+   - **WCAG 2.1 Level AA Compliance**: All 50 success criteria documented
+   - **COPPA Compliance**: Children's Online Privacy Protection Act requirements for kids under 13
+   - **Age-Appropriate Design**: Simplified UI for children, privacy controls
+   - **Assistive Technology Support**: Screen readers (NVDA, JAWS, VoiceOver), magnifiers, voice control
+   - **Testing Checklist**: 50+ items for accessibility validation
+   - **ARIA Patterns**: Proper roles, labels, live regions
+
+7. **`event-chain-ux.md`** (~18KB)
+
+   - **Discovery Strategy**: Onboarding tour, contextual suggestions, navigation prominence
+   - **Visualization**: Flow diagrams, status indicators, trigger/action cards
+   - **Configuration UX**: Template gallery (10 pre-built chains), visual builder
+   - **User Education**: Tooltips, help center, success stories
+   - **Success Metrics**: Activation rate (60%), creation rate (40%), retention (2.5× lift)
+
+8. **`responsive-design-guide.md`** (~17KB)
+
+   - **Mobile-First Approach**: Design for smallest screen first
+   - **Breakpoints**: Mobile (<640px), Tablet (640-1024px), Desktop (>1024px), Large Desktop (>1920px)
+   - **Component Adaptations**: How each component responds across breakpoints
+   - **Touch-Friendly Design**: 44×44px minimum touch targets
+   - **Progressive Disclosure**: Show more features as screen size increases
+
+9. **`interaction-design-guide.md`** (~23KB)
+
+   - **Micro-Interactions**: Button press, checkbox, toggle, drag-and-drop
+   - **Page Transitions**: Fade, slide, scale animations
+   - **List Animations**: Stagger, reorder, delete with confirmation
+   - **Gamification UI**: Points animation, confetti, achievement unlock
+   - **Real-Time Updates**: Loading states, optimistic UI, error recovery
+   - **Gesture Patterns**: Swipe to delete, pull to refresh, pinch to zoom
+
+10. **`ISSUE-7-UI-DESIGN-SUMMARY.md`** (~15KB)
+
+    - UI Design deliverables summary
+    - Component library overview
+    - Implementation priorities
+    - Timeline and next steps
+
+11. **`ISSUE-7-UX-RESEARCH-SUMMARY.md`** (~18KB)
+    - UX Research deliverables summary
+    - Key findings and recommendations
+    - Persona highlights
+    - Accessibility commitments
+    - Event chain UX strategy
+    - Competitive positioning
+
 ### Supporting Documents
 
 1. **`architecture-visual-summary.md`** (~69KB)
@@ -340,6 +453,11 @@ Start here for high-level overview:
 - **Technical architecture**: Read `/docs/domain-model-microservices-map.md`
 - **Cloud architecture**: Read `/docs/cloud-architecture.md` or `/docs/kubernetes-deployment-guide.md`
 - **Infrastructure costs**: Read `/docs/infrastructure-cost-analysis.md`
+- **UX research & personas**: Read `/docs/ux-research-report.md`
+- **UI design system**: Read `/docs/design-system.md` or `/docs/angular-component-specs.md`
+- **Wireframes**: Read `/docs/wireframes.md`
+- **Accessibility**: Read `/docs/accessibility-strategy.md` (WCAG 2.1 AA + COPPA)
+- **Event chain UX**: Read `/docs/event-chain-ux.md`
 - **Implementation plan**: Read `/docs/implementation-roadmap.md`
 - **Deployment**: Read `/docs/kubernetes-deployment-guide.md` and `/docs/cicd-pipeline.md`
 - **Event chains**: Read `/docs/event-chains-reference.md`
@@ -349,10 +467,14 @@ Start here for high-level overview:
 
 1. Check which **phase** the feature belongs to in `/docs/implementation-roadmap.md`
 2. Find the feature in `/docs/FEATURE_BACKLOG.md` to understand priority and dependencies
-3. Identify the **bounded context** (microservice) in `/docs/domain-model-microservices-map.md`
-4. Review relevant **domain events** and **GraphQL schema** in the domain model doc
-5. Check for any **event chain** integration in `/docs/event-chains-reference.md`
-6. Review associated **risks** in `/docs/risk-register.md`
+3. Review **wireframes** in `/docs/wireframes.md` to understand UI layout
+4. Check **design system** in `/docs/design-system.md` for components and styling
+5. Review **personas** in `/docs/ux-research-report.md` to understand user needs
+6. Verify **accessibility requirements** in `/docs/accessibility-strategy.md` (WCAG 2.1 AA)
+7. Identify the **bounded context** (microservice) in `/docs/domain-model-microservices-map.md`
+8. Review relevant **domain events** and **GraphQL schema** in the domain model doc
+9. Check for any **event chain** integration in `/docs/event-chains-reference.md`
+10. Review associated **risks** in `/docs/risk-register.md`
 
 ---
 
@@ -451,10 +573,14 @@ Refill reminder scheduled (Communication Service)
 - ✅ Product strategy and feature prioritization (Issue #5)
 - ✅ Technical architecture design (8 microservices)
 - ✅ Cloud architecture and Kubernetes deployment strategy (Issue #6)
+- ✅ UX research and UI design system (Issue #7)
 - ✅ Implementation roadmap (6 phases)
 - ✅ Risk analysis (35 risks identified)
 - ✅ Event chain specifications (10 workflows)
 - ✅ 208 features prioritized
+- ✅ 6 detailed personas
+- ✅ Complete wireframes and design system
+- ✅ WCAG 2.1 AA + COPPA compliance strategy
 
 **Next Steps**:
 
@@ -508,19 +634,40 @@ Refill reminder scheduled (Communication Service)
 
 ### By Topic
 
-- **Product Strategy**: [PRODUCT_STRATEGY.md](docs/PRODUCT_STRATEGY.md)
-- **Cloud Architecture**: [cloud-architecture.md](docs/cloud-architecture.md)
-- **Kubernetes Deployment**: [kubernetes-deployment-guide.md](docs/kubernetes-deployment-guide.md)
-- **Infrastructure Costs**: [infrastructure-cost-analysis.md](docs/infrastructure-cost-analysis.md)
-- **CI/CD Pipeline**: [cicd-pipeline.md](docs/cicd-pipeline.md)
-- **Event Chains**: [event-chains-reference.md](docs/event-chains-reference.md)
-- **Risks**: [risk-register.md](docs/risk-register.md)
-- **Visual Roadmap**: [ROADMAP_VISUAL.md](docs/ROADMAP_VISUAL.md)
-- **Architecture Diagrams**: [architecture-visual-summary.md](docs/architecture-visual-summary.md)
-- **Documentation Index**: [INDEX.md](docs/INDEX.md)
+**Product Strategy**:
+- [PRODUCT_STRATEGY.md](docs/PRODUCT_STRATEGY.md)
+- [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md)
+
+**UX Research & UI Design**:
+- [ux-research-report.md](docs/ux-research-report.md) - Personas & competitive analysis
+- [information-architecture.md](docs/information-architecture.md) - Site map & navigation
+- [wireframes.md](docs/wireframes.md) - Complete wireframes
+- [design-system.md](docs/design-system.md) - Design system & components
+- [angular-component-specs.md](docs/angular-component-specs.md) - Angular components
+- [accessibility-strategy.md](docs/accessibility-strategy.md) - WCAG 2.1 AA + COPPA
+- [event-chain-ux.md](docs/event-chain-ux.md) - Event chain UX patterns
+- [responsive-design-guide.md](docs/responsive-design-guide.md) - Mobile-first design
+- [interaction-design-guide.md](docs/interaction-design-guide.md) - Micro-interactions
+
+**Cloud Architecture**:
+- [cloud-architecture.md](docs/cloud-architecture.md)
+- [kubernetes-deployment-guide.md](docs/kubernetes-deployment-guide.md)
+- [infrastructure-cost-analysis.md](docs/infrastructure-cost-analysis.md)
+- [cicd-pipeline.md](docs/cicd-pipeline.md)
+
+**Event Chains**:
+- [event-chains-reference.md](docs/event-chains-reference.md)
+- [event-chain-ux.md](docs/event-chain-ux.md)
+
+**Other**:
+- [risk-register.md](docs/risk-register.md)
+- [ROADMAP_VISUAL.md](docs/ROADMAP_VISUAL.md)
+- [architecture-visual-summary.md](docs/architecture-visual-summary.md)
+- [INDEX.md](docs/INDEX.md)
 
 ### GitHub Issues
 
+- [Issue #7: UX Architecture & Design System](https://github.com/andrekirst/family2/issues/7)
 - [Issue #6: Cloud Architecture & Kubernetes Deployment Strategy](https://github.com/andrekirst/family2/issues/6)
 - [Issue #5: Product Strategy & Feature Prioritization](https://github.com/andrekirst/family2/issues/5)
 - [Issue #4: Master Implementation Plan](https://github.com/andrekirst/family2/issues/4)
@@ -599,10 +746,17 @@ Refill reminder scheduled (Communication Service)
 
 ## 📚 Documentation Summary
 
-**Total**: 22 documents, 130,000+ words
+**Total**: 33 documents, 170,000+ words
 **Location**: `/home/andrekirst/git/github/andrekirst/family2/docs/`
+**Categories**:
+- Product Strategy (5 docs)
+- Technical Architecture (3 docs)
+- Cloud & Kubernetes (8 docs)
+- UX Research & UI Design (11 docs)
+- Supporting Documents (6 docs)
+
 **Purpose**: Comprehensive planning and architecture for Family Hub
-**Audience**: Product managers, developers, stakeholders, Claude Code
+**Audience**: Product managers, developers, UX/UI designers, stakeholders, Claude Code
 
 **Remember**: Always check `/docs/` folder first when you need context about Family Hub!
 
