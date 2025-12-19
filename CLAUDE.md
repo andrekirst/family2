@@ -35,10 +35,11 @@
 
 **IMPORTANT**: All comprehensive planning and architecture documentation is stored in the `/docs/` folder.
 
-The `/docs/` folder contains **14 documents** totaling **68,500+ words** of detailed planning:
+The `/docs/` folder contains **22 documents** totaling **130,000+ words** of detailed planning:
 
 - Product strategy and feature prioritization
 - Technical architecture and domain models
+- Cloud architecture and Kubernetes deployment
 - Implementation roadmap and risk analysis
 - Event chain specifications
 - Visual roadmaps and summaries
@@ -71,9 +72,11 @@ Start here to understand product strategy and priorities:
 Start here to understand technical architecture:
 
 1. [`/docs/domain-model-microservices-map.md`](docs/domain-model-microservices-map.md) - **8 microservices** with DDD models, GraphQL schemas
-2. [`/docs/implementation-roadmap.md`](docs/implementation-roadmap.md) - **6-phase plan** (12-18 months) with deliverables
-3. [`/docs/event-chains-reference.md`](docs/event-chains-reference.md) - Event chain specifications and patterns
-4. [`/docs/risk-register.md`](docs/risk-register.md) - 35 risks with mitigation strategies
+2. [`/docs/cloud-architecture.md`](docs/cloud-architecture.md) - **Kubernetes architecture** with multi-tenancy, deployment guides
+3. [`/docs/kubernetes-deployment-guide.md`](docs/kubernetes-deployment-guide.md) - Step-by-step deployment for local and cloud
+4. [`/docs/implementation-roadmap.md`](docs/implementation-roadmap.md) - **6-phase plan** (12-18 months) with deliverables
+5. [`/docs/event-chains-reference.md`](docs/event-chains-reference.md) - Event chain specifications and patterns
+6. [`/docs/risk-register.md`](docs/risk-register.md) - 35 risks with mitigation strategies
 
 ### For Stakeholders
 
@@ -187,6 +190,88 @@ Start here for high-level overview:
    - Comprehensive mitigation strategies for each risk
    - Monitoring metrics and contingency plans
 
+### Cloud Architecture & Kubernetes (Issue #6 Deliverables)
+
+1. **`cloud-architecture.md`** (~76KB)
+
+   - Complete Kubernetes architecture with ASCII diagrams
+   - Multi-tenancy strategy with PostgreSQL Row-Level Security
+   - 8 microservices deployment architecture
+   - NGINX Ingress Controller (no service mesh)
+   - Security architecture with zero-trust principles
+   - Namespace organization and resource management
+   - Database and cache configuration
+   - Network policies and service mesh considerations
+
+2. **`kubernetes-deployment-guide.md`** (~42KB)
+
+   - Step-by-step deployment for local (Minikube/kind) and cloud
+   - Environment setup (development, staging, production)
+   - PostgreSQL and Redis deployment
+   - Zitadel OAuth 2.0 setup
+   - NGINX Ingress configuration
+   - Disaster recovery procedures
+   - Backup and restore strategies
+   - Troubleshooting guide
+
+3. **`helm-charts-structure.md`** (~22KB)
+
+   - Complete Helm chart templates for all 8 microservices
+   - Parent `family-hub` chart with subcharts
+   - Environment-specific values (dev, staging, prod)
+   - GitOps integration with ArgoCD
+   - Security best practices (non-root, read-only filesystem)
+   - Resource requests and limits
+   - ConfigMap and Secret management
+
+4. **`observability-stack.md`** (~27KB)
+
+   - Prometheus + Grafana monitoring setup
+   - Loki logging architecture (lightweight, 300m CPU)
+   - OpenTelemetry distributed tracing
+   - 25 predefined alert rules for critical issues
+   - Custom dashboards for each microservice
+   - Log aggregation and querying
+   - Performance metrics and SLOs
+
+5. **`cicd-pipeline.md`** (~15KB)
+
+   - GitHub Actions CI/CD workflows
+   - Build, test, and security scanning
+   - ArgoCD GitOps deployment
+   - Multi-environment promotion (dev → staging → prod)
+   - Automated rollback on failure
+   - Container image building and scanning
+   - Deployment automation
+
+6. **`multi-tenancy-strategy.md`** (~26KB)
+
+   - PostgreSQL Row-Level Security implementation
+   - Shared database with RLS policies per family (tenant)
+   - Cost savings: $9,900/month vs dedicated databases
+   - Automated tenant onboarding with CLI tools
+   - Resource quotas and limits per tenant
+   - Cost allocation and billing integration
+   - Tenant isolation and security
+
+7. **`infrastructure-cost-analysis.md`** (~24KB)
+
+   - Detailed cost breakdowns by scale:
+     - 100 families: $200-400/month
+     - 1,000 families: $800-1,200/month
+     - 10,000 families: $3,500-5,000/month
+   - Cloud provider comparisons (DigitalOcean, AWS, Azure, GCP)
+   - Break-even analysis: 45 premium subscribers @ $9.99/month
+   - ROI projections and optimization strategies
+   - Cost allocation per microservice
+   - Recommended provider: DigitalOcean ($195/month for 100 families)
+
+8. **`ISSUE-6-DELIVERABLES-SUMMARY.md`** (~8KB)
+   - Cloud Architecture & Kubernetes completion summary
+   - All 8 success criteria fulfilled
+   - Critical architectural decisions documented
+   - Next steps for implementation
+
 ### Supporting Documents
 
 1. **`architecture-visual-summary.md`** (~69KB)
@@ -253,7 +338,10 @@ Start here for high-level overview:
 - **Product vision**: Read `/docs/EXECUTIVE_SUMMARY.md` or `/docs/PRODUCT_STRATEGY.md`
 - **Feature priorities**: Read `/docs/FEATURE_BACKLOG.md`
 - **Technical architecture**: Read `/docs/domain-model-microservices-map.md`
+- **Cloud architecture**: Read `/docs/cloud-architecture.md` or `/docs/kubernetes-deployment-guide.md`
+- **Infrastructure costs**: Read `/docs/infrastructure-cost-analysis.md`
 - **Implementation plan**: Read `/docs/implementation-roadmap.md`
+- **Deployment**: Read `/docs/kubernetes-deployment-guide.md` and `/docs/cicd-pipeline.md`
 - **Event chains**: Read `/docs/event-chains-reference.md`
 - **Risks**: Read `/docs/risk-register.md`
 
@@ -362,6 +450,7 @@ Refill reminder scheduled (Communication Service)
 
 - ✅ Product strategy and feature prioritization (Issue #5)
 - ✅ Technical architecture design (8 microservices)
+- ✅ Cloud architecture and Kubernetes deployment strategy (Issue #6)
 - ✅ Implementation roadmap (6 phases)
 - ✅ Risk analysis (35 risks identified)
 - ✅ Event chain specifications (10 workflows)
@@ -413,12 +502,17 @@ Refill reminder scheduled (Communication Service)
 
 - [Executive Summary](docs/EXECUTIVE_SUMMARY.md) - Start here (15 min read)
 - [Domain Model & Microservices](docs/domain-model-microservices-map.md) - Technical architecture
+- [Cloud Architecture](docs/cloud-architecture.md) - Kubernetes deployment strategy
 - [Implementation Roadmap](docs/implementation-roadmap.md) - Phase-by-phase plan
 - [Feature Backlog](docs/FEATURE_BACKLOG.md) - All 208 features prioritized
 
 ### By Topic
 
 - **Product Strategy**: [PRODUCT_STRATEGY.md](docs/PRODUCT_STRATEGY.md)
+- **Cloud Architecture**: [cloud-architecture.md](docs/cloud-architecture.md)
+- **Kubernetes Deployment**: [kubernetes-deployment-guide.md](docs/kubernetes-deployment-guide.md)
+- **Infrastructure Costs**: [infrastructure-cost-analysis.md](docs/infrastructure-cost-analysis.md)
+- **CI/CD Pipeline**: [cicd-pipeline.md](docs/cicd-pipeline.md)
 - **Event Chains**: [event-chains-reference.md](docs/event-chains-reference.md)
 - **Risks**: [risk-register.md](docs/risk-register.md)
 - **Visual Roadmap**: [ROADMAP_VISUAL.md](docs/ROADMAP_VISUAL.md)
@@ -427,6 +521,7 @@ Refill reminder scheduled (Communication Service)
 
 ### GitHub Issues
 
+- [Issue #6: Cloud Architecture & Kubernetes Deployment Strategy](https://github.com/andrekirst/family2/issues/6)
 - [Issue #5: Product Strategy & Feature Prioritization](https://github.com/andrekirst/family2/issues/5)
 - [Issue #4: Master Implementation Plan](https://github.com/andrekirst/family2/issues/4)
 - [Issue #1: Family Hub Feature Ideas](https://github.com/andrekirst/family2/issues/1)
@@ -504,7 +599,7 @@ Refill reminder scheduled (Communication Service)
 
 ## 📚 Documentation Summary
 
-**Total**: 14 documents, 68,500+ words
+**Total**: 22 documents, 130,000+ words
 **Location**: `/home/andrekirst/git/github/andrekirst/family2/docs/`
 **Purpose**: Comprehensive planning and architecture for Family Hub
 **Audience**: Product managers, developers, stakeholders, Claude Code
