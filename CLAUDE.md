@@ -14,20 +14,23 @@
 
 ### Technology Stack
 
-- **Backend**: .NET Core 10 / C# 14 with Hot Chocolate GraphQL
-- **Frontend**: Angular v21 + TypeScript + Tailwind CSS
-- **Database**: PostgreSQL 16 (per service)
-- **Cache/Events**: Redis 7 (Pub/Sub for event bus)
+**⚠️ IMPORTANT: See [Architecture Review Report](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md) for critical updates**
+
+- **Backend**: .NET 8 LTS / C# 12 (REST APIs Phase 1-3, GraphQL Phase 4+)
+- **Frontend**: Angular 17 OR React 18 + TypeScript + Tailwind CSS
+- **Database**: PostgreSQL 16 with Row-Level Security (RLS)
+- **Event Bus**: RabbitMQ (NOT Redis Pub/Sub - durability required)
 - **Auth**: Zitadel (external OAuth 2.0 / OIDC provider)
-- **Infrastructure**: Kubernetes (cloud-agnostic)
+- **Infrastructure**: Docker Compose (Phase 1-4) → Kubernetes (Phase 5+)
 - **Monitoring**: Prometheus + Grafana + Seq
 
 ### Development Approach
 
 - **Single developer** with **Claude Code AI assistance** (60-80% of boilerplate)
-- Domain-Driven Design (DDD) with 8 bounded contexts
-- Event-driven microservices architecture
-- Incremental implementation over 12-18 months
+- Domain-Driven Design (DDD) with 8 bounded contexts (modules)
+- **Modular Monolith** architecture (Phase 1-4) → Microservices (Phase 5+)
+- Event-driven architecture with RabbitMQ
+- Incremental implementation over **10-14 months** (reduced from 16-22 months)
 
 ---
 
@@ -35,13 +38,14 @@
 
 **IMPORTANT**: All comprehensive planning and architecture documentation is stored in the `/docs/` folder.
 
-The `/docs/` folder contains **47 documents** totaling **230,000+ words** of detailed planning:
+The `/docs/` folder contains **50 documents** totaling **250,000+ words** of detailed planning:
 
 - Product strategy and feature prioritization
+- **Architecture review and decisions (NEW - Issue #11)**
 - Technical architecture and domain models
 - Cloud architecture and Kubernetes deployment
 - Security architecture and compliance (Issue #8)
-- Legal compliance and data protection (NEW - Issue #10)
+- Legal compliance and data protection (Issue #10)
 - Market strategy and go-to-market planning (Issue #9)
 - UX research and UI design system
 - Implementation roadmap and risk analysis
@@ -52,13 +56,14 @@ The `/docs/` folder contains **47 documents** totaling **230,000+ words** of det
 
 - Product vision and strategy
 - Feature priorities and backlog
+- **Architecture review and critical decisions (NEW - modular monolith first)**
 - Technical architecture decisions
 - Security architecture and threat modeling
-- Legal compliance and data protection (NEW - GDPR, COPPA, CCPA)
+- Legal compliance and data protection (GDPR, COPPA, CCPA)
 - Market strategy and go-to-market planning
 - UX research and UI design patterns
 - Implementation phases and timeline
-- Domain models and microservices structure
+- Domain models and module/microservice structure
 - Event chain workflows
 - Risk mitigation strategies
 
@@ -79,12 +84,22 @@ Start here to understand product strategy and priorities:
 
 Start here to understand technical architecture:
 
-1. [`/docs/domain-model-microservices-map.md`](docs/domain-model-microservices-map.md) - **8 microservices** with DDD models, GraphQL schemas
-2. [`/docs/cloud-architecture.md`](docs/cloud-architecture.md) - **Kubernetes architecture** with multi-tenancy, deployment guides
-3. [`/docs/kubernetes-deployment-guide.md`](docs/kubernetes-deployment-guide.md) - Step-by-step deployment for local and cloud
-4. [`/docs/implementation-roadmap.md`](docs/implementation-roadmap.md) - **6-phase plan** (12-18 months) with deliverables
-5. [`/docs/event-chains-reference.md`](docs/event-chains-reference.md) - Event chain specifications and patterns
-6. [`/docs/risk-register.md`](docs/risk-register.md) - 35 risks with mitigation strategies
+1. **[`/docs/architecture/ARCHITECTURE-REVIEW-REPORT.md`](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md)** - **CRITICAL: Read this first** - Architecture review with modular monolith recommendation
+2. **[`/docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md`](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)** - **Key decision**: Start with modular monolith, extract to microservices Phase 5+
+3. [`/docs/domain-model-microservices-map.md`](docs/domain-model-microservices-map.md) - **8 DDD modules** (future microservices) with domain models
+4. [`/docs/cloud-architecture.md`](docs/cloud-architecture.md) - **Kubernetes architecture** (deferred to Phase 5+)
+5. [`/docs/kubernetes-deployment-guide.md`](docs/kubernetes-deployment-guide.md) - Kubernetes deployment (Phase 5+ only)
+6. [`/docs/implementation-roadmap.md`](docs/implementation-roadmap.md) - **6-phase plan** (10-14 months) with deliverables
+7. [`/docs/event-chains-reference.md`](docs/event-chains-reference.md) - Event chain specifications and patterns
+8. [`/docs/risk-register.md`](docs/risk-register.md) - 35 risks with mitigation strategies
+
+### For Architecture Reviewers
+
+Start here to understand architectural decisions and reviews:
+
+1. [`/docs/architecture/ARCHITECTURE-REVIEW-REPORT.md`](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md) - **Comprehensive architecture review** (Issue #11)
+2. [`/docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md`](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - **ADR**: Modular monolith first approach
+3. [`/docs/architecture/ISSUE-11-DELIVERABLES-SUMMARY.md`](docs/architecture/ISSUE-11-DELIVERABLES-SUMMARY.md) - Issue #11 completion summary
 
 ### For Security Engineers
 
@@ -479,8 +494,9 @@ Start here for high-level overview:
 
 - **Product vision**: Read `/docs/EXECUTIVE_SUMMARY.md` or `/docs/PRODUCT_STRATEGY.md`
 - **Feature priorities**: Read `/docs/FEATURE_BACKLOG.md`
-- **Technical architecture**: Read `/docs/domain-model-microservices-map.md`
-- **Cloud architecture**: Read `/docs/cloud-architecture.md` or `/docs/kubernetes-deployment-guide.md`
+- **Architecture review & critical decisions**: Read `/docs/architecture/ARCHITECTURE-REVIEW-REPORT.md` or `/docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md`
+- **Technical architecture**: Read `/docs/domain-model-microservices-map.md` (NOTE: Now implements as modular monolith, not microservices initially)
+- **Cloud architecture**: Read `/docs/cloud-architecture.md` (NOTE: Deferred to Phase 5+)
 - **Infrastructure costs**: Read `/docs/infrastructure-cost-analysis.md`
 - **Security architecture**: Read `/docs/threat-model.md` or `/docs/ISSUE-8-SECURITY-SUMMARY.md`
 - **Security testing**: Read `/docs/security-testing-plan.md` (OWASP Top 10, SAST/DAST)
@@ -544,29 +560,32 @@ Refill reminder scheduled (Communication Service)
 
 **Why it matters**: Saves 10-30 minutes per workflow, eliminates 3-5 things to remember, reduces cognitive load.
 
-**Technical implementation**: Event-driven architecture using Redis Pub/Sub (Phase 1-4) → RabbitMQ (Phase 5+)
+**Technical implementation**: Event-driven architecture using RabbitMQ (in-process Phase 1-4, network Phase 5+)
 
-### Microservices Architecture (8 Bounded Contexts)
+### Modular Monolith Architecture (8 DDD Modules → Microservices Phase 5+)
 
-**DDD Approach**: Each microservice owns a bounded context with:
+**⚠️ CRITICAL CHANGE**: Starting with Modular Monolith, not microservices from day one. See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) for rationale.
+
+**DDD Approach**: Each module owns a bounded context with:
 
 - Domain entities and aggregates
 - Domain events (published/consumed)
-- GraphQL API schema
-- Independent database (PostgreSQL)
-- Event bus integration (Redis)
+- REST API endpoints (Phase 1-3) → GraphQL (Phase 4+)
+- Separate PostgreSQL schema (same DB instance)
+- Event bus integration (RabbitMQ, in-process execution)
 
-**Services**:
+**Modules** (Phase 1-4: Single monolith deployment):
 
-1. **Auth Service**: Zitadel integration, family groups, permissions
-2. **Calendar Service**: Events, appointments, recurrence, reminders
-3. **Task Service**: To-dos, assignments, chores, gamification
-4. **Shopping Service**: Lists, items, categories, sharing
-5. **Health Service**: Appointments, prescriptions, medications, tracking
-6. **Meal Planning Service**: Meal plans, recipes, ingredients, nutrition
-7. **Finance Service**: Budgets, expenses, income, goals
-8. **Communication Service**: Notifications, messages, activity feed
+1. **Auth Module**: Zitadel integration, family groups, permissions
+2. **Calendar Module**: Events, appointments, recurrence, reminders
+3. **Task Module**: To-dos, assignments, chores, gamification
+4. **Shopping Module**: Lists, items, categories, sharing
+5. **Health Module**: Appointments, prescriptions, medications, tracking
+6. **Meal Planning Module**: Meal plans, recipes, ingredients, nutrition
+7. **Finance Module**: Budgets, expenses, income, goals
+8. **Communication Module**: Notifications, messages, activity feed
 
+**Phase 5+ Migration**: Extract modules to independent microservices using Strangler Fig pattern
 **Future (Phase 7+)**: 9. **Federation Service**: Self-hosting, instance federation (deferred)
 
 ### Development Philosophy
@@ -611,11 +630,15 @@ Refill reminder scheduled (Communication Service)
 **Completed**:
 
 - ✅ Product strategy and feature prioritization (Issue #5)
-- ✅ Technical architecture design (8 microservices)
+- ✅ Technical architecture design (8 DDD modules)
 - ✅ Cloud architecture and Kubernetes deployment strategy (Issue #6)
 - ✅ UX research and UI design system (Issue #7)
-- ✅ Implementation roadmap (6 phases)
-- ✅ Risk analysis (35 risks identified)
+- ✅ Security architecture and compliance (Issue #8)
+- ✅ Market strategy and go-to-market planning (Issue #9)
+- ✅ Legal compliance documentation (Issue #10)
+- ✅ **Architecture review and validation (Issue #11) - CRITICAL PIVOT TO MODULAR MONOLITH**
+- ✅ Implementation roadmap (6 phases, updated to 10-14 months)
+- ✅ Risk analysis (35 risks identified, Developer Burnout reduced to MEDIUM)
 - ✅ Event chain specifications (10 workflows)
 - ✅ 208 features prioritized
 - ✅ 6 detailed personas
@@ -624,20 +647,30 @@ Refill reminder scheduled (Communication Service)
 
 **Next Steps**:
 
-1. Start Phase 0: Foundation & Tooling (4 weeks)
+1. **Stakeholder approval** of ADR-001 (Modular Monolith First approach)
 
-   - Set up development environment
-   - Configure CI/CD pipeline
-   - Create project structure
+2. **Update all documentation** with corrected technology stack:
+   - Fix .NET Core 10 → .NET 8 LTS throughout `/docs/`
+   - Fix Angular v21 → Angular 17 throughout `/docs/`
+   - Update architecture diagrams for modular monolith
+   - Update deployment guides for Docker Compose (Phase 1-4)
+
+3. Start Phase 0: Foundation & Tooling (3 weeks, reduced from 4)
+
+   - Set up development environment (.NET 8 SDK, Docker Desktop)
+   - Configure CI/CD pipeline (GitHub Actions)
+   - Create modular monolith project structure
    - Initialize Git repository structure
    - Set up Zitadel instance
+   - Configure RabbitMQ (in-process execution initially)
+   - Implement RLS testing framework
    - Create Docker Compose for local dev
 
-2. Proceed to Phase 1: Core MVP (8 weeks)
-   - Auth Service with Zitadel integration
-   - Calendar Service with events
-   - Task Service with assignments
-   - Basic event chains
+4. Proceed to Phase 1: Core MVP (6 weeks, reduced from 8)
+   - Auth Module with Zitadel integration
+   - Calendar Module with events
+   - Task Module with assignments
+   - Basic event chains (in-process)
 
 ### Success Criteria for MVP
 
@@ -674,6 +707,11 @@ Refill reminder scheduled (Communication Service)
 
 ### By Topic
 
+**Architecture Review (NEW - Issue #11)**:
+- [ARCHITECTURE-REVIEW-REPORT.md](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md) - Comprehensive architecture review
+- [ADR-001-MODULAR-MONOLITH-FIRST.md](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Modular monolith decision
+- [ISSUE-11-DELIVERABLES-SUMMARY.md](docs/architecture/ISSUE-11-DELIVERABLES-SUMMARY.md) - Issue #11 completion summary
+
 **Product Strategy**:
 - [PRODUCT_STRATEGY.md](docs/PRODUCT_STRATEGY.md)
 - [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md)
@@ -707,6 +745,10 @@ Refill reminder scheduled (Communication Service)
 
 ### GitHub Issues
 
+- **[Issue #11: Technical Architecture Review & Validation](https://github.com/andrekirst/family2/issues/11)** - CRITICAL: Modular monolith decision
+- [Issue #10: Legal Compliance & Data Protection Documentation](https://github.com/andrekirst/family2/issues/10)
+- [Issue #9: Market Strategy & Go-to-Market Planning](https://github.com/andrekirst/family2/issues/9)
+- [Issue #8: Security Architecture & Compliance](https://github.com/andrekirst/family2/issues/8)
 - [Issue #7: UX Architecture & Design System](https://github.com/andrekirst/family2/issues/7)
 - [Issue #6: Cloud Architecture & Kubernetes Deployment Strategy](https://github.com/andrekirst/family2/issues/6)
 - [Issue #5: Product Strategy & Feature Prioritization](https://github.com/andrekirst/family2/issues/5)
@@ -786,20 +828,23 @@ Refill reminder scheduled (Communication Service)
 
 ## 📚 Documentation Summary
 
-**Total**: 47 documents, 230,000+ words
+**Total**: 50 documents, 250,000+ words
 **Location**: `/home/andrekirst/git/github/andrekirst/family2/docs/`
 **Categories**:
-- Product Strategy (5 docs)
+- Product Strategy (5 docs - Issue #5)
+- **Architecture Review (3 docs - Issue #11) - NEW**
 - Technical Architecture (3 docs)
-- Cloud & Kubernetes (8 docs)
+- Cloud & Kubernetes (8 docs - Issue #6)
 - Security Architecture (5 docs - Issue #8)
 - Legal Compliance (9 docs - Issue #10)
 - Market Strategy (5 docs - Issue #9)
-- UX Research & UI Design (11 docs)
+- UX Research & UI Design (11 docs - Issue #7)
 - Supporting Documents (1 doc)
 
 **Purpose**: Comprehensive planning and architecture for Family Hub
-**Audience**: Product managers, developers, UX/UI designers, stakeholders, Claude Code
+**Audience**: Product managers, developers, architects, security engineers, legal advisors, UX/UI designers, stakeholders, Claude Code
+
+**⚠️ CRITICAL**: Architecture review (Issue #11) recommends **Modular Monolith First**, not microservices. See `/docs/architecture/` folder.
 
 **Remember**: Always check `/docs/` folder first when you need context about Family Hub!
 
