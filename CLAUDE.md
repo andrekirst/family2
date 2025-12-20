@@ -35,11 +35,12 @@
 
 **IMPORTANT**: All comprehensive planning and architecture documentation is stored in the `/docs/` folder.
 
-The `/docs/` folder contains **33 documents** totaling **170,000+ words** of detailed planning:
+The `/docs/` folder contains **38 documents** totaling **185,000+ words** of detailed planning:
 
 - Product strategy and feature prioritization
 - Technical architecture and domain models
 - Cloud architecture and Kubernetes deployment
+- Security architecture and compliance (NEW - Issue #8)
 - UX research and UI design system
 - Implementation roadmap and risk analysis
 - Event chain specifications
@@ -50,6 +51,8 @@ The `/docs/` folder contains **33 documents** totaling **170,000+ words** of det
 - Product vision and strategy
 - Feature priorities and backlog
 - Technical architecture decisions
+- Security architecture and threat modeling (NEW)
+- Compliance requirements (GDPR, COPPA, WCAG)
 - UX research and UI design patterns
 - Implementation phases and timeline
 - Domain models and microservices structure
@@ -79,6 +82,16 @@ Start here to understand technical architecture:
 4. [`/docs/implementation-roadmap.md`](docs/implementation-roadmap.md) - **6-phase plan** (12-18 months) with deliverables
 5. [`/docs/event-chains-reference.md`](docs/event-chains-reference.md) - Event chain specifications and patterns
 6. [`/docs/risk-register.md`](docs/risk-register.md) - 35 risks with mitigation strategies
+
+### For Security Engineers
+
+Start here to understand security architecture and compliance:
+
+1. [`/docs/threat-model.md`](docs/threat-model.md) - **STRIDE analysis**, 53 threats identified, attack surface mapping
+2. [`/docs/security-testing-plan.md`](docs/security-testing-plan.md) - **OWASP Top 10**, SAST/DAST, penetration testing schedule
+3. [`/docs/vulnerability-management.md`](docs/vulnerability-management.md) - Severity classification, remediation SLAs, disclosure policy
+4. [`/docs/security-monitoring-incident-response.md`](docs/security-monitoring-incident-response.md) - Monitoring strategy, incident response playbooks
+5. [`/docs/ISSUE-8-SECURITY-SUMMARY.md`](docs/ISSUE-8-SECURITY-SUMMARY.md) - Security architecture executive summary
 
 ### For UX/UI Designers
 
@@ -453,6 +466,10 @@ Start here for high-level overview:
 - **Technical architecture**: Read `/docs/domain-model-microservices-map.md`
 - **Cloud architecture**: Read `/docs/cloud-architecture.md` or `/docs/kubernetes-deployment-guide.md`
 - **Infrastructure costs**: Read `/docs/infrastructure-cost-analysis.md`
+- **Security architecture**: Read `/docs/threat-model.md` or `/docs/ISSUE-8-SECURITY-SUMMARY.md` (NEW)
+- **Security testing**: Read `/docs/security-testing-plan.md` (OWASP Top 10, SAST/DAST) (NEW)
+- **Vulnerability management**: Read `/docs/vulnerability-management.md` (NEW)
+- **Incident response**: Read `/docs/security-monitoring-incident-response.md` (NEW)
 - **UX research & personas**: Read `/docs/ux-research-report.md`
 - **UI design system**: Read `/docs/design-system.md` or `/docs/angular-component-specs.md`
 - **Wireframes**: Read `/docs/wireframes.md`
