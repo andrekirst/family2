@@ -1,0 +1,129 @@
+name: Bug Report
+description: Report a bug or defect
+title: "[Bug] "
+labels: ["type-bug", "status-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report Template
+        Use this template to report bugs or defects in Family Hub.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - Critical - System down, data loss, security vulnerability
+        - High - Major feature broken, significant user impact
+        - Medium - Feature partially broken, workaround exists
+        - Low - Minor issue, cosmetic problem
+    validations:
+      required: true
+
+  - type: dropdown
+    id: service
+    attributes:
+      label: Affected Service/Component
+      description: Which service or component is affected?
+      options:
+        - Auth Service
+        - Calendar Service
+        - Task Service
+        - Shopping Service
+        - Health Service
+        - Meal Planning Service
+        - Finance Service
+        - Communication Service
+        - Frontend (Angular)
+        - API Gateway
+        - Event Bus
+        - Database
+        - Infrastructure/Kubernetes
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Clear description of the bug
+      placeholder: What is happening? What should happen instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the bug
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happens?
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Environment details
+      placeholder: |
+        - OS: [e.g., Windows 11, macOS 14, Ubuntu 22.04]
+        - Browser: [e.g., Chrome 120, Firefox 121, Safari 17]
+        - Device: [Desktop, Mobile, Tablet]
+        - Family Hub Version: [e.g., v0.1.0]
+        - Deployment: [Local Kubernetes, Cloud, Docker Compose]
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and Error Messages
+      description: Relevant logs, error messages, or stack traces
+      placeholder: Paste logs here (use ``` for code blocks)
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Add screenshots if applicable
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+    validations:
+      required: false

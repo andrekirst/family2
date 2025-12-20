@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Family Hub Documentation
+    url: https://github.com/andrekirst/family2/tree/main/docs
+    about: Comprehensive project documentation (250,000+ words)
+  - name: Feature Backlog
+    url: https://github.com/andrekirst/family2/blob/main/docs/FEATURE_BACKLOG.md
+    about: 208 prioritized features with RICE scoring
+  - name: Implementation Roadmap
+    url: https://github.com/andrekirst/family2/blob/main/docs/implementation-roadmap.md
+    about: 6-phase development plan with user stories
+  - name: Domain Model & Microservices
+    url: https://github.com/andrekirst/family2/blob/main/docs/domain-model-microservices-map.md
+    about: 8 microservices with DDD models and GraphQL schemas

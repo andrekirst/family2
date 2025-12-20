@@ -1,0 +1,116 @@
+name: Technical Debt / Refactoring
+description: Track technical debt or refactoring work
+title: "[Tech Debt] "
+labels: ["type-tech-debt", "status-backlog"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Technical Debt / Refactoring Template
+        Use this template to track technical debt or refactoring work.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How urgent is this technical debt?
+      options:
+        - Critical - Blocking new work or causing bugs
+        - High - Slowing development significantly
+        - Medium - Manageable but should be addressed
+        - Low - Minor issue, can wait
+    validations:
+      required: true
+
+  - type: dropdown
+    id: service
+    attributes:
+      label: Affected Service/Component
+      description: Which service or component?
+      options:
+        - Auth Service
+        - Calendar Service
+        - Task Service
+        - Shopping Service
+        - Health Service
+        - Meal Planning Service
+        - Finance Service
+        - Communication Service
+        - Frontend (Angular)
+        - Shared/Infrastructure
+        - Multiple Services
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type of Technical Debt
+      description: What kind of technical debt?
+      options:
+        - Code Quality (duplication, complexity)
+        - Architecture (design issues)
+        - Testing (missing tests, flaky tests)
+        - Performance (optimization needed)
+        - Security (vulnerabilities)
+        - Documentation (missing or outdated)
+        - Dependencies (outdated libraries)
+        - Infrastructure (deployment, config issues)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the technical debt or refactoring needed
+      placeholder: What is the current state? What problems does it cause?
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What is the impact of NOT addressing this?
+      placeholder: |
+        - Development velocity impact
+        - Risk of bugs or outages
+        - Difficulty adding new features
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: How should this be addressed?
+      placeholder: Describe the refactoring approach or solution
+    validations:
+      required: true
+
+  - type: input
+    id: effort
+    attributes:
+      label: Estimated Effort
+      description: Estimated time to fix (e.g., "2 days", "1 week")
+      placeholder: "e.g., 3 days"
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How do we know this is fixed?
+      placeholder: |
+        - [ ] Code refactored
+        - [ ] Tests passing
+        - [ ] Documentation updated
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true

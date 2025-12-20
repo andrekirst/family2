@@ -1,0 +1,218 @@
+name: Feature Request
+description: Propose a new feature for Family Hub
+title: "[Feature] "
+labels: ["type-feature", "status-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request Template
+        Use this template to propose new features aligned with the product roadmap.
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Implementation Phase
+      description: Which phase does this belong to?
+      options:
+        - Phase 0 - Foundation & Tooling
+        - Phase 1 - Core MVP (Auth + Calendar + Tasks)
+        - Phase 2 - Health Integration & Event Chains
+        - Phase 3 - Meal Planning & Finance
+        - Phase 4 - Recurrence & Advanced Features
+        - Phase 5 - Microservices Extraction & Production Hardening
+        - Phase 6 - Mobile App & Extended Features
+        - Future (Phase 7+)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: service
+    attributes:
+      label: Microservice/Bounded Context
+      description: Which service owns this feature?
+      options:
+        - Auth Service
+        - Calendar Service
+        - Task Service
+        - Shopping Service
+        - Health Service
+        - Meal Planning Service
+        - Finance Service
+        - Communication Service
+        - Frontend (Angular)
+        - Infrastructure/DevOps
+        - Multiple Services
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Feature Domain
+      description: Which functional domain?
+      options:
+        - Authentication & Authorization
+        - Calendar & Events
+        - Tasks & Chores
+        - Shopping & Lists
+        - Health Tracking
+        - Meal Planning
+        - Finance & Budgeting
+        - Communication & Notifications
+        - Event Chain Automation
+        - Mobile Experience
+        - Infrastructure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User Story
+      description: Describe the feature from user perspective
+      placeholder: |
+        **As a** [user persona - parent/co-parent/teen/child/guest]
+        **I want** [capability/action]
+        **So that** [benefit/value]
+      value: |
+        **As a**
+        **I want**
+        **So that**
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: Detailed description of the feature
+      placeholder: Explain what this feature does, how it works, and why it's valuable
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Checklist of requirements for this feature to be considered complete
+      placeholder: |
+        - [ ] Requirement 1
+        - [ ] Requirement 2
+        - [ ] Requirement 3
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: rice-scoring
+    attributes:
+      label: RICE Scoring
+      description: Prioritization scoring (see FEATURE_BACKLOG.md for methodology)
+      placeholder: |
+        - **Reach**: How many users? (1-10)
+        - **Impact**: How much impact? (0.25=minimal, 0.5=low, 1=medium, 2=high, 3=massive)
+        - **Confidence**: How confident? (50%=low, 80%=medium, 100%=high)
+        - **Effort**: Developer time in person-weeks
+        - **RICE Score**: (Reach × Impact × Confidence) / Effort = _____
+      value: |
+        - **Reach**:
+        - **Impact**:
+        - **Confidence**:
+        - **Effort**:
+        - **RICE Score**:
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Feature priority
+      options:
+        - P0 - Critical (Must Have)
+        - P1 - High (Should Have)
+        - P2 - Medium (Nice to Have)
+        - P3 - Low (Future)
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: List dependent features, issues, or technical requirements
+      placeholder: |
+        - Issue #XX: [Feature name]
+        - Technical: [Dependency description]
+    validations:
+      required: false
+
+  - type: textarea
+    id: event-chains
+    attributes:
+      label: Event Chain Integration
+      description: Does this feature trigger or participate in event chains?
+      placeholder: |
+        **Triggers:**
+        - EventName (when X happens)
+
+        **Consumes:**
+        - EventName (to do Y)
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Implementation Notes
+      description: Technical considerations, architecture decisions, or implementation hints
+      placeholder: |
+        - GraphQL schema changes needed
+        - Database migrations required
+        - New domain events to publish
+    validations:
+      required: false
+
+  - type: textarea
+    id: testing-strategy
+    attributes:
+      label: Testing Strategy
+      description: How should this feature be tested?
+      placeholder: |
+        - [ ] Unit tests for domain logic
+        - [ ] Integration tests for API
+        - [ ] E2E tests for user flows
+        - [ ] Event chain tests (if applicable)
+    validations:
+      required: false
+
+  - type: textarea
+    id: documentation
+    attributes:
+      label: Documentation References
+      description: Links to relevant documentation
+      placeholder: |
+        - FEATURE_BACKLOG.md: [Section/Feature]
+        - implementation-roadmap.md: [Phase/Section]
+        - Other docs: [Link]
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: competitive-analysis
+    attributes:
+      label: Competitive Analysis
+      description: Does this feature exist in competitors?
+      options:
+        - label: Cozi has this feature
+        - label: FamilyWall has this feature
+        - label: TimeTree has this feature
+        - label: Picniic has this feature
+        - label: This is a unique differentiator for Family Hub

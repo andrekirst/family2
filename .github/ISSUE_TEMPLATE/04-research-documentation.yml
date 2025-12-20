@@ -1,0 +1,122 @@
+name: Research & Documentation
+description: Track research tasks or documentation work
+title: "[Research] " or "[Docs] "
+labels: ["type-research", "status-planning"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Research & Documentation Template
+        Use this template for research tasks, spikes, or documentation work.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      description: What type of work is this?
+      options:
+        - Research/Spike
+        - Documentation
+        - Architecture Decision Record (ADR)
+        - Planning Document
+        - Technical Investigation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: What category?
+      options:
+        - Product Strategy
+        - Technical Architecture
+        - Cloud & Infrastructure
+        - UX/UI Design
+        - Security & Privacy
+        - Performance
+        - Market Research
+        - Competitive Analysis
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: research-question
+    attributes:
+      label: Research Question / Goal
+      description: What question are you trying to answer or what is the goal?
+      placeholder: |
+        **Question:** How should we...?
+        **Goal:** Determine the best approach for...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why is this research/documentation needed?
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What will be investigated/documented?
+      placeholder: |
+        - Topic 1
+        - Topic 2
+        - Topic 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Deliverables
+      description: What will be produced?
+      placeholder: |
+        - [ ] Document: [Name/location]
+        - [ ] Analysis: [Type]
+        - [ ] Recommendation: [Topic]
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: Success Criteria
+      description: How do we know this is complete?
+      placeholder: |
+        - [ ] Research question answered
+        - [ ] Documentation complete and reviewed
+        - [ ] Recommendation provided with rationale
+    validations:
+      required: true
+
+  - type: input
+    id: timeline
+    attributes:
+      label: Timeline
+      description: Expected timeframe (e.g., "Week 1-2", "2 days")
+      placeholder: "e.g., Week 1-2"
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References & Resources
+      description: Links to relevant docs, articles, or resources
+      placeholder: |
+        - `/docs/[document].md`
+        - External: [URL]
+    validations:
+      required: false

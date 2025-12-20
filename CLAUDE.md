@@ -491,6 +491,56 @@ Start here for high-level overview:
 3. **Review `/docs/domain-model-microservices-map.md`** for technical architecture
 4. **Consult `/docs/implementation-roadmap.md`** to understand current phase and next steps
 
+### Contributing and Creating Issues
+
+**NEW**: Family Hub now has comprehensive issue templates and contribution guidelines!
+
+**Issue Templates** (`.github/ISSUE_TEMPLATE/`):
+- **Feature Request** - Propose new features with RICE scoring and user stories
+- **Bug Report** - Report bugs with severity, reproduction steps, and environment details
+- **Phase Deliverable (Epic)** - Track major phase deliverables coordinating multiple sub-issues
+- **Research & Documentation** - Track research tasks, spikes, and documentation work
+- **Technical Debt** - Track technical debt and refactoring work
+- **Blank Issue** - For custom use cases
+
+**How to Create Issues**:
+1. Use GitHub's "New Issue" button
+2. Select appropriate template
+3. Fill out all required fields (phase, service, domain, user story, acceptance criteria)
+4. Templates include RICE scoring fields for feature prioritization
+5. Event chain integration prompts ensure cross-service impacts are considered
+
+**Pull Requests**:
+- Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`)
+- Documents architecture impact, services affected, domain events, event chain changes
+- Includes comprehensive testing, quality, documentation, and deployment checklists
+
+**Labels System** (60+ labels):
+- **Type**: feature, bug, epic, research, docs, tech-debt, infrastructure, security, performance
+- **Phase**: phase-0 through phase-6, phase-7-future
+- **Service**: auth, calendar, task, shopping, health, meal, finance, communication, frontend, infrastructure, multiple
+- **Status**: triage, planning, ready, in-progress, blocked, review, testing, done, wontfix
+- **Priority**: p0 (critical), p1 (high), p2 (medium), p3 (low)
+- **Domain**: auth, calendar, tasks, shopping, health, meals, finance, notifications, event-chains, mobile, ux
+- **Effort**: xs (<1 day), s (1-3 days), m (1 week), l (2 weeks), xl (>2 weeks)
+- **Special**: good-first-issue, help-wanted, breaking-change, needs-documentation, needs-design, ai-assisted
+
+**Create Labels**:
+```bash
+./scripts/create-labels.sh
+```
+
+**Developer Guide**:
+- See [`CONTRIBUTING.md`](CONTRIBUTING.md) for comprehensive contribution guidelines
+- Covers when to use each template, project structure, event chains, code standards, and labels reference
+
+**Why This Matters**:
+- **Structured issues** aligned with DDD architecture and microservices (modules)
+- **RICE scoring** maintains prioritization methodology from FEATURE_BACKLOG.md
+- **Phase alignment** ensures issues map to 6-phase implementation roadmap
+- **Event chain awareness** prompts consideration of cross-service impacts
+- **AI-friendly** - Templates provide structure Claude Code can work with (60-80% automation)
+
 ### Understanding the Codebase
 
 **When you need to understand**:

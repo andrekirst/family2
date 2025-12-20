@@ -1,0 +1,164 @@
+name: Phase Deliverable (Epic)
+description: Track a major phase deliverable or epic
+title: "[Phase X] "
+labels: ["type-epic", "status-planning"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Phase Deliverable Template
+        Use this template for major phase deliverables or epics that coordinate multiple sub-issues.
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Implementation Phase
+      description: Which phase?
+      options:
+        - Phase 0 - Foundation & Tooling
+        - Phase 1 - Core MVP
+        - Phase 2 - Health Integration & Event Chains
+        - Phase 3 - Meal Planning & Finance
+        - Phase 4 - Recurrence & Advanced Features
+        - Phase 5 - Microservices Extraction
+        - Phase 6 - Mobile App
+    validations:
+      required: true
+
+  - type: input
+    id: parent-issue
+    attributes:
+      label: Parent Issue
+      description: Link to parent/master issue (e.g., #4)
+      placeholder: "#4"
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Background and context for this deliverable
+      placeholder: Explain why this deliverable exists and its strategic importance
+    validations:
+      required: true
+
+  - type: textarea
+    id: objectives
+    attributes:
+      label: Objectives
+      description: High-level objectives for this deliverable
+      placeholder: |
+        1. Objective 1
+        2. Objective 2
+        3. Objective 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What is included and excluded?
+      placeholder: |
+        **In Scope:**
+        - Item 1
+        - Item 2
+
+        **Out of Scope:**
+        - Item 1
+        - Item 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Deliverables
+      description: Concrete deliverables (documents, features, services)
+      placeholder: |
+        - [ ] Deliverable 1: [Description]
+        - [ ] Deliverable 2: [Description]
+        - [ ] Deliverable 3: [Description]
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: Success Criteria
+      description: How do we know this is complete and successful?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: sub-issues
+    attributes:
+      label: Sub-Issues
+      description: List of related sub-issues that implement this deliverable
+      placeholder: |
+        - [ ] #XX: [Sub-issue title]
+        - [ ] #XX: [Sub-issue title]
+    validations:
+      required: false
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Dependencies on other issues, phases, or external factors
+      placeholder: |
+        - Issue #XX: [Dependency]
+        - Phase X completion
+        - External: [Dependency]
+    validations:
+      required: false
+
+  - type: textarea
+    id: timeline
+    attributes:
+      label: Timeline
+      description: Estimated timeline and milestones
+      placeholder: |
+        - Week 1: [Milestone]
+        - Week 2: [Milestone]
+        - Week 3: Completion
+    validations:
+      required: false
+
+  - type: textarea
+    id: coordination
+    attributes:
+      label: Coordination & Cross-References
+      description: How this coordinates with other work
+      placeholder: |
+        - Coordinates with: Issue #XX ([Description])
+        - Blocks: Issue #XX
+        - Blocked by: Issue #XX
+    validations:
+      required: false
+
+  - type: textarea
+    id: documentation
+    attributes:
+      label: Documentation References
+      description: Links to relevant documentation
+      placeholder: |
+        - `/docs/implementation-roadmap.md`: [Phase section]
+        - `/docs/FEATURE_BACKLOG.md`: [Feature section]
+    validations:
+      required: false
