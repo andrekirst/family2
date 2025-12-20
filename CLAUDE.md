@@ -35,12 +35,14 @@
 
 **IMPORTANT**: All comprehensive planning and architecture documentation is stored in the `/docs/` folder.
 
-The `/docs/` folder contains **38 documents** totaling **185,000+ words** of detailed planning:
+The `/docs/` folder contains **47 documents** totaling **230,000+ words** of detailed planning:
 
 - Product strategy and feature prioritization
 - Technical architecture and domain models
 - Cloud architecture and Kubernetes deployment
-- Security architecture and compliance (NEW - Issue #8)
+- Security architecture and compliance (Issue #8)
+- Legal compliance and data protection (NEW - Issue #10)
+- Market strategy and go-to-market planning (Issue #9)
 - UX research and UI design system
 - Implementation roadmap and risk analysis
 - Event chain specifications
@@ -51,8 +53,9 @@ The `/docs/` folder contains **38 documents** totaling **185,000+ words** of det
 - Product vision and strategy
 - Feature priorities and backlog
 - Technical architecture decisions
-- Security architecture and threat modeling (NEW)
-- Compliance requirements (GDPR, COPPA, WCAG)
+- Security architecture and threat modeling
+- Legal compliance and data protection (NEW - GDPR, COPPA, CCPA)
+- Market strategy and go-to-market planning
 - UX research and UI design patterns
 - Implementation phases and timeline
 - Domain models and microservices structure
@@ -92,6 +95,19 @@ Start here to understand security architecture and compliance:
 3. [`/docs/vulnerability-management.md`](docs/vulnerability-management.md) - Severity classification, remediation SLAs, disclosure policy
 4. [`/docs/security-monitoring-incident-response.md`](docs/security-monitoring-incident-response.md) - Monitoring strategy, incident response playbooks
 5. [`/docs/ISSUE-8-SECURITY-SUMMARY.md`](docs/ISSUE-8-SECURITY-SUMMARY.md) - Security architecture executive summary
+
+### For Legal Advisors
+
+Start here to understand legal compliance and data protection:
+
+1. [`/docs/legal/LEGAL-COMPLIANCE-SUMMARY.md`](docs/legal/LEGAL-COMPLIANCE-SUMMARY.md) - **Comprehensive compliance overview**, legal risk assessment
+2. [`/docs/legal/terms-of-service.md`](docs/legal/terms-of-service.md) - **Terms of Service** with family-specific provisions
+3. [`/docs/legal/privacy-policy.md`](docs/legal/privacy-policy.md) - **Privacy Policy** (GDPR, COPPA, CCPA compliant)
+4. [`/docs/legal/cookie-policy.md`](docs/legal/cookie-policy.md) - Cookie disclosure and consent mechanisms
+5. [`/docs/legal/compliance-checklist.md`](docs/legal/compliance-checklist.md) - **93 compliance items** across GDPR, COPPA, CCPA
+6. [`/docs/legal/data-processing-agreement-template.md`](docs/legal/data-processing-agreement-template.md) - DPA templates for third-party processors
+7. [`/docs/legal/quick-reference-coppa-workflow.md`](docs/legal/quick-reference-coppa-workflow.md) - **COPPA implementation** with code examples
+8. [`/docs/legal/README.md`](docs/legal/README.md) - Legal documentation quick start guide
 
 ### For UX/UI Designers
 
@@ -466,10 +482,17 @@ Start here for high-level overview:
 - **Technical architecture**: Read `/docs/domain-model-microservices-map.md`
 - **Cloud architecture**: Read `/docs/cloud-architecture.md` or `/docs/kubernetes-deployment-guide.md`
 - **Infrastructure costs**: Read `/docs/infrastructure-cost-analysis.md`
-- **Security architecture**: Read `/docs/threat-model.md` or `/docs/ISSUE-8-SECURITY-SUMMARY.md` (NEW)
-- **Security testing**: Read `/docs/security-testing-plan.md` (OWASP Top 10, SAST/DAST) (NEW)
-- **Vulnerability management**: Read `/docs/vulnerability-management.md` (NEW)
-- **Incident response**: Read `/docs/security-monitoring-incident-response.md` (NEW)
+- **Security architecture**: Read `/docs/threat-model.md` or `/docs/ISSUE-8-SECURITY-SUMMARY.md`
+- **Security testing**: Read `/docs/security-testing-plan.md` (OWASP Top 10, SAST/DAST)
+- **Vulnerability management**: Read `/docs/vulnerability-management.md`
+- **Incident response**: Read `/docs/security-monitoring-incident-response.md`
+- **Legal compliance**: Read `/docs/legal/LEGAL-COMPLIANCE-SUMMARY.md` (GDPR, COPPA, CCPA) (NEW)
+- **Terms of Service**: Read `/docs/legal/terms-of-service.md` (NEW)
+- **Privacy Policy**: Read `/docs/legal/privacy-policy.md` (NEW)
+- **COPPA implementation**: Read `/docs/legal/quick-reference-coppa-workflow.md` (NEW)
+- **Market strategy**: Read `/docs/market-research-report.md` or `/docs/ISSUE-9-MARKET-STRATEGY-SUMMARY.md`
+- **Go-to-market plan**: Read `/docs/go-to-market-plan.md`
+- **SEO strategy**: Read `/docs/seo-content-strategy.md`
 - **UX research & personas**: Read `/docs/ux-research-report.md`
 - **UI design system**: Read `/docs/design-system.md` or `/docs/angular-component-specs.md`
 - **Wireframes**: Read `/docs/wireframes.md`
@@ -763,14 +786,17 @@ Refill reminder scheduled (Communication Service)
 
 ## 📚 Documentation Summary
 
-**Total**: 33 documents, 170,000+ words
+**Total**: 47 documents, 230,000+ words
 **Location**: `/home/andrekirst/git/github/andrekirst/family2/docs/`
 **Categories**:
 - Product Strategy (5 docs)
 - Technical Architecture (3 docs)
 - Cloud & Kubernetes (8 docs)
+- Security Architecture (5 docs - Issue #8)
+- Legal Compliance (9 docs - Issue #10)
+- Market Strategy (5 docs - Issue #9)
 - UX Research & UI Design (11 docs)
-- Supporting Documents (6 docs)
+- Supporting Documents (1 doc)
 
 **Purpose**: Comprehensive planning and architecture for Family Hub
 **Audience**: Product managers, developers, UX/UI designers, stakeholders, Claude Code
