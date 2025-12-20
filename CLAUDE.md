@@ -14,12 +14,12 @@
 
 ### Technology Stack
 
-**⚠️ IMPORTANT: See [Architecture Review Report](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md) for critical updates**
+**⚠️ IMPORTANT: See [Architecture Review Report](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md) for architecture decisions**
 
-- **Backend**: .NET 8 LTS / C# 12 (REST APIs Phase 1-3, GraphQL Phase 4+)
-- **Frontend**: Angular 17 OR React 18 + TypeScript + Tailwind CSS
+- **Backend**: .NET Core 10 / C# 14 with Hot Chocolate GraphQL
+- **Frontend**: Angular v21 + TypeScript + Tailwind CSS
 - **Database**: PostgreSQL 16 with Row-Level Security (RLS)
-- **Event Bus**: RabbitMQ (NOT Redis Pub/Sub - durability required)
+- **Event Bus**: RabbitMQ (in-process Phase 1-4, network Phase 5+)
 - **Auth**: Zitadel (external OAuth 2.0 / OIDC provider)
 - **Infrastructure**: Docker Compose (Phase 1-4) → Kubernetes (Phase 5+)
 - **Monitoring**: Prometheus + Grafana + Seq
@@ -570,7 +570,7 @@ Refill reminder scheduled (Communication Service)
 
 - Domain entities and aggregates
 - Domain events (published/consumed)
-- REST API endpoints (Phase 1-3) → GraphQL (Phase 4+)
+- GraphQL schema types (Hot Chocolate, merged into single /graphql endpoint)
 - Separate PostgreSQL schema (same DB instance)
 - Event bus integration (RabbitMQ, in-process execution)
 
@@ -647,30 +647,31 @@ Refill reminder scheduled (Communication Service)
 
 **Next Steps**:
 
-1. **Stakeholder approval** of ADR-001 (Modular Monolith First approach)
+1. **Stakeholder approval** of ADR-001 (Modular Monolith First approach) ✅ **APPROVED**
 
-2. **Update all documentation** with corrected technology stack:
-   - Fix .NET Core 10 → .NET 8 LTS throughout `/docs/`
-   - Fix Angular v21 → Angular 17 throughout `/docs/`
-   - Update architecture diagrams for modular monolith
-   - Update deployment guides for Docker Compose (Phase 1-4)
+2. **Technology Stack Confirmed**:
+   - Backend: .NET Core 10 / C# 14 with Hot Chocolate GraphQL
+   - Frontend: Angular v21 + TypeScript + Tailwind CSS
+   - Event Bus: RabbitMQ (in-process Phase 1-4)
+   - Infrastructure: Docker Compose (Phase 1-4) → Kubernetes (Phase 5+)
 
 3. Start Phase 0: Foundation & Tooling (3 weeks, reduced from 4)
 
-   - Set up development environment (.NET 8 SDK, Docker Desktop)
+   - Set up development environment (.NET Core 10 SDK, Node.js for Angular v21, Docker Desktop)
    - Configure CI/CD pipeline (GitHub Actions)
-   - Create modular monolith project structure
+   - Create modular monolith project structure (.NET Core 10)
    - Initialize Git repository structure
    - Set up Zitadel instance
    - Configure RabbitMQ (in-process execution initially)
+   - Set up Hot Chocolate GraphQL with module schema merging
    - Implement RLS testing framework
    - Create Docker Compose for local dev
 
 4. Proceed to Phase 1: Core MVP (6 weeks, reduced from 8)
-   - Auth Module with Zitadel integration
-   - Calendar Module with events
-   - Task Module with assignments
-   - Basic event chains (in-process)
+   - Auth Module with Zitadel integration + GraphQL schema
+   - Calendar Module with events + GraphQL schema
+   - Task Module with assignments + GraphQL schema
+   - Basic event chains (in-process via RabbitMQ)
 
 ### Success Criteria for MVP
 

@@ -9,13 +9,13 @@
 
 ## Context
 
-Family Hub was originally designed as 8 microservices from day one, deployed on Kubernetes with GraphQL schema stitching. While this architecture is sound for a team, **it's over-engineered for a single developer** with AI assistance.
+Family Hub was originally designed as 8 microservices from day one, deployed on Kubernetes with GraphQL schema stitching across services. While this architecture is sound for a team, **it's over-engineered for a single developer** with AI assistance.
 
 **The Problem**:
 - 8 microservices + API Gateway + Event Bus = 10+ deployments
 - Kubernetes operational overhead = 30-40% of development time
 - Distributed debugging is 5-10x harder than monolith
-- GraphQL schema stitching adds complexity
+- Distributed GraphQL schema stitching adds complexity (vs single GraphQL server)
 - High risk of developer burnout (CRITICAL risk)
 
 **Key Question**: How can we maintain the excellent domain boundaries while reducing operational complexity?
@@ -29,13 +29,13 @@ Family Hub was originally designed as 8 microservices from day one, deployed on 
 ### Modular Monolith Structure
 
 ```
-family-hub-api/ (Single .NET 8 Project)
+family-hub-api/ (Single .NET Core 10 Project)
 ├── Modules/
 │   ├── Auth/
 │   │   ├── Domain/
 │   │   ├── Application/
 │   │   ├── Infrastructure/
-│   │   └── API/ (Controllers or GraphQL types)
+│   │   └── API/ (GraphQL types with Hot Chocolate)
 │   ├── Calendar/
 │   ├── Tasks/
 │   ├── Shopping/
@@ -44,9 +44,9 @@ family-hub-api/ (Single .NET 8 Project)
 │   ├── Finance/
 │   └── Communication/
 └── Shared/
-    ├── EventBus/ (In-process or RabbitMQ)
+    ├── EventBus/ (In-process RabbitMQ)
     ├── Database/ (PostgreSQL with RLS)
-    └── API/ (REST → GraphQL later)
+    └── API/ (Single GraphQL server)
 ```
 
 ### Key Principles
@@ -273,7 +273,7 @@ public class CalendarModule : IModule
         // Event handlers
         services.AddEventHandler<HealthAppointmentScheduledEvent, CalendarEventHandler>();
 
-        // GraphQL (if using GraphQL)
+        // GraphQL schema (Hot Chocolate)
         services.AddGraphQLServer()
             .AddQueryType<CalendarQueries>()
             .AddMutationType<CalendarMutations>();
@@ -281,13 +281,8 @@ public class CalendarModule : IModule
 
     public void ConfigureApp(WebApplication app)
     {
-        // Map REST endpoints
-        app.MapGroup("/api/calendar")
-            .MapCalendarEndpoints()
-            .RequireAuthorization();
-
-        // Or map GraphQL
-        app.MapGraphQL("/graphql/calendar");
+        // GraphQL is mapped globally in Program.cs
+        // All module schemas are merged into single /graphql endpoint
     }
 }
 ```

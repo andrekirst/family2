@@ -51,25 +51,30 @@ All 7 success criteria from Issue #11 have been fulfilled:
 
 ### ✅ 2. Technology Stack Validation
 
-**Status**: ✅ COMPLETED (with critical corrections)
+**Status**: ✅ COMPLETED (stakeholder confirmed technology choices)
 
-**Critical Corrections Required**:
+**✅ CONFIRMED Technology Stack**:
 
-| Component | Current (Incorrect) | Corrected | Rationale |
-|-----------|---------------------|-----------|-----------|
-| **Backend** | .NET Core 10 | **.NET 8 LTS** | .NET 10 doesn't exist yet (Dec 2024) |
-| **Frontend** | Angular v21 | **Angular 17** OR **React 18** | Angular 21 doesn't exist; consider React for better AI assistance |
-| **Event Bus** | Redis Pub/Sub | **RabbitMQ** | Redis lacks durability, retries, dead-letter queues |
-| **GraphQL** | Phase 1 | **Phase 4+** | Defer complexity until MVP validated |
+| Component | Choice | Status | Notes |
+|-----------|--------|--------|-------|
+| **Backend** | .NET Core 10 / C# 14 | ✅ **CONFIRMED** | Stakeholder confirmed |
+| **Frontend** | Angular v21 + TypeScript | ✅ **CONFIRMED** | Stakeholder confirmed |
+| **API** | GraphQL from Phase 1 | ✅ **CONFIRMED** | Single GraphQL server in modular monolith |
+| **Event Bus** | RabbitMQ | ✅ **APPROVED** | In-process execution Phase 1-4 |
+| **Database** | PostgreSQL 16 + RLS | ✅ **APPROVED** | Excellent multi-tenancy strategy |
+| **Auth** | Zitadel OAuth 2.0 / OIDC | ✅ **APPROVED** | Modern, open-source |
+| **Infrastructure** | Docker Compose → Kubernetes | ✅ **APPROVED** | Phased approach (Phase 5+) |
+| **Monitoring** | Prometheus + Grafana + Seq | ✅ **APPROVED** | Solid observability stack |
 
-**Validated Components** (no changes needed):
-- ✅ PostgreSQL 16 with Row-Level Security (excellent multi-tenancy strategy)
-- ✅ Zitadel for OAuth 2.0 / OIDC (modern, open-source)
-- ✅ Prometheus + Grafana + Seq (solid observability stack)
+**Key Advantages of Modular Monolith with GraphQL**:
+- Single GraphQL server (no distributed schema stitching complexity)
+- Hot Chocolate merges all module schemas automatically
+- Better type safety than REST
+- Easier implementation than microservices with GraphQL Federation
 
 **Deliverables**:
-- Technology stack corrections documented in `ARCHITECTURE-REVIEW-REPORT.md` (Section 4)
-- Migration timeline for tech debt (GraphQL in Phase 4, Kubernetes in Phase 5)
+- Technology stack validation in `ARCHITECTURE-REVIEW-REPORT.md` (Section 2)
+- GraphQL implementation strategy for modular monolith documented
 
 ### ✅ 3. Scalability Assessment
 
@@ -229,7 +234,7 @@ All 7 success criteria from Issue #11 have been fulfilled:
 - Executive summary with CONDITIONAL GO verdict
 - Detailed agent findings from both reviews
 - Modular Monolith vs Microservices comparison (6/8 criteria favor monolith)
-- Technology stack corrections (.NET 8 LTS, Angular 17, RabbitMQ)
+- Technology stack validation (.NET Core 10, Angular v21, GraphQL, RabbitMQ confirmed)
 - Scalability roadmap by phase
 - Security assessment with RLS testing requirements
 - Event-driven architecture improvements (Saga orchestrator, event versioning)
@@ -276,17 +281,18 @@ All 7 success criteria from Issue #11 have been fulfilled:
 
 1. ✅ **Adopt Modular Monolith First**
    - Preserve all 8 DDD bounded contexts as modules
-   - Single .NET 8 project with clear module boundaries
+   - Single .NET Core 10 project with clear module boundaries
    - In-process event bus (RabbitMQ library, in-memory execution)
 
-2. ✅ **Correct Technology Stack**
-   - Backend: .NET 8 LTS (NOT .NET Core 10)
-   - Frontend: Angular 17 OR consider React 18
-   - Event Bus: RabbitMQ (NOT Redis Pub/Sub)
+2. ✅ **Technology Stack Confirmed**
+   - Backend: .NET Core 10 / C# 14 (stakeholder confirmed)
+   - Frontend: Angular v21 + TypeScript (stakeholder confirmed)
+   - API: GraphQL from Phase 1 (stakeholder confirmed)
+   - Event Bus: RabbitMQ (in-process Phase 1-4, network Phase 5+)
 
-3. ✅ **Defer Complexity**
-   - GraphQL: Phase 4+ (use REST Phase 1-3)
-   - Kubernetes: Phase 5+ (use Docker Compose Phase 1-4)
+3. ✅ **Phased Infrastructure Approach**
+   - Docker Compose Phase 1-4 (simple deployment)
+   - Kubernetes Phase 5+ (when revenue justifies complexity)
 
 4. ✅ **Add RLS Testing Framework**
    - Unit tests for all RLS policies
@@ -299,9 +305,8 @@ All 7 success criteria from Issue #11 have been fulfilled:
 
 ### Should-Do for Success
 
-1. **Update All Documentation**
-   - Fix .NET Core 10 → .NET 8 LTS throughout `/docs/`
-   - Fix Angular v21 → Angular 17 throughout `/docs/`
+1. **Update All Documentation** (completed)
+   - Technology stack confirmed (.NET Core 10, Angular v21, GraphQL)
    - Add modular monolith architecture diagrams
    - Update deployment guides for Docker Compose
 
@@ -376,7 +381,7 @@ Total: 43 weeks (10 months minimum, 14 months realistic)
 | **Developer Burnout** | CRITICAL (Score 25) | MEDIUM (Score 12) | -440 hours workload reduction |
 | **Microservices Complexity** | HIGH (Score 16) | LOW (Score 4) | Deferred to Phase 5+ when validated |
 | **Kubernetes Operational Overhead** | HIGH (Score 16) | LOW (Score 4) | Docker Compose Phase 1-4 |
-| **GraphQL Schema Stitching** | MEDIUM (Score 9) | LOW (Score 3) | Deferred to Phase 4+ |
+| **Distributed GraphQL Complexity** | MEDIUM (Score 9) | LOW (Score 3) | Single GraphQL server in monolith (Phase 1-4) |
 | **Low User Adoption** | CRITICAL (Score 20) | HIGH (Score 16) | Faster time to market = earlier validation |
 
 **Overall Risk Reduction**: Project risk score reduced from **86 points → 39 points** (-55% reduction)
@@ -391,16 +396,10 @@ Total: 43 weeks (10 months minimum, 14 months realistic)
    - Present ADR-001 for sign-off
    - Confirm go-ahead with Modular Monolith First approach
 
-2. **Update All Documentation**:
-   - Fix version numbers (.NET 8 LTS, Angular 17) in:
-     - `/CLAUDE.md`
-     - `/docs/EXECUTIVE_SUMMARY.md`
-     - `/docs/domain-model-microservices-map.md`
-     - `/docs/implementation-roadmap.md`
-     - `/docs/cloud-architecture.md`
-     - All other docs referencing .NET Core 10 or Angular v21
-   - Add modular monolith architecture diagrams
-   - Update deployment guides for Docker Compose
+2. **Documentation Updates** (completed):
+   - Technology stack confirmed (.NET Core 10, Angular v21, GraphQL)
+   - Modular monolith architecture documented
+   - Updated deployment guides for Docker Compose
 
 3. **Create Phase 0 Deliverables**:
    - Docker Compose setup guide
@@ -410,8 +409,8 @@ Total: 43 weeks (10 months minimum, 14 months realistic)
 
 ### Phase 0: Foundation & Tooling (3 weeks)
 
-1. Set up development environment (VS Code, .NET 8 SDK, Docker Desktop)
-2. Create modular monolith project structure
+1. Set up development environment (VS Code, .NET Core 10 SDK, Docker Desktop, Node.js for Angular v21)
+2. Create modular monolith project structure (.NET Core 10)
 3. Configure RabbitMQ event bus (in-process for now)
 4. Set up PostgreSQL with RLS
 5. Integrate Zitadel OAuth 2.0

@@ -24,8 +24,8 @@ Both independent architecture reviews converged on the same critical finding: **
 
 ⚠️ **Microservices complexity is TOO HIGH** for solo developer (risk of burnout)
 ⚠️ **Kubernetes operational overhead** will consume 30-40% of development time
-⚠️ **GraphQL schema stitching** adds unnecessary complexity for MVP
-❌ **Version numbers are incorrect** (.NET Core 10, Angular v21 don't exist)
+✅ **Technology stack confirmed** (.NET Core 10, Angular v21, GraphQL from Phase 1)
+✅ **Modular monolith simplifies GraphQL** - single server, no schema stitching needed
 
 ### Critical Recommendation
 
@@ -103,23 +103,23 @@ Phase 7: Complete Extraction (100% microservices)
 
 ---
 
-## 2. Technology Stack Corrections & Recommendations
+## 2. Technology Stack Review & Recommendations
 
-### CRITICAL: Fix Version Numbers
+### Technology Stack Confirmed by Stakeholder
 
-**Current (INCORRECT)**:
-- .NET Core 10 (doesn't exist yet)
-- Angular v21 (doesn't exist yet)
+**✅ CONFIRMED Technology Choices**:
+- **Backend**: .NET Core 10 / C# 14 with Hot Chocolate GraphQL
+- **Frontend**: Angular v21 + TypeScript + Tailwind CSS
+- **API**: GraphQL from Phase 1 (not deferred)
+- **Database**: PostgreSQL 16 with Row-Level Security (RLS)
+- **Event Bus**: RabbitMQ (see recommendation below)
+- **Infrastructure**: Docker Compose (Phase 1-4) → Kubernetes (Phase 5+)
 
-**Corrected**:
-- .NET 8 LTS (supported until November 2026)
-- Angular 17 (current stable, v18 coming June 2024)
+**Note**: Stakeholder has confirmed these technology choices. All other architectural recommendations (modular monolith, RabbitMQ, Docker Compose → Kubernetes phasing) remain valid.
 
-**Impact**: Documentation requires updates throughout
+### Backend Stack ✅ CONFIRMED (.NET Core 10)
 
-### Backend Stack ✅ APPROVED (.NET 8 LTS)
-
-**Assessment**: Excellent choice for this use case
+**Assessment**: Modern, performant choice for this use case
 
 **Strengths**:
 - Modern, performant, cross-platform
@@ -127,61 +127,43 @@ Phase 7: Complete Extraction (100% microservices)
 - Strong typing reduces bugs
 - Long-term Microsoft support
 
-**Concerns**: None (after version correction)
+**Verdict**: ✅ **CONFIRMED** - .NET Core 10 / C# 14
 
-**Verdict**: ✅ **APPROVED** - Use .NET 8 LTS
+### Frontend Stack ✅ CONFIRMED (Angular v21)
 
-### Frontend Stack ⚠️ RECONSIDER (Angular 17 vs React 18)
+**Assessment**: Angular v21 with TypeScript
 
-**Current Plan**: Angular 17
+**Strengths**:
+- Enterprise-grade patterns built-in
+- Strong typing with TypeScript
+- Comprehensive framework (routing, forms, HTTP, etc.)
+- Material Design components available
 
-**Recommendation**: **Consider React 18 instead**
+**Verdict**: ✅ **CONFIRMED** - Angular v21 + TypeScript
 
-**Rationale**:
-- **AI Assistance**: React has 3x more training data (better Claude Code generation)
-- **Learning Curve**: React is simpler (20-30% faster development)
-- **Ecosystem**: Larger package ecosystem
-- **Bundle Size**: Smaller initial bundle
+### API Strategy ✅ CONFIRMED (GraphQL from Phase 1)
 
-**Comparison**:
+**Assessment**: GraphQL from the beginning
 
-| Criterion | Angular 17 | React 18 | Winner |
-|-----------|-----------|----------|--------|
-| **AI Code Generation** | Good (60%) | Excellent (80%) | ✅ React |
-| **Learning Curve** | Steep | Moderate | ✅ React |
-| **Type Safety** | Built-in | TypeScript required | = Tie |
-| **Enterprise Patterns** | Excellent | Good | ✅ Angular |
-| **Bundle Size** | 150KB | 80KB | ✅ React |
-
-**Decision Point**: End of Phase 0 Week 1
-
-**Verdict**: ⚠️ **RECONSIDER** - React 18 recommended for solo developer with AI assistance
-
-### API Strategy ⚠️ DEFER GRAPHQL
-
-**Current Plan**: GraphQL from Day 1 with schema stitching
-
-**Recommendation**: **REST First → GraphQL in Phase 4+**
-
-**Rationale**:
-- **Complexity**: GraphQL schema stitching across 8 services is difficult for one person
-- **Debugging**: REST is easier to debug (standard HTTP tools)
-- **Caching**: HTTP caching simpler than GraphQL caching
-- **Time Savings**: -40 hours to MVP
-
-**Proposed**:
+**Implementation Strategy for Modular Monolith**:
 ```
-Phase 1-3: REST APIs (.NET Minimal APIs)
-  └── Simple, fast, well-understood
-  └── HTTP caching, easy debugging
+Phase 1-4: Single GraphQL Gateway (Modular Monolith)
+  └── Hot Chocolate with merged schemas from all modules
+  └── Single endpoint: /graphql
+  └── Easier to implement than distributed schema stitching
 
-Phase 4+: Add GraphQL Gateway (BFF pattern)
-  └── After REST APIs are stable
-  └── Gradual migration
-  └── Maintain REST for backward compatibility
+Phase 5+: Distributed GraphQL (Microservices)
+  └── Apollo Federation or similar
+  └── Schema stitching across microservices
 ```
 
-**Verdict**: ⚠️ **DEFER GraphQL** - Start with REST
+**Advantages in Modular Monolith**:
+- Single GraphQL server (no schema stitching complexity)
+- Easy to merge module schemas with Hot Chocolate
+- Better type safety than REST
+- Client flexibility for complex queries
+
+**Verdict**: ✅ **CONFIRMED** - GraphQL from Phase 1 (simpler in monolith than distributed)
 
 ### Database ✅ APPROVED (PostgreSQL 16 + RLS)
 
