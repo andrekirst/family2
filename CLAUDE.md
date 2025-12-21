@@ -1,914 +1,440 @@
 # Family Hub - Claude Code Guide
 
-## Project Overview
+## 🚨 CRITICAL CONTEXT - Read First
 
-**Family Hub** is a privacy-first, cloud-based family organization platform that reduces mental load through intelligent **event chain automation**. Built for busy families (2-6 members) seeking better coordination without the overwhelm.
+**Family Hub** is a privacy-first, cloud-based family organization platform that reduces mental load through intelligent **event chain automation**.
 
-### Primary Differentiator
-
-**Event Chain Automation** - Automatic cross-domain workflows that no competitor offers:
-
+**Primary Differentiator:** Event Chain Automation - Automatic cross-domain workflows that no competitor offers:
 - Doctor appointment → calendar event → preparation task → prescription → shopping list → pickup task → refill reminder
 - Meal plan → shopping list → budget tracking → recipe suggestions
 - Task assignment → notifications → reminders → completion tracking
 
-### Technology Stack
+**⚠️ CRITICAL ARCHITECTURE DECISION:** Starting with Modular Monolith, not microservices from day one. See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) for rationale.
 
-**⚠️ IMPORTANT: See [Architecture Review Report](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md) for architecture decisions**
+**Technology Stack:**
 
-- **Backend**: .NET Core 10 / C# 14 with Hot Chocolate GraphQL
-- **Frontend**: Angular v21 + TypeScript + Tailwind CSS
-- **Database**: PostgreSQL 16 with Row-Level Security (RLS)
-- **Event Bus**: RabbitMQ (in-process Phase 1-4, network Phase 5+)
-- **Auth**: Zitadel (external OAuth 2.0 / OIDC provider)
-- **Infrastructure**: Docker Compose (Phase 1-4) → Kubernetes (Phase 5+)
-- **Monitoring**: Prometheus + Grafana + Seq
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Backend | .NET Core 10 / C# 14 | Hot Chocolate GraphQL |
+| Frontend | Angular v21 + TypeScript | Tailwind CSS |
+| Database | PostgreSQL 16 | Row-Level Security (RLS) |
+| Event Bus | RabbitMQ | In-process Phase 1-4, network Phase 5+ |
+| Auth | Zitadel | External OAuth 2.0 / OIDC |
+| Infrastructure | Docker Compose → Kubernetes | Phase 1-4 → Phase 5+ |
+| Monitoring | Prometheus + Grafana + Seq | |
 
-### Development Approach
+**📍 CURRENT PHASE: Phase 0 - Foundation & Tooling (READY TO START)**
+- **Phase 1 Preparation:** ✅ COMPLETED (December 2024 - Issues #4-11)
+- **57 documents** (265,000+ words) of planning complete
+- **Technology stack confirmed:** .NET Core 10, Angular v21, GraphQL, RabbitMQ
+- **Architecture validated:** Modular monolith first (ADR-001)
+- **Next:** 3 weeks to set up dev environment, CI/CD, project structure
 
-- **Single developer** with **Claude Code AI assistance** (60-80% of boilerplate)
-- Domain-Driven Design (DDD) with 8 bounded contexts (modules)
-- **Modular Monolith** architecture (Phase 1-4) → Microservices (Phase 5+)
+**Strategic Pivot (December 2024):**
+- ✅ Launch as cloud-based online service FIRST
+- ⚠️ Self-hosting and federation DEFERRED to Phase 7+ (post-MVP)
+- 🎯 Focus on event chain automation as PRIMARY differentiator
+- ⏱️ Faster time to market: 12 months vs 15-18 months
+
+**Development Approach:**
+- **Single developer** + **Claude Code AI** (60-80% of boilerplate)
+- Domain-Driven Design (DDD) with **8 bounded contexts (modules)**
+- **Modular Monolith** (Phase 1-4) → Microservices (Phase 5+)
 - Event-driven architecture with RabbitMQ
-- Incremental implementation over **10-14 months** (reduced from 16-22 months)
+- Incremental delivery: **10-14 months** to MVP (reduced from 16-22)
 
 ---
 
-## 📁 Documentation Hub: `/docs/` Folder
+## 💡 QUICK START BY TASK
 
-**IMPORTANT**: All comprehensive planning and architecture documentation is stored in the `/docs/` folder.
+### Implementing Features
 
-The `/docs/` folder contains **51 documents** totaling **265,000+ words** of detailed planning:
+1. **Check phase:** [implementation-roadmap.md](docs/implementation-roadmap.md) - Is this feature scheduled for current phase?
+2. **Find feature:** [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md) - Priority, dependencies, RICE score
+3. **Review wireframes:** [wireframes.md](docs/wireframes.md) - UI layout and user flow
+4. **Check design system:** [design-system.md](docs/design-system.md) - Components and styling
+5. **Identify module:** [domain-model-microservices-map.md](docs/domain-model-microservices-map.md) - Which of 8 modules?
+6. **Review events:** Does this feature publish/consume domain events?
+7. **Check event chains:** [event-chains-reference.md](docs/event-chains-reference.md) - Part of workflow?
+8. **Verify accessibility:** [accessibility-strategy.md](docs/accessibility-strategy.md) - WCAG 2.1 AA requirements
+9. **Review risks:** [risk-register.md](docs/risk-register.md) - Mitigation strategies
+10. **Implement:** Follow module patterns, test thoroughly
 
-- **Phase 1 preparation completion (NEW - Issue #4)**
-- Product strategy and feature prioritization
-- Architecture review and decisions (Issue #11)
-- Technical architecture and domain models
-- Cloud architecture and Kubernetes deployment
-- Security architecture and compliance (Issue #8)
-- Legal compliance and data protection (Issue #10)
-- Market strategy and go-to-market planning (Issue #9)
-- UX research and UI design system
-- Implementation roadmap and risk analysis
-- Event chain specifications
-- Visual roadmaps and summaries
+### Architecture Questions
 
-**Always check `/docs/` first** when you need to understand:
+**Read these 3 docs:**
+1. [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Modular monolith decision rationale
+2. [Domain Model](docs/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
+3. [Event Chains Reference](docs/event-chains-reference.md) - Event-driven patterns and workflows
 
-- **Phase 1 preparation completion summary (NEW - Issue #4)**
-- Product vision and strategy
-- Feature priorities and backlog
-- Architecture review and critical decisions (modular monolith first)
-- Technical architecture decisions
-- Security architecture and threat modeling
-- Legal compliance and data protection (GDPR, COPPA, CCPA)
-- Market strategy and go-to-market planning
-- UX research and UI design patterns
-- Implementation phases and timeline
-- Domain models and module/microservice structure
-- Event chain workflows
-- Risk mitigation strategies
+### Planning & Roadmap Questions
 
----
+**Read these 3 docs:**
+1. [Implementation Roadmap](docs/implementation-roadmap.md) - 6-phase plan (Phase 0-6), deliverables, timeline
+2. [Feature Backlog](docs/FEATURE_BACKLOG.md) - 208 features prioritized by RICE score
+3. [Risk Register](docs/risk-register.md) - 35 risks with mitigation strategies
 
-## Quick Navigation by Role
+### Product Strategy Questions
 
-### For Product Managers
-
-Start here to understand product strategy and priorities:
-
-1. [`/docs/EXECUTIVE_SUMMARY.md`](docs/EXECUTIVE_SUMMARY.md) - **15-minute overview** of vision, market, competitive analysis
-2. [`/docs/PRODUCT_STRATEGY.md`](docs/PRODUCT_STRATEGY.md) - Complete strategy with personas, roadmap, GTM
-3. [`/docs/FEATURE_BACKLOG.md`](docs/FEATURE_BACKLOG.md) - 208 prioritized features (MVP, Phase 2, Phase 3+)
-4. [`/docs/ROADMAP_VISUAL.md`](docs/ROADMAP_VISUAL.md) - Visual timeline with ASCII charts
-
-### For Developers
-
-Start here to understand technical architecture:
-
-1. **[`/docs/architecture/ARCHITECTURE-REVIEW-REPORT.md`](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md)** - **CRITICAL: Read this first** - Architecture review with modular monolith recommendation
-2. **[`/docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md`](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)** - **Key decision**: Start with modular monolith, extract to microservices Phase 5+
-3. [`/docs/domain-model-microservices-map.md`](docs/domain-model-microservices-map.md) - **8 DDD modules** (future microservices) with domain models
-4. [`/docs/cloud-architecture.md`](docs/cloud-architecture.md) - **Kubernetes architecture** (deferred to Phase 5+)
-5. [`/docs/kubernetes-deployment-guide.md`](docs/kubernetes-deployment-guide.md) - Kubernetes deployment (Phase 5+ only)
-6. [`/docs/implementation-roadmap.md`](docs/implementation-roadmap.md) - **6-phase plan** (10-14 months) with deliverables
-7. [`/docs/event-chains-reference.md`](docs/event-chains-reference.md) - Event chain specifications and patterns
-8. [`/docs/risk-register.md`](docs/risk-register.md) - 35 risks with mitigation strategies
-
-### For Architecture Reviewers
-
-Start here to understand architectural decisions and reviews:
-
-1. [`/docs/architecture/ARCHITECTURE-REVIEW-REPORT.md`](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md) - **Comprehensive architecture review** (Issue #11)
-2. [`/docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md`](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - **ADR**: Modular monolith first approach
-3. [`/docs/architecture/ISSUE-11-DELIVERABLES-SUMMARY.md`](docs/architecture/ISSUE-11-DELIVERABLES-SUMMARY.md) - Issue #11 completion summary
-
-### For Security Engineers
-
-Start here to understand security architecture and compliance:
-
-1. [`/docs/threat-model.md`](docs/threat-model.md) - **STRIDE analysis**, 53 threats identified, attack surface mapping
-2. [`/docs/security-testing-plan.md`](docs/security-testing-plan.md) - **OWASP Top 10**, SAST/DAST, penetration testing schedule
-3. [`/docs/vulnerability-management.md`](docs/vulnerability-management.md) - Severity classification, remediation SLAs, disclosure policy
-4. [`/docs/security-monitoring-incident-response.md`](docs/security-monitoring-incident-response.md) - Monitoring strategy, incident response playbooks
-5. [`/docs/ISSUE-8-SECURITY-SUMMARY.md`](docs/ISSUE-8-SECURITY-SUMMARY.md) - Security architecture executive summary
-
-### For Legal Advisors
-
-Start here to understand legal compliance and data protection:
-
-1. [`/docs/legal/LEGAL-COMPLIANCE-SUMMARY.md`](docs/legal/LEGAL-COMPLIANCE-SUMMARY.md) - **Comprehensive compliance overview**, legal risk assessment
-2. [`/docs/legal/terms-of-service.md`](docs/legal/terms-of-service.md) - **Terms of Service** with family-specific provisions
-3. [`/docs/legal/privacy-policy.md`](docs/legal/privacy-policy.md) - **Privacy Policy** (GDPR, COPPA, CCPA compliant)
-4. [`/docs/legal/cookie-policy.md`](docs/legal/cookie-policy.md) - Cookie disclosure and consent mechanisms
-5. [`/docs/legal/compliance-checklist.md`](docs/legal/compliance-checklist.md) - **93 compliance items** across GDPR, COPPA, CCPA
-6. [`/docs/legal/data-processing-agreement-template.md`](docs/legal/data-processing-agreement-template.md) - DPA templates for third-party processors
-7. [`/docs/legal/quick-reference-coppa-workflow.md`](docs/legal/quick-reference-coppa-workflow.md) - **COPPA implementation** with code examples
-8. [`/docs/legal/README.md`](docs/legal/README.md) - Legal documentation quick start guide
-
-### For UX/UI Designers
-
-Start here to understand user experience and design system:
-
-1. [`/docs/ux-research-report.md`](docs/ux-research-report.md) - **6 personas**, user journeys, competitive analysis (2,700+ reviews)
-2. [`/docs/information-architecture.md`](docs/information-architecture.md) - Site map, role-based navigation, permission matrix
-3. [`/docs/wireframes.md`](docs/wireframes.md) - Complete wireframes for all MVP screens
-4. [`/docs/design-system.md`](docs/design-system.md) - Visual design system, color palette, typography, **22+ components**
-5. [`/docs/angular-component-specs.md`](docs/angular-component-specs.md) - Angular v21 component architecture
-6. [`/docs/accessibility-strategy.md`](docs/accessibility-strategy.md) - **WCAG 2.1 AA** + **COPPA** compliance
-7. [`/docs/event-chain-ux.md`](docs/event-chain-ux.md) - Event chain UX design (flagship feature)
-8. [`/docs/responsive-design-guide.md`](docs/responsive-design-guide.md) - Mobile-first responsive strategy
-9. [`/docs/interaction-design-guide.md`](docs/interaction-design-guide.md) - Micro-interactions and animations
-
-### For Stakeholders
-
-Start here for high-level overview:
-
-1. **[`/docs/ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md`](docs/ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md)** - **NEW: Phase 1 preparation complete, ready for Phase 0**
-2. [`/docs/EXECUTIVE_SUMMARY.md`](docs/EXECUTIVE_SUMMARY.md) - Vision, value proposition, revenue projections
-3. [`/docs/ISSUE_5_SUMMARY.md`](docs/ISSUE_5_SUMMARY.md) - Product strategy deliverables and success criteria
-4. [`/docs/ROADMAP_VISUAL.md`](docs/ROADMAP_VISUAL.md) - Visual roadmap with success metrics
+**Read these 3 docs:**
+1. [Product Strategy](docs/PRODUCT_STRATEGY.md) - Vision, personas, strategic pillars, positioning
+2. [UX Research Report](docs/ux-research-report.md) - 6 personas, user journeys, competitive analysis
+3. [Executive Summary](docs/executive-summary.md) - 15-minute overview of vision, market, strategy
 
 ---
 
-## Core Planning Documents
-
-### Product Strategy (Issue #5 Deliverables)
-
-1. **`EXECUTIVE_SUMMARY.md`** (~17KB)
-
-   - Project vision: "Intelligent family organization platform with event chain automation"
-   - Target market: 80M families in US, 60% feeling overwhelmed
-   - Competitive analysis vs Cozi, FamilyWall, TimeTree, Picniic
-   - Revenue projections: Year 1 ($3,500), Year 2 ($30K), Year 3 ($150K)
-   - Business model: Freemium SaaS (Free, Premium $9.99/mo, Family $14.99/mo, Enterprise)
-
-2. **`PRODUCT_STRATEGY.md`** (~24KB)
-
-   - Complete product vision and mission
-   - 3 detailed user personas (Sarah - Organized Parent, Mike - Practical Dad, Emma - Busy Teen)
-   - Strategic pillars: Intelligent Automation, Privacy & Control, Modern Experience, Extensibility
-   - Competitive positioning matrix
-   - Success metrics and KPI framework
-   - 3-phase product roadmap
-
-3. **`FEATURE_BACKLOG.md`** (~42KB)
-
-   - **208 total features** prioritized using RICE scoring
-   - **MVP (49 features)**: Calendar, Tasks, Lists, Event Chain Automation, Mobile PWA, Infrastructure
-   - **Phase 2 (65 features)**: Meals, Budget, Documents, Advanced Event Chains, Native Mobile
-   - **Phase 3+ (94 features)**: AI/ML, Analytics, Integrations, Platform, Enterprise
-   - 16 functional domains
-   - Competitive feature comparison matrix
-
-4. **`ROADMAP_VISUAL.md`** (~34KB)
-
-   - Visual timeline with ASCII charts
-   - Feature stack diagrams showing evolution
-   - Success trajectory graphs
-   - Competitive positioning evolution
-   - Domain coverage timeline
-
-5. **`ISSUE_5_SUMMARY.md`** (~15KB)
-   - Product Strategy & Feature Prioritization completion summary
-   - Key strategic decisions documented
-   - Quick reference for MVP, Phase 2, Phase 3+
-   - Links to GitHub Issue #5
-
-### Technical Architecture
-
-1. **`domain-model-microservices-map.md`** (~61KB)
-
-   - **8 Bounded Contexts** (DDD microservices):
-     1. Auth Service (Zitadel integration)
-     2. Calendar Service (events, appointments, recurrence)
-     3. Task Service (to-dos, assignments, chores)
-     4. Shopping Service (lists, items, sharing)
-     5. Health Service (appointments, prescriptions, tracking)
-     6. Meal Planning Service (meal plans, recipes, nutrition)
-     7. Finance Service (budgets, expenses, tracking)
-     8. Communication Service (notifications, messaging)
-     9. **Federation Service** (deferred to Phase 7+ - self-hosting and fediverse)
-   - Domain entities and aggregates with C# code examples
-   - Domain events (published/consumed) for each service
-   - GraphQL API schema outlines
-   - **Event chain specifications** (flagship feature workflows)
-   - Cross-service integration patterns
-   - Database storage strategies per service
-   - Kubernetes deployment architecture
-
-2. **`implementation-roadmap.md`** (~35KB)
-
-   - **6-phase development plan** (52 weeks / 12-18 months):
-     - Phase 0: Foundation & Tooling (4 weeks)
-     - Phase 1: Core MVP - Auth + Calendar + Tasks (8 weeks)
-     - Phase 2: Health Integration & Event Chains (6 weeks)
-     - Phase 3: Meal Planning & Finance (8 weeks)
-     - Phase 4: Recurrence & Advanced Features (8 weeks)
-     - Phase 5: Microservices Extraction & Production Hardening (10 weeks)
-     - Phase 6: Mobile App & Extended Features (8+ weeks)
-     - **Phase 7: Federation (DEFERRED)** - Self-hosting and fediverse integration
-   - Deliverables and success criteria per phase
-   - Single developer optimization strategies
-   - AI-assisted development approach (Claude Code 60-80% automation)
-   - Technology decision points and POCs
-   - Cost estimation: $2,745-5,685 first year
-   - Risk mitigation timeline
-
-3. **`risk-register.md`** (~33KB)
-   - **35 risks identified** across 5 categories:
-     - Market & Product Risks (9 risks)
-     - Technical Risks (10 risks)
-     - Business & Financial Risks (7 risks)
-     - Operational Risks (5 risks)
-     - Legal & Compliance Risks (4 risks)
-   - Risk scoring: Probability (1-5) × Impact (1-5)
-   - **Critical risks** (score 20):
-     - Low User Adoption
-     - Developer Burnout
-   - **High risks** (score 12-16):
-     - Event Bus Bottleneck
-     - Database Scalability
-     - Zitadel Integration Complexity
-   - Comprehensive mitigation strategies for each risk
-   - Monitoring metrics and contingency plans
-
-### Cloud Architecture & Kubernetes (Issue #6 Deliverables)
-
-1. **`cloud-architecture.md`** (~76KB)
-
-   - Complete Kubernetes architecture with ASCII diagrams
-   - Multi-tenancy strategy with PostgreSQL Row-Level Security
-   - 8 microservices deployment architecture
-   - NGINX Ingress Controller (no service mesh)
-   - Security architecture with zero-trust principles
-   - Namespace organization and resource management
-   - Database and cache configuration
-   - Network policies and service mesh considerations
-
-2. **`kubernetes-deployment-guide.md`** (~42KB)
-
-   - Step-by-step deployment for local (Minikube/kind) and cloud
-   - Environment setup (development, staging, production)
-   - PostgreSQL and Redis deployment
-   - Zitadel OAuth 2.0 setup
-   - NGINX Ingress configuration
-   - Disaster recovery procedures
-   - Backup and restore strategies
-   - Troubleshooting guide
-
-3. **`helm-charts-structure.md`** (~22KB)
-
-   - Complete Helm chart templates for all 8 microservices
-   - Parent `family-hub` chart with subcharts
-   - Environment-specific values (dev, staging, prod)
-   - GitOps integration with ArgoCD
-   - Security best practices (non-root, read-only filesystem)
-   - Resource requests and limits
-   - ConfigMap and Secret management
-
-4. **`observability-stack.md`** (~27KB)
-
-   - Prometheus + Grafana monitoring setup
-   - Loki logging architecture (lightweight, 300m CPU)
-   - OpenTelemetry distributed tracing
-   - 25 predefined alert rules for critical issues
-   - Custom dashboards for each microservice
-   - Log aggregation and querying
-   - Performance metrics and SLOs
-
-5. **`cicd-pipeline.md`** (~15KB)
-
-   - GitHub Actions CI/CD workflows
-   - Build, test, and security scanning
-   - ArgoCD GitOps deployment
-   - Multi-environment promotion (dev → staging → prod)
-   - Automated rollback on failure
-   - Container image building and scanning
-   - Deployment automation
-
-6. **`multi-tenancy-strategy.md`** (~26KB)
-
-   - PostgreSQL Row-Level Security implementation
-   - Shared database with RLS policies per family (tenant)
-   - Cost savings: $9,900/month vs dedicated databases
-   - Automated tenant onboarding with CLI tools
-   - Resource quotas and limits per tenant
-   - Cost allocation and billing integration
-   - Tenant isolation and security
-
-7. **`infrastructure-cost-analysis.md`** (~24KB)
-
-   - Detailed cost breakdowns by scale:
-     - 100 families: $200-400/month
-     - 1,000 families: $800-1,200/month
-     - 10,000 families: $3,500-5,000/month
-   - Cloud provider comparisons (DigitalOcean, AWS, Azure, GCP)
-   - Break-even analysis: 45 premium subscribers @ $9.99/month
-   - ROI projections and optimization strategies
-   - Cost allocation per microservice
-   - Recommended provider: DigitalOcean ($195/month for 100 families)
-
-8. **`ISSUE-6-DELIVERABLES-SUMMARY.md`** (~8KB)
-   - Cloud Architecture & Kubernetes completion summary
-   - All 8 success criteria fulfilled
-   - Critical architectural decisions documented
-   - Next steps for implementation
-
-### UX Research & UI Design (Issue #7 Deliverables)
-
-1. **`ux-research-report.md`** (~50KB)
-
-   - **6 Detailed Personas**: Sarah (Primary Parent), Mike (Co-Parent), Emma (Teen), Noah (Child), Margaret (Extended Family), Jessica (Guest)
-   - **5 User Journey Maps**: Complete emotional arcs for key workflows
-   - **Competitive Analysis**: 2,700+ user reviews analyzed (Cozi, FamilyWall, TimeTree, Picniic)
-   - **10 Key Findings**: Privacy concerns (487 mentions), automation gaps (312 mentions), fragmentation pain
-   - **10 Design Recommendations**: Privacy-first design, event chain discoverability, mobile-first
-
-2. **`information-architecture.md`** (~35KB)
-
-   - **Complete Site Map**: 6 top-level sections with 40+ screens
-   - **Role-Based Navigation**: Custom navigation for 6 user personas
-   - **Permission Matrix**: Detailed access control (Parent, Co-Parent, Teen, Child, Extended Family, Guest)
-   - **Deep-Linking Strategy**: URL patterns for all major screens
-   - **Multi-Role Experience**: Parent vs Teen vs Child dashboard designs
-
-3. **`wireframes.md`** (~162KB)
-
-   - Complete wireframes for all MVP screens (onboarding, dashboards, calendar, lists, tasks, event chains)
-   - Multi-persona dashboards (Parent, Teen, Child with gamification)
-   - Calendar views (Month, Week, Day) for desktop + mobile
-   - Shopping lists with swipe gestures
-   - Task & chore management with points/badges
-   - Event chain visual builder
-   - Mobile layouts with bottom navigation
-
-4. **`design-system.md`** (~42KB)
-
-   - **Brand Identity**: Visual guidelines, logo usage, brand voice
-   - **Color System**: 60+ WCAG AA compliant tokens (4.5:1 contrast ratio)
-   - **Typography**: Inter font family, 9 sizes, responsive scale
-   - **Component Library**: 22+ production-ready components (Button, Input, Modal, Card, etc.)
-   - **Design Tokens**: Tailwind CSS configuration
-   - **Iconography**: Heroicons library (200+ icons)
-   - **Dark Mode**: Full support with semantic color tokens
-   - **Spacing & Layout**: 8px grid system
-
-5. **`angular-component-specs.md`** (~28KB)
-
-   - **25+ Angular v21 Components**: TypeScript implementations with standalone components
-   - Button, Input, Checkbox, Toggle, Modal, Dropdown, Tabs, Card, Avatar, Badge, Toast, etc.
-   - ARIA labels and accessibility patterns
-   - Reactive forms integration
-   - Input/Output decorators
-   - Component composition patterns
-
-6. **`accessibility-strategy.md`** (~25KB)
-
-   - **WCAG 2.1 Level AA Compliance**: All 50 success criteria documented
-   - **COPPA Compliance**: Children's Online Privacy Protection Act requirements for kids under 13
-   - **Age-Appropriate Design**: Simplified UI for children, privacy controls
-   - **Assistive Technology Support**: Screen readers (NVDA, JAWS, VoiceOver), magnifiers, voice control
-   - **Testing Checklist**: 50+ items for accessibility validation
-   - **ARIA Patterns**: Proper roles, labels, live regions
-
-7. **`event-chain-ux.md`** (~18KB)
-
-   - **Discovery Strategy**: Onboarding tour, contextual suggestions, navigation prominence
-   - **Visualization**: Flow diagrams, status indicators, trigger/action cards
-   - **Configuration UX**: Template gallery (10 pre-built chains), visual builder
-   - **User Education**: Tooltips, help center, success stories
-   - **Success Metrics**: Activation rate (60%), creation rate (40%), retention (2.5× lift)
-
-8. **`responsive-design-guide.md`** (~17KB)
-
-   - **Mobile-First Approach**: Design for smallest screen first
-   - **Breakpoints**: Mobile (<640px), Tablet (640-1024px), Desktop (>1024px), Large Desktop (>1920px)
-   - **Component Adaptations**: How each component responds across breakpoints
-   - **Touch-Friendly Design**: 44×44px minimum touch targets
-   - **Progressive Disclosure**: Show more features as screen size increases
-
-9. **`interaction-design-guide.md`** (~23KB)
-
-   - **Micro-Interactions**: Button press, checkbox, toggle, drag-and-drop
-   - **Page Transitions**: Fade, slide, scale animations
-   - **List Animations**: Stagger, reorder, delete with confirmation
-   - **Gamification UI**: Points animation, confetti, achievement unlock
-   - **Real-Time Updates**: Loading states, optimistic UI, error recovery
-   - **Gesture Patterns**: Swipe to delete, pull to refresh, pinch to zoom
-
-10. **`ISSUE-7-UI-DESIGN-SUMMARY.md`** (~15KB)
-
-    - UI Design deliverables summary
-    - Component library overview
-    - Implementation priorities
-    - Timeline and next steps
-
-11. **`ISSUE-7-UX-RESEARCH-SUMMARY.md`** (~18KB)
-    - UX Research deliverables summary
-    - Key findings and recommendations
-    - Persona highlights
-    - Accessibility commitments
-    - Event chain UX strategy
-    - Competitive positioning
-
-### Supporting Documents
-
-1. **`architecture-visual-summary.md`** (~69KB)
-
-   - System architecture diagrams (ASCII)
-   - Bounded context relationships map
-   - Event flow visualizations
-   - Data flow patterns
-   - Database schema overview
-   - Kubernetes deployment map
-   - Security architecture
-   - Monitoring dashboard layout
-
-2. **`event-chains-reference.md`** (~23KB)
-
-   - 10 fully specified event chains:
-     1. Doctor Appointment → Calendar → Shopping → Task
-     2. Prescription → Shopping List → Task
-     3. Meal Plan → Shopping List → Finance
-     4. Budget Threshold Alert
-     5. Recurring Task Automation
-     6. And 5 more workflows
-   - Expected outcomes and time savings per chain
-   - Implementation patterns (Direct, Saga, Enrichment)
-   - Monitoring metrics and dashboards
-   - Testing strategies (unit, integration, load)
-   - Troubleshooting guide
-
-3. **`DELIVERABLES_SUMMARY.md`** (~16KB)
-
-   - Issue #5 completion checklist
-   - Traceability matrix (requirements → design → implementation)
-   - Stakeholder sign-off section
-   - Quick start guides
-
-4. **`INDEX.md`** (~23KB)
-
-   - Complete documentation navigation map
-   - Quick start by role (PM, Developer, Stakeholder)
-   - FAQ section
-   - Next steps guidance
-
-5. **`README.md`** (~18KB)
-   - Documentation directory overview
-   - Quick start guides
-   - Technology summary
-   - Success metrics
+## 📚 DOCUMENTATION INDEX
+
+**57 documents** (265,000+ words) organized by category. All paths relative to `/docs/`.
+
+| Category | Key Documents | Purpose |
+|----------|---------------|---------|
+| **Phase 1 Completion** | [ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md](docs/ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md) | Phase 1 prep complete, ready for Phase 0 |
+| **Architecture (Issue #11)** | [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [Architecture Review](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md), [Deliverables](docs/architecture/ISSUE-11-DELIVERABLES-SUMMARY.md) | Modular monolith decision, review findings, validation |
+| **Product Strategy (Issue #5)** | [executive-summary.md](docs/executive-summary.md), [PRODUCT_STRATEGY.md](docs/PRODUCT_STRATEGY.md), [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md) (208 features), [ROADMAP_VISUAL.md](docs/ROADMAP_VISUAL.md), [ISSUE_5_SUMMARY.md](docs/ISSUE_5_SUMMARY.md) | Vision, personas, RICE-scored features, visual timeline |
+| **Technical Architecture** | [domain-model-microservices-map.md](docs/domain-model-microservices-map.md), [implementation-roadmap.md](docs/implementation-roadmap.md), [risk-register.md](docs/risk-register.md) | 8 DDD modules, 6-phase plan, 35 risks |
+| **Cloud & Kubernetes (Issue #6)** | [cloud-architecture.md](docs/cloud-architecture.md), [kubernetes-deployment-guide.md](docs/kubernetes-deployment-guide.md), [infrastructure-cost-analysis.md](docs/infrastructure-cost-analysis.md), +5 docs | Kubernetes architecture, deployment, costs, Helm charts, CI/CD, multi-tenancy, observability |
+| **Security (Issue #8)** | [ISSUE-8-SECURITY-SUMMARY.md](docs/ISSUE-8-SECURITY-SUMMARY.md), [threat-model.md](docs/threat-model.md), [security-testing-plan.md](docs/security-testing-plan.md), [vulnerability-management.md](docs/vulnerability-management.md), +1 doc | 53 threats (STRIDE), OWASP Top 10, SAST/DAST, incident response |
+| **Legal Compliance (Issue #10)** | [legal/LEGAL-COMPLIANCE-SUMMARY.md](docs/legal/LEGAL-COMPLIANCE-SUMMARY.md), [legal/privacy-policy.md](docs/legal/privacy-policy.md), [legal/terms-of-service.md](docs/legal/terms-of-service.md), [legal/quick-reference-coppa-workflow.md](docs/legal/quick-reference-coppa-workflow.md), +5 docs | GDPR/COPPA/CCPA compliance, 93-item checklist, policies, DPA templates |
+| **Market Strategy (Issue #9)** | [ISSUE-9-MARKET-STRATEGY-SUMMARY.md](docs/ISSUE-9-MARKET-STRATEGY-SUMMARY.md), [market-research-report.md](docs/market-research-report.md), [go-to-market-plan.md](docs/go-to-market-plan.md), +2 docs | Competitive analysis (2,700+ reviews), GTM plan, SEO/content |
+| **UX/UI Design (Issue #7)** | [ux-research-report.md](docs/ux-research-report.md), [design-system.md](docs/design-system.md), [wireframes.md](docs/wireframes.md), [angular-component-specs.md](docs/angular-component-specs.md), [accessibility-strategy.md](docs/accessibility-strategy.md), +6 docs | 6 personas, design system (22+ components), complete wireframes, WCAG 2.1 AA, responsive design |
+| **Event Chains** | [event-chains-reference.md](docs/event-chains-reference.md), [event-chain-ux.md](docs/event-chain-ux.md) | 10 workflow specs, UX patterns, testing strategies |
+| **Supporting Docs** | [architecture-visual-summary.md](docs/architecture-visual-summary.md), [DELIVERABLES_SUMMARY.md](docs/DELIVERABLES_SUMMARY.md) | System diagrams, Issue #5 checklist |
+| **Navigation Aids** | [INDEX.md](docs/INDEX.md), [README.md](docs/README.md) | Complete documentation map with FAQ, docs overview |
+
+**Quick Access:**
+- **Start here:** [Executive Summary](docs/executive-summary.md) - 15-minute overview
+- **For developers:** [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) + [Domain Model](docs/domain-model-microservices-map.md)
+- **For product:** [Product Strategy](docs/PRODUCT_STRATEGY.md) + [Feature Backlog](docs/FEATURE_BACKLOG.md)
+- **For design:** [UX Research](docs/ux-research-report.md) + [Wireframes](docs/wireframes.md) + [Design System](docs/design-system.md)
+
+**GitHub Issues (All Completed):**
+- [Issue #11: Architecture Review](https://github.com/andrekirst/family2/issues/11) - ✅ Modular monolith decision
+- [Issue #10: Legal Compliance](https://github.com/andrekirst/family2/issues/10) - ✅ GDPR/COPPA/CCPA
+- [Issue #9: Market Strategy](https://github.com/andrekirst/family2/issues/9) - ✅ GTM planning
+- [Issue #8: Security Architecture](https://github.com/andrekirst/family2/issues/8) - ✅ Threat modeling
+- [Issue #7: UX Architecture](https://github.com/andrekirst/family2/issues/7) - ✅ UI design system
+- [Issue #6: Cloud Architecture](https://github.com/andrekirst/family2/issues/6) - ✅ Kubernetes strategy
+- [Issue #5: Product Strategy](https://github.com/andrekirst/family2/issues/5) - ✅ Feature prioritization
+- [Issue #4: Master Plan](https://github.com/andrekirst/family2/issues/4) - ✅ Phase 1 prep complete
 
 ---
 
-## 🚀 Getting Started with Family Hub
+## 🏗️ 8 DDD MODULES OVERVIEW
 
-### For New Claude Code Sessions
+**⚠️ Architecture:** Modular Monolith (Phase 1-4) → Microservices (Phase 5+). See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
 
-1. **Read this file first** (CLAUDE.md) to understand project structure
-2. **Check `/docs/EXECUTIVE_SUMMARY.md`** for vision and value proposition
-3. **Review `/docs/domain-model-microservices-map.md`** for technical architecture
-4. **Consult `/docs/implementation-roadmap.md`** to understand current phase and next steps
-
-### Contributing and Creating Issues
-
-**NEW**: Family Hub now has comprehensive issue templates and contribution guidelines!
-
-**Issue Templates** (`.github/ISSUE_TEMPLATE/`):
-- **Feature Request** - Propose new features with RICE scoring and user stories
-- **Bug Report** - Report bugs with severity, reproduction steps, and environment details
-- **Phase Deliverable (Epic)** - Track major phase deliverables coordinating multiple sub-issues
-- **Research & Documentation** - Track research tasks, spikes, and documentation work
-- **Technical Debt** - Track technical debt and refactoring work
-- **Blank Issue** - For custom use cases
-
-**How to Create Issues**:
-1. Use GitHub's "New Issue" button
-2. Select appropriate template
-3. Fill out all required fields (phase, service, domain, user story, acceptance criteria)
-4. Templates include RICE scoring fields for feature prioritization
-5. Event chain integration prompts ensure cross-service impacts are considered
-
-**Pull Requests**:
-- Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`)
-- Documents architecture impact, services affected, domain events, event chain changes
-- Includes comprehensive testing, quality, documentation, and deployment checklists
-
-**Labels System** (60+ labels):
-- **Type**: feature, bug, epic, research, docs, tech-debt, infrastructure, security, performance
-- **Phase**: phase-0 through phase-6, phase-7-future
-- **Service**: auth, calendar, task, shopping, health, meal, finance, communication, frontend, infrastructure, multiple
-- **Status**: triage, planning, ready, in-progress, blocked, review, testing, done, wontfix
-- **Priority**: p0 (critical), p1 (high), p2 (medium), p3 (low)
-- **Domain**: auth, calendar, tasks, shopping, health, meals, finance, notifications, event-chains, mobile, ux
-- **Effort**: xs (<1 day), s (1-3 days), m (1 week), l (2 weeks), xl (>2 weeks)
-- **Special**: good-first-issue, help-wanted, breaking-change, needs-documentation, needs-design, ai-assisted
-
-**Create Labels**:
-```bash
-./scripts/create-labels.sh
-```
-
-**Developer Guide**:
-- See [`CONTRIBUTING.md`](CONTRIBUTING.md) for comprehensive contribution guidelines
-- Covers when to use each template, project structure, event chains, code standards, and labels reference
-
-**Why This Matters**:
-- **Structured issues** aligned with DDD architecture and microservices (modules)
-- **RICE scoring** maintains prioritization methodology from FEATURE_BACKLOG.md
-- **Phase alignment** ensures issues map to 6-phase implementation roadmap
-- **Event chain awareness** prompts consideration of cross-service impacts
-- **AI-friendly** - Templates provide structure Claude Code can work with (60-80% automation)
-
-### Understanding the Codebase
-
-**When you need to understand**:
-
-- **Product vision**: Read `/docs/EXECUTIVE_SUMMARY.md` or `/docs/PRODUCT_STRATEGY.md`
-- **Feature priorities**: Read `/docs/FEATURE_BACKLOG.md`
-- **Architecture review & critical decisions**: Read `/docs/architecture/ARCHITECTURE-REVIEW-REPORT.md` or `/docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md`
-- **Technical architecture**: Read `/docs/domain-model-microservices-map.md` (NOTE: Now implements as modular monolith, not microservices initially)
-- **Cloud architecture**: Read `/docs/cloud-architecture.md` (NOTE: Deferred to Phase 5+)
-- **Infrastructure costs**: Read `/docs/infrastructure-cost-analysis.md`
-- **Security architecture**: Read `/docs/threat-model.md` or `/docs/ISSUE-8-SECURITY-SUMMARY.md`
-- **Security testing**: Read `/docs/security-testing-plan.md` (OWASP Top 10, SAST/DAST)
-- **Vulnerability management**: Read `/docs/vulnerability-management.md`
-- **Incident response**: Read `/docs/security-monitoring-incident-response.md`
-- **Legal compliance**: Read `/docs/legal/LEGAL-COMPLIANCE-SUMMARY.md` (GDPR, COPPA, CCPA) (NEW)
-- **Terms of Service**: Read `/docs/legal/terms-of-service.md` (NEW)
-- **Privacy Policy**: Read `/docs/legal/privacy-policy.md` (NEW)
-- **COPPA implementation**: Read `/docs/legal/quick-reference-coppa-workflow.md` (NEW)
-- **Market strategy**: Read `/docs/market-research-report.md` or `/docs/ISSUE-9-MARKET-STRATEGY-SUMMARY.md`
-- **Go-to-market plan**: Read `/docs/go-to-market-plan.md`
-- **SEO strategy**: Read `/docs/seo-content-strategy.md`
-- **UX research & personas**: Read `/docs/ux-research-report.md`
-- **UI design system**: Read `/docs/design-system.md` or `/docs/angular-component-specs.md`
-- **Wireframes**: Read `/docs/wireframes.md`
-- **Accessibility**: Read `/docs/accessibility-strategy.md` (WCAG 2.1 AA + COPPA)
-- **Event chain UX**: Read `/docs/event-chain-ux.md`
-- **Implementation plan**: Read `/docs/implementation-roadmap.md`
-- **Deployment**: Read `/docs/kubernetes-deployment-guide.md` and `/docs/cicd-pipeline.md`
-- **Event chains**: Read `/docs/event-chains-reference.md`
-- **Risks**: Read `/docs/risk-register.md`
-
-**When implementing features**:
-
-1. Check which **phase** the feature belongs to in `/docs/implementation-roadmap.md`
-2. Find the feature in `/docs/FEATURE_BACKLOG.md` to understand priority and dependencies
-3. Review **wireframes** in `/docs/wireframes.md` to understand UI layout
-4. Check **design system** in `/docs/design-system.md` for components and styling
-5. Review **personas** in `/docs/ux-research-report.md` to understand user needs
-6. Verify **accessibility requirements** in `/docs/accessibility-strategy.md` (WCAG 2.1 AA)
-7. Identify the **bounded context** (microservice) in `/docs/domain-model-microservices-map.md`
-8. Review relevant **domain events** and **GraphQL schema** in the domain model doc
-9. Check for any **event chain** integration in `/docs/event-chains-reference.md`
-10. Review associated **risks** in `/docs/risk-register.md`
-
----
-
-## 🎯 Key Concepts
-
-### Event Chain Automation (Flagship Feature)
-
-**What it is**: Intelligent cross-domain workflows that automatically trigger related actions across different services.
-
-**Example**: Doctor Appointment Event Chain
-
-```
-User schedules doctor appointment (Health Service)
-  ↓ (automatic)
-Calendar event created (Calendar Service)
-  ↓ (automatic)
-Preparation task created (Task Service)
-  ↓ (automatic)
-Prescription issued after appointment (Health Service)
-  ↓ (automatic)
-Medication added to shopping list (Shopping Service)
-  ↓ (automatic)
-Pickup task created (Task Service)
-  ↓ (automatic)
-Refill reminder scheduled (Communication Service)
-```
-
-**Why it matters**: Saves 10-30 minutes per workflow, eliminates 3-5 things to remember, reduces cognitive load.
-
-**Technical implementation**: Event-driven architecture using RabbitMQ (in-process Phase 1-4, network Phase 5+)
-
-### Modular Monolith Architecture (8 DDD Modules → Microservices Phase 5+)
-
-**⚠️ CRITICAL CHANGE**: Starting with Modular Monolith, not microservices from day one. See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) for rationale.
-
-**DDD Approach**: Each module owns a bounded context with:
-
+**Each module owns:**
 - Domain entities and aggregates
-- Domain events (published/consumed)
-- GraphQL schema types (Hot Chocolate, merged into single /graphql endpoint)
-- Separate PostgreSQL schema (same DB instance)
-- Event bus integration (RabbitMQ, in-process execution)
+- Domain events (published/consumed via RabbitMQ)
+- GraphQL schema types (merged into single `/graphql` endpoint)
+- Separate PostgreSQL schema (same DB instance, Row-Level Security)
 
-**Modules** (Phase 1-4: Single monolith deployment):
+**8 Modules:**
 
-1. **Auth Module**: Zitadel integration, family groups, permissions
-2. **Calendar Module**: Events, appointments, recurrence, reminders
-3. **Task Module**: To-dos, assignments, chores, gamification
-4. **Shopping Module**: Lists, items, categories, sharing
-5. **Health Module**: Appointments, prescriptions, medications, tracking
-6. **Meal Planning Module**: Meal plans, recipes, ingredients, nutrition
-7. **Finance Module**: Budgets, expenses, income, goals
-8. **Communication Module**: Notifications, messages, activity feed
+1. **Auth Module** - Zitadel integration, family groups, role-based permissions, OAuth 2.0/OIDC
+2. **Calendar Module** - Events, appointments, recurrence patterns, reminders, timezone handling
+3. **Task Module** - To-dos, assignments, chores, gamification (points/badges), recurring tasks
+4. **Shopping Module** - Shopping lists, items, categories, sharing, collaborative editing
+5. **Health Module** - Doctor appointments, prescriptions, medications, health tracking
+6. **Meal Planning Module** - Meal plans, recipes, ingredients, nutrition info, dietary restrictions
+7. **Finance Module** - Budgets, expense tracking, income, financial goals, reporting
+8. **Communication Module** - Notifications (email/push), in-app messaging, activity feed
 
-**Phase 5+ Migration**: Extract modules to independent microservices using Strangler Fig pattern
-**Future (Phase 7+)**: 9. **Federation Service**: Self-hosting, instance federation (deferred)
+**Phase 5+ Migration:** Extract modules to independent microservices using Strangler Fig pattern.
 
-### Development Philosophy
+**Future (Phase 7+):** 9. **Federation Service** - Self-hosting, ActivityPub, instance federation (DEFERRED).
 
-**Single Developer + AI**: Project designed for one developer with Claude Code generating 60-80% of:
-
-- Boilerplate code
-- Unit and integration tests
-- API documentation
-- Database schemas
-- GraphQL resolvers
-
-**Quality over Speed**: 12-18 months for MVP, building it right from the start:
-
-- Comprehensive testing
-- Clean architecture (DDD, CQRS, Event Sourcing where appropriate)
-- Production-ready from Phase 5
-- Security and privacy built-in
-
-**Incremental Delivery**: Each phase delivers working software with real user value.
+**Full spec:** See [domain-model-microservices-map.md](docs/domain-model-microservices-map.md) for domain entities, events, GraphQL schemas.
 
 ---
 
-## 📋 Current Phase & Status
+## ⚡ EVENT CHAIN AUTOMATION (Flagship Feature)
+
+**What it is:** Intelligent cross-domain workflows that automatically trigger related actions across different services. No competitor offers this.
+
+**Example: Doctor Appointment Event Chain**
+
+```
+User schedules doctor appointment (Health Module)
+  ↓ (automatic)
+Calendar event created (Calendar Module)
+  ↓ (automatic)
+Preparation task created (Task Module)
+  ↓ (automatic)
+Prescription issued after appointment (Health Module)
+  ↓ (automatic)
+Medication added to shopping list (Shopping Module)
+  ↓ (automatic)
+Pickup task created (Task Module)
+  ↓ (automatic)
+Refill reminder scheduled (Communication Module)
+```
+
+**Why it matters:**
+- Saves 10-30 minutes per workflow
+- Eliminates 3-5 things to remember
+- Reduces cognitive load (40-60% stress reduction)
+- Coordinates across 4-5 modules automatically
+
+**Technical implementation:**
+- Event-driven architecture using RabbitMQ
+- In-process execution (Phase 1-4) for simplicity
+- Network-based messaging (Phase 5+) for microservices
+- Saga pattern for complex multi-step workflows
+
+**10 event chains specified:**
+1. Doctor Appointment → Calendar → Tasks → Shopping
+2. Prescription → Shopping List → Pickup Task → Refill Reminder
+3. Meal Plan → Shopping List → Budget Update → Recipe Suggestions
+4. Budget Threshold → Alert → Spending Review Task
+5. Recurring Task → Auto-creation → Assignment → Reminder
+6. Shopping List Complete → Archive → Budget Update → Analytics
+7. Health Metric Alert → Doctor Appointment Suggestion → Calendar
+8. Family Member Birthday → Gift Ideas → Shopping List → Budget
+9. School Event → Calendar → Permission Slip Task → Reminder
+10. Bill Due → Payment Reminder → Budget Check → Confirmation
+
+**Full specifications:** See [event-chains-reference.md](docs/event-chains-reference.md) for implementation patterns, monitoring, testing strategies.
+
+---
+
+## 📍 CURRENT PHASE DETAILS
 
 ### Strategic Pivot (December 2024)
 
-**Decision**: Launch as pure **online service first**, defer self-hosting and federation to Phase 7+ (post-MVP)
+**Decision:** Launch as cloud-based **online service first**, defer self-hosting and federation to Phase 7+ (post-MVP).
 
-**Rationale**:
-
-- ✅ Faster time to market (12 months vs 15-18 months)
-- ✅ Simpler infrastructure and operations
-- ✅ Focus on core differentiator (event chains) first
+**Rationale:**
+- ✅ Faster time to market: 12 months vs 15-18 months
+- ✅ Simpler infrastructure and operations (Docker Compose vs Kubernetes from day one)
+- ✅ Focus on event chain automation (PRIMARY differentiator)
 - ✅ Validate product-market fit before adding complexity
-- ✅ Federation still planned for future (just later)
+- ✅ Federation still planned (just later)
 
-### Current Status
+### Phase 0: Foundation & Tooling - READY TO START
 
-**Phase**: Ready to begin Phase 0: Foundation & Tooling
-**Preparation Phase 1**: ✅ **COMPLETED** (Issue #4)
+**Duration:** 3 weeks (reduced from 4 weeks)
+**Status:** ✅ Phase 1 Preparation COMPLETED (December 2024)
 
-**Phase 1 Preparation Completed** (December 2024):
+**Phase 1 Preparation Achievements:**
+- ✅ **Issue #4:** Master implementation plan & agent coordination
+- ✅ **Issue #5:** Product strategy (208 features, 6 personas)
+- ✅ **Issue #6:** Cloud architecture & Kubernetes deployment
+- ✅ **Issue #7:** UX research (2,700+ reviews) & UI design system (22+ components)
+- ✅ **Issue #8:** Security architecture (53 threats analyzed, STRIDE)
+- ✅ **Issue #9:** Market strategy & go-to-market planning
+- ✅ **Issue #10:** Legal compliance (GDPR, COPPA, CCPA)
+- ✅ **Issue #11:** Architecture review → **MODULAR MONOLITH DECISION**
 
-- ✅ **Issue #4**: Master Implementation Plan & Agent Coordination (preparation phase complete)
-- ✅ **Issue #5**: Product strategy and feature prioritization (208 features, 6 personas)
-- ✅ **Issue #6**: Cloud architecture and Kubernetes deployment strategy
-- ✅ **Issue #7**: UX research and UI design system (complete wireframes, design system)
-- ✅ **Issue #8**: Security architecture and compliance (53 threats analyzed)
-- ✅ **Issue #9**: Market strategy and go-to-market planning (2,700+ reviews analyzed)
-- ✅ **Issue #10**: Legal compliance documentation (GDPR, COPPA, CCPA)
-- ✅ **Issue #11**: Architecture review and validation - **CRITICAL PIVOT TO MODULAR MONOLITH**
+**Key Metrics:**
+- 57 documents (265,000+ words) of planning (45 in `/docs/`, 3 in `/docs/architecture/`, 9 in `/docs/legal/`)
+- Technology stack confirmed (.NET Core 10, Angular v21, GraphQL, RabbitMQ)
+- Risk reduction: Developer Burnout CRITICAL → MEDIUM
+- Timeline optimization: -6 to -12 months to MVP
+- Cost optimization: -$1,500 to -$2,000 Year 1
 
-**Phase 1 Achievements**:
-- ✅ 50+ documents (250,000+ words) of comprehensive planning
-- ✅ Technology stack confirmed (.NET Core 10, Angular v21, GraphQL, RabbitMQ)
-- ✅ Modular monolith architecture validated (ADR-001)
-- ✅ Risk reduction: Developer Burnout CRITICAL → MEDIUM
-- ✅ Timeline optimization: -6-12 months to MVP
-- ✅ Cost optimization: -$1,500-2,000 Year 1
+**Phase 0 Next Steps (3 weeks):**
+1. Set up dev environment (.NET Core 10 SDK, Node.js, Docker Desktop)
+2. Configure CI/CD pipeline (GitHub Actions)
+3. Create modular monolith project structure (.NET Core 10 solution)
+4. Initialize Git repository structure
+5. Set up Zitadel instance (OAuth 2.0 provider)
+6. Configure RabbitMQ (in-process execution framework)
+7. Set up Hot Chocolate GraphQL (schema merging across modules)
+8. Implement PostgreSQL RLS testing framework
+9. Create Docker Compose for local dev environment
 
-**Phase 1 Summary**: [ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md](docs/ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md)
+**Phase 1: Core MVP (6 weeks, reduced from 8 weeks):**
+- Auth Module with Zitadel integration + GraphQL schema
+- Calendar Module with events + GraphQL schema
+- Task Module with assignments + GraphQL schema
+- Basic event chains (in-process via RabbitMQ)
 
-**Next Steps**:
+**Success Criteria (by end of Phase 6):**
+- **User Metrics:** 100 active families, 80%+ Day 30 retention, 50%+ using event chains weekly, NPS > 40
+- **Business Metrics:** 25+ premium subscribers, $2,500+ MRR, positive unit economics
+- **Technical Metrics:** 99.5%+ uptime, <2s event chain latency, <3s p95 API response time
 
-1. **Stakeholder approval** of ADR-001 (Modular Monolith First approach) ✅ **APPROVED**
-
-2. **Technology Stack Confirmed**:
-   - Backend: .NET Core 10 / C# 14 with Hot Chocolate GraphQL
-   - Frontend: Angular v21 + TypeScript + Tailwind CSS
-   - Event Bus: RabbitMQ (in-process Phase 1-4)
-   - Infrastructure: Docker Compose (Phase 1-4) → Kubernetes (Phase 5+)
-
-3. Start Phase 0: Foundation & Tooling (3 weeks, reduced from 4)
-
-   - Set up development environment (.NET Core 10 SDK, Node.js for Angular v21, Docker Desktop)
-   - Configure CI/CD pipeline (GitHub Actions)
-   - Create modular monolith project structure (.NET Core 10)
-   - Initialize Git repository structure
-   - Set up Zitadel instance
-   - Configure RabbitMQ (in-process execution initially)
-   - Set up Hot Chocolate GraphQL with module schema merging
-   - Implement RLS testing framework
-   - Create Docker Compose for local dev
-
-4. Proceed to Phase 1: Core MVP (6 weeks, reduced from 8)
-   - Auth Module with Zitadel integration + GraphQL schema
-   - Calendar Module with events + GraphQL schema
-   - Task Module with assignments + GraphQL schema
-   - Basic event chains (in-process via RabbitMQ)
-
-### Success Criteria for MVP
-
-**User Metrics** (by end of Phase 6):
-
-- 100 active families
-- 80%+ Day 30 retention
-- 50%+ using event chains weekly
-- NPS > 40
-
-**Business Metrics**:
-
-- 25+ premium subscribers
-- $2,500+ MRR
-- Positive unit economics
-
-**Technical Metrics**:
-
-- 99.5%+ uptime
-- <2s event chain latency
-- <3s p95 API response time
+**Full roadmap:** [implementation-roadmap.md](docs/implementation-roadmap.md)
 
 ---
 
-## 🔗 Quick Links
+## 🛠️ DEVELOPMENT WORKFLOWS
 
-### Essential Reading
+### For New Claude Code Sessions
 
-- [Executive Summary](docs/EXECUTIVE_SUMMARY.md) - Start here (15 min read)
-- [Domain Model & Microservices](docs/domain-model-microservices-map.md) - Technical architecture
-- [Cloud Architecture](docs/cloud-architecture.md) - Kubernetes deployment strategy
-- [Implementation Roadmap](docs/implementation-roadmap.md) - Phase-by-phase plan
-- [Feature Backlog](docs/FEATURE_BACKLOG.md) - All 208 features prioritized
+1. **Read CLAUDE.md** (this file) - Critical context in first 80 lines
+2. **Check current phase** - [implementation-roadmap.md](docs/implementation-roadmap.md)
+3. **Review architecture decision** - [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
+4. **Understand domain model** - [domain-model-microservices-map.md](docs/domain-model-microservices-map.md)
 
-### By Topic
+### Contributing & Creating Issues
 
-**Architecture Review (NEW - Issue #11)**:
-- [ARCHITECTURE-REVIEW-REPORT.md](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md) - Comprehensive architecture review
-- [ADR-001-MODULAR-MONOLITH-FIRST.md](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Modular monolith decision
-- [ISSUE-11-DELIVERABLES-SUMMARY.md](docs/architecture/ISSUE-11-DELIVERABLES-SUMMARY.md) - Issue #11 completion summary
+**Issue Templates** (`.github/ISSUE_TEMPLATE/`):
+- Feature Request (RICE scoring, user stories)
+- Bug Report (severity, reproduction steps)
+- Phase Deliverable (epic coordination)
+- Research & Documentation
+- Technical Debt
+- Blank (custom)
 
-**Product Strategy**:
-- [PRODUCT_STRATEGY.md](docs/PRODUCT_STRATEGY.md)
-- [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md)
+**Pull Requests:** Use `.github/PULL_REQUEST_TEMPLATE.md` with architecture impact, testing, quality checklists.
 
-**UX Research & UI Design**:
-- [ux-research-report.md](docs/ux-research-report.md) - Personas & competitive analysis
-- [information-architecture.md](docs/information-architecture.md) - Site map & navigation
-- [wireframes.md](docs/wireframes.md) - Complete wireframes
-- [design-system.md](docs/design-system.md) - Design system & components
-- [angular-component-specs.md](docs/angular-component-specs.md) - Angular components
-- [accessibility-strategy.md](docs/accessibility-strategy.md) - WCAG 2.1 AA + COPPA
-- [event-chain-ux.md](docs/event-chain-ux.md) - Event chain UX patterns
-- [responsive-design-guide.md](docs/responsive-design-guide.md) - Mobile-first design
-- [interaction-design-guide.md](docs/interaction-design-guide.md) - Micro-interactions
+**Labels System (60+ labels):**
 
-**Cloud Architecture**:
-- [cloud-architecture.md](docs/cloud-architecture.md)
-- [kubernetes-deployment-guide.md](docs/kubernetes-deployment-guide.md)
-- [infrastructure-cost-analysis.md](docs/infrastructure-cost-analysis.md)
-- [cicd-pipeline.md](docs/cicd-pipeline.md)
+| Category | Labels |
+|----------|--------|
+| Type | feature, bug, epic, research, docs, tech-debt, infrastructure, security, performance |
+| Phase | phase-0 through phase-6, phase-7-future |
+| Service | auth, calendar, task, shopping, health, meal, finance, communication, frontend, infrastructure, multiple |
+| Status | triage, planning, ready, in-progress, blocked, review, testing, done, wontfix |
+| Priority | p0 (critical), p1 (high), p2 (medium), p3 (low) |
+| Domain | auth, calendar, tasks, shopping, health, meals, finance, notifications, event-chains, mobile, ux |
+| Effort | xs (<1 day), s (1-3 days), m (1 week), l (2 weeks), xl (>2 weeks) |
+| Special | good-first-issue, help-wanted, breaking-change, needs-documentation, needs-design, ai-assisted |
 
-**Event Chains**:
-- [event-chains-reference.md](docs/event-chains-reference.md)
-- [event-chain-ux.md](docs/event-chain-ux.md)
+**Create labels:** `./scripts/create-labels.sh`
 
-**Other**:
-- [risk-register.md](docs/risk-register.md)
-- [ROADMAP_VISUAL.md](docs/ROADMAP_VISUAL.md)
-- [architecture-visual-summary.md](docs/architecture-visual-summary.md)
-- [INDEX.md](docs/INDEX.md)
+**Full guide:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
-### GitHub Issues
-
-- **[Issue #11: Technical Architecture Review & Validation](https://github.com/andrekirst/family2/issues/11)** - CRITICAL: Modular monolith decision
-- [Issue #10: Legal Compliance & Data Protection Documentation](https://github.com/andrekirst/family2/issues/10)
-- [Issue #9: Market Strategy & Go-to-Market Planning](https://github.com/andrekirst/family2/issues/9)
-- [Issue #8: Security Architecture & Compliance](https://github.com/andrekirst/family2/issues/8)
-- [Issue #7: UX Architecture & Design System](https://github.com/andrekirst/family2/issues/7)
-- [Issue #6: Cloud Architecture & Kubernetes Deployment Strategy](https://github.com/andrekirst/family2/issues/6)
-- [Issue #5: Product Strategy & Feature Prioritization](https://github.com/andrekirst/family2/issues/5)
-- [Issue #4: Master Implementation Plan](https://github.com/andrekirst/family2/issues/4)
-- [Issue #1: Family Hub Feature Ideas](https://github.com/andrekirst/family2/issues/1)
+**Why this matters:**
+- Structured issues aligned with DDD architecture
+- RICE scoring maintains prioritization methodology
+- Phase alignment ensures roadmap adherence
+- Event chain awareness prompts cross-module impact consideration
+- AI-friendly templates (Claude Code generates 60-80% of code)
 
 ---
 
-## 💡 Tips for Claude Code
-
-### When Asked to Implement Features
-
-1. **Check the phase** in `/docs/implementation-roadmap.md` - is this feature scheduled for current phase?
-2. **Find the feature** in `/docs/FEATURE_BACKLOG.md` - understand priority, dependencies, RICE score
-3. **Identify the service** in `/docs/domain-model-microservices-map.md` - which bounded context?
-4. **Review domain events** - does this feature trigger or consume events?
-5. **Check event chains** in `/docs/event-chains-reference.md` - is this part of a workflow?
-6. **Consider risks** in `/docs/risk-register.md` - any mitigation strategies to follow?
-
-### When Asked About Product Direction
-
-- Refer to `/docs/PRODUCT_STRATEGY.md` for vision, personas, and strategic pillars
-- Check `/docs/FEATURE_BACKLOG.md` for feature priorities and competitive analysis
-- Review `/docs/EXECUTIVE_SUMMARY.md` for high-level positioning and market gaps
-
-### When Asked About Architecture Decisions
-
-- Consult `/docs/domain-model-microservices-map.md` for DDD patterns and service boundaries
-- Review `/docs/event-chains-reference.md` for event-driven patterns
-- Check `/docs/architecture-visual-summary.md` for system diagrams
-
-### When Planning Implementation
-
-- Follow phases in `/docs/implementation-roadmap.md` - don't skip ahead
-- Each phase has clear deliverables and success criteria
-- Validate assumptions with user before implementing
-- Keep Phase 7 (Federation) deferred - online service first!
-
----
-
-## 🚨 Important Notes
+## ⚠️ STRATEGIC CONTEXT & CONSTRAINTS
 
 ### Strategic Decisions
 
-1. **Online Service First**: Launch as cloud-based SaaS, NOT self-hosted initially
+1. **Online Service First** - Launch as cloud-based SaaS, NOT self-hosted initially. Self-hosting/federation deferred to Phase 7+ (post-MVP). Focus on event chain automation as PRIMARY differentiator.
 
-   - Self-hosting and federation deferred to Phase 7+ (post-MVP)
-   - Focus on event chain automation as PRIMARY differentiator
-   - Simpler operations, faster to market
+2. **Event Chains are #1 Priority** - This is what makes Family Hub unique. No competitor offers automated cross-domain workflows. Must work flawlessly. Saves users 10-30 minutes per workflow.
 
-2. **Event Chains are #1 Priority**: This is what makes Family Hub unique
+3. **Single Developer + AI** - Project designed for AI-assisted solo development. Claude Code generates 60-80% of boilerplate, tests, schemas. Quality over speed. Incremental delivery.
 
-   - No competitor offers automated cross-domain workflows
-   - Saves users 10-30 minutes per workflow
-   - Must work flawlessly
-
-3. **Single Developer Approach**: Project designed for AI-assisted solo development
-
-   - Claude Code generates 60-80% of code
-   - Quality over speed
-   - Incremental delivery
-
-4. **Privacy-First but Pragmatic**: GDPR compliant, no data selling, but cloud-hosted for ease of use
-   - Self-hosting comes later when we have traction
-   - Privacy advocates are future audience, not initial target
+4. **Privacy-First but Pragmatic** - GDPR compliant, no data selling, transparent security. Cloud-hosted for ease of use initially. Self-hosting for privacy advocates comes later (Phase 7+).
 
 ### What NOT to Do
 
-❌ **Don't implement Federation Service** (Phase 7+, deferred)
-❌ **Don't skip phases** in implementation roadmap
-❌ **Don't ignore event chains** - they're the core innovation
-❌ **Don't assume features** - check `/docs/FEATURE_BACKLOG.md` for priorities
-❌ **Don't break DDD boundaries** - respect microservice ownership
-❌ **Don't duplicate documentation** - reference `/docs/` instead
+❌ **Don't implement Federation Service** (Phase 7+, deferred - not in scope until post-MVP)
+❌ **Don't skip phases** in implementation roadmap (follow sequential delivery)
+❌ **Don't ignore event chains** when designing features (core innovation)
+❌ **Don't assume features** - check `FEATURE_BACKLOG.md` for priorities (208 features RICE-scored)
+❌ **Don't break DDD boundaries** - respect module ownership (8 modules, clear responsibilities)
+❌ **Don't duplicate documentation** - reference `/docs/` instead of repeating content
+
+### Tips for Claude Code
+
+**When implementing features:**
+1. Check [implementation-roadmap.md](docs/implementation-roadmap.md) for phase scheduling
+2. Review [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md) for priority and RICE score
+3. Consult [domain-model-microservices-map.md](docs/domain-model-microservices-map.md) for module ownership
+
+**When asked about architecture:**
+1. Start with [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) for strategic decision
+2. Review [domain-model-microservices-map.md](docs/domain-model-microservices-map.md) for DDD patterns
+3. Check [event-chains-reference.md](docs/event-chains-reference.md) for event-driven patterns
+
+**When planning work:**
+- Follow phases in [implementation-roadmap.md](docs/implementation-roadmap.md) - don't skip ahead
+- Each phase has clear deliverables and success criteria
+- Validate assumptions before implementing
+- Keep Federation deferred - online service first
 
 ---
 
-## 📚 Documentation Summary
+## 📋 APPENDIX: COMPLETE DOCUMENTATION MAP
 
-**Total**: 51 documents, 265,000+ words
-**Location**: `/home/andrekirst/git/github/andrekirst/family2/docs/`
-**Categories**:
-- **Phase 1 Completion (1 doc - Issue #4) - NEW**
-- Product Strategy (5 docs - Issue #5)
-- Architecture Review (3 docs - Issue #11)
-- Technical Architecture (3 docs)
-- Cloud & Kubernetes (8 docs - Issue #6)
-- Security Architecture (5 docs - Issue #8)
-- Legal Compliance (9 docs - Issue #10)
-- Market Strategy (5 docs - Issue #9)
-- UX Research & UI Design (11 docs - Issue #7)
-- Supporting Documents (1 doc)
+**All 57 markdown documents** organized by location:
 
-**Purpose**: Comprehensive planning and architecture for Family Hub
-**Audience**: Product managers, developers, architects, security engineers, legal advisors, UX/UI designers, stakeholders, Claude Code
+### `/docs/` Root (45 documents)
 
-**✅ PHASE 1 PREPARATION COMPLETE**: All planning finished. Ready to begin Phase 0: Foundation & Tooling.
+**Phase 1 Completion:**
+- ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md - Preparation complete, ready for Phase 0
 
-**⚠️ CRITICAL**: Architecture review (Issue #11) recommends **Modular Monolith First**, not microservices. See `/docs/architecture/` folder.
+**Product Strategy (Issue #5):**
+- executive-summary.md - 15-min overview (vision, market, strategy)
+- PRODUCT_STRATEGY.md - Complete strategy, personas, roadmap
+- FEATURE_BACKLOG.md - 208 features (RICE scored)
+- ROADMAP_VISUAL.md - Visual timeline with ASCII charts
+- ISSUE_5_SUMMARY.md - Issue #5 deliverables summary
 
-**Remember**: Always check `/docs/` folder first when you need context about Family Hub!
+**Technical Architecture:**
+- domain-model-microservices-map.md - 8 DDD modules, domain events, GraphQL
+- implementation-roadmap.md - 6-phase plan (10-14 months)
+- risk-register.md - 35 risks with mitigation
+- event-chains-reference.md - 10 workflow specs
+- architecture-visual-summary.md - System diagrams (ASCII)
+- DELIVERABLES_SUMMARY.md - Issue #5 checklist
+- INDEX.md - Documentation map with FAQ
+- README.md - Docs directory overview
+
+**Cloud & Kubernetes (Issue #6):**
+- cloud-architecture.md - Kubernetes architecture (Phase 5+)
+- kubernetes-deployment-guide.md - Deployment (local/cloud)
+- helm-charts-structure.md - Helm chart templates
+- observability-stack.md - Prometheus/Grafana/Loki
+- cicd-pipeline.md - GitHub Actions/ArgoCD
+- multi-tenancy-strategy.md - PostgreSQL RLS
+- infrastructure-cost-analysis.md - Costs ($200-5K/mo)
+- ISSUE-6-DELIVERABLES-SUMMARY.md - Issue #6 summary
+
+**Security (Issue #8):**
+- threat-model.md - STRIDE analysis (53 threats)
+- security-testing-plan.md - OWASP Top 10, SAST/DAST
+- vulnerability-management.md - Severity, remediation SLAs
+- security-monitoring-incident-response.md - Monitoring, incident playbooks
+- ISSUE-8-SECURITY-SUMMARY.md - Issue #8 summary
+
+**Market Strategy (Issue #9):**
+- market-research-report.md - Competitive analysis (2,700+ reviews)
+- go-to-market-plan.md - GTM strategy
+- seo-content-strategy.md - SEO/content plan
+- brand-positioning.md - Brand guidelines
+- competitive-analysis.md - Competitor analysis
+- ISSUE-9-MARKET-STRATEGY-SUMMARY.md - Issue #9 summary
+
+**UX/UI Design (Issue #7):**
+- ux-research-report.md - 6 personas, user journeys
+- information-architecture.md - Site map, navigation
+- wireframes.md - Complete MVP wireframes
+- design-system.md - Design system (22+ components)
+- angular-component-specs.md - Angular v21 components
+- accessibility-strategy.md - WCAG 2.1 AA + COPPA
+- event-chain-ux.md - Event chain UX patterns
+- responsive-design-guide.md - Mobile-first design
+- interaction-design-guide.md - Micro-interactions
+- ISSUE-7-UI-DESIGN-SUMMARY.md - Issue #7 UI summary
+- ISSUE-7-UX-RESEARCH-SUMMARY.md - Issue #7 UX summary
+
+### `/docs/architecture/` (3 documents)
+
+- **ADR-001-MODULAR-MONOLITH-FIRST.md** - Architecture decision record
+- **ARCHITECTURE-REVIEW-REPORT.md** - Comprehensive architecture review
+- **ISSUE-11-DELIVERABLES-SUMMARY.md** - Issue #11 summary
+
+### `/docs/legal/` (9 documents)
+
+- **LEGAL-COMPLIANCE-SUMMARY.md** - Comprehensive compliance overview
+- **terms-of-service.md** - Terms of Service
+- **privacy-policy.md** - Privacy Policy (GDPR/COPPA/CCPA)
+- **cookie-policy.md** - Cookie disclosure
+- **compliance-checklist.md** - 93 compliance items
+- **data-processing-agreement-template.md** - DPA templates
+- **quick-reference-coppa-workflow.md** - COPPA implementation
+- **ISSUE-10-DELIVERABLES.md** - Issue #10 deliverables
+- **README.md** - Legal docs quick start
+
+**Total:** 45 + 3 + 9 = **57 documents**
 
 ---
 
-_This guide was created to help Claude Code navigate the Family Hub project efficiently. For the full context, always refer to the `/docs/` folder._
+_This guide was created to help Claude Code navigate the Family Hub project efficiently. For full context, always refer to the `/docs/` folder._
+
+**Last updated:** 2025-12-21
+**CLAUDE.md version:** 2.0 (Optimized)
