@@ -1,0 +1,103 @@
+# Family Hub - Docker Compose Configuration
+# Local Development Environment
+# Version: 1.0
+
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: familyhub-postgres
+    environment:
+      POSTGRES_DB: familyhub
+      POSTGRES_USER: familyhub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Dev123!}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - familyhub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U familyhub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # RabbitMQ Message Broker (Phase 5+, optional in Phase 1)
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: familyhub-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: familyhub
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-Dev123!}
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - familyhub-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Zitadel (OAuth 2.0 / OIDC Provider)
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:v2.47.0
+    container_name: familyhub-zitadel
+    command: 'start-from-init --masterkey "${ZITADEL_MASTERKEY}" --tlsMode disabled'
+    environment:
+      ZITADEL_DATABASE_POSTGRES_HOST: postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${ZITADEL_DB_PASSWORD:-Dev123!}
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: familyhub
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${POSTGRES_PASSWORD:-Dev123!}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      ZITADEL_EXTERNALSECURE: "false"
+      ZITADEL_EXTERNALPORT: 8080
+      ZITADEL_TLS_ENABLED: "false"
+      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY:-MasterKey123!MustBe32Characters!}
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: FamilyHub
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD:-Admin123!}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - familyhub-network
+    restart: unless-stopped
+
+  # Seq (Structured Logging - Optional)
+  seq:
+    image: datalust/seq:latest
+    container_name: familyhub-seq
+    environment:
+      ACCEPT_EULA: Y
+    ports:
+      - "5341:80"
+    volumes:
+      - seq_data:/data
+    networks:
+      - familyhub-network
+    restart: unless-stopped
+
+networks:
+  familyhub-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  seq_data:

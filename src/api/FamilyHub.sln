@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.SharedKernel", "FamilyHub.SharedKernel\FamilyHub.SharedKernel.csproj", "{C4BCEA84-01F7-45D7-B109-8CC63D92AD96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.Infrastructure", "FamilyHub.Infrastructure\FamilyHub.Infrastructure.csproj", "{86D22E8F-A07D-4CC9-8849-43B92F255FC2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.Api", "FamilyHub.Api\FamilyHub.Api.csproj", "{B42C8A63-9E2E-4CF2-B846-1A6A95DB4472}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{DF6C306F-9413-4407-83E5-76783FED2E7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.Modules.Auth", "Modules\FamilyHub.Modules.Auth\FamilyHub.Modules.Auth.csproj", "{084D6545-935F-4576-89DA-D0FF9D7D7CC6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{368D51E0-AB17-4140-9012-47ABACB3AE78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.Tests.Unit", "tests\FamilyHub.Tests.Unit\FamilyHub.Tests.Unit.csproj", "{183B5B88-C0E0-4F9B-99CA-B274C8CA3C6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.Tests.Integration", "tests\FamilyHub.Tests.Integration\FamilyHub.Tests.Integration.csproj", "{20188ED8-9EE8-40AA-9CAF-C5D1972E025E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C4BCEA84-01F7-45D7-B109-8CC63D92AD96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4BCEA84-01F7-45D7-B109-8CC63D92AD96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4BCEA84-01F7-45D7-B109-8CC63D92AD96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4BCEA84-01F7-45D7-B109-8CC63D92AD96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86D22E8F-A07D-4CC9-8849-43B92F255FC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86D22E8F-A07D-4CC9-8849-43B92F255FC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86D22E8F-A07D-4CC9-8849-43B92F255FC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86D22E8F-A07D-4CC9-8849-43B92F255FC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B42C8A63-9E2E-4CF2-B846-1A6A95DB4472}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B42C8A63-9E2E-4CF2-B846-1A6A95DB4472}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B42C8A63-9E2E-4CF2-B846-1A6A95DB4472}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B42C8A63-9E2E-4CF2-B846-1A6A95DB4472}.Release|Any CPU.Build.0 = Release|Any CPU
+		{084D6545-935F-4576-89DA-D0FF9D7D7CC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{084D6545-935F-4576-89DA-D0FF9D7D7CC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{084D6545-935F-4576-89DA-D0FF9D7D7CC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{084D6545-935F-4576-89DA-D0FF9D7D7CC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{183B5B88-C0E0-4F9B-99CA-B274C8CA3C6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{183B5B88-C0E0-4F9B-99CA-B274C8CA3C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{183B5B88-C0E0-4F9B-99CA-B274C8CA3C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{183B5B88-C0E0-4F9B-99CA-B274C8CA3C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20188ED8-9EE8-40AA-9CAF-C5D1972E025E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20188ED8-9EE8-40AA-9CAF-C5D1972E025E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20188ED8-9EE8-40AA-9CAF-C5D1972E025E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20188ED8-9EE8-40AA-9CAF-C5D1972E025E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{084D6545-935F-4576-89DA-D0FF9D7D7CC6} = {DF6C306F-9413-4407-83E5-76783FED2E7B}
+		{183B5B88-C0E0-4F9B-99CA-B274C8CA3C6D} = {368D51E0-AB17-4140-9012-47ABACB3AE78}
+		{20188ED8-9EE8-40AA-9CAF-C5D1972E025E} = {368D51E0-AB17-4140-9012-47ABACB3AE78}
+	EndGlobalSection
+EndGlobal

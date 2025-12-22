@@ -22,13 +22,15 @@
 | Auth | Zitadel | External OAuth 2.0 / OIDC |
 | Infrastructure | Docker Compose → Kubernetes | Phase 1-4 → Phase 5+ |
 | Monitoring | Prometheus + Grafana + Seq | |
+| Value Objects | Vogen 8.0+ | Source generator for strongly-typed primitives |
 
-**📍 CURRENT PHASE: Phase 0 - Foundation & Tooling (READY TO START)**
+**📍 CURRENT PHASE: Phase 0 - Foundation & Tooling (IN PROGRESS)**
 - **Phase 1 Preparation:** ✅ COMPLETED (December 2024 - Issues #4-11)
-- **57 documents** (265,000+ words) of planning complete
-- **Technology stack confirmed:** .NET Core 10, Angular v21, GraphQL, RabbitMQ
-- **Architecture validated:** Modular monolith first (ADR-001)
-- **Next:** 3 weeks to set up dev environment, CI/CD, project structure
+- **OAuth Integration:** ✅ COMPLETED (December 2024 - Zitadel OAuth 2.0, 7 days)
+- **60 documents** (280,000+ words) of planning complete
+- **Technology stack confirmed:** .NET Core 10, Angular v21, GraphQL, RabbitMQ, Zitadel
+- **Architecture validated:** Modular monolith first (ADR-001), OAuth with Zitadel (ADR-002)
+- **Next:** Frontend OAuth integration, then Phase 1 Core MVP
 
 **Strategic Pivot (December 2024):**
 - ✅ Launch as cloud-based online service FIRST
@@ -62,10 +64,11 @@
 
 ### Architecture Questions
 
-**Read these 3 docs:**
+**Read these 4 docs:**
 1. [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Modular monolith decision rationale
-2. [Domain Model](docs/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
-3. [Event Chains Reference](docs/event-chains-reference.md) - Event-driven patterns and workflows
+2. [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md) - OAuth 2.0 with Zitadel (vs Auth0, Keycloak, ASP.NET Identity)
+3. [Domain Model](docs/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
+4. [Event Chains Reference](docs/event-chains-reference.md) - Event-driven patterns and workflows
 
 ### Planning & Roadmap Questions
 
@@ -90,6 +93,7 @@
 | Category | Key Documents | Purpose |
 |----------|---------------|---------|
 | **Phase 1 Completion** | [ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md](docs/ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md) | Phase 1 prep complete, ready for Phase 0 |
+| **OAuth Integration (Dec 2024)** | [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md), [Zitadel Setup Guide](docs/ZITADEL-SETUP-GUIDE.md), [Completion Summary](docs/ZITADEL-OAUTH-COMPLETION-SUMMARY.md) | Zitadel OAuth 2.0 integration, PKCE flow, security audit (80% OWASP compliance) |
 | **Architecture (Issue #11)** | [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [Architecture Review](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md), [Deliverables](docs/architecture/ISSUE-11-DELIVERABLES-SUMMARY.md) | Modular monolith decision, review findings, validation |
 | **Product Strategy (Issue #5)** | [executive-summary.md](docs/executive-summary.md), [PRODUCT_STRATEGY.md](docs/PRODUCT_STRATEGY.md), [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md) (208 features), [ROADMAP_VISUAL.md](docs/ROADMAP_VISUAL.md), [ISSUE_5_SUMMARY.md](docs/ISSUE_5_SUMMARY.md) | Vision, personas, RICE-scored features, visual timeline |
 | **Technical Architecture** | [domain-model-microservices-map.md](docs/domain-model-microservices-map.md), [implementation-roadmap.md](docs/implementation-roadmap.md), [risk-register.md](docs/risk-register.md) | 8 DDD modules, 6-phase plan, 35 risks |
@@ -269,6 +273,206 @@ Refill reminder scheduled (Communication Module)
 3. **Review architecture decision** - [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
 4. **Understand domain model** - [domain-model-microservices-map.md](docs/domain-model-microservices-map.md)
 
+### Database Migrations with EF Core
+
+**CRITICAL: Use EF Core Code-First migrations for ALL schema changes** - Never write custom SQL migration scripts.
+
+**What are EF Core Migrations?**
+Entity Framework Core Code-First migrations provide type-safe, version-controlled database schema management. Changes to entity classes automatically generate migration files in C#, which are compiled, type-checked, and tracked in git.
+
+**Why EF Core Migrations (not SQL scripts)?**
+1. **Type Safety** - C# migrations are compiled and type-checked at build time
+2. **Consistent Naming** - Follows .NET conventions (snake_case for PostgreSQL)
+3. **Database Agnostic** - Same code works with PostgreSQL, SQL Server, SQLite
+4. **Automatic Tracking** - EF Core manages `__EFMigrationsHistory` table
+5. **Vogen Integration** - Value converters work seamlessly
+6. **CI/CD Ready** - Programmatic migration execution
+7. **Rollback Support** - Generated `Down()` methods for reverting
+
+**Architecture Pattern:**
+- **One DbContext per module** (AuthDbContext, CalendarDbContext, etc.)
+- **Each DbContext targets its own PostgreSQL schema** (auth, calendar, etc.)
+- **Fluent API configurations** in `IEntityTypeConfiguration<T>` classes
+- **PostgreSQL-specific features** (RLS, triggers) via `migrationBuilder.Sql()`
+
+**Creating a Migration:**
+
+```bash
+# Navigate to module
+cd src/api/Modules/FamilyHub.Modules.Auth
+
+# Create migration
+dotnet ef migrations add InitialCreate \
+    --context AuthDbContext \
+    --project . \
+    --startup-project ../../FamilyHub.Api \
+    --output-dir Persistence/Migrations
+```
+
+**Applying Migrations:**
+
+```bash
+# Development
+dotnet ef database update --context AuthDbContext \
+    --project Modules/FamilyHub.Modules.Auth \
+    --startup-project FamilyHub.Api
+
+# Production (programmatic in Program.cs)
+using var scope = app.Services.CreateScope();
+var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+await authDbContext.Database.MigrateAsync();
+```
+
+**Adding PostgreSQL Features (RLS, Triggers):**
+
+```csharp
+public partial class InitialCreate : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        // Auto-generated table creation from Fluent API
+        migrationBuilder.CreateTable(...);
+
+        // Manual SQL for PostgreSQL-specific features
+        migrationBuilder.Sql(@"
+            ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
+            CREATE POLICY users_isolation_policy ON auth.users
+                USING (id = auth.current_user_id());
+        ");
+    }
+}
+```
+
+**Entity Configuration with Vogen:**
+
+```csharp
+public class UserConfiguration : IEntityTypeConfiguration<User>
+{
+    public void Configure(EntityTypeBuilder<User> builder)
+    {
+        builder.ToTable("users", "auth");
+
+        // Vogen value object with EF Core converter
+        builder.Property(u => u.Id)
+            .HasConversion(new UserId.EfCoreValueConverter())
+            .HasColumnName("id");
+
+        builder.Property(u => u.Email)
+            .HasConversion(new Email.EfCoreValueConverter())
+            .HasColumnName("email")
+            .HasMaxLength(320);
+    }
+}
+```
+
+**Complete guide:** See `/database/docs/MIGRATION_STRATEGY.md`
+
+**SQL scripts reference:** Original SQL design scripts are preserved in `/database/docs/reference/sql-design/` as reference documentation for RLS policies, triggers, and constraints. These are NOT executed - they inform EF Core migration implementation.
+
+### Value Objects with Vogen
+
+**CRITICAL: Use Vogen for ALL value objects** - Never create manual value object base classes.
+
+**What is Vogen?**
+[Vogen](https://github.com/SteveDunn/Vogen) is a .NET source generator that transforms primitives into strongly-typed value objects, enforcing domain concepts and preventing invalid states through compile-time errors. It eliminates boilerplate by auto-generating:
+- Constructors and factory methods (`From`, `TryFrom`)
+- Equality and comparison operators
+- Validation logic
+- EF Core value converters
+- JSON serialization converters
+
+**Creating Value Objects:**
+
+```csharp
+using Vogen;
+
+// Simple strongly-typed ID
+[ValueObject<Guid>(conversions: Conversions.Default | Conversions.EfCoreValueConverter)]
+public readonly partial struct UserId
+{
+    private static Validation Validate(Guid value)
+    {
+        if (value == Guid.Empty)
+            return Validation.Invalid("UserId cannot be empty.");
+        return Validation.Ok;
+    }
+
+    public static UserId New() => From(Guid.NewGuid());
+}
+
+// Value object with validation and normalization
+[ValueObject<string>(conversions: Conversions.Default | Conversions.EfCoreValueConverter)]
+public readonly partial struct Email
+{
+    private static Validation Validate(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Validation.Invalid("Email cannot be empty.");
+        if (!Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            return Validation.Invalid("Email format is invalid.");
+        return Validation.Ok;
+    }
+
+    private static string NormalizeInput(string input) =>
+        input.Trim().ToLowerInvariant();
+}
+```
+
+**Using Value Objects:**
+
+```csharp
+// Creating instances
+var userId = UserId.New();  // Generate new ID
+var email = Email.From("user@example.com");  // Direct creation
+
+// Safe creation
+if (Email.TryFrom("user@example.com", out var validEmail))
+{
+    // Use validEmail
+}
+
+// Access underlying value
+string emailString = email.Value;
+```
+
+**Entity Framework Core Integration:**
+
+Vogen automatically generates EF Core value converters. Configure in DbContext:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<User>()
+        .Property(u => u.Id)
+        .HasConversion(new UserId.EfCoreValueConverter());
+
+    modelBuilder.Entity<User>()
+        .Property(u => u.Email)
+        .HasConversion(new Email.EfCoreValueConverter())
+        .HasMaxLength(320);
+}
+```
+
+**Example Value Objects:**
+- `/src/api/FamilyHub.SharedKernel/Domain/ValueObjects/Email.cs` - Email with validation
+- `/src/api/FamilyHub.SharedKernel/Domain/ValueObjects/UserId.cs` - Strongly-typed user ID
+- `/src/api/FamilyHub.SharedKernel/Domain/ValueObjects/FamilyId.cs` - Strongly-typed family ID
+- See `/src/api/FamilyHub.SharedKernel/Domain/ValueObjects/README.md` for comprehensive guide
+
+**Benefits:**
+1. **Type Safety**: Prevents accidental assignment (`UserId` ≠ `FamilyId`)
+2. **Domain Validation**: Ensures only valid values exist
+3. **Self-Documenting**: Makes intent clear (`UserId` vs `Guid`)
+4. **Zero Boilerplate**: No manual equality, validation, or converter code
+5. **EF Core Seamless**: Automatic database mapping
+
+**Best Practices:**
+- Always use `readonly partial struct` (better performance than classes)
+- Include `Conversions.EfCoreValueConverter` when using with EF Core
+- Implement `Validate` method for domain-critical value objects
+- Use `NormalizeInput` for consistent data format (e.g., email lowercasing)
+- Provide factory methods (like `New()`) for ID generation
+
 ### Contributing & Creating Issues
 
 **Issue Templates** (`.github/ISSUE_TEMPLATE/`):
@@ -436,5 +640,5 @@ Refill reminder scheduled (Communication Module)
 
 _This guide was created to help Claude Code navigate the Family Hub project efficiently. For full context, always refer to the `/docs/` folder._
 
-**Last updated:** 2025-12-21
-**CLAUDE.md version:** 2.0 (Optimized)
+**Last updated:** 2025-12-22
+**CLAUDE.md version:** 2.2 (Added Vogen + EF Core Migrations Strategy)

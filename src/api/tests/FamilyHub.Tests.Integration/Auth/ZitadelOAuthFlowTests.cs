@@ -1,0 +1,272 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Http.Json;
+using System.Security.Claims;
+using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
+using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Infrastructure.Configuration;
+using FamilyHub.SharedKernel.Domain.ValueObjects;
+using MediatR;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Moq.Protected;
+
+namespace FamilyHub.Tests.Integration.Auth;
+
+/// <summary>
+/// Integration tests for Zitadel OAuth 2.0 authorization code flow.
+/// Tests the complete flow from authorization code exchange to user creation.
+/// </summary>
+public sealed class ZitadelOAuthFlowTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
+
+    public ZitadelOAuthFlowTests(WebApplicationFactory<Program> factory)
+    {
+        _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
+
+        _factory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                // Replace HttpClient with mocked version
+                var httpClientDescriptor = services.FirstOrDefault(d =>
+                    d.ServiceType == typeof(IHttpClientFactory));
+                if (httpClientDescriptor != null)
+                {
+                    services.Remove(httpClientDescriptor);
+                }
+
+                services.AddSingleton<IHttpClientFactory>(_ =>
+                {
+                    var mockFactory = new Mock<IHttpClientFactory>();
+                    var httpClient = new HttpClient(_httpMessageHandlerMock.Object);
+                    mockFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
+                        .Returns(httpClient);
+                    return mockFactory.Object;
+                });
+
+                // Configure Zitadel settings for testing
+                services.Configure<ZitadelSettings>(settings =>
+                {
+                    settings.GetType().GetProperty(nameof(ZitadelSettings.Authority))!
+                        .SetValue(settings, "http://localhost:8080");
+                    settings.GetType().GetProperty(nameof(ZitadelSettings.ClientId))!
+                        .SetValue(settings, "test-client-id");
+                    settings.GetType().GetProperty(nameof(ZitadelSettings.ClientSecret))!
+                        .SetValue(settings, "test-client-secret");
+                    settings.GetType().GetProperty(nameof(ZitadelSettings.RedirectUri))!
+                        .SetValue(settings, "http://localhost:4200/auth/callback");
+                    settings.GetType().GetProperty(nameof(ZitadelSettings.Audience))!
+                        .SetValue(settings, "family-hub-api");
+                });
+            });
+        });
+    }
+
+    [Fact]
+    public async Task CompleteZitadelLogin_NewUser_CreatesUserViaCreateFromOAuth()
+    {
+        // Arrange
+        using var scope = _factory.Services.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+
+        var testId = Guid.NewGuid().ToString("N")[..8];
+        var zitadelUserId = $"zitadel-user-{testId}";
+        var email = $"newuser-{testId}@example.com";
+
+        // Mock Zitadel token endpoint response
+        SetupMockHttpResponse(zitadelUserId, email);
+
+        var command = new CompleteZitadelLoginCommand(
+            AuthorizationCode: "mock_authorization_code",
+            CodeVerifier: "mock_code_verifier"
+        );
+
+        // Act
+        var result = await mediator.Send(command);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(email, result.Email.Value);
+        Assert.True(result.EmailVerified);
+
+        // Verify user was created in database
+        var user = await userRepository.GetByIdAsync(result.UserId);
+        Assert.NotNull(user);
+        Assert.Equal("zitadel", user.ExternalProvider);
+        Assert.Equal(zitadelUserId, user.ExternalUserId);
+        Assert.True(user.EmailVerified);
+        Assert.Equal(email, user.Email.Value);
+    }
+
+    [Fact]
+    public async Task CompleteZitadelLogin_ExistingUser_ReturnsExistingUser()
+    {
+        // Arrange
+        using var scope = _factory.Services.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+
+        var testId = Guid.NewGuid().ToString("N")[..8];
+        var zitadelUserId = $"zitadel-user-existing-{testId}";
+        var email = $"existing-{testId}@example.com";
+
+        // Create existing user
+        var existingUser = User.CreateFromOAuth(
+            Email.From(email),
+            zitadelUserId,
+            "zitadel"
+        );
+        await userRepository.AddAsync(existingUser);
+
+        // Save changes to persist the existing user
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<FamilyHub.Modules.Auth.Application.Abstractions.IUnitOfWork>();
+        await unitOfWork.SaveChangesAsync();
+
+        // Mock Zitadel token endpoint response
+        SetupMockHttpResponse(zitadelUserId, email);
+
+        var command = new CompleteZitadelLoginCommand(
+            AuthorizationCode: "mock_authorization_code",
+            CodeVerifier: "mock_code_verifier"
+        );
+
+        // Act
+        var result = await mediator.Send(command);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(existingUser.Id, result.UserId);
+        Assert.Equal(email, result.Email.Value);
+        Assert.True(result.EmailVerified);
+
+        // Verify no duplicate user was created - lookup by external ID should still return the same user
+        var lookedUpUser = await userRepository.GetByExternalUserIdAsync(zitadelUserId, "zitadel");
+        Assert.NotNull(lookedUpUser);
+        Assert.Equal(existingUser.Id, lookedUpUser.Id);
+    }
+
+    [Fact]
+    public async Task CompleteZitadelLogin_InvalidAuthorizationCode_ThrowsException()
+    {
+        // Arrange
+        using var scope = _factory.Services.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+        // Mock failed token exchange
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Content = JsonContent.Create(new { error = "invalid_grant" })
+            });
+
+        var command = new CompleteZitadelLoginCommand(
+            AuthorizationCode: "invalid_code",
+            CodeVerifier: "mock_code_verifier"
+        );
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await mediator.Send(command)
+        );
+    }
+
+    [Fact]
+    public async Task CompleteZitadelLogin_ReturnsValidAccessToken()
+    {
+        // Arrange
+        using var scope = _factory.Services.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+        var testId = Guid.NewGuid().ToString("N")[..8];
+        var zitadelUserId = $"zitadel-user-token-{testId}";
+        var email = $"tokentest-{testId}@example.com";
+        var expectedAccessToken = "mock_access_token_12345";
+
+        // Mock Zitadel token endpoint response
+        SetupMockHttpResponse(zitadelUserId, email, expectedAccessToken);
+
+        var command = new CompleteZitadelLoginCommand(
+            AuthorizationCode: "mock_authorization_code",
+            CodeVerifier: "mock_code_verifier"
+        );
+
+        // Act
+        var result = await mediator.Send(command);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(expectedAccessToken, result.AccessToken);
+        Assert.True(result.ExpiresAt > DateTime.UtcNow);
+    }
+
+    /// <summary>
+    /// Creates a mock ID token (JWT) for testing.
+    /// </summary>
+    private string CreateMockIdToken(string zitadelUserId, string email)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim("sub", zitadelUserId),
+            new Claim("email", email),
+            new Claim("email_verified", "true"),
+            new Claim("iss", "http://localhost:8080"),
+            new Claim("aud", "family-hub-api"),
+            new Claim("iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+            new Claim("exp", DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds().ToString())
+        };
+
+        var handler = new JwtSecurityTokenHandler();
+        var token = new JwtSecurityToken(
+            issuer: "http://localhost:8080",
+            audience: "family-hub-api",
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: null // No signature for mock
+        );
+
+        return handler.WriteToken(token);
+    }
+
+    /// <summary>
+    /// Sets up the mock HTTP handler to return a token response.
+    /// </summary>
+    private void SetupMockHttpResponse(
+        string zitadelUserId,
+        string email,
+        string accessToken = "mock_access_token")
+    {
+        var idToken = CreateMockIdToken(zitadelUserId, email);
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = JsonContent.Create(new
+                {
+                    access_token = accessToken,
+                    id_token = idToken,
+                    expires_in = 3600,
+                    token_type = "Bearer"
+                })
+            });
+    }
+}
