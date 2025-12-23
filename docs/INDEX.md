@@ -1,911 +1,279 @@
-# Family Hub Documentation Index
+# Family Hub - Documentation Index
 
-## Complete Documentation Guide
-
-**Version:** 1.0
-**Date:** 2025-12-19
-**Status:** Issue #5 Complete
+**Last Updated:** 2025-12-23
+**Total Documents:** 51 markdown files organized in 9 thematic folders
+**Total Content:** 280,000+ words
 
 ---
 
-## Quick Start Guides
+## 🚀 Quick Start
 
-### For Stakeholders
+**New to Family Hub?**
+Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
-**Goal:** Understand project vision and business case
-**Time Required:** 30-45 minutes
+**Developers:**
+→ [Architecture Overview](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
+→ [Domain Model](architecture/domain-model-microservices-map.md)
+→ [Implementation Roadmap](product-strategy/implementation-roadmap.md)
 
-1. Read **[Executive Summary](executive-summary.md)** (15 min)
-2. Review **[Deliverables Summary](DELIVERABLES_SUMMARY.md)** (10 min)
-3. Scan **[Architecture Visual Summary](architecture-visual-summary.md)** (10 min)
-4. Review **[Risk Register](risk-register.md)** critical risks only (10 min)
+**Product/Business:**
+→ [Product Strategy](product-strategy/PRODUCT_STRATEGY.md)
+→ [Feature Backlog](product-strategy/FEATURE_BACKLOG.md) (208 features, RICE-scored)
+→ [Market Research](market-business/market-research-report.md)
 
-**Decision Points:**
-
-- Approve strategic direction?
-- Approve budget ($2,745-5,685 Year 1)?
-- Approve timeline (12-18 months)?
-- Proceed to Phase 0?
-
----
-
-### For Technical Architects
-
-**Goal:** Validate technical decisions
-**Time Required:** 2-3 hours
-
-1. Read **[Domain Model & Microservices Map](domain-model-microservices-map.md)** (60 min)
-2. Review **[Architecture Visual Summary](architecture-visual-summary.md)** (20 min)
-3. Study **[Event Chains Reference](event-chains-reference.md)** (40 min)
-4. Review **[Risk Register](risk-register.md)** technical risks (30 min)
-
-**Validation Points:**
-
-- Are bounded contexts correctly defined?
-- Is event-driven architecture appropriate?
-- Are technology choices sound?
-- Are risks adequately mitigated?
+**Designers:**
+→ [UX Research](ux-design/ux-research-report.md) (6 personas)
+→ [Design System](ux-design/design-system.md) (22+ components)
+→ [Wireframes](ux-design/wireframes.md) (all MVP screens)
 
 ---
 
-### For Product Managers
-
-**Goal:** Plan product delivery
-**Time Required:** 1.5-2 hours
-
-1. Read **[Executive Summary](executive-summary.md)** (20 min)
-2. Study **[Implementation Roadmap](implementation-roadmap.md)** (60 min)
-3. Review **[Event Chains Reference](event-chains-reference.md)** (20 min)
-4. Scan **[Risk Register](risk-register.md)** (20 min)
-
-**Planning Points:**
-
-- Phase deliverables clear?
-- Success criteria achievable?
-- User stories well-defined?
-- Go-to-market strategy sound?
-
----
-
-### For Developers
-
-**Goal:** Start coding
-**Time Required:** 3-4 hours
-
-1. Read **[Domain Model & Microservices Map](domain-model-microservices-map.md)** (90 min)
-2. Study **[Event Chains Reference](event-chains-reference.md)** (60 min)
-3. Review **[Implementation Roadmap](implementation-roadmap.md)** Phase 0-1 (45 min)
-4. Scan **[Architecture Visual Summary](architecture-visual-summary.md)** (20 min)
-
-**Development Readiness:**
-
-- Understand domain models?
-- Understand event flows?
-- Know Phase 0 deliverables?
-- Ready to set up dev environment?
-
----
-
-## Complete Document List
-
-### 1. Strategic Documents
-
-#### [Executive Summary](executive-summary.md)
-
-**Purpose:** High-level overview for stakeholders
-**Length:** ~9,000 words | **Read Time:** 30 minutes
-
-**Contents:**
-
-- Project overview and vision
-- Problem and solution
-- Market analysis
-- Competitive landscape
-- Business model (freemium)
-- Revenue projections (3 years)
-- Technical architecture summary
-- Implementation strategy
-- Risk analysis
-- Financial analysis
-- Success metrics
-- Go-to-market strategy
-- Recommendations
-
-**Best For:** Stakeholder briefings, investment decisions, strategic planning
-
----
-
-#### [Deliverables Summary](DELIVERABLES_SUMMARY.md)
-
-**Purpose:** Verify Issue #5 completion
-**Length:** ~4,500 words | **Read Time:** 15 minutes
-
-**Contents:**
-
-- Deliverables checklist (6 major deliverables)
-- Key insights and recommendations
-- Traceability matrix
-- Stakeholder sign-off section
-- Next steps
-- Success criteria
-
-**Best For:** Project verification, status reporting, handoff documentation
-
----
-
-### 2. Technical Architecture Documents
-
-#### [Domain Model & Microservices Map](domain-model-microservices-map.md)
-
-**Purpose:** Complete DDD and microservices architecture
-**Length:** ~15,000 words | **Read Time:** 60 minutes
-
-**Contents:**
-
-- 8 Bounded contexts defined
-- Domain entities and aggregates (C# code)
-- Domain events (published and consumed)
-- GraphQL API schemas
-- Event chain specifications (3 flagship chains)
-- Storage strategies per service
-- Technology stack mapping
-- Kubernetes deployment map
-- Data consistency strategies
-- Security and privacy considerations
-
-**Best For:** Architecture design, technical planning, developer onboarding
-
-**Key Sections:**
-
-1. Bounded Contexts Overview
-2. Auth Service (Zitadel integration)
-3. Calendar Service (core domain)
-4. Task Service (core domain)
-5. Shopping Service
-6. Meal Planning Service
-7. Health Service
-8. Finance Service
-9. Communication Service
-10. Event Chain Specifications
-11. Cross-Cutting Concerns
-12. Data Consistency Strategy
-
----
-
-#### [Event Chains Reference](event-chains-reference.md)
-
-**Purpose:** Detailed event chain specifications
-**Length:** ~10,000 words | **Read Time:** 40 minutes
-
-**Contents:**
-
-- 10 event chains fully specified
-- Event flow diagrams
-- Expected outcomes and time savings
-- Implementation patterns (Direct, Saga, Enrichment)
-- Monitoring metrics
-- Testing strategies
-- Troubleshooting guide
-- 5 future event chains
-
-**Featured Chains:**
-
-1. Doctor Appointment → Calendar → Task → Notification
-2. Prescription → Shopping List → Task → Reminder
-3. Meal Planning → Shopping List → Task → Finance
-4. Budget Threshold → Alert
-5. Recurring Task → Calendar → Notification
-6. Calendar Event Reminder
-7. Task Assignment
-8. Shopping List Completion
-9. Task Overdue
-10. Health Appointment Cancellation
-
-**Best For:** Understanding automation, development planning, testing
-
----
-
-#### [Architecture Visual Summary](architecture-visual-summary.md)
-
-**Purpose:** Visual diagrams for quick reference
-**Length:** ~5,000 words | **Read Time:** 20 minutes
-
-**Contents:**
-
-- System architecture diagram
-- Bounded context map
-- Event flow diagrams
-- Data flow patterns
-- Database schema overview
-- Kubernetes deployment architecture
-- Technology stack layers
-- GraphQL schema federation
-- Monitoring dashboard layout
-- Security architecture
-- Key metrics dashboard
-
-**Best For:** Presentations, visual communication, quick reference
-
----
-
-### 3. Planning Documents
-
-#### [Implementation Roadmap](implementation-roadmap.md)
-
-**Purpose:** Phased development plan
-**Length:** ~12,000 words | **Read Time:** 50 minutes
-
-**Contents:**
-
-- 6-phase development plan (52-78 weeks)
-- Phase 0: Foundation & Tooling (4 weeks)
-- Phase 1: Core MVP (8 weeks)
-- Phase 2: Health Integration & Event Chains (6 weeks)
-- Phase 3: Meal Planning & Finance (8 weeks)
-- Phase 4: Advanced Features (8 weeks)
-- Phase 5: Production Hardening (10 weeks)
-- Phase 6: Mobile Apps & Extended Features (8+ weeks)
-- Technology decision points
-- Cost estimation ($2,745-5,685 Year 1)
-- Phase completion checklists
-- Contingency plans
-
-**Best For:** Project planning, sprint planning, timeline estimation
-
-**Key Sections per Phase:**
-
-- Objectives
-- User stories
-- Services to implement
-- Frontend features
-- Technical implementations
-- Testing requirements
-- Success criteria
-- Estimated effort
-
----
-
-#### [Risk Register](risk-register.md)
-
-**Purpose:** Comprehensive risk analysis
-**Length:** ~13,000 words | **Read Time:** 50 minutes
-
-**Contents:**
-
-- 35 risks identified across 5 categories
-- Market & Product Risks (3 risks)
-- Technical Risks (8 risks)
-- Business & Financial Risks (3 risks)
-- Operational Risks (3 risks)
-- Legal & Compliance Risks (3 risks)
-- Risk scoring (Probability × Impact)
-- Mitigation strategies per risk
-- Monitoring metrics
-- Contingency plans
-- Risk review schedule
-- Escalation criteria
-
-**Critical Risks:**
-
-- Low User Adoption (P:4, I:5, Score:20)
-- Developer Burnout (P:4, I:5, Score:20)
-
-**High Risks:**
-
-- Event Bus Bottleneck (P:4, I:4, Score:16)
-- Database Scalability (P:3, I:5, Score:15)
-
-**Best For:** Risk management, mitigation planning, stakeholder communication
-
----
-
-### 4. Project Documentation
-
-#### [Project README](../README.md)
-
-**Purpose:** Project overview and getting started
-**Length:** ~3,500 words | **Read Time:** 15 minutes
-
-**Contents:**
-
-- Project overview
-- Problem and solution
-- Key features
-- Technology stack
-- Architecture overview
-- Project status and roadmap
-- Getting started (placeholder)
-- Contributing guidelines (placeholder)
-- License (AGPL-3.0)
-- Success metrics
-- FAQ
-
-**Best For:** GitHub visitors, new contributors, project introduction
-
----
-
-#### [Documentation README](README.md)
-
-**Purpose:** Documentation index
-**Length:** ~2,500 words | **Read Time:** 10 minutes
-
-**Contents:**
-
-- Document overview
-- Quick start guides
-- Technology stack summary
-- Key differentiator explanation
-- Project goals
-- Success metrics
-- Contact information
-
-**Best For:** Navigation, documentation overview, quick reference
-
----
-
-## Documentation Map
-
-### By Role
-
-**Stakeholder / Executive:**
+## 📁 Folder Structure
 
 ```
-1. Executive Summary (30 min)
-2. Deliverables Summary (15 min)
-3. Risk Register - Critical Risks Only (10 min)
-   Total: 55 minutes
-```
-
-**Product Manager:**
-
-```
-1. Executive Summary (30 min)
-2. Implementation Roadmap (50 min)
-3. Event Chains Reference (40 min)
-4. Risk Register (50 min)
-   Total: 2h 50m
-```
-
-**Technical Architect:**
-
-```
-1. Domain Model & Microservices Map (60 min)
-2. Architecture Visual Summary (20 min)
-3. Event Chains Reference (40 min)
-4. Risk Register - Technical Risks (20 min)
-   Total: 2h 20m
-```
-
-**Developer:**
-
-```
-1. Domain Model & Microservices Map (90 min)
-2. Event Chains Reference (60 min)
-3. Implementation Roadmap - Phase 0-1 (30 min)
-4. Architecture Visual Summary (20 min)
-   Total: 3h 20m
-```
-
-**Business Analyst:**
-
-```
-1. Executive Summary (30 min)
-2. Domain Model & Microservices Map (60 min)
-3. Implementation Roadmap (50 min)
-4. Risk Register (50 min)
-5. Deliverables Summary (15 min)
-   Total: 3h 25m
+/docs/
+├── /architecture/          # Technical architecture & ADRs (6 docs)
+├── /authentication/        # OAuth 2.0 & Zitadel guides (4 docs)
+├── /infrastructure/        # Cloud, K8s, CI/CD (6 docs)
+├── /legal/                 # GDPR, COPPA, compliance (8 docs)
+├── /market-business/       # Market research, GTM (5 docs)
+├── /product-strategy/      # Vision, roadmap, features (5 docs)
+├── /security/              # Threat model, testing (4 docs)
+├── /ux-design/             # UX research, design system (9 docs)
+├── executive-summary.md    # Start here!
+├── INDEX.md                # This file
+└── README.md               # Folder overview
 ```
 
 ---
 
-### By Topic
+## 📚 Complete Documentation Map
 
-**Understanding the Product:**
+### 1. Architecture (`/architecture/` - 6 documents)
 
-- Executive Summary → Problem, solution, value proposition
-- Event Chains Reference → Key differentiator
-- Project README → Quick overview
+**Architecture Decisions:**
+- [ADR-001: Modular Monolith First](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Why not microservices from day one
+- [ADR-002: OAuth with Zitadel](architecture/ADR-002-OAUTH-WITH-ZITADEL.md) - Why Zitadel vs Auth0/Keycloak
+- [Architecture Review Report](architecture/ARCHITECTURE-REVIEW-REPORT.md) - Comprehensive architecture review
 
-**Technical Architecture:**
-
-- Domain Model & Microservices Map → Full architecture
-- Architecture Visual Summary → Diagrams and visuals
-- Event Chains Reference → Event-driven patterns
-
-**Planning & Execution:**
-
-- Implementation Roadmap → Phases and timelines
-- Risk Register → Risks and mitigation
-- Deliverables Summary → Issue #5 completion
-
-**Business Case:**
-
-- Executive Summary → Market, financials, strategy
-- Implementation Roadmap → Cost estimation
-- Risk Register → Business risks
+**Domain-Driven Design:**
+- [Domain Model & Microservices Map](architecture/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
+- [Event Chains Reference](architecture/event-chains-reference.md) - 10 automated workflows
+- [Architecture Visual Summary](architecture/architecture-visual-summary.md) - ASCII system diagrams
+- [Multi-Tenancy Strategy](architecture/multi-tenancy-strategy.md) - PostgreSQL Row-Level Security
 
 ---
 
-## Document Dependencies
+### 2. Authentication (`/authentication/` - 4 documents)
 
-```
-                      ┌─────────────────────┐
-                      │ Executive Summary   │
-                      │  (Entry Point)      │
-                      └──────────┬──────────┘
-                                 │
-          ┌──────────────────────┼──────────────────────┐
-          │                      │                      │
-          ▼                      ▼                      ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Domain Model    │    │ Implementation  │    │ Risk Register   │
-│   (Technical)   │    │   Roadmap       │    │   (Risks)       │
-└────────┬────────┘    └────────┬────────┘    └────────┬────────┘
-         │                      │                       │
-         ▼                      ▼                       │
-┌─────────────────┐    ┌─────────────────┐            │
-│ Event Chains    │    │ Deliverables    │            │
-│   Reference     │    │   Summary       │            │
-└────────┬────────┘    └─────────────────┘            │
-         │                                              │
-         ▼                                              │
-┌─────────────────┐                                    │
-│ Architecture    │◀───────────────────────────────────┘
-│ Visual Summary  │
-└─────────────────┘
-```
+**OAuth 2.0 Integration:**
+- [OAuth Integration Guide](authentication/OAUTH_INTEGRATION_GUIDE.md) - Complete guide (331 lines): PKCE flow, JWT validation, troubleshooting
+- [Zitadel Setup Guide](authentication/ZITADEL-SETUP-GUIDE.md) - Local dev setup instructions
+- [OAuth Completion Summary](authentication/ZITADEL-OAUTH-COMPLETION-SUMMARY.md) - Implementation summary
+- [OAuth Security Checklist](authentication/OAUTH-FINAL-REVIEW-CHECKLIST.md) - OWASP compliance (80%)
 
 ---
 
-## Key Concepts Quick Reference
+### 3. Infrastructure (`/infrastructure/` - 6 documents)
 
-### Domain-Driven Design (DDD)
+**Cloud & Kubernetes (Phase 5+):**
+- [Cloud Architecture](infrastructure/cloud-architecture.md) - Kubernetes architecture overview
+- [Kubernetes Deployment Guide](infrastructure/kubernetes-deployment-guide.md) - Local & cloud deployment
+- [Helm Charts Structure](infrastructure/helm-charts-structure.md) - Helm chart templates
 
-- **Bounded Context:** Service boundary with clear responsibility
-- **Aggregate:** Cluster of domain objects treated as a unit
-- **Entity:** Object with identity that persists over time
-- **Value Object:** Immutable object defined by its attributes
-- **Domain Event:** Something that happened in the domain
-
-**Example:**
-
-```csharp
-// Aggregate Root
-public class CalendarEvent {
-    public Guid Id { get; private set; } // Identity
-    public EventLocation Location { get; private set; } // Value Object
-    public List<Guid> Attendees { get; private set; } // Entities
-
-    // Domain method
-    public void Reschedule(DateTime newStart) {
-        // Business logic
-        // Publishes: CalendarEventRescheduledEvent
-    }
-}
-```
-
-**Where to Learn More:** Domain Model document, sections 2.1-2.8
+**DevOps & Observability:**
+- [CI/CD Pipeline](infrastructure/cicd-pipeline.md) - GitHub Actions + ArgoCD
+- [Observability Stack](infrastructure/observability-stack.md) - Prometheus + Grafana + Loki
+- [Infrastructure Cost Analysis](infrastructure/infrastructure-cost-analysis.md) - Cost projections ($200-5K/month)
 
 ---
 
-### Event-Driven Architecture
+### 4. Legal (`/legal/` - 8 documents)
 
-- **Event:** Notification that something happened
-- **Publisher:** Service that publishes events
-- **Subscriber:** Service that consumes events
-- **Event Bus:** Middleware for event distribution (Redis/RabbitMQ)
+**Compliance:**
+- [Legal Compliance Summary](legal/LEGAL-COMPLIANCE-SUMMARY.md) - GDPR, COPPA, CCPA overview
+- [Compliance Checklist](legal/compliance-checklist.md) - 93-item compliance checklist
+- [COPPA Workflow](legal/quick-reference-coppa-workflow.md) - Child protection implementation
 
-**Example:**
+**Policies:**
+- [Privacy Policy](legal/privacy-policy.md) - GDPR/COPPA/CCPA compliant
+- [Terms of Service](legal/terms-of-service.md) - User agreement
+- [Cookie Policy](legal/cookie-policy.md) - Cookie disclosure
+- [Data Processing Agreement Template](legal/data-processing-agreement-template.md) - B2B DPA
 
-```
-Health Service publishes: HealthAppointmentScheduledEvent
-Calendar Service subscribes and creates calendar event
-Task Service subscribes and creates preparation task
-Communication Service subscribes and sends notifications
-```
-
-**Where to Learn More:** Event Chains Reference document
+**Reference:**
+- [README](legal/README.md) - Legal docs quick start
 
 ---
 
-### Microservices
+### 5. Market & Business (`/market-business/` - 5 documents)
 
-- **Service:** Independent deployable unit
-- **API Gateway:** Single entry point for clients
-- **Service Discovery:** How services find each other
-- **Data Isolation:** Each service owns its data
+**Market Research:**
+- [Market Research Report](market-business/market-research-report.md) - Competitive analysis (2,700+ app reviews)
+- [Competitive Analysis](market-business/competitive-analysis.md) - Competitor SWOT analysis
 
-**Example:**
-
-```
-8 Services: Auth, Calendar, Task, Shopping, Health, Meal, Finance, Comms
-Each has: Own database, Own GraphQL schema, Own deployment
-Connected via: Event bus, API gateway (schema stitching)
-```
-
-**Where to Learn More:** Domain Model document, Architecture Visual Summary
+**Go-to-Market:**
+- [Go-to-Market Plan](market-business/go-to-market-plan.md) - Channels, pricing, launch strategy
+- [Brand Positioning](market-business/brand-positioning.md) - Brand guidelines, messaging
+- [SEO & Content Strategy](market-business/seo-content-strategy.md) - SEO plan, content calendar
 
 ---
 
-### GraphQL Federation
+### 6. Product Strategy (`/product-strategy/` - 5 documents)
 
-- **Schema Stitching:** Combining multiple GraphQL schemas
-- **Unified API:** Single endpoint for all queries
-- **Service Autonomy:** Each service defines its own schema
+**Vision & Strategy:**
+- [Product Strategy](product-strategy/PRODUCT_STRATEGY.md) - Vision, personas, strategic pillars, positioning
 
-**Example:**
+**Features & Roadmap:**
+- [Feature Backlog](product-strategy/FEATURE_BACKLOG.md) - 208 features (RICE scored)
+- [Implementation Roadmap](product-strategy/implementation-roadmap.md) - 6-phase plan (Phase 0-6, 10-14 months)
+- [Roadmap Visual](product-strategy/ROADMAP_VISUAL.md) - ASCII Gantt charts, visual timeline
 
-```graphql
-# Client queries one endpoint, gets data from multiple services
-query {
-  upcomingEvents { ... }     # From Calendar Service
-  myTasks { ... }            # From Task Service
-  shoppingLists { ... }      # From Shopping Service
-}
-```
-
-**Where to Learn More:** Architecture Visual Summary, GraphQL Federation section
+**Risk Management:**
+- [Risk Register](product-strategy/risk-register.md) - 35 risks with mitigation strategies
 
 ---
 
-## Success Criteria by Phase
+### 7. Security (`/security/` - 4 documents)
 
-### Phase 0 (Foundation)
+**Threat Modeling:**
+- [Threat Model](security/threat-model.md) - STRIDE analysis (53 threats)
 
-- [ ] Dev environment runs with one command
-- [ ] Zitadel authentication works
-- [ ] CI/CD deploys to local Kubernetes
-- [ ] Sample GraphQL query succeeds
+**Testing & Vulnerability Management:**
+- [Security Testing Plan](security/security-testing-plan.md) - OWASP Top 10, SAST/DAST
+- [Vulnerability Management](security/vulnerability-management.md) - Severity levels, remediation SLAs
 
-### Phase 1 (Core MVP)
-
-- [ ] User registration and login
-- [ ] Family group creation
-- [ ] Calendar events CRUD
-- [ ] Tasks CRUD and assignment
-- [ ] In-app notifications
-- [ ] 5+ families using daily
-
-### Phase 2 (Event Chains)
-
-- [ ] Health appointments tracked
-- [ ] Prescriptions tracked
-- [ ] Event chain: Appointment → Calendar → Task
-- [ ] Event chain: Prescription → Shopping List
-- [ ] Event chain success rate >98%
-- [ ] Event chain latency <5s
-
-### Phase 3 (Meal + Finance)
-
-- [ ] Meal plans created
-- [ ] Recipes stored
-- [ ] Shopping lists from meal plans
-- [ ] Budgets tracked
-- [ ] Expenses recorded
-- [ ] Event chain: Meal → Shopping → Finance
-
-### Phase 4 (Advanced)
-
-- [ ] Recurring events work
-- [ ] Recurring tasks work
-- [ ] Search functional
-- [ ] Mobile responsive
-- [ ] 20+ families in beta
-
-### Phase 5 (Production)
-
-- [ ] Microservices deployed independently
-- [ ] Monitoring operational
-- [ ] Security audit passed
-- [ ] Backups tested
-- [ ] Uptime >99.5%
-- [ ] 50+ families using
-
-### Phase 6 (Mobile)
-
-- [ ] Mobile apps published
-- [ ] Push notifications work
-- [ ] Offline mode functional
-- [ ] 100+ families registered
-- [ ] Premium conversions >20%
+**Monitoring & Incident Response:**
+- [Security Monitoring & Incident Response](security/security-monitoring-incident-response.md) - Monitoring, incident playbooks
 
 ---
 
-## Frequently Asked Questions
+### 8. UX & Design (`/ux-design/` - 9 documents)
 
-### Why DDD and Microservices for a Small Project?
+**Research:**
+- [UX Research Report](ux-design/ux-research-report.md) - 6 personas, user journeys (2,700+ app reviews analyzed)
 
-**Answer:** Two reasons:
+**Design System:**
+- [Design System](ux-design/design-system.md) - 22+ components (buttons, inputs, cards, etc.)
+- [Wireframes](ux-design/wireframes.md) - Complete MVP wireframes (all screens)
+- [Angular Component Specs](ux-design/angular-component-specs.md) - Angular v21 component specifications
 
-1. **Learning:** Demonstrate modern architecture patterns in a real-world project
-2. **Scalability:** Architecture supports future growth without major refactoring
+**Information Architecture:**
+- [Information Architecture](ux-design/information-architecture.md) - Site map, navigation structure
 
-The phased approach allows starting simple (Phase 1) and evolving to true microservices (Phase 5).
+**Accessibility & Responsive:**
+- [Accessibility Strategy](ux-design/accessibility-strategy.md) - WCAG 2.1 AA + COPPA compliance
+- [Responsive Design Guide](ux-design/responsive-design-guide.md) - Mobile-first responsive design
 
-**Reference:** Implementation Roadmap, Section 1.1
-
----
-
-### Why Event-Driven Architecture?
-
-**Answer:** Event chains are the core value proposition. Event-driven architecture is the natural fit for automated cross-domain workflows.
-
-**Example:** When a doctor appointment is scheduled, multiple services need to react (calendar, tasks, notifications). Events enable loose coupling and independent scaling.
-
-**Reference:** Event Chains Reference, What are Event Chains?
+**Interactions:**
+- [Event Chain UX](ux-design/event-chain-ux.md) - Event chain UX patterns
+- [Interaction Design Guide](ux-design/interaction-design-guide.md) - Micro-interactions, animations
 
 ---
 
-### Can This Be Built by One Developer?
+### 9. Root Navigation (`/` - 3 documents)
 
-**Answer:** Yes, with AI assistance (Claude Code). The roadmap is designed for 15-20 hours/week over 12-18 months.
-
-**Key Enablers:**
-
-- AI generates 60-80% of boilerplate
-- Phased delivery allows focus
-- Modern frameworks reduce complexity
-- Claude Code handles testing and docs
-
-**Reference:** Implementation Roadmap, Section 1.1
+- [Executive Summary](executive-summary.md) - 15-minute overview (START HERE!)
+- [INDEX.md](INDEX.md) - This file
+- [README.md](README.md) - Docs folder overview
 
 ---
 
-### What's the Biggest Risk?
+## 🔍 Find Documentation By Topic
 
-**Answer:** Tie between:
+### Authentication & Security
+- OAuth 2.0: [OAuth Integration Guide](authentication/OAUTH_INTEGRATION_GUIDE.md)
+- Zitadel Setup: [Zitadel Setup Guide](authentication/ZITADEL-SETUP-GUIDE.md)
+- Security: [Threat Model](security/threat-model.md), [Security Testing](security/security-testing-plan.md)
 
-1. **Developer Burnout** (P:4, I:5, Score:20)
-2. **Low User Adoption** (P:4, I:5, Score:20)
+### Architecture & Design
+- Modular Monolith: [ADR-001](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
+- Domain Model: [Domain Model Map](architecture/domain-model-microservices-map.md)
+- Event Chains: [Event Chains Reference](architecture/event-chains-reference.md)
 
-**Mitigation:**
+### Development & Deployment
+- Roadmap: [Implementation Roadmap](product-strategy/implementation-roadmap.md)
+- Features: [Feature Backlog](product-strategy/FEATURE_BACKLOG.md)
+- Infrastructure: [Cloud Architecture](infrastructure/cloud-architecture.md), [K8s Deployment](infrastructure/kubernetes-deployment-guide.md)
 
-- Burnout: Realistic timeline, breaks, AI assistance
-- Adoption: User research, beta testing, unique value prop
+### User Experience
+- Personas: [UX Research Report](ux-design/ux-research-report.md)
+- Design: [Design System](ux-design/design-system.md), [Wireframes](ux-design/wireframes.md)
+- Accessibility: [Accessibility Strategy](ux-design/accessibility-strategy.md)
 
-**Reference:** Risk Register, Sections 3.2 and 1.1
-
----
-
-### What Makes This Different from Competitors?
-
-**Answer:** **Event chain automation.** No competitor offers automated cross-domain coordination.
-
-**Example:** Schedule a doctor appointment, and the system automatically:
-
-- Creates calendar event
-- Creates preparation task
-- Adds prescription to shopping list
-- Sends reminders
-
-This saves 10-30 minutes per workflow and reduces mental load.
-
-**Reference:** Executive Summary, Section 1; Event Chains Reference
+### Business & Legal
+- Product: [Product Strategy](product-strategy/PRODUCT_STRATEGY.md)
+- Market: [Market Research](market-business/market-research-report.md), [GTM Plan](market-business/go-to-market-plan.md)
+- Compliance: [Legal Compliance](legal/LEGAL-COMPLIANCE-SUMMARY.md), [Privacy Policy](legal/privacy-policy.md)
 
 ---
 
-### What's the Business Model?
+## ❓ Frequently Asked Questions
 
-**Answer:** Freemium:
+### Where do I start?
+→ [Executive Summary](executive-summary.md) for a 15-minute overview
 
-- **Free:** Up to 5 family members, core features
-- **Premium:** $9.99/month for unlimited members and advanced features
-- **Enterprise:** Custom pricing for self-hosting
+### What's the current development phase?
+→ Phase 0: Foundation & Tooling (3 weeks) - See [Implementation Roadmap](product-strategy/implementation-roadmap.md)
 
-**Break-even:** 45 premium users ($450/month revenue to cover costs)
+### What features are planned?
+→ 208 features in [Feature Backlog](product-strategy/FEATURE_BACKLOG.md) (RICE-scored)
 
-**Reference:** Executive Summary, Section 3; Implementation Roadmap, Section 8.1
+### How does authentication work?
+→ OAuth 2.0 with Zitadel - See [OAuth Integration Guide](authentication/OAUTH_INTEGRATION_GUIDE.md)
 
----
+### What's the architecture?
+→ Modular Monolith (Phase 1-4) → Microservices (Phase 5+) - See [ADR-001](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
 
-### When Will It Launch?
+### Is this GDPR compliant?
+→ Yes - See [Legal Compliance Summary](legal/LEGAL-COMPLIANCE-SUMMARY.md) and [Privacy Policy](legal/privacy-policy.md)
 
-**Answer:**
+### What's an event chain?
+→ Automated cross-domain workflows - See [Event Chains Reference](architecture/event-chains-reference.md)
 
-- **Private Beta:** End of Phase 1 (Week 12)
-- **Expanded Beta:** End of Phase 3 (Week 26)
-- **Production:** End of Phase 5 (Week 44)
-- **Public Beta:** Phase 6 (Week 52+)
-
-**Reference:** Implementation Roadmap, Section 2
-
----
-
-### Is the Timeline Realistic?
-
-**Answer:** For part-time development (15-20 hrs/week), yes. The timeline includes:
-
-- Buffer for unexpected issues
-- Breaks to prevent burnout
-- Phase gates for go/no-go decisions
-
-Full-time development would halve the timeline.
-
-**Reference:** Implementation Roadmap, Section 1; Risk Register, Risk 3.2
+### How do I deploy to Kubernetes?
+→ See [Kubernetes Deployment Guide](infrastructure/kubernetes-deployment-guide.md)
 
 ---
 
-## Next Steps After Reading
+## 📊 Documentation Statistics
 
-### For Stakeholders
+- **Total Documents:** 51 markdown files
+- **Total Words:** 280,000+
+- **Total Lines:** ~15,000+
+- **Folders:** 9 thematic categories
+- **Diagrams:** 20+ ASCII diagrams
+- **Code Examples:** 150+ snippets
 
-**Decision Required:**
-
-- [ ] Approve strategic direction
-- [ ] Approve budget ($2,745-5,685 Year 1)
-- [ ] Approve timeline (12-18 months)
-- [ ] Approve risk mitigation strategies
-
-**Action Items:**
-
-- Schedule stakeholder review meeting
-- Provide feedback on Executive Summary
-- Decide: Proceed to Phase 0 or adjust scope
-
-**Contact:** Andre Kirst (andrekirst@github)
-
----
-
-### For Technical Team
-
-**Review Tasks:**
-
-- [ ] Validate bounded context definitions
-- [ ] Verify technology choices
-- [ ] Assess event-driven architecture
-- [ ] Review security approach
-
-**Feedback Needed:**
-
-- Are domain models sound?
-- Are event chains well-designed?
-- Are risks adequately addressed?
-- Any architecture red flags?
-
-**Contact:** Create GitHub issue or discussion
+**Breakdown by Category:**
+- UX & Design: 9 docs
+- Legal: 8 docs
+- Architecture: 6 docs
+- Infrastructure: 6 docs
+- Product Strategy: 5 docs
+- Market & Business: 5 docs
+- Authentication: 4 docs
+- Security: 4 docs
+- Navigation: 3 docs
 
 ---
 
-### For Product Team
+## 🔗 External Resources
 
-**Planning Tasks:**
+**GitHub:**
+- [Repository](https://github.com/andrekirst/family2)
+- [Issues](https://github.com/andrekirst/family2/issues)
+- [Pull Requests](https://github.com/andrekirst/family2/pulls)
 
-- [ ] Create user story backlog
-- [ ] Recruit beta testers (5 families)
-- [ ] Set up feedback loops
-- [ ] Define MVP acceptance criteria
-
-**Next Steps:**
-
-- Phase 0 kickoff (Week 1)
-- Weekly progress reviews
-- Monthly stakeholder updates
-- Beta testing plan (Week 10)
-
-**Contact:** Project repository issues
+**Technology Documentation:**
+- [.NET Core 10](https://learn.microsoft.com/en-us/dotnet/core/)
+- [Angular v21](https://angular.dev/)
+- [Hot Chocolate GraphQL](https://chillicream.com/docs/hotchocolate)
+- [PostgreSQL 16](https://www.postgresql.org/docs/16/)
+- [Zitadel](https://zitadel.com/docs)
+- [RabbitMQ](https://www.rabbitmq.com/documentation.html)
 
 ---
 
-### For Development Team
-
-**Setup Tasks:**
-
-- [ ] Set up development environment (Phase 0, Week 1-2)
-- [ ] Configure Zitadel instance (Phase 0, Week 2)
-- [ ] Create project structure (Phase 0, Week 3)
-- [ ] Set up CI/CD pipeline (Phase 0, Week 4)
-
-**Learning Resources:**
-
-- DDD patterns: Domain Model document
-- Event-driven: Event Chains Reference
-- GraphQL federation: Architecture Visual Summary
-- Technology stack: Implementation Roadmap
-
-**Contact:** Development Discord/Slack (TBD)
-
----
-
-## Document Maintenance
-
-### Review Schedule
-
-**Weekly:**
-
-- Risk Register (critical risks only)
-- Implementation Roadmap (current phase)
-
-**Monthly:**
-
-- All documents (check for updates)
-- Success metrics (track progress)
-
-**Quarterly:**
-
-- Full documentation review
-- Architecture decision records (ADRs)
-
-**Phase End:**
-
-- Retrospective and lessons learned
-- Update roadmap for next phase
-- Revise risk scores
-
----
-
-### Change Log
-
-**2025-12-19:**
-
-- Initial documentation created (v1.0)
-- Issue #5 deliverables completed
-- All 7 documents published
-
-**Future Updates:**
-
-- After stakeholder approval
-- After Phase 0 completion
-- After each subsequent phase
-
----
-
-### Contributing to Documentation
-
-**How to Suggest Changes:**
-
-1. Create GitHub issue with "docs:" prefix
-2. Describe proposed change and rationale
-3. Tag relevant stakeholders
-4. Wait for approval before editing
-
-**Documentation Standards:**
-
-- Clear, concise language
-- Visual aids where helpful
-- Cross-references to related docs
-- Versioning and change log
-
----
-
-## Contact & Support
-
-**Project Owner:** Andre Kirst
-**Repository:** <https://github.com/andrekirst/family2>
-**License:** AGPL-3.0
-
-**Questions?**
-
-- Open a GitHub issue
-- Review documentation
-- Schedule stakeholder meeting
-
-**Feedback Welcome:**
-
-- Documentation clarity
-- Missing information
-- Technical corrections
-- Suggestions for improvement
-
----
-
-## Appendix: Document Statistics
-
-| Document                    | Words      | Pages   | Read Time    |
-| --------------------------- | ---------- | ------- | ------------ |
-| Executive Summary           | 9,000      | 30      | 30 min       |
-| Domain Model                | 15,000     | 50      | 60 min       |
-| Implementation Roadmap      | 12,000     | 40      | 50 min       |
-| Risk Register               | 13,000     | 43      | 50 min       |
-| Event Chains Reference      | 10,000     | 33      | 40 min       |
-| Architecture Visual Summary | 5,000      | 17      | 20 min       |
-| Deliverables Summary        | 4,500      | 15      | 15 min       |
-| **Total**                   | **68,500** | **228** | **~4.5 hrs** |
-
-**Note:** Read time assumes careful reading. Skimming can reduce by 50%.
-
----
-
-**End of Documentation Index**
-
-All documentation for Issue #5 is complete and ready for stakeholder review.
+_Last updated: 2025-12-23_
+_Version: 2.0 (Reorganized into thematic folders)_
