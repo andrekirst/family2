@@ -77,15 +77,13 @@ public class User : AggregateRoot<UserId>
     /// </summary>
     public static User CreateFromOAuth(Email email, string externalUserId, string externalProvider)
     {
-        var user = new User(UserId.New(), email)
+        return new User(UserId.New(), email)
         {
             ExternalUserId = externalUserId,
             ExternalProvider = externalProvider,
             EmailVerified = true, // OAuth providers verify email
             EmailVerifiedAt = DateTime.UtcNow
         };
-
-        return user;
     }
 
     /// <summary>

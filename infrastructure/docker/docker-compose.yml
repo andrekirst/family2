@@ -70,11 +70,25 @@ services:
       ZITADEL_FIRSTINSTANCE_ORG_NAME: FamilyHub
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD:-Admin123!}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL: admin@familyhub.local
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME: Admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME: User
+      # SMTP Configuration (configure in .env file)
+      ZITADEL_SMTP_HOST: ${SMTP_HOST:-mailhog}
+      ZITADEL_SMTP_PORT: ${SMTP_PORT:-1025}
+      ZITADEL_SMTP_FROM_ADDRESS: ${SMTP_FROM_ADDRESS:-noreply@familyhub.local}
+      ZITADEL_SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Family Hub}
+      ZITADEL_SMTP_TLS: ${SMTP_TLS:-false}
+      ZITADEL_SMTP_USER: ${SMTP_USER}
+      ZITADEL_SMTP_PASSWORD: ${SMTP_PASSWORD}
+      ZITADEL_SMTP_REPLY_TO_ADDRESS: ${SMTP_REPLY_TO_ADDRESS:-support@familyhub.local}
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     networks:
       - familyhub-network
     restart: unless-stopped
@@ -89,6 +103,17 @@ services:
       - "5341:80"
     volumes:
       - seq_data:/data
+    networks:
+      - familyhub-network
+    restart: unless-stopped
+
+  # MailHog (Fake SMTP Server for Development)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: familyhub-mailhog
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web UI
     networks:
       - familyhub-network
     restart: unless-stopped

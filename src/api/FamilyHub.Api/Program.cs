@@ -75,6 +75,9 @@ try
             options.Authority = zitadelSettings.Authority;
             options.Audience = zitadelSettings.Audience;
 
+            // Allow HTTP for development (Zitadel on localhost:8080)
+            options.RequireHttpsMetadata = false;
+
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,

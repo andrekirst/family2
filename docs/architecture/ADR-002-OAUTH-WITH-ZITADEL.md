@@ -10,6 +10,7 @@
 ## Context
 
 Family Hub requires a robust authentication system that supports:
+
 - Secure user authentication and authorization
 - Multi-factor authentication (2FA)
 - Social login (Google, Microsoft, Apple)
@@ -28,6 +29,7 @@ Family Hub requires a robust authentication system that supports:
 We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / OpenID Connect provider.
 
 **Key Changes:**
+
 1. Remove custom auth (password hashing, JWT generation, email verification)
 2. Integrate Zitadel OAuth 2.0 with PKCE (Proof Key for Code Exchange)
 3. Validate Zitadel-issued JWTs (RS256 with JWKS discovery)
@@ -41,12 +43,14 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 ### 1. Auth0 (by Okta)
 
 **Pros:**
+
 - Industry leader in authentication-as-a-service
 - Excellent documentation and SDKs
 - Extensive integrations
 - Generous free tier (7,000 MAU)
 
 **Cons:**
+
 - ❌ **Pricing:** Expensive at scale ($240/mo for 10K MAU)
 - ❌ **Vendor lock-in:** Proprietary APIs, migration difficult
 - ❌ **Data residency:** US-based, GDPR compliance requires Enterprise plan
@@ -59,6 +63,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 ### 2. Keycloak (Red Hat)
 
 **Pros:**
+
 - Open-source (Apache 2.0 license)
 - Battle-tested in enterprise environments
 - Extensive protocol support (SAML, LDAP, OAuth, OIDC)
@@ -66,6 +71,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 - Free for unlimited users
 
 **Cons:**
+
 - ❌ **Complex setup:** Java/WildFly stack, steep learning curve
 - ❌ **Heavy resource usage:** 2 GB RAM minimum, slow startup
 - ❌ **UI/UX:** Admin console is clunky, dated
@@ -78,12 +84,14 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 ### 3. ASP.NET Core Identity
 
 **Pros:**
+
 - Native .NET integration
 - No external dependencies
 - Full control over user data
 - Free and open-source
 
 **Cons:**
+
 - ❌ **Security risk:** Homegrown crypto is dangerous (password hashing, token management)
 - ❌ **Feature gap:** No 2FA out-of-box, no social login without extra work
 - ❌ **Maintenance burden:** Must implement email verification, password reset, account lockout
@@ -96,6 +104,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 ### 4. Zitadel (SELECTED)
 
 **Pros:**
+
 - ✅ **Open-source** (Apache 2.0 license)
 - ✅ **Modern tech stack:** Written in Go, PostgreSQL backend
 - ✅ **Lightweight:** ~200 MB RAM, fast startup
@@ -107,6 +116,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 - ✅ **Modern OAuth 2.0:** PKCE, RS256 JWT, automatic JWKS rotation
 
 **Cons:**
+
 - ⚠️ **Smaller community:** Less mature than Auth0/Keycloak
 - ⚠️ **Fewer integrations:** Smaller ecosystem (but covers essentials)
 
@@ -121,6 +131,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 **Requirement:** Authentication must follow industry best practices (OWASP, NIST)
 
 **Why Zitadel:**
+
 - ✅ PKCE prevents authorization code interception
 - ✅ RS256 JWT with automatic JWKS key rotation
 - ✅ State/nonce parameters for CSRF and replay protection
@@ -136,6 +147,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 **Requirement:** Launch MVP in 12 months with single developer
 
 **Why Zitadel:**
+
 - ✅ Integration completed in **7 days** (including tests and docs)
 - ✅ Zero maintenance (Zitadel handles credential management)
 - ✅ Social login "for free" (Google, Microsoft, Apple)
@@ -150,6 +162,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 **Requirement:** GDPR-compliant user data handling (right to erasure, data portability)
 
 **Why Zitadel:**
+
 - ✅ GDPR-compliant by design
 - ✅ Data residency options (EU, US, Switzerland)
 - ✅ Built-in data export (user profile, audit logs)
@@ -164,11 +177,13 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 **Requirement:** Minimize operational costs for indie project
 
 **Zitadel Pricing:**
+
 - **Self-hosted:** FREE (unlimited users)
 - **Cloud Free Tier:** FREE (50K authenticated requests/month)
 - **Cloud Pro:** $0.02 per MAU (e.g., 10K MAU = $200/mo)
 
 **Auth0 Pricing (comparison):**
+
 - **Free Tier:** 7,000 MAU
 - **Essentials:** $240/mo for 10K MAU
 - **Professional:** $1,200/mo for 10K MAU
@@ -182,6 +197,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 **Requirement:** Simple integration, good documentation, maintainable
 
 **Why Zitadel:**
+
 - ✅ Standard OAuth 2.0 / OIDC (no proprietary APIs)
 - ✅ Excellent documentation with code examples
 - ✅ Active community (GitHub, Discord)
@@ -216,7 +232,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
      ▼
 ┌─────────┐                                  ┌─────────┐
 │ Angular │                                  │ Backend │
-│   App   ├─────5. completeZitadelLogin──────►│   API   │
+│   App   ├─────5. completeZitadelLogin─────►│   API   │
 │         │      (code, verifier)            │         │
 │         │                                  └────┬────┘
 │         │                                       │
@@ -234,6 +250,7 @@ We will **replace custom authentication** with **Zitadel** as our OAuth 2.0 / Op
 ### Database Schema Changes
 
 **Removed:**
+
 ```sql
 -- Dropped columns
 ALTER TABLE auth.users DROP COLUMN password_hash;
@@ -244,6 +261,7 @@ DROP TABLE auth.email_verification_tokens;
 ```
 
 **Kept:**
+
 ```sql
 -- User table (OAuth-ready)
 CREATE TABLE auth.users (
@@ -265,6 +283,7 @@ CREATE UNIQUE INDEX idx_users_external_auth
 ### Code Structure
 
 **Created (22 files):**
+
 ```
 /Application/
   /Queries/GetZitadelAuthUrl/
@@ -317,14 +336,17 @@ CREATE UNIQUE INDEX idx_users_external_auth
 ### Negative
 
 1. **External dependency:** Zitadel downtime = login downtime
+
    - **Mitigation:** Self-host Zitadel (high availability deployment)
    - **Mitigation:** Cloud SLA: 99.9% uptime guarantee
 
 2. **Migration complexity:** Switching providers in future requires user re-registration
+
    - **Mitigation:** Use standard OAuth 2.0 (not proprietary APIs)
    - **Mitigation:** Self-hosting option if vendor issues arise
 
 3. **Learning curve:** Team must learn Zitadel admin console
+
    - **Mitigation:** Excellent documentation, 1-day onboarding
 
 4. **Network latency:** Token validation requires JWKS fetch (first request only)
@@ -336,18 +358,18 @@ CREATE UNIQUE INDEX idx_users_external_auth
 
 **OWASP OAuth 2.0 Compliance:** 8/10 (80%)
 
-| Control | Status |
-|---------|--------|
-| PKCE (S256) | ✅ Implemented |
-| State Parameter (CSRF) | ✅ Implemented |
+| Control                  | Status         |
+| ------------------------ | -------------- |
+| PKCE (S256)              | ✅ Implemented |
+| State Parameter (CSRF)   | ✅ Implemented |
 | Nonce Parameter (Replay) | ✅ Implemented |
-| RS256 JWT Validation | ✅ Implemented |
-| Audience Validation | ✅ Implemented |
-| Issuer Validation | ✅ Implemented |
-| Lifetime Validation | ✅ Implemented |
-| Secure Token Exchange | ✅ Implemented |
-| HTTPS in Production | ⚠️ TODO |
-| Rate Limiting | ⚠️ TODO |
+| RS256 JWT Validation     | ✅ Implemented |
+| Audience Validation      | ✅ Implemented |
+| Issuer Validation        | ✅ Implemented |
+| Lifetime Validation      | ✅ Implemented |
+| Secure Token Exchange    | ✅ Implemented |
+| HTTPS in Production      | ⚠️ TODO        |
+| Rate Limiting            | ⚠️ TODO        |
 
 **Penetration Tests:** 4/4 integration tests passing
 
@@ -372,24 +394,28 @@ CREATE UNIQUE INDEX idx_users_external_auth
 ## Adoption Strategy
 
 ### Phase 1: Development (Complete ✅)
+
 - ✅ Local Zitadel instance with Docker Compose
 - ✅ Backend integration (OAuth flow, JWT validation)
 - ✅ Integration tests (4/4 passing)
 - ✅ Security audit (80% compliance)
 
 ### Phase 2: Frontend Integration (Next)
+
 - 🔲 Angular auth service (`ZitadelAuthService`)
 - 🔲 Auth callback component (`/auth/callback`)
 - 🔲 Login button UI
 - 🔲 E2E testing
 
 ### Phase 3: Staging Deployment (After Frontend)
+
 - 🔲 Production Zitadel instance (Cloud or self-hosted)
 - 🔲 HTTPS configuration
 - 🔲 Rate limiting implementation
 - 🔲 Smoke testing (7 days)
 
 ### Phase 4: Production Launch
+
 - 🔲 Blue-green deployment
 - 🔲 User migration email campaign
 - 🔲 Monitoring and alerting
@@ -400,16 +426,19 @@ CREATE UNIQUE INDEX idx_users_external_auth
 ## References
 
 **Documentation:**
+
 - [Zitadel Setup Guide](../ZITADEL-SETUP-GUIDE.md)
 - [OAuth Security Audit](../../tests/FamilyHub.Tests.Integration/Auth/OAUTH_SECURITY_AUDIT.md)
 - [Completion Summary](../ZITADEL-OAUTH-COMPLETION-SUMMARY.md)
 
 **Standards:**
+
 - [RFC 6749: OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749)
 - [RFC 7636: PKCE for OAuth 2.0](https://datatracker.ietf.org/doc/html/rfc7636)
 - [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html)
 
 **Zitadel:**
+
 - [Official Documentation](https://zitadel.com/docs)
 - [GitHub Repository](https://github.com/zitadel/zitadel)
 - [OAuth 2.0 Integration Guide](https://zitadel.com/docs/guides/integrate/login/oidc)
@@ -418,11 +447,11 @@ CREATE UNIQUE INDEX idx_users_external_auth
 
 ## Review History
 
-| Date | Reviewer | Decision | Notes |
-|------|----------|----------|-------|
-| 2024-12-22 | Development Team | ✅ ACCEPTED | Unanimous approval, security concerns addressed |
-| 2024-12-22 | Security Review | ✅ APPROVED | 80% OWASP compliance, TODOs acceptable |
-| TBD | Post-Production Review | 🔲 PENDING | Review after 30 days in production |
+| Date       | Reviewer               | Decision    | Notes                                           |
+| ---------- | ---------------------- | ----------- | ----------------------------------------------- |
+| 2024-12-22 | Development Team       | ✅ ACCEPTED | Unanimous approval, security concerns addressed |
+| 2024-12-22 | Security Review        | ✅ APPROVED | 80% OWASP compliance, TODOs acceptable          |
+| TBD        | Post-Production Review | 🔲 PENDING  | Review after 30 days in production              |
 
 ---
 

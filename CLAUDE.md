@@ -27,7 +27,7 @@
 **📍 CURRENT PHASE: Phase 0 - Foundation & Tooling (IN PROGRESS)**
 - **Phase 1 Preparation:** ✅ COMPLETED (December 2024 - Issues #4-11)
 - **OAuth Integration:** ✅ COMPLETED (December 2024 - Zitadel OAuth 2.0, 7 days)
-- **60 documents** (280,000+ words) of planning complete
+- **51 core documents** (280,000+ words) organized in 9 thematic folders
 - **Technology stack confirmed:** .NET Core 10, Angular v21, GraphQL, RabbitMQ, Zitadel
 - **Architecture validated:** Modular monolith first (ADR-001), OAuth with Zitadel (ADR-002)
 - **Next:** Frontend OAuth integration, then Phase 1 Core MVP
@@ -51,15 +51,15 @@
 
 ### Implementing Features
 
-1. **Check phase:** [implementation-roadmap.md](docs/implementation-roadmap.md) - Is this feature scheduled for current phase?
-2. **Find feature:** [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md) - Priority, dependencies, RICE score
-3. **Review wireframes:** [wireframes.md](docs/wireframes.md) - UI layout and user flow
-4. **Check design system:** [design-system.md](docs/design-system.md) - Components and styling
-5. **Identify module:** [domain-model-microservices-map.md](docs/domain-model-microservices-map.md) - Which of 8 modules?
+1. **Check phase:** [implementation-roadmap.md](docs/product-strategy/implementation-roadmap.md) - Is this feature scheduled for current phase?
+2. **Find feature:** [FEATURE_BACKLOG.md](docs/product-strategy/FEATURE_BACKLOG.md) - Priority, dependencies, RICE score
+3. **Review wireframes:** [wireframes.md](docs/ux-design/wireframes.md) - UI layout and user flow
+4. **Check design system:** [design-system.md](docs/ux-design/design-system.md) - Components and styling
+5. **Identify module:** [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md) - Which of 8 modules?
 6. **Review events:** Does this feature publish/consume domain events?
-7. **Check event chains:** [event-chains-reference.md](docs/event-chains-reference.md) - Part of workflow?
-8. **Verify accessibility:** [accessibility-strategy.md](docs/accessibility-strategy.md) - WCAG 2.1 AA requirements
-9. **Review risks:** [risk-register.md](docs/risk-register.md) - Mitigation strategies
+7. **Check event chains:** [event-chains-reference.md](docs/architecture/event-chains-reference.md) - Part of workflow?
+8. **Verify accessibility:** [accessibility-strategy.md](docs/ux-design/accessibility-strategy.md) - WCAG 2.1 AA requirements
+9. **Review risks:** [risk-register.md](docs/product-strategy/risk-register.md) - Mitigation strategies
 10. **Implement:** Follow module patterns, test thoroughly
 
 ### Architecture Questions
@@ -67,50 +67,47 @@
 **Read these 4 docs:**
 1. [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Modular monolith decision rationale
 2. [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md) - OAuth 2.0 with Zitadel (vs Auth0, Keycloak, ASP.NET Identity)
-3. [Domain Model](docs/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
-4. [Event Chains Reference](docs/event-chains-reference.md) - Event-driven patterns and workflows
+3. [Domain Model](docs/architecture/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
+4. [Event Chains Reference](docs/architecture/event-chains-reference.md) - Event-driven patterns and workflows
 
 ### Planning & Roadmap Questions
 
 **Read these 3 docs:**
-1. [Implementation Roadmap](docs/implementation-roadmap.md) - 6-phase plan (Phase 0-6), deliverables, timeline
-2. [Feature Backlog](docs/FEATURE_BACKLOG.md) - 208 features prioritized by RICE score
-3. [Risk Register](docs/risk-register.md) - 35 risks with mitigation strategies
+1. [Implementation Roadmap](docs/product-strategy/implementation-roadmap.md) - 6-phase plan (Phase 0-6), deliverables, timeline
+2. [Feature Backlog](docs/product-strategy/FEATURE_BACKLOG.md) - 208 features prioritized by RICE score
+3. [Risk Register](docs/product-strategy/risk-register.md) - 35 risks with mitigation strategies
 
 ### Product Strategy Questions
 
 **Read these 3 docs:**
-1. [Product Strategy](docs/PRODUCT_STRATEGY.md) - Vision, personas, strategic pillars, positioning
-2. [UX Research Report](docs/ux-research-report.md) - 6 personas, user journeys, competitive analysis
+1. [Product Strategy](docs/product-strategy/PRODUCT_STRATEGY.md) - Vision, personas, strategic pillars, positioning
+2. [UX Research Report](docs/ux-design/ux-research-report.md) - 6 personas, user journeys, competitive analysis
 3. [Executive Summary](docs/executive-summary.md) - 15-minute overview of vision, market, strategy
 
 ---
 
 ## 📚 DOCUMENTATION INDEX
 
-**57 documents** (265,000+ words) organized by category. All paths relative to `/docs/`.
+**51 documents** (280,000+ words) organized by thematic folders. All paths relative to `/docs/`.
 
-| Category | Key Documents | Purpose |
-|----------|---------------|---------|
-| **Phase 1 Completion** | [ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md](docs/ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md) | Phase 1 prep complete, ready for Phase 0 |
-| **OAuth Integration (Dec 2024)** | [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md), [Zitadel Setup Guide](docs/ZITADEL-SETUP-GUIDE.md), [Completion Summary](docs/ZITADEL-OAUTH-COMPLETION-SUMMARY.md) | Zitadel OAuth 2.0 integration, PKCE flow, security audit (80% OWASP compliance) |
-| **Architecture (Issue #11)** | [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [Architecture Review](docs/architecture/ARCHITECTURE-REVIEW-REPORT.md), [Deliverables](docs/architecture/ISSUE-11-DELIVERABLES-SUMMARY.md) | Modular monolith decision, review findings, validation |
-| **Product Strategy (Issue #5)** | [executive-summary.md](docs/executive-summary.md), [PRODUCT_STRATEGY.md](docs/PRODUCT_STRATEGY.md), [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md) (208 features), [ROADMAP_VISUAL.md](docs/ROADMAP_VISUAL.md), [ISSUE_5_SUMMARY.md](docs/ISSUE_5_SUMMARY.md) | Vision, personas, RICE-scored features, visual timeline |
-| **Technical Architecture** | [domain-model-microservices-map.md](docs/domain-model-microservices-map.md), [implementation-roadmap.md](docs/implementation-roadmap.md), [risk-register.md](docs/risk-register.md) | 8 DDD modules, 6-phase plan, 35 risks |
-| **Cloud & Kubernetes (Issue #6)** | [cloud-architecture.md](docs/cloud-architecture.md), [kubernetes-deployment-guide.md](docs/kubernetes-deployment-guide.md), [infrastructure-cost-analysis.md](docs/infrastructure-cost-analysis.md), +5 docs | Kubernetes architecture, deployment, costs, Helm charts, CI/CD, multi-tenancy, observability |
-| **Security (Issue #8)** | [ISSUE-8-SECURITY-SUMMARY.md](docs/ISSUE-8-SECURITY-SUMMARY.md), [threat-model.md](docs/threat-model.md), [security-testing-plan.md](docs/security-testing-plan.md), [vulnerability-management.md](docs/vulnerability-management.md), +1 doc | 53 threats (STRIDE), OWASP Top 10, SAST/DAST, incident response |
-| **Legal Compliance (Issue #10)** | [legal/LEGAL-COMPLIANCE-SUMMARY.md](docs/legal/LEGAL-COMPLIANCE-SUMMARY.md), [legal/privacy-policy.md](docs/legal/privacy-policy.md), [legal/terms-of-service.md](docs/legal/terms-of-service.md), [legal/quick-reference-coppa-workflow.md](docs/legal/quick-reference-coppa-workflow.md), +5 docs | GDPR/COPPA/CCPA compliance, 93-item checklist, policies, DPA templates |
-| **Market Strategy (Issue #9)** | [ISSUE-9-MARKET-STRATEGY-SUMMARY.md](docs/ISSUE-9-MARKET-STRATEGY-SUMMARY.md), [market-research-report.md](docs/market-research-report.md), [go-to-market-plan.md](docs/go-to-market-plan.md), +2 docs | Competitive analysis (2,700+ reviews), GTM plan, SEO/content |
-| **UX/UI Design (Issue #7)** | [ux-research-report.md](docs/ux-research-report.md), [design-system.md](docs/design-system.md), [wireframes.md](docs/wireframes.md), [angular-component-specs.md](docs/angular-component-specs.md), [accessibility-strategy.md](docs/accessibility-strategy.md), +6 docs | 6 personas, design system (22+ components), complete wireframes, WCAG 2.1 AA, responsive design |
-| **Event Chains** | [event-chains-reference.md](docs/event-chains-reference.md), [event-chain-ux.md](docs/event-chain-ux.md) | 10 workflow specs, UX patterns, testing strategies |
-| **Supporting Docs** | [architecture-visual-summary.md](docs/architecture-visual-summary.md), [DELIVERABLES_SUMMARY.md](docs/DELIVERABLES_SUMMARY.md) | System diagrams, Issue #5 checklist |
-| **Navigation Aids** | [INDEX.md](docs/INDEX.md), [README.md](docs/README.md) | Complete documentation map with FAQ, docs overview |
+| Category | Folder | Key Documents | Purpose |
+|----------|--------|---------------|---------|
+| **Navigation** | `/docs/` (root) | [INDEX.md](docs/INDEX.md), [README.md](docs/README.md), [executive-summary.md](docs/executive-summary.md) | Quick start guide, complete index, 15-min overview |
+| **Product Strategy** | `/product-strategy/` | [PRODUCT_STRATEGY.md](docs/product-strategy/PRODUCT_STRATEGY.md), [FEATURE_BACKLOG.md](docs/product-strategy/FEATURE_BACKLOG.md) (208 features), [implementation-roadmap.md](docs/product-strategy/implementation-roadmap.md), [ROADMAP_VISUAL.md](docs/product-strategy/ROADMAP_VISUAL.md), [risk-register.md](docs/product-strategy/risk-register.md) | Vision, personas, RICE-scored features, 6-phase plan, 35 risks |
+| **Architecture** | `/architecture/` | [ADR-001-MODULAR-MONOLITH-FIRST.md](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-002-OAUTH-WITH-ZITADEL.md](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md), [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md), [event-chains-reference.md](docs/architecture/event-chains-reference.md), [architecture-visual-summary.md](docs/architecture/architecture-visual-summary.md), [multi-tenancy-strategy.md](docs/architecture/multi-tenancy-strategy.md) | Architecture decisions, 8 DDD modules, event chains, system diagrams, RLS |
+| **Infrastructure** | `/infrastructure/` | [cloud-architecture.md](docs/infrastructure/cloud-architecture.md), [kubernetes-deployment-guide.md](docs/infrastructure/kubernetes-deployment-guide.md), [helm-charts-structure.md](docs/infrastructure/helm-charts-structure.md), [cicd-pipeline.md](docs/infrastructure/cicd-pipeline.md), [observability-stack.md](docs/infrastructure/observability-stack.md), [infrastructure-cost-analysis.md](docs/infrastructure/infrastructure-cost-analysis.md) | Kubernetes, Helm charts, CI/CD, monitoring, costs ($200-5K/mo) |
+| **Security** | `/security/` | [threat-model.md](docs/security/threat-model.md), [security-testing-plan.md](docs/security/security-testing-plan.md), [vulnerability-management.md](docs/security/vulnerability-management.md), [security-monitoring-incident-response.md](docs/security/security-monitoring-incident-response.md) | STRIDE (53 threats), OWASP Top 10, SAST/DAST, incident response |
+| **Legal** | `/legal/` | [LEGAL-COMPLIANCE-SUMMARY.md](docs/legal/LEGAL-COMPLIANCE-SUMMARY.md), [privacy-policy.md](docs/legal/privacy-policy.md), [terms-of-service.md](docs/legal/terms-of-service.md), [compliance-checklist.md](docs/legal/compliance-checklist.md), [quick-reference-coppa-workflow.md](docs/legal/quick-reference-coppa-workflow.md) | GDPR/COPPA/CCPA compliance, 93-item checklist, policies, DPA templates |
+| **UX & Design** | `/ux-design/` | [ux-research-report.md](docs/ux-design/ux-research-report.md), [wireframes.md](docs/ux-design/wireframes.md), [design-system.md](docs/ux-design/design-system.md), [angular-component-specs.md](docs/ux-design/angular-component-specs.md), [accessibility-strategy.md](docs/ux-design/accessibility-strategy.md), [event-chain-ux.md](docs/ux-design/event-chain-ux.md), [responsive-design-guide.md](docs/ux-design/responsive-design-guide.md), [interaction-design-guide.md](docs/ux-design/interaction-design-guide.md) | 6 personas, design system (22+ components), wireframes, WCAG 2.1 AA, event chain UX |
+| **Market & Business** | `/market-business/` | [market-research-report.md](docs/market-business/market-research-report.md), [competitive-analysis.md](docs/market-business/competitive-analysis.md), [go-to-market-plan.md](docs/market-business/go-to-market-plan.md), [brand-positioning.md](docs/market-business/brand-positioning.md), [seo-content-strategy.md](docs/market-business/seo-content-strategy.md) | Competitive analysis (2,700+ reviews), GTM plan, brand, SEO/content |
+| **Authentication** | `/authentication/` | [OAUTH_INTEGRATION_GUIDE.md](docs/authentication/OAUTH_INTEGRATION_GUIDE.md), [ZITADEL-SETUP-GUIDE.md](docs/authentication/ZITADEL-SETUP-GUIDE.md), [ZITADEL-OAUTH-COMPLETION-SUMMARY.md](docs/authentication/ZITADEL-OAUTH-COMPLETION-SUMMARY.md) | OAuth 2.0 with Zitadel, PKCE flow, setup guide, security audit (80% OWASP compliance) |
 
 **Quick Access:**
 - **Start here:** [Executive Summary](docs/executive-summary.md) - 15-minute overview
-- **For developers:** [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) + [Domain Model](docs/domain-model-microservices-map.md)
-- **For product:** [Product Strategy](docs/PRODUCT_STRATEGY.md) + [Feature Backlog](docs/FEATURE_BACKLOG.md)
-- **For design:** [UX Research](docs/ux-research-report.md) + [Wireframes](docs/wireframes.md) + [Design System](docs/design-system.md)
+- **For developers:** [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) + [Domain Model](docs/architecture/domain-model-microservices-map.md)
+- **For product:** [Product Strategy](docs/product-strategy/PRODUCT_STRATEGY.md) + [Feature Backlog](docs/product-strategy/FEATURE_BACKLOG.md)
+- **For design:** [UX Research](docs/ux-design/ux-research-report.md) + [Wireframes](docs/ux-design/wireframes.md) + [Design System](docs/ux-design/design-system.md)
+- **For authentication:** [OAuth Integration Guide](docs/authentication/OAUTH_INTEGRATION_GUIDE.md) + [Zitadel Setup](docs/authentication/ZITADEL-SETUP-GUIDE.md)
 
 **GitHub Issues (All Completed):**
 - [Issue #11: Architecture Review](https://github.com/andrekirst/family2/issues/11) - ✅ Modular monolith decision
@@ -149,7 +146,7 @@
 
 **Future (Phase 7+):** 9. **Federation Service** - Self-hosting, ActivityPub, instance federation (DEFERRED).
 
-**Full spec:** See [domain-model-microservices-map.md](docs/domain-model-microservices-map.md) for domain entities, events, GraphQL schemas.
+**Full spec:** See [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md) for domain entities, events, GraphQL schemas.
 
 ---
 
@@ -199,7 +196,7 @@ Refill reminder scheduled (Communication Module)
 9. School Event → Calendar → Permission Slip Task → Reminder
 10. Bill Due → Payment Reminder → Budget Check → Confirmation
 
-**Full specifications:** See [event-chains-reference.md](docs/event-chains-reference.md) for implementation patterns, monitoring, testing strategies.
+**Full specifications:** See [event-chains-reference.md](docs/architecture/event-chains-reference.md) for implementation patterns, monitoring, testing strategies.
 
 ---
 
@@ -232,8 +229,8 @@ Refill reminder scheduled (Communication Module)
 - ✅ **Issue #11:** Architecture review → **MODULAR MONOLITH DECISION**
 
 **Key Metrics:**
-- 57 documents (265,000+ words) of planning (45 in `/docs/`, 3 in `/docs/architecture/`, 9 in `/docs/legal/`)
-- Technology stack confirmed (.NET Core 10, Angular v21, GraphQL, RabbitMQ)
+- 51 core documentation files (280,000+ words) organized in 9 thematic folders
+- Technology stack confirmed (.NET Core 10, Angular v21, GraphQL, RabbitMQ, Zitadel)
 - Risk reduction: Developer Burnout CRITICAL → MEDIUM
 - Timeline optimization: -6 to -12 months to MVP
 - Cost optimization: -$1,500 to -$2,000 Year 1
@@ -260,7 +257,7 @@ Refill reminder scheduled (Communication Module)
 - **Business Metrics:** 25+ premium subscribers, $2,500+ MRR, positive unit economics
 - **Technical Metrics:** 99.5%+ uptime, <2s event chain latency, <3s p95 API response time
 
-**Full roadmap:** [implementation-roadmap.md](docs/implementation-roadmap.md)
+**Full roadmap:** [implementation-roadmap.md](docs/product-strategy/implementation-roadmap.md)
 
 ---
 
@@ -269,9 +266,9 @@ Refill reminder scheduled (Communication Module)
 ### For New Claude Code Sessions
 
 1. **Read CLAUDE.md** (this file) - Critical context in first 80 lines
-2. **Check current phase** - [implementation-roadmap.md](docs/implementation-roadmap.md)
+2. **Check current phase** - [implementation-roadmap.md](docs/product-strategy/implementation-roadmap.md)
 3. **Review architecture decision** - [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
-4. **Understand domain model** - [domain-model-microservices-map.md](docs/domain-model-microservices-map.md)
+4. **Understand domain model** - [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md)
 
 ### Database Migrations with EF Core
 
@@ -535,17 +532,17 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 ### Tips for Claude Code
 
 **When implementing features:**
-1. Check [implementation-roadmap.md](docs/implementation-roadmap.md) for phase scheduling
-2. Review [FEATURE_BACKLOG.md](docs/FEATURE_BACKLOG.md) for priority and RICE score
-3. Consult [domain-model-microservices-map.md](docs/domain-model-microservices-map.md) for module ownership
+1. Check [implementation-roadmap.md](docs/product-strategy/implementation-roadmap.md) for phase scheduling
+2. Review [FEATURE_BACKLOG.md](docs/product-strategy/FEATURE_BACKLOG.md) for priority and RICE score
+3. Consult [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md) for module ownership
 
 **When asked about architecture:**
 1. Start with [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) for strategic decision
-2. Review [domain-model-microservices-map.md](docs/domain-model-microservices-map.md) for DDD patterns
-3. Check [event-chains-reference.md](docs/event-chains-reference.md) for event-driven patterns
+2. Review [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md) for DDD patterns
+3. Check [event-chains-reference.md](docs/architecture/event-chains-reference.md) for event-driven patterns
 
 **When planning work:**
-- Follow phases in [implementation-roadmap.md](docs/implementation-roadmap.md) - don't skip ahead
+- Follow phases in [implementation-roadmap.md](docs/product-strategy/implementation-roadmap.md) - don't skip ahead
 - Each phase has clear deliverables and success criteria
 - Validate assumptions before implementing
 - Keep Federation deferred - online service first
@@ -554,91 +551,100 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ## 📋 APPENDIX: COMPLETE DOCUMENTATION MAP
 
-**All 57 markdown documents** organized by location:
+**All 51 markdown documents** organized by thematic folders:
 
-### `/docs/` Root (45 documents)
+### `/docs/` Root (3 documents)
 
-**Phase 1 Completion:**
-- ISSUE-4-PHASE-1-COMPLETION-SUMMARY.md - Preparation complete, ready for Phase 0
+Navigation and quick access:
+- **executive-summary.md** - 15-minute overview of vision, market, strategy
+- **INDEX.md** - Complete documentation map with FAQ
+- **README.md** - Docs directory overview
 
-**Product Strategy (Issue #5):**
-- executive-summary.md - 15-min overview (vision, market, strategy)
-- PRODUCT_STRATEGY.md - Complete strategy, personas, roadmap
-- FEATURE_BACKLOG.md - 208 features (RICE scored)
-- ROADMAP_VISUAL.md - Visual timeline with ASCII charts
-- ISSUE_5_SUMMARY.md - Issue #5 deliverables summary
+### `/docs/product-strategy/` (5 documents)
 
-**Technical Architecture:**
-- domain-model-microservices-map.md - 8 DDD modules, domain events, GraphQL
-- implementation-roadmap.md - 6-phase plan (10-14 months)
-- risk-register.md - 35 risks with mitigation
-- event-chains-reference.md - 10 workflow specs
-- architecture-visual-summary.md - System diagrams (ASCII)
-- DELIVERABLES_SUMMARY.md - Issue #5 checklist
-- INDEX.md - Documentation map with FAQ
-- README.md - Docs directory overview
+Product vision, features, and roadmap:
+- **PRODUCT_STRATEGY.md** - Complete strategy, personas, strategic pillars
+- **FEATURE_BACKLOG.md** - 208 features (RICE scored with priorities)
+- **implementation-roadmap.md** - 6-phase plan (10-14 months timeline)
+- **ROADMAP_VISUAL.md** - Visual timeline with ASCII Gantt charts
+- **risk-register.md** - 35 risks with mitigation strategies
 
-**Cloud & Kubernetes (Issue #6):**
-- cloud-architecture.md - Kubernetes architecture (Phase 5+)
-- kubernetes-deployment-guide.md - Deployment (local/cloud)
-- helm-charts-structure.md - Helm chart templates
-- observability-stack.md - Prometheus/Grafana/Loki
-- cicd-pipeline.md - GitHub Actions/ArgoCD
-- multi-tenancy-strategy.md - PostgreSQL RLS
-- infrastructure-cost-analysis.md - Costs ($200-5K/mo)
-- ISSUE-6-DELIVERABLES-SUMMARY.md - Issue #6 summary
+### `/docs/architecture/` (6 documents)
 
-**Security (Issue #8):**
-- threat-model.md - STRIDE analysis (53 threats)
-- security-testing-plan.md - OWASP Top 10, SAST/DAST
-- vulnerability-management.md - Severity, remediation SLAs
-- security-monitoring-incident-response.md - Monitoring, incident playbooks
-- ISSUE-8-SECURITY-SUMMARY.md - Issue #8 summary
-
-**Market Strategy (Issue #9):**
-- market-research-report.md - Competitive analysis (2,700+ reviews)
-- go-to-market-plan.md - GTM strategy
-- seo-content-strategy.md - SEO/content plan
-- brand-positioning.md - Brand guidelines
-- competitive-analysis.md - Competitor analysis
-- ISSUE-9-MARKET-STRATEGY-SUMMARY.md - Issue #9 summary
-
-**UX/UI Design (Issue #7):**
-- ux-research-report.md - 6 personas, user journeys
-- information-architecture.md - Site map, navigation
-- wireframes.md - Complete MVP wireframes
-- design-system.md - Design system (22+ components)
-- angular-component-specs.md - Angular v21 components
-- accessibility-strategy.md - WCAG 2.1 AA + COPPA
-- event-chain-ux.md - Event chain UX patterns
-- responsive-design-guide.md - Mobile-first design
-- interaction-design-guide.md - Micro-interactions
-- ISSUE-7-UI-DESIGN-SUMMARY.md - Issue #7 UI summary
-- ISSUE-7-UX-RESEARCH-SUMMARY.md - Issue #7 UX summary
-
-### `/docs/architecture/` (3 documents)
-
-- **ADR-001-MODULAR-MONOLITH-FIRST.md** - Architecture decision record
+Technical architecture and design decisions:
+- **ADR-001-MODULAR-MONOLITH-FIRST.md** - Modular monolith decision rationale
+- **ADR-002-OAUTH-WITH-ZITADEL.md** - OAuth 2.0 with Zitadel decision
 - **ARCHITECTURE-REVIEW-REPORT.md** - Comprehensive architecture review
-- **ISSUE-11-DELIVERABLES-SUMMARY.md** - Issue #11 summary
+- **domain-model-microservices-map.md** - 8 DDD modules, domain events, GraphQL
+- **event-chains-reference.md** - 10 workflow specifications
+- **architecture-visual-summary.md** - System diagrams (ASCII)
+- **multi-tenancy-strategy.md** - PostgreSQL Row-Level Security
 
-### `/docs/legal/` (9 documents)
+### `/docs/infrastructure/` (6 documents)
 
+Cloud, Kubernetes, CI/CD, and observability:
+- **cloud-architecture.md** - Kubernetes architecture (Phase 5+)
+- **kubernetes-deployment-guide.md** - Deployment guide (local/cloud)
+- **helm-charts-structure.md** - Helm chart templates
+- **cicd-pipeline.md** - GitHub Actions + ArgoCD
+- **observability-stack.md** - Prometheus + Grafana + Loki
+- **infrastructure-cost-analysis.md** - Cost projections ($200-5K/mo)
+
+### `/docs/security/` (4 documents)
+
+Security architecture and testing:
+- **threat-model.md** - STRIDE analysis (53 threats)
+- **security-testing-plan.md** - OWASP Top 10, SAST/DAST
+- **vulnerability-management.md** - Severity levels, remediation SLAs
+- **security-monitoring-incident-response.md** - Monitoring, incident playbooks
+
+### `/docs/legal/` (8 documents)
+
+Legal compliance and policies:
 - **LEGAL-COMPLIANCE-SUMMARY.md** - Comprehensive compliance overview
-- **terms-of-service.md** - Terms of Service
 - **privacy-policy.md** - Privacy Policy (GDPR/COPPA/CCPA)
+- **terms-of-service.md** - Terms of Service
 - **cookie-policy.md** - Cookie disclosure
-- **compliance-checklist.md** - 93 compliance items
-- **data-processing-agreement-template.md** - DPA templates
-- **quick-reference-coppa-workflow.md** - COPPA implementation
-- **ISSUE-10-DELIVERABLES.md** - Issue #10 deliverables
-- **README.md** - Legal docs quick start
+- **compliance-checklist.md** - 93-item compliance checklist
+- **data-processing-agreement-template.md** - DPA templates (B2B)
+- **quick-reference-coppa-workflow.md** - COPPA implementation workflow
+- **README.md** - Legal docs quick start guide
 
-**Total:** 45 + 3 + 9 = **57 documents**
+### `/docs/ux-design/` (9 documents)
+
+UX research, design system, and UI specifications:
+- **ux-research-report.md** - 6 personas, user journeys (2,700+ reviews)
+- **wireframes.md** - Complete MVP wireframes (all screens)
+- **design-system.md** - Design system (22+ components)
+- **angular-component-specs.md** - Angular v21 component specs
+- **information-architecture.md** - Site map, navigation structure
+- **accessibility-strategy.md** - WCAG 2.1 AA + COPPA compliance
+- **event-chain-ux.md** - Event chain UX patterns
+- **responsive-design-guide.md** - Mobile-first responsive design
+- **interaction-design-guide.md** - Micro-interactions, animations
+
+### `/docs/market-business/` (5 documents)
+
+Market research, competitive analysis, and GTM:
+- **market-research-report.md** - Competitive analysis (2,700+ app reviews)
+- **competitive-analysis.md** - Competitor SWOT analysis
+- **go-to-market-plan.md** - GTM strategy (channels, pricing, launch)
+- **brand-positioning.md** - Brand guidelines, messaging
+- **seo-content-strategy.md** - SEO strategy, content calendar
+
+### `/docs/authentication/` (4 documents)
+
+OAuth 2.0 and authentication guides:
+- **OAUTH_INTEGRATION_GUIDE.md** - Complete OAuth integration guide (331 lines)
+- **ZITADEL-SETUP-GUIDE.md** - Zitadel setup instructions
+- **ZITADEL-OAUTH-COMPLETION-SUMMARY.md** - OAuth completion summary
+- **OAUTH-FINAL-REVIEW-CHECKLIST.md** - Security audit checklist
+
+**Total:** 3 + 5 + 6 + 6 + 4 + 8 + 9 + 5 + 4 = **50 documents** (51 counting ARCHITECTURE-REVIEW-REPORT.md)
 
 ---
 
 _This guide was created to help Claude Code navigate the Family Hub project efficiently. For full context, always refer to the `/docs/` folder._
 
-**Last updated:** 2025-12-22
-**CLAUDE.md version:** 2.2 (Added Vogen + EF Core Migrations Strategy)
+**Last updated:** 2025-12-23
+**CLAUDE.md version:** 2.3 (Reorganized docs into thematic folders)

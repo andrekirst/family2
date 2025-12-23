@@ -63,7 +63,6 @@ public sealed class ZitadelSettings
     {
         return !string.IsNullOrWhiteSpace(Authority)
             && !string.IsNullOrWhiteSpace(ClientId)
-            && !string.IsNullOrWhiteSpace(ClientSecret)
             && !string.IsNullOrWhiteSpace(RedirectUri)
             && !string.IsNullOrWhiteSpace(Audience);
     }
