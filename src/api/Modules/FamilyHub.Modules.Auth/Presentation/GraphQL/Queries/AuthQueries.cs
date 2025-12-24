@@ -1,7 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Queries.GetZitadelAuthUrl;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
-using HotChocolate;
-using HotChocolate.Types;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

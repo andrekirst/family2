@@ -3,8 +3,6 @@ using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FluentValidation;
-using HotChocolate;
-using HotChocolate.Types;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

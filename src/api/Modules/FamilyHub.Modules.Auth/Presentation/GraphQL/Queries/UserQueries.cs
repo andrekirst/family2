@@ -1,7 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
-using HotChocolate;
-using HotChocolate.Types;
 using Microsoft.AspNetCore.Authorization;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;

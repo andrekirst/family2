@@ -6,12 +6,12 @@ namespace FamilyHub.Modules.Auth.Domain.ValueObjects;
 [ValueObject<string>(conversions: Conversions.Default | Conversions.EfCoreValueConverter)]
 public readonly partial struct UserRole
 {
+    private static readonly string[] ValidRoles = ["owner", "admin", "member", "child"];
+
     public static readonly UserRole Owner = From("owner");
     public static readonly UserRole Admin = From("admin");
     public static readonly UserRole Member = From("member");
     public static readonly UserRole Child = From("child");
-
-    private static readonly string[] ValidRoles = ["owner", "admin", "member", "child"];
 
     private static Validation Validate(string value)
     {

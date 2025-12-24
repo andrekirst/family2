@@ -1,12 +1,8 @@
 using FamilyHub.Modules.Auth;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using AuthQueries = FamilyHub.Modules.Auth.Presentation.GraphQL.Queries.AuthQueries;
-using UserQueries = FamilyHub.Modules.Auth.Presentation.GraphQL.Queries.UserQueries;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,14 +35,10 @@ try
     builder.Services.AddAuthModule(builder.Configuration);
 
     // Hot Chocolate GraphQL configuration
-    builder.Services
+    var graphqlBuilder = builder.Services
         .AddGraphQLServer()
         .AddQueryType(d => d.Name("Query"))
         .AddMutationType(d => d.Name("Mutation"))
-        .AddTypeExtension<HealthQueries>()
-        .AddTypeExtension<UserQueries>()
-        .AddTypeExtension<AuthQueries>()
-        .AddTypeExtension<AuthMutations>()
         .AddAuthorization() // Enable authorization for GraphQL (requires HotChocolate.AspNetCore.Authorization)
         .AddFiltering()
         .AddSorting()
@@ -55,6 +47,17 @@ try
         {
             opt.IncludeExceptionDetails = builder.Environment.IsDevelopment();
         });
+
+    // Module-based GraphQL type extension registration
+    // Automatically discovers and registers all [ExtendObjectType] classes from module assemblies
+    // Note: Passing null for loggerFactory to avoid ASP0000 warning (BuildServiceProvider in startup)
+    // Registration logs can be enabled by configuring ILoggerFactory after app is built if needed
+    graphqlBuilder.AddAuthModuleGraphQlTypes();
+
+    // Future modules can be registered here:
+    // graphqlBuilder.AddCalendarModuleGraphQLTypes(null);
+    // graphqlBuilder.AddTaskModuleGraphQLTypes(null);
+    // graphqlBuilder.AddShoppingModuleGraphQLTypes(null);
 
     // JWT Authentication configuration (Zitadel OAuth)
     var zitadelSettings = builder.Configuration.GetSection(ZitadelSettings.SectionName).Get<ZitadelSettings>()

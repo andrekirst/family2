@@ -1,5 +1,3 @@
-using HotChocolate.Types;
-
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 
 /// <summary>

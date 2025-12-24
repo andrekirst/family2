@@ -1,3 +1,4 @@
+using FamilyHub.Infrastructure.GraphQL.Extensions;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
 using FamilyHub.Modules.Auth.Domain.Repositories;
@@ -6,9 +7,11 @@ using FamilyHub.Modules.Auth.Infrastructure.Services;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Auth.Persistence.Repositories;
 using FluentValidation;
+using HotChocolate.Execution.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Auth;
 
@@ -39,6 +42,7 @@ public static class AuthModuleServiceRegistration
 
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IFamilyRepository, FamilyRepository>();
 
         // Zitadel OAuth Configuration
         services.Configure<ZitadelSettings>(configuration.GetSection(ZitadelSettings.SectionName));
@@ -64,5 +68,34 @@ public static class AuthModuleServiceRegistration
         services.AddValidatorsFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Auth module GraphQL type extensions (Queries and Mutations).
+    /// Automatically discovers and registers all classes with [ExtendObjectType] attribute
+    /// in the Auth module assembly.
+    /// </summary>
+    /// <param name="builder">The GraphQL request executor builder.</param>
+    /// <param name="loggerFactory">Optional logger factory for diagnostics.</param>
+    /// <returns>The builder for chaining.</returns>
+    /// <remarks>
+    /// This method scans the Auth module assembly for GraphQL type extensions and automatically
+    /// registers them with Hot Chocolate. Type extensions include:
+    /// - Queries (classes decorated with [ExtendObjectType("Query")])
+    /// - Mutations (classes decorated with [ExtendObjectType("Mutation")])
+    ///
+    /// Example usage in Program.cs:
+    /// <code>
+    /// var loggerFactory = builder.Services.BuildServiceProvider().GetService&lt;ILoggerFactory&gt;();
+    /// graphqlBuilder.AddAuthModuleGraphQLTypes(loggerFactory);
+    /// </code>
+    /// </remarks>
+    public static IRequestExecutorBuilder AddAuthModuleGraphQlTypes(
+        this IRequestExecutorBuilder builder,
+        ILoggerFactory? loggerFactory = null)
+    {
+        return builder.AddTypeExtensionsFromAssemblies(
+            [typeof(AuthModuleServiceRegistration).Assembly],
+            loggerFactory);
     }
 }

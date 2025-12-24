@@ -1,6 +1,5 @@
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using Xunit;
 
 namespace FamilyHub.Tests.Unit.Auth;
 
