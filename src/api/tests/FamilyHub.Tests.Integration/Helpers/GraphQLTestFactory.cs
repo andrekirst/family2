@@ -55,7 +55,8 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
                 ["Zitadel:ClientId"] = "test-client-id",
                 ["Zitadel:ClientSecret"] = "test-client-secret",
                 ["Zitadel:RedirectUri"] = "https://localhost:5001/callback",
-                ["Zitadel:Scope"] = "openid profile email"
+                ["Zitadel:Scope"] = "openid profile email",
+                ["Zitadel:Audience"] = "test-client-id"  // Required by ZitadelSettings.IsValid()
             };
 
             config.AddInMemoryCollection(testZitadelSettings);
