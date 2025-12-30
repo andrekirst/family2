@@ -114,10 +114,36 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
         using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        // Ensure clean schema for each test run
-        // Drop schema instead of database to avoid "cannot drop currently open database" error
-        authDbContext.Database.ExecuteSqlRaw("DROP SCHEMA IF EXISTS auth CASCADE");
-        authDbContext.Database.Migrate();
+        try
+        {
+            var connectionString = authDbContext.Database.GetConnectionString();
+            Console.WriteLine($"[GRAPHQL-FACTORY] Connection string: {connectionString}");
+
+            // Ensure clean schema for each test run
+            Console.WriteLine("[GRAPHQL-FACTORY] Dropping auth schema...");
+            authDbContext.Database.ExecuteSqlRaw("DROP SCHEMA IF EXISTS auth CASCADE");
+            Console.WriteLine("[GRAPHQL-FACTORY] Auth schema dropped successfully");
+
+            Console.WriteLine("[GRAPHQL-FACTORY] Applying EF Core migrations...");
+            authDbContext.Database.Migrate();
+            Console.WriteLine("[GRAPHQL-FACTORY] Migrations applied successfully");
+
+            // Verify schema exists
+            var canConnect = authDbContext.Database.CanConnect();
+            Console.WriteLine($"[GRAPHQL-FACTORY] Can connect to database: {canConnect}");
+
+            // Verify auth schema was created
+            var schemaExists = authDbContext.Database.ExecuteSqlRaw(@"
+                SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth'
+            ");
+            Console.WriteLine($"[GRAPHQL-FACTORY] Auth schema exists: {schemaExists >= 0}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GRAPHQL-FACTORY] MIGRATION FAILED: {ex.Message}");
+            Console.WriteLine($"[GRAPHQL-FACTORY] Stack trace: {ex.StackTrace}");
+            throw;
+        }
 
         return host;
     }

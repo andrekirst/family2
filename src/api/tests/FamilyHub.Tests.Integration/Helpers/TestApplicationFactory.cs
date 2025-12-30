@@ -56,10 +56,36 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
         using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        // Ensure clean schema for each test run
-        // Drop schema instead of database to avoid "cannot drop currently open database" error
-        authDbContext.Database.ExecuteSqlRaw("DROP SCHEMA IF EXISTS auth CASCADE");
-        authDbContext.Database.Migrate();
+        try
+        {
+            var connectionString = authDbContext.Database.GetConnectionString();
+            Console.WriteLine($"[TEST-FACTORY] Connection string: {connectionString}");
+
+            // Ensure clean schema for each test run
+            Console.WriteLine("[TEST-FACTORY] Dropping auth schema...");
+            authDbContext.Database.ExecuteSqlRaw("DROP SCHEMA IF EXISTS auth CASCADE");
+            Console.WriteLine("[TEST-FACTORY] Auth schema dropped successfully");
+
+            Console.WriteLine("[TEST-FACTORY] Applying EF Core migrations...");
+            authDbContext.Database.Migrate();
+            Console.WriteLine("[TEST-FACTORY] Migrations applied successfully");
+
+            // Verify schema exists
+            var canConnect = authDbContext.Database.CanConnect();
+            Console.WriteLine($"[TEST-FACTORY] Can connect to database: {canConnect}");
+
+            // Verify auth schema was created
+            var schemaExists = authDbContext.Database.ExecuteSqlRaw(@"
+                SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth'
+            ");
+            Console.WriteLine($"[TEST-FACTORY] Auth schema exists: {schemaExists >= 0}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[TEST-FACTORY] MIGRATION FAILED: {ex.Message}");
+            Console.WriteLine($"[TEST-FACTORY] Stack trace: {ex.StackTrace}");
+            throw;
+        }
 
         return host;
     }
