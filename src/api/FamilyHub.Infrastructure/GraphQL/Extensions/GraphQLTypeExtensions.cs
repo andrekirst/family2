@@ -52,7 +52,7 @@ public static class GraphQlTypeExtensions
                     .ToList();
 
                 if (types.Count == 0) continue;
-                
+
                 typeExtensions.AddRange(types);
                 logger?.LogDebug(
                     "Found {Count} GraphQL type extension(s) in assembly {AssemblyName}",

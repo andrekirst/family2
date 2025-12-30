@@ -701,7 +701,7 @@ public class CreateFamilyCommandHandlerTests
         // Assert - Verify successful execution
         result.Should().NotBeNull();
         result.Name.Value.Should().Be(familyName);
-        
+
         // Note: Logging verification removed - testing implementation details
         // LoggerMessage.Define pattern doesn't call generic Log() method
         // Logging is verified in integration tests

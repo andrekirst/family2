@@ -47,7 +47,7 @@ public sealed class CurrentUserService(
             .FindFirst(ClaimTypes.Email)?.Value
             ?? httpContextAccessor.HttpContext?.User
             .FindFirst(JwtRegisteredClaimNames.Email)?.Value;
-        
+
         if (string.IsNullOrEmpty(emailClaim))
         {
             return null;
