@@ -68,18 +68,22 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
         try
         {
             // Apply migrations (handles database creation automatically)
-            Console.WriteLine($"[TEST-FACTORY] Applying migrations to: {connectionString}");
+            var logPath = "/tmp/test-factory-migrations.log";
+            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Applying migrations to: {connectionString}\n");
+
             authDbContext.Database.Migrate();
-            Console.WriteLine("[TEST-FACTORY] Migrations applied successfully");
+
+            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Migrations applied successfully\n");
 
             // Verify schema exists
             var canConnect = authDbContext.Database.CanConnect();
-            Console.WriteLine($"[TEST-FACTORY] Can connect: {canConnect}");
+            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Can connect: {canConnect}\n");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[TEST-FACTORY] MIGRATION FAILED: {ex.Message}");
-            Console.WriteLine($"[TEST-FACTORY] Stack trace: {ex.StackTrace}");
+            var logPath = "/tmp/test-factory-migrations.log";
+            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: MIGRATION FAILED: {ex.Message}\n");
+            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Stack trace: {ex.StackTrace}\n");
             throw;
         }
 

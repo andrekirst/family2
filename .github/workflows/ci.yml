@@ -45,6 +45,17 @@ jobs:
         run: dotnet test src/api/tests/FamilyHub.Tests.Unit --no-build --collect:"XPlat Code Coverage"
       - name: Integration Tests
         run: dotnet test src/api/tests/FamilyHub.Tests.Integration --no-build --collect:"XPlat Code Coverage"
+      - name: Dump migration logs (debug)
+        if: always()
+        run: |
+          if [ -f /tmp/test-factory-migrations.log ]; then
+            echo "=== TestApplicationFactory Migration Log ==="
+            cat /tmp/test-factory-migrations.log
+          fi
+          if [ -f /tmp/graphql-factory-migrations.log ]; then
+            echo "=== GraphQLTestFactory Migration Log ==="
+            cat /tmp/graphql-factory-migrations.log
+          fi
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
