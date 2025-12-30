@@ -19,6 +19,14 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 
     public GraphQLTestFactory()
     {
+        // Set environment variables BEFORE Program.cs runs
+        Environment.SetEnvironmentVariable("Zitadel__Authority", "https://test.zitadel.cloud");
+        Environment.SetEnvironmentVariable("Zitadel__ClientId", "test-client-id");
+        Environment.SetEnvironmentVariable("Zitadel__ClientSecret", "test-client-secret");
+        Environment.SetEnvironmentVariable("Zitadel__RedirectUri", "https://localhost:5001/callback");
+        Environment.SetEnvironmentVariable("Zitadel__Scope", "openid profile email");
+        Environment.SetEnvironmentVariable("Zitadel__Audience", "test-client-id");
+
         // Create a single mock service that tests can configure
         _mockCurrentUserService = Substitute.For<ICurrentUserService>();
     }

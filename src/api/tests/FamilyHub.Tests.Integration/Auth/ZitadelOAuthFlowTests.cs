@@ -18,12 +18,12 @@ namespace FamilyHub.Tests.Integration.Auth;
 /// Integration tests for Zitadel OAuth 2.0 authorization code flow.
 /// Tests the complete flow from authorization code exchange to user creation.
 /// </summary>
-public sealed class ZitadelOAuthFlowTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class ZitadelOAuthFlowTests : IClassFixture<TestApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestApplicationFactory _factory;
     private readonly TestHttpMessageHandler _testHttpMessageHandler;
 
-    public ZitadelOAuthFlowTests(WebApplicationFactory<Program> factory)
+    public ZitadelOAuthFlowTests(TestApplicationFactory factory)
     {
         _testHttpMessageHandler = new TestHttpMessageHandler();
 
