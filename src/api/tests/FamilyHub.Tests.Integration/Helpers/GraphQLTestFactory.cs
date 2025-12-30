@@ -43,6 +43,10 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 
         // Create a single mock service that tests can configure
         _mockCurrentUserService = Substitute.For<ICurrentUserService>();
+
+        // Force server/host creation to trigger migrations in CreateHost()
+        // This ensures database is ready before tests access Services property
+        _ = Server;
     }
 
     /// <summary>

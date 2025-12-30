@@ -36,6 +36,10 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
 
         var connectionString = $"Host=localhost;Port=5432;Database={dbName};Username=postgres;Password=Dev123!;Include Error Detail=true";
         Environment.SetEnvironmentVariable("ConnectionStrings__FamilyHubDb", connectionString);
+
+        // Force server/host creation to trigger migrations in CreateHost()
+        // This ensures database is ready before tests access Services property
+        _ = Server;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
