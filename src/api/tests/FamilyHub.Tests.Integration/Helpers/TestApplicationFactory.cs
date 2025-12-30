@@ -34,7 +34,7 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
             ? $"familyhub_test_{Guid.NewGuid():N}"  // Unique DB per test class in CI
             : "familyhub_test";
 
-        var connectionString = $"Host=localhost;Port=5432;Database={dbName};Username=postgres;Password=Dev123!";
+        var connectionString = $"Host=localhost;Port=5432;Database={dbName};Username=postgres;Password=Dev123!;Include Error Detail=true";
         Environment.SetEnvironmentVariable("ConnectionStrings__FamilyHubDb", connectionString);
     }
 
@@ -58,9 +58,8 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
         using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        // Ensure database exists and run migrations
-        authDbContext.Database.EnsureCreated();  // Create database if it doesn't exist
-        authDbContext.Database.Migrate();         // Apply migrations
+        // Apply migrations (handles database creation automatically)
+        authDbContext.Database.Migrate();
 
         return host;
     }

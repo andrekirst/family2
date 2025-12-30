@@ -33,10 +33,12 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Zitadel__Audience", "test-client-id");
 
         // Database connection string (GitHub Actions postgres service or local)
-        var connectionString = Environment.GetEnvironmentVariable("CI") == "true"
-            ? "Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=Dev123!"
-            : "Host=localhost;Port=5432;Database=familyhub_test;Username=postgres;Password=Dev123!";
+        // Use unique database name in CI to avoid conflicts between parallel test execution
+        var dbName = Environment.GetEnvironmentVariable("CI") == "true"
+            ? $"familyhub_test_{Guid.NewGuid():N}"  // Unique DB per test class in CI
+            : "familyhub_test";
 
+        var connectionString = $"Host=localhost;Port=5432;Database={dbName};Username=postgres;Password=Dev123!;Include Error Detail=true";
         Environment.SetEnvironmentVariable("ConnectionStrings__FamilyHubDb", connectionString);
 
         // Create a single mock service that tests can configure
@@ -114,9 +116,8 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
         using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        // Ensure database exists and run migrations
-        authDbContext.Database.EnsureCreated();  // Create database if it doesn't exist
-        authDbContext.Database.Migrate();         // Apply migrations
+        // Apply migrations (handles database creation automatically)
+        authDbContext.Database.Migrate();
 
         return host;
     }
