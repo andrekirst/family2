@@ -1,8 +1,10 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
@@ -38,6 +40,9 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 
         // Create a single mock service that tests can configure
         _mockCurrentUserService = Substitute.For<ICurrentUserService>();
+
+        // Ensure database is migrated (runs synchronously during construction)
+        EnsureDatabaseMigrated();
     }
 
     /// <summary>
@@ -101,5 +106,12 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
             // Add the mock service (shared across all requests)
             services.AddScoped<ICurrentUserService>(_ => _mockCurrentUserService);
         });
+    }
+
+    private void EnsureDatabaseMigrated()
+    {
+        using var scope = Services.CreateScope();
+        var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+        authDbContext.Database.Migrate();
     }
 }
