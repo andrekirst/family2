@@ -37,7 +37,8 @@ public static class AuthModuleServiceRegistration
         // Database
         services.AddDbContext<AuthDbContext>(options =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("FamilyHubDb"))
+            options.UseNpgsql(configuration.GetConnectionString("FamilyHubDb"),
+                    npgsqlOptions => npgsqlOptions.MigrationsAssembly("FamilyHub.Modules.Auth"))
                 .UseSnakeCaseNamingConvention();
         });
 
