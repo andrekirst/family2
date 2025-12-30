@@ -113,6 +113,9 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
         // Run migrations after host is created
         using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+
+        // Ensure clean database state for each test run
+        authDbContext.Database.EnsureDeleted();
         authDbContext.Database.Migrate();
 
         return host;
