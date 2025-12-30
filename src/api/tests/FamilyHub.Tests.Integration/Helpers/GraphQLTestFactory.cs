@@ -40,9 +40,6 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 
         // Create a single mock service that tests can configure
         _mockCurrentUserService = Substitute.For<ICurrentUserService>();
-
-        // Ensure database is migrated (runs synchronously during construction)
-        EnsureDatabaseMigrated();
     }
 
     /// <summary>
@@ -108,10 +105,15 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
         });
     }
 
-    private void EnsureDatabaseMigrated()
+    protected override IHost CreateHost(IHostBuilder builder)
     {
-        using var scope = Services.CreateScope();
+        var host = base.CreateHost(builder);
+
+        // Run migrations after host is created
+        using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
         authDbContext.Database.Migrate();
+
+        return host;
     }
 }

@@ -33,9 +33,6 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
             : "Host=localhost;Port=5432;Database=familyhub_test;Username=postgres;Password=Dev123!";
 
         Environment.SetEnvironmentVariable("ConnectionStrings__FamilyHubDb", connectionString);
-
-        // Ensure database is migrated (runs synchronously during construction)
-        EnsureDatabaseMigrated();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -50,10 +47,15 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
         });
     }
 
-    private void EnsureDatabaseMigrated()
+    protected override IHost CreateHost(IHostBuilder builder)
     {
-        using var scope = Services.CreateScope();
+        var host = base.CreateHost(builder);
+
+        // Run migrations after host is created
+        using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
         authDbContext.Database.Migrate();
+
+        return host;
     }
 }
