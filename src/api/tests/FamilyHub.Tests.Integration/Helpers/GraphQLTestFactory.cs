@@ -125,10 +125,13 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 
         try
         {
-            // Apply migrations (handles database creation automatically)
+            // Apply migrations (EF Core migrations handle database AND schema creation)
             var logPath = "/tmp/graphql-factory-migrations.log";
             File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] GRAPHQL-FACTORY: Applying migrations to: {connectionString}\n");
 
+            // CRITICAL: EnsureCreated() creates the DATABASE if it doesn't exist
+            // Then Migrate() applies the schema migrations
+            authDbContext.Database.EnsureCreated();
             authDbContext.Database.Migrate();
 
             File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] GRAPHQL-FACTORY: Migrations applied successfully\n");
