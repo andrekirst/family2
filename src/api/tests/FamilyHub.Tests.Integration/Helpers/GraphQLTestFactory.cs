@@ -31,7 +31,7 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 
         // Database connection string (GitHub Actions postgres service or local)
         var connectionString = Environment.GetEnvironmentVariable("CI") == "true"
-            ? "Host=postgres;Port=5432;Database=postgres;Username=postgres;Password=Dev123!"
+            ? "Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=Dev123!"
             : "Host=localhost;Port=5432;Database=familyhub_test;Username=postgres;Password=Dev123!";
 
         Environment.SetEnvironmentVariable("ConnectionStrings__FamilyHubDb", connectionString);
