@@ -3,6 +3,7 @@ using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
@@ -45,6 +46,21 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
+        // Add test Zitadel configuration to prevent startup errors in CI
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            var testZitadelSettings = new Dictionary<string, string?>
+            {
+                ["Zitadel:Authority"] = "https://test.zitadel.cloud",
+                ["Zitadel:ClientId"] = "test-client-id",
+                ["Zitadel:ClientSecret"] = "test-client-secret",
+                ["Zitadel:RedirectUri"] = "https://localhost:5001/callback",
+                ["Zitadel:Scope"] = "openid profile email"
+            };
+
+            config.AddInMemoryCollection(testZitadelSettings);
+        });
+
         builder.ConfigureServices(services =>
         {
             // Explicitly ensure GraphQL types are registered
