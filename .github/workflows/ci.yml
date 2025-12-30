@@ -37,8 +37,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-          cache: true
-          cache-dependency-path: '**/packages.lock.json'
       - name: Restore dependencies
         run: dotnet restore src/api/FamilyHub.sln
       - name: Build
@@ -65,7 +63,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: 'src/frontend/family-hub-web/package-lock.json'
+          cache-dependency-path: '**/package-lock.json'
       - name: Install dependencies
         run: npm ci
       - name: Lint
@@ -134,7 +132,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: 'src/frontend/family-hub-web/package-lock.json'
+          cache-dependency-path: '**/package-lock.json'
 
       # Start Backend API
       - name: Start API
