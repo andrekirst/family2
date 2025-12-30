@@ -71,9 +71,38 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
             var logPath = "/tmp/test-factory-migrations.log";
             File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Applying migrations to: {connectionString}\n");
 
-            // CRITICAL: EnsureCreated() creates the DATABASE if it doesn't exist
-            // Then Migrate() applies the schema migrations
-            authDbContext.Database.EnsureCreated();
+            // CRITICAL: Create database first using raw SQL, then apply migrations
+            // Cannot use EnsureCreated() + Migrate() together - they conflict on schema creation
+            try
+            {
+                // Extract database name from connection string
+                var dbName = connectionString.Split(';')
+                    .First(x => x.StartsWith("Database=", StringComparison.OrdinalIgnoreCase))
+                    .Split('=')[1];
+
+                // Connect to 'postgres' database to create our test database
+                var masterConnString = connectionString.Replace($"Database={dbName}", "Database=postgres");
+                using var masterConn = new Npgsql.NpgsqlConnection(masterConnString);
+                masterConn.Open();
+
+                // Create database if it doesn't exist
+                using var cmd = masterConn.CreateCommand();
+                cmd.CommandText = $"SELECT 1 FROM pg_database WHERE datname = '{dbName}'";
+                var exists = cmd.ExecuteScalar() != null;
+
+                if (!exists)
+                {
+                    cmd.CommandText = $"CREATE DATABASE \"{dbName}\"";
+                    cmd.ExecuteNonQuery();
+                    File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Created database {dbName}\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Database creation warning: {ex.Message}\n");
+            }
+
+            // Now apply EF Core migrations to the schema
             authDbContext.Database.Migrate();
 
             File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Migrations applied successfully\n");
