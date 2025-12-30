@@ -114,8 +114,9 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
         using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        // Ensure clean database state for each test run
-        authDbContext.Database.EnsureDeleted();
+        // Ensure clean schema for each test run
+        // Drop schema instead of database to avoid "cannot drop currently open database" error
+        authDbContext.Database.ExecuteSqlRaw("DROP SCHEMA IF EXISTS auth CASCADE");
         authDbContext.Database.Migrate();
 
         return host;
