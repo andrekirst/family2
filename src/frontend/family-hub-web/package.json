@@ -5,8 +5,14 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:ci": "ng test --browsers=ChromeHeadless --watch=false --code-coverage",
+    "e2e": "cypress open",
+    "e2e:headless": "cypress run",
+    "e2e:ci": "start-server-and-test start http://localhost:4200 e2e:headless",
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
@@ -28,7 +34,13 @@
     "@angular/cli": "^21.0.4",
     "@angular/compiler-cli": "^21.0.6",
     "@types/jasmine": "~5.1.0",
+    "angular-eslint": "21.0.1",
     "autoprefixer": "^10.4.23",
+    "axe-core": "^4.11.0",
+    "cypress": "^15.8.1",
+    "cypress-axe": "^1.7.0",
+    "cypress-real-events": "^1.15.0",
+    "eslint": "^9.39.1",
     "jasmine-core": "~5.2.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -37,6 +49,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "typescript-eslint": "8.46.4"
   }
 }
