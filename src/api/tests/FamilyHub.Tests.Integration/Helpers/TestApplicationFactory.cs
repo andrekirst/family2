@@ -29,10 +29,12 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Zitadel__Audience", "test-client-id");
 
         // Database connection string (GitHub Actions postgres service or local)
-        var connectionString = Environment.GetEnvironmentVariable("CI") == "true"
-            ? "Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=Dev123!"
-            : "Host=localhost;Port=5432;Database=familyhub_test;Username=postgres;Password=Dev123!";
+        // Use unique database name in CI to avoid conflicts between parallel test execution
+        var dbName = Environment.GetEnvironmentVariable("CI") == "true"
+            ? $"familyhub_test_{Guid.NewGuid():N}"  // Unique DB per test class in CI
+            : "familyhub_test";
 
+        var connectionString = $"Host=localhost;Port=5432;Database={dbName};Username=postgres;Password=Dev123!";
         Environment.SetEnvironmentVariable("ConnectionStrings__FamilyHubDb", connectionString);
     }
 
@@ -56,36 +58,9 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
         using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        try
-        {
-            var connectionString = authDbContext.Database.GetConnectionString();
-            Console.WriteLine($"[TEST-FACTORY] Connection string: {connectionString}");
-
-            // Ensure clean schema for each test run
-            Console.WriteLine("[TEST-FACTORY] Dropping auth schema...");
-            authDbContext.Database.ExecuteSqlRaw("DROP SCHEMA IF EXISTS auth CASCADE");
-            Console.WriteLine("[TEST-FACTORY] Auth schema dropped successfully");
-
-            Console.WriteLine("[TEST-FACTORY] Applying EF Core migrations...");
-            authDbContext.Database.Migrate();
-            Console.WriteLine("[TEST-FACTORY] Migrations applied successfully");
-
-            // Verify schema exists
-            var canConnect = authDbContext.Database.CanConnect();
-            Console.WriteLine($"[TEST-FACTORY] Can connect to database: {canConnect}");
-
-            // Verify auth schema was created
-            var schemaExists = authDbContext.Database.ExecuteSqlRaw(@"
-                SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth'
-            ");
-            Console.WriteLine($"[TEST-FACTORY] Auth schema exists: {schemaExists >= 0}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[TEST-FACTORY] MIGRATION FAILED: {ex.Message}");
-            Console.WriteLine($"[TEST-FACTORY] Stack trace: {ex.StackTrace}");
-            throw;
-        }
+        // Ensure database exists and run migrations
+        authDbContext.Database.EnsureCreated();  // Create database if it doesn't exist
+        authDbContext.Database.Migrate();         // Apply migrations
 
         return host;
     }
