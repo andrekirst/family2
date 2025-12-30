@@ -20,7 +20,7 @@ namespace FamilyHub.Tests.Integration.Auth;
 /// </summary>
 public sealed class ZitadelOAuthFlowTests : IClassFixture<TestApplicationFactory>
 {
-    private readonly TestApplicationFactory _factory;
+    private readonly WebApplicationFactory<Program> _factory;
     private readonly TestHttpMessageHandler _testHttpMessageHandler;
 
     public ZitadelOAuthFlowTests(TestApplicationFactory factory)
