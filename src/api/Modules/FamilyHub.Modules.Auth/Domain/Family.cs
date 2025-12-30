@@ -13,7 +13,7 @@ public class Family : AggregateRoot<FamilyId>
     /// <summary>
     /// Family name (e.g., "Smith Family").
     /// </summary>
-    public string Name { get; private set; }
+    public FamilyName Name { get; private set; }
 
     /// <summary>
     /// ID of the user who owns this family.
@@ -43,11 +43,11 @@ public class Family : AggregateRoot<FamilyId>
     // Private constructor for EF Core
     private Family() : base(FamilyId.From(Guid.Empty))
     {
-        Name = string.Empty; // EF Core will set the actual value
+        Name = FamilyName.From("Placeholder"); // EF Core will set the actual value
         OwnerId = UserId.From(Guid.Empty); // EF Core will set the actual value
     }
 
-    private Family(FamilyId id, string name, UserId ownerId) : base(id)
+    private Family(FamilyId id, FamilyName name, UserId ownerId) : base(id)
     {
         Name = name;
         OwnerId = ownerId;
@@ -58,19 +58,9 @@ public class Family : AggregateRoot<FamilyId>
     /// <summary>
     /// Creates a new family with an owner.
     /// </summary>
-    public static Family Create(string name, UserId ownerId)
+    public static Family Create(FamilyName name, UserId ownerId)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException("Family name cannot be empty.", nameof(name));
-        }
-
-        if (name.Length > 100)
-        {
-            throw new ArgumentException("Family name cannot exceed 100 characters.", nameof(name));
-        }
-
-        var family = new Family(FamilyId.New(), name.Trim(), ownerId);
+        var family = new Family(FamilyId.New(), name, ownerId);
 
         // Domain event
         // family.AddDomainEvent(new FamilyCreatedEvent(family.Id, family.Name, ownerId));
@@ -81,19 +71,9 @@ public class Family : AggregateRoot<FamilyId>
     /// <summary>
     /// Updates the family name.
     /// </summary>
-    public void UpdateName(string newName)
+    public void UpdateName(FamilyName newName)
     {
-        if (string.IsNullOrWhiteSpace(newName))
-        {
-            throw new ArgumentException("Family name cannot be empty.", nameof(newName));
-        }
-
-        if (newName.Length > 100)
-        {
-            throw new ArgumentException("Family name cannot exceed 100 characters.", nameof(newName));
-        }
-
-        Name = newName.Trim();
+        Name = newName;
         UpdatedAt = DateTime.UtcNow;
     }
 

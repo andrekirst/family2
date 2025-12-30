@@ -1,4 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Application.Validators;
+using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Adapters;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using Microsoft.AspNetCore.Authorization;
 
@@ -14,24 +17,28 @@ public sealed class UserQueries
     /// Gets the current authenticated user's information.
     /// </summary>
     /// <param name="currentUserService">Service to access current user info.</param>
+    /// <param name="userRepository">Repository to retrieve full user entity.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Current user information.</returns>
     [Authorize] // Requires authentication
-    public UserType Me([Service] ICurrentUserService currentUserService)
+    public async Task<UserType> Me(
+        [Service] ICurrentUserService currentUserService,
+        [Service] IUserRepository userRepository,
+        CancellationToken cancellationToken)
     {
         var userId = currentUserService.GetUserId();
-        var email = currentUserService.GetUserEmail();
 
-        if (userId == null || email == null)
+        // Validate authentication using centralized validator
+        var authenticatedUserId = AuthenticationValidator.RequireAuthentication(userId, "access user information");
+
+        // Retrieve full User entity from repository
+        var user = await userRepository.GetByIdAsync(authenticatedUserId, cancellationToken);
+        if (user == null)
         {
-            throw new UnauthorizedAccessException("User is not authenticated");
+            throw new InvalidOperationException($"User with ID {authenticatedUserId.Value} not found.");
         }
 
-        return new UserType
-        {
-            Id = userId.Value.Value,
-            Email = email.Value.Value,
-            EmailVerified = false, // TODO: Get from user entity
-            CreatedAt = DateTime.UtcNow // TODO: Get from user entity
-        };
+        // Map to GraphQL type using adapter (now with full entity data)
+        return UserAuthenticationAdapter.ToGraphQLType(user);
     }
 }

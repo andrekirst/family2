@@ -1,11 +1,12 @@
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.SharedKernel.Presentation.GraphQL;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 
 /// <summary>
 /// GraphQL payload for family creation.
 /// </summary>
-public sealed record CreateFamilyPayload
+public sealed record CreateFamilyPayload : PayloadBase
 {
     /// <summary>
     /// The created family (null if errors occurred).
@@ -13,19 +14,20 @@ public sealed record CreateFamilyPayload
     public FamilyType? Family { get; init; }
 
     /// <summary>
-    /// Errors that occurred during family creation (empty if successful).
+    /// Constructor for successful payload (called by factory).
     /// </summary>
-    public UserError[] Errors { get; init; } = [];
+    /// <param name="family">The created family</param>
+    public CreateFamilyPayload(FamilyType family) : base()
+    {
+        Family = family;
+    }
 
     /// <summary>
-    /// Creates a successful payload.
+    /// Constructor for error payload (called by factory).
     /// </summary>
-    public static CreateFamilyPayload Success(FamilyType family)
-        => new() { Family = family };
-
-    /// <summary>
-    /// Creates a failure payload with errors.
-    /// </summary>
-    public static CreateFamilyPayload Failure(params UserError[] errors)
-        => new() { Errors = errors };
+    /// <param name="errors">List of errors that occurred</param>
+    public CreateFamilyPayload(IReadOnlyList<UserError> errors) : base(errors)
+    {
+        Family = null;
+    }
 }

@@ -57,9 +57,10 @@ public class UserFamily : Entity<Guid>
     // Private constructor for EF Core
     private UserFamily() : base(Guid.Empty)
     {
-        UserId = UserId.From(Guid.Empty); // EF Core will set the actual value
-        FamilyId = FamilyId.From(Guid.Empty); // EF Core will set the actual value
-        Role = UserRole.Member; // EF Core will set the actual value
+        // EF Core will set actual values via reflection after instantiation
+        UserId = UserId.From(Guid.Empty);
+        FamilyId = FamilyId.From(Guid.Empty);
+        Role = UserRole.Member;
     }
 
     private UserFamily(

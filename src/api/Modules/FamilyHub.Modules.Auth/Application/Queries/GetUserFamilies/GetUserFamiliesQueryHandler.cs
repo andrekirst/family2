@@ -8,7 +8,7 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetUserFamilies;
 /// Handler for GetUserFamiliesQuery.
 /// Retrieves all families that a user belongs to.
 /// </summary>
-public sealed class GetUserFamiliesQueryHandler(
+public sealed partial class GetUserFamiliesQueryHandler(
     IFamilyRepository familyRepository,
     ILogger<GetUserFamiliesQueryHandler> logger)
     : IRequestHandler<GetUserFamiliesQuery, GetUserFamiliesResult>
@@ -20,23 +20,18 @@ public sealed class GetUserFamiliesQueryHandler(
         GetUserFamiliesQuery request,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation(
-            "Retrieving families for user {UserId}",
-            request.UserId.Value);
+        LogRetrievingFamiliesForUser(request.UserId.Value);
 
         // 1. Query families from repository
         var families = await _familyRepository.GetFamiliesByUserIdAsync(request.UserId, cancellationToken);
 
-        _logger.LogInformation(
-            "Found {FamilyCount} family(ies) for user {UserId}",
-            families.Count,
-            request.UserId.Value);
+        LogFoundFamilycountFamilyIesForUserUserid(families.Count, request.UserId.Value);
 
         // 2. Map to DTOs
         var familyDtos = families.Select(f => new FamilyDto
         {
             FamilyId = f.Id,
-            Name = f.Name,
+            Name = f.Name.Value,
             OwnerId = f.OwnerId,
             CreatedAt = f.CreatedAt,
             MemberCount = f.UserFamilies.Count(uf => uf.IsActive)
@@ -48,4 +43,10 @@ public sealed class GetUserFamiliesQueryHandler(
             Families = familyDtos
         };
     }
+
+    [LoggerMessage(LogLevel.Information, "Retrieving families for user {userId}")]
+    partial void LogRetrievingFamiliesForUser(Guid userId);
+
+    [LoggerMessage(LogLevel.Information, "Found {familyCount} family(ies) for user {userId}")]
+    partial void LogFoundFamilycountFamilyIesForUserUserid(int familyCount, Guid userId);
 }

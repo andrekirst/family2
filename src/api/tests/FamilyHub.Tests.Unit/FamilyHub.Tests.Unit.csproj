@@ -21,6 +21,7 @@
     <PackageReference Include="AutoFixture" />
     <PackageReference Include="AutoFixture.AutoNSubstitute" />
     <PackageReference Include="AutoFixture.Xunit2" />
+    <PackageReference Include="FluentAssertions" />
     <PackageReference Include="IdentityModel" />
   </ItemGroup>
 

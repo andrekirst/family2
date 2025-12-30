@@ -15,7 +15,7 @@ public sealed record CreateFamilyResult
     /// <summary>
     /// The name of the family.
     /// </summary>
-    public required string Name { get; init; }
+    public required FamilyName Name { get; init; }
 
     /// <summary>
     /// The user ID of the family owner.

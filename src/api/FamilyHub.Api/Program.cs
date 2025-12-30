@@ -1,3 +1,5 @@
+using FamilyHub.Infrastructure.GraphQL.Filters;
+using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Modules.Auth;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -43,6 +45,8 @@ try
         .AddFiltering()
         .AddSorting()
         .AddProjections()
+        .AddErrorFilter<GraphQLErrorFilter>() // Centralized exception → GraphQL error mapping
+        .AddDiagnosticEventListener<GraphQlLoggingInterceptor>() // GraphQL operation logging
         .ModifyRequestOptions(opt =>
         {
             opt.IncludeExceptionDetails = builder.Environment.IsDevelopment();
@@ -63,6 +67,7 @@ try
     var zitadelSettings = builder.Configuration.GetSection(ZitadelSettings.SectionName).Get<ZitadelSettings>()
         ?? throw new InvalidOperationException("Zitadel settings are not configured");
 
+    // TODO Use IValidateOptions to validate settings
     if (!zitadelSettings.IsValid())
     {
         throw new InvalidOperationException("Zitadel settings are incomplete. Please check appsettings.json.");
@@ -150,27 +155,6 @@ try
     // Health check endpoint
     app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
        .WithName("HealthCheck");
-
-    // Test endpoint to verify JWT authentication
-    app.MapGet("/api/test-auth", (HttpContext context) =>
-    {
-        var user = context.User;
-        var isAuthenticated = user.Identity?.IsAuthenticated ?? false;
-        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-            ?? user.FindFirst("sub")?.Value;
-        var email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
-            ?? user.FindFirst("email")?.Value;
-
-        return Results.Ok(new
-        {
-            isAuthenticated,
-            userId,
-            email,
-            claims = user.Claims.Select(c => new { c.Type, c.Value }).ToList()
-        });
-    })
-    .RequireAuthorization()
-    .WithName("TestAuth");
 
     Log.Information("Family Hub API started successfully");
     app.Run();
