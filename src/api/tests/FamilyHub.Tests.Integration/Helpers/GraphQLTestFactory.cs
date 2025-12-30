@@ -170,6 +170,12 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
                             File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] GRAPHQL-FACTORY: Database creation warning: {ex.Message}\n");
                         }
 
+                        // Check what migrations are available
+                        var pendingMigrations = authDbContext.Database.GetPendingMigrations().ToList();
+                        var appliedMigrations = authDbContext.Database.GetAppliedMigrations().ToList();
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] GRAPHQL-FACTORY: Pending migrations: {string.Join(", ", pendingMigrations)}\n");
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] GRAPHQL-FACTORY: Applied migrations: {string.Join(", ", appliedMigrations)}\n");
+
                         // Now apply EF Core migrations to the schema
                         authDbContext.Database.Migrate();
 

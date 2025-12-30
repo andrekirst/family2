@@ -113,6 +113,12 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
                             File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Database creation warning: {ex.Message}\n");
                         }
 
+                        // Check what migrations are available
+                        var pendingMigrations = authDbContext.Database.GetPendingMigrations().ToList();
+                        var appliedMigrations = authDbContext.Database.GetAppliedMigrations().ToList();
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Pending migrations: {string.Join(", ", pendingMigrations)}\n");
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Applied migrations: {string.Join(", ", appliedMigrations)}\n");
+
                         // Now apply EF Core migrations to the schema
                         authDbContext.Database.Migrate();
 
