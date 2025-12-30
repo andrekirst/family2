@@ -16,6 +16,9 @@ namespace FamilyHub.Tests.Integration.Helpers;
 
 public sealed class TestApplicationFactory : WebApplicationFactory<Program>
 {
+    private static readonly SemaphoreSlim _migrationLock = new(1, 1);
+    private bool _migrationsCompleted = false;
+
     public TestApplicationFactory()
     {
         // Set environment variables BEFORE Program.cs runs
@@ -58,65 +61,82 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
     {
         var host = base.CreateHost(builder);
 
-        // Run migrations after host is created
-        using var scope = host.Services.CreateScope();
-        var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-
-        // Get connection string for diagnostics
-        var connectionString = authDbContext.Database.GetConnectionString();
-
-        try
+        // Only run migrations once per test factory instance
+        if (!_migrationsCompleted)
         {
-            // Apply migrations (EF Core migrations handle database AND schema creation)
-            var logPath = "/tmp/test-factory-migrations.log";
-            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Applying migrations to: {connectionString}\n");
-
-            // CRITICAL: Create database first using raw SQL, then apply migrations
-            // Cannot use EnsureCreated() + Migrate() together - they conflict on schema creation
+            _migrationLock.Wait();
             try
             {
-                // Extract database name from connection string
-                var dbName = connectionString.Split(';')
-                    .First(x => x.StartsWith("Database=", StringComparison.OrdinalIgnoreCase))
-                    .Split('=')[1];
-
-                // Connect to 'postgres' database to create our test database
-                var masterConnString = connectionString.Replace($"Database={dbName}", "Database=postgres");
-                using var masterConn = new Npgsql.NpgsqlConnection(masterConnString);
-                masterConn.Open();
-
-                // Create database if it doesn't exist
-                using var cmd = masterConn.CreateCommand();
-                cmd.CommandText = $"SELECT 1 FROM pg_database WHERE datname = '{dbName}'";
-                var exists = cmd.ExecuteScalar() != null;
-
-                if (!exists)
+                if (!_migrationsCompleted) // Double-check after acquiring lock
                 {
-                    cmd.CommandText = $"CREATE DATABASE \"{dbName}\"";
-                    cmd.ExecuteNonQuery();
-                    File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Created database {dbName}\n");
+                    // Run migrations after host is created
+                    using var scope = host.Services.CreateScope();
+                    var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+
+                    // Get connection string for diagnostics
+                    var connectionString = authDbContext.Database.GetConnectionString();
+
+                    try
+                    {
+                        // Apply migrations (EF Core migrations handle database AND schema creation)
+                        var logPath = "/tmp/test-factory-migrations.log";
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Applying migrations to: {connectionString}\n");
+
+                        // CRITICAL: Create database first using raw SQL, then apply migrations
+                        // Cannot use EnsureCreated() + Migrate() together - they conflict on schema creation
+                        try
+                        {
+                            // Extract database name from connection string
+                            var dbName = connectionString.Split(';')
+                                .First(x => x.StartsWith("Database=", StringComparison.OrdinalIgnoreCase))
+                                .Split('=')[1];
+
+                            // Connect to 'postgres' database to create our test database
+                            var masterConnString = connectionString.Replace($"Database={dbName}", "Database=postgres");
+                            using var masterConn = new Npgsql.NpgsqlConnection(masterConnString);
+                            masterConn.Open();
+
+                            // Create database if it doesn't exist
+                            using var cmd = masterConn.CreateCommand();
+                            cmd.CommandText = $"SELECT 1 FROM pg_database WHERE datname = '{dbName}'";
+                            var exists = cmd.ExecuteScalar() != null;
+
+                            if (!exists)
+                            {
+                                cmd.CommandText = $"CREATE DATABASE \"{dbName}\"";
+                                cmd.ExecuteNonQuery();
+                                File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Created database {dbName}\n");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Database creation warning: {ex.Message}\n");
+                        }
+
+                        // Now apply EF Core migrations to the schema
+                        authDbContext.Database.Migrate();
+
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Migrations applied successfully\n");
+
+                        // Verify schema exists
+                        var canConnect = authDbContext.Database.CanConnect();
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Can connect: {canConnect}\n");
+
+                        _migrationsCompleted = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        var logPath = "/tmp/test-factory-migrations.log";
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: MIGRATION FAILED: {ex.Message}\n");
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Stack trace: {ex.StackTrace}\n");
+                        throw;
+                    }
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Database creation warning: {ex.Message}\n");
+                _migrationLock.Release();
             }
-
-            // Now apply EF Core migrations to the schema
-            authDbContext.Database.Migrate();
-
-            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Migrations applied successfully\n");
-
-            // Verify schema exists
-            var canConnect = authDbContext.Database.CanConnect();
-            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Can connect: {canConnect}\n");
-        }
-        catch (Exception ex)
-        {
-            var logPath = "/tmp/test-factory-migrations.log";
-            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: MIGRATION FAILED: {ex.Message}\n");
-            File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Stack trace: {ex.StackTrace}\n");
-            throw;
         }
 
         return host;
