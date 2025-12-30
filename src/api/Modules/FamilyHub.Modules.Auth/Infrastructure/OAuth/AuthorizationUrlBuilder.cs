@@ -33,7 +33,8 @@ public sealed class AuthorizationUrlBuilder
     /// </summary>
     public AuthorizationUrlBuilder WithClientId(string clientId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(clientId);
+        if (string.IsNullOrWhiteSpace(clientId))
+            throw new ArgumentException("Client ID cannot be null or empty.", nameof(clientId));
 
         _clientId = clientId;
         return this;
@@ -44,7 +45,8 @@ public sealed class AuthorizationUrlBuilder
     /// </summary>
     public AuthorizationUrlBuilder WithRedirectUri(string redirectUri)
     {
-        ArgumentException.ThrowIfNullOrEmpty(redirectUri);
+        if (string.IsNullOrWhiteSpace(redirectUri))
+            throw new ArgumentException("Redirect URI cannot be null or empty.", nameof(redirectUri));
 
         _redirectUri = redirectUri;
         return this;
@@ -55,7 +57,8 @@ public sealed class AuthorizationUrlBuilder
     /// </summary>
     public AuthorizationUrlBuilder WithResponseType(string responseType)
     {
-        ArgumentNullException.ThrowIfNull(responseType);
+        if (string.IsNullOrWhiteSpace(responseType))
+            throw new ArgumentException("Response type cannot be null or empty.", nameof(responseType));
 
         _responseType = responseType;
         return this;
@@ -66,7 +69,8 @@ public sealed class AuthorizationUrlBuilder
     /// </summary>
     public AuthorizationUrlBuilder WithScope(string scope)
     {
-        ArgumentNullException.ThrowIfNull(scope);
+        if (string.IsNullOrWhiteSpace(scope))
+            throw new ArgumentException("Scope cannot be null or empty.", nameof(scope));
 
         _scope = scope;
         return this;
@@ -77,7 +81,8 @@ public sealed class AuthorizationUrlBuilder
     /// </summary>
     public AuthorizationUrlBuilder WithCodeChallenge(string codeChallenge)
     {
-        ArgumentNullException.ThrowIfNull(codeChallenge);
+        if (string.IsNullOrWhiteSpace(codeChallenge))
+            throw new ArgumentException("Code challenge cannot be null or empty.", nameof(codeChallenge));
 
         _codeChallenge = codeChallenge;
         return this;
@@ -88,7 +93,8 @@ public sealed class AuthorizationUrlBuilder
     /// </summary>
     public AuthorizationUrlBuilder WithCodeChallengeMethod(string codeChallengeMethod)
     {
-        ArgumentNullException.ThrowIfNull(codeChallengeMethod);
+        if (string.IsNullOrWhiteSpace(codeChallengeMethod))
+            throw new ArgumentException("Code challenge method cannot be null or empty.", nameof(codeChallengeMethod));
 
         _codeChallengeMethod = codeChallengeMethod;
         return this;
@@ -99,7 +105,8 @@ public sealed class AuthorizationUrlBuilder
     /// </summary>
     public AuthorizationUrlBuilder WithState(string state)
     {
-        ArgumentException.ThrowIfNullOrEmpty(state);
+        if (string.IsNullOrWhiteSpace(state))
+            throw new ArgumentException("State cannot be null or empty.", nameof(state));
 
         _state = state;
         return this;
@@ -110,7 +117,8 @@ public sealed class AuthorizationUrlBuilder
     /// </summary>
     public AuthorizationUrlBuilder WithNonce(string nonce)
     {
-        ArgumentNullException.ThrowIfNull(nonce);
+        if (string.IsNullOrWhiteSpace(nonce))
+            throw new ArgumentException("Nonce cannot be null or empty.", nameof(nonce));
 
         _nonce = nonce;
         return this;
@@ -124,11 +132,17 @@ public sealed class AuthorizationUrlBuilder
     public string Build()
     {
         // Validate required parameters
-        ArgumentNullException.ThrowIfNull(_authorizationEndpoint);
-        ArgumentNullException.ThrowIfNull(_clientId);
-        ArgumentNullException.ThrowIfNull(_redirectUri);
+        if (string.IsNullOrWhiteSpace(_authorizationEndpoint))
+            throw new InvalidOperationException("Authorization endpoint is required.");
 
-        ArgumentNullException.ThrowIfNull(_scope);
+        if (string.IsNullOrWhiteSpace(_clientId))
+            throw new InvalidOperationException("Client ID is required.");
+
+        if (string.IsNullOrWhiteSpace(_redirectUri))
+            throw new InvalidOperationException("Redirect URI is required.");
+
+        if (string.IsNullOrWhiteSpace(_scope))
+            throw new InvalidOperationException("Scope is required.");
 
         // Build query parameters with proper URL encoding
         var queryParams = new List<string>

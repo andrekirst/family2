@@ -24,6 +24,7 @@ public sealed class AuthQueries
 
         var result = await mediator.Send(new GetZitadelAuthUrlQuery());
 
+        // Please create an adapter to map domain entity to GraphQL type
         return new GetZitadelAuthUrlPayload
         {
             AuthorizationUrl = result.AuthorizationUrl,

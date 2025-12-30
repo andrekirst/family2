@@ -17,7 +17,7 @@ public sealed record CreateFamilyPayload : PayloadBase
     /// Constructor for successful payload (called by factory).
     /// </summary>
     /// <param name="family">The created family</param>
-    public CreateFamilyPayload(FamilyType family)
+    public CreateFamilyPayload(FamilyType family) : base()
     {
         Family = family;
     }

@@ -9,9 +9,9 @@ using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
-using FamilyHub.Tests.Integration.Infrastructure;
 using FluentAssertions;
 using MediatR;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
@@ -20,23 +20,17 @@ namespace FamilyHub.Tests.Integration.Auth.GraphQL;
 /// <summary>
 /// Integration tests for CreateFamily GraphQL mutation.
 /// Tests GraphQL API layer, authentication, validation, and error handling.
-/// Uses Testcontainers PostgreSQL for real database testing with automatic cleanup.
 /// </summary>
-[Collection("Database")]
-public sealed class CreateFamilyMutationTests : IAsyncLifetime
+public sealed class CreateFamilyMutationTests : IClassFixture<GraphQLTestFactory>
 {
-    private readonly PostgreSqlContainerFixture _containerFixture;
-    private readonly GraphQlTestFactory _factory;
+    private readonly GraphQLTestFactory _factory;
 
-    public CreateFamilyMutationTests(PostgreSqlContainerFixture containerFixture)
+    public CreateFamilyMutationTests(GraphQLTestFactory factory)
     {
-        _containerFixture = containerFixture;
-        _factory = new GraphQlTestFactory(_containerFixture.ConnectionString);
+        _factory = factory;
     }
 
-    public Task InitializeAsync() => Task.CompletedTask;
-
-    public Task DisposeAsync() => Task.CompletedTask;
+    #region Helper Methods
 
     /// <summary>
     /// Parses GraphQL response and returns the createFamily result.
@@ -57,6 +51,8 @@ public sealed class CreateFamilyMutationTests : IAsyncLifetime
         // If data is null or doesn't exist, return root element (which should have errors)
         return jsonDocument.RootElement;
     }
+
+    #endregion
 
     [Fact]
     public async Task CreateFamily_WithValidInput_ReturnsSuccessPayload()
@@ -122,21 +118,21 @@ public sealed class CreateFamilyMutationTests : IAsyncLifetime
         var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "empty");
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
-        const string mutation = """
-                                mutation {
-                                  createFamily(input: { name: "" }) {
-                                    family {
-                                      id
-                                      name
-                                    }
-                                    errors {
-                                      message
-                                      code
-                                      field
-                                    }
-                                  }
-                                }
-                                """;
+        var mutation = """
+        mutation {
+          createFamily(input: { name: "" }) {
+            family {
+              id
+              name
+            }
+            errors {
+              message
+              code
+              field
+            }
+          }
+        }
+        """;
 
         var request = new { query = mutation };
 

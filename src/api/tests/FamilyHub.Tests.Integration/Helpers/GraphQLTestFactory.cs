@@ -3,42 +3,23 @@ using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
 namespace FamilyHub.Tests.Integration.Helpers;
 
 /// <summary>
-/// Custom WebApplicationFactory for GraphQL tests with Testcontainers PostgreSQL support.
-/// Provides authentication mocking via NSubstitute for integration tests.
+/// Custom WebApplicationFactory for GraphQL tests with proper authentication mocking.
+/// Ensures GraphQL schema is properly initialized before mocking services.
 /// </summary>
-public sealed class GraphQlTestFactory : WebApplicationFactory<Program>
+public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 {
-    private readonly string _connectionString;
     private readonly ICurrentUserService _mockCurrentUserService;
 
-    /// <summary>
-    /// Creates a new GraphQL test factory with the specified PostgreSQL connection string.
-    /// </summary>
-    /// <param name="connectionString">Connection string from Testcontainers PostgreSQL fixture</param>
-    public GraphQlTestFactory(string connectionString)
+    public GraphQLTestFactory()
     {
-        _connectionString = connectionString;
-
-        // Set Zitadel OAuth configuration environment variables
-        Environment.SetEnvironmentVariable("Zitadel__Authority", "https://test.zitadel.cloud");
-        Environment.SetEnvironmentVariable("Zitadel__ClientId", "test-client-id");
-        Environment.SetEnvironmentVariable("Zitadel__ClientSecret", "test-client-secret");
-        Environment.SetEnvironmentVariable("Zitadel__RedirectUri", "https://localhost:5001/callback");
-        Environment.SetEnvironmentVariable("Zitadel__Scope", "openid profile email");
-        Environment.SetEnvironmentVariable("Zitadel__Audience", "test-client-id");
-
-        // Create mock service for authentication
+        // Create a single mock service that tests can configure
         _mockCurrentUserService = Substitute.For<ICurrentUserService>();
-
-        // Force server creation (triggers configuration)
-        _ = Server;
     }
 
     /// <summary>
@@ -57,31 +38,17 @@ public sealed class GraphQlTestFactory : WebApplicationFactory<Program>
     /// </summary>
     public void ClearAuthenticatedUser()
     {
-        _mockCurrentUserService.GetUserId().Returns(_ => throw new UnauthorizedAccessException("User is not authenticated"));
+        _mockCurrentUserService.GetUserId().Returns((UserId?)null);
         _mockCurrentUserService.GetUserEmail().Returns((Email?)null);
         _mockCurrentUserService.IsAuthenticated.Returns(false);
     }
 
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
-        // Override database connection string with Testcontainers instance
-        builder.ConfigureAppConfiguration((_, config) =>
-        {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:FamilyHubDb"] = _connectionString,
-                ["Zitadel:Authority"] = "https://test.zitadel.cloud",
-                ["Zitadel:ClientId"] = "test-client-id",
-                ["Zitadel:ClientSecret"] = "test-client-secret",
-                ["Zitadel:RedirectUri"] = "https://localhost:5001/callback",
-                ["Zitadel:Scope"] = "openid profile email",
-                ["Zitadel:Audience"] = "test-client-id"
-            });
-        });
-
         builder.ConfigureServices(services =>
         {
             // Explicitly ensure GraphQL types are registered
+            // This is a workaround for the type discovery not working in test environment
             services.AddGraphQLServer()
                 .AddTypeExtension<FamilyMutations>()
                 .AddTypeExtension<AuthMutations>()
@@ -89,7 +56,7 @@ public sealed class GraphQlTestFactory : WebApplicationFactory<Program>
                 .AddTypeExtension<HealthQueries>()
                 .AddTypeExtension<UserQueries>();
 
-            // Replace ICurrentUserService with mock for authentication testing
+            // Replace ICurrentUserService with our mock
             var currentUserServiceDescriptor = services.FirstOrDefault(d =>
                 d.ServiceType == typeof(ICurrentUserService));
             if (currentUserServiceDescriptor != null)
