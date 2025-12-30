@@ -58,8 +58,26 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
         using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        // Apply migrations (handles database creation automatically)
-        authDbContext.Database.Migrate();
+        // Get connection string for diagnostics
+        var connectionString = authDbContext.Database.GetConnectionString();
+
+        try
+        {
+            // Apply migrations (handles database creation automatically)
+            Console.WriteLine($"[TEST-FACTORY] Applying migrations to: {connectionString}");
+            authDbContext.Database.Migrate();
+            Console.WriteLine("[TEST-FACTORY] Migrations applied successfully");
+
+            // Verify schema exists
+            var canConnect = authDbContext.Database.CanConnect();
+            Console.WriteLine($"[TEST-FACTORY] Can connect: {canConnect}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[TEST-FACTORY] MIGRATION FAILED: {ex.Message}");
+            Console.WriteLine($"[TEST-FACTORY] Stack trace: {ex.StackTrace}");
+            throw;
+        }
 
         return host;
     }

@@ -116,8 +116,26 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
         using var scope = host.Services.CreateScope();
         var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        // Apply migrations (handles database creation automatically)
-        authDbContext.Database.Migrate();
+        // Get connection string for diagnostics
+        var connectionString = authDbContext.Database.GetConnectionString();
+
+        try
+        {
+            // Apply migrations (handles database creation automatically)
+            Console.WriteLine($"[GRAPHQL-FACTORY] Applying migrations to: {connectionString}");
+            authDbContext.Database.Migrate();
+            Console.WriteLine("[GRAPHQL-FACTORY] Migrations applied successfully");
+
+            // Verify schema exists
+            var canConnect = authDbContext.Database.CanConnect();
+            Console.WriteLine($"[GRAPHQL-FACTORY] Can connect: {canConnect}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GRAPHQL-FACTORY] MIGRATION FAILED: {ex.Message}");
+            Console.WriteLine($"[GRAPHQL-FACTORY] Stack trace: {ex.StackTrace}");
+            throw;
+        }
 
         return host;
     }
