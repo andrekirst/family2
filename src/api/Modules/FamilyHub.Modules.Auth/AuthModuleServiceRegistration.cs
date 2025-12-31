@@ -37,13 +37,12 @@ public static class AuthModuleServiceRegistration
         // Database
         services.AddDbContext<AuthDbContext>(options =>
         {
-            // NOTE: Removed MigrationsAssembly configuration - EF Core should auto-discover
-            // migrations in the same assembly as AuthDbContext (FamilyHub.Modules.Auth)
-            Console.WriteLine($"[AUTH-MODULE] Configuring AuthDbContext without explicit MigrationsAssembly");
-            Console.WriteLine($"[AUTH-MODULE] DbContext assembly: {typeof(AuthDbContext).Assembly.FullName}");
-            Console.WriteLine($"[AUTH-MODULE] Assembly location: {typeof(AuthDbContext).Assembly.Location}");
-
-            options.UseNpgsql(configuration.GetConnectionString("FamilyHubDb"))
+            options.UseNpgsql(configuration.GetConnectionString("FamilyHubDb"), npgsqlOptions =>
+                {
+                    // CRITICAL: Specify migrations assembly explicitly for integration tests
+                    // EF Core auto-discovery doesn't work when DbContext is created outside the main application
+                    npgsqlOptions.MigrationsAssembly(typeof(AuthDbContext).Assembly.GetName().Name);
+                })
                 .UseSnakeCaseNamingConvention();
         });
 
