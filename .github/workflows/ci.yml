@@ -38,25 +38,27 @@ jobs:
   frontend-ci:
     name: Frontend CI (Angular 18)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/frontend/family-hub-web
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: 'src/frontend/family-hub-web/package-lock.json'
+          cache-dependency-path: '**/package-lock.json'
       - name: Install dependencies
+        working-directory: src/frontend/family-hub-web
         run: npm ci
       - name: Lint
+        working-directory: src/frontend/family-hub-web
         run: npm run lint
       - name: Unit Tests
+        working-directory: src/frontend/family-hub-web
         run: npm run test:ci
       - name: Build Production
+        working-directory: src/frontend/family-hub-web
         run: npm run build:prod
       - name: Validate Bundle Sizes
+        working-directory: src/frontend/family-hub-web
         run: |
           du -sh dist/family-hub-web/browser
       - name: Upload coverage to Codecov
