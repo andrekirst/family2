@@ -359,7 +359,8 @@ nuget.exe
 packages/
 
 # NPM
-package-lock.json
+# Note: package-lock.json should be committed for reproducible builds
+# package-lock.json  # REMOVED - we want to track this
 yarn.lock
 pnpm-lock.yaml
 
