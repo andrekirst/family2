@@ -21,8 +21,9 @@ public class FamilyConfiguration : IEntityTypeConfiguration<Family>
             .HasColumnName("id")
             .IsRequired();
 
-        // Family name
+        // Family name with Vogen value converter
         builder.Property(f => f.Name)
+            .HasConversion(new FamilyName.EfCoreValueConverter())
             .HasColumnName("name")
             .HasMaxLength(100)
             .IsRequired();

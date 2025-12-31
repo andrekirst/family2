@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
+using FamilyHub.Modules.Auth.Infrastructure.OAuth;
 using IdentityModel;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -36,17 +37,17 @@ public sealed class GetZitadelAuthUrlQueryHandler(
         // 4. Generate nonce for replay attack protection (128-bit random string)
         var nonce = CryptoRandom.CreateUniqueId(16);
 
-        // 5. Build authorization URL with all OAuth parameters
-        // TODO Create a AuthorizationUrlBuilder
-        var authorizationUrl = $"{_settings.AuthorizationEndpoint}?" +
-            $"client_id={Uri.EscapeDataString(_settings.ClientId)}" +
-            $"&redirect_uri={Uri.EscapeDataString(_settings.RedirectUri)}" +
-            $"&response_type=code" +
-            $"&scope={Uri.EscapeDataString(_settings.Scopes)}" +
-            $"&code_challenge={codeChallenge}" +
-            $"&code_challenge_method=S256" + // SHA-256 hashing
-            $"&state={state}" +
-            $"&nonce={nonce}";
+        // 5. Build authorization URL with all OAuth parameters using fluent builder
+        var authorizationUrl = new AuthorizationUrlBuilder()
+            .WithAuthorizationEndpoint(_settings.AuthorizationEndpoint)
+            .WithClientId(_settings.ClientId)
+            .WithRedirectUri(_settings.RedirectUri)
+            .WithScope(_settings.Scopes)
+            .WithCodeChallenge(codeChallenge)
+            .WithCodeChallengeMethod("S256") // SHA-256 hashing
+            .WithState(state)
+            .WithNonce(nonce)
+            .Build();
 
         _logger.LogInformation(
             "Generated Zitadel authorization URL: {Authority}, Scopes: {Scopes}",

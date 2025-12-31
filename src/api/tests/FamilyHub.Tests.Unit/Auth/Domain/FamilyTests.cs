@@ -1,48 +1,40 @@
-using AutoFixture;
-using AutoFixture.AutoNSubstitute;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FluentAssertions;
 
 namespace FamilyHub.Tests.Unit.Auth.Domain;
 
 /// <summary>
 /// Unit tests for the Family domain entity.
 /// Tests domain logic, validation rules, and business invariants.
+/// Uses FluentAssertions for readable, expressive test assertions.
 /// </summary>
 public class FamilyTests
 {
-    private readonly IFixture _fixture;
-
-    public FamilyTests()
-    {
-        _fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-    }
-
     #region Create Tests
 
     [Fact]
     public void Create_WithValidNameAndOwnerId_ShouldCreateFamily()
     {
         // Arrange
-        var name = "Smith Family";
+        var name = FamilyName.From("Smith Family");
         var ownerId = UserId.New();
 
         // Act
         var family = Family.Create(name, ownerId);
 
         // Assert
-        Assert.NotNull(family);
-        Assert.Equal(name, family.Name);
-        Assert.Equal(ownerId, family.OwnerId);
-        Assert.NotEqual(Guid.Empty, family.Id.Value);
+        family.Should().NotBeNull();
+        family.Name.Should().Be(name);
+        family.OwnerId.Should().Be(ownerId);
+        family.Id.Value.Should().NotBe(Guid.Empty);
+
         var now = DateTime.UtcNow;
-        Assert.True(family.CreatedAt <= now);
-        Assert.True(family.UpdatedAt <= now);
-        // CreatedAt and UpdatedAt should be equal or very close (within 100ms)
-        var timeDiff = (family.UpdatedAt - family.CreatedAt).TotalMilliseconds;
-        Assert.True(Math.Abs(timeDiff) < 100);
-        Assert.Null(family.DeletedAt);
+        family.CreatedAt.Should().BeOnOrBefore(now);
+        family.UpdatedAt.Should().BeOnOrBefore(now);
+
+        family.DeletedAt.Should().BeNull();
     }
 
     [Fact]
@@ -50,27 +42,29 @@ public class FamilyTests
     {
         // Arrange
         var nameWithWhitespace = "  Smith Family  ";
-        var expectedName = "Smith Family";
+        var expectedName = FamilyName.From("Smith Family");
         var ownerId = UserId.New();
 
         // Act
-        var family = Family.Create(nameWithWhitespace, ownerId);
+        var family = Family.Create(FamilyName.From(nameWithWhitespace), ownerId);
 
         // Assert
-        Assert.Equal(expectedName, family.Name);
+        family.Name.Should().Be(expectedName);
     }
 
     [Fact]
-    public void Create_WithNullName_ShouldThrowArgumentException()
+    public void Create_WithNullName_ShouldThrowValueObjectValidationException()
     {
         // Arrange
         var ownerId = UserId.New();
         string? nullName = null;
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => Family.Create(nullName!, ownerId));
-        Assert.Equal("name", exception.ParamName);
-        Assert.Contains("Family name cannot be empty", exception.Message);
+        // Act - Vogen throws exception when creating the value object
+        var act = () => FamilyName.From(nullName!);
+
+        // Assert
+        act.Should().Throw<Vogen.ValueObjectValidationException>()
+            .WithMessage("*Cannot create a value object with null*");
     }
 
     [Theory]
@@ -78,28 +72,28 @@ public class FamilyTests
     [InlineData("   ")]
     [InlineData("\t")]
     [InlineData("\n")]
-    public void Create_WithEmptyOrWhitespaceName_ShouldThrowArgumentException(string invalidName)
+    public void Create_WithEmptyOrWhitespaceName_ShouldThrowValueObjectValidationException(string invalidName)
     {
-        // Arrange
-        var ownerId = UserId.New();
+        // Arrange - Act
+        var act = () => FamilyName.From(invalidName);
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => Family.Create(invalidName, ownerId));
-        Assert.Equal("name", exception.ParamName);
-        Assert.Contains("Family name cannot be empty", exception.Message);
+        // Assert
+        act.Should().Throw<Vogen.ValueObjectValidationException>()
+            .WithMessage("*Family name cannot be empty*");
     }
 
     [Fact]
-    public void Create_WithNameExceeding100Characters_ShouldThrowArgumentException()
+    public void Create_WithNameExceeding100Characters_ShouldThrowValueObjectValidationException()
     {
         // Arrange
         var longName = new string('A', 101);
-        var ownerId = UserId.New();
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => Family.Create(longName, ownerId));
-        Assert.Equal("name", exception.ParamName);
-        Assert.Contains("Family name cannot exceed 100 characters", exception.Message);
+        // Act
+        var act = () => FamilyName.From(longName);
+
+        // Assert
+        act.Should().Throw<Vogen.ValueObjectValidationException>()
+            .WithMessage("*Family name cannot exceed 100 characters*");
     }
 
     [Fact]
@@ -110,11 +104,11 @@ public class FamilyTests
         var ownerId = UserId.New();
 
         // Act
-        var family = Family.Create(maxLengthName, ownerId);
+        var family = Family.Create(FamilyName.From(maxLengthName), ownerId);
 
         // Assert
-        Assert.NotNull(family);
-        Assert.Equal(maxLengthName, family.Name);
+        family.Should().NotBeNull();
+        family.Name.Value.Should().Be(maxLengthName);
     }
 
     #endregion
@@ -125,9 +119,9 @@ public class FamilyTests
     public void UpdateName_WithValidName_ShouldUpdateNameAndTimestamp()
     {
         // Arrange
-        var family = Family.Create("Original Name", UserId.New());
+        var family = Family.Create(FamilyName.From("Original Name"), UserId.New());
         var originalUpdatedAt = family.UpdatedAt;
-        var newName = "Updated Name";
+        var newName = FamilyName.From("Updated Name");
 
         // Small delay to ensure timestamp difference
         Thread.Sleep(10);
@@ -136,63 +130,65 @@ public class FamilyTests
         family.UpdateName(newName);
 
         // Assert
-        Assert.Equal(newName, family.Name);
-        Assert.True(family.UpdatedAt > originalUpdatedAt);
+        family.Name.Should().Be(newName);
+        family.UpdatedAt.Should().BeAfter(originalUpdatedAt);
     }
 
     [Fact]
     public void UpdateName_WithNameContainingWhitespace_ShouldTrimWhitespace()
     {
         // Arrange
-        var family = Family.Create("Original Name", UserId.New());
+        var family = Family.Create(FamilyName.From("Original Name"), UserId.New());
         var nameWithWhitespace = "  Updated Name  ";
-        var expectedName = "Updated Name";
+        var expectedName = FamilyName.From("Updated Name");
 
         // Act
-        family.UpdateName(nameWithWhitespace);
+        family.UpdateName(FamilyName.From(nameWithWhitespace));
 
         // Assert
-        Assert.Equal(expectedName, family.Name);
+        family.Name.Should().Be(expectedName);
     }
 
     [Fact]
-    public void UpdateName_WithNullName_ShouldThrowArgumentException()
+    public void UpdateName_WithNullName_ShouldThrowValueObjectValidationException()
     {
         // Arrange
-        var family = Family.Create("Original Name", UserId.New());
+        var family = Family.Create(FamilyName.From("Original Name"), UserId.New());
         string? nullName = null;
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => family.UpdateName(nullName!));
-        Assert.Equal("newName", exception.ParamName);
-        Assert.Contains("Family name cannot be empty", exception.Message);
+        // Act - Vogen throws exception when creating the value object
+        var act = () => FamilyName.From(nullName!);
+
+        // Assert
+        act.Should().Throw<Vogen.ValueObjectValidationException>()
+            .WithMessage("*Cannot create a value object with null*");
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void UpdateName_WithEmptyOrWhitespaceName_ShouldThrowArgumentException(string invalidName)
+    public void UpdateName_WithEmptyOrWhitespaceName_ShouldThrowValueObjectValidationException(string invalidName)
     {
-        // Arrange
-        var family = Family.Create("Original Name", UserId.New());
+        // Arrange - Act
+        var act = () => FamilyName.From(invalidName);
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => family.UpdateName(invalidName));
-        Assert.Equal("newName", exception.ParamName);
-        Assert.Contains("Family name cannot be empty", exception.Message);
+        // Assert
+        act.Should().Throw<Vogen.ValueObjectValidationException>()
+            .WithMessage("*Family name cannot be empty*");
     }
 
     [Fact]
-    public void UpdateName_WithNameExceeding100Characters_ShouldThrowArgumentException()
+    public void UpdateName_WithNameExceeding100Characters_ShouldThrowValueObjectValidationException()
     {
         // Arrange
-        var family = Family.Create("Original Name", UserId.New());
         var longName = new string('B', 101);
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => family.UpdateName(longName));
-        Assert.Equal("newName", exception.ParamName);
-        Assert.Contains("Family name cannot exceed 100 characters", exception.Message);
+        // Act
+        var act = () => FamilyName.From(longName);
+
+        // Assert
+        act.Should().Throw<Vogen.ValueObjectValidationException>()
+            .WithMessage("*Family name cannot exceed 100 characters*");
     }
 
     #endregion
@@ -204,7 +200,7 @@ public class FamilyTests
     {
         // Arrange
         var originalOwnerId = UserId.New();
-        var family = Family.Create("Smith Family", originalOwnerId);
+        var family = Family.Create(FamilyName.From("Smith Family"), originalOwnerId);
         var newOwnerId = UserId.New();
         var originalUpdatedAt = family.UpdatedAt;
 
@@ -215,8 +211,8 @@ public class FamilyTests
         family.TransferOwnership(newOwnerId);
 
         // Assert
-        Assert.Equal(newOwnerId, family.OwnerId);
-        Assert.True(family.UpdatedAt > originalUpdatedAt);
+        family.OwnerId.Should().Be(newOwnerId);
+        family.UpdatedAt.Should().BeAfter(originalUpdatedAt);
     }
 
     [Fact]
@@ -224,7 +220,7 @@ public class FamilyTests
     {
         // Arrange
         var ownerId = UserId.New();
-        var family = Family.Create("Smith Family", ownerId);
+        var family = Family.Create(FamilyName.From("Smith Family"), ownerId);
         var originalUpdatedAt = family.UpdatedAt;
 
         // Small delay
@@ -234,8 +230,8 @@ public class FamilyTests
         family.TransferOwnership(ownerId);
 
         // Assert
-        Assert.Equal(ownerId, family.OwnerId);
-        Assert.Equal(originalUpdatedAt, family.UpdatedAt);
+        family.OwnerId.Should().Be(ownerId);
+        family.UpdatedAt.Should().Be(originalUpdatedAt);
     }
 
     #endregion
@@ -246,7 +242,7 @@ public class FamilyTests
     public void Delete_ShouldSetDeletedAtAndUpdateTimestamp()
     {
         // Arrange
-        var family = Family.Create("Smith Family", UserId.New());
+        var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
         var originalUpdatedAt = family.UpdatedAt;
 
         // Small delay to ensure timestamp difference
@@ -256,9 +252,9 @@ public class FamilyTests
         family.Delete();
 
         // Assert
-        Assert.NotNull(family.DeletedAt);
-        Assert.True(family.DeletedAt <= DateTime.UtcNow);
-        Assert.True(family.UpdatedAt > originalUpdatedAt);
+        family.DeletedAt.Should().NotBeNull()
+            .And.BeOnOrBefore(DateTime.UtcNow);
+        family.UpdatedAt.Should().BeAfter(originalUpdatedAt);
     }
 
     #endregion
@@ -276,13 +272,13 @@ public class FamilyTests
         var ownerMembership = UserFamily.CreateOwnerMembership(ownerId, familyId);
 
         // Assert
-        Assert.NotNull(ownerMembership);
-        Assert.Equal(ownerId, ownerMembership.UserId);
-        Assert.Equal(familyId, ownerMembership.FamilyId);
-        Assert.Equal(UserRole.Owner, ownerMembership.Role);
-        Assert.True(ownerMembership.IsActive);
-        Assert.Null(ownerMembership.InvitedBy);
-        Assert.True(ownerMembership.JoinedAt <= DateTime.UtcNow);
+        ownerMembership.Should().NotBeNull();
+        ownerMembership.UserId.Should().Be(ownerId);
+        ownerMembership.FamilyId.Should().Be(familyId);
+        ownerMembership.Role.Should().Be(UserRole.Owner);
+        ownerMembership.IsActive.Should().BeTrue();
+        ownerMembership.InvitedBy.Should().BeNull();
+        ownerMembership.JoinedAt.Should().BeOnOrBefore(DateTime.UtcNow);
     }
 
     [Fact]
@@ -301,13 +297,13 @@ public class FamilyTests
             invitedBy);
 
         // Assert
-        Assert.NotNull(membership);
-        Assert.Equal(memberId, membership.UserId);
-        Assert.Equal(familyId, membership.FamilyId);
-        Assert.Equal(UserRole.Member, membership.Role);
-        Assert.True(membership.IsActive);
-        Assert.Equal(invitedBy, membership.InvitedBy);
-        Assert.True(membership.JoinedAt <= DateTime.UtcNow);
+        membership.Should().NotBeNull();
+        membership.UserId.Should().Be(memberId);
+        membership.FamilyId.Should().Be(familyId);
+        membership.Role.Should().Be(UserRole.Member);
+        membership.IsActive.Should().BeTrue();
+        membership.InvitedBy.Should().Be(invitedBy);
+        membership.JoinedAt.Should().BeOnOrBefore(DateTime.UtcNow);
     }
 
     [Fact]
@@ -318,11 +314,12 @@ public class FamilyTests
         var familyId = FamilyId.New();
         var invitedBy = UserId.New();
 
-        // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() =>
-            UserFamily.CreateMembership(memberId, familyId, UserRole.Owner, invitedBy));
+        // Act
+        var act = () => UserFamily.CreateMembership(memberId, familyId, UserRole.Owner, invitedBy);
 
-        Assert.Contains("Use CreateOwnerMembership for owner role", exception.Message);
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*Use CreateOwnerMembership for owner role*");
     }
 
     #endregion
@@ -333,20 +330,20 @@ public class FamilyTests
     public void UserFamilies_ShouldBeReadOnly()
     {
         // Arrange
-        var family = Family.Create("Smith Family", UserId.New());
+        var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
 
-        // Act & Assert
-        Assert.IsType<IReadOnlyCollection<UserFamily>>(family.UserFamilies, exactMatch: false);
+        // Assert
+        family.UserFamilies.Should().BeAssignableTo<IReadOnlyCollection<UserFamily>>();
     }
 
     [Fact]
     public void UserFamilies_InitiallyEmpty()
     {
         // Arrange & Act
-        var family = Family.Create("Smith Family", UserId.New());
+        var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
 
         // Assert
-        Assert.Empty(family.UserFamilies);
+        family.UserFamilies.Should().BeEmpty();
     }
 
     #endregion

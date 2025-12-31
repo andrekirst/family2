@@ -4,9 +4,9 @@ using MediatR;
 namespace FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 
 /// <summary>
-/// Command to create a new family with the specified user as owner.
+/// Command to create a new family with the authenticated user as owner.
+/// Authentication is extracted by the handler via ICurrentUserService.
 /// </summary>
 public sealed record CreateFamilyCommand(
-    string Name,
-    UserId UserId
+    FamilyName Name
 ) : IRequest<CreateFamilyResult>;

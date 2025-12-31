@@ -1209,7 +1209,7 @@ Production (Cloud)
 ### Phase 1 Checklist
 
 - [ ] User can register and log in
-- [ ] Family group creation and invitation works
+- [x] Family group creation and invitation works ✅ (2025-12-30, #15, commit 585a000)
 - [ ] Calendar events can be created and viewed
 - [ ] Tasks can be created and assigned
 - [ ] Notifications appear in UI

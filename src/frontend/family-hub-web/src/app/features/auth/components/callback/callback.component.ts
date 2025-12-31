@@ -2,43 +2,48 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/spinner.component';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
-  selector: 'app-callback',
-  standalone: true,
-  imports: [CommonModule, SpinnerComponent],
-  template: `
+    selector: 'app-callback',
+    imports: [SpinnerComponent],
+    template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-50">
       <div class="text-center">
-        <app-spinner size="lg" *ngIf="!error"></app-spinner>
-
-        <div *ngIf="!error">
-          <h2 class="mt-4 text-xl font-semibold text-gray-900">
-            Completing sign in...
-          </h2>
-          <p class="mt-2 text-gray-600">
-            Please wait while we verify your credentials
-          </p>
-        </div>
-
-        <div *ngIf="error" class="max-w-md mx-auto">
-          <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-            <h2 class="text-xl font-semibold text-red-900 mb-2">
-              Authentication Failed
+        @if (!error) {
+          <app-spinner size="lg"></app-spinner>
+        }
+    
+        @if (!error) {
+          <div>
+            <h2 class="mt-4 text-xl font-semibold text-gray-900">
+              Completing sign in...
             </h2>
-            <p class="text-red-700 mb-4">{{ error }}</p>
-            <button
-              (click)="retry()"
-              class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Try Again
-            </button>
+            <p class="mt-2 text-gray-600">
+              Please wait while we verify your credentials
+            </p>
           </div>
-        </div>
+        }
+    
+        @if (error) {
+          <div class="max-w-md mx-auto">
+            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+              <h2 class="text-xl font-semibold text-red-900 mb-2">
+                Authentication Failed
+              </h2>
+              <p class="text-red-700 mb-4">{{ error }}</p>
+              <button
+                (click)="retry()"
+                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                Try Again
+              </button>
+            </div>
+          </div>
+        }
       </div>
     </div>
-  `,
+    `
 })
 export class CallbackComponent implements OnInit {
   error: string | null = null;

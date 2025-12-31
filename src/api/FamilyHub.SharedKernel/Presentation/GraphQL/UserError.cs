@@ -1,4 +1,4 @@
-namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+namespace FamilyHub.SharedKernel.Presentation.GraphQL;
 
 /// <summary>
 /// Represents an error that occurred during a GraphQL mutation.

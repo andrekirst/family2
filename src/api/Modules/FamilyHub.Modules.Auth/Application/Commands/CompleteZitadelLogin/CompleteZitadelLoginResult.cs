@@ -31,4 +31,9 @@ public sealed record CompleteZitadelLoginResult
     /// Whether the email has been verified (always true for OAuth users)
     /// </summary>
     public required bool EmailVerified { get; init; }
+
+    /// <summary>
+    /// User account creation timestamp
+    /// </summary>
+    public required DateTime CreatedAt { get; init; }
 }

@@ -2,7 +2,6 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
-
   <ItemGroup>
     <!-- Testing -->
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
@@ -13,9 +12,9 @@
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AutoFixture.AutoNSubstitute" Version="4.18.1" />
     <PackageVersion Include="AutoFixture.Xunit2" Version="4.18.1" />
+    <PackageVersion Include="FluentAssertions" Version="8.8.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-
     <!-- Entity Framework Core -->
     <PackageVersion Include="EFCore.NamingConventions" Version="9.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
@@ -23,37 +22,31 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
-
     <!-- HotChocolate GraphQL -->
     <PackageVersion Include="HotChocolate.AspNetCore" Version="15.1.11" />
     <PackageVersion Include="HotChocolate.AspNetCore.Authorization" Version="15.1.11" />
     <PackageVersion Include="HotChocolate.Data.EntityFramework" Version="15.1.11" />
     <PackageVersion Include="HotChocolate.Execution" Version="15.1.11" />
     <PackageVersion Include="HotChocolate.Types" Version="15.1.11" />
-
     <!-- Validation & CQRS -->
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="MediatR" Version="13.1.0" />
-
     <!-- Authentication & Security -->
     <PackageVersion Include="IdentityModel" Version="7.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
-
     <!-- Logging -->
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
-
     <!-- Infrastructure -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.0" />
-
     <!-- API Documentation -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.0" />
-
     <!-- Value Objects -->
     <PackageVersion Include="Vogen" Version="8.0.4" />
   </ItemGroup>

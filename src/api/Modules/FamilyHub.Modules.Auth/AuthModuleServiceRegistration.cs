@@ -2,10 +2,14 @@ using FamilyHub.Infrastructure.GraphQL.Extensions;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
 using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Factories;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
+using FamilyHub.SharedKernel.Application.Behaviors;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Infrastructure.Services;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Auth.Persistence.Repositories;
+using FamilyHub.SharedKernel.Presentation.GraphQL;
 using FluentValidation;
 using HotChocolate.Execution.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +54,10 @@ public static class AuthModuleServiceRegistration
         // Infrastructure Services
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        // GraphQL Mutation Handler & Payload Factories
+        services.AddScoped<IMutationHandler, MutationHandler>();
+        services.AddPayloadFactoriesFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
+
         // HTTP Client for OAuth token exchange
         services.AddHttpClient();
 
@@ -60,7 +68,8 @@ public static class AuthModuleServiceRegistration
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
-            // Add validation behavior to pipeline
+            // Add pipeline behaviors (order matters: Logging → Validation)
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 

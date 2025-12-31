@@ -1,3 +1,5 @@
+using FamilyHub.Modules.Auth.Domain.Constants;
+
 namespace FamilyHub.Modules.Auth.Domain.ValueObjects;
 
 /// <summary>
@@ -6,26 +8,26 @@ namespace FamilyHub.Modules.Auth.Domain.ValueObjects;
 [ValueObject<string>(conversions: Conversions.Default | Conversions.EfCoreValueConverter)]
 public readonly partial struct UserRole
 {
-    private static readonly string[] ValidRoles = ["owner", "admin", "member", "child"];
+    private static readonly string[] ValidRoles =
+    [
+        UserRoleConstants.OwnerValue,
+        UserRoleConstants.AdminValue,
+        UserRoleConstants.MemberValue,
+        UserRoleConstants.ChildValue
+    ];
 
-    public static readonly UserRole Owner = From("owner");
-    public static readonly UserRole Admin = From("admin");
-    public static readonly UserRole Member = From("member");
-    public static readonly UserRole Child = From("child");
+    public static readonly UserRole Owner = From(UserRoleConstants.OwnerValue);
+    public static readonly UserRole Admin = From(UserRoleConstants.AdminValue);
+    public static readonly UserRole Member = From(UserRoleConstants.MemberValue);
+    public static readonly UserRole Child = From(UserRoleConstants.ChildValue);
 
     private static Validation Validate(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return Validation.Invalid("User role cannot be empty.");
-        }
-
-        if (!ValidRoles.Contains(value.ToLowerInvariant()))
-        {
-            return Validation.Invalid($"Invalid user role. Must be one of: {string.Join(", ", ValidRoles)}");
-        }
-
-        return Validation.Ok;
+        return string.IsNullOrWhiteSpace(value)
+            ? Validation.Invalid("User role cannot be empty.")
+            : !ValidRoles.Contains(value.ToLowerInvariant())
+                ? Validation.Invalid($"Invalid user role. Must be one of: {string.Join(", ", ValidRoles)}")
+                : Validation.Ok;
     }
 
     private static string NormalizeInput(string input) =>

@@ -81,7 +81,8 @@ public sealed class CompleteZitadelLoginCommandHandler(
             Email = user.Email,
             AccessToken = tokenResponse.AccessToken!,
             ExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn),
-            EmailVerified = user.EmailVerified
+            EmailVerified = user.EmailVerified,
+            CreatedAt = user.CreatedAt
         };
     }
 

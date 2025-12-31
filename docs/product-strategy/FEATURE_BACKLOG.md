@@ -100,7 +100,7 @@ We use RICE scoring to prioritize features:
 | Feature                      | Description                                | RICE Score | Effort  | Priority |
 | ---------------------------- | ------------------------------------------ | ---------- | ------- | -------- |
 | **User Registration & Auth** | Email/password auth via Zitadel            | 45.0       | 2 weeks | P0       |
-| **Family Creation**          | Create family group, generate invite codes | 50.0       | 1 week  | P0       |
+| **Family Creation** ✅       | Create family group, generate invite codes | 50.0       | 1 week  | P0       | ✅ COMPLETED (2025-12-30) #15 |
 | **Family Member Invites**    | Send invites, approve members              | 42.0       | 1 week  | P0       |
 | **User Profiles**            | Name, avatar, role, preferences            | 36.0       | 1 week  | P0       |
 | **Family Settings**          | Timezone, language, notification prefs     | 30.0       | 1 week  | P1       |

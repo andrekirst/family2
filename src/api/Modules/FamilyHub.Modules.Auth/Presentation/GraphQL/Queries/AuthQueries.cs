@@ -19,11 +19,12 @@ public sealed class AuthQueries
         [Service] IMediator mediator,
         [Service] ILogger<AuthQueries> logger)
     {
-        // TODO Use structered logging (decorator pattern)
+        // TODO Please use decorator pattern to log the start end end logging message
         logger.LogInformation("GraphQL: getZitadelAuthUrl query called");
 
         var result = await mediator.Send(new GetZitadelAuthUrlQuery());
 
+        // Please create an adapter to map domain entity to GraphQL type
         return new GetZitadelAuthUrlPayload
         {
             AuthorizationUrl = result.AuthorizationUrl,

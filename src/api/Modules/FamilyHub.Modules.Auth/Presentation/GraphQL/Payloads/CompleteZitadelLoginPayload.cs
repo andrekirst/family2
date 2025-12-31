@@ -1,11 +1,12 @@
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.SharedKernel.Presentation.GraphQL;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 
 /// <summary>
 /// GraphQL payload for completed Zitadel OAuth login.
 /// </summary>
-public sealed record CompleteZitadelLoginPayload
+public sealed record CompleteZitadelLoginPayload : PayloadBase
 {
     /// <summary>
     /// Authentication result with user and tokens (null if errors occurred)
@@ -13,19 +14,20 @@ public sealed record CompleteZitadelLoginPayload
     public AuthenticationResult? AuthenticationResult { get; init; }
 
     /// <summary>
-    /// Errors that occurred during login (empty if successful)
+    /// Constructor for successful payload (called by factory).
     /// </summary>
-    public UserError[] Errors { get; init; } = [];
+    /// <param name="authenticationResult">The authentication result</param>
+    public CompleteZitadelLoginPayload(AuthenticationResult authenticationResult) : base()
+    {
+        AuthenticationResult = authenticationResult;
+    }
 
     /// <summary>
-    /// Creates a successful payload
+    /// Constructor for error payload (called by factory).
     /// </summary>
-    public static CompleteZitadelLoginPayload Success(AuthenticationResult authenticationResult)
-        => new() { AuthenticationResult = authenticationResult };
-
-    /// <summary>
-    /// Creates a failure payload with errors
-    /// </summary>
-    public static CompleteZitadelLoginPayload Failure(params UserError[] errors)
-        => new() { Errors = errors };
+    /// <param name="errors">List of errors that occurred</param>
+    public CompleteZitadelLoginPayload(IReadOnlyList<UserError> errors) : base(errors)
+    {
+        AuthenticationResult = null;
+    }
 }

@@ -4,10 +4,9 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { ButtonComponent } from '../../../../shared/components/atoms/button/button.component';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [ButtonComponent],
-  template: `
+    selector: 'app-login',
+    imports: [ButtonComponent],
+    template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div class="max-w-md w-full space-y-8">
         <div class="text-center">
@@ -44,7 +43,7 @@ import { ButtonComponent } from '../../../../shared/components/atoms/button/butt
         </p>
       </div>
     </div>
-  `,
+  `
 })
 export class LoginComponent {
   isLoading = false;
