@@ -43,8 +43,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          # Cache disabled temporarily to unblock CI - investigate cache issue separately
+          # cache: 'npm'
+          # cache-dependency-path: '**/package-lock.json'
       - name: Install dependencies
         working-directory: src/frontend/family-hub-web
         run: npm ci
