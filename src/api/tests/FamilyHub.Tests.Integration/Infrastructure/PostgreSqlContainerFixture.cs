@@ -1,4 +1,5 @@
 using DotNet.Testcontainers.Builders;
+using FamilyHub.Modules.Auth.Migrations;
 using FamilyHub.Modules.Auth.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -95,21 +96,15 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
     /// </summary>
     private async Task ApplyMigrationsAsync()
     {
-        var assemblyName = typeof(AuthDbContext).Assembly.GetName().Name;
-        var assemblyLocation = typeof(AuthDbContext).Assembly.Location;
-
-        // DEBUG: Show assembly information
-        throw new InvalidOperationException($"DEBUG: AuthDbContext assembly: {assemblyName}, Location: {assemblyLocation}, ConnectionString: {ConnectionString}");
-
         // Create a temporary service provider with test database configuration
         var services = new ServiceCollection();
 
         services.AddDbContext<AuthDbContext>(options =>
             options.UseNpgsql(ConnectionString, npgsqlOptions =>
                 {
-                    // CRITICAL: Specify migrations assembly explicitly for test context
-                    // EF Core auto-discovery doesn't work when DbContext is created outside the main application
-                    npgsqlOptions.MigrationsAssembly(assemblyName);
+                    // CRITICAL: Use the actual assembly where migrations are located
+                    // We explicitly specify the assembly containing the migration classes
+                    npgsqlOptions.MigrationsAssembly(typeof(InitialCreate).Assembly.GetName().Name);
                 })
                 .ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
@@ -120,19 +115,6 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
         var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
         // Apply all pending migrations
-        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
-        if (!pendingMigrations.Any())
-        {
-            throw new InvalidOperationException($"DEBUG: No pending migrations found! Applied migrations: {string.Join(", ", await dbContext.Database.GetAppliedMigrationsAsync())}");
-        }
-
         await dbContext.Database.MigrateAsync();
-
-        // Verify tables were created
-        var tableCount = await dbContext.Database.ExecuteSqlRawAsync("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'auth'");
-        if (tableCount == 0)
-        {
-            throw new InvalidOperationException("DEBUG: Migrations ran but no tables were created!");
-        }
     }
 }
