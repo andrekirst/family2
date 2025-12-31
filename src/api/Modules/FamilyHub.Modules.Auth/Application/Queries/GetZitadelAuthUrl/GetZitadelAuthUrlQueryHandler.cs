@@ -37,7 +37,7 @@ public sealed partial class GetZitadelAuthUrlQueryHandler(
         var nonce = CryptoRandom.CreateUniqueId(16);
 
         ArgumentNullException.ThrowIfNull(_settings);
-        
+
         // 5. Build authorization URL with all OAuth parameters using fluent builder
         var authorizationUrl = new AuthorizationUrlBuilder()
             .WithAuthorizationEndpoint(_settings.AuthorizationEndpoint)
