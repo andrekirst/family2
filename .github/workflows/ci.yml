@@ -46,6 +46,11 @@ jobs:
           # Cache disabled temporarily to unblock CI - investigate cache issue separately
           # cache: 'npm'
           # cache-dependency-path: '**/package-lock.json'
+      - name: Debug - Check directory structure
+        run: |
+          pwd
+          ls -la
+          ls -la src/frontend/family-hub-web/ || echo "Frontend directory not found"
       - name: Install dependencies
         working-directory: src/frontend/family-hub-web
         run: npm ci
