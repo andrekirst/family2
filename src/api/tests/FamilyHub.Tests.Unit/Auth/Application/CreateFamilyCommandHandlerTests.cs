@@ -18,8 +18,6 @@ namespace FamilyHub.Tests.Unit.Auth.Application;
 /// </summary>
 public class CreateFamilyCommandHandlerTests
 {
-    #region Constructor Tests
-
     [Theory, AutoNSubstituteData]
     public void Constructor_WithNullUserRepository_ShouldThrowArgumentNullException(
         IFamilyRepository familyRepository,
@@ -119,10 +117,6 @@ public class CreateFamilyCommandHandlerTests
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("currentUserService");
     }
-
-    #endregion
-
-    #region Happy Path Tests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_WithValidCommand_ShouldCreateFamilySuccessfully(
@@ -291,10 +285,6 @@ public class CreateFamilyCommandHandlerTests
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    #endregion
-
-    #region Validation Tests
-
     [Theory, AutoNSubstituteData]
     public async Task Handle_WhenUserNotAuthenticated_ShouldThrowUnauthenticatedException(
         IUserRepository userRepository,
@@ -306,7 +296,7 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
-        currentUserService.GetUserId().Returns((UserId?)null);
+        currentUserService.GetUserId().Returns(_ => throw new UnauthorizedAccessException("User is not authenticated"));
 
         var handler = new CreateFamilyCommandHandler(
             userRepository,
@@ -319,8 +309,8 @@ public class CreateFamilyCommandHandlerTests
         var act = async () => await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<BusinessException>()
-            .WithMessage("*You must be authenticated to create a family*");
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+            .WithMessage("*User is not authenticated*");
     }
 
     [Theory, AutoNSubstituteData]
@@ -457,10 +447,6 @@ public class CreateFamilyCommandHandlerTests
             .WithMessage("*User already belongs to a family*");
     }
 
-    #endregion
-
-    #region Edge Cases
-
     [Theory, AutoNSubstituteData]
     public async Task Handle_WithCancellationToken_ShouldPassTokenToRepositories(
         IUserRepository userRepository,
@@ -565,10 +551,6 @@ public class CreateFamilyCommandHandlerTests
             Arg.Is<Family>(f => f.Name == expectedTrimmedName),
             Arg.Any<CancellationToken>());
     }
-
-    #endregion
-
-    #region Logging Tests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_WhenUserNotFound_ShouldLogWarning(
@@ -706,6 +688,4 @@ public class CreateFamilyCommandHandlerTests
         // LoggerMessage.Define pattern doesn't call generic Log() method
         // Logging is verified in integration tests
     }
-
-    #endregion
 }

@@ -12,8 +12,6 @@ namespace FamilyHub.Tests.Unit.Auth.Domain;
 /// </summary>
 public class FamilyTests
 {
-    #region Create Tests
-
     [Fact]
     public void Create_WithValidNameAndOwnerId_ShouldCreateFamily()
     {
@@ -111,10 +109,6 @@ public class FamilyTests
         family.Name.Value.Should().Be(maxLengthName);
     }
 
-    #endregion
-
-    #region UpdateName Tests
-
     [Fact]
     public void UpdateName_WithValidName_ShouldUpdateNameAndTimestamp()
     {
@@ -191,10 +185,6 @@ public class FamilyTests
             .WithMessage("*Family name cannot exceed 100 characters*");
     }
 
-    #endregion
-
-    #region TransferOwnership Tests
-
     [Fact]
     public void TransferOwnership_WithDifferentOwnerId_ShouldUpdateOwnerAndTimestamp()
     {
@@ -234,10 +224,6 @@ public class FamilyTests
         family.UpdatedAt.Should().Be(originalUpdatedAt);
     }
 
-    #endregion
-
-    #region Delete Tests
-
     [Fact]
     public void Delete_ShouldSetDeletedAtAndUpdateTimestamp()
     {
@@ -256,10 +242,6 @@ public class FamilyTests
             .And.BeOnOrBefore(DateTime.UtcNow);
         family.UpdatedAt.Should().BeAfter(originalUpdatedAt);
     }
-
-    #endregion
-
-    #region UserFamily Factory Method Tests
 
     [Fact]
     public void UserFamily_CreateOwnerMembership_ShouldCreateOwnerWithCorrectRole()
@@ -322,10 +304,6 @@ public class FamilyTests
             .WithMessage("*Use CreateOwnerMembership for owner role*");
     }
 
-    #endregion
-
-    #region UserFamilies Collection Tests
-
     [Fact]
     public void UserFamilies_ShouldBeReadOnly()
     {
@@ -345,6 +323,4 @@ public class FamilyTests
         // Assert
         family.UserFamilies.Should().BeEmpty();
     }
-
-    #endregion
 }

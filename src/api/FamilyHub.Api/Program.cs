@@ -45,7 +45,7 @@ try
         .AddFiltering()
         .AddSorting()
         .AddProjections()
-        .AddErrorFilter<GraphQLErrorFilter>() // Centralized exception → GraphQL error mapping
+        .AddErrorFilter<GraphQlErrorFilter>() // Centralized exception → GraphQL error mapping
         .AddDiagnosticEventListener<GraphQlLoggingInterceptor>() // GraphQL operation logging
         .ModifyRequestOptions(opt =>
         {

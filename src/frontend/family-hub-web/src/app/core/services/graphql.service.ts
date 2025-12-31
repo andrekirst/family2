@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { firstValueFrom } from 'rxjs';
@@ -8,15 +8,15 @@ import { firstValueFrom } from 'rxjs';
  * Errors can occur alongside data (partial failures) or without data.
  */
 export interface GraphQLErrorResponse {
-  errors?: Array<{
+  errors?: {
     message: string;
     extensions?: {
       code?: string;
       field?: string;
-      [key: string]: any;
+      [key: string]: unknown;
     };
-    [key: string]: any;
-  }>;
+    [key: string]: unknown;
+  }[];
 }
 
 /**
@@ -30,8 +30,8 @@ export class GraphQLError extends Error {
     this.name = 'GraphQLError';
 
     // Maintain proper stack trace for where our error was thrown (only available on V8)
-    if ((Error as any).captureStackTrace) {
-      (Error as any).captureStackTrace(this, GraphQLError);
+    if ('captureStackTrace' in Error) {
+      (Error as { captureStackTrace?: (target: object, constructor: new (...args: unknown[]) => Error) => void }).captureStackTrace?.(this, GraphQLError);
     }
   }
 }
@@ -40,9 +40,8 @@ export class GraphQLError extends Error {
   providedIn: 'root'
 })
 export class GraphQLService {
+  private readonly http = inject(HttpClient);
   private readonly endpoint = environment.graphqlEndpoint;
-
-  constructor(private http: HttpClient) {}
 
   /**
    * Executes a GraphQL query with proper error handling.
@@ -53,7 +52,7 @@ export class GraphQLService {
    * @throws GraphQLError if response contains GraphQL errors
    * @throws Error if response has no data field
    */
-  async query<T>(query: string, variables?: any): Promise<T> {
+  async query<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
     const response = await firstValueFrom(
       this.http.post<{ data: T } & GraphQLErrorResponse>(
         this.endpoint,
@@ -83,7 +82,7 @@ export class GraphQLService {
    * @throws GraphQLError if response contains GraphQL errors
    * @throws Error if response has no data field
    */
-  async mutate<T>(mutation: string, variables?: any): Promise<T> {
+  async mutate<T>(mutation: string, variables?: Record<string, unknown>): Promise<T> {
     const response = await firstValueFrom(
       this.http.post<{ data: T } & GraphQLErrorResponse>(
         this.endpoint,

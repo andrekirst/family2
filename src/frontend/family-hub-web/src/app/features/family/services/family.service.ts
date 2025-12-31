@@ -26,7 +26,7 @@ interface GetUserFamiliesResponse {
 interface CreateFamilyResponse {
   createFamily: {
     family: Family | null;
-    errors: Array<{ message: string; code?: string }> | null;
+    errors: { message: string; code?: string }[] | null;
   };
 }
 

@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { GraphQLService } from './graphql.service';
 import {
@@ -27,10 +27,10 @@ export class AuthService {
   readonly currentUser = computed(() => this.authState().user);
   readonly accessToken = computed(() => this.authState().accessToken);
 
-  constructor(
-    private graphql: GraphQLService,
-    private router: Router
-  ) {
+  private readonly graphql = inject(GraphQLService);
+  private readonly router = inject(Router);
+
+  constructor() {
     this.initializeAuthState();
   }
 

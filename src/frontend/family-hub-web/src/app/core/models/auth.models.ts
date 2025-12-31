@@ -27,6 +27,6 @@ export interface CompleteZitadelLoginResponse {
       accessToken: string;
       expiresAt: string;
     };
-    errors?: Array<{ message: string; code: string }>;
+    errors?: { message: string; code: string }[];
   };
 }
