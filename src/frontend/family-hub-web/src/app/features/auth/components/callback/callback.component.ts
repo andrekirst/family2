@@ -5,10 +5,9 @@ import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/sp
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-callback',
-  standalone: true,
-  imports: [CommonModule, SpinnerComponent],
-  template: `
+    selector: 'app-callback',
+    imports: [CommonModule, SpinnerComponent],
+    template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-50">
       <div class="text-center">
         <app-spinner size="lg" *ngIf="!error"></app-spinner>
@@ -38,7 +37,7 @@ import { CommonModule } from '@angular/common';
         </div>
       </div>
     </div>
-  `,
+  `
 })
 export class CallbackComponent implements OnInit {
   error: string | null = null;

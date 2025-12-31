@@ -4,10 +4,9 @@ import { ButtonComponent } from '../../shared/components/atoms/button/button.com
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, ButtonComponent],
-  template: `
+    selector: 'app-dashboard',
+    imports: [CommonModule, ButtonComponent],
+    template: `
     <div class="min-h-screen bg-gray-50">
       <!-- Header -->
       <header class="bg-white shadow">
@@ -81,7 +80,7 @@ import { CommonModule } from '@angular/common';
         </div>
       </main>
     </div>
-  `,
+  `
 })
 export class DashboardComponent {
   user = computed(() => this.authService.currentUser());

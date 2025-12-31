@@ -2,10 +2,9 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-button',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-button',
+    imports: [CommonModule],
+    template: `
     <button
       [type]="type"
       [disabled]="disabled || loading"
@@ -16,7 +15,7 @@ import { CommonModule } from '@angular/common';
       <ng-content></ng-content>
     </button>
   `,
-  styles: [`
+    styles: [`
     :host {
       display: inline-block;
     }

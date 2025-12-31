@@ -2,10 +2,9 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-spinner',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-spinner',
+    imports: [CommonModule],
+    template: `
     <div [class]="spinnerClasses" role="status">
       <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -13,7 +12,7 @@ import { CommonModule } from '@angular/common';
       </svg>
       <span class="sr-only">Loading...</span>
     </div>
-  `,
+  `
 })
 export class SpinnerComponent {
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
