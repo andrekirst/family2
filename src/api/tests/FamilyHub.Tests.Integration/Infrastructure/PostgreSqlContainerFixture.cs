@@ -1,4 +1,5 @@
 using DotNet.Testcontainers.Builders;
+using FamilyHub.Modules.Auth.Migrations;
 using FamilyHub.Modules.Auth.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,15 +66,35 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
         // Create a temporary service provider with test database configuration
         var services = new ServiceCollection();
 
-        // Use production configuration (avoids assembly loading issues in CI)
+        // Configure DbContext with migrations assembly
         services.AddDbContext<AuthDbContext>(options =>
-            options.UseNpgsql(ConnectionString)
-                .UseSnakeCaseNamingConvention());
+        {
+            var connectionString = ConnectionString;
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    // Use the migrations assembly from the AuthDbContext's assembly
+                    // The migrations are in the same assembly as the DbContext
+                    var migrationsAssembly = typeof(AuthDbContext).Assembly.GetName().Name;
+                    npgsqlOptions.MigrationsAssembly(migrationsAssembly);
+                })
+                .UseSnakeCaseNamingConvention();
+        });
 
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
 
         var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+
+        // Check for pending migrations (for debugging)
+        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+        var pendingCount = pendingMigrations.Count();
+
+        if (pendingCount == 0)
+        {
+            throw new InvalidOperationException(
+                $"No pending migrations found. This usually means EF Core cannot discover migrations. " +
+                $"Migrations assembly: {typeof(AuthDbContext).Assembly.GetName().Name}");
+        }
 
         // Apply all pending migrations
         await dbContext.Database.MigrateAsync();
@@ -83,7 +104,7 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
         if (!appliedMigrations.Any())
         {
             throw new InvalidOperationException(
-                "Database migrations failed. No migrations were applied.");
+                $"Database migrations failed. {pendingCount} migrations were pending but none were applied.");
         }
     }
 }
