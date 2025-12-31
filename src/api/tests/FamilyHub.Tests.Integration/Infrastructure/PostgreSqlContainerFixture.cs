@@ -95,10 +95,11 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
     /// </summary>
     private async Task ApplyMigrationsAsync()
     {
-        Console.WriteLine("[TEST-FIXTURE] Starting ApplyMigrationsAsync");
-        Console.WriteLine($"[TEST-FIXTURE] Connection string: {ConnectionString}");
-        Console.WriteLine($"[TEST-FIXTURE] AuthDbContext assembly: {typeof(AuthDbContext).Assembly.GetName().Name}");
-        Console.WriteLine($"[TEST-FIXTURE] Migrations assembly location: {typeof(AuthDbContext).Assembly.Location}");
+        var assemblyName = typeof(AuthDbContext).Assembly.GetName().Name;
+        var assemblyLocation = typeof(AuthDbContext).Assembly.Location;
+
+        // Throw exception with debug info to verify this method is called
+        // throw new InvalidOperationException($"DEBUG: AuthDbContext assembly: {assemblyName}, Location: {assemblyLocation}, ConnectionString: {ConnectionString}");
 
         // Create a temporary service provider with test database configuration
         var services = new ServiceCollection();
@@ -108,8 +109,6 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
                 {
                     // CRITICAL: Specify migrations assembly explicitly for test context
                     // EF Core auto-discovery doesn't work when DbContext is created outside the main application
-                    var assemblyName = typeof(AuthDbContext).Assembly.GetName().Name;
-                    Console.WriteLine($"[TEST-FIXTURE] Setting MigrationsAssembly to: {assemblyName}");
                     npgsqlOptions.MigrationsAssembly(assemblyName);
                 })
                 .ConfigureWarnings(warnings =>
@@ -120,13 +119,20 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
 
         var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        Console.WriteLine("[TEST-FIXTURE] DbContext created, about to run MigrateAsync");
         // Apply all pending migrations
+        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+        if (!pendingMigrations.Any())
+        {
+            throw new InvalidOperationException($"DEBUG: No pending migrations found! Applied migrations: {string.Join(", ", await dbContext.Database.GetAppliedMigrationsAsync())}");
+        }
+
         await dbContext.Database.MigrateAsync();
-        Console.WriteLine("[TEST-FIXTURE] MigrateAsync completed");
 
         // Verify tables were created
-        var tables = await dbContext.Database.ExecuteSqlRawAsync("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'auth'");
-        Console.WriteLine($"[TEST-FIXTURE] Tables in auth schema: {tables}");
+        var tableCount = await dbContext.Database.ExecuteSqlRawAsync("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'auth'");
+        if (tableCount == 0)
+        {
+            throw new InvalidOperationException("DEBUG: Migrations ran but no tables were created!");
+        }
     }
 }
