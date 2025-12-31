@@ -37,8 +37,12 @@ public static class AuthModuleServiceRegistration
         // Database
         services.AddDbContext<AuthDbContext>(options =>
         {
+            var migrationsAssembly = typeof(AuthDbContext).Assembly.GetName().Name;
+            Console.WriteLine($"[AUTH-MODULE] Configuring migrations assembly: {migrationsAssembly}");
+            Console.WriteLine($"[AUTH-MODULE] Assembly location: {typeof(AuthDbContext).Assembly.Location}");
+
             options.UseNpgsql(configuration.GetConnectionString("FamilyHubDb"),
-                    npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(AuthDbContext).Assembly.GetName().Name))
+                    npgsqlOptions => npgsqlOptions.MigrationsAssembly(migrationsAssembly))
                 .UseSnakeCaseNamingConvention();
         });
 

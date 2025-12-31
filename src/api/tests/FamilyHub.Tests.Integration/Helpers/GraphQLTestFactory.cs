@@ -173,6 +173,8 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
                         // Check what migrations are available
                         var pendingMigrations = authDbContext.Database.GetPendingMigrations().ToList();
                         var appliedMigrations = authDbContext.Database.GetAppliedMigrations().ToList();
+                        var allMigrations = authDbContext.Database.GetMigrations().ToList();
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] GRAPHQL-FACTORY: All migrations: {string.Join(", ", allMigrations)}\n");
                         File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] GRAPHQL-FACTORY: Pending migrations: {string.Join(", ", pendingMigrations)}\n");
                         File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] GRAPHQL-FACTORY: Applied migrations: {string.Join(", ", appliedMigrations)}\n");
 

@@ -116,6 +116,8 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
                         // Check what migrations are available
                         var pendingMigrations = authDbContext.Database.GetPendingMigrations().ToList();
                         var appliedMigrations = authDbContext.Database.GetAppliedMigrations().ToList();
+                        var allMigrations = authDbContext.Database.GetMigrations().ToList();
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: All migrations: {string.Join(", ", allMigrations)}\n");
                         File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Pending migrations: {string.Join(", ", pendingMigrations)}\n");
                         File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Applied migrations: {string.Join(", ", appliedMigrations)}\n");
 
