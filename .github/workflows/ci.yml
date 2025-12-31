@@ -15,7 +15,6 @@ jobs:
   backend-ci:
     name: Backend CI (.NET 10)
     runs-on: ubuntu-latest
-    # Services removed - not needed for unit tests (mocked dependencies)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -27,8 +26,11 @@ jobs:
         run: dotnet build src/api/FamilyHub.sln --no-restore
       - name: Unit Tests
         run: dotnet test src/api/tests/FamilyHub.Tests.Unit --no-build --collect:"XPlat Code Coverage"
-      # Integration tests skipped - focusing on unit tests with proper mocking
-      # TODO: Re-enable integration tests once EF Core migration discovery issue is resolved
+      - name: Integration Tests with Testcontainers
+        run: dotnet test src/api/tests/FamilyHub.Tests.Integration --no-build --collect:"XPlat Code Coverage"
+        env:
+          CI: true
+          DOCKER_API_VERSION: "1.44"
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

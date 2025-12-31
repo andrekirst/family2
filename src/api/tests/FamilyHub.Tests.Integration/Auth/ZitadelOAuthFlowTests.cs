@@ -7,6 +7,7 @@ using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
+using FamilyHub.Tests.Integration.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,17 +18,23 @@ namespace FamilyHub.Tests.Integration.Auth;
 /// <summary>
 /// Integration tests for Zitadel OAuth 2.0 authorization code flow.
 /// Tests the complete flow from authorization code exchange to user creation.
+/// Uses Testcontainers PostgreSQL for real database testing with automatic cleanup.
 /// </summary>
-public sealed class ZitadelOAuthFlowTests : IClassFixture<TestApplicationFactory>
+[Collection("Database")]
+public sealed class ZitadelOAuthFlowTests : IAsyncLifetime
 {
+    private readonly PostgreSqlContainerFixture _containerFixture;
     private readonly WebApplicationFactory<Program> _factory;
     private readonly TestHttpMessageHandler _testHttpMessageHandler;
 
-    public ZitadelOAuthFlowTests(TestApplicationFactory factory)
+    public ZitadelOAuthFlowTests(PostgreSqlContainerFixture containerFixture)
     {
+        _containerFixture = containerFixture;
         _testHttpMessageHandler = new TestHttpMessageHandler();
 
-        _factory = factory.WithWebHostBuilder(builder =>
+        var baseFactory = new TestApplicationFactory(_containerFixture.ConnectionString);
+
+        _factory = baseFactory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -64,6 +71,17 @@ public sealed class ZitadelOAuthFlowTests : IClassFixture<TestApplicationFactory
             });
         });
     }
+
+    /// <summary>
+    /// Resets the database to a clean state before each test.
+    /// Ensures test isolation by truncating all tables.
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        await _containerFixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     /// <summary>
     /// Test HTTP message handler that allows configuring responses.

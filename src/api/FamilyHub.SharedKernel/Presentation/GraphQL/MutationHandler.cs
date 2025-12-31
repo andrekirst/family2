@@ -32,6 +32,24 @@ public class MutationHandler(IServiceProvider services, ILogger<MutationHandler>
             var factory = services.GetRequiredService<IPayloadFactory<TResult, TPayload>>();
             return factory.Success(result);
         }
+        catch (UnauthorizedAccessException authEx)
+        {
+            // Authentication/authorization failures represent unauthenticated or unauthorized access
+            // Log as Warning since these are expected security violations
+            logger.LogWarning(authEx,
+                "Authentication failure in {PayloadType}: {Message}",
+                typeof(TPayload).Name, authEx.Message);
+
+            var factory = services.GetRequiredService<IPayloadFactory<TResult, TPayload>>();
+            return factory.Error([
+                new UserError
+                {
+                    Code = "UNAUTHENTICATED",
+                    Message = "You must be authenticated to perform this action.",
+                    Field = null
+                }
+            ]);
+        }
         catch (BusinessException ex)
         {
             // Business exceptions represent expected domain violations

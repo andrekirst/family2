@@ -9,9 +9,9 @@ using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
+using FamilyHub.Tests.Integration.Infrastructure;
 using FluentAssertions;
 using MediatR;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
@@ -20,17 +20,30 @@ namespace FamilyHub.Tests.Integration.Auth.GraphQL;
 /// <summary>
 /// Integration tests for CreateFamily GraphQL mutation.
 /// Tests GraphQL API layer, authentication, validation, and error handling.
+/// Uses Testcontainers PostgreSQL for real database testing with automatic cleanup.
 /// </summary>
-public sealed class CreateFamilyMutationTests : IClassFixture<GraphQLTestFactory>
+[Collection("Database")]
+public sealed class CreateFamilyMutationTests : IAsyncLifetime
 {
-    private readonly GraphQLTestFactory _factory;
+    private readonly PostgreSqlContainerFixture _containerFixture;
+    private readonly GraphQlTestFactory _factory;
 
-    public CreateFamilyMutationTests(GraphQLTestFactory factory)
+    public CreateFamilyMutationTests(PostgreSqlContainerFixture containerFixture)
     {
-        _factory = factory;
+        _containerFixture = containerFixture;
+        _factory = new GraphQlTestFactory(_containerFixture.ConnectionString);
     }
 
-    #region Helper Methods
+    /// <summary>
+    /// Resets the database to a clean state before each test.
+    /// Ensures test isolation by truncating all tables.
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        await _containerFixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     /// <summary>
     /// Parses GraphQL response and returns the createFamily result.
@@ -51,8 +64,6 @@ public sealed class CreateFamilyMutationTests : IClassFixture<GraphQLTestFactory
         // If data is null or doesn't exist, return root element (which should have errors)
         return jsonDocument.RootElement;
     }
-
-    #endregion
 
     [Fact]
     public async Task CreateFamily_WithValidInput_ReturnsSuccessPayload()
@@ -118,21 +129,21 @@ public sealed class CreateFamilyMutationTests : IClassFixture<GraphQLTestFactory
         var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "empty");
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
-        var mutation = """
-        mutation {
-          createFamily(input: { name: "" }) {
-            family {
-              id
-              name
-            }
-            errors {
-              message
-              code
-              field
-            }
-          }
-        }
-        """;
+        const string mutation = """
+                                mutation {
+                                  createFamily(input: { name: "" }) {
+                                    family {
+                                      id
+                                      name
+                                    }
+                                    errors {
+                                      message
+                                      code
+                                      field
+                                    }
+                                  }
+                                }
+                                """;
 
         var request = new { query = mutation };
 
