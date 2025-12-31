@@ -72,14 +72,7 @@ public sealed class ZitadelOAuthFlowTests : IAsyncLifetime
         });
     }
 
-    /// <summary>
-    /// Resets the database to a clean state before each test.
-    /// Ensures test isolation by truncating all tables.
-    /// </summary>
-    public async Task InitializeAsync()
-    {
-        await _containerFixture.ResetDatabaseAsync();
-    }
+    public Task InitializeAsync() => Task.CompletedTask;
 
     public Task DisposeAsync() => Task.CompletedTask;
 
