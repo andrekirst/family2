@@ -113,6 +113,11 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
                             File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Database creation warning: {ex.Message}\n");
                         }
 
+                        // CRITICAL: Force assembly load before checking migrations
+                        var authAssembly = typeof(AuthDbContext).Assembly;
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Auth assembly loaded: {authAssembly.FullName}\n");
+                        File.AppendAllText(logPath, $"[{DateTime.UtcNow:O}] TEST-FACTORY: Assembly location: {authAssembly.Location}\n");
+
                         // Check what migrations are available
                         var pendingMigrations = authDbContext.Database.GetPendingMigrations().ToList();
                         var appliedMigrations = authDbContext.Database.GetAppliedMigrations().ToList();
