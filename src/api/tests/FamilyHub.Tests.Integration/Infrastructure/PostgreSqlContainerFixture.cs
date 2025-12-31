@@ -98,8 +98,8 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
         var assemblyName = typeof(AuthDbContext).Assembly.GetName().Name;
         var assemblyLocation = typeof(AuthDbContext).Assembly.Location;
 
-        // Throw exception with debug info to verify this method is called
-        // throw new InvalidOperationException($"DEBUG: AuthDbContext assembly: {assemblyName}, Location: {assemblyLocation}, ConnectionString: {ConnectionString}");
+        // DEBUG: Show assembly information
+        throw new InvalidOperationException($"DEBUG: AuthDbContext assembly: {assemblyName}, Location: {assemblyLocation}, ConnectionString: {ConnectionString}");
 
         // Create a temporary service provider with test database configuration
         var services = new ServiceCollection();
