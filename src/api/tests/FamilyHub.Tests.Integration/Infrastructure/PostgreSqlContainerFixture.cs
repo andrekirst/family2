@@ -89,13 +89,22 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
     /// Applies all pending EF Core migrations to the test database.
     /// Uses the AuthDbContext as the primary migration source.
     /// </summary>
+    /// <summary>
+    /// Applies all pending EF Core migrations to the test database.
+    /// Uses the AuthDbContext as the primary migration source.
+    /// </summary>
     private async Task ApplyMigrationsAsync()
     {
         // Create a temporary service provider with test database configuration
         var services = new ServiceCollection();
 
         services.AddDbContext<AuthDbContext>(options =>
-            options.UseNpgsql(ConnectionString)
+            options.UseNpgsql(ConnectionString, npgsqlOptions =>
+                {
+                    // CRITICAL: Specify migrations assembly explicitly for test context
+                    // EF Core auto-discovery doesn't work when DbContext is created outside the main application
+                    npgsqlOptions.MigrationsAssembly(typeof(AuthDbContext).Assembly.GetName().Name);
+                })
                 .ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
