@@ -47,7 +47,7 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
       - name: Install dependencies
         working-directory: src/frontend/family-hub-web
-        run: npm ci
+        run: npm install --prefer-offline
       - name: Lint
         working-directory: src/frontend/family-hub-web
         run: npm run lint
