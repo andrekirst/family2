@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { InputComponent } from './input.component';
 
 describe('InputComponent', () => {
@@ -31,7 +31,7 @@ describe('InputComponent', () => {
       component.registerOnChange(onChange);
 
       component.value = 'new value';
-      component.onInputChange({ target: { value: 'new value' } } as any);
+      component.onInputChange({ target: { value: 'new value' } } as unknown as Event);
 
       expect(onChange).toHaveBeenCalledWith('new value');
     });

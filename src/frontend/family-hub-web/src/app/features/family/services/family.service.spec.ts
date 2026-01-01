@@ -44,7 +44,8 @@ describe('FamilyService', () => {
 
   describe('loadUserFamilies()', () => {
     it('should set isLoading to true during load', () => {
-      graphqlService.query.and.returnValue(new Promise(() => {})); // Never resolves
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      graphqlService.query.and.returnValue(new Promise<never>(() => {})); // Never resolves
 
       service.loadUserFamilies();
 
@@ -126,7 +127,8 @@ describe('FamilyService', () => {
 
   describe('createFamily()', () => {
     it('should set isLoading to true during creation', () => {
-      graphqlService.mutate.and.returnValue(new Promise(() => {})); // Never resolves
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      graphqlService.mutate.and.returnValue(new Promise<never>(() => {})); // Never resolves
 
       service.createFamily('Test Family');
 

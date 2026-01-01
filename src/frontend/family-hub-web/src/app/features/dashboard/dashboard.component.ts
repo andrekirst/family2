@@ -22,7 +22,7 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
     <!-- Create Family Modal (shown when no family) -->
     <app-create-family-modal
       [isOpen]="!familyService.hasFamily()"
-      (onSuccess)="onFamilyCreated()"
+      (success)="onFamilyCreated()"
     ></app-create-family-modal>
 
     <!-- Authenticated Dashboard (shown when has family) -->

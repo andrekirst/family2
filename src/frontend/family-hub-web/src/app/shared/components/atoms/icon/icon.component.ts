@@ -38,7 +38,7 @@ export class IconComponent {
    * Icon name from Heroicons library.
    * Supported icons: users, x-mark, check, plus, minus, trash, pencil
    */
-  @Input() name: string = '';
+  @Input() name = '';
 
   /**
    * Icon size variant.
@@ -52,7 +52,7 @@ export class IconComponent {
    * Additional CSS classes to apply to the SVG element.
    * Useful for colors, transformations, etc.
    */
-  @Input() customClass: string = '';
+  @Input() customClass = '';
 
   /**
    * Heroicons SVG path data.

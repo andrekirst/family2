@@ -54,14 +54,15 @@ import { FamilyService } from '../../services/family.service';
           ></app-input>
 
           <!-- API Error Display -->
-          <div
-            *ngIf="familyService.error() as apiError"
-            role="alert"
-            class="text-sm text-red-600 bg-red-50 p-3 rounded-md"
-            aria-live="polite"
-          >
-            <p>{{ apiError }}</p>
-          </div>
+          @if (familyService.error(); as apiError) {
+            <div
+              role="alert"
+              class="text-sm text-red-600 bg-red-50 p-3 rounded-md"
+              aria-live="polite"
+            >
+              <p>{{ apiError }}</p>
+            </div>
+          }
 
           <!-- Actions -->
           <div class="flex justify-end">
@@ -70,14 +71,18 @@ import { FamilyService } from '../../services/family.service';
               [disabled]="familyForm.invalid || isSubmitting()"
               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
-              <span *ngIf="!isSubmitting()">Create Family</span>
-              <span *ngIf="isSubmitting()" class="flex items-center">
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Creating...
-              </span>
+              @if (!isSubmitting()) {
+                <span>Create Family</span>
+              }
+              @if (isSubmitting()) {
+                <span class="flex items-center">
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating...
+                </span>
+              }
             </button>
           </div>
         </div>
@@ -96,7 +101,7 @@ export class CreateFamilyModalComponent {
    * Event emitted when family is successfully created.
    * Parent should handle this by allowing navigation to authenticated homepage.
    */
-  @Output() onSuccess = new EventEmitter<void>();
+  @Output() success = new EventEmitter<void>();
 
   /**
    * Injected FamilyService for state management and API calls.
@@ -140,7 +145,7 @@ export class CreateFamilyModalComponent {
 
   /**
    * Handles form submission.
-   * Calls FamilyService.createFamily() and emits onSuccess if successful.
+   * Calls FamilyService.createFamily() and emits success if successful.
    */
   async onSubmit(): Promise<void> {
     if (this.familyForm.invalid) return;
@@ -150,7 +155,7 @@ export class CreateFamilyModalComponent {
 
     // Check if creation was successful (no error)
     if (!this.familyService.error()) {
-      this.onSuccess.emit();
+      this.success.emit();
       this.familyForm.reset();
     }
   }

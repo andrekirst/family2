@@ -3,7 +3,6 @@ import {
   Input,
   Output,
   EventEmitter,
-  HostListener,
   AfterViewInit,
   ViewChild,
   ElementRef
@@ -34,15 +33,19 @@ import { IconComponent } from '../../atoms/icon/icon.component';
   standalone: true,
   imports: [CommonModule, IconComponent],
   template: `
-    <div
-      *ngIf="isOpen"
-      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200"
-    >
-      <!-- Backdrop -->
+    @if (isOpen) {
       <div
-        class="modal-backdrop absolute inset-0 bg-black bg-opacity-50"
-        (click)="onBackdropClick()"
-      ></div>
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200"
+      >
+        <!-- Backdrop -->
+        <div
+          class="modal-backdrop absolute inset-0 bg-black bg-opacity-50"
+          role="button"
+          tabindex="0"
+          (click)="onBackdropClick()"
+          (keydown.enter)="onBackdropClick()"
+          (keydown.space)="onBackdropClick()"
+        ></div>
 
       <!-- Modal Container -->
       <div
@@ -62,15 +65,16 @@ import { IconComponent } from '../../atoms/icon/icon.component';
           </h2>
 
           <!-- Close Button (only if closeable) -->
-          <button
-            *ngIf="closeable"
-            type="button"
-            class="modal-close-button text-gray-400 hover:text-gray-600 transition-colors"
-            (click)="close()"
-            aria-label="Close modal"
-          >
-            <app-icon name="x-mark" size="md"></app-icon>
-          </button>
+          @if (closeable) {
+            <button
+              type="button"
+              class="modal-close-button text-gray-400 hover:text-gray-600 transition-colors"
+              (click)="close()"
+              aria-label="Close modal"
+            >
+              <app-icon name="x-mark" size="md"></app-icon>
+            </button>
+          }
         </div>
 
         <!-- Body -->
@@ -78,7 +82,8 @@ import { IconComponent } from '../../atoms/icon/icon.component';
           <ng-content></ng-content>
         </div>
       </div>
-    </div>
+      </div>
+    }
   `,
   styles: []
 })
@@ -86,19 +91,19 @@ export class ModalComponent implements AfterViewInit {
   /**
    * Controls whether the modal is visible.
    */
-  @Input() isOpen: boolean = false;
+  @Input() isOpen = false;
 
   /**
    * Modal title displayed in the header.
    */
-  @Input() title: string = '';
+  @Input() title = '';
 
   /**
    * Whether the modal can be closed by clicking backdrop, close button, or Escape key.
    * Set to false for blocking modals (e.g., required actions).
    * Defaults to true.
    */
-  @Input() closeable: boolean = true;
+  @Input() closeable = true;
 
   /**
    * Event emitted when the modal requests to be closed.

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { CreateFamilyModalComponent } from './create-family-modal.component';
 import { FamilyService } from '../../services/family.service';
 import { ModalComponent } from '../../../../shared/components/molecules/modal/modal.component';
@@ -10,9 +10,9 @@ import { IconComponent } from '../../../../shared/components/atoms/icon/icon.com
 describe('CreateFamilyModalComponent', () => {
   let component: CreateFamilyModalComponent;
   let fixture: ComponentFixture<CreateFamilyModalComponent>;
-  let familyService: any;
-  let isLoadingSignal: any;
-  let errorSignal: any;
+  let familyService: jasmine.SpyObj<FamilyService>;
+  let isLoadingSignal: WritableSignal<boolean>;
+  let errorSignal: WritableSignal<string | null>;
 
   beforeEach(async () => {
     isLoadingSignal = signal(false);
@@ -149,26 +149,26 @@ describe('CreateFamilyModalComponent', () => {
       expect(familyService.createFamily).not.toHaveBeenCalled();
     });
 
-    it('should emit onSuccess when family created successfully', async () => {
-      spyOn(component.onSuccess, 'emit');
+    it('should emit success when family created successfully', async () => {
+      spyOn(component.success, 'emit');
       component.familyForm.controls.name.setValue('Test Family');
       familyService.createFamily.and.returnValue(Promise.resolve());
       errorSignal.set(null);
 
       await component.onSubmit();
 
-      expect(component.onSuccess.emit).toHaveBeenCalled();
+      expect(component.success.emit).toHaveBeenCalled();
     });
 
-    it('should NOT emit onSuccess when creation fails', async () => {
-      spyOn(component.onSuccess, 'emit');
+    it('should NOT emit success when creation fails', async () => {
+      spyOn(component.success, 'emit');
       component.familyForm.controls.name.setValue('Test Family');
       familyService.createFamily.and.returnValue(Promise.resolve());
       errorSignal.set('User already has a family');
 
       await component.onSubmit();
 
-      expect(component.onSuccess.emit).not.toHaveBeenCalled();
+      expect(component.success.emit).not.toHaveBeenCalled();
     });
 
     it('should reset form after successful creation', async () => {

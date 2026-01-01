@@ -47,20 +47,23 @@ import { CommonModule } from '@angular/common';
       />
 
       <!-- Character Counter -->
-      <div *ngIf="maxLength" [class]="counterClasses">
-        {{ value?.length || 0 }}/{{ maxLength }}
-      </div>
+      @if (maxLength) {
+        <div [class]="counterClasses">
+          {{ value?.length || 0 }}/{{ maxLength }}
+        </div>
+      }
 
       <!-- Error Message -->
-      <p
-        *ngIf="error"
-        [id]="errorId"
-        class="error-message text-sm text-red-600 mt-1"
-        role="alert"
-        aria-live="polite"
-      >
-        {{ error }}
-      </p>
+      @if (error) {
+        <p
+          [id]="errorId"
+          class="error-message text-sm text-red-600 mt-1"
+          role="alert"
+          aria-live="polite"
+        >
+          {{ error }}
+        </p>
+      }
     </div>
   `,
   styles: [`
@@ -84,7 +87,7 @@ export class InputComponent implements ControlValueAccessor {
   /**
    * Placeholder text displayed when input is empty.
    */
-  @Input() placeholder: string = '';
+  @Input() placeholder = '';
 
   /**
    * Maximum character length. When set, displays character counter.
@@ -95,7 +98,7 @@ export class InputComponent implements ControlValueAccessor {
    * Error message to display below input.
    * When set, applies error styling to input.
    */
-  @Input() error: string = '';
+  @Input() error = '';
 
   /**
    * ARIA label for screen readers.
@@ -107,17 +110,17 @@ export class InputComponent implements ControlValueAccessor {
    * ARIA required attribute.
    * Set to true for required fields to inform screen readers.
    */
-  @Input() ariaRequired: boolean = false;
+  @Input() ariaRequired = false;
 
   /**
    * Internal value of the input.
    */
-  value: string = '';
+  value = '';
 
   /**
    * Disabled state of the input.
    */
-  disabled: boolean = false;
+  disabled = false;
 
   /**
    * Unique ID for error message (for aria-describedby).
@@ -127,11 +130,13 @@ export class InputComponent implements ControlValueAccessor {
   /**
    * Callback function registered by Angular Forms.
    */
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private onChange: (value: string) => void = () => {};
 
   /**
    * Callback function registered by Angular Forms for touched state.
    */
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private onTouched: () => void = () => {};
 
   /**
@@ -176,7 +181,7 @@ export class InputComponent implements ControlValueAccessor {
   /**
    * Writes a new value to the element (called by Angular Forms).
    */
-  writeValue(value: any): void {
+  writeValue(value: string | null): void {
     this.value = value || '';
   }
 
