@@ -5,9 +5,8 @@ import { GraphQLService, GraphQLError } from '../../../core/services/graphql.ser
  * Family domain model matching backend GraphQL schema.
  */
 export interface Family {
-  familyId: { value: string };
+  id: string;
   name: string;
-  memberCount: number;
   createdAt: string;
 }
 
@@ -90,9 +89,8 @@ export class FamilyService {
         query GetUserFamilies {
           getUserFamilies {
             families {
-              familyId { value }
+              id
               name
-              memberCount
               createdAt
             }
           }
@@ -129,9 +127,8 @@ export class FamilyService {
         mutation CreateFamily($input: CreateFamilyInput!) {
           createFamily(input: $input) {
             family {
-              familyId { value }
+              id
               name
-              memberCount
               createdAt
             }
             errors {

@@ -37,9 +37,6 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
               <h1 class="text-2xl font-bold text-gray-900">
                 {{ familyService.currentFamily()?.name }}
               </h1>
-              <p class="text-sm text-gray-600">
-                {{ familyService.currentFamily()?.memberCount }} member(s)
-              </p>
             </div>
           </div>
           <div class="flex items-center space-x-4">
@@ -74,12 +71,6 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
                 <div class="flex">
                   <dt class="font-medium text-blue-900 w-32">Family Name:</dt>
                   <dd class="text-blue-700">{{ familyService.currentFamily()?.name }}</dd>
-                </div>
-                <div class="flex">
-                  <dt class="font-medium text-blue-900 w-32">Members:</dt>
-                  <dd class="text-blue-700">
-                    {{ familyService.currentFamily()?.memberCount }}
-                  </dd>
                 </div>
                 <div class="flex">
                   <dt class="font-medium text-blue-900 w-32">Created:</dt>
@@ -146,8 +137,8 @@ export class DashboardComponent implements OnInit {
   user = computed(() => this.authService.currentUser());
 
   ngOnInit(): void {
-    // Load user's families on dashboard init
-    this.familyService.loadUserFamilies();
+    // Families will be loaded after creation via onFamilyCreated()
+    // No need to load immediately for new users
   }
 
   onFamilyCreated(): void {

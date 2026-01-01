@@ -60,12 +60,13 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
 
         LogUserAuthenticatedViaZitadelOauthUseridUseridEmailEmail(logger, user.Id.Value, email.Value);
 
-        // 4. Return result with Zitadel's access token
+        // 4. Return result with Zitadel's ID token (JWT with user identity claims)
+        // ID token can be validated by backend JWT middleware, access token cannot
         return new CompleteZitadelLoginResult
         {
             UserId = user.Id,
             Email = user.Email,
-            AccessToken = tokenResponse.AccessToken!,
+            AccessToken = tokenResponse.IdentityToken!,
             ExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn),
             EmailVerified = user.EmailVerified,
             CreatedAt = user.CreatedAt
