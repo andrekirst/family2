@@ -98,7 +98,7 @@ export class InputComponent implements ControlValueAccessor {
    * Error message to display below input.
    * When set, applies error styling to input.
    */
-  @Input() error = '';
+  @Input() error?: string;
 
   /**
    * ARIA label for screen readers.

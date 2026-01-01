@@ -31,7 +31,7 @@ export class GraphQLError extends Error {
 
     // Maintain proper stack trace for where our error was thrown (only available on V8)
     if ('captureStackTrace' in Error) {
-      (Error as { captureStackTrace?: (target: object, constructor: new (...args: unknown[]) => Error) => void }).captureStackTrace?.(this, GraphQLError);
+      (Error.captureStackTrace as (target: object, constructor: unknown) => void)(this, GraphQLError);
     }
   }
 }
