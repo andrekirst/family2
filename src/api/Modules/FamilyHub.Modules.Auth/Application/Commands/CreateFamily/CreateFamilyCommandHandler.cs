@@ -21,24 +21,17 @@ public sealed partial class CreateFamilyCommandHandler(
     ILogger<CreateFamilyCommandHandler> logger)
     : IRequestHandler<CreateFamilyCommand, CreateFamilyResult>
 {
-    private readonly IUserRepository _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-    private readonly IFamilyRepository _familyRepository = familyRepository ?? throw new ArgumentNullException(nameof(familyRepository));
-    private readonly IUnitOfWork _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-    private readonly ICurrentUserService _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
-    private readonly ILogger<CreateFamilyCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
     public async Task<CreateFamilyResult> Handle(
         CreateFamilyCommand request,
         CancellationToken cancellationToken)
     {
         // 0. Validate authentication and extract user ID
-        var userId = _currentUserService.GetUserId()
-            ?? throw new BusinessException("UNAUTHENTICATED", "You must be authenticated to create a family.");
+        var userId = currentUserService.GetUserId();
 
         LogCreatingFamilyFamilynameForUserUserid(request.Name, userId.Value);
 
         // 1. Validate user exists
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        var user = await userRepository.GetByIdAsync(userId, cancellationToken);
         if (user == null)
         {
             LogUserUseridNotFound(userId.Value);
@@ -46,7 +39,7 @@ public sealed partial class CreateFamilyCommandHandler(
         }
 
         // 2. Check if user already belongs to a family (business rule: one family per user)
-        var existingFamilies = await _familyRepository.GetFamiliesByUserIdAsync(userId, cancellationToken);
+        var existingFamilies = await familyRepository.GetFamiliesByUserIdAsync(userId, cancellationToken);
         if (existingFamilies.Count > 0)
         {
             LogUserUseridAlreadyBelongsToFamilycountFamilyIes(userId.Value, existingFamilies.Count);
@@ -63,8 +56,8 @@ public sealed partial class CreateFamilyCommandHandler(
         family.AddMember(ownerMembership);
 
         // 6. Persist to database
-        await _familyRepository.AddAsync(family, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await familyRepository.AddAsync(family, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         LogSuccessfullyCreatedFamilyFamilyidFamilynameWithOwnerUserid(family.Id.Value, family.Name, userId.Value);
 

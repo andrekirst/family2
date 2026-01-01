@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/spinner.component';
@@ -13,7 +13,7 @@ import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/sp
         @if (!error) {
           <app-spinner size="lg"></app-spinner>
         }
-    
+
         @if (!error) {
           <div>
             <h2 class="mt-4 text-xl font-semibold text-gray-900">
@@ -24,7 +24,7 @@ import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/sp
             </p>
           </div>
         }
-    
+
         @if (error) {
           <div class="max-w-md mx-auto">
             <div class="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -35,7 +35,7 @@ import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/sp
               <button
                 (click)="retry()"
                 class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                >
+              >
                 Try Again
               </button>
             </div>
@@ -46,13 +46,11 @@ import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/sp
     `
 })
 export class CallbackComponent implements OnInit {
-  error: string | null = null;
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private authService: AuthService
-  ) {}
+  error: string | null = null;
 
   async ngOnInit(): Promise<void> {
     try {
@@ -77,9 +75,9 @@ export class CallbackComponent implements OnInit {
       // Redirect to dashboard or return URL
       this.router.navigate([returnUrl]);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OAuth callback error:', error);
-      this.error = error.message || 'An unexpected error occurred';
+      this.error = error instanceof Error ? error.message : 'An unexpected error occurred';
     }
   }
 

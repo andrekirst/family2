@@ -10,8 +10,9 @@ public interface ICurrentUserService
     /// <summary>
     /// Gets the current authenticated user's ID.
     /// </summary>
-    /// <returns>User ID if authenticated, null otherwise.</returns>
-    UserId? GetUserId();
+    /// <returns>User ID of the authenticated user.</returns>
+    /// <exception cref="UnauthorizedAccessException">Thrown when user is not authenticated or user ID cannot be found.</exception>
+    UserId GetUserId();
 
     /// <summary>
     /// Gets the current authenticated user's email.

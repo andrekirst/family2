@@ -16,6 +16,7 @@
 languages:
 - bash
 - csharp
+- typescript
 encoding: "utf-8"
 
 # whether to use the project's gitignore file to ignore files
@@ -80,3 +81,4 @@ initial_prompt: ""
 
 project_name: "family2"
 included_optional_tools: []
+fixed_tools: []

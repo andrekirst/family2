@@ -14,6 +14,7 @@ public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
 
         // Use a connection string for design-time operations
         // This will be replaced with the actual connection string from appsettings.json at runtime
+        // NOTE: No MigrationsAssembly needed - EF Core auto-discovers in same assembly
         optionsBuilder.UseNpgsql("Host=localhost;Database=familyhub;Username=familyhub;Password=Dev123!")
             .UseSnakeCaseNamingConvention();
 

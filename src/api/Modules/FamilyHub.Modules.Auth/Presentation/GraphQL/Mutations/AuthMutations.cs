@@ -50,7 +50,7 @@ public sealed class AuthMutations
         });
 
         // Log successful login if no errors
-        if (payload.Success && payload.AuthenticationResult != null)
+        if (payload is { Success: true, AuthenticationResult: not null })
         {
             LogUserLoggedIn(logger, payload.AuthenticationResult.User.Id, null);
         }

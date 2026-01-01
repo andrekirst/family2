@@ -13,9 +13,6 @@ public sealed partial class GetUserFamiliesQueryHandler(
     ILogger<GetUserFamiliesQueryHandler> logger)
     : IRequestHandler<GetUserFamiliesQuery, GetUserFamiliesResult>
 {
-    private readonly IFamilyRepository _familyRepository = familyRepository ?? throw new ArgumentNullException(nameof(familyRepository));
-    private readonly ILogger<GetUserFamiliesQueryHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
     public async Task<GetUserFamiliesResult> Handle(
         GetUserFamiliesQuery request,
         CancellationToken cancellationToken)
@@ -23,7 +20,7 @@ public sealed partial class GetUserFamiliesQueryHandler(
         LogRetrievingFamiliesForUser(request.UserId.Value);
 
         // 1. Query families from repository
-        var families = await _familyRepository.GetFamiliesByUserIdAsync(request.UserId, cancellationToken);
+        var families = await familyRepository.GetFamiliesByUserIdAsync(request.UserId, cancellationToken);
 
         LogFoundFamilycountFamilyIesForUserUserid(families.Count, request.UserId.Value);
 

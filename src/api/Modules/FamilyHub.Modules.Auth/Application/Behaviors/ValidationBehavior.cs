@@ -12,17 +12,15 @@ namespace FamilyHub.Modules.Auth.Application.Behaviors;
 public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly IEnumerable<IValidator<TRequest>> _validators = validators ?? throw new ArgumentNullException(nameof(validators));
-
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
         // If no validators are registered, skip validation
-        if (!_validators.Any())
+        if (!validators.Any())
         {
-            return await next();
+            return await next(cancellationToken);
         }
 
         // Create validation context
@@ -30,7 +28,7 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
 
         // Execute all validators in parallel
         var validationResults = await Task.WhenAll(
-            _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+            validators.Select(v => v.ValidateAsync(context, cancellationToken)));
 
         // Collect all validation failures
         var failures = validationResults
@@ -45,6 +43,6 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
         }
 
         // Validation passed, continue to next behavior or handler
-        return await next();
+        return await next(cancellationToken);
     }
 }

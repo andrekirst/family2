@@ -17,7 +17,7 @@ public sealed class CurrentUserService(
     : ICurrentUserService
 {
     /// <inheritdoc />
-    public UserId? GetUserId()
+    public UserId GetUserId()
     {
         // Get Zitadel's 'sub' claim (their external user ID)
         var zitadelUserId = httpContextAccessor.HttpContext?.User
@@ -27,7 +27,7 @@ public sealed class CurrentUserService(
 
         if (string.IsNullOrEmpty(zitadelUserId))
         {
-            return null;
+            throw new UnauthorizedAccessException("User is not authenticated. No user ID claim found in JWT token.");
         }
 
         // Look up internal UserId by Zitadel's external user ID
@@ -36,7 +36,12 @@ public sealed class CurrentUserService(
             .GetAwaiter()
             .GetResult();
 
-        return user?.Id;
+        if (user == null)
+        {
+            throw new UnauthorizedAccessException($"User with external ID '{zitadelUserId}' not found in database. User may need to complete OAuth registration.");
+        }
+
+        return user.Id;
     }
 
     /// <inheritdoc />
@@ -47,7 +52,7 @@ public sealed class CurrentUserService(
             .FindFirst(ClaimTypes.Email)?.Value
             ?? httpContextAccessor.HttpContext?.User
             .FindFirst(JwtRegisteredClaimNames.Email)?.Value;
-        
+
         if (string.IsNullOrEmpty(emailClaim))
         {
             return null;

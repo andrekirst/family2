@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
+using FamilyHub.Modules.Auth.Infrastructure.Extensions;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 
@@ -15,7 +16,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 /// Handler for CompleteZitadelLoginCommand.
 /// Exchanges authorization code for tokens and creates/syncs user.
 /// </summary>
-public sealed class CompleteZitadelLoginCommandHandler(
+public sealed partial class CompleteZitadelLoginCommandHandler(
     IOptions<ZitadelSettings> settings,
     IUserRepository userRepository,
     IUnitOfWork unitOfWork,
@@ -23,18 +24,14 @@ public sealed class CompleteZitadelLoginCommandHandler(
     ILogger<CompleteZitadelLoginCommandHandler> logger)
     : IRequestHandler<CompleteZitadelLoginCommand, CompleteZitadelLoginResult>
 {
-    private readonly ZitadelSettings _settings = settings.Value ?? throw new ArgumentNullException(nameof(settings));
-    private readonly IUserRepository _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-    private readonly IUnitOfWork _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+    private readonly ZitadelSettings _settings = settings.Value;
     private readonly JwtSecurityTokenHandler _jwtHandler = new();
-    private readonly ILogger<CompleteZitadelLoginCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<CompleteZitadelLoginResult> Handle(
         CompleteZitadelLoginCommand request,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Completing Zitadel OAuth login");
+        logger.LogInformation("Completing Zitadel OAuth login");
 
         // 1. Exchange authorization code for tokens
         var tokenResponse = await ExchangeAuthorizationCodeAsync(
@@ -44,35 +41,24 @@ public sealed class CompleteZitadelLoginCommandHandler(
 
         if (tokenResponse.IsError)
         {
-            _logger.LogError(
-                "Failed to exchange authorization code: {Error} - {ErrorDescription}",
-                tokenResponse.Error,
-                tokenResponse.ErrorDescription);
+            LogFailedToExchangeAuthorizationCodeErrorErrordescription(logger, tokenResponse.Error, tokenResponse.ErrorDescription);
             throw new InvalidOperationException($"Token exchange failed: {tokenResponse.Error}");
         }
 
-        _logger.LogInformation("Successfully exchanged authorization code for tokens");
+        logger.LogInformation("Successfully exchanged authorization code for tokens");
 
         // 2. Decode ID token to extract user claims
         var idToken = _jwtHandler.ReadJwtToken(tokenResponse.IdentityToken);
-        var sub = idToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value
-            ?? throw new InvalidOperationException("ID token missing 'sub' claim");
-        var emailClaim = idToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value
-            ?? throw new InvalidOperationException("ID token missing 'email' claim");
+        var sub = idToken.Claims.GetTokenValueByClaimType("sub");
+        var emailClaim = idToken.Claims.GetTokenValueByClaimType("email");
 
-        _logger.LogInformation(
-            "Extracted user claims: sub={Sub}, email={Email}",
-            sub,
-            emailClaim);
+        LogExtractedUserClaimsSubSubEmailEmail(logger, sub, emailClaim);
 
         // 3. Get or create user
         var email = Email.From(emailClaim);
         var user = await GetOrCreateUserAsync(sub, email, cancellationToken);
 
-        _logger.LogInformation(
-            "User authenticated via Zitadel OAuth: UserId={UserId}, Email={Email}",
-            user.Id.Value,
-            email.Value);
+        LogUserAuthenticatedViaZitadelOauthUseridUseridEmailEmail(logger, user.Id.Value, email.Value);
 
         // 4. Return result with Zitadel's access token
         return new CompleteZitadelLoginResult
@@ -94,7 +80,7 @@ public sealed class CompleteZitadelLoginCommandHandler(
         string codeVerifier,
         CancellationToken cancellationToken)
     {
-        var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = httpClientFactory.CreateClient();
 
         var tokenRequest = new AuthorizationCodeTokenRequest
         {
@@ -118,27 +104,39 @@ public sealed class CompleteZitadelLoginCommandHandler(
         CancellationToken cancellationToken)
     {
         // Try to find existing user by Zitadel user ID
-        var user = await _userRepository.GetByExternalUserIdAsync(
+        var user = await userRepository.GetByExternalUserIdAsync(
             zitadelUserId,
             "zitadel",
             cancellationToken);
 
         if (user != null)
         {
-            _logger.LogInformation("Found existing user: UserId={UserId}", user.Id.Value);
+            LogFoundExistingUserUseridUserid(logger, user.Id.Value);
             return user;
         }
 
         // Create new user from OAuth
         user = User.CreateFromOAuth(email, zitadelUserId, "zitadel");
-        await _userRepository.AddAsync(user, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await userRepository.AddAsync(user, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation(
-            "Created new user from Zitadel OAuth: UserId={UserId}, Email={Email}",
-            user.Id.Value,
-            email.Value);
+        LogCreatedNewUserFromZitadelOauthUseridUseridEmailEmail(logger, user.Id.Value, email.Value);
 
         return user;
     }
+
+    [LoggerMessage(LogLevel.Error, "Failed to exchange authorization code: {error} - {errorDescription}")]
+    static partial void LogFailedToExchangeAuthorizationCodeErrorErrordescription(ILogger<CompleteZitadelLoginCommandHandler> logger, string? error, string? errorDescription);
+
+    [LoggerMessage(LogLevel.Information, "Extracted user claims: sub={sub}, email={email}")]
+    static partial void LogExtractedUserClaimsSubSubEmailEmail(ILogger<CompleteZitadelLoginCommandHandler> logger, string sub, string email);
+
+    [LoggerMessage(LogLevel.Information, "User authenticated via Zitadel OAuth: UserId={userId}, Email={email}")]
+    static partial void LogUserAuthenticatedViaZitadelOauthUseridUseridEmailEmail(ILogger<CompleteZitadelLoginCommandHandler> logger, Guid userId, string email);
+
+    [LoggerMessage(LogLevel.Information, "Found existing user: UserId={userId}")]
+    static partial void LogFoundExistingUserUseridUserid(ILogger<CompleteZitadelLoginCommandHandler> logger, Guid userId);
+
+    [LoggerMessage(LogLevel.Information, "Created new user from Zitadel OAuth: UserId={userId}, Email={email}")]
+    static partial void LogCreatedNewUserFromZitadelOauthUseridUseridEmailEmail(ILogger<CompleteZitadelLoginCommandHandler> logger, Guid userId, string email);
 }

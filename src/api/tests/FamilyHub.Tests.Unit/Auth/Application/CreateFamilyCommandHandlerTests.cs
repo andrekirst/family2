@@ -15,114 +15,10 @@ namespace FamilyHub.Tests.Unit.Auth.Application;
 /// Tests command handling logic, repository interactions, and business rule enforcement.
 /// Uses NSubstitute for mocking with AutoFixture attribute-based dependency injection.
 /// Uses FluentAssertions for readable, expressive test assertions.
+/// Note: Constructor null validation tests removed - primary constructors delegate validation to DI container.
 /// </summary>
 public class CreateFamilyCommandHandlerTests
 {
-    #region Constructor Tests
-
-    [Theory, AutoNSubstituteData]
-    public void Constructor_WithNullUserRepository_ShouldThrowArgumentNullException(
-        IFamilyRepository familyRepository,
-        IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService,
-        ILogger<CreateFamilyCommandHandler> logger)
-    {
-        // Act
-        var act = () => new CreateFamilyCommandHandler(
-            null!,
-            familyRepository,
-            unitOfWork,
-            currentUserService,
-            logger);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("userRepository");
-    }
-
-    [Theory, AutoNSubstituteData]
-    public void Constructor_WithNullFamilyRepository_ShouldThrowArgumentNullException(
-        IUserRepository userRepository,
-        IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService,
-        ILogger<CreateFamilyCommandHandler> logger)
-    {
-        // Act
-        var act = () => new CreateFamilyCommandHandler(
-            userRepository,
-            null!,
-            unitOfWork,
-            currentUserService,
-            logger);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("familyRepository");
-    }
-
-    [Theory, AutoNSubstituteData]
-    public void Constructor_WithNullUnitOfWork_ShouldThrowArgumentNullException(
-        IUserRepository userRepository,
-        IFamilyRepository familyRepository,
-        ICurrentUserService currentUserService,
-        ILogger<CreateFamilyCommandHandler> logger)
-    {
-        // Act
-        var act = () => new CreateFamilyCommandHandler(
-            userRepository,
-            familyRepository,
-            null!,
-            currentUserService,
-            logger);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("unitOfWork");
-    }
-
-    [Theory, AutoNSubstituteData]
-    public void Constructor_WithNullLogger_ShouldThrowArgumentNullException(
-        IUserRepository userRepository,
-        IFamilyRepository familyRepository,
-        IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService)
-    {
-        // Act
-        var act = () => new CreateFamilyCommandHandler(
-            userRepository,
-            familyRepository,
-            unitOfWork,
-            currentUserService,
-            null!);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("logger");
-    }
-
-    [Theory, AutoNSubstituteData]
-    public void Constructor_WithNullCurrentUserService_ShouldThrowArgumentNullException(
-        IUserRepository userRepository,
-        IFamilyRepository familyRepository,
-        IUnitOfWork unitOfWork,
-        ILogger<CreateFamilyCommandHandler> logger)
-    {
-        // Act
-        var act = () => new CreateFamilyCommandHandler(
-            userRepository,
-            familyRepository,
-            unitOfWork,
-            null!,
-            logger);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("currentUserService");
-    }
-
-    #endregion
-
-    #region Happy Path Tests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_WithValidCommand_ShouldCreateFamilySuccessfully(
@@ -291,10 +187,6 @@ public class CreateFamilyCommandHandlerTests
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    #endregion
-
-    #region Validation Tests
-
     [Theory, AutoNSubstituteData]
     public async Task Handle_WhenUserNotAuthenticated_ShouldThrowUnauthenticatedException(
         IUserRepository userRepository,
@@ -306,7 +198,7 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
-        currentUserService.GetUserId().Returns((UserId?)null);
+        currentUserService.GetUserId().Returns(_ => throw new UnauthorizedAccessException("User is not authenticated"));
 
         var handler = new CreateFamilyCommandHandler(
             userRepository,
@@ -319,8 +211,8 @@ public class CreateFamilyCommandHandlerTests
         var act = async () => await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<BusinessException>()
-            .WithMessage("*You must be authenticated to create a family*");
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+            .WithMessage("*User is not authenticated*");
     }
 
     [Theory, AutoNSubstituteData]
@@ -457,10 +349,6 @@ public class CreateFamilyCommandHandlerTests
             .WithMessage("*User already belongs to a family*");
     }
 
-    #endregion
-
-    #region Edge Cases
-
     [Theory, AutoNSubstituteData]
     public async Task Handle_WithCancellationToken_ShouldPassTokenToRepositories(
         IUserRepository userRepository,
@@ -565,10 +453,6 @@ public class CreateFamilyCommandHandlerTests
             Arg.Is<Family>(f => f.Name == expectedTrimmedName),
             Arg.Any<CancellationToken>());
     }
-
-    #endregion
-
-    #region Logging Tests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_WhenUserNotFound_ShouldLogWarning(
@@ -701,11 +585,9 @@ public class CreateFamilyCommandHandlerTests
         // Assert - Verify successful execution
         result.Should().NotBeNull();
         result.Name.Value.Should().Be(familyName);
-        
+
         // Note: Logging verification removed - testing implementation details
         // LoggerMessage.Define pattern doesn't call generic Log() method
         // Logging is verified in integration tests
     }
-
-    #endregion
 }
