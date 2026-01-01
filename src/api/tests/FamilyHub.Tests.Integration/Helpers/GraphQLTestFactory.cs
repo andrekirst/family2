@@ -1,9 +1,13 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyHub.Tests.Integration.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NSubstitute;
 
 namespace FamilyHub.Tests.Integration.Helpers;
@@ -15,9 +19,11 @@ namespace FamilyHub.Tests.Integration.Helpers;
 public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 {
     private readonly ICurrentUserService _mockCurrentUserService;
+    private readonly PostgreSqlContainerFixture _containerFixture;
 
-    public GraphQLTestFactory()
+    public GraphQLTestFactory(PostgreSqlContainerFixture containerFixture)
     {
+        _containerFixture = containerFixture;
         // Create a single mock service that tests can configure
         _mockCurrentUserService = Substitute.For<ICurrentUserService>();
     }
@@ -38,7 +44,7 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
     /// </summary>
     public void ClearAuthenticatedUser()
     {
-        _mockCurrentUserService.GetUserId().Returns((UserId?)null);
+        _mockCurrentUserService.GetUserId().Returns(_ => throw new UnauthorizedAccessException("User is not authenticated."));
         _mockCurrentUserService.GetUserEmail().Returns((Email?)null);
         _mockCurrentUserService.IsAuthenticated.Returns(false);
     }
@@ -47,6 +53,15 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureServices(services =>
         {
+            // Remove the existing DbContext registrations
+            services.RemoveAll<DbContextOptions<AuthDbContext>>();
+            services.RemoveAll<AuthDbContext>();
+
+            // Add AuthDbContext with test container connection string
+            services.AddDbContext<AuthDbContext>(options =>
+                options.UseNpgsql(_containerFixture.ConnectionString)
+                    .UseSnakeCaseNamingConvention());
+
             // Explicitly ensure GraphQL types are registered
             // This is a workaround for the type discovery not working in test environment
             services.AddGraphQLServer()
@@ -66,6 +81,12 @@ public sealed class GraphQLTestFactory : WebApplicationFactory<Program>
 
             // Add the mock service (shared across all requests)
             services.AddScoped<ICurrentUserService>(_ => _mockCurrentUserService);
+
+            // Build service provider and apply migrations
+            var serviceProvider = services.BuildServiceProvider();
+            using var scope = serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+            dbContext.Database.Migrate();
         });
     }
 }

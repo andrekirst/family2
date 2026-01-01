@@ -65,8 +65,7 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
         // Create a temporary service provider with test database configuration
         var services = new ServiceCollection();
 
-        // Configure DbContext without migrations
-        // We use EnsureCreated() instead of migrations for integration tests
+        // Configure DbContext with migrations
         services.AddDbContext<AuthDbContext>(options =>
             options.UseNpgsql(ConnectionString)
                 .UseSnakeCaseNamingConvention());
@@ -76,15 +75,8 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
 
         var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-        // Use EnsureCreated() instead of migrations for tests
-        // This creates the database schema directly from the EF Core model
-        // without relying on migration file discovery (which fails in CI)
-        var created = await dbContext.Database.EnsureCreatedAsync();
-
-        if (!created)
-        {
-            throw new InvalidOperationException(
-                "Failed to create database schema. The database may already exist or creation failed.");
-        }
+        // Apply migrations (production-like behavior)
+        // This ensures we test the actual migration files that will run in production
+        await dbContext.Database.MigrateAsync();
     }
 }

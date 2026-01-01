@@ -9,6 +9,7 @@ using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
+using FamilyHub.Tests.Integration.Infrastructure;
 using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -21,13 +22,14 @@ namespace FamilyHub.Tests.Integration.Auth.GraphQL;
 /// Integration tests for CreateFamily GraphQL mutation.
 /// Tests GraphQL API layer, authentication, validation, and error handling.
 /// </summary>
-public sealed class CreateFamilyMutationTests : IClassFixture<GraphQLTestFactory>
+[Collection("Database")]
+public sealed class CreateFamilyMutationTests : IDisposable
 {
     private readonly GraphQLTestFactory _factory;
 
-    public CreateFamilyMutationTests(GraphQLTestFactory factory)
+    public CreateFamilyMutationTests(PostgreSqlContainerFixture containerFixture)
     {
-        _factory = factory;
+        _factory = new GraphQLTestFactory(containerFixture);
     }
 
     #region Helper Methods
@@ -407,5 +409,10 @@ public sealed class CreateFamilyMutationTests : IClassFixture<GraphQLTestFactory
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "mock_token");
 
         return client;
+    }
+
+    public void Dispose()
+    {
+        _factory.Dispose();
     }
 }

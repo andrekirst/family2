@@ -33,8 +33,10 @@ public sealed class TestCurrentUserService : ICurrentUserService
 
     /// <summary>
     /// Gets the current user ID from the async context.
+    /// Throws UnauthorizedAccessException if no user ID is set (matching production behavior).
     /// </summary>
-    public UserId? GetUserId() => _userId.Value;
+    public UserId GetUserId() =>
+        _userId.Value ?? throw new UnauthorizedAccessException("User is not authenticated in test context.");
 
     /// <summary>
     /// Gets the current user email from the async context.

@@ -86,6 +86,24 @@ public class MutationHandler(IServiceProvider services, ILogger<MutationHandler>
                 }
             ]);
         }
+        catch (UnauthorizedAccessException unauthorizedEx)
+        {
+            // Authentication/authorization exceptions represent missing or invalid credentials
+            // Log as Warning since these are expected when users aren't authenticated
+            logger.LogWarning(unauthorizedEx,
+                "Unauthorized access in {PayloadType}: {Message}",
+                typeof(TPayload).Name, unauthorizedEx.Message);
+
+            var factory = services.GetRequiredService<IPayloadFactory<TResult, TPayload>>();
+            return factory.Error([
+                new UserError
+                {
+                    Code = "UNAUTHENTICATED",
+                    Message = unauthorizedEx.Message,
+                    Field = null
+                }
+            ]);
+        }
         catch (Exception ex)
         {
             // Unexpected exceptions represent system errors

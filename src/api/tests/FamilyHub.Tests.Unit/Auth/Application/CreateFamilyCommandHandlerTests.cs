@@ -306,7 +306,7 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
-        currentUserService.GetUserId().Returns((UserId?)null);
+        currentUserService.GetUserId().Returns(_ => throw new UnauthorizedAccessException("User is not authenticated."));
 
         var handler = new CreateFamilyCommandHandler(
             userRepository,
@@ -319,8 +319,8 @@ public class CreateFamilyCommandHandlerTests
         var act = async () => await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<BusinessException>()
-            .WithMessage("*You must be authenticated to create a family*");
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+            .WithMessage("*User is not authenticated*");
     }
 
     [Theory, AutoNSubstituteData]

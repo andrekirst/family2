@@ -7,6 +7,7 @@ using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
+using FamilyHub.Tests.Integration.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,16 +19,18 @@ namespace FamilyHub.Tests.Integration.Auth;
 /// Integration tests for Zitadel OAuth 2.0 authorization code flow.
 /// Tests the complete flow from authorization code exchange to user creation.
 /// </summary>
-public sealed class ZitadelOAuthFlowTests : IClassFixture<WebApplicationFactory<Program>>
+[Collection("Database")]
+public sealed class ZitadelOAuthFlowTests : IDisposable
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly TestHttpMessageHandler _testHttpMessageHandler;
 
-    public ZitadelOAuthFlowTests(WebApplicationFactory<Program> factory)
+    public ZitadelOAuthFlowTests(PostgreSqlContainerFixture containerFixture)
     {
         _testHttpMessageHandler = new TestHttpMessageHandler();
 
-        _factory = factory.WithWebHostBuilder(builder =>
+        var baseFactory = new TestApplicationFactory(containerFixture);
+        _factory = baseFactory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -260,5 +263,10 @@ public sealed class ZitadelOAuthFlowTests : IClassFixture<WebApplicationFactory<
                 token_type = "Bearer"
             })
         };
+    }
+
+    public void Dispose()
+    {
+        _factory.Dispose();
     }
 }

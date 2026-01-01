@@ -4,6 +4,7 @@ using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
+using FamilyHub.Tests.Integration.Infrastructure;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,8 +15,20 @@ namespace FamilyHub.Tests.Integration.Auth;
 /// Integration tests for Create Family feature.
 /// Tests end-to-end database operations, transaction behavior, and concurrent operations.
 /// </summary>
-public sealed class CreateFamilyIntegrationTests(TestApplicationFactory factory) : IClassFixture<TestApplicationFactory>
+[Collection("Database")]
+public sealed class CreateFamilyIntegrationTests : IDisposable
 {
+    private readonly TestApplicationFactory _factory;
+
+    public CreateFamilyIntegrationTests(PostgreSqlContainerFixture containerFixture)
+    {
+        _factory = new TestApplicationFactory(containerFixture);
+    }
+
+    public void Dispose()
+    {
+        _factory.Dispose();
+    }
     #region Helper Methods
 
     /// <summary>
@@ -52,7 +65,7 @@ public sealed class CreateFamilyIntegrationTests(TestApplicationFactory factory)
     public async Task CreateFamily_WithValidInput_CreatesRecordsInDatabase()
     {
         // Arrange
-        using var scope = factory.Services.CreateScope();
+        using var scope = _factory.Services.CreateScope();
         var (mediator, userRepo, familyRepo, unitOfWork) = TestServices.ResolveCommandServices(scope);
 
         var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork);
@@ -79,7 +92,7 @@ public sealed class CreateFamilyIntegrationTests(TestApplicationFactory factory)
     public async Task CreateFamily_WithSoftDeletedFamily_AllowsNewCreation()
     {
         // Arrange
-        using var scope = factory.Services.CreateScope();
+        using var scope = _factory.Services.CreateScope();
         var (mediator, userRepo, familyRepo, unitOfWork) = TestServices.ResolveCommandServices(scope);
 
         var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "softdelete");
@@ -135,7 +148,7 @@ public sealed class CreateFamilyIntegrationTests(TestApplicationFactory factory)
     public async Task CreateFamily_WithNonExistentUser_ThrowsException()
     {
         // Arrange
-        using var scope = factory.Services.CreateScope();
+        using var scope = _factory.Services.CreateScope();
         var (mediator, _, _, _) = TestServices.ResolveCommandServices(scope);
 
         var nonExistentUserId = UserId.New();
@@ -155,7 +168,7 @@ public sealed class CreateFamilyIntegrationTests(TestApplicationFactory factory)
     public async Task CreateFamily_WithEmptyName_ThrowsValidationException()
     {
         // Arrange
-        using var scope = factory.Services.CreateScope();
+        using var scope = _factory.Services.CreateScope();
         var (_, userRepo, _, unitOfWork) = TestServices.ResolveCommandServices(scope);
 
         await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "emptyname");
@@ -172,7 +185,7 @@ public sealed class CreateFamilyIntegrationTests(TestApplicationFactory factory)
     public async Task CreateFamily_WithNameTooLong_ThrowsValidationException()
     {
         // Arrange
-        using var scope = factory.Services.CreateScope();
+        using var scope = _factory.Services.CreateScope();
         var (_, userRepo, _, unitOfWork) = TestServices.ResolveCommandServices(scope);
 
         await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "longname");
@@ -190,7 +203,7 @@ public sealed class CreateFamilyIntegrationTests(TestApplicationFactory factory)
     public async Task CreateFamily_WhenUserAlreadyHasFamily_ThrowsException()
     {
         // Arrange
-        using var scope = factory.Services.CreateScope();
+        using var scope = _factory.Services.CreateScope();
         var (mediator, userRepo, _, unitOfWork) = TestServices.ResolveCommandServices(scope);
 
         var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "hasfamily");

@@ -2,6 +2,8 @@ using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Modules.Auth;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -53,15 +55,18 @@ try
         });
 
     // Module-based GraphQL type extension registration
-    // Automatically discovers and registers all [ExtendObjectType] classes from module assemblies
-    // Note: Passing null for loggerFactory to avoid ASP0000 warning (BuildServiceProvider in startup)
-    // Registration logs can be enabled by configuring ILoggerFactory after app is built if needed
-    graphqlBuilder.AddAuthModuleGraphQlTypes();
+    // Explicitly register type extensions from Auth module
+    graphqlBuilder
+        .AddTypeExtension<FamilyMutations>()
+        .AddTypeExtension<AuthMutations>()
+        .AddTypeExtension<AuthQueries>()
+        .AddTypeExtension<HealthQueries>()
+        .AddTypeExtension<UserQueries>();
 
     // Future modules can be registered here:
-    // graphqlBuilder.AddCalendarModuleGraphQLTypes(null);
-    // graphqlBuilder.AddTaskModuleGraphQLTypes(null);
-    // graphqlBuilder.AddShoppingModuleGraphQLTypes(null);
+    // graphqlBuilder.AddCalendarModuleGraphQLTypes();
+    // graphqlBuilder.AddTaskModuleGraphQLTypes();
+    // graphqlBuilder.AddShoppingModuleGraphQLTypes();
 
     // JWT Authentication configuration (Zitadel OAuth)
     var zitadelSettings = builder.Configuration.GetSection(ZitadelSettings.SectionName).Get<ZitadelSettings>()
