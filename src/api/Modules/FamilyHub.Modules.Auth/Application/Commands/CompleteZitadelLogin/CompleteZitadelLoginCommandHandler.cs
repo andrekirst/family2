@@ -31,6 +31,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
         CompleteZitadelLoginCommand request,
         CancellationToken cancellationToken)
     {
+        // TODO Decorator
         logger.LogInformation("Completing Zitadel OAuth login");
 
         // 1. Exchange authorization code for tokens

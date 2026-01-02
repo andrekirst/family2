@@ -26,14 +26,24 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureServices(services =>
         {
-            // Remove the existing DbContext registrations
+            // Remove the existing DbContext registrations (including factory and pool)
             services.RemoveAll<DbContextOptions<AuthDbContext>>();
             services.RemoveAll<AuthDbContext>();
+            services.RemoveAll<IDbContextFactory<AuthDbContext>>();
+            services.RemoveAll(typeof(Microsoft.EntityFrameworkCore.Internal.IDbContextPool<>).MakeGenericType(typeof(AuthDbContext)));
 
             // Add AuthDbContext with test container connection string
-            services.AddDbContext<AuthDbContext>(options =>
+            // Use AddPooledDbContextFactory to match production setup (singleton-safe)
+            services.AddPooledDbContextFactory<AuthDbContext>((serviceProvider, options) =>
                 options.UseNpgsql(_containerFixture.ConnectionString)
                     .UseSnakeCaseNamingConvention());
+
+            // Also register scoped DbContext for UnitOfWork pattern (same as production)
+            services.AddScoped(sp =>
+            {
+                var factory = sp.GetRequiredService<IDbContextFactory<AuthDbContext>>();
+                return factory.CreateDbContext();
+            });
 
             // Remove the existing ICurrentUserService registration
             services.RemoveAll<ICurrentUserService>();

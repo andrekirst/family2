@@ -8,5 +8,5 @@ import { RouterOutlet } from '@angular/router';
     styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'family-hub-web';
+  // App shell component - routing handled by router-outlet
 }

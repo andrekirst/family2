@@ -32,7 +32,7 @@ public sealed partial class CreateFamilyCommandHandler(
         CancellationToken cancellationToken)
     {
         // 0. Validate authentication and extract user ID (throws UnauthorizedAccessException if not authenticated)
-        var userId = _currentUserService.GetUserId();
+        var userId = await _currentUserService.GetUserIdAsync(cancellationToken);
 
         LogCreatingFamilyFamilynameForUserUserid(request.Name, userId.Value);
 

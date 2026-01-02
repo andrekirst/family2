@@ -139,21 +139,17 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("family_id");
 
-                    b.Property<Guid?>("InvitedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("invited_by");
-
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
-                    b.Property<DateTime>("JoinedAt")
+                    b.Property<bool>("IsCurrentFamily")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("joined_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_current_family");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -183,6 +179,10 @@ namespace FamilyHub.Modules.Auth.Migrations
                     b.HasIndex("UserId", "FamilyId")
                         .IsUnique()
                         .HasDatabaseName("ix_user_families_user_family");
+
+                    b.HasIndex("UserId", "IsCurrentFamily")
+                        .HasDatabaseName("ix_user_families_user_id_is_current_family")
+                        .HasFilter("is_current_family = true");
 
                     b.ToTable("user_families", "auth");
                 });

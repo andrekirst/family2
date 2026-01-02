@@ -25,11 +25,11 @@ namespace FamilyHub.Tests.Integration.Auth.GraphQL;
 [Collection("Database")]
 public sealed class CreateFamilyMutationTests : IDisposable
 {
-    private readonly GraphQLTestFactory _factory;
+    private readonly GraphQlTestFactory _factory;
 
     public CreateFamilyMutationTests(PostgreSqlContainerFixture containerFixture)
     {
-        _factory = new GraphQLTestFactory(containerFixture);
+        _factory = new GraphQlTestFactory(containerFixture);
     }
 
     #region Helper Methods

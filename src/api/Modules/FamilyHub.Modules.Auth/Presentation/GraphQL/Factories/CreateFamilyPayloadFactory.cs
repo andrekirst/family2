@@ -1,5 +1,4 @@
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Adapters;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 using FamilyHub.SharedKernel.Presentation.GraphQL;
 
@@ -18,9 +17,17 @@ public class CreateFamilyPayloadFactory : IPayloadFactory<CreateFamilyResult, Cr
     /// <returns>A CreateFamilyPayload containing the created family</returns>
     public CreateFamilyPayload Success(CreateFamilyResult result)
     {
-        var familyType = FamilyOutputAdapter.ToGraphQLType(result);
+        // Map CreateFamilyResult to CreatedFamilyDto
+        var familyDto = new CreatedFamilyDto
+        {
+            Id = result.FamilyId.Value,
+            Name = result.Name.Value,
+            OwnerId = result.OwnerId.Value,
+            CreatedAt = result.CreatedAt,
+            UpdatedAt = result.CreatedAt // Same as CreatedAt for newly created families
+        };
 
-        return new CreateFamilyPayload(familyType);
+        return new CreateFamilyPayload(familyDto);
     }
 
     /// <summary>

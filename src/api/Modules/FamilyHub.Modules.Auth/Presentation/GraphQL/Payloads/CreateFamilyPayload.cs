@@ -1,4 +1,3 @@
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Presentation.GraphQL;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
@@ -11,13 +10,13 @@ public sealed record CreateFamilyPayload : PayloadBase
     /// <summary>
     /// The created family (null if errors occurred).
     /// </summary>
-    public FamilyType? Family { get; init; }
+    public CreatedFamilyDto? Family { get; init; }
 
     /// <summary>
     /// Constructor for successful payload (called by factory).
     /// </summary>
     /// <param name="family">The created family</param>
-    public CreateFamilyPayload(FamilyType family) : base()
+    public CreateFamilyPayload(CreatedFamilyDto family)
     {
         Family = family;
     }
@@ -30,4 +29,16 @@ public sealed record CreateFamilyPayload : PayloadBase
     {
         Family = null;
     }
+}
+
+/// <summary>
+/// DTO representing a newly created family (for CreateFamilyPayload).
+/// </summary>
+public sealed record CreatedFamilyDto
+{
+    public required Guid Id { get; init; }
+    public required string Name { get; init; }
+    public required Guid OwnerId { get; init; }
+    public required DateTime CreatedAt { get; init; }
+    public required DateTime UpdatedAt { get; init; }
 }

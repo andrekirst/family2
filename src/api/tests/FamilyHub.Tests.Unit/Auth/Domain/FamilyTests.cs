@@ -277,8 +277,6 @@ public class FamilyTests
         ownerMembership.FamilyId.Should().Be(familyId);
         ownerMembership.Role.Should().Be(UserRole.Owner);
         ownerMembership.IsActive.Should().BeTrue();
-        ownerMembership.InvitedBy.Should().BeNull();
-        ownerMembership.JoinedAt.Should().BeOnOrBefore(DateTime.UtcNow);
     }
 
     [Fact]
@@ -287,14 +285,12 @@ public class FamilyTests
         // Arrange
         var memberId = UserId.New();
         var familyId = FamilyId.New();
-        var invitedBy = UserId.New();
 
         // Act
         var membership = UserFamily.CreateMembership(
             memberId,
             familyId,
-            UserRole.Member,
-            invitedBy);
+            UserRole.Member);
 
         // Assert
         membership.Should().NotBeNull();
@@ -302,8 +298,6 @@ public class FamilyTests
         membership.FamilyId.Should().Be(familyId);
         membership.Role.Should().Be(UserRole.Member);
         membership.IsActive.Should().BeTrue();
-        membership.InvitedBy.Should().Be(invitedBy);
-        membership.JoinedAt.Should().BeOnOrBefore(DateTime.UtcNow);
     }
 
     [Fact]
@@ -312,10 +306,9 @@ public class FamilyTests
         // Arrange
         var memberId = UserId.New();
         var familyId = FamilyId.New();
-        var invitedBy = UserId.New();
 
         // Act
-        var act = () => UserFamily.CreateMembership(memberId, familyId, UserRole.Owner, invitedBy);
+        var act = () => UserFamily.CreateMembership(memberId, familyId, UserRole.Owner);
 
         // Assert
         act.Should().Throw<InvalidOperationException>()

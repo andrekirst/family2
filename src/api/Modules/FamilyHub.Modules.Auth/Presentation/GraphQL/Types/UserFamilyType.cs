@@ -24,9 +24,4 @@ public sealed record UserFamilyType
     /// Whether this membership is active.
     /// </summary>
     public required bool IsActive { get; init; }
-
-    /// <summary>
-    /// When the user joined the family.
-    /// </summary>
-    public required DateTime JoinedAt { get; init; }
 }

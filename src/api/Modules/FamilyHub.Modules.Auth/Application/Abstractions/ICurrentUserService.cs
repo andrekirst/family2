@@ -15,6 +15,14 @@ public interface ICurrentUserService
     UserId GetUserId();
 
     /// <summary>
+    /// Gets the current authenticated user's ID asynchronously.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>User ID of the authenticated user.</returns>
+    /// <exception cref="UnauthorizedAccessException">Thrown when user is not authenticated or user ID cannot be found.</exception>
+    Task<UserId> GetUserIdAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the current authenticated user's email.
     /// </summary>
     /// <returns>Email if authenticated, null otherwise.</returns>

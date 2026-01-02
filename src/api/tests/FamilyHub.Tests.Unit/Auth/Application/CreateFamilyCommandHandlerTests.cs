@@ -134,7 +134,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var familyName = "Smith Family";
         var command = new CreateFamilyCommand(FamilyName.From(familyName));
 
@@ -186,7 +186,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
@@ -243,7 +243,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var familyName = "Smith Family";
         var command = new CreateFamilyCommand(FamilyName.From(familyName));
 
@@ -306,7 +306,8 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
-        currentUserService.GetUserId().Returns(_ => throw new UnauthorizedAccessException("User is not authenticated."));
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<UserId>(new UnauthorizedAccessException("User is not authenticated.")));
 
         var handler = new CreateFamilyCommandHandler(
             userRepository,
@@ -333,7 +334,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
         userRepository
@@ -370,7 +371,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
@@ -420,7 +421,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
@@ -471,7 +472,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
@@ -523,7 +524,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var nameWithWhitespace = "  Smith Family  ";
         var expectedTrimmedName = "Smith Family";
         var command = new CreateFamilyCommand(FamilyName.From(nameWithWhitespace));
@@ -580,7 +581,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
         userRepository
@@ -615,7 +616,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
 
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
@@ -664,7 +665,7 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        currentUserService.GetUserId().Returns(userId);
+        currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
         var familyName = "Smith Family";
         var command = new CreateFamilyCommand(FamilyName.From(familyName));
 

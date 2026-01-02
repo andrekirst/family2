@@ -26,7 +26,7 @@ public sealed class UserQueries
         [Service] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
-        var userId = currentUserService.GetUserId();
+        var userId = await currentUserService.GetUserIdAsync(cancellationToken);
 
         // Validate authentication using centralized validator
         var authenticatedUserId = AuthenticationValidator.RequireAuthentication(userId, "access user information");

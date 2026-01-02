@@ -1,37 +1,43 @@
+using HotChocolate.Types;
+using FamilyHub.Modules.Auth.Domain;
+
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
 /// <summary>
-/// GraphQL type representing a family.
+/// GraphQL object type for Family entity.
+/// Maps domain entity to GraphQL schema with automatic projections.
 /// </summary>
-public sealed record FamilyType
+public class FamilyType : ObjectType<Family>
 {
-    /// <summary>
-    /// The unique identifier of the family.
-    /// </summary>
-    public required Guid Id { get; init; }
+    protected override void Configure(IObjectTypeDescriptor<Family> descriptor)
+    {
+        descriptor.Name("Family");
+        descriptor.Description("Represents a family in the system");
 
-    /// <summary>
-    /// The name of the family.
-    /// </summary>
-    public required string Name { get; init; }
+        // Map FamilyId value object to scalar
+        descriptor
+            .Field(f => f.Id)
+            .Type<NonNullType<UuidType>>()
+            .Resolve(ctx => ctx.Parent<Family>().Id.Value);
 
-    /// <summary>
-    /// The ID of the user who owns this family.
-    /// </summary>
-    public required Guid OwnerId { get; init; }
+        // Map FamilyName value object to string
+        descriptor
+            .Field(f => f.Name)
+            .Type<NonNullType<StringType>>()
+            .Resolve(ctx => ctx.Parent<Family>().Name.Value);
 
-    /// <summary>
-    /// When the family was created.
-    /// </summary>
-    public required DateTime CreatedAt { get; init; }
+        // Map UserId value object to scalar
+        descriptor
+            .Field(f => f.OwnerId)
+            .Type<NonNullType<UuidType>>()
+            .Resolve(ctx => ctx.Parent<Family>().OwnerId.Value);
 
-    /// <summary>
-    /// When the family was last updated.
-    /// </summary>
-    public required DateTime UpdatedAt { get; init; }
+        // Direct field mappings
+        descriptor.Field(f => f.CreatedAt).Type<NonNullType<DateTimeType>>();
+        descriptor.Field(f => f.UpdatedAt).Type<NonNullType<DateTimeType>>();
 
-    /// <summary>
-    /// Family members (optional, for expanded queries).
-    /// </summary>
-    public IReadOnlyCollection<UserFamilyType>? UserFamilies { get; init; }
+        // Ignore internal fields
+        descriptor.Ignore(f => f.DeletedAt);
+        descriptor.Ignore(f => f.UserFamilies);
+    }
 }

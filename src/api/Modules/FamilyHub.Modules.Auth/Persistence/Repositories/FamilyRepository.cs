@@ -17,7 +17,6 @@ public sealed class FamilyRepository(AuthDbContext context) : IFamilyRepository
     {
         return await _context.Families
             .Include(f => f.UserFamilies)
-            .Where(f => f.DeletedAt == null)
             .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
     }
 
@@ -26,17 +25,14 @@ public sealed class FamilyRepository(AuthDbContext context) : IFamilyRepository
     {
         return await _context.Families
             .Include(f => f.UserFamilies)
-            .Where(f => f.DeletedAt == null && f.UserFamilies.Any(uf => uf.UserId == userId && uf.IsActive))
+            .Where(f => f.UserFamilies.Any(uf => uf.UserId == userId && uf.IsActive))
             .ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task AddAsync(Family family, CancellationToken cancellationToken = default)
     {
-        if (family == null)
-        {
-            throw new ArgumentNullException(nameof(family));
-        }
+        ArgumentNullException.ThrowIfNull(family);
 
         await _context.Families.AddAsync(family, cancellationToken);
     }

@@ -58,6 +58,7 @@ try
     // Explicitly register type extensions from Auth module
     graphqlBuilder
         .AddTypeExtension<FamilyMutations>()
+        .AddTypeExtension<FamilyQueries>()
         .AddTypeExtension<AuthMutations>()
         .AddTypeExtension<AuthQueries>()
         .AddTypeExtension<HealthQueries>()

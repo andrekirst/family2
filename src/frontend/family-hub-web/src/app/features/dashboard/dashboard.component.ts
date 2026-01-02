@@ -16,7 +16,7 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
     CommonModule,
     ButtonComponent,
     CreateFamilyModalComponent,
-    IconComponent
+    IconComponent,
   ],
   template: `
     <!-- Create Family Modal (shown when no family) -->
@@ -27,12 +27,18 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
 
     <!-- Authenticated Dashboard (shown when has family) -->
     @if (familyService.hasFamily()) {
-      <div class="min-h-screen bg-gray-50">
+    <div class="min-h-screen bg-gray-50">
       <!-- Header -->
       <header class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div
+          class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center"
+        >
           <div class="flex items-center space-x-3">
-            <app-icon name="users" size="lg" customClass="text-blue-600"></app-icon>
+            <app-icon
+              name="users"
+              size="lg"
+              customClass="text-blue-600"
+            ></app-icon>
             <div>
               <h1 class="text-2xl font-bold text-gray-900">
                 {{ familyService.currentFamily()?.name }}
@@ -41,28 +47,24 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
           </div>
           <div class="flex items-center space-x-4">
             @if (user()) {
-              <span class="text-gray-700">
-                {{ user()?.email }}
-              </span>
+            <span class="text-gray-700">
+              {{ user()?.email }}
+            </span>
             }
-            <app-button
-              variant="tertiary"
-              size="sm"
-              (clicked)="logout()"
-              >
+            <app-button variant="tertiary" size="sm" (clicked)="logout()">
               Sign Out
             </app-button>
           </div>
         </div>
       </header>
-    
+
       <!-- Main Content -->
       <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">
             Welcome to your Family Hub! 👋
           </h2>
-    
+
           <div class="space-y-4">
             <!-- Family Info Card -->
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -70,12 +72,16 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
               <dl class="space-y-1 text-sm">
                 <div class="flex">
                   <dt class="font-medium text-blue-900 w-32">Family Name:</dt>
-                  <dd class="text-blue-700">{{ familyService.currentFamily()?.name }}</dd>
+                  <dd class="text-blue-700">
+                    {{ familyService.currentFamily()?.name }}
+                  </dd>
                 </div>
                 <div class="flex">
                   <dt class="font-medium text-blue-900 w-32">Created:</dt>
                   <dd class="text-blue-700">
-                    {{ familyService.currentFamily()?.createdAt | date:'medium' }}
+                    {{
+                      familyService.currentFamily()?.createdAt | date : 'medium'
+                    }}
                   </dd>
                 </div>
               </dl>
@@ -83,21 +89,21 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
 
             <!-- User Account Card -->
             @if (user()) {
-              <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h3 class="font-medium text-green-900 mb-2">Your Account</h3>
-                <dl class="space-y-1 text-sm">
-                  <div class="flex">
-                    <dt class="font-medium text-green-900 w-32">Email:</dt>
-                    <dd class="text-green-700">{{ user()?.email }}</dd>
-                  </div>
-                  <div class="flex">
-                    <dt class="font-medium text-green-900 w-32">Verified:</dt>
-                    <dd class="text-green-700">
-                      {{ user()?.emailVerified ? 'Yes ✓' : 'No ✗' }}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 class="font-medium text-green-900 mb-2">Your Account</h3>
+              <dl class="space-y-1 text-sm">
+                <div class="flex">
+                  <dt class="font-medium text-green-900 w-32">Email:</dt>
+                  <dd class="text-green-700">{{ user()?.email }}</dd>
+                </div>
+                <div class="flex">
+                  <dt class="font-medium text-green-900 w-32">Verified:</dt>
+                  <dd class="text-green-700">
+                    {{ user()?.emailVerified ? 'Yes ✓' : 'No ✗' }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
             }
 
             <!-- Next Steps -->
@@ -113,20 +119,38 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
           </div>
         </div>
       </main>
-      </div>
+    </div>
     }
 
     <!-- Loading Overlay -->
     @if (familyService.isLoading()) {
-      <div class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-40">
-        <div class="bg-white rounded-lg p-6 shadow-xl">
-          <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <p class="mt-2 text-gray-600">Loading...</p>
-        </div>
+    <div
+      class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-40"
+    >
+      <div class="bg-white rounded-lg p-6 shadow-xl">
+        <svg
+          class="animate-spin h-8 w-8 text-blue-600 mx-auto"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <p class="mt-2 text-gray-600">Loading...</p>
       </div>
+    </div>
     }
   `,
 })
@@ -137,8 +161,7 @@ export class DashboardComponent implements OnInit {
   user = computed(() => this.authService.currentUser());
 
   ngOnInit(): void {
-    // Families will be loaded after creation via onFamilyCreated()
-    // No need to load immediately for new users
+    this.familyService.loadCurrentFamily();
   }
 
   onFamilyCreated(): void {

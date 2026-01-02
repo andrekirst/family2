@@ -54,18 +54,18 @@ public class UserFamilyConfiguration : IEntityTypeConfiguration<UserFamily>
         builder.HasIndex(uf => uf.IsActive)
             .HasDatabaseName("ix_user_families_is_active");
 
-        // Invited by with Vogen value converter
-        builder.Property(uf => uf.InvitedBy)
-            .HasConversion(new UserId.EfCoreValueConverter())
-            .HasColumnName("invited_by")
-            .IsRequired(false);
-
-        // Timestamps
-        builder.Property(uf => uf.JoinedAt)
-            .HasColumnName("joined_at")
-            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+        // Is current family
+        builder.Property(uf => uf.IsCurrentFamily)
+            .HasColumnName("is_current_family")
+            .HasDefaultValue(false)
             .IsRequired();
 
+        // Composite index for efficient current family lookups
+        builder.HasIndex(uf => new { uf.UserId, uf.IsCurrentFamily })
+            .HasDatabaseName("ix_user_families_user_id_is_current_family")
+            .HasFilter("is_current_family = true");
+
+        // Timestamps
         builder.Property(uf => uf.UpdatedAt)
             .HasColumnName("updated_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP")

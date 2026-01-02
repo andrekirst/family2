@@ -30,14 +30,10 @@ public class UserFamily : Entity<Guid>
     public bool IsActive { get; private set; }
 
     /// <summary>
-    /// Who invited this user (null for owner).
+    /// Whether this is the user's currently active family.
+    /// Only ONE UserFamily per user should have this flag set to true.
     /// </summary>
-    public UserId? InvitedBy { get; private set; }
-
-    /// <summary>
-    /// When the user joined the family.
-    /// </summary>
-    public DateTime JoinedAt { get; private set; }
+    public bool IsCurrentFamily { get; private set; }
 
     /// <summary>
     /// When the membership was last updated.
@@ -67,23 +63,23 @@ public class UserFamily : Entity<Guid>
         UserId userId,
         FamilyId familyId,
         UserRole role,
-        UserId? invitedBy) : base(Guid.NewGuid())
+        bool isCurrentFamily = false) : base(Guid.NewGuid())
     {
         UserId = userId;
         FamilyId = familyId;
         Role = role;
         IsActive = true;
-        InvitedBy = invitedBy;
-        JoinedAt = DateTime.UtcNow;
+        IsCurrentFamily = isCurrentFamily;
         UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
     /// Creates a new family membership for the owner.
+    /// Owner membership is automatically marked as current family.
     /// </summary>
     public static UserFamily CreateOwnerMembership(UserId userId, FamilyId familyId)
     {
-        return new UserFamily(userId, familyId, UserRole.Owner, invitedBy: null);
+        return new UserFamily(userId, familyId, UserRole.Owner, isCurrentFamily: true);
     }
 
     /// <summary>
@@ -93,14 +89,14 @@ public class UserFamily : Entity<Guid>
         UserId userId,
         FamilyId familyId,
         UserRole role,
-        UserId invitedBy)
+        bool isCurrentFamily = false)
     {
         if (role == UserRole.Owner)
         {
             throw new InvalidOperationException("Use CreateOwnerMembership for owner role.");
         }
 
-        return new UserFamily(userId, familyId, role, invitedBy);
+        return new UserFamily(userId, familyId, role, isCurrentFamily);
     }
 
     /// <summary>
@@ -137,6 +133,25 @@ public class UserFamily : Entity<Guid>
     public void Reactivate()
     {
         IsActive = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Marks this family as the user's current active family.
+    /// NOTE: Caller is responsible for ensuring only ONE UserFamily per user has this flag set.
+    /// </summary>
+    public void MarkAsCurrentFamily()
+    {
+        IsCurrentFamily = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Unmarks this family as the user's current active family.
+    /// </summary>
+    public void UnmarkAsCurrentFamily()
+    {
+        IsCurrentFamily = false;
         UpdatedAt = DateTime.UtcNow;
     }
 }

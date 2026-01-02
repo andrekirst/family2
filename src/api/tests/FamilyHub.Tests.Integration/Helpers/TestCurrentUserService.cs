@@ -39,6 +39,13 @@ public sealed class TestCurrentUserService : ICurrentUserService
         _userId.Value ?? throw new UnauthorizedAccessException("User is not authenticated in test context.");
 
     /// <summary>
+    /// Gets the current user ID from the async context asynchronously.
+    /// Throws UnauthorizedAccessException if no user ID is set (matching production behavior).
+    /// </summary>
+    public Task<UserId> GetUserIdAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(_userId.Value ?? throw new UnauthorizedAccessException("User is not authenticated in test context."));
+
+    /// <summary>
     /// Gets the current user email from the async context.
     /// </summary>
     public Email? GetUserEmail() => _userEmail.Value;

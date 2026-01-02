@@ -17,7 +17,7 @@ public sealed record CompleteZitadelLoginPayload : PayloadBase
     /// Constructor for successful payload (called by factory).
     /// </summary>
     /// <param name="authenticationResult">The authentication result</param>
-    public CompleteZitadelLoginPayload(AuthenticationResult authenticationResult) : base()
+    public CompleteZitadelLoginPayload(AuthenticationResult authenticationResult)
     {
         AuthenticationResult = authenticationResult;
     }

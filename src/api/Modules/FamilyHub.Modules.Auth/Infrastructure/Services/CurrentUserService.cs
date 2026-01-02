@@ -45,6 +45,36 @@ public sealed class CurrentUserService(
     }
 
     /// <inheritdoc />
+    public async Task<UserId> GetUserIdAsync(CancellationToken cancellationToken = default)
+    {
+        // Get Zitadel's 'sub' claim (their external user ID)
+        var zitadelUserId = httpContextAccessor.HttpContext?.User
+            .FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? httpContextAccessor.HttpContext?.User
+            .FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (string.IsNullOrEmpty(zitadelUserId))
+        {
+            throw new UnauthorizedAccessException("User is not authenticated. No user ID claim found in JWT token.");
+        }
+
+        // Look up internal UserId by Zitadel's external user ID
+        var user = await userRepository.GetByExternalUserIdAsync(
+            zitadelUserId,
+            "zitadel",
+            cancellationToken);
+
+        if (user == null)
+        {
+            throw new UnauthorizedAccessException(
+                $"User with external ID '{zitadelUserId}' not found in database. " +
+                $"User may need to complete OAuth registration.");
+        }
+
+        return user.Id;
+    }
+
+    /// <inheritdoc />
     public Email? GetUserEmail()
     {
         // Try standard claim types first (ASP.NET Core maps 'email' to Email)

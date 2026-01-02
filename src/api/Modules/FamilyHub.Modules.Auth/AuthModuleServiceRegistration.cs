@@ -2,8 +2,6 @@ using FamilyHub.Infrastructure.GraphQL.Extensions;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Factories;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 using FamilyHub.SharedKernel.Application.Behaviors;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Infrastructure.Services;
@@ -34,16 +32,22 @@ public static class AuthModuleServiceRegistration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Database
-        services.AddDbContext<AuthDbContext>(options =>
+        services.AddPooledDbContextFactory<AuthDbContext>((_, options) =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("FamilyHubDb"), npgsqlOptions =>
+            var connectionString = configuration.GetConnectionString("FamilyHubDb");
+            options.UseNpgsql(connectionString, npgsqlOptions =>
                 {
                     // CRITICAL: Specify migrations assembly explicitly for integration tests
                     // EF Core auto-discovery doesn't work when DbContext is created outside the main application
                     npgsqlOptions.MigrationsAssembly(typeof(AuthDbContext).Assembly.GetName().Name);
                 })
                 .UseSnakeCaseNamingConvention();
+        });
+
+        services.AddScoped(sp =>
+        {
+            var factory = sp.GetRequiredService<IDbContextFactory<AuthDbContext>>();
+            return factory.CreateDbContext();
         });
 
         // Unit of Work
@@ -108,8 +112,11 @@ public static class AuthModuleServiceRegistration
         this IRequestExecutorBuilder builder,
         ILoggerFactory? loggerFactory = null)
     {
-        return builder.AddTypeExtensionsFromAssemblies(
-            [typeof(AuthModuleServiceRegistration).Assembly],
-            loggerFactory);
+        return builder
+            .RegisterDbContextFactory<AuthDbContext>()
+            .AddTypeExtensionsFromAssemblies(
+                [typeof(AuthModuleServiceRegistration).Assembly],
+                loggerFactory)
+            .AddType<Presentation.GraphQL.Types.FamilyType>();
     }
 }

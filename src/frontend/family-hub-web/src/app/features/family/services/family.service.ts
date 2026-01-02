@@ -11,12 +11,10 @@ export interface Family {
 }
 
 /**
- * GraphQL response type for getUserFamilies query.
+ * GraphQL response type for family query (root level).
  */
-interface GetUserFamiliesResponse {
-  getUserFamilies: {
-    families: Family[];
-  };
+interface GetCurrentFamilyResponse {
+  family: Family | null;
 }
 
 /**
@@ -75,37 +73,32 @@ export class FamilyService {
   hasFamily = computed(() => this.currentFamily() !== null);
 
   /**
-   * Loads user's families from backend and sets currentFamily to first family.
+   * Loads the current user's active family from backend.
    * If user has no families, currentFamily remains null.
    *
    * @returns Promise that resolves when load completes
    */
-  async loadUserFamilies(): Promise<void> {
+  async loadCurrentFamily(): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
 
     try {
       const query = `
-        query GetUserFamilies {
-          getUserFamilies {
-            families {
-              id
-              name
-              createdAt
-            }
+        query GetCurrentFamily {
+          family {
+            id
+            name
+            createdAt
           }
         }
       `;
 
-      const response = await this.graphqlService.query<GetUserFamiliesResponse>(query);
+      const response = await this.graphqlService.query<GetCurrentFamilyResponse>(query);
 
-      if (response.getUserFamilies.families.length > 0) {
-        this.currentFamily.set(response.getUserFamilies.families[0]);
-      } else {
-        this.currentFamily.set(null);
-      }
+      // Set current family (or null if user has no families)
+      this.currentFamily.set(response.family);
     } catch (err) {
-      this.handleError(err, 'Failed to load families');
+      this.handleError(err, 'Failed to load family');
     } finally {
       this.isLoading.set(false);
     }
