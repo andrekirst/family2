@@ -31,7 +31,7 @@ public sealed partial class GetUserFamiliesQueryHandler(
             Name = f.Name.Value,
             OwnerId = f.OwnerId,
             CreatedAt = f.CreatedAt,
-            MemberCount = f.UserFamilies.Count(uf => uf.IsActive)
+            MemberCount = f.UserFamilies.Count
         }).ToList();
 
         // 3. Return result

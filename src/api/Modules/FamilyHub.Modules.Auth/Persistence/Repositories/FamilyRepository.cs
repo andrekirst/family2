@@ -25,7 +25,7 @@ public sealed class FamilyRepository(AuthDbContext context) : IFamilyRepository
     {
         return await _context.Families
             .Include(f => f.UserFamilies)
-            .Where(f => f.UserFamilies.Any(uf => uf.UserId == userId && uf.IsActive))
+            .Where(f => f.UserFamilies.Any(uf => uf.UserId == userId))
             .ToListAsync(cancellationToken);
     }
 

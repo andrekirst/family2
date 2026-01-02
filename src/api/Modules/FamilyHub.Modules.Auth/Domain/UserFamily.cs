@@ -25,11 +25,6 @@ public class UserFamily : Entity<Guid>
     public UserRole Role { get; private set; }
 
     /// <summary>
-    /// Whether this membership is active.
-    /// </summary>
-    public bool IsActive { get; private set; }
-
-    /// <summary>
     /// Whether this is the user's currently active family.
     /// Only ONE UserFamily per user should have this flag set to true.
     /// </summary>
@@ -68,7 +63,6 @@ public class UserFamily : Entity<Guid>
         UserId = userId;
         FamilyId = familyId;
         Role = role;
-        IsActive = true;
         IsCurrentFamily = isCurrentFamily;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -110,29 +104,6 @@ public class UserFamily : Entity<Guid>
         }
 
         Role = newRole;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    /// Deactivates the membership (user leaves family).
-    /// </summary>
-    public void Deactivate()
-    {
-        if (Role == UserRole.Owner)
-        {
-            throw new InvalidOperationException("Owner cannot leave the family. Transfer ownership first.");
-        }
-
-        IsActive = false;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    /// Reactivates the membership.
-    /// </summary>
-    public void Reactivate()
-    {
-        IsActive = true;
         UpdatedAt = DateTime.UtcNow;
     }
 

@@ -276,7 +276,6 @@ public class FamilyTests
         ownerMembership.UserId.Should().Be(ownerId);
         ownerMembership.FamilyId.Should().Be(familyId);
         ownerMembership.Role.Should().Be(UserRole.Owner);
-        ownerMembership.IsActive.Should().BeTrue();
     }
 
     [Fact]
@@ -297,7 +296,6 @@ public class FamilyTests
         membership.UserId.Should().Be(memberId);
         membership.FamilyId.Should().Be(familyId);
         membership.Role.Should().Be(UserRole.Member);
-        membership.IsActive.Should().BeTrue();
     }
 
     [Fact]

@@ -55,7 +55,6 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
         membership.UserId.Should().Be(expectedOwnerId);
         membership.FamilyId.Should().Be(familyId);
         membership.Role.Should().Be(UserRole.Owner);
-        membership.IsActive.Should().BeTrue();
     }
 
     #endregion

@@ -19,9 +19,4 @@ public sealed record UserFamilyType
     /// The user's role in this family (owner, admin, member, child).
     /// </summary>
     public required string Role { get; init; }
-
-    /// <summary>
-    /// Whether this membership is active.
-    /// </summary>
-    public required bool IsActive { get; init; }
 }

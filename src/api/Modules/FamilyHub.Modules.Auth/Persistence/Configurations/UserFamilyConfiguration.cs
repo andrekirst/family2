@@ -45,15 +45,6 @@ public class UserFamilyConfiguration : IEntityTypeConfiguration<UserFamily>
             .HasMaxLength(20)
             .IsRequired();
 
-        // Is active
-        builder.Property(uf => uf.IsActive)
-            .HasColumnName("is_active")
-            .HasDefaultValue(true)
-            .IsRequired();
-
-        builder.HasIndex(uf => uf.IsActive)
-            .HasDatabaseName("ix_user_families_is_active");
-
         // Is current family
         builder.Property(uf => uf.IsCurrentFamily)
             .HasColumnName("is_current_family")

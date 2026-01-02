@@ -139,12 +139,6 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("family_id");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
                     b.Property<bool>("IsCurrentFamily")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -172,9 +166,6 @@ namespace FamilyHub.Modules.Auth.Migrations
 
                     b.HasIndex("FamilyId")
                         .HasDatabaseName("ix_user_families_family_id");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("ix_user_families_is_active");
 
                     b.HasIndex("UserId", "FamilyId")
                         .IsUnique()
