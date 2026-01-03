@@ -5,7 +5,8 @@ using FamilyHub.Infrastructure.GraphQL.Types;
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
 /// <summary>
-/// GraphQL object type for Family entity
+/// GraphQL object type for Family entity.
+/// Uses HotChocolate ObjectType pattern to configure domain entity mapping.
 /// </summary>
 public class FamilyType : ObjectType<Family>
 {
@@ -50,6 +51,5 @@ public class FamilyType : ObjectType<Family>
                     UpdatedAt = family.UpdatedAt
                 };
             });
-
     }
 }

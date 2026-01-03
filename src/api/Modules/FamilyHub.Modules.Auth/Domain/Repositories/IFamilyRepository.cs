@@ -17,12 +17,12 @@ public interface IFamilyRepository
     Task<Family?> GetByIdAsync(FamilyId id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all families that a user belongs to.
+    /// Gets the family that a user belongs to.
     /// </summary>
     /// <param name="userId">The user ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A read-only list of families the user is a member of.</returns>
-    Task<IReadOnlyList<Family>> GetFamiliesByUserIdAsync(UserId userId, CancellationToken cancellationToken = default);
+    /// <returns>The family if found; otherwise, null.</returns>
+    Task<Family?> GetFamilyByUserIdAsync(UserId userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new family to the repository.

@@ -141,18 +141,16 @@ public class CreateFamilyCommandHandlerTests
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
         // This is acceptable for unit testing - we're verifying handler behavior with mocked dependencies,
         // not domain entity state. The mock will return this user when queried with userId.
+        var testFamilyId = FamilyId.New();
         var user = User.CreateFromOAuth(
             Email.From("test@example.com"),
             "ext123",
-            "zitadel");
+            "zitadel",
+            testFamilyId);
 
         userRepository
             .GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(user);
-
-        familyRepository
-            .GetFamiliesByUserIdAsync(userId, Arg.Any<CancellationToken>())
-            .Returns(new List<Family>());
 
         unitOfWork
             .SaveChangesAsync(Arg.Any<CancellationToken>())
@@ -192,10 +190,12 @@ public class CreateFamilyCommandHandlerTests
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
         // This is acceptable for unit testing - we're verifying handler behavior with mocked dependencies,
         // not domain entity state. The mock will return this user when queried with userId.
+        var testFamilyId = FamilyId.New();
         var user = User.CreateFromOAuth(
             Email.From("test@example.com"),
             "ext123",
-            "zitadel");
+            "zitadel",
+            testFamilyId);
 
         var callOrder = new List<string>();
 
@@ -203,11 +203,6 @@ public class CreateFamilyCommandHandlerTests
             .GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(user)
             .AndDoes(_ => callOrder.Add("GetUser"));
-
-        familyRepository
-            .GetFamiliesByUserIdAsync(userId, Arg.Any<CancellationToken>())
-            .Returns(new List<Family>())
-            .AndDoes(_ => callOrder.Add("GetFamilies"));
 
         familyRepository
             .When(x => x.AddAsync(Arg.Any<Family>(), Arg.Any<CancellationToken>()))
@@ -229,8 +224,8 @@ public class CreateFamilyCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        callOrder.Should().HaveCount(4)
-            .And.ContainInOrder("GetUser", "GetFamilies", "AddFamily", "SaveChanges");
+        callOrder.Should().HaveCount(3)
+            .And.ContainInOrder("GetUser", "AddFamily", "SaveChanges");
     }
 
     [Theory, AutoNSubstituteData]
@@ -250,18 +245,16 @@ public class CreateFamilyCommandHandlerTests
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
         // This is acceptable for unit testing - we're verifying handler behavior with mocked dependencies,
         // not domain entity state. The mock will return this user when queried with userId.
+        var testFamilyId = FamilyId.New();
         var user = User.CreateFromOAuth(
             Email.From("test@example.com"),
             "ext123",
-            "zitadel");
+            "zitadel",
+            testFamilyId);
 
         userRepository
             .GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(user);
-
-        familyRepository
-            .GetFamiliesByUserIdAsync(userId, Arg.Any<CancellationToken>())
-            .Returns(new List<Family>());
 
         unitOfWork
             .SaveChangesAsync(Arg.Any<CancellationToken>())
@@ -279,13 +272,11 @@ public class CreateFamilyCommandHandlerTests
 
         // Assert
         await userRepository.Received(1).GetByIdAsync(userId, Arg.Any<CancellationToken>());
-        await familyRepository.Received(1).GetFamiliesByUserIdAsync(userId, Arg.Any<CancellationToken>());
 
         await familyRepository.Received(1).AddAsync(
             Arg.Is<Family>(f =>
                 f.Name == familyName &&
-                f.OwnerId == userId &&
-                f.UserFamilies.Count == 1),
+                f.OwnerId == userId),
             Arg.Any<CancellationToken>());
 
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -356,13 +347,12 @@ public class CreateFamilyCommandHandlerTests
             .WithMessage($"*User with ID {userId.Value} not found*");
 
         // Verify that we stopped at user validation and didn't proceed
-        await familyRepository.DidNotReceiveWithAnyArgs().GetFamiliesByUserIdAsync(UserId.New(), CancellationToken.None);
         await familyRepository.DidNotReceiveWithAnyArgs().AddAsync(null!, CancellationToken.None);
         await unitOfWork.DidNotReceiveWithAnyArgs().SaveChangesAsync(CancellationToken.None);
     }
 
     [Theory, AutoNSubstituteData]
-    public async Task Handle_WhenUserAlreadyBelongsToFamily_ShouldThrowInvalidOperationException(
+    public async Task Handle_WhenUserAlreadyBelongsToFamily_ShouldReplaceFamily(
         IUserRepository userRepository,
         IFamilyRepository familyRepository,
         IUnitOfWork unitOfWork,
@@ -372,25 +362,23 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var userId = UserId.New();
         currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
-        var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
+        var command = new CreateFamilyCommand(FamilyName.From("New Family"));
 
-        // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
-        // This is acceptable for unit testing - we're verifying handler behavior with mocked dependencies,
-        // not domain entity state. The mock will return this user when queried with userId.
+        // User already has a family (from OAuth registration)
+        var existingFamilyId = FamilyId.New();
         var user = User.CreateFromOAuth(
             Email.From("test@example.com"),
             "ext123",
-            "zitadel");
-
-        var existingFamily = Family.Create(FamilyName.From("Existing Family"), userId);
+            "zitadel",
+            existingFamilyId);
 
         userRepository
             .GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(user);
 
-        familyRepository
-            .GetFamiliesByUserIdAsync(userId, Arg.Any<CancellationToken>())
-            .Returns(new List<Family> { existingFamily });
+        unitOfWork
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(1);
 
         var handler = new CreateFamilyCommandHandler(
             userRepository,
@@ -400,19 +388,23 @@ public class CreateFamilyCommandHandlerTests
             logger);
 
         // Act
-        var act = async () => await handler.Handle(command, CancellationToken.None);
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        await act.Should().ThrowAsync<BusinessException>()
-            .WithMessage("*User already belongs to a family*Users can only be members of one family at a time*");
+        // Assert - New family should be created and user's family should be updated
+        result.Should().NotBeNull();
+        result.Name.Value.Should().Be("New Family");
+        result.OwnerId.Should().Be(userId);
 
-        // Verify that we stopped after the family check
-        await familyRepository.DidNotReceiveWithAnyArgs().AddAsync(null!, CancellationToken.None);
-        await unitOfWork.DidNotReceiveWithAnyArgs().SaveChangesAsync(CancellationToken.None);
+        // Verify family was added
+        await familyRepository.Received(1).AddAsync(
+            Arg.Is<Family>(f => f.Name.Value == "New Family" && f.OwnerId == userId),
+            Arg.Any<CancellationToken>());
+
+        await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Theory, AutoNSubstituteData]
-    public async Task Handle_WhenUserBelongsToMultipleFamilies_ShouldThrowInvalidOperationException(
+    public async Task Handle_WhenUserHasExistingFamily_ShouldReplaceWithNewFamily(
         IUserRepository userRepository,
         IFamilyRepository familyRepository,
         IUnitOfWork unitOfWork,
@@ -422,26 +414,23 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var userId = UserId.New();
         currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
-        var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
+        var command = new CreateFamilyCommand(FamilyName.From("Replacement Family"));
 
-        // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
-        // This is acceptable for unit testing - we're verifying handler behavior with mocked dependencies,
-        // not domain entity state. The mock will return this user when queried with userId.
+        // User has an existing family
+        var existingFamilyId = FamilyId.New();
         var user = User.CreateFromOAuth(
             Email.From("test@example.com"),
             "ext123",
-            "zitadel");
-
-        var existingFamily1 = Family.Create(FamilyName.From("Existing Family 1"), userId);
-        var existingFamily2 = Family.Create(FamilyName.From("Existing Family 2"), userId);
+            "zitadel",
+            existingFamilyId);
 
         userRepository
             .GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(user);
 
-        familyRepository
-            .GetFamiliesByUserIdAsync(userId, Arg.Any<CancellationToken>())
-            .Returns(new List<Family> { existingFamily1, existingFamily2 });
+        unitOfWork
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(1);
 
         var handler = new CreateFamilyCommandHandler(
             userRepository,
@@ -451,11 +440,13 @@ public class CreateFamilyCommandHandlerTests
             logger);
 
         // Act
-        var act = async () => await handler.Handle(command, CancellationToken.None);
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        await act.Should().ThrowAsync<BusinessException>()
-            .WithMessage("*User already belongs to a family*");
+        // Assert - New family should be created successfully
+        result.Should().NotBeNull();
+        result.Name.Value.Should().Be("Replacement Family");
+        result.OwnerId.Should().Be(userId);
+        result.FamilyId.Should().NotBe(existingFamilyId);
     }
 
     #endregion
@@ -478,20 +469,18 @@ public class CreateFamilyCommandHandlerTests
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
         // This is acceptable for unit testing - we're verifying handler behavior with mocked dependencies,
         // not domain entity state. The mock will return this user when queried with userId.
+        var testFamilyId = FamilyId.New();
         var user = User.CreateFromOAuth(
             Email.From("test@example.com"),
             "ext123",
-            "zitadel");
+            "zitadel",
+            testFamilyId);
         var cts = new CancellationTokenSource();
         var cancellationToken = cts.Token;
 
         userRepository
             .GetByIdAsync(userId, cancellationToken)
             .Returns(user);
-
-        familyRepository
-            .GetFamiliesByUserIdAsync(userId, cancellationToken)
-            .Returns(new List<Family>());
 
         unitOfWork
             .SaveChangesAsync(cancellationToken)
@@ -509,7 +498,6 @@ public class CreateFamilyCommandHandlerTests
 
         // Assert
         await userRepository.Received(1).GetByIdAsync(userId, cancellationToken);
-        await familyRepository.Received(1).GetFamiliesByUserIdAsync(userId, cancellationToken);
         await familyRepository.Received(1).AddAsync(Arg.Any<Family>(), cancellationToken);
         await unitOfWork.Received(1).SaveChangesAsync(cancellationToken);
     }
@@ -532,18 +520,16 @@ public class CreateFamilyCommandHandlerTests
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
         // This is acceptable for unit testing - we're verifying handler behavior with mocked dependencies,
         // not domain entity state. The mock will return this user when queried with userId.
+        var testFamilyId = FamilyId.New();
         var user = User.CreateFromOAuth(
             Email.From("test@example.com"),
             "ext123",
-            "zitadel");
+            "zitadel",
+            testFamilyId);
 
         userRepository
             .GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(user);
-
-        familyRepository
-            .GetFamiliesByUserIdAsync(userId, Arg.Any<CancellationToken>())
-            .Returns(new List<Family>());
 
         unitOfWork
             .SaveChangesAsync(Arg.Any<CancellationToken>())
@@ -607,7 +593,7 @@ public class CreateFamilyCommandHandlerTests
     }
 
     [Theory, AutoNSubstituteData]
-    public async Task Handle_WhenUserAlreadyHasFamily_ShouldLogWarning(
+    public async Task Handle_WhenReplacingFamily_ShouldSucceed(
         IUserRepository userRepository,
         IFamilyRepository familyRepository,
         IUnitOfWork unitOfWork,
@@ -617,25 +603,23 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var userId = UserId.New();
         currentUserService.GetUserIdAsync(Arg.Any<CancellationToken>()).Returns(userId);
-        var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
+        var command = new CreateFamilyCommand(FamilyName.From("New Family"));
 
-        // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
-        // This is acceptable for unit testing - we're verifying handler behavior with mocked dependencies,
-        // not domain entity state. The mock will return this user when queried with userId.
+        // User has an existing family
+        var existingFamilyId = FamilyId.New();
         var user = User.CreateFromOAuth(
             Email.From("test@example.com"),
             "ext123",
-            "zitadel");
-
-        var existingFamily = Family.Create(FamilyName.From("Existing Family"), userId);
+            "zitadel",
+            existingFamilyId);
 
         userRepository
             .GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(user);
 
-        familyRepository
-            .GetFamiliesByUserIdAsync(userId, Arg.Any<CancellationToken>())
-            .Returns(new List<Family> { existingFamily });
+        unitOfWork
+            .SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(1);
 
         var handler = new CreateFamilyCommandHandler(
             userRepository,
@@ -645,10 +629,11 @@ public class CreateFamilyCommandHandlerTests
             logger);
 
         // Act
-        var act = async () => await handler.Handle(command, CancellationToken.None);
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        await act.Should().ThrowAsync<BusinessException>();
+        // Assert - Should successfully replace family
+        result.Should().NotBeNull();
+        result.Name.Value.Should().Be("New Family");
 
         // Note: Logging verification removed - testing implementation details
         // LoggerMessage.Define pattern doesn't call generic Log() method
@@ -672,18 +657,16 @@ public class CreateFamilyCommandHandlerTests
         // Note: User.CreateFromOAuth() auto-generates a new ID internally, different from userId.
         // This is acceptable for unit testing - we're verifying handler behavior with mocked dependencies,
         // not domain entity state. The mock will return this user when queried with userId.
+        var testFamilyId = FamilyId.New();
         var user = User.CreateFromOAuth(
             Email.From("test@example.com"),
             "ext123",
-            "zitadel");
+            "zitadel",
+            testFamilyId);
 
         userRepository
             .GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(user);
-
-        familyRepository
-            .GetFamiliesByUserIdAsync(userId, Arg.Any<CancellationToken>())
-            .Returns(new List<Family>());
 
         unitOfWork
             .SaveChangesAsync(Arg.Any<CancellationToken>())

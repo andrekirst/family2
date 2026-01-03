@@ -55,12 +55,6 @@ public class FamilyConfiguration : IEntityTypeConfiguration<Family>
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        // Relationships
-        builder.HasMany(f => f.UserFamilies)
-            .WithOne(uf => uf.Family)
-            .HasForeignKey(uf => uf.FamilyId)
-            .OnDelete(DeleteBehavior.Cascade);
-
         // Ignore domain events collection
         builder.Ignore(f => f.DomainEvents);
     }

@@ -16,7 +16,6 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     public async Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
     {
         return await _context.Users
-            .Include(u => u.UserFamilies)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
@@ -24,7 +23,6 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     public async Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
         return await _context.Users
-            .Include(u => u.UserFamilies)
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
@@ -45,7 +43,6 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
         }
 
         return await _context.Users
-            .Include(u => u.UserFamilies)
             .FirstOrDefaultAsync(
                 u => u.ExternalProvider == externalProvider && u.ExternalUserId == externalUserId,
                 cancellationToken);

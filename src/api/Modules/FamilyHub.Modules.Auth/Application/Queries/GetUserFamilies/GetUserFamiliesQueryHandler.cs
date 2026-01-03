@@ -19,25 +19,34 @@ public sealed partial class GetUserFamiliesQueryHandler(
     {
         LogRetrievingFamiliesForUser(request.UserId.Value);
 
-        // 1. Query families from repository
-        var families = await familyRepository.GetFamiliesByUserIdAsync(request.UserId, cancellationToken);
+        // 1. Query family from repository (users now have only one family)
+        var family = await familyRepository.GetFamilyByUserIdAsync(request.UserId, cancellationToken);
 
-        LogFoundFamilycountFamilyIesForUserUserid(families.Count, request.UserId.Value);
-
-        // 2. Map to DTOs
-        var familyDtos = families.Select(f => new FamilyDto
+        if (family == null)
         {
-            FamilyId = f.Id,
-            Name = f.Name.Value,
-            OwnerId = f.OwnerId,
-            CreatedAt = f.CreatedAt,
-            MemberCount = f.UserFamilies.Count
-        }).ToList();
+            LogFoundFamilycountFamilyIesForUserUserid(0, request.UserId.Value);
+            return new GetUserFamiliesResult
+            {
+                Families = []
+            };
+        }
 
-        // 3. Return result
+        LogFoundFamilycountFamilyIesForUserUserid(1, request.UserId.Value);
+
+        // 2. Map to DTO
+        var familyDto = new FamilyDto
+        {
+            FamilyId = family.Id,
+            Name = family.Name.Value,
+            OwnerId = family.OwnerId,
+            CreatedAt = family.CreatedAt,
+            MemberCount = family.GetMemberCount()
+        };
+
+        // 3. Return result (single family in list for backwards compatibility)
         return new GetUserFamiliesResult
         {
-            Families = familyDtos
+            Families = [familyDto]
         };
     }
 

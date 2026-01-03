@@ -75,11 +75,19 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        // Relationships
-        builder.HasMany(u => u.UserFamilies)
-            .WithOne(uf => uf.User)
-            .HasForeignKey(uf => uf.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Family relationship - User belongs to one Family
+        builder.Property(u => u.FamilyId)
+            .HasConversion(new FamilyId.EfCoreValueConverter())
+            .HasColumnName("family_id")
+            .IsRequired();
+
+        builder.HasIndex(u => u.FamilyId)
+            .HasDatabaseName("ix_users_family_id");
+
+        builder.HasOne<Family>()
+            .WithMany(f => f.Members)
+            .HasForeignKey(u => u.FamilyId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Ignore domain events collection (handled by base class)
         builder.Ignore(u => u.DomainEvents);

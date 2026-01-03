@@ -27,18 +27,33 @@ public static class TestDataFactory
     /// </example>
     public static async Task<User> CreateUserAsync(
         IUserRepository userRepository,
+        IFamilyRepository familyRepository,
         IUnitOfWork unitOfWork,
         string emailPrefix = "test")
     {
         var testId = Guid.NewGuid().ToString("N")[..8];
         var email = $"{emailPrefix}-{testId}@example.com";
+        var familyName = $"{emailPrefix} Family {testId}";
+        
+        // Create family first (required by foreign key constraint)
+        var family = Family.Create(FamilyName.From(familyName), UserId.New()); // Temp owner
+        await familyRepository.AddAsync(family);
+        await unitOfWork.SaveChangesAsync();
+        
+        // Create user with family ID
         var user = User.CreateFromOAuth(
             Email.From(email),
             $"zitadel-{emailPrefix}-{testId}",
-            "zitadel"
+            "zitadel",
+            family.Id
         );
+        
+        // Transfer ownership to user
+        family.TransferOwnership(user.Id);
+        
         await userRepository.AddAsync(user);
         await unitOfWork.SaveChangesAsync();
+        
         return user;
     }
 
@@ -95,7 +110,7 @@ public static class TestDataFactory
         string emailPrefix = "test",
         string? familyName = null)
     {
-        var user = await CreateUserAsync(userRepository, unitOfWork, emailPrefix);
+        var user = await CreateUserAsync(userRepository, familyRepository, unitOfWork, emailPrefix);
         var family = await CreateFamilyAsync(mediator, familyRepository, user.Id, familyName);
         return (user, family);
     }

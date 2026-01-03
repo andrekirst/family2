@@ -8,7 +8,7 @@ namespace FamilyHub.Modules.Auth.Domain;
 /// </summary>
 public class Family : AggregateRoot<FamilyId>, ISoftDeletable
 {
-    private readonly List<UserFamily> _userFamilies = [];
+    private readonly List<User> _members = [];
 
     /// <summary>
     /// Family name (e.g., "Smith Family").
@@ -26,9 +26,9 @@ public class Family : AggregateRoot<FamilyId>, ISoftDeletable
     public DateTime? DeletedAt { get; set; }
 
     /// <summary>
-    /// Family members.
+    /// Family members (navigation property for EF Core).
     /// </summary>
-    public IReadOnlyCollection<UserFamily> UserFamilies => _userFamilies.AsReadOnly();
+    public IReadOnlyCollection<User> Members => _members.AsReadOnly();
 
     // Private constructor for EF Core
     private Family() : base(FamilyId.From(Guid.Empty))
@@ -93,10 +93,7 @@ public class Family : AggregateRoot<FamilyId>, ISoftDeletable
     }
 
     /// <summary>
-    /// Adds a member to the family.
+    /// Gets the number of members in this family.
     /// </summary>
-    internal void AddMember(UserFamily userFamily)
-    {
-        _userFamilies.Add(userFamily);
-    }
+    public int GetMemberCount() => _members.Count;
 }

@@ -84,60 +84,17 @@ public class TimestampInterceptorTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task SaveChanges_UserFamily_ShouldSetTimestamps()
-    {
-        // Arrange
-        var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel");
-        var family = Family.Create(FamilyName.From("Test"), user.Id);
-        var userFamily = UserFamily.CreateOwnerMembership(user.Id, family.Id);
-
-        var expectedTime = _timeProvider.GetUtcNow().UtcDateTime;
-
-        // Act
-        _context.Users.Add(user);
-        _context.Families.Add(family);
-        _context.UserFamilies.Add(userFamily);
-        await _context.SaveChangesAsync();
-
-        // Assert
-        userFamily.CreatedAt.Should().Be(expectedTime);
-        userFamily.UpdatedAt.Should().Be(expectedTime);
-    }
-
-    [Fact]
-    public async Task SaveChanges_ModifiedUserFamily_ShouldUpdateOnlyUpdatedAt()
-    {
-        // Arrange
-        var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel");
-        var family = Family.Create(FamilyName.From("Test"), user.Id);
-        var userFamily = UserFamily.CreateMembership(user.Id, family.Id, UserRole.Member, isCurrentFamily: false);
-
-        _context.Users.Add(user);
-        _context.Families.Add(family);
-        _context.UserFamilies.Add(userFamily);
-        await _context.SaveChangesAsync();
-
-        var createdAt = userFamily.CreatedAt;
-
-        // Advance time
-        _timeProvider.Advance(TimeSpan.FromHours(2));
-        var updateTime = _timeProvider.GetUtcNow().UtcDateTime;
-
-        // Act
-        userFamily.MarkAsCurrentFamily();
-        await _context.SaveChangesAsync();
-
-        // Assert
-        userFamily.CreatedAt.Should().Be(createdAt); // Unchanged
-        userFamily.UpdatedAt.Should().Be(updateTime);
-    }
-
-    [Fact]
     public async Task SaveChanges_NewUser_ShouldSetCreatedAtAndUpdatedAt()
     {
         // Arrange
         var expectedTime = _timeProvider.GetUtcNow().UtcDateTime;
-        var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel");
+
+        // Create family first (required by foreign key constraint)
+        var family = Family.Create(FamilyName.From("Test Family"), UserId.New());
+        _context.Families.Add(family);
+        await _context.SaveChangesAsync();
+
+        var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel", family.Id);
 
         // Act
         _context.Users.Add(user);
@@ -154,7 +111,12 @@ public class TimestampInterceptorTests : IAsyncLifetime
         // Arrange
         var expectedTime = _timeProvider.GetUtcNow().UtcDateTime;
 
-        var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel");
+        // Create user's family first (required by foreign key constraint)
+        var userFamily = Family.Create(FamilyName.From("User Family"), UserId.New());
+        _context.Families.Add(userFamily);
+        await _context.SaveChangesAsync();
+
+        var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel", userFamily.Id);
         var family1 = Family.Create(FamilyName.From("Family 1"), user.Id);
         var family2 = Family.Create(FamilyName.From("Family 2"), user.Id);
 

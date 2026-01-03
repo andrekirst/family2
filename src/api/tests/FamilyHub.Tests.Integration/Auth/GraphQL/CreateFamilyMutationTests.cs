@@ -61,9 +61,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "valid");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "valid");
         var testId = TestDataFactory.GenerateTestId();
         var familyName = $"GraphQL Test Family {testId}";
 
@@ -115,9 +115,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "empty");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "empty");
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
         var mutation = """
@@ -164,9 +164,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "long");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "long");
         var longName = new string('A', 101); // Exceeds 100 character limit
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
@@ -214,12 +214,11 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
+        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Create user and family using direct command (no GraphQL)
-        var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "existing");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "existing");
 
         // Set authentication and create family via command handler
         TestCurrentUserService.SetUserId(user.Id);
@@ -324,9 +323,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "malformed");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "malformed");
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
         // Malformed GraphQL query (missing closing brace)
@@ -357,9 +356,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, unitOfWork, "null");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "null");
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
         var mutation = """

@@ -25,6 +25,7 @@ public class CompleteZitadelLoginPayloadFactory : IPayloadFactory<CompleteZitade
             Id = result.UserId.Value,
             Email = result.Email.Value,
             EmailVerified = result.EmailVerified,
+            FamilyId = result.FamilyId.Value,
             AuditInfo = new AuditInfoType
             {
                 CreatedAt = result.CreatedAt,

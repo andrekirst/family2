@@ -23,6 +23,11 @@ public sealed record UserType
     public required bool EmailVerified { get; init; }
 
     /// <summary>
+    /// The ID of the family this user belongs to.
+    /// </summary>
+    public required Guid FamilyId { get; init; }
+
+    /// <summary>
     /// Audit metadata (creation and last update timestamps).
     /// </summary>
     public required AuditInfoType AuditInfo { get; init; }

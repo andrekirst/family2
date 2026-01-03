@@ -18,7 +18,7 @@ public class OAuthIntegrationTests
         var externalProvider = "zitadel";
 
         // Act
-        var user = User.CreateFromOAuth(email, externalUserId, externalProvider);
+        var user = User.CreateFromOAuth(email, externalUserId, externalProvider, FamilyId.New());
 
         // Assert
         Assert.NotNull(user);
@@ -40,7 +40,7 @@ public class OAuthIntegrationTests
         var externalProvider = "zitadel";
 
         // Act
-        var user = User.CreateFromOAuth(email, externalUserId, externalProvider);
+        var user = User.CreateFromOAuth(email, externalUserId, externalProvider, FamilyId.New());
 
         // Assert - Email should be verified when created from OAuth
         Assert.True(user.EmailVerified);
@@ -60,7 +60,7 @@ public class OAuthIntegrationTests
         var externalProvider = "zitadel";
 
         // Act
-        var user = User.CreateFromOAuth(email, userId, externalProvider);
+        var user = User.CreateFromOAuth(email, userId, externalProvider, FamilyId.New());
 
         // Assert
         Assert.Equal(emailAddress, user.Email.Value);
@@ -76,9 +76,9 @@ public class OAuthIntegrationTests
         var externalProvider = "zitadel";
 
         // Act - Create multiple users
-        var user1 = User.CreateFromOAuth(email, externalUserId, externalProvider);
-        var user2 = User.CreateFromOAuth(email, externalUserId, externalProvider);
-        var user3 = User.CreateFromOAuth(email, externalUserId, externalProvider);
+        var user1 = User.CreateFromOAuth(email, externalUserId, externalProvider, FamilyId.New());
+        var user2 = User.CreateFromOAuth(email, externalUserId, externalProvider, FamilyId.New());
+        var user3 = User.CreateFromOAuth(email, externalUserId, externalProvider, FamilyId.New());
 
         // Assert - All have different internal IDs
         Assert.NotEqual(user1.Id.Value, user2.Id.Value);

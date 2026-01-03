@@ -16,17 +16,16 @@ public sealed class FamilyRepository(AuthDbContext context) : IFamilyRepository
     public async Task<Family?> GetByIdAsync(FamilyId id, CancellationToken cancellationToken = default)
     {
         return await _context.Families
-            .Include(f => f.UserFamilies)
+            .Include(f => f.Members)
             .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<Family>> GetFamiliesByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
+    public async Task<Family?> GetFamilyByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         return await _context.Families
-            .Include(f => f.UserFamilies)
-            .Where(f => f.UserFamilies.Any(uf => uf.UserId == userId))
-            .ToListAsync(cancellationToken);
+            .Include(f => f.Members)
+            .FirstOrDefaultAsync(f => f.Members.Any(u => u.Id == userId), cancellationToken);
     }
 
     /// <inheritdoc />

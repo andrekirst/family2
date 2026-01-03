@@ -10,7 +10,6 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<Family> Families => Set<Family>();
-    public DbSet<UserFamily> UserFamilies => Set<UserFamily>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

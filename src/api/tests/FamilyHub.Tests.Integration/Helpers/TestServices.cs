@@ -37,11 +37,12 @@ public static class TestServices
     /// <example>
     /// var (userRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
     /// </example>
-    public static (IUserRepository userRepo, IUnitOfWork unitOfWork)
+    public static (IUserRepository userRepo, IFamilyRepository familyRepo, IUnitOfWork unitOfWork)
         ResolveRepositoryServices(IServiceScope scope)
     {
         return (
             scope.ServiceProvider.GetRequiredService<IUserRepository>(),
+            scope.ServiceProvider.GetRequiredService<IFamilyRepository>(),
             scope.ServiceProvider.GetRequiredService<IUnitOfWork>()
         );
     }

@@ -44,24 +44,13 @@ public sealed partial class CreateFamilyCommandHandler(
             throw new BusinessException("USER_NOT_FOUND", $"User with ID {userId.Value} not found.");
         }
 
-        // 2. Check if user already belongs to a family (business rule: one family per user)
-        var existingFamilies = await _familyRepository.GetFamiliesByUserIdAsync(userId, cancellationToken);
-        if (existingFamilies.Count > 0)
-        {
-            LogUserUseridAlreadyBelongsToFamilycountFamilyIes(userId.Value, existingFamilies.Count);
-            throw new BusinessException("FAMILY_ALREADY_EXISTS", "User already belongs to a family. Users can only be members of one family at a time.");
-        }
-
-        // 3. Create family using domain factory method
+        // 2. Create new family using domain factory method
         var family = Family.Create(request.Name, userId);
 
-        // 4. Create owner membership
-        var ownerMembership = UserFamily.CreateOwnerMembership(userId, family.Id);
+        // 3. Update user's FamilyId to point to new family
+        user.UpdateFamily(family.Id);
 
-        // 5. Link membership to family (bidirectional relationship)
-        family.AddMember(ownerMembership);
-
-        // 6. Persist to database
+        // 4. Persist to database
         await _familyRepository.AddAsync(family, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -82,9 +71,6 @@ public sealed partial class CreateFamilyCommandHandler(
 
     [LoggerMessage(LogLevel.Warning, "User {userId} not found")]
     partial void LogUserUseridNotFound(Guid userId);
-
-    [LoggerMessage(LogLevel.Warning, "User {userId} already belongs to {familyCount} family(ies)")]
-    partial void LogUserUseridAlreadyBelongsToFamilycountFamilyIes(Guid userId, int familyCount);
 
     [LoggerMessage(LogLevel.Information, "Successfully created family {familyId} '{familyName}' with owner {userId}")]
     partial void LogSuccessfullyCreatedFamilyFamilyidFamilynameWithOwnerUserid(Guid familyId, FamilyName familyName, Guid userId);

@@ -234,82 +234,39 @@ public class FamilyTests
 
     #endregion
 
-    #region UserFamily Factory Method Tests
+    #region Members Collection Tests
 
     [Fact]
-    public void UserFamily_CreateOwnerMembership_ShouldCreateOwnerWithCorrectRole()
-    {
-        // Arrange
-        var ownerId = UserId.New();
-        var familyId = FamilyId.New();
-
-        // Act
-        var ownerMembership = UserFamily.CreateOwnerMembership(ownerId, familyId);
-
-        // Assert
-        ownerMembership.Should().NotBeNull();
-        ownerMembership.UserId.Should().Be(ownerId);
-        ownerMembership.FamilyId.Should().Be(familyId);
-        ownerMembership.Role.Should().Be(UserRole.Owner);
-    }
-
-    [Fact]
-    public void UserFamily_CreateMembership_ShouldCreateMemberWithCorrectRole()
-    {
-        // Arrange
-        var memberId = UserId.New();
-        var familyId = FamilyId.New();
-
-        // Act
-        var membership = UserFamily.CreateMembership(
-            memberId,
-            familyId,
-            UserRole.Member);
-
-        // Assert
-        membership.Should().NotBeNull();
-        membership.UserId.Should().Be(memberId);
-        membership.FamilyId.Should().Be(familyId);
-        membership.Role.Should().Be(UserRole.Member);
-    }
-
-    [Fact]
-    public void UserFamily_CreateMembership_WithOwnerRole_ShouldThrowInvalidOperationException()
-    {
-        // Arrange
-        var memberId = UserId.New();
-        var familyId = FamilyId.New();
-
-        // Act
-        var act = () => UserFamily.CreateMembership(memberId, familyId, UserRole.Owner);
-
-        // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Use CreateOwnerMembership for owner role*");
-    }
-
-    #endregion
-
-    #region UserFamilies Collection Tests
-
-    [Fact]
-    public void UserFamilies_ShouldBeReadOnly()
+    public void Members_ShouldBeReadOnly()
     {
         // Arrange
         var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
 
         // Assert
-        family.UserFamilies.Should().BeAssignableTo<IReadOnlyCollection<UserFamily>>();
+        family.Members.Should().BeAssignableTo<IReadOnlyCollection<User>>();
     }
 
     [Fact]
-    public void UserFamilies_InitiallyEmpty()
+    public void Members_InitiallyEmpty()
     {
         // Arrange & Act
         var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
 
         // Assert
-        family.UserFamilies.Should().BeEmpty();
+        family.Members.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void GetMemberCount_WhenNoMembers_ShouldReturnZero()
+    {
+        // Arrange
+        var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
+
+        // Act
+        var count = family.GetMemberCount();
+
+        // Assert
+        count.Should().Be(0);
     }
 
     #endregion

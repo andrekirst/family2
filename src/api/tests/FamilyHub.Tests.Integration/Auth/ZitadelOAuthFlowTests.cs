@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
@@ -125,21 +126,28 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (mediator, userRepository) = TestServices.ResolveOAuthServices(scope);
+        var familyRepository = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<FamilyHub.Modules.Auth.Application.Abstractions.IUnitOfWork>();
 
         var testId = TestDataFactory.GenerateTestId();
         var zitadelUserId = $"zitadel-user-existing-{testId}";
         var email = $"existing-{testId}@example.com";
 
+        // Create family first (required by foreign key constraint)
+        var family = Family.Create(FamilyName.From($"Existing Family {testId}"), UserId.New());
+        await familyRepository.AddAsync(family);
+        await unitOfWork.SaveChangesAsync();
+
         // Create existing user
         var existingUser = User.CreateFromOAuth(
             Email.From(email),
             zitadelUserId,
-            "zitadel"
+            "zitadel",
+            family.Id
         );
         await userRepository.AddAsync(existingUser);
 
         // Save changes to persist the existing user
-        var unitOfWork = scope.ServiceProvider.GetRequiredService<FamilyHub.Modules.Auth.Application.Abstractions.IUnitOfWork>();
         await unitOfWork.SaveChangesAsync();
 
         // Mock Zitadel token endpoint response
@@ -195,10 +203,9 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
         var testId = Guid.NewGuid().ToString("N")[..8];
         var zitadelUserId = $"zitadel-user-token-{testId}";
         var email = $"tokentest-{testId}@example.com";
-        var expectedAccessToken = "mock_access_token_12345";
 
         // Mock Zitadel token endpoint response
-        SetupMockHttpResponse(zitadelUserId, email, expectedAccessToken);
+        SetupMockHttpResponse(zitadelUserId, email);
 
         var command = new CompleteZitadelLoginCommand(
             AuthorizationCode: "mock_authorization_code",
@@ -210,7 +217,8 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(expectedAccessToken, result.AccessToken);
+        Assert.NotNull(result.AccessToken); // AccessToken contains the ID token (JWT)
+        Assert.StartsWith("eyJ", result.AccessToken); // JWT tokens start with "eyJ"
         Assert.True(result.ExpiresAt > DateTime.UtcNow);
     }
 
@@ -224,6 +232,7 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
             new("sub", zitadelUserId),
             new("email", email),
             new("email_verified", "true"),
+            new("name", "Test User"), // Added for family name generation
             new("iss", "http://localhost:8080"),
             new("aud", "family-hub-api"),
             new("iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),

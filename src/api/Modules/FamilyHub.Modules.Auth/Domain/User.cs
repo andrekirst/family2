@@ -1,3 +1,4 @@
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
@@ -8,8 +9,6 @@ namespace FamilyHub.Modules.Auth.Domain;
 /// </summary>
 public class User : AggregateRoot<UserId>, ISoftDeletable
 {
-    private readonly List<UserFamily> _userFamilies = [];
-
     /// <summary>
     /// User's email address (unique identifier for login).
     /// </summary>
@@ -38,24 +37,26 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     public string ExternalProvider { get; private set; } = string.Empty;
 
     /// <summary>
+    /// The family this user belongs to.
+    /// </summary>
+    public FamilyId FamilyId { get; private set; }
+
+    /// <summary>
     /// Soft delete timestamp
     /// </summary>
     public DateTime? DeletedAt { get; set; }
-
-    /// <summary>
-    /// User's family memberships.
-    /// </summary>
-    public IReadOnlyCollection<UserFamily> UserFamilies => _userFamilies.AsReadOnly();
 
     // Private constructor for EF Core
     private User() : base(UserId.From(Guid.NewGuid()))
     {
         Email = Email.From("temp@temp.com"); // EF Core will set the actual value
+        FamilyId = FamilyId.From(Guid.Empty); // EF Core will set the actual value
     }
 
-    private User(UserId id, Email email) : base(id)
+    private User(UserId id, Email email, FamilyId familyId) : base(id)
     {
         Email = email;
+        FamilyId = familyId;
         EmailVerified = false;
     }
 
@@ -63,9 +64,9 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     /// Creates a new user from external OAuth provider (e.g., Zitadel).
     /// This is now the ONLY way to create users.
     /// </summary>
-    public static User CreateFromOAuth(Email email, string externalUserId, string externalProvider)
+    public static User CreateFromOAuth(Email email, string externalUserId, string externalProvider, FamilyId familyId)
     {
-        return new User(UserId.New(), email)
+        return new User(UserId.New(), email, familyId)
         {
             ExternalUserId = externalUserId,
             ExternalProvider = externalProvider,
@@ -92,6 +93,15 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     }
 
     /// <summary>
+    /// Updates the user's family association.
+    /// Allows switching families (e.g., when creating a new family to replace auto-created one).
+    /// </summary>
+    public void UpdateFamily(FamilyId newFamilyId)
+    {
+        FamilyId = newFamilyId;
+    }
+
+    /// <summary>
     /// Soft deletes the user.
     /// </summary>
     public void Delete()
@@ -103,10 +113,11 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     }
 
     /// <summary>
-    /// Adds a family membership.
+    /// Gets the user's role in the given family.
+    /// Returns Owner if the user owns the family, otherwise Member.
     /// </summary>
-    internal void AddFamilyMembership(UserFamily userFamily)
+    public UserRole GetRoleInFamily(Family family)
     {
-        _userFamilies.Add(userFamily);
+        return family.OwnerId == Id ? UserRole.Owner : UserRole.Member;
     }
 }

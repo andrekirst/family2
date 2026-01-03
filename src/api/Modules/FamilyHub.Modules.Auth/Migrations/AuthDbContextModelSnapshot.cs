@@ -108,6 +108,10 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("external_user_id");
 
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -121,6 +125,9 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_users_email");
 
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_users_family_id");
+
                     b.HasIndex("ExternalProvider", "ExternalUserId")
                         .IsUnique()
                         .HasDatabaseName("ix_users_external_provider_user_id");
@@ -128,91 +135,19 @@ namespace FamilyHub.Modules.Auth.Migrations
                     b.ToTable("users", "auth");
                 });
 
-            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.UserFamily", b =>
+            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.User", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("FamilyId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("family_id");
-
-                    b.Property<bool>("IsCurrentFamily")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_current_family");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("role");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_user_families");
-
-                    b.HasIndex("FamilyId")
-                        .HasDatabaseName("ix_user_families_family_id");
-
-                    b.HasIndex("UserId", "FamilyId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_user_families_user_family");
-
-                    b.HasIndex("UserId", "IsCurrentFamily")
-                        .HasDatabaseName("ix_user_families_user_id_is_current_family")
-                        .HasFilter("is_current_family = true");
-
-                    b.ToTable("user_families", "auth");
-                });
-
-            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.UserFamily", b =>
-                {
-                    b.HasOne("FamilyHub.Modules.Auth.Domain.Family", "Family")
-                        .WithMany("UserFamilies")
+                    b.HasOne("FamilyHub.Modules.Auth.Domain.Family", null)
+                        .WithMany("Members")
                         .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_user_families_families_family_id");
-
-                    b.HasOne("FamilyHub.Modules.Auth.Domain.User", "User")
-                        .WithMany("UserFamilies")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_families_users_user_id");
-
-                    b.Navigation("Family");
-
-                    b.Navigation("User");
+                        .HasConstraintName("fk_users_families_family_id");
                 });
 
             modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.Family", b =>
                 {
-                    b.Navigation("UserFamilies");
-                });
-
-            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.User", b =>
-                {
-                    b.Navigation("UserFamilies");
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

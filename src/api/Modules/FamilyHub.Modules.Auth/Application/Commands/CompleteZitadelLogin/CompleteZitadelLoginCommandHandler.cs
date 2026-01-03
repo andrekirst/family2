@@ -19,6 +19,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 public sealed partial class CompleteZitadelLoginCommandHandler(
     IOptions<ZitadelSettings> settings,
     IUserRepository userRepository,
+    IFamilyRepository familyRepository,
     IUnitOfWork unitOfWork,
     IHttpClientFactory httpClientFactory,
     ILogger<CompleteZitadelLoginCommandHandler> logger)
@@ -53,11 +54,11 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
         var sub = idToken.Claims.GetTokenValueByClaimType("sub");
         var emailClaim = idToken.Claims.GetTokenValueByClaimType("email");
 
-        LogExtractedUserClaimsSubSubEmailEmail(logger, sub, emailClaim);
+        LogExtractedUserClaimsSubSubEmailEmail(logger, sub!, emailClaim!);
 
-        // 3. Get or create user
-        var email = Email.From(emailClaim);
-        var user = await GetOrCreateUserAsync(sub, email, cancellationToken);
+        // 3. Get or create user (with auto-created family if new user)
+        var email = Email.From(emailClaim!);
+        var user = await GetOrCreateUserAsync(sub!, email, idToken, cancellationToken);
 
         LogUserAuthenticatedViaZitadelOauthUseridUseridEmailEmail(logger, user.Id.Value, email.Value);
 
@@ -67,6 +68,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
         {
             UserId = user.Id,
             Email = user.Email,
+            FamilyId = user.FamilyId,
             AccessToken = tokenResponse.IdentityToken!,
             ExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn),
             EmailVerified = user.EmailVerified,
@@ -99,11 +101,12 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
     }
 
     /// <summary>
-    /// Gets existing user or creates new user from OAuth provider.
+    /// Gets existing user or creates new user from OAuth provider with personal family.
     /// </summary>
     private async Task<User> GetOrCreateUserAsync(
         string zitadelUserId,
         Email email,
+        JwtSecurityToken idToken,
         CancellationToken cancellationToken)
     {
         // Try to find existing user by Zitadel user ID
@@ -118,12 +121,29 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
             return user;
         }
 
-        // Create new user from OAuth
-        user = User.CreateFromOAuth(email, zitadelUserId, "zitadel");
+        // Extract display name from ID token for family name
+        var displayName = idToken.Claims.GetTokenValueByClaimType("name")
+                          ?? idToken.Claims.GetTokenValueByClaimType("preferred_username")
+                          ?? email.Value.Split('@')[0];
+
+        var familyName = FamilyName.From($"{displayName} Family");
+
+        // Create personal family first (need ID for user)
+        var personalFamily = Family.Create(familyName, UserId.New()); // Temporary owner
+        await familyRepository.AddAsync(personalFamily, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Create user with family ID
+        user = User.CreateFromOAuth(email, zitadelUserId, "zitadel", personalFamily.Id);
+
+        // Transfer ownership to user (now that user has ID)
+        personalFamily.TransferOwnership(user.Id);
+
         await userRepository.AddAsync(user, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         LogCreatedNewUserFromZitadelOauthUseridUseridEmailEmail(logger, user.Id.Value, email.Value);
+        LogCreatedPersonalFamilyFamilyidFamilynameForUserUserid(logger, personalFamily.Id.Value, familyName.Value, user.Id.Value);
 
         return user;
     }
@@ -142,4 +162,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
 
     [LoggerMessage(LogLevel.Information, "Created new user from Zitadel OAuth: UserId={userId}, Email={email}")]
     static partial void LogCreatedNewUserFromZitadelOauthUseridUseridEmailEmail(ILogger<CompleteZitadelLoginCommandHandler> logger, Guid userId, string email);
+
+    [LoggerMessage(LogLevel.Information, "Created personal family {familyId} '{familyName}' for user {userId}")]
+    static partial void LogCreatedPersonalFamilyFamilyidFamilynameForUserUserid(ILogger<CompleteZitadelLoginCommandHandler> logger, Guid familyId, string familyName, Guid userId);
 }

@@ -18,6 +18,11 @@ public sealed record CompleteZitadelLoginResult
     public required Email Email { get; init; }
 
     /// <summary>
+    /// User's family ID
+    /// </summary>
+    public required FamilyId FamilyId { get; init; }
+
+    /// <summary>
     /// Zitadel JWT access token (for API calls)
     /// </summary>
     public required string AccessToken { get; init; }
