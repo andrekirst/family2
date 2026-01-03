@@ -1,4 +1,5 @@
 using FamilyHub.Infrastructure.GraphQL.Extensions;
+using FamilyHub.Infrastructure.Persistence.Extensions;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
 using FamilyHub.Modules.Auth.Domain.Repositories;
@@ -32,7 +33,10 @@ public static class AuthModuleServiceRegistration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddPooledDbContextFactory<AuthDbContext>((_, options) =>
+        // Register TimeProvider for timestamp management
+        services.AddSingleton(TimeProvider.System);
+
+        services.AddPooledDbContextFactory<AuthDbContext>((sp, options) =>
         {
             var connectionString = configuration.GetConnectionString("FamilyHubDb");
             options.UseNpgsql(connectionString, npgsqlOptions =>
@@ -41,7 +45,8 @@ public static class AuthModuleServiceRegistration
                     // EF Core auto-discovery doesn't work when DbContext is created outside the main application
                     npgsqlOptions.MigrationsAssembly(typeof(AuthDbContext).Assembly.GetName().Name);
                 })
-                .UseSnakeCaseNamingConvention();
+                .UseSnakeCaseNamingConvention()
+                .AddTimestampInterceptor(sp); // Add automatic timestamp management
         });
 
         services.AddScoped(sp =>
@@ -114,9 +119,9 @@ public static class AuthModuleServiceRegistration
     {
         return builder
             .RegisterDbContextFactory<AuthDbContext>()
+            .AddType<Presentation.GraphQL.Types.FamilyType>()
             .AddTypeExtensionsFromAssemblies(
                 [typeof(AuthModuleServiceRegistration).Assembly],
-                loggerFactory)
-            .AddType<Presentation.GraphQL.Types.FamilyType>();
+                loggerFactory);
     }
 }

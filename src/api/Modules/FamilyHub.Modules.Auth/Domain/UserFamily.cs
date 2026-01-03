@@ -31,11 +31,6 @@ public class UserFamily : Entity<Guid>
     public bool IsCurrentFamily { get; private set; }
 
     /// <summary>
-    /// When the membership was last updated.
-    /// </summary>
-    public DateTime UpdatedAt { get; private set; }
-
-    /// <summary>
     /// Navigation property to User.
     /// </summary>
     public User User { get; private set; } = null!;
@@ -64,7 +59,6 @@ public class UserFamily : Entity<Guid>
         FamilyId = familyId;
         Role = role;
         IsCurrentFamily = isCurrentFamily;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
@@ -104,7 +98,6 @@ public class UserFamily : Entity<Guid>
         }
 
         Role = newRole;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
@@ -114,7 +107,6 @@ public class UserFamily : Entity<Guid>
     public void MarkAsCurrentFamily()
     {
         IsCurrentFamily = true;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
@@ -123,6 +115,5 @@ public class UserFamily : Entity<Guid>
     public void UnmarkAsCurrentFamily()
     {
         IsCurrentFamily = false;
-        UpdatedAt = DateTime.UtcNow;
     }
 }

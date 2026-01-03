@@ -21,4 +21,9 @@
     <ProjectReference Include="..\FamilyHub.SharedKernel\FamilyHub.SharedKernel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="FamilyHub.Tests.Unit" />
+    <InternalsVisibleTo Include="FamilyHub.Tests.Integration" />
+  </ItemGroup>
+
 </Project>

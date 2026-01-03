@@ -70,7 +70,8 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
             AccessToken = tokenResponse.IdentityToken!,
             ExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn),
             EmailVerified = user.EmailVerified,
-            CreatedAt = user.CreatedAt
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt
         };
     }
 

@@ -1,3 +1,5 @@
+using FamilyHub.Infrastructure.GraphQL.Types;
+
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
 /// <summary>
@@ -21,7 +23,7 @@ public sealed record UserType
     public required bool EmailVerified { get; init; }
 
     /// <summary>
-    /// When the user account was created.
+    /// Audit metadata (creation and last update timestamps).
     /// </summary>
-    public required DateTime CreatedAt { get; init; }
+    public required AuditInfoType AuditInfo { get; init; }
 }

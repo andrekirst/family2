@@ -6,7 +6,7 @@ namespace FamilyHub.Modules.Auth.Domain;
 /// <summary>
 /// Family aggregate root representing a family group.
 /// </summary>
-public class Family : AggregateRoot<FamilyId>
+public class Family : AggregateRoot<FamilyId>, ISoftDeletable
 {
     private readonly List<UserFamily> _userFamilies = [];
 
@@ -21,19 +21,9 @@ public class Family : AggregateRoot<FamilyId>
     public UserId OwnerId { get; private set; }
 
     /// <summary>
-    /// When the family was created.
-    /// </summary>
-    public DateTime CreatedAt { get; private set; }
-
-    /// <summary>
-    /// When the family was last updated.
-    /// </summary>
-    public DateTime UpdatedAt { get; private set; }
-
-    /// <summary>
     /// Soft delete timestamp (null if not deleted).
     /// </summary>
-    public DateTime? DeletedAt { get; private set; }
+    public DateTime? DeletedAt { get; set; }
 
     /// <summary>
     /// Family members.
@@ -51,8 +41,6 @@ public class Family : AggregateRoot<FamilyId>
     {
         Name = name;
         OwnerId = ownerId;
-        CreatedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
@@ -74,7 +62,6 @@ public class Family : AggregateRoot<FamilyId>
     public void UpdateName(FamilyName newName)
     {
         Name = newName;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
@@ -89,7 +76,6 @@ public class Family : AggregateRoot<FamilyId>
 
         var oldOwnerId = OwnerId;
         OwnerId = newOwnerId;
-        UpdatedAt = DateTime.UtcNow;
 
         // Domain event
         // AddDomainEvent(new FamilyOwnershipTransferredEvent(Id, oldOwnerId, newOwnerId));
@@ -101,7 +87,6 @@ public class Family : AggregateRoot<FamilyId>
     public void Delete()
     {
         DeletedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
 
         // Domain event
         // AddDomainEvent(new FamilyDeletedEvent(Id));

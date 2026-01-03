@@ -2,8 +2,13 @@ namespace FamilyHub.SharedKernel.Domain;
 
 /// <summary>
 /// Base class for all aggregate roots in the domain.
-/// Aggregate roots are entities that serve as entry points to a cluster of domain objects.
+/// Inherits timestamp tracking from Entity base class.
 /// </summary>
+/// <remarks>
+/// All aggregate roots automatically get CreatedAt/UpdatedAt timestamps because
+/// Entity implements ITimestampable. This provides consistent audit trails across
+/// all major domain entities without needing a separate AuditableAggregateRoot class.
+/// </remarks>
 public abstract class AggregateRoot<TId> : Entity<TId>
     where TId : notnull
 {

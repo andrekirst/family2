@@ -1,3 +1,4 @@
+using FamilyHub.Infrastructure.GraphQL.Types;
 using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
@@ -24,7 +25,11 @@ public class CompleteZitadelLoginPayloadFactory : IPayloadFactory<CompleteZitade
             Id = result.UserId.Value,
             Email = result.Email.Value,
             EmailVerified = result.EmailVerified,
-            CreatedAt = result.CreatedAt
+            AuditInfo = new AuditInfoType
+            {
+                CreatedAt = result.CreatedAt,
+                UpdatedAt = result.UpdatedAt
+            }
         };
 
         var authenticationResult = new AuthenticationResult

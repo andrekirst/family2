@@ -1,3 +1,5 @@
+using FamilyHub.Infrastructure.GraphQL.Types;
+
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
 /// <summary>
@@ -19,4 +21,9 @@ public sealed record UserFamilyType
     /// The user's role in this family (owner, admin, member, child).
     /// </summary>
     public required string Role { get; init; }
+
+    /// <summary>
+    /// Audit metadata (membership creation and last update timestamps).
+    /// </summary>
+    public required AuditInfoType AuditInfo { get; init; }
 }

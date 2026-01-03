@@ -36,4 +36,9 @@ public sealed record CompleteZitadelLoginResult
     /// User account creation timestamp
     /// </summary>
     public required DateTime CreatedAt { get; init; }
+
+    /// <summary>
+    /// User account last update timestamp
+    /// </summary>
+    public required DateTime UpdatedAt { get; init; }
 }

@@ -46,7 +46,7 @@ try
         .AddAuthorization() // Enable authorization for GraphQL (requires HotChocolate.AspNetCore.Authorization)
         .AddFiltering()
         .AddSorting()
-        .AddProjections()
+        .AddProjections() // Re-enabled - works correctly when FamilyType is properly registered
         .AddErrorFilter<GraphQLErrorFilter>() // Centralized exception → GraphQL error mapping
         .AddDiagnosticEventListener<GraphQlLoggingInterceptor>() // GraphQL operation logging
         .ModifyRequestOptions(opt =>
@@ -55,6 +55,9 @@ try
         });
 
     // Module-based GraphQL type extension registration
+    // Register Auth module GraphQL types (DbContext, type extensions, custom types)
+    graphqlBuilder.AddAuthModuleGraphQlTypes();
+
     // Explicitly register type extensions from Auth module
     graphqlBuilder
         .AddTypeExtension<FamilyMutations>()

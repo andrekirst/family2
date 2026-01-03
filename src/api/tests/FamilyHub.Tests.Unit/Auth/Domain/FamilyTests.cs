@@ -29,11 +29,6 @@ public class FamilyTests
         family.Name.Should().Be(name);
         family.OwnerId.Should().Be(ownerId);
         family.Id.Value.Should().NotBe(Guid.Empty);
-
-        var now = DateTime.UtcNow;
-        family.CreatedAt.Should().BeOnOrBefore(now);
-        family.UpdatedAt.Should().BeOnOrBefore(now);
-
         family.DeletedAt.Should().BeNull();
     }
 
@@ -116,22 +111,17 @@ public class FamilyTests
     #region UpdateName Tests
 
     [Fact]
-    public void UpdateName_WithValidName_ShouldUpdateNameAndTimestamp()
+    public void UpdateName_WithValidName_ShouldUpdateName()
     {
         // Arrange
         var family = Family.Create(FamilyName.From("Original Name"), UserId.New());
-        var originalUpdatedAt = family.UpdatedAt;
         var newName = FamilyName.From("Updated Name");
-
-        // Small delay to ensure timestamp difference
-        Thread.Sleep(10);
 
         // Act
         family.UpdateName(newName);
 
         // Assert
         family.Name.Should().Be(newName);
-        family.UpdatedAt.Should().BeAfter(originalUpdatedAt);
     }
 
     [Fact]
@@ -196,42 +186,32 @@ public class FamilyTests
     #region TransferOwnership Tests
 
     [Fact]
-    public void TransferOwnership_WithDifferentOwnerId_ShouldUpdateOwnerAndTimestamp()
+    public void TransferOwnership_WithDifferentOwnerId_ShouldUpdateOwner()
     {
         // Arrange
         var originalOwnerId = UserId.New();
         var family = Family.Create(FamilyName.From("Smith Family"), originalOwnerId);
         var newOwnerId = UserId.New();
-        var originalUpdatedAt = family.UpdatedAt;
-
-        // Small delay to ensure timestamp difference
-        Thread.Sleep(10);
 
         // Act
         family.TransferOwnership(newOwnerId);
 
         // Assert
         family.OwnerId.Should().Be(newOwnerId);
-        family.UpdatedAt.Should().BeAfter(originalUpdatedAt);
     }
 
     [Fact]
-    public void TransferOwnership_WithSameOwnerId_ShouldNotUpdateAnything()
+    public void TransferOwnership_WithSameOwnerId_ShouldNotUpdateOwner()
     {
         // Arrange
         var ownerId = UserId.New();
         var family = Family.Create(FamilyName.From("Smith Family"), ownerId);
-        var originalUpdatedAt = family.UpdatedAt;
-
-        // Small delay
-        Thread.Sleep(10);
 
         // Act
         family.TransferOwnership(ownerId);
 
         // Assert
         family.OwnerId.Should().Be(ownerId);
-        family.UpdatedAt.Should().Be(originalUpdatedAt);
     }
 
     #endregion
@@ -239,14 +219,10 @@ public class FamilyTests
     #region Delete Tests
 
     [Fact]
-    public void Delete_ShouldSetDeletedAtAndUpdateTimestamp()
+    public void Delete_ShouldSetDeletedAt()
     {
         // Arrange
         var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
-        var originalUpdatedAt = family.UpdatedAt;
-
-        // Small delay to ensure timestamp difference
-        Thread.Sleep(10);
 
         // Act
         family.Delete();
@@ -254,7 +230,6 @@ public class FamilyTests
         // Assert
         family.DeletedAt.Should().NotBeNull()
             .And.BeOnOrBefore(DateTime.UtcNow);
-        family.UpdatedAt.Should().BeAfter(originalUpdatedAt);
     }
 
     #endregion

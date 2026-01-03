@@ -85,22 +85,4 @@ public class OAuthIntegrationTests
         Assert.NotEqual(user2.Id.Value, user3.Id.Value);
         Assert.NotEqual(user1.Id.Value, user3.Id.Value);
     }
-
-    [Fact]
-    public void User_CreateFromOAuth_SetsCreatedAtToCurrentTime()
-    {
-        // Arrange
-        var email = Email.From("test@example.com");
-        var externalUserId = "test-user-id";
-        var externalProvider = "zitadel";
-        var beforeCreation = DateTime.UtcNow;
-
-        // Act
-        var user = User.CreateFromOAuth(email, externalUserId, externalProvider);
-
-        // Assert
-        var afterCreation = DateTime.UtcNow;
-        Assert.True(user.CreatedAt >= beforeCreation);
-        Assert.True(user.CreatedAt <= afterCreation);
-    }
 }

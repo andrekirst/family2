@@ -1,11 +1,11 @@
 using HotChocolate.Types;
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Infrastructure.GraphQL.Types;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
 /// <summary>
-/// GraphQL object type for Family entity.
-/// Maps domain entity to GraphQL schema with automatic projections.
+/// GraphQL object type for Family entity
 /// </summary>
 public class FamilyType : ObjectType<Family>
 {
@@ -14,30 +14,42 @@ public class FamilyType : ObjectType<Family>
         descriptor.Name("Family");
         descriptor.Description("Represents a family in the system");
 
-        // Map FamilyId value object to scalar
+        descriptor.BindFieldsExplicitly();
+
         descriptor
             .Field(f => f.Id)
+            .Name("id")
             .Type<NonNullType<UuidType>>()
+            .Description("Unique family identifier")
             .Resolve(ctx => ctx.Parent<Family>().Id.Value);
 
-        // Map FamilyName value object to string
         descriptor
             .Field(f => f.Name)
+            .Name("name")
             .Type<NonNullType<StringType>>()
+            .Description("Family name")
             .Resolve(ctx => ctx.Parent<Family>().Name.Value);
 
-        // Map UserId value object to scalar
         descriptor
             .Field(f => f.OwnerId)
+            .Name("ownerId")
             .Type<NonNullType<UuidType>>()
+            .Description("User ID of the family owner")
             .Resolve(ctx => ctx.Parent<Family>().OwnerId.Value);
 
-        // Direct field mappings
-        descriptor.Field(f => f.CreatedAt).Type<NonNullType<DateTimeType>>();
-        descriptor.Field(f => f.UpdatedAt).Type<NonNullType<DateTimeType>>();
+        descriptor
+            .Field("auditInfo")
+            .Type<NonNullType<ObjectType<AuditInfoType>>>()
+            .Description("Audit metadata (creation and last update timestamps)")
+            .Resolve(ctx =>
+            {
+                var family = ctx.Parent<Family>();
+                return new AuditInfoType
+                {
+                    CreatedAt = family.CreatedAt,
+                    UpdatedAt = family.UpdatedAt
+                };
+            });
 
-        // Ignore internal fields
-        descriptor.Ignore(f => f.DeletedAt);
-        descriptor.Ignore(f => f.UserFamilies);
     }
 }

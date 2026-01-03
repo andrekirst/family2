@@ -1,3 +1,4 @@
+using FamilyHub.Infrastructure.GraphQL.Types;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
@@ -14,6 +15,11 @@ public static class UserAuthenticationAdapter
     /// </summary>
     /// <param name="user">User domain entity</param>
     /// <returns>UserType for GraphQL response</returns>
+    /// <summary>
+    /// Maps User entity to UserType for GraphQL response.
+    /// </summary>
+    /// <param name="user">User domain entity</param>
+    /// <returns>UserType for GraphQL response</returns>
     public static UserType ToGraphQLType(User user)
     {
         return new UserType
@@ -21,7 +27,11 @@ public static class UserAuthenticationAdapter
             Id = user.Id.Value,
             Email = user.Email.Value,
             EmailVerified = user.EmailVerified,
-            CreatedAt = user.CreatedAt
+            AuditInfo = new AuditInfoType
+            {
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            }
         };
     }
 }

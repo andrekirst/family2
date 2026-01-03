@@ -57,6 +57,11 @@ public class UserFamilyConfiguration : IEntityTypeConfiguration<UserFamily>
             .HasFilter("is_current_family = true");
 
         // Timestamps
+        builder.Property(uf => uf.CreatedAt)
+            .HasColumnName("created_at")
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .IsRequired();
+
         builder.Property(uf => uf.UpdatedAt)
             .HasColumnName("updated_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP")

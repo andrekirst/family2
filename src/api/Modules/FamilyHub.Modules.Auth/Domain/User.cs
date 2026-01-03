@@ -6,7 +6,7 @@ namespace FamilyHub.Modules.Auth.Domain;
 /// <summary>
 /// User aggregate root representing a registered user in the system.
 /// </summary>
-public class User : AggregateRoot<UserId>
+public class User : AggregateRoot<UserId>, ISoftDeletable
 {
     private readonly List<UserFamily> _userFamilies = [];
 
@@ -38,19 +38,9 @@ public class User : AggregateRoot<UserId>
     public string ExternalProvider { get; private set; } = string.Empty;
 
     /// <summary>
-    /// When the user was created.
+    /// Soft delete timestamp
     /// </summary>
-    public DateTime CreatedAt { get; private set; }
-
-    /// <summary>
-    /// When the user was last updated.
-    /// </summary>
-    public DateTime UpdatedAt { get; private set; }
-
-    /// <summary>
-    /// Soft delete timestamp (null if not deleted).
-    /// </summary>
-    public DateTime? DeletedAt { get; private set; }
+    public DateTime? DeletedAt { get; set; }
 
     /// <summary>
     /// User's family memberships.
@@ -67,8 +57,6 @@ public class User : AggregateRoot<UserId>
     {
         Email = email;
         EmailVerified = false;
-        CreatedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
@@ -98,7 +86,6 @@ public class User : AggregateRoot<UserId>
 
         EmailVerified = true;
         EmailVerifiedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
 
         // Domain event
         // AddDomainEvent(new EmailVerifiedEvent(Id, Email));
@@ -110,7 +97,6 @@ public class User : AggregateRoot<UserId>
     public void Delete()
     {
         DeletedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
 
         // Domain event
         // AddDomainEvent(new UserDeletedEvent(Id));

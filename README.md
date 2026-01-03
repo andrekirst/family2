@@ -253,6 +253,47 @@ This is currently a solo project with AI assistance. Contributions will be welco
 
 ---
 
+## Development
+
+### Timestamp Management
+
+Family Hub uses automatic timestamp management via EF Core interceptor:
+
+- **CreatedAt/UpdatedAt:** Set automatically by `TimestampInterceptor` on save operations
+- **Domain methods:** Do NOT manually set `CreatedAt` or `UpdatedAt` - the interceptor handles this
+- **Business timestamps:** Domain-specific timestamps like `EmailVerifiedAt`, `DeletedAt` remain manual (domain logic)
+- **Testing:** Use `FakeTimeProvider` for deterministic time control in tests
+- **Database safety net:** PostgreSQL `CURRENT_TIMESTAMP` defaults provide fallback if interceptor fails
+
+**Example:**
+
+```csharp
+// ✅ CORRECT: No manual timestamp management
+public void UpdateName(FamilyName newName)
+{
+    Name = newName;
+    // UpdatedAt is set automatically by TimestampInterceptor
+}
+
+// ❌ INCORRECT: Don't manually set infrastructure timestamps
+public void UpdateName(FamilyName newName)
+{
+    Name = newName;
+    UpdatedAt = DateTime.UtcNow; // ← Don't do this!
+}
+
+// ✅ CORRECT: Business timestamps are explicit
+public void Delete()
+{
+    DeletedAt = DateTime.UtcNow; // Business logic - keep manual
+    // UpdatedAt still handled by interceptor
+}
+```
+
+See [ADR-004](docs/architecture/ADR-004-TIMESTAMP-INTERCEPTOR-PATTERN.md) for complete rationale and implementation details.
+
+---
+
 ## License
 
 This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
