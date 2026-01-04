@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/e2e",
+    "module": "CommonJS",
+    "types": ["node", "@playwright/test"]
+  },
+  "include": [
+    "e2e/**/*.ts",
+    "e2e/**/*.spec.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "cypress"
+  ]
+}

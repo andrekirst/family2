@@ -37,6 +37,13 @@ yarn-error.log
 testem.log
 /typings
 
+# Playwright E2E test results
+/playwright-results
+/playwright-report
+/test-results
+/e2e/.test-api-pid
+/e2e/.test-containers
+
 # System files
 .DS_Store
 Thumbs.db

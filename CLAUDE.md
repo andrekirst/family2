@@ -64,11 +64,13 @@
 
 ### Architecture Questions
 
-**Read these 4 docs:**
+**Read these 5 docs:**
 1. [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Modular monolith decision rationale
 2. [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md) - OAuth 2.0 with Zitadel (vs Auth0, Keycloak, ASP.NET Identity)
-3. [Domain Model](docs/architecture/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
-4. [Event Chains Reference](docs/architecture/event-chains-reference.md) - Event-driven patterns and workflows
+3. [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md) - GraphQL Input/Command pattern (Vogen compatibility)
+4. [ADR-004](docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md) - Playwright migration (vs Cypress, cross-browser, event chains)
+5. [Domain Model](docs/architecture/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
+6. [Event Chains Reference](docs/architecture/event-chains-reference.md) - Event-driven patterns and workflows
 
 ### Planning & Roadmap Questions
 
@@ -91,7 +93,7 @@
 **51 documents** organized in 9 thematic folders. See **[docs/INDEX.md](docs/INDEX.md)** for complete documentation map.
 
 **Quick Access:**
-- **Architecture:** [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md), [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md)
+- **Architecture:** [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md), [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md), [ADR-004](docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md)
 - **Development:** [Domain Model](docs/architecture/domain-model-microservices-map.md), [Event Chains](docs/architecture/event-chains-reference.md)
 - **Product:** [Product Strategy](docs/product-strategy/PRODUCT_STRATEGY.md), [Roadmap](docs/product-strategy/implementation-roadmap.md), [Feature Backlog](docs/product-strategy/FEATURE_BACKLOG.md)
 
@@ -180,6 +182,108 @@ Each module owns: Domain entities/aggregates, domain events (RabbitMQ), GraphQL 
 **Example:** `CreateFamilyInput { string Name }` → `CreateFamilyCommand { FamilyName Name }` via `new CreateFamilyCommand(FamilyName.From(input.Name))` in mutation.
 
 **Decision rationale:** [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md) - attempted command-as-input pattern, failed due to Vogen incompatibility.
+
+### E2E Testing with Playwright
+
+**CRITICAL:** Use Playwright for ALL E2E tests (migrated from Cypress in January 2026). See [ADR-004](docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md) for rationale.
+
+**Test Structure:** `/src/frontend/family-hub-web/e2e/`
+
+```
+e2e/
+├── fixtures/          # Reusable test fixtures (auth, graphql, rabbitmq)
+├── support/           # Helper utilities (constants, vogen-mirrors, api-helpers)
+├── tests/             # Test files (.spec.ts)
+├── global-setup.ts    # Testcontainers lifecycle (Docker Compose + .NET API)
+└── global-teardown.ts # Cleanup
+```
+
+**Key Patterns:**
+
+1. **Playwright Fixtures** (replaces Cypress custom commands):
+```typescript
+// Use fixtures for dependency injection
+test('should create family', async ({ authenticatedPage, interceptGraphQL }) => {
+  await interceptGraphQL('GetCurrentFamily', { data: { family: null } });
+  await authenticatedPage.goto('/family/create');
+  // Test uses OAuth tokens automatically via authenticatedPage
+});
+```
+
+2. **Vogen TypeScript Mirrors** (type-safe test data):
+```typescript
+// Mirror C# Vogen validation in TypeScript
+const familyName = FamilyName.from('Smith Family'); // Throws if invalid
+const userId = UserId.new();                        // Generates new GUID
+```
+
+3. **API-First Event Chain Testing** (flagship feature testing):
+```typescript
+test('doctor appointment event chain', async ({ rabbitmq }) => {
+  // 1. Create via GraphQL API (10x faster than UI)
+  const result = await client.mutate(CREATE_APPOINTMENT_MUTATION, variables);
+
+  // 2. Verify RabbitMQ event published
+  const event = await rabbitmq.waitForMessage(
+    (msg) => msg.eventType === 'HealthAppointmentScheduled',
+    5000
+  );
+
+  // 3. Query backend to verify entities created
+  const calendarEvents = await client.query(GET_CALENDAR_EVENTS);
+
+  // 4. Spot-check UI (optional)
+  await page.goto('/calendar');
+  await expect(page.getByText('Doctor: Dr. Smith')).toBeVisible();
+});
+```
+
+4. **Cross-Browser Testing** (Chromium, Firefox, WebKit):
+```typescript
+// Tests run on all 3 browsers automatically
+test('should work on all browsers', async ({ page, browserName }) => {
+  console.log(`Testing on: ${browserName}`);
+  // Playwright runs this test 3 times (once per browser)
+});
+```
+
+5. **CI Environment Detection** (global-setup.ts):
+```typescript
+const isCI = process.env.CI === 'true';
+
+if (isCI) {
+  // GitHub Actions provides postgres/rabbitmq services
+  console.log('Using GitHub Actions services');
+} else {
+  // Local development: Start Docker Compose
+  spawnSync('docker-compose', ['-f', dockerComposeFile, 'up', '-d']);
+}
+```
+
+**Running Tests:**
+
+```bash
+# Local development
+npm run e2e              # UI mode (interactive debugging)
+npm run e2e:headless     # Headless mode
+npm run e2e:chromium     # Single browser
+npm run e2e:debug        # Debug mode with breakpoints
+npm run e2e:report       # View HTML report
+
+# CI/CD
+npx playwright test      # Runs all tests on 3 browsers (CI auto-detected)
+```
+
+**Test Organization:**
+
+- **family-creation.spec.ts**: Main E2E tests (happy path, validation, errors, keyboard, routing)
+- **accessibility.spec.ts**: WCAG 2.1 AA compliance (axe-core, ARIA, focus management)
+- **cross-browser.spec.ts**: Smoke tests (rendering, keyboard, submission, validation)
+- **event-chains.spec.ts**: Event chain templates (doctor appointment, prescription) - SKIPPED until Phase 2
+
+**Zero-Retry Policy:** `retries: 0` forces fixing flaky tests immediately (never mask issues with retries).
+
+**Reference:** [ADR-004-PLAYWRIGHT-MIGRATION.md](docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md) - Migration rationale, patterns, metrics.
 
 ### Contributing & Creating Issues
 

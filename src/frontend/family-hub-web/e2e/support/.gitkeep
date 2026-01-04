@@ -1,0 +1,14 @@
+# Support Directory
+
+This directory contains helper utilities and constants for E2E tests.
+
+## Files to be created (Phase 2):
+
+- `vogen-mirrors.ts` - TypeScript mirrors of C# Vogen value objects
+- `constants.ts` - Test constants (URLs, storage keys, selectors)
+- `types.ts` - Shared TypeScript types
+- `api-helpers.ts` - GraphQL API client and helper functions
+
+## Purpose
+
+Eliminates magic strings, provides type safety, and reusable utilities across all tests.

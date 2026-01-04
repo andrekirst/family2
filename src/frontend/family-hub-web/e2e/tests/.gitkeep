@@ -1,0 +1,36 @@
+# Tests Directory
+
+This directory contains Playwright E2E test files.
+
+## Tests to be created (Phase 3 & 4):
+
+- `family-creation.spec.ts` - Family creation wizard tests (converted from Cypress)
+- `accessibility.spec.ts` - WCAG 2.1 AA compliance tests
+- `event-chains.spec.ts` - Event-driven workflow tests
+- `cross-browser.spec.ts` - Cross-browser smoke tests
+
+## Naming Convention
+
+All test files should end with `.spec.ts`
+
+## Test Structure
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('Feature Name', () => {
+  test.beforeEach(async ({ page }) => {
+    // Setup
+  });
+
+  test('should do something', async ({ page }) => {
+    await test.step('Step 1', async () => {
+      // Action
+    });
+
+    await test.step('Step 2', async () => {
+      // Verification
+    });
+  });
+});
+```
