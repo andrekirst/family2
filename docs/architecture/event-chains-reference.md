@@ -587,6 +587,115 @@ Event chains are automated workflows that span multiple bounded contexts (servic
 
 ---
 
+### 11. Family Member Invitation Event Chain
+
+**Trigger:** User invites family member (email) OR creates child account (username/password)
+
+**Event Flow:**
+
+```
+1. USER ACTION: Invite family member
+   - Email invitation: User enters email + role
+   - Child account: User enters username + full name + role
+   ↓
+
+2. DOMAIN EVENT PUBLISHED
+   // For email invitations
+   FamilyMemberInvitedEvent {
+     InvitationId: Guid
+     FamilyId: Guid
+     InviteeEmail: string
+     Role: FamilyRole
+     InvitedByUserId: Guid
+     Token: string (64-char URL-safe)
+     ExpiresAt: DateTime (14 days from creation)
+   }
+
+   // For child accounts
+   ChildAccountCreatedEvent {
+     InvitationId: Guid
+     FamilyId: Guid
+     ChildUserId: Guid
+     Username: string
+     FullName: string
+     Role: FamilyRole
+     CreatedByUserId: Guid
+     ZitadelUserId: string
+   }
+   ↓
+
+3. COMMUNICATION SERVICE CONSUMES EVENT
+   // Phase 1: Logs invitation event
+   // Phase 2+: Sends email notification
+   - For email invitations: Send invitation email with acceptance link
+   - For child accounts: Log account creation
+   ↓
+
+4. [EMAIL INVITATION PATH] USER ACCEPTS INVITATION
+   User clicks link → Frontend redirects to acceptance page
+   ↓
+
+5. DOMAIN EVENT PUBLISHED
+   FamilyMemberInvitationAcceptedEvent {
+     InvitationId: Guid
+     FamilyId: Guid
+     AcceptedByUserId: Guid
+     Role: FamilyRole
+   }
+   ↓
+
+6. USER ENTITY UPDATED
+   User.FamilyId = invitation.FamilyId
+   User.Role = invitation.Role
+   ↓
+
+7. DOMAIN EVENT PUBLISHED
+   MemberAddedToFamilyEvent {
+     FamilyId: Guid
+     UserId: Guid
+     Role: FamilyRole
+   }
+   ↓
+
+8. COMMUNICATION SERVICE CONSUMES EVENT
+   Sends welcome notification to family
+   - "New member {UserName} has joined the family!"
+   - Notify all family members (Owner, Admins)
+```
+
+**Key Characteristics:**
+- **Complexity:** Medium
+- **Services Involved:** Auth Service, Communication Service, Zitadel (external)
+- **Average Duration:**
+  - Email invitations: Immediate-to-hours (user-dependent acceptance)
+  - Child accounts: <2 seconds (immediate creation)
+- **User Benefit:** Streamlined family onboarding, support for children without email
+- **Failure Scenarios:**
+  - Email invitation expired (14 days)
+  - Zitadel user creation fails (child accounts)
+  - Duplicate email/username
+
+**Expected Outcomes:**
+
+- Family member invited via email OR child account created
+- Invitation tracked in database with expiration
+- Communication Service notifies relevant parties (Phase 2+)
+- New member added to family upon acceptance
+
+**Phase 1 Implementation:**
+- Email invitations stored but emails not sent (logged only)
+- Child accounts created immediately in Zitadel
+- In-app notifications for member additions
+
+**Phase 2+ Enhancements:**
+- Email delivery via Communication Service
+- SMS invitations as alternative
+- Invitation reminders (7 days before expiration)
+
+**Implementation Phase:** Phase 1 (Week 5-7)
+
+---
+
 ## Event Chain Implementation Patterns
 
 ### Pattern 1: Direct Event Consumption

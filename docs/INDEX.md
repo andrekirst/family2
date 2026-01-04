@@ -1,7 +1,7 @@
 # Family Hub - Documentation Index
 
-**Last Updated:** 2025-12-23
-**Total Documents:** 51 markdown files organized in 9 thematic folders
+**Last Updated:** 2026-01-04
+**Total Documents:** 52 markdown files organized in 9 thematic folders
 **Total Content:** 280,000+ words
 
 ---
@@ -275,5 +275,28 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-_Last updated: 2025-12-23_
-_Version: 2.0 (Reorganized into thematic folders)_
+## 📝 Recent Updates
+
+### 2026-01-04
+- **Feature Split:** "Family Member Invites" split into two separate backlog items:
+  - **Family Member Invites (Wizard):** Optional Step 2 in family creation wizard for member invitations
+  - **Family Member Invites (Management):** Ongoing member invitation from family management UI
+- **New Document:** Created [CHILD-ACCOUNT-SETUP.md](authentication/CHILD-ACCOUNT-SETUP.md) documenting child account creation flow
+  - Username/password authentication for children without email addresses
+  - Zitadel Management API integration
+  - Synthetic email pattern and security considerations
+- **Updated Documentation:**
+  - [FEATURE_BACKLOG.md](product-strategy/FEATURE_BACKLOG.md) - Split invitation features, updated effort totals
+  - [domain-model-microservices-map.md](architecture/domain-model-microservices-map.md) - Added FamilyMemberInvitation aggregate and domain events
+  - [event-chains-reference.md](architecture/event-chains-reference.md) - Added Event Chain #11: Family Member Invitation Event Chain
+  - [wireframes.md](ux-design/wireframes.md) - Enhanced wizard Step 2, added password display modal and family management UI
+  - [implementation-roadmap.md](product-strategy/implementation-roadmap.md) - Updated Phase 1 deliverables (Week 5-7)
+
+### 2025-12-23
+- Reorganized documentation into 9 thematic folders (51 documents)
+- Version 2.0 structure for improved navigation and discoverability
+
+---
+
+_Last updated: 2026-01-04_
+_Version: 2.1 (Added child account creation documentation)_

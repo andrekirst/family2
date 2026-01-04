@@ -101,11 +101,12 @@ We use RICE scoring to prioritize features:
 | ---------------------------- | ------------------------------------------ | ---------- | ------- | -------- |
 | **User Registration & Auth** | Email/password auth via Zitadel            | 45.0       | 2 weeks | P0       |
 | **Family Creation** ✅       | Create family group, generate invite codes | 50.0       | 1 week  | P0       | ✅ COMPLETED (2025-12-30) #15 |
-| **Family Member Invites**    | Send invites, approve members              | 42.0       | 1 week  | P0       |
+| **Family Member Invites (Wizard)** | Optional Step 2: Invite members after family creation | 45.0 | 2 weeks | P0 |
+| **Family Member Invites (Management)** | Invite members from family management UI | 40.0 | 1 week | P0 |
 | **User Profiles**            | Name, avatar, role, preferences            | 36.0       | 1 week  | P0       |
 | **Family Settings**          | Timezone, language, notification prefs     | 30.0       | 1 week  | P1       |
 
-**Domain Total: 5 weeks**
+**Domain Total: 7 weeks**
 
 #### 2. Shared Calendar (Core)
 
@@ -195,12 +196,12 @@ We use RICE scoring to prioritize features:
 
 ### MVP Features Summary
 
-**Total Estimated Effort: 71.5 weeks**
-**With AI assistance & iteration: ~30-35 weeks (6-8 months)**
+**Total Estimated Effort: 73.5 weeks**
+**With AI assistance & iteration: ~31-36 weeks (6-8 months)**
 
 **Feature Breakdown:**
 
-- Family Management: 5 weeks
+- Family Management: 7 weeks
 - Shared Calendar: 10.5 weeks
 - Shopping & Lists: 7 weeks
 - Tasks & Chores: 7 weeks
@@ -549,7 +550,8 @@ We use RICE scoring to prioritize features:
 
 - User registration & authentication (Zitadel)
 - Family creation and invite codes
-- Family member invites and approval
+- Family member invites - Wizard step (email + username/password for children)
+- Family member invites - Management UI (ongoing member addition)
 - User profiles (name, avatar, role)
 - Family settings (timezone, language, notifications)
 

@@ -140,13 +140,55 @@ public class FamilyMember
     public bool IsActive { get; private set; }
 }
 
-// Value Object
+// Aggregate Root
+public class FamilyMemberInvitation
+{
+    public Guid InvitationId { get; private set; }
+    public Guid FamilyId { get; private set; }
+    public Guid InvitedByUserId { get; private set; }
+    public InvitationStatus Status { get; private set; }
+    public FamilyRole Role { get; private set; }
+    public InvitationType Type { get; private set; }
+
+    // Email invitation fields
+    public string? InviteeEmail { get; private set; }
+    public string? Token { get; private set; }
+    public DateTime? ExpiresAt { get; private set; }
+
+    // Child account creation fields
+    public string? ChildUsername { get; private set; }
+    public string? ChildFullName { get; private set; }
+    public string? ZitadelUserId { get; private set; }
+
+    // Domain methods
+    public void Accept(Guid acceptedByUserId);
+    public void Decline(string? reason);
+    public bool IsExpired();
+}
+
+// Value Objects
 public enum FamilyRole
 {
     Owner,
     Admin,
     Member,
     Child
+}
+
+public enum InvitationStatus
+{
+    Pending,
+    Accepted,
+    Declined,
+    Expired,
+    Cancelled,
+    ChildAccountCreated
+}
+
+public enum InvitationType
+{
+    EmailInvitation,
+    ChildAccount
 }
 ```
 
@@ -158,6 +200,35 @@ public record FamilyGroupCreatedEvent(Guid GroupId, Guid OwnerId, string Name);
 public record MemberAddedToFamilyEvent(Guid GroupId, Guid UserId, FamilyRole Role);
 public record MemberRemovedFromFamilyEvent(Guid GroupId, Guid UserId);
 public record UserAuthenticatedEvent(Guid UserId, DateTime AuthenticatedAt);
+
+// Family Member Invitation Events
+public record FamilyMemberInvitedEvent(
+    Guid InvitationId,
+    Guid FamilyId,
+    string InviteeEmail,
+    FamilyRole Role,
+    Guid InvitedByUserId,
+    string Token,
+    DateTime ExpiresAt
+);
+
+public record ChildAccountCreatedEvent(
+    Guid InvitationId,
+    Guid FamilyId,
+    Guid ChildUserId,
+    string Username,
+    string FullName,
+    FamilyRole Role,
+    Guid CreatedByUserId,
+    string ZitadelUserId
+);
+
+public record FamilyMemberInvitationAcceptedEvent(
+    Guid InvitationId,
+    Guid FamilyId,
+    Guid AcceptedByUserId,
+    FamilyRole Role
+);
 ```
 
 #### Domain Events Consumed
@@ -196,14 +267,43 @@ enum FamilyRole {
   CHILD
 }
 
+type PendingInvitation {
+  invitationId: ID!
+  inviteeEmail: String
+  childUsername: String
+  role: FamilyRole!
+  status: InvitationStatus!
+  invitedByUserName: String!
+  createdAt: DateTime!
+  expiresAt: DateTime
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  CANCELLED
+  CHILD_ACCOUNT_CREATED
+}
+
 type Query {
   me: User!
   myFamilies: [FamilyGroup!]!
   familyGroup(id: ID!): FamilyGroup
+  pendingInvitations: [PendingInvitation!]!
 }
 
 type Mutation {
   createFamilyGroup(name: String!): FamilyGroup!
+
+  # Invitation mutations
+  inviteFamilyMemberByEmail(input: InviteFamilyMemberByEmailInput!): InviteFamilyMemberByEmailPayload!
+  createChildMember(input: CreateChildMemberInput!): CreateChildMemberPayload!
+  batchInviteFamilyMembers(input: BatchInviteFamilyMembersInput!): BatchInviteFamilyMembersPayload!
+  acceptInvitation(input: AcceptInvitationInput!): AcceptInvitationPayload!
+
+  # Legacy mutations
   inviteFamilyMember(
     groupId: ID!
     email: String!

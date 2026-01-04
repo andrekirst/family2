@@ -141,6 +141,17 @@ Each phase must deliver:
 - Integration with Zitadel (OAuth 2.0 / OIDC)
 - Family group management (CRUD)
 - Member invitation flow
+  - **Week 5-6:** Family member invitation system (wizard Step 2)
+    - Multi-step family creation wizard with optional member invitations
+    - Email invitations with token-based acceptance (14-day expiration)
+    - Child account creation via Zitadel Management API (username/password)
+    - Batch invitation processing
+    - Password generation and secure display
+  - **Week 7:** Family management UI for ongoing member invitations
+    - Family members list with role management
+    - Pending invitations dashboard
+    - Invite member modal (email or child account creation)
+    - Role-based permission enforcement (Owner/Admin/Member/Child)
 - JWT token validation middleware
 - GraphQL API for user and family group queries
 
