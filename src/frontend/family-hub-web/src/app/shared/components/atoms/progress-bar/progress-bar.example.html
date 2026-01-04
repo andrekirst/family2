@@ -1,0 +1,158 @@
+<!-- ProgressBarComponent Usage Examples -->
+
+<!-- Example 1: Responsive Wizard Progress (Default) -->
+<section class="mb-8">
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Wizard Progress (Responsive)</h2>
+  <div class="bg-white border border-gray-200 rounded-lg p-6">
+    <app-progress-bar
+      [currentStep]="2"
+      [totalSteps]="4"
+    ></app-progress-bar>
+
+    <div class="mt-6 text-center">
+      <p class="text-sm text-gray-600">
+        Desktop (≥768px): Shows linear bar with "Step 2 of 4"<br>
+        Mobile (<768px): Shows 4 dots (2 blue, 2 gray)
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Example 2: Linear Variant Only -->
+<section class="mb-8">
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Linear Progress Bar</h2>
+  <div class="bg-white border border-gray-200 rounded-lg p-6">
+    <app-progress-bar
+      [currentStep]="3"
+      [totalSteps]="5"
+      variant="linear"
+    ></app-progress-bar>
+
+    <div class="mt-6 text-center">
+      <p class="text-sm text-gray-600">
+        Always shows linear bar (desktop only contexts)
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Example 3: Dots Variant Only -->
+<section class="mb-8">
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Dot Stepper</h2>
+  <div class="bg-white border border-gray-200 rounded-lg p-6">
+    <app-progress-bar
+      [currentStep]="2"
+      [totalSteps]="3"
+      variant="dots"
+    ></app-progress-bar>
+
+    <div class="mt-6 text-center">
+      <p class="text-sm text-gray-600">
+        Compact dot stepper (mobile-only contexts)
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Example 4: Complete Wizard Flow -->
+<section class="mb-8">
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Complete Wizard Example</h2>
+  <div class="bg-white border border-gray-200 rounded-lg p-6">
+    <!-- Progress Bar -->
+    <app-progress-bar
+      [currentStep]="wizardStep"
+      [totalSteps]="4"
+    ></app-progress-bar>
+
+    <!-- Wizard Content -->
+    <div class="mt-8 min-h-[200px]">
+      <div *ngIf="wizardStep === 1">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 1: Family Details</h3>
+        <p class="text-gray-600">Enter your family name and description...</p>
+      </div>
+      <div *ngIf="wizardStep === 2">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 2: Add Members</h3>
+        <p class="text-gray-600">Invite family members to join...</p>
+      </div>
+      <div *ngIf="wizardStep === 3">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 3: Setup Preferences</h3>
+        <p class="text-gray-600">Configure your family settings...</p>
+      </div>
+      <div *ngIf="wizardStep === 4">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 4: Review & Create</h3>
+        <p class="text-gray-600">Review your family information...</p>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="flex justify-between mt-8">
+      <button
+        (click)="previousStep()"
+        [disabled]="wizardStep === 1"
+        class="px-4 py-2 text-base font-medium text-gray-700 bg-transparent hover:bg-gray-100 rounded-md border border-transparent focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+      >
+        Back
+      </button>
+      <button
+        (click)="nextStep()"
+        [disabled]="wizardStep === 4"
+        class="px-4 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md border border-transparent shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+      >
+        {{ wizardStep === 4 ? 'Finish' : 'Next' }}
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Example 5: All Steps (Visual Reference) -->
+<section class="mb-8">
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Visual Reference: All Steps</h2>
+  <div class="space-y-4">
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <p class="text-xs text-gray-500 mb-2">Step 1 of 4 (0%)</p>
+      <app-progress-bar [currentStep]="1" [totalSteps]="4"></app-progress-bar>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <p class="text-xs text-gray-500 mb-2">Step 2 of 4 (33%)</p>
+      <app-progress-bar [currentStep]="2" [totalSteps]="4"></app-progress-bar>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <p class="text-xs text-gray-500 mb-2">Step 3 of 4 (67%)</p>
+      <app-progress-bar [currentStep]="3" [totalSteps]="4"></app-progress-bar>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <p class="text-xs text-gray-500 mb-2">Step 4 of 4 (100%)</p>
+      <app-progress-bar [currentStep]="4" [totalSteps]="4"></app-progress-bar>
+    </div>
+  </div>
+</section>
+
+<!-- TypeScript Component Code -->
+<script>
+// Example wizard component TypeScript:
+
+export class WizardExampleComponent {
+  wizardStep = 1;
+  totalSteps = 4;
+
+  nextStep(): void {
+    if (this.wizardStep < this.totalSteps) {
+      this.wizardStep++;
+    }
+  }
+
+  previousStep(): void {
+    if (this.wizardStep > 1) {
+      this.wizardStep--;
+    }
+  }
+
+  isFirstStep(): boolean {
+    return this.wizardStep === 1;
+  }
+
+  isLastStep(): boolean {
+    return this.wizardStep === this.totalSteps;
+  }
+}
+</script>

@@ -101,7 +101,9 @@ export class AuthService {
                 id
                 email
                 emailVerified
-                createdAt
+                auditInfo {
+                  createdAt
+                }
               }
               accessToken
               expiresAt
@@ -149,8 +151,10 @@ export class AuthService {
       this.authState.set({
         isAuthenticated: true,
         user: {
-          ...user,
-          createdAt: new Date(user.createdAt),
+          id: user.id,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          createdAt: new Date(user.auditInfo.createdAt),
         },
         accessToken: accessToken,
         expiresAt: new Date(expiresAt),

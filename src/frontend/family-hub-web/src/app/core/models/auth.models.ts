@@ -20,10 +20,22 @@ export interface GetZitadelAuthUrlResponse {
   };
 }
 
+/**
+ * Backend GraphQL response structure (matches backend schema)
+ */
+interface CompleteZitadelLoginUserGQL {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  auditInfo: {
+    createdAt: string;
+  };
+}
+
 export interface CompleteZitadelLoginResponse {
   completeZitadelLogin: {
     authenticationResult?: {
-      user: User;
+      user: CompleteZitadelLoginUserGQL;
       accessToken: string;
       expiresAt: string;
     };

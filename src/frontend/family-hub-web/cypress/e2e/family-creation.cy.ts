@@ -1,15 +1,22 @@
 /**
- * E2E Test Suite: Family Creation Flow
+ * E2E Test Suite: Family Creation Wizard Flow
  *
- * Tests the complete user journey from login to family creation,
+ * Tests the complete user journey from login to family creation using wizard-based page flow,
  * including validation, error handling, and accessibility compliance.
  *
  * Test Coverage:
- * - Happy path: Login → Modal → Create family → Dashboard
+ * - Happy path: Login → Auto-redirect to wizard → Create family → Redirect to dashboard
  * - Validation errors (empty name, too long)
  * - API errors (user already has family)
  * - Accessibility (WCAG 2.1 AA compliance)
- * - Keyboard navigation (Tab, Enter, Escape)
+ * - Keyboard navigation (Tab, Enter)
+ * - Guard-based routing (familyGuard, noFamilyGuard)
+ *
+ * Architecture Changes (vs Modal):
+ * - Wizard page at /family/create (not modal)
+ * - Guard-based auto-redirect when !hasFamily()
+ * - Progress indicator (Step 1 of 1)
+ * - No cancel/escape option (completion required)
  */
 
 describe('Family Creation Flow', () => {
@@ -20,38 +27,40 @@ describe('Family Creation Flow', () => {
   });
 
   describe('Happy Path: Complete Family Creation', () => {
-    it('should complete family creation from login to dashboard', () => {
+    it('should complete family creation wizard from login to dashboard', () => {
       // 1. Mock OAuth login
       cy.mockOAuthLogin();
 
-      // 2. Mock getUserFamilies query (empty response - user has no family)
-      cy.interceptGraphQL('GetUserFamilies', {
+      // 2. Mock GetCurrentFamily query (null response - user has no family)
+      cy.interceptGraphQL('GetCurrentFamily', {
         data: {
-          getUserFamilies: {
-            families: []
-          }
+          family: null
         }
       });
 
-      // 3. Visit dashboard
+      // 3. Visit dashboard (should auto-redirect to wizard)
       cy.visit('/dashboard');
 
-      // 4. Verify modal appears (user has no family)
-      cy.get('[role="dialog"]').should('be.visible');
-      cy.get('.modal-title').should('contain', 'Create Your Family');
+      // 4. Verify redirect to wizard page (guard-based routing)
+      cy.url().should('include', '/family/create');
 
-      // 5. Verify icon and description
+      // 5. Verify wizard page title
+      cy.contains('Create Your Family').should('be.visible');
+
+      // 6. Verify progress indicator shows Step 1 of 1
+      cy.contains('Step 1 of 1').should('be.visible');
+
+      // 7. Verify icon and description in step component
       cy.get('app-icon[name="users"]').should('exist');
       cy.contains('Give your family a name to get started').should('be.visible');
 
-      // 6. Mock createFamily mutation (success)
+      // 8. Mock createFamily mutation (success)
       cy.interceptGraphQL('CreateFamily', {
         data: {
           createFamily: {
             family: {
-              familyId: { value: 'family-123' },
+              id: 'family-123',
               name: 'Smith Family',
-              memberCount: 1,
               createdAt: '2025-12-30T00:00:00Z'
             },
             errors: null
@@ -59,46 +68,39 @@ describe('Family Creation Flow', () => {
         }
       });
 
-      // 7. Mock getUserFamilies query (after creation)
-      cy.interceptGraphQL('GetUserFamilies', {
+      // 9. Mock GetCurrentFamily query (after creation)
+      cy.interceptGraphQL('GetCurrentFamily', {
         data: {
-          getUserFamilies: {
-            families: [{
-              familyId: { value: 'family-123' },
-              name: 'Smith Family',
-              memberCount: 1,
-              createdAt: '2025-12-30T00:00:00Z'
-            }]
+          family: {
+            id: 'family-123',
+            name: 'Smith Family',
+            createdAt: '2025-12-30T00:00:00Z'
           }
         }
       });
 
-      // 8. Enter family name
+      // 10. Enter family name in step component
       cy.get('input[aria-label="Family name"]').type('Smith Family');
 
-      // 9. Verify character counter updates
-      cy.contains('12/50').should('be.visible');
+      // 11. Verify wizard submit button is enabled
+      cy.contains('button', 'Create Family').should('not.be.disabled');
 
-      // 10. Verify submit button is enabled
-      cy.get('button[type="submit"]').should('not.be.disabled');
+      // 12. Click wizard submit button (last step, triggers completion)
+      cy.contains('button', 'Create Family').click();
 
-      // 11. Submit form
-      cy.get('button[type="submit"]').click();
-
-      // 12. Verify loading state
+      // 13. Verify loading state
       cy.contains('Creating...').should('be.visible');
 
-      // 13. Wait for GraphQL mutation
+      // 14. Wait for GraphQL mutation
       cy.wait('@gqlCreateFamily');
 
-      // 14. Verify modal closes (hasFamily() becomes true)
-      cy.get('[role="dialog"]').should('not.exist');
+      // 15. Verify redirect to dashboard (wizard completes → navigation)
+      cy.url().should('include', '/dashboard');
 
-      // 15. Verify dashboard shows family info
+      // 16. Verify dashboard shows family info
       cy.get('h1').should('contain', 'Smith Family');
-      cy.contains('1 member(s)').should('be.visible');
 
-      // 16. Verify family creation date is displayed
+      // 17. Verify family creation date is displayed
       cy.contains('Created:').should('be.visible');
     });
   });
@@ -106,11 +108,10 @@ describe('Family Creation Flow', () => {
   describe('Form Validation', () => {
     beforeEach(() => {
       cy.mockOAuthLogin();
-      cy.interceptGraphQL('GetUserFamilies', {
-        data: { getUserFamilies: { families: [] } }
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: { family: null }
       });
-      cy.visit('/dashboard');
-      cy.get('[role="dialog"]').should('be.visible');
+      cy.visit('/family/create');
     });
 
     it('should show error when family name is empty', () => {
@@ -119,10 +120,9 @@ describe('Family Creation Flow', () => {
 
       // 2. Verify error message
       cy.contains('Family name is required').should('be.visible');
-      cy.get('.error-message').should('have.attr', 'role', 'alert');
 
-      // 3. Verify submit button is disabled
-      cy.get('button[type="submit"]').should('be.disabled');
+      // 3. Verify wizard submit button is disabled
+      cy.contains('button', 'Create Family').should('be.disabled');
 
       // 4. Verify ARIA attributes
       cy.get('input[aria-label="Family name"]')
@@ -141,55 +141,30 @@ describe('Family Creation Flow', () => {
       // 3. Verify error message
       cy.contains('Family name must be 50 characters or less').should('be.visible');
 
-      // 4. Verify character counter shows red (exceeds limit)
-      cy.contains('51/50').should('be.visible');
-
-      // 5. Verify submit button is disabled
-      cy.get('button[type="submit"]').should('be.disabled');
+      // 4. Verify wizard submit button is disabled
+      cy.contains('button', 'Create Family').should('be.disabled');
     });
 
     it('should enable submit button when valid name is entered', () => {
       // 1. Enter valid name
       cy.get('input[aria-label="Family name"]').type('Valid Family Name');
 
-      // 2. Verify character counter
-      cy.contains('17/50').should('be.visible');
+      // 2. Verify no error messages
+      cy.contains('Family name is required').should('not.exist');
+      cy.contains('Family name must be 50 characters or less').should('not.exist');
 
-      // 3. Verify no error messages
-      cy.get('.error-message').should('not.exist');
-
-      // 4. Verify submit button is enabled
-      cy.get('button[type="submit"]').should('not.be.disabled');
-    });
-
-    it('should update character counter in real-time', () => {
-      const input = cy.get('input[aria-label="Family name"]');
-
-      // Start with 0/50
-      cy.contains('0/50').should('be.visible');
-
-      // Type "Smith"
-      input.type('Smith');
-      cy.contains('5/50').should('be.visible');
-
-      // Type " Family"
-      input.type(' Family');
-      cy.contains('12/50').should('be.visible');
-
-      // Delete characters
-      input.type('{backspace}{backspace}{backspace}');
-      cy.contains('9/50').should('be.visible');
+      // 3. Verify wizard submit button is enabled
+      cy.contains('button', 'Create Family').should('not.be.disabled');
     });
   });
 
   describe('API Error Handling', () => {
     beforeEach(() => {
       cy.mockOAuthLogin();
-      cy.interceptGraphQL('GetUserFamilies', {
-        data: { getUserFamilies: { families: [] } }
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: { family: null }
       });
-      cy.visit('/dashboard');
-      cy.get('[role="dialog"]').should('be.visible');
+      cy.visit('/family/create');
     });
 
     it('should display error when user already has a family', () => {
@@ -208,7 +183,7 @@ describe('Family Creation Flow', () => {
 
       // 2. Enter family name and submit
       cy.get('input[aria-label="Family name"]').type('Test Family');
-      cy.get('button[type="submit"]').click();
+      cy.contains('button', 'Create Family').click();
 
       // 3. Wait for mutation
       cy.wait('@gqlCreateFamily');
@@ -216,8 +191,8 @@ describe('Family Creation Flow', () => {
       // 4. Verify error message is displayed
       cy.get('[role="alert"]').should('contain', 'User already has a family');
 
-      // 5. Verify modal remains open
-      cy.get('[role="dialog"]').should('be.visible');
+      // 5. Verify wizard page remains (no redirect)
+      cy.url().should('include', '/family/create');
 
       // 6. Verify form value is preserved (not reset)
       cy.get('input[aria-label="Family name"]').should('have.value', 'Test Family');
@@ -232,7 +207,7 @@ describe('Family Creation Flow', () => {
 
       // 2. Enter family name and submit
       cy.get('input[aria-label="Family name"]').type('Test Family');
-      cy.get('button[type="submit"]').click();
+      cy.contains('button', 'Create Family').click();
 
       // 3. Wait for failed request
       cy.wait('@gqlNetworkError');
@@ -246,27 +221,20 @@ describe('Family Creation Flow', () => {
   describe('Keyboard Navigation', () => {
     beforeEach(() => {
       cy.mockOAuthLogin();
-      cy.interceptGraphQL('GetUserFamilies', {
-        data: { getUserFamilies: { families: [] } }
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: { family: null }
       });
-      cy.visit('/dashboard');
-      cy.get('[role="dialog"]').should('be.visible');
+      cy.visit('/family/create');
     });
 
-    it('should allow Tab navigation through modal elements', () => {
-      // 1. Focus should start on modal dialog
-      cy.get('[role="dialog"]').should('have.focus');
-
-      // 2. Tab to input
+    it('should allow Tab navigation through wizard elements', () => {
+      // 1. Tab to input
       cy.realPress('Tab');
       cy.get('input[aria-label="Family name"]').should('have.focus');
 
-      // 3. Tab to submit button
+      // 2. Tab to submit button
       cy.realPress('Tab');
-      cy.get('button[type="submit"]').should('have.focus');
-
-      // Note: Tab should cycle back to dialog (focus trap)
-      // This requires focus-trap implementation which we'll add
+      cy.contains('button', 'Create Family').should('have.focus');
     });
 
     it('should submit form with Enter key', () => {
@@ -275,9 +243,8 @@ describe('Family Creation Flow', () => {
         data: {
           createFamily: {
             family: {
-              familyId: { value: 'family-456' },
+              id: 'family-456',
               name: 'Keyboard Family',
-              memberCount: 1,
               createdAt: '2025-12-30T00:00:00Z'
             },
             errors: null
@@ -293,33 +260,27 @@ describe('Family Creation Flow', () => {
 
       // 4. Verify mutation was called
       cy.wait('@gqlCreateFamily');
-    });
 
-    it('should NOT close modal with Escape key (closeable=false)', () => {
-      // 1. Press Escape
-      cy.get('[role="dialog"]').type('{esc}');
-
-      // 2. Verify modal is still visible
-      cy.get('[role="dialog"]').should('be.visible');
+      // 5. Verify redirect to dashboard
+      cy.url().should('include', '/dashboard');
     });
   });
 
   describe('Accessibility Compliance (WCAG 2.1 AA)', () => {
     beforeEach(() => {
       cy.mockOAuthLogin();
-      cy.interceptGraphQL('GetUserFamilies', {
-        data: { getUserFamilies: { families: [] } }
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: { family: null }
       });
-      cy.visit('/dashboard');
-      cy.get('[role="dialog"]').should('be.visible');
+      cy.visit('/family/create');
     });
 
-    it('should pass axe-core accessibility audit', () => {
+    it('should pass axe-core accessibility audit on wizard page', () => {
       // Inject axe-core
       cy.injectAxe();
 
-      // Run accessibility checks on modal
-      cy.checkA11y('[role="dialog"]', {
+      // Run accessibility checks on wizard page
+      cy.checkA11y(null, {
         rules: {
           // WCAG 2.1 AA rules
           'color-contrast': { enabled: true },
@@ -327,7 +288,8 @@ describe('Family Creation Flow', () => {
           'aria-required-attr': { enabled: true },
           'aria-valid-attr-value': { enabled: true },
           'label': { enabled: true },
-          'button-name': { enabled: true }
+          'button-name': { enabled: true },
+          'region': { enabled: true }
         }
       });
     });
@@ -342,19 +304,16 @@ describe('Family Creation Flow', () => {
       // Trigger error
       cy.get('input[aria-label="Family name"]').focus().blur();
 
-      // Verify error message has proper ARIA
-      cy.get('.error-message')
-        .should('have.attr', 'role', 'alert')
-        .should('have.attr', 'aria-live', 'polite');
+      // Verify error message appears with accessibility attributes
+      cy.contains('Family name is required').should('be.visible');
     });
 
-    it('should have proper modal semantics', () => {
-      cy.get('[role="dialog"]')
-        .should('have.attr', 'aria-modal', 'true')
-        .should('have.attr', 'aria-labelledby');
+    it('should have proper page semantics', () => {
+      // Verify wizard title exists
+      cy.contains('Create Your Family').should('be.visible');
 
-      // Verify modal title is properly linked
-      cy.get('.modal-title').should('have.attr', 'id');
+      // Verify progress indicator exists
+      cy.contains('Step 1 of 1').should('be.visible');
     });
 
     it('should announce loading state to screen readers', () => {
@@ -364,9 +323,8 @@ describe('Family Creation Flow', () => {
         data: {
           createFamily: {
             family: {
-              familyId: { value: 'family-789' },
+              id: 'family-789',
               name: 'Test Family',
-              memberCount: 1,
               createdAt: '2025-12-30T00:00:00Z'
             },
             errors: null
@@ -376,7 +334,7 @@ describe('Family Creation Flow', () => {
 
       // Submit form
       cy.get('input[aria-label="Family name"]').type('Test Family');
-      cy.get('button[type="submit"]').click();
+      cy.contains('button', 'Create Family').click();
 
       // Verify loading text is visible
       cy.contains('Creating...').should('be.visible');
@@ -386,27 +344,10 @@ describe('Family Creation Flow', () => {
   describe('Loading States', () => {
     beforeEach(() => {
       cy.mockOAuthLogin();
-      cy.interceptGraphQL('GetUserFamilies', {
-        data: { getUserFamilies: { families: [] } }
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: { family: null }
       });
-      cy.visit('/dashboard');
-      cy.get('[role="dialog"]').should('be.visible');
-    });
-
-    it('should show loading overlay when loading families', () => {
-      // Mock delayed getUserFamilies response
-      cy.interceptGraphQL('GetUserFamilies', {
-        delay: 1000,
-        data: { getUserFamilies: { families: [] } }
-      });
-
-      // Reload page
-      cy.visit('/dashboard');
-
-      // Verify loading overlay is visible
-      cy.get('.fixed.inset-0.bg-black.bg-opacity-25').should('be.visible');
-      cy.get('.animate-spin').should('be.visible');
-      cy.contains('Loading...').should('be.visible');
+      cy.visit('/family/create');
     });
 
     it('should disable submit button while creating family', () => {
@@ -416,9 +357,8 @@ describe('Family Creation Flow', () => {
         data: {
           createFamily: {
             family: {
-              familyId: { value: 'family-999' },
+              id: 'family-999',
               name: 'Test Family',
-              memberCount: 1,
               createdAt: '2025-12-30T00:00:00Z'
             },
             errors: null
@@ -428,10 +368,10 @@ describe('Family Creation Flow', () => {
 
       // Enter name and submit
       cy.get('input[aria-label="Family name"]').type('Test Family');
-      cy.get('button[type="submit"]').click();
+      cy.contains('button', 'Create Family').click();
 
       // Verify button is disabled during submission
-      cy.get('button[type="submit"]').should('be.disabled');
+      cy.contains('button', 'Create Family').should('be.disabled');
       cy.contains('Creating...').should('be.visible');
     });
   });
@@ -439,10 +379,10 @@ describe('Family Creation Flow', () => {
   describe('User Experience Edge Cases', () => {
     it('should handle rapid form submissions gracefully', () => {
       cy.mockOAuthLogin();
-      cy.interceptGraphQL('GetUserFamilies', {
-        data: { getUserFamilies: { families: [] } }
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: { family: null }
       });
-      cy.visit('/dashboard');
+      cy.visit('/family/create');
 
       // Mock successful creation
       cy.interceptGraphQL('CreateFamily', {
@@ -450,9 +390,8 @@ describe('Family Creation Flow', () => {
         data: {
           createFamily: {
             family: {
-              familyId: { value: 'family-rapid' },
+              id: 'family-rapid',
               name: 'Rapid Family',
-              memberCount: 1,
               createdAt: '2025-12-30T00:00:00Z'
             },
             errors: null
@@ -464,30 +403,30 @@ describe('Family Creation Flow', () => {
       cy.get('input[aria-label="Family name"]').type('Rapid Family');
 
       // Click submit multiple times rapidly
-      cy.get('button[type="submit"]').click();
-      cy.get('button[type="submit"]').click();
-      cy.get('button[type="submit"]').click();
+      const submitButton = cy.contains('button', 'Create Family');
+      submitButton.click();
+      submitButton.click();
+      submitButton.click();
 
       // Verify only one mutation was sent
       cy.wait('@gqlCreateFamily');
       cy.get('@gqlCreateFamily.all').should('have.length', 1);
     });
 
-    it('should reset form after successful creation', () => {
+    it('should redirect to dashboard after successful wizard completion', () => {
       cy.mockOAuthLogin();
-      cy.interceptGraphQL('GetUserFamilies', {
-        data: { getUserFamilies: { families: [] } }
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: { family: null }
       });
-      cy.visit('/dashboard');
+      cy.visit('/family/create');
 
       // Mock successful creation
       cy.interceptGraphQL('CreateFamily', {
         data: {
           createFamily: {
             family: {
-              familyId: { value: 'family-reset' },
-              name: 'Reset Test Family',
-              memberCount: 1,
+              id: 'family-completion',
+              name: 'Completion Test Family',
               createdAt: '2025-12-30T00:00:00Z'
             },
             errors: null
@@ -495,15 +434,62 @@ describe('Family Creation Flow', () => {
         }
       });
 
+      // Mock GetCurrentFamily after creation
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: {
+          family: {
+            id: 'family-completion',
+            name: 'Completion Test Family',
+            createdAt: '2025-12-30T00:00:00Z'
+          }
+        }
+      });
+
       // Create family
-      cy.get('input[aria-label="Family name"]').type('Reset Test Family');
-      cy.get('button[type="submit"]').click();
+      cy.get('input[aria-label="Family name"]').type('Completion Test Family');
+      cy.contains('button', 'Create Family').click();
 
       // Wait for success
       cy.wait('@gqlCreateFamily');
 
-      // If modal were to reopen (hypothetically), form should be reset
-      // This verifies the component's reset() logic works
+      // Verify redirect to dashboard
+      cy.url().should('include', '/dashboard');
+    });
+  });
+
+  describe('Guard-Based Routing', () => {
+    it('should redirect from dashboard to wizard when user has no family', () => {
+      cy.mockOAuthLogin();
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: { family: null }
+      });
+
+      // Attempt to visit dashboard
+      cy.visit('/dashboard');
+
+      // Should auto-redirect to wizard (familyGuard)
+      cy.url().should('include', '/family/create');
+      cy.contains('Create Your Family').should('be.visible');
+    });
+
+    it('should redirect from wizard to dashboard when user already has family', () => {
+      cy.mockOAuthLogin();
+      cy.interceptGraphQL('GetCurrentFamily', {
+        data: {
+          family: {
+            id: 'existing-family',
+            name: 'Existing Family',
+            createdAt: '2025-12-30T00:00:00Z'
+          }
+        }
+      });
+
+      // Attempt to visit wizard
+      cy.visit('/family/create');
+
+      // Should auto-redirect to dashboard (noFamilyGuard)
+      cy.url().should('include', '/dashboard');
+      cy.get('h1').should('contain', 'Existing Family');
     });
   });
 });

@@ -3,30 +3,23 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { FamilyService } from '../family/services/family.service';
 import { ButtonComponent } from '../../shared/components/atoms/button/button.component';
-import { CreateFamilyModalComponent } from '../family/components/create-family-modal/create-family-modal.component';
 import { IconComponent } from '../../shared/components/atoms/icon/icon.component';
 
 /**
  * Dashboard component - main authenticated landing page.
- * Shows CreateFamilyModal when user has no family, otherwise shows family dashboard.
+ * Protected by familyGuard which redirects to /family/create if user has no family.
+ * This component only renders when user has a family.
  */
 @Component({
   selector: 'app-dashboard',
   imports: [
     CommonModule,
     ButtonComponent,
-    CreateFamilyModalComponent,
     IconComponent,
   ],
   template: `
-    <!-- Create Family Modal (shown when no family) -->
-    <app-create-family-modal
-      [isOpen]="!familyService.hasFamily()"
-      (success)="onFamilyCreated()"
-    ></app-create-family-modal>
-
-    <!-- Authenticated Dashboard (shown when has family) -->
-    @if (familyService.hasFamily()) {
+    <!-- Authenticated Dashboard -->
+    @if (familyService.currentFamily()) {
     <div class="min-h-screen bg-gray-50">
       <!-- Header -->
       <header class="bg-white shadow">
@@ -162,11 +155,6 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.familyService.loadCurrentFamily();
-  }
-
-  onFamilyCreated(): void {
-    // Modal will auto-close via hasFamily() computed signal
-    console.log('Family created successfully!');
   }
 
   logout(): void {
