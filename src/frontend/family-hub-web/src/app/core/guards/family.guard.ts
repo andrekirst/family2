@@ -29,19 +29,19 @@ import { FamilyService } from '../../features/family/services/family.service';
  * **Guard Chain:**
  * Typically used after authGuard to ensure user is authenticated AND has family.
  *
+ * **NOTE:** Family data is already loaded by APP_INITIALIZER before routing begins.
+ * This guard simply checks the pre-loaded data without making additional API calls.
+ *
  * @param route - Activated route snapshot
  * @param state - Router state snapshot
- * @returns True if user has family, false otherwise (triggers redirect)
+ * @returns True if user has family, UrlTree redirect otherwise
  */
-export const familyGuard: CanActivateFn = async (route, state) => {
+export const familyGuard: CanActivateFn = (route, state) => {
   const familyService = inject(FamilyService);
   const router = inject(Router);
 
-  // Load current family data if not already loaded
-  // This ensures guard has fresh data for routing decision
-  await familyService.loadCurrentFamily();
-
-  // Check if user has a family using computed signal
+  // Family data already loaded by APP_INITIALIZER
+  // No need for async call - data is guaranteed to be available
   if (!familyService.hasFamily()) {
     console.log('familyGuard: User has no family. Redirecting to family creation wizard.');
     return router.createUrlTree(['/family/create']);
@@ -80,19 +80,19 @@ export const familyGuard: CanActivateFn = async (route, state) => {
  * Prevents users from creating multiple families (current requirement: one family per user).
  * Future enhancement: Support multiple families by removing this guard.
  *
+ * **NOTE:** Family data is already loaded by APP_INITIALIZER before routing begins.
+ * This guard simply checks the pre-loaded data without making additional API calls.
+ *
  * @param route - Activated route snapshot
  * @param state - Router state snapshot
- * @returns True if user has no family, false otherwise (triggers redirect)
+ * @returns True if user has no family, UrlTree redirect otherwise
  */
-export const noFamilyGuard: CanActivateFn = async (route, state) => {
+export const noFamilyGuard: CanActivateFn = (route, state) => {
   const familyService = inject(FamilyService);
   const router = inject(Router);
 
-  // Load current family data if not already loaded
-  // This ensures guard has fresh data for routing decision
-  await familyService.loadCurrentFamily();
-
-  // Check if user already has a family
+  // Family data already loaded by APP_INITIALIZER
+  // No need for async call - data is guaranteed to be available
   if (familyService.hasFamily()) {
     console.log('noFamilyGuard: User already has a family. Redirecting to dashboard.');
     return router.createUrlTree(['/dashboard']);

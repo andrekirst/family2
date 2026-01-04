@@ -135,14 +135,21 @@ export class FamilyWizardPageComponent implements OnInit {
 
   /**
    * Lifecycle hook: Component initialization.
-   * Performs guard check to redirect if user already has a family.
+   * Performs triple-safety guard check to redirect if user already has a family.
    *
-   * Note: This is a defensive check. Route guard (noFamilyGuard) should
-   * prevent access in most cases, but this provides additional safety.
+   * **Why this check still exists:**
+   * This is a defensive programming check that should never actually trigger because:
+   * 1. APP_INITIALIZER loads family data before routing begins
+   * 2. noFamilyGuard blocks access if user has family
+   * 3. This component-level check provides final safety net
+   *
+   * **When it might trigger:**
+   * - If family is created in another tab after guard passes
+   * - If app state becomes inconsistent (edge case)
+   * - During development/testing scenarios
    */
   ngOnInit(): void {
-    // Guard: Redirect if user already has family
-    // This is a backup to the route guard
+    // Triple-safety guard: Redirect if user already has family
     if (this.familyService.hasFamily()) {
       console.warn('User already has a family. Redirecting to dashboard.');
       this.router.navigate(['/dashboard']);

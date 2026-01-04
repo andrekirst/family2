@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Router, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { familyGuard, noFamilyGuard } from './family.guard';
 import { FamilyService } from '../../features/family/services/family.service';
 import { signal, WritableSignal } from '@angular/core';
@@ -22,7 +22,7 @@ describe('Family Guards', () => {
     });
 
     // Create mock Router
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockRouter = jasmine.createSpyObj('Router', ['navigate', 'createUrlTree']);
 
     // Create mock route and state
     mockRoute = {} as ActivatedRouteSnapshot;
@@ -52,13 +52,15 @@ describe('Family Guards', () => {
 
     it('should redirect to family creation when user has no family', () => {
       // hasFamily is false by default
+      const mockUrlTree = {} as UrlTree;
+      mockRouter.createUrlTree.and.returnValue(mockUrlTree);
 
       const result = TestBed.runInInjectionContext(() =>
         familyGuard(mockRoute, mockState)
       );
 
-      expect(result).toBe(false);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/family/create']);
+      expect(result).toBe(mockUrlTree);
+      expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/family/create']);
     });
 
     it('should log redirect reason', () => {
@@ -89,13 +91,15 @@ describe('Family Guards', () => {
     it('should redirect to dashboard when user has family', () => {
       // Set hasFamily to true
       hasFamilySignal.set(true);
+      const mockUrlTree = {} as UrlTree;
+      mockRouter.createUrlTree.and.returnValue(mockUrlTree);
 
       const result = TestBed.runInInjectionContext(() =>
         noFamilyGuard(mockRoute, mockState)
       );
 
-      expect(result).toBe(false);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(result).toBe(mockUrlTree);
+      expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/dashboard']);
     });
 
     it('should log redirect reason', () => {
@@ -115,27 +119,35 @@ describe('Family Guards', () => {
   describe('Guard Scenarios', () => {
     it('familyGuard should protect dashboard routes', () => {
       // Simulate user without family trying to access dashboard
+      const mockUrlTree = {} as UrlTree;
+      mockRouter.createUrlTree.and.returnValue(mockUrlTree);
+
       const result = TestBed.runInInjectionContext(() =>
         familyGuard(mockRoute, mockState)
       );
 
-      expect(result).toBe(false);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/family/create']);
+      expect(result).toBe(mockUrlTree);
+      expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/family/create']);
     });
 
     it('noFamilyGuard should protect family creation wizard', () => {
       // Simulate user with family trying to access wizard
       hasFamilySignal.set(true);
+      const mockUrlTree = {} as UrlTree;
+      mockRouter.createUrlTree.and.returnValue(mockUrlTree);
 
       const result = TestBed.runInInjectionContext(() =>
         noFamilyGuard(mockRoute, mockState)
       );
 
-      expect(result).toBe(false);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(result).toBe(mockUrlTree);
+      expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/dashboard']);
     });
 
     it('guards should work together in route chain', () => {
+      const mockUrlTree = {} as UrlTree;
+      mockRouter.createUrlTree.and.returnValue(mockUrlTree);
+
       // Test new user flow: should access wizard, not dashboard
       let canAccessWizard = TestBed.runInInjectionContext(() =>
         noFamilyGuard(mockRoute, mockState)
@@ -145,10 +157,10 @@ describe('Family Guards', () => {
       );
 
       expect(canAccessWizard).toBe(true);
-      expect(canAccessDashboard).toBe(false);
+      expect(canAccessDashboard).toBe(mockUrlTree);
 
       // Reset router mock
-      mockRouter.navigate.calls.reset();
+      mockRouter.createUrlTree.calls.reset();
 
       // Test existing user flow: should access dashboard, not wizard
       hasFamilySignal.set(true);
@@ -160,18 +172,21 @@ describe('Family Guards', () => {
         familyGuard(mockRoute, mockState)
       );
 
-      expect(canAccessWizard).toBe(false);
+      expect(canAccessWizard).toBe(mockUrlTree);
       expect(canAccessDashboard).toBe(true);
     });
   });
 
   describe('Edge Cases', () => {
     it('should handle rapid family status changes', () => {
+      const mockUrlTree = {} as UrlTree;
+      mockRouter.createUrlTree.and.returnValue(mockUrlTree);
+
       // User has no family
       let result1 = TestBed.runInInjectionContext(() =>
         familyGuard(mockRoute, mockState)
       );
-      expect(result1).toBe(false);
+      expect(result1).toBe(mockUrlTree);
 
       // User creates family
       hasFamilySignal.set(true);
@@ -187,13 +202,15 @@ describe('Family Guards', () => {
       // This test ensures guards don't crash if service is null
       // (Should not happen in practice, but good defensive programming)
       const nullService = { hasFamily: signal(false) } as any;
+      const mockUrlTree = {} as UrlTree;
       TestBed.overrideProvider(FamilyService, { useValue: nullService });
+      mockRouter.createUrlTree.and.returnValue(mockUrlTree);
 
       const result = TestBed.runInInjectionContext(() =>
         familyGuard(mockRoute, mockState)
       );
 
-      expect(result).toBe(false);
+      expect(result).toBe(mockUrlTree);
     });
   });
 });
