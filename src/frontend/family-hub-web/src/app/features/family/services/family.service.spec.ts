@@ -103,12 +103,12 @@ describe('FamilyService', () => {
     });
 
     it('should handle GraphQLError', async () => {
-      const graphqlError = new GraphQLError('GraphQL validation error', []);
+      const graphqlError = new GraphQLError([{ message: 'GraphQL validation error' }]);
       graphqlService.query.and.returnValue(Promise.reject(graphqlError));
 
       await service.loadCurrentFamily();
 
-      expect(service.error()).toBe('GraphQL validation error');
+      expect(service.error()).toContain('GraphQL validation error');
       expect(service.isLoading()).toBe(false);
     });
 
