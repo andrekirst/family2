@@ -1,3 +1,4 @@
+using FamilyHub.Modules.Auth.Domain.Events;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -11,6 +12,7 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
 {
     /// <summary>
     /// User's email address (unique identifier for login).
+    /// All users authenticate via email-based OAuth.
     /// </summary>
     public Email Email { get; private set; }
 
@@ -42,6 +44,11 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     public FamilyId FamilyId { get; private set; }
 
     /// <summary>
+    /// User's role in the family.
+    /// </summary>
+    public UserRole Role { get; private set; }
+
+    /// <summary>
     /// Soft delete timestamp
     /// </summary>
     public DateTime? DeletedAt { get; set; }
@@ -51,12 +58,14 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     {
         Email = Email.From("temp@temp.com"); // EF Core will set the actual value
         FamilyId = FamilyId.From(Guid.Empty); // EF Core will set the actual value
+        Role = UserRole.Member; // Default role
     }
 
-    private User(UserId id, Email email, FamilyId familyId) : base(id)
+    private User(UserId id, Email email, FamilyId familyId, UserRole? role = null) : base(id)
     {
         Email = email;
         FamilyId = familyId;
+        Role = role ?? UserRole.Member;
         EmailVerified = false;
     }
 
@@ -66,7 +75,7 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     /// </summary>
     public static User CreateFromOAuth(Email email, string externalUserId, string externalProvider, FamilyId familyId)
     {
-        return new User(UserId.New(), email, familyId)
+        return new User(UserId.New(), email, familyId, UserRole.Owner)
         {
             ExternalUserId = externalUserId,
             ExternalProvider = externalProvider,
@@ -119,5 +128,14 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     public UserRole GetRoleInFamily(Family family)
     {
         return family.OwnerId == Id ? UserRole.Owner : UserRole.Member;
+    }
+
+    /// <summary>
+    /// Updates the user's role in their family.
+    /// Used when accepting invitations or role changes.
+    /// </summary>
+    public void UpdateRole(UserRole newRole)
+    {
+        Role = newRole;
     }
 }

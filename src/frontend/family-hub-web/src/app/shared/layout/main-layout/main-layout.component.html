@@ -1,0 +1,50 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Top header -->
+  <header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <app-icon name="users" size="lg" customClass="text-purple-600"></app-icon>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">
+            {{ familyService.currentFamily()?.name || 'Family Hub' }}
+          </h1>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        @if (user()) {
+        <span class="text-gray-700">
+          {{ user()?.email }}
+        </span>
+        }
+        <app-button variant="tertiary" size="sm" (clicked)="logout()">
+          Sign Out
+        </app-button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main content with sidebar -->
+  <div class="flex">
+    <!-- Sidebar navigation -->
+    <aside class="w-64 bg-white shadow-sm min-h-[calc(100vh-73px)]">
+      <nav class="p-4 space-y-2">
+        @for (item of navItems; track item.route) {
+        <a [routerLink]="item.route"
+           [class.bg-purple-50]="isActive(item.route)"
+           [class.text-purple-700]="isActive(item.route)"
+           [class.text-gray-700]="!isActive(item.route)"
+           [class.hover:bg-gray-50]="!isActive(item.route)"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium">
+          <app-icon [name]="item.icon" size="md"></app-icon>
+          <span>{{ item.label }}</span>
+        </a>
+        }
+      </nav>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="flex-1 p-8">
+      <ng-content></ng-content>
+    </main>
+  </div>
+</div>

@@ -42,6 +42,24 @@ public sealed class ZitadelSettings
     public string Audience { get; init; } = string.Empty;
 
     /// <summary>
+    /// Service Account ID for Zitadel Management API authentication (JWT bearer grant)
+    /// Format: {userId}@{projectId} (e.g., 123456789@family_hub)
+    /// </summary>
+    public string ServiceAccountId { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Path to the private key file (PEM format) for signing JWT assertions
+    /// Used for service account authentication with Zitadel Management API
+    /// </summary>
+    public string PrivateKeyPath { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Service Account Key ID for JWT header (kid claim)
+    /// Used for key identification in JWT assertions
+    /// </summary>
+    public string ServiceAccountKeyId { get; init; } = string.Empty;
+
+    /// <summary>
     /// OIDC discovery endpoint URL (auto-generated from Authority)
     /// </summary>
     public string MetadataAddress => $"{Authority}/.well-known/openid-configuration";
@@ -64,6 +82,10 @@ public sealed class ZitadelSettings
         return !string.IsNullOrWhiteSpace(Authority)
             && !string.IsNullOrWhiteSpace(ClientId)
             && !string.IsNullOrWhiteSpace(RedirectUri)
-            && !string.IsNullOrWhiteSpace(Audience);
+            && !string.IsNullOrWhiteSpace(Audience)
+            && !string.IsNullOrWhiteSpace(ServiceAccountId)
+            && !string.IsNullOrWhiteSpace(PrivateKeyPath)
+            && !string.IsNullOrWhiteSpace(ServiceAccountKeyId)
+            && File.Exists(PrivateKeyPath);
     }
 }

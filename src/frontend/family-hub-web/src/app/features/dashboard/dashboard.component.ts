@@ -2,8 +2,7 @@ import { Component, computed, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { FamilyService } from '../family/services/family.service';
-import { ButtonComponent } from '../../shared/components/atoms/button/button.component';
-import { IconComponent } from '../../shared/components/atoms/icon/icon.component';
+import { MainLayoutComponent } from '../../shared/layout/main-layout/main-layout.component';
 
 /**
  * Dashboard component - main authenticated landing page.
@@ -14,45 +13,13 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
   selector: 'app-dashboard',
   imports: [
     CommonModule,
-    ButtonComponent,
-    IconComponent,
+    MainLayoutComponent,
   ],
   template: `
     <!-- Authenticated Dashboard -->
     @if (familyService.currentFamily()) {
-    <div class="min-h-screen bg-gray-50">
-      <!-- Header -->
-      <header class="bg-white shadow">
-        <div
-          class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center"
-        >
-          <div class="flex items-center space-x-3">
-            <app-icon
-              name="users"
-              size="lg"
-              customClass="text-blue-600"
-            ></app-icon>
-            <div>
-              <h1 class="text-2xl font-bold text-gray-900">
-                {{ familyService.currentFamily()?.name }}
-              </h1>
-            </div>
-          </div>
-          <div class="flex items-center space-x-4">
-            @if (user()) {
-            <span class="text-gray-700">
-              {{ user()?.email }}
-            </span>
-            }
-            <app-button variant="tertiary" size="sm" (clicked)="logout()">
-              Sign Out
-            </app-button>
-          </div>
-        </div>
-      </header>
-
-      <!-- Main Content -->
-      <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <app-main-layout>
+      <div class="max-w-5xl">
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">
             Welcome to your Family Hub! 👋
@@ -73,7 +40,7 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
                   <dt class="font-medium text-blue-900 w-32">Created:</dt>
                   <dd class="text-blue-700">
                     {{
-                      familyService.currentFamily()?.createdAt | date : 'medium'
+                      familyService.currentFamily()?.auditInfo?.createdAt | date : 'medium'
                     }}
                   </dd>
                 </div>
@@ -111,8 +78,8 @@ import { IconComponent } from '../../shared/components/atoms/icon/icon.component
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </app-main-layout>
     }
 
     <!-- Loading Overlay -->
@@ -155,11 +122,5 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.familyService.loadCurrentFamily();
-  }
-
-  logout(): void {
-    if (confirm('Are you sure you want to sign out?')) {
-      this.authService.logout();
-    }
   }
 }

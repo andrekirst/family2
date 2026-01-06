@@ -386,12 +386,102 @@ This decision was validated through:
 - [CQRS Pattern](https://martinfowler.com/bliki/CQRS.html)
 - [FluentValidation](https://docs.fluentvalidation.net/)
 
+## Amendment: PersonName Refactoring (January 2026)
+
+**Date:** 2026-01-05
+**Context:** User feedback indicated that "Full Name" terminology was confusing and didn't support mononyms (single names like "Annika").
+
+### Decision
+
+Renamed `FullName` value object to `PersonName` throughout the system for improved clarity and mononym support.
+
+### Changes
+
+1. **Value Object**: `FullName` → `PersonName` (C# class in `FamilyHub.SharedKernel`)
+2. **Database Columns**: `full_name` → `name` (3 tables in auth schema)
+3. **GraphQL Fields**: `fullName` → `name` (breaking change)
+4. **GraphQL Inputs**: `CreateManagedMemberInput.fullName` → `CreateManagedMemberInput.name`
+5. **Error Messages**: More friendly tone ("Please enter a name" vs "Full name cannot be empty")
+6. **UI Labels**: Context-aware ("Name", "Member name", "Display name")
+
+### Mononym Support
+
+PersonName supports both single names and compound names (1-100 characters):
+- "Annika" (mononym)
+- "John Doe" (compound name)
+- "Marie-Claire Dubois" (hyphenated compound)
+
+**Zitadel Integration:**
+Current workaround duplicates single name to both firstName and lastName when creating Zitadel accounts (Zitadel requires non-empty lastName field). Tested and validated in Phase 0 (2026-01-05).
+
+```csharp
+// Mononym handling in CreateManagedMemberCommandHandler
+var nameParts = request.PersonName.Value.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+var firstName = nameParts.Length > 0 ? nameParts[0] : request.Username.Value;
+var lastName = nameParts.Length > 1 ? nameParts[1] : firstName; // DUPLICATE for mononyms
+```
+
+### GraphQL Breaking Change
+
+**Migration Required for Clients:**
+
+```graphql
+# Before (deprecated)
+mutation {
+  createManagedMember(input: { fullName: "John Doe", ... }) {
+    user { id fullName }
+  }
+}
+
+# After (required)
+mutation {
+  createManagedMember(input: { name: "John Doe", ... }) {
+    user { id name }
+  }
+}
+```
+
+Frontend clients must update queries to use `name` field instead of `fullName`.
+
+### Files Changed
+
+28 files affected across backend (17 files), frontend (3 files), tests (6 files), and documentation (2 files). Complete refactoring included:
+
+- Domain entities (User, FamilyMemberInvitation, QueuedManagedAccountCreation)
+- EF Core configurations (3 entity configurations)
+- GraphQL schema (inputs, mutations, queries)
+- Database migration (RenameFullNameToPersonName)
+- Unit tests (PersonNameTests, UserManagedAccountTests, FamilyMemberInvitationTests)
+- Frontend components (models, forms, templates)
+- E2E tests (Playwright specs)
+
+### Test Coverage
+
+- ✅ 180/183 backend unit tests passing
+- ✅ 21/21 integration tests passing
+- ✅ New mononym test case added: `PersonName.From("Annika")`
+- ✅ Frontend builds successfully with updated GraphQL types
+
+### Impact on Input → Command Pattern
+
+This refactoring **validates** the Input → Command pattern:
+
+1. **GraphQL Breaking Change Isolated**: Only Input DTOs changed (public API contract)
+2. **Domain Unchanged**: PersonName value object still uses Vogen pattern
+3. **Mapping Updated**: Mutation methods updated to use `PersonName.From(input.Name)`
+4. **Type Safety Maintained**: TypeScript interfaces updated in lockstep with C# classes
+
+The separation between GraphQL Inputs (primitive `string name`) and Commands (Vogen `PersonName`) proved valuable - only mutation mapping code needed updates, not the entire command pipeline.
+
 ## Revision History
 
 | Date | Version | Author | Description |
 |------|---------|--------|-------------|
 | 2025-12-30 | 1.0 | Andre Kirst | Initial decision after refactoring attempt |
+| 2026-01-05 | 1.1 | Andre Kirst | PersonName refactoring amendment |
 
 ---
 
 **Decision:** We will maintain the Input → Command mapping pattern for GraphQL mutations. This pattern provides clarity, explicit conversion points, and compatibility with both HotChocolate and Vogen. The boilerplate is acceptable given the benefits of separation of concerns and framework compatibility.
+
+**Amendment (2026-01-05):** The PersonName refactoring validated this decision - the Input → Command separation isolated the GraphQL breaking change from the domain layer, demonstrating the value of maintaining clear boundaries between presentation and domain concerns.

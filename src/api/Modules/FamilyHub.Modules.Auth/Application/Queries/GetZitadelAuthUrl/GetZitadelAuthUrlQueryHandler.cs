@@ -47,6 +47,7 @@ public sealed class GetZitadelAuthUrlQueryHandler(
             .WithCodeChallengeMethod("S256") // SHA-256 hashing
             .WithState(state)
             .WithNonce(nonce)
+            .WithLoginHint(request.LoginHint) // Phase 5: Pre-fill login form with email/username
             .Build();
 
         _logger.LogInformation(

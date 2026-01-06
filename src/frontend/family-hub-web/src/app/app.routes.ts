@@ -28,6 +28,13 @@ export const routes: Routes = [
     title: 'Create Your Family - Family Hub'
   },
   {
+    path: 'family/manage',
+    loadComponent: () =>
+      import('./features/family/pages/family-management/family-management.component').then(m => m.FamilyManagementComponent),
+    canActivate: [authGuard, familyGuard],
+    title: 'Manage Family - Family Hub'
+  },
+  {
     path: 'dashboard',
     loadComponent: () =>
       import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),

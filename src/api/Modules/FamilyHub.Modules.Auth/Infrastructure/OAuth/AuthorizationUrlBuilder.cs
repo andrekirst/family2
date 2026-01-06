@@ -15,6 +15,7 @@ public sealed class AuthorizationUrlBuilder
     private string? _codeChallengeMethod = "S256"; // Default to SHA-256
     private string? _state;
     private string? _nonce;
+    private string? _loginHint;
 
     /// <summary>
     /// Sets the OAuth authorization endpoint URL.
@@ -125,6 +126,17 @@ public sealed class AuthorizationUrlBuilder
     }
 
     /// <summary>
+    /// Sets the login_hint parameter to pre-fill the login form.
+    /// Used for username OR email login (Phase 5: Dual Authentication).
+    /// </summary>
+    public AuthorizationUrlBuilder WithLoginHint(string? loginHint)
+    {
+        // login_hint is optional, null/empty is valid
+        _loginHint = loginHint;
+        return this;
+    }
+
+    /// <summary>
     /// Builds the complete authorization URL with all configured parameters.
     /// </summary>
     /// <returns>Fully constructed authorization URL with query parameters.</returns>
@@ -170,6 +182,12 @@ public sealed class AuthorizationUrlBuilder
         if (!string.IsNullOrWhiteSpace(_nonce))
         {
             queryParams.Add($"nonce={_nonce}");
+        }
+
+        // Add optional login_hint parameter (Phase 5: Dual Authentication)
+        if (!string.IsNullOrWhiteSpace(_loginHint))
+        {
+            queryParams.Add($"login_hint={Uri.EscapeDataString(_loginHint)}");
         }
 
         // Combine endpoint and query string

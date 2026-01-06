@@ -1,0 +1,13 @@
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.SharedKernel.Domain.ValueObjects;
+
+namespace FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
+
+/// <summary>
+/// Result returned after successfully updating an invitation's role.
+/// </summary>
+public record UpdateInvitationRoleResult
+{
+    public required InvitationId InvitationId { get; init; }
+    public required UserRole Role { get; init; }
+}

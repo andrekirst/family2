@@ -1,11 +1,15 @@
+using AspNetCoreRateLimit;
 using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Modules.Auth;
+using FamilyHub.Modules.Auth.Infrastructure.BackgroundJobs;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Quartz;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +42,47 @@ try
     // Auth Module registration
     builder.Services.AddAuthModule(builder.Configuration);
 
+    // Quartz.NET Background Jobs Configuration
+    builder.Services.AddQuartz(q =>
+    {
+        q.UseMicrosoftDependencyInjectionJobFactory();
+        q.UseSimpleTypeLoader();
+        q.UseInMemoryStore();
+        q.UseDefaultThreadPool(tp => { tp.MaxConcurrency = 10; });
+
+        // TODO: Job 1: Managed Account Retry Job (runs every 1 minute)
+        // Implement ManagedAccountRetryJob class in Infrastructure/BackgroundJobs before enabling
+        // var managedAccountRetryJobKey = new JobKey("ManagedAccountRetryJob");
+        // q.AddJob<ManagedAccountRetryJob>(opts => opts.WithIdentity(managedAccountRetryJobKey));
+        // q.AddTrigger(opts => opts
+        //     .ForJob(managedAccountRetryJobKey)
+        //     .WithIdentity("ManagedAccountRetryJob-trigger")
+        //     .WithSimpleSchedule(x => x
+        //         .WithIntervalInMinutes(1)
+        //         .RepeatForever())
+        //     .StartNow());
+
+        // Job 2: Expired Invitation Cleanup Job (runs daily at 3 AM UTC)
+        var expiredInvitationCleanupJobKey = new JobKey("ExpiredInvitationCleanupJob");
+        q.AddJob<ExpiredInvitationCleanupJob>(opts => opts.WithIdentity(expiredInvitationCleanupJobKey));
+        q.AddTrigger(opts => opts
+            .ForJob(expiredInvitationCleanupJobKey)
+            .WithIdentity("ExpiredInvitationCleanupJob-trigger")
+            .WithCronSchedule("0 0 3 * * ?") // Daily at 3 AM UTC
+            .StartNow());
+    });
+
+    builder.Services.AddQuartzHostedService(options =>
+    {
+        options.WaitForJobsToComplete = true;
+    });
+
+    // Rate Limiting Configuration
+    builder.Services.AddMemoryCache();
+    builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+    builder.Services.AddInMemoryRateLimiting();
+    builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
     // Hot Chocolate GraphQL configuration
     var graphqlBuilder = builder.Services
         .AddGraphQLServer()
@@ -65,7 +110,10 @@ try
         .AddTypeExtension<AuthMutations>()
         .AddTypeExtension<AuthQueries>()
         .AddTypeExtension<HealthQueries>()
-        .AddTypeExtension<UserQueries>();
+        .AddTypeExtension<UserQueries>()
+        .AddTypeExtension<InvitationQueries>()
+        .AddTypeExtension<InvitationMutations>()
+        .AddTypeExtension<ReferenceDataTypeExtension>();
 
     // Future modules can be registered here:
     // graphqlBuilder.AddCalendarModuleGraphQLTypes();
@@ -154,6 +202,9 @@ try
     app.UseHttpsRedirection();
     app.UseCors("AllowAngularApp");
 
+    // Rate Limiting Middleware
+    app.UseIpRateLimiting();
+
     // Authentication and Authorization middleware
     app.UseAuthentication();
     app.UseAuthorization();
@@ -164,6 +215,7 @@ try
     // Health check endpoint
     app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
        .WithName("HealthCheck");
+
 
     Log.Information("Family Hub API started successfully");
     app.Run();

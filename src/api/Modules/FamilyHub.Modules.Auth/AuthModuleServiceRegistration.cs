@@ -4,13 +4,17 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.SharedKernel.Application.Behaviors;
+using FamilyHub.Modules.Auth.Infrastructure.BackgroundServices;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
+using FamilyHub.Modules.Auth.Infrastructure.Messaging;
+using FamilyHub.Modules.Auth.Infrastructure.Persistence;
 using FamilyHub.Modules.Auth.Infrastructure.Services;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Auth.Persistence.Repositories;
 using FamilyHub.SharedKernel.Presentation.GraphQL;
 using FluentValidation;
 using HotChocolate.Execution.Configuration;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +40,9 @@ public static class AuthModuleServiceRegistration
         // Register TimeProvider for timestamp management
         services.AddSingleton(TimeProvider.System);
 
+        // Register outbox interceptor
+        services.AddSingleton<DomainEventOutboxInterceptor>();
+
         services.AddPooledDbContextFactory<AuthDbContext>((sp, options) =>
         {
             var connectionString = configuration.GetConnectionString("FamilyHubDb");
@@ -46,7 +53,8 @@ public static class AuthModuleServiceRegistration
                     npgsqlOptions.MigrationsAssembly(typeof(AuthDbContext).Assembly.GetName().Name);
                 })
                 .UseSnakeCaseNamingConvention()
-                .AddTimestampInterceptor(sp); // Add automatic timestamp management
+                .AddTimestampInterceptor(sp) // Add automatic timestamp management
+                .AddInterceptors(sp.GetRequiredService<DomainEventOutboxInterceptor>()); // Add outbox pattern
         });
 
         services.AddScoped(sp =>
@@ -61,6 +69,8 @@ public static class AuthModuleServiceRegistration
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFamilyRepository, FamilyRepository>();
+        services.AddScoped<IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
+        services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
 
         // Zitadel OAuth Configuration
         services.Configure<ZitadelSettings>(configuration.GetSection(ZitadelSettings.SectionName));
@@ -78,6 +88,15 @@ public static class AuthModuleServiceRegistration
         // HTTP Context Accessor for accessing HTTP context in services
         services.AddHttpContextAccessor();
 
+        // Authorization: Custom requirement and handler for Owner/Admin role check
+        // Role is stored in database, not in JWT claims
+        services.AddScoped<IAuthorizationHandler, Infrastructure.Authorization.RequireOwnerOrAdminHandler>();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("RequireOwnerOrAdmin", policy =>
+                policy.Requirements.Add(new Infrastructure.Authorization.RequireOwnerOrAdminRequirement()));
+        });
+
         // MediatR - Command/Query handlers
         services.AddMediatR(cfg =>
         {
@@ -89,6 +108,12 @@ public static class AuthModuleServiceRegistration
 
         // FluentValidation - Validators
         services.AddValidatorsFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
+
+        // RabbitMQ Publisher (stub for Phase 2)
+        services.AddSingleton<IRabbitMqPublisher, StubRabbitMqPublisher>();
+
+        // Background Services
+        services.AddHostedService<OutboxEventPublisher>();
 
         return services;
     }

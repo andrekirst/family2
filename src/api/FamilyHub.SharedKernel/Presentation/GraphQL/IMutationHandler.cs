@@ -1,3 +1,5 @@
+using FamilyHub.SharedKernel.Domain;
+
 namespace FamilyHub.SharedKernel.Presentation.GraphQL;
 
 /// <summary>
@@ -14,5 +16,15 @@ public interface IMutationHandler
     /// <param name="action">The mutation logic to execute</param>
     /// <returns>A payload containing either the successful result or error information</returns>
     Task<TPayload> Handle<TResult, TPayload>(Func<Task<TResult>> action)
+        where TPayload : IPayloadWithErrors;
+
+    /// <summary>
+    /// Executes a mutation action that returns Result<TResult> and handles both success and failure cases.
+    /// </summary>
+    /// <typeparam name="TResult">The type of result returned by the mutation action (command result)</typeparam>
+    /// <typeparam name="TPayload">The payload type to return</typeparam>
+    /// <param name="action">The mutation logic to execute that returns Result<TResult></param>
+    /// <returns>A payload containing either the successful result or error information</returns>
+    Task<TPayload> Handle<TResult, TPayload>(Func<Task<Result<TResult>>> action)
         where TPayload : IPayloadWithErrors;
 }

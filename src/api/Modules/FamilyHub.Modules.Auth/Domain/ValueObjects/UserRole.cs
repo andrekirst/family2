@@ -13,13 +13,13 @@ public readonly partial struct UserRole
         UserRoleConstants.OwnerValue,
         UserRoleConstants.AdminValue,
         UserRoleConstants.MemberValue,
-        UserRoleConstants.ChildValue
+        UserRoleConstants.ManagedAccountValue
     ];
 
     public static readonly UserRole Owner = From(UserRoleConstants.OwnerValue);
     public static readonly UserRole Admin = From(UserRoleConstants.AdminValue);
     public static readonly UserRole Member = From(UserRoleConstants.MemberValue);
-    public static readonly UserRole Child = From(UserRoleConstants.ChildValue);
+    public static readonly UserRole ManagedAccount = From(UserRoleConstants.ManagedAccountValue);
 
     private static Validation Validate(string value)
     {
