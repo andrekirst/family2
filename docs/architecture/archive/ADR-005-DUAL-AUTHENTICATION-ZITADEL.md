@@ -49,6 +49,7 @@ We will implement **dual authentication** that allows users to login with **user
 ### Key Components
 
 **1. Service Account Authentication Fixes (Phase 1)**
+
 - Add JWT `kid` header and `jti` claim to service account assertions
 - Fix audience claim (use `Authority`, not token endpoint)
 - Implement thread-safe token caching with `SemaphoreSlim`
@@ -56,12 +57,14 @@ We will implement **dual authentication** that allows users to login with **user
 - Add startup validation with fail-fast pattern
 
 **2. Retry Logic with Polly (Phase 2)**
+
 - Polly resilience library for exponential backoff
 - 3 retry attempts: immediate, 2s delay, 4s delay (max 6 seconds)
 - Retry on 500/503/429 status codes
 - Clear error messages after exhausting retries
 
 **3. Dual Authentication Backend (Phase 3)**
+
 - Database schema: `real_email`, `real_email_verified`, `username_login_enabled` columns
 - Domain methods: `AddRealEmail()`, `DisableUsernameLogin()`, `EnableUsernameLogin()`
 - Domain events: `RealEmailAddedEvent`, `UsernameLoginDisabledEvent`, `UsernameLoginEnabledEvent`
@@ -69,18 +72,21 @@ We will implement **dual authentication** that allows users to login with **user
 - Authorization: Only Owner/Admin can manage dual authentication
 
 **4. Zitadel Actions for Username Login (Phase 4)**
+
 - Custom Zitadel Action (Pre-Authentication flow) that accepts username OR email
 - Email detection regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
 - Maps username to synthetic email: `username@noemail.family-hub.internal`
 - Transparent to end users (runs server-side in Zitadel)
 
 **5. Frontend Updates (Phase 5)**
+
 - Single unified input field: "Email or Username"
 - Auto-detection via regex (same pattern as backend and Zitadel Action)
 - Maps username to synthetic email for `login_hint` parameter
 - No user-visible tabs or explicit method selection
 
 **6. Comprehensive Testing (Phase 6)**
+
 - 21 unit tests for domain logic (100% coverage of dual auth methods)
 - Command handler tests (authorization, validation, lockout prevention)
 - Frontend tests (email detection, OAuth flow)
@@ -94,10 +100,12 @@ We will implement **dual authentication** that allows users to login with **user
 **Approach:** Store hashed passwords in `auth.users` table, validate locally.
 
 **Pros:**
+
 - ✅ No dependency on Zitadel for username authentication
 - ✅ Faster authentication (no external API call)
 
 **Cons:**
+
 - ❌ Duplicates authentication logic (Zitadel + custom)
 - ❌ Increases security surface area (two password storage systems)
 - ❌ Contradicts "keep using Zitadel for password storage" requirement
@@ -113,10 +121,12 @@ We will implement **dual authentication** that allows users to login with **user
 **Approach:** Automatically disable username login when real email is verified.
 
 **Pros:**
+
 - ✅ Forces users to modern authentication method
 - ✅ Reduces maintenance complexity (fewer login methods active)
 
 **Cons:**
+
 - ❌ User chose "manual opt-in with grace period" (explicit requirement)
 - ❌ Forced transitions may surprise users (bad UX)
 - ❌ Admin wants control over migration timeline
@@ -131,10 +141,12 @@ We will implement **dual authentication** that allows users to login with **user
 **Approach:** Create second Zitadel application accepting only usernames.
 
 **Pros:**
+
 - ✅ Clean separation of authentication methods
 - ✅ Different security policies per project
 
 **Cons:**
+
 - ❌ Operational complexity (two OAuth clients, two sets of credentials)
 - ❌ Complicates migration (move users between projects)
 - ❌ Zitadel Actions provide same functionality with less overhead
@@ -149,6 +161,7 @@ We will implement **dual authentication** that allows users to login with **user
 **Approach:** Deploy custom JavaScript action in Zitadel that accepts username OR email.
 
 **Pros:**
+
 - ✅ Single OAuth client (operational simplicity)
 - ✅ Transparent to end users (server-side, no UI changes)
 - ✅ Leverages existing Zitadel infrastructure
@@ -156,6 +169,7 @@ We will implement **dual authentication** that allows users to login with **user
 - ✅ Maintains single source of truth (Zitadel)
 
 **Cons:**
+
 - ⚠️ Requires manual deployment via Zitadel Admin Console
 - ⚠️ External dependency (Zitadel Actions API)
 - ⚠️ Cannot authenticate during Zitadel outages
@@ -171,6 +185,7 @@ We will implement **dual authentication** that allows users to login with **user
 **Requirement:** Service account authentication must be 100% reliable
 
 **Solution:**
+
 - ✅ Comprehensive JWT assertion fixes (kid, jti, aud claims)
 - ✅ Thread-safe token caching (prevents race conditions)
 - ✅ Startup validation (fail-fast if Zitadel connection invalid)
@@ -186,6 +201,7 @@ We will implement **dual authentication** that allows users to login with **user
 **Requirement:** Handle transient Zitadel failures without immediate user impact
 
 **Solution:**
+
 - ✅ Polly retry logic (3 attempts with exponential backoff)
 - ✅ Retry on 500/503/429 status codes
 - ✅ Max 6 seconds retry delay (acceptable to users)
@@ -200,6 +216,7 @@ We will implement **dual authentication** that allows users to login with **user
 **Requirement:** Unified, intuitive login experience
 
 **Solution:**
+
 - ✅ Single input field (no tabs, no explicit method selection)
 - ✅ Auto-detection via regex (username vs email)
 - ✅ Consistent detection across three layers (frontend, backend, Zitadel Action)
@@ -214,6 +231,7 @@ We will implement **dual authentication** that allows users to login with **user
 **Requirement:** Manual migration with grace period, not automatic
 
 **Solution:**
+
 - ✅ Admin adds real email to managed account
 - ✅ Both login methods work during grace period
 - ✅ Admin manually disables username login when ready
@@ -228,6 +246,7 @@ We will implement **dual authentication** that allows users to login with **user
 **Requirement:** Zitadel remains sole authentication provider
 
 **Solution:**
+
 - ✅ All passwords stored in Zitadel (not Family Hub database)
 - ✅ No separate username/password table
 - ✅ Zitadel Actions handle username-to-email mapping
@@ -374,6 +393,7 @@ private isEmailFormat(input: string): boolean {
 **Phase 6: Comprehensive testing (21 unit tests, 100% coverage)**
 
 ### Domain Tests (UserDualAuthenticationTests.cs)
+
 - AddRealEmail validation (managed account check, duplicate check)
 - DisableUsernameLogin with lockout prevention
 - EnableUsernameLogin validation (already enabled check, non-managed check)
@@ -381,11 +401,13 @@ private isEmailFormat(input: string): boolean {
 - Workflow tests (add email → disable username → re-enable)
 
 ### Command Handler Tests
+
 - Authorization (Owner/Admin can manage, Members cannot)
 - Validation (user not found, email already in use)
 - Lockout prevention (cannot disable without verified email)
 
 ### Frontend Tests (auth.service.spec.ts)
+
 - Email detection (standard email, subdomain, plus addressing)
 - Username mapping to synthetic email
 - Edge cases (no @, @ but no domain, @ but no TLD)
@@ -398,6 +420,7 @@ private isEmailFormat(input: string): boolean {
 ## Rollback Procedures
 
 ### If Zitadel Actions Fail
+
 1. Access Zitadel Admin Console
 2. Go to Settings > Actions
 3. Find "Family Hub Username or Email Login"
@@ -406,6 +429,7 @@ private isEmailFormat(input: string): boolean {
 6. Managed accounts temporarily unable to login (acceptable during incident)
 
 ### If Service Account Auth Fixes Break
+
 1. Rollback Docker image to previous version
 2. Check private key file permissions and format
 3. Verify Zitadel service account has correct IAM roles
@@ -413,6 +437,7 @@ private isEmailFormat(input: string): boolean {
 5. Restore from backup if database migration ran
 
 ### If Dual Auth Migration Causes Issues
+
 1. Rollback database migration: `dotnet ef database update <PreviousMigration>`
 2. Disable admin UI for email management
 3. Existing managed accounts continue with username login

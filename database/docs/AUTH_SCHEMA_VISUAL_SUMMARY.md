@@ -104,6 +104,7 @@ CREATE TYPE family_role AS ENUM (
 ```
 
 **Role Hierarchy:**
+
 ```
 owner > admin > member > child
 ```
@@ -388,6 +389,7 @@ auth.auth_audit_log_pkey ON auth_audit_log(id)
 ### Secondary Indexes (Query Optimization)
 
 **User Lookups:**
+
 ```sql
 -- Email lookup (login)
 idx_users_email ON users(email) WHERE deleted_at IS NULL
@@ -399,6 +401,7 @@ idx_users_zitadel_user_id ON users(zitadel_user_id) WHERE deleted_at IS NULL
 ```
 
 **Family Queries:**
+
 ```sql
 -- Find families by owner
 idx_families_owner_id ON families(owner_id) WHERE deleted_at IS NULL
@@ -418,6 +421,7 @@ idx_user_families_role ON user_families(family_id, role)
 ```
 
 **Token Lookups:**
+
 ```sql
 -- Active token lookup (partial index)
 idx_email_verification_tokens_token ON email_verification_tokens(token)
@@ -430,6 +434,7 @@ idx_password_reset_tokens_token ON password_reset_tokens(token)
 ```
 
 **Audit Log Queries:**
+
 ```sql
 -- User activity timeline
 idx_auth_audit_log_user_id ON auth_audit_log(user_id, created_at DESC)
@@ -470,6 +475,7 @@ idx_auth_audit_log_event_data ON auth_audit_log USING gin(event_data)
 ### Table Size Estimates (at scale)
 
 **Assumptions:**
+
 - 10,000 users
 - 2,000 families
 - 20,000 memberships

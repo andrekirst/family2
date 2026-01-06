@@ -13,6 +13,7 @@ Phase 2 successfully implements a production-ready family creation wizard using 
 ### 1. Components (2)
 
 #### FamilyNameStepComponent
+
 - **Purpose:** Wizard step for family name input
 - **File:** `src/app/features/family/components/family-name-step/family-name-step.component.ts`
 - **Lines:** 150
@@ -25,6 +26,7 @@ Phase 2 successfully implements a production-ready family creation wizard using 
 - **Test Coverage:** 100%
 
 #### FamilyWizardPageComponent
+
 - **Purpose:** Page container for family wizard
 - **File:** `src/app/features/family/pages/family-wizard-page/family-wizard-page.component.ts`
 - **Lines:** 120
@@ -39,12 +41,14 @@ Phase 2 successfully implements a production-ready family creation wizard using 
 ### 2. Route Guards (2)
 
 #### familyGuard
+
 - **Purpose:** Require family to access route
 - **File:** `src/app/core/guards/family.guard.ts`
 - **Behavior:** Redirect to /family/create if no family
 - **Usage:** Dashboard, family features
 
 #### noFamilyGuard
+
 - **Purpose:** Require NO family to access route
 - **File:** `src/app/core/guards/family.guard.ts`
 - **Behavior:** Redirect to /dashboard if has family
@@ -116,6 +120,7 @@ Phase 2 successfully implements a production-ready family creation wizard using 
 ## Integration Points
 
 ### 1. WizardService (Phase 1)
+
 ```typescript
 // Step configuration
 wizardSteps: WizardStepConfig[] = [
@@ -129,6 +134,7 @@ wizardSteps: WizardStepConfig[] = [
 ```
 
 ### 2. FamilyService
+
 ```typescript
 // Create family
 await this.familyService.createFamily(trimmedName);
@@ -140,6 +146,7 @@ if (this.familyService.hasFamily()) {
 ```
 
 ### 3. Router Guards
+
 ```typescript
 // Route configuration
 {
@@ -152,12 +159,14 @@ if (this.familyService.hasFamily()) {
 ## User Flows
 
 ### New User Flow
+
 ```
 Login → authGuard ✅ → familyGuard ❌ → /family/create
   → Fill name → Create Family → API call → /dashboard
 ```
 
 ### Existing User Flow
+
 ```
 Login → authGuard ✅ → familyGuard ✅ → /dashboard
   → Try /family/create → noFamilyGuard ❌ → /dashboard
@@ -166,6 +175,7 @@ Login → authGuard ✅ → familyGuard ✅ → /dashboard
 ## Testing Strategy
 
 ### Unit Tests (37 cases)
+
 - Component initialization
 - Form validation
 - Data emission
@@ -174,6 +184,7 @@ Login → authGuard ✅ → familyGuard ✅ → /dashboard
 - Error handling
 
 ### Manual Testing
+
 - New user flow
 - Existing user flow
 - Validation scenarios
@@ -181,6 +192,7 @@ Login → authGuard ✅ → familyGuard ✅ → /dashboard
 - Error scenarios
 
 ### E2E Tests (Future)
+
 - End-to-end wizard flow
 - Cross-browser testing
 - Mobile responsive testing
@@ -216,12 +228,14 @@ docs/frontend/
 ## Dependencies
 
 ### External
+
 - @angular/core (^19.0.0)
 - @angular/forms (^19.0.0)
 - @angular/router (^19.0.0)
 - @angular/common (^19.0.0)
 
 ### Internal
+
 - WizardService (Phase 1)
 - WizardComponent (Phase 1)
 - ProgressBarComponent (Phase 1)
@@ -233,18 +247,21 @@ docs/frontend/
 ## Migration from Modal
 
 ### Before
+
 - CreateFamilyModalComponent (200 lines)
 - Modal-based UI
 - Imperative flow
 - Single-step
 
 ### After
+
 - FamilyWizardPageComponent (120 lines)
 - Full-page wizard
 - Declarative routing
 - Multi-step ready
 
 ### Benefits
+
 1. Better UX (full page vs modal)
 2. Extensible (easy to add steps)
 3. Better a11y (keyboard nav)
@@ -254,6 +271,7 @@ docs/frontend/
 ## Lessons Learned
 
 ### What Worked Well
+
 1. **Generic Wizard Framework:** Phase 1 investment paid off
 2. **Signal-Based State:** Clean reactive patterns
 3. **Functional Guards:** Simpler than class-based
@@ -261,6 +279,7 @@ docs/frontend/
 5. **Comprehensive Docs:** Reduced Q&A time
 
 ### Challenges Overcome
+
 1. **Effect Double Emission:** Resolved with effect + valueChanges
 2. **Type Safety:** Proper casting for wizard step data
 3. **Character Counter:** Positioning with absolute CSS
@@ -268,6 +287,7 @@ docs/frontend/
 5. **Guard Testing:** runInInjectionContext pattern
 
 ### Best Practices Established
+
 1. Step components should be stateless (data via props)
 2. Validation at wizard level, not step level
 3. Trim user input before API calls
@@ -277,12 +297,14 @@ docs/frontend/
 ## Metrics
 
 ### Development Time
+
 - **Component Development:** 2 hours
 - **Testing:** 1.5 hours
 - **Documentation:** 1 hour
 - **Total:** 4.5 hours
 
 ### Code Quality
+
 - **TypeScript Strict:** ✅ Enabled
 - **ESLint Errors:** 0
 - **Prettier Formatted:** ✅
@@ -290,6 +312,7 @@ docs/frontend/
 - **Documentation:** 100%
 
 ### Performance
+
 - **Bundle Size:** 6KB (excellent)
 - **Load Time:** <100ms (excellent)
 - **Lighthouse:** 98/100 (excellent)
@@ -300,12 +323,14 @@ docs/frontend/
 ### Phase 3: Additional Wizard Steps
 
 **Step 2: Family Members**
+
 - Add initial family members
 - Email invitations
 - Role assignment
 - Optional step (canSkip: true)
 
 **Step 3: Family Preferences**
+
 - Timezone selection
 - Language preference
 - Privacy settings
@@ -314,16 +339,19 @@ docs/frontend/
 ### Phase 4: Wizard Enhancements
 
 **Progress Persistence:**
+
 - Save to localStorage
 - Resume later
 - Auto-save on navigation
 
 **Advanced Validation:**
+
 - Real-time uniqueness check
 - Async validators
 - Debounced API calls
 
 **UX Improvements:**
+
 - Family name suggestions
 - Auto-capitalize
 - Emoji picker
@@ -345,6 +373,7 @@ docs/frontend/
 ## Success Criteria
 
 ### Must Have (Met)
+
 - [x] Family name step implemented
 - [x] Wizard page container created
 - [x] Route guards functioning
@@ -353,6 +382,7 @@ docs/frontend/
 - [x] WCAG 2.1 AA compliant
 
 ### Should Have (Met)
+
 - [x] Character counter with color coding
 - [x] Real-time validation
 - [x] Accessibility features
@@ -360,6 +390,7 @@ docs/frontend/
 - [x] Migration guide from modal
 
 ### Nice to Have (Future)
+
 - [ ] Multiple wizard steps
 - [ ] Progress persistence
 - [ ] Async validation

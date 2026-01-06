@@ -7,6 +7,7 @@ Generic wizard organism that orchestrates multi-step form flows with dynamic com
 **Purpose:** Main wizard container that dynamically renders step components based on current state. Integrates progress indication, navigation, and validation into a cohesive user experience.
 
 **Architecture:**
+
 - **Atomic Design Level:** Organism (composes atoms/molecules)
 - **State Management:** Signal-based with component-scoped `WizardService`
 - **Rendering:** Dynamic component loading via `ViewContainerRef`
@@ -460,6 +461,7 @@ describe('Wizard Flow', () => {
 ### From Traditional Multi-Step Form
 
 **Before:**
+
 ```typescript
 // Manual state management
 currentStep = 0;
@@ -474,6 +476,7 @@ nextStep() {
 ```
 
 **After:**
+
 ```typescript
 // Use WizardComponent
 <app-wizard

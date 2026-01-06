@@ -15,10 +15,12 @@
 ### Scope
 
 Implement a complete family member invitation system with dual workflows:
+
 1. **Email Invitations**: Token-based invitations with 14-day expiration
 2. **Managed Account Creation**: Zitadel-managed accounts for users without email (e.g., children)
 
 **Components:**
+
 - Multi-step family creation wizard (2 steps: Family Info → Invite Members)
 - Family management UI (current members, pending invitations, invite modal)
 - Backend domain model (FamilyMemberInvitation aggregate, User extensions)
@@ -29,6 +31,7 @@ Implement a complete family member invitation system with dual workflows:
 ### Team & Agents
 
 **11 Specialized Agents**:
+
 - `database-administrator`: Enum migration, schema design, indexes
 - `backend-developer`: Domain model, command handlers, GraphQL mutations
 - `api-designer`: GraphQL schema design, input/command patterns
@@ -196,11 +199,15 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 **Duration:** 1 day
 
 **Subtasks:**
+
 - [ ] Create EF Core migration: `AddManagedAccountRole`
+
   ```sql
   ALTER TYPE auth.user_role ADD VALUE IF NOT EXISTS 'MANAGED_ACCOUNT';
   ```
+
 - [ ] Update C# enum in `FamilyHub.Modules.Auth/Domain/UserRole.cs`:
+
   ```csharp
   public enum UserRole
   {
@@ -211,11 +218,13 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       ManagedAccount = 5   // Add new value
   }
   ```
+
 - [ ] Add Vogen value object for UserRole if not already using
 - [ ] Test migration on local dev environment
 - [ ] Document rollback procedure
 
 **Acceptance Criteria:**
+
 - Migration runs successfully without errors
 - Both CHILD and MANAGED_ACCOUNT enum values exist
 - Existing users with CHILD role are unaffected
@@ -227,21 +236,27 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 **Duration:** 1 day
 
 **Subtasks:**
+
 - [ ] Create migration: `MigrateChildToManagedAccount`
+
   ```sql
   UPDATE auth.users
   SET role = 'MANAGED_ACCOUNT'
   WHERE role = 'CHILD';
   ```
+
 - [ ] Add verification query to check migration success:
+
   ```sql
   SELECT COUNT(*) FROM auth.users WHERE role = 'CHILD'; -- Should return 0
   SELECT COUNT(*) FROM auth.users WHERE role = 'MANAGED_ACCOUNT';
   ```
+
 - [ ] Test migration with sample data (create 10 test users with CHILD role, verify migration)
 - [ ] Create rollback script (reverse migration if needed within 48-hour window)
 
 **Acceptance Criteria:**
+
 - All users with CHILD role are migrated to MANAGED_ACCOUNT
 - Zero data loss during migration
 - Rollback script tested and documented
@@ -253,9 +268,11 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 **Duration:** 1 day
 
 **Subtasks:**
+
 - [ ] Wait 48 hours after 0.2 deployment (safety buffer for rollback)
 - [ ] Verify no users have CHILD role in production
 - [ ] Remove CHILD from C# enum:
+
   ```csharp
   public enum UserRole
   {
@@ -265,17 +282,21 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       ManagedAccount = 5  // Renumbered from 4
   }
   ```
+
 - [ ] Create migration: `RemoveChildRole` (optional - PostgreSQL allows unused enum values)
+
   ```sql
   -- NOTE: PostgreSQL doesn't support removing enum values directly
   -- Document that CHILD exists but is unused
   -- Or recreate enum entirely (complex, risky)
   ```
+
 - [ ] Search codebase for string literals: "CHILD", "Child" - replace all references
 - [ ] Update GraphQL schema: rename ChildRole → ManagedAccountRole
 - [ ] Update documentation: MANAGED-ACCOUNT-SETUP.md, domain-model-microservices-map.md
 
 **Acceptance Criteria:**
+
 - No code references to CHILD role remain
 - GraphQL schema updated and deployed
 - All tests pass with new enum values
@@ -287,7 +308,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 **Duration:** 1 day
 
 **Subtasks:**
+
 - [ ] Update GraphQL `UserRole` enum:
+
   ```graphql
   enum UserRole {
     OWNER
@@ -296,7 +319,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     MANAGED_ACCOUNT  # Renamed from CHILD
   }
   ```
+
 - [ ] Create `FamilyMemberType` type (new for #25/#26):
+
   ```graphql
   type FamilyMemberType {
     userId: ID!
@@ -307,7 +332,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     joinedAt: DateTime!
   }
   ```
+
 - [ ] Create `PendingInvitation` type:
+
   ```graphql
   type PendingInvitation {
     invitationId: ID!
@@ -328,7 +355,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     CANCELED
   }
   ```
+
 - [ ] Update existing `family` query to return new types:
+
   ```graphql
   type Family {
     id: ID!
@@ -337,10 +366,12 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     pendingInvitations: [PendingInvitation!]!  # New field
   }
   ```
+
 - [ ] Publish schema to dev environment
 - [ ] Notify frontend-developer of schema changes
 
 **Acceptance Criteria:**
+
 - GraphQL schema compiles without errors
 - Breaking changes documented in CHANGELOG
 - Frontend receives schema notification before implementation starts
@@ -352,6 +383,7 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 **Duration:** 1 day
 
 **Subtasks:**
+
 - [ ] Create integration test: User with MANAGED_ACCOUNT role can be queried
 - [ ] Create integration test: GraphQL query returns correct UserRole enum
 - [ ] Create integration test: Family.members query returns FamilyMemberType
@@ -360,6 +392,7 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 - [ ] Fix any broken tests referencing CHILD
 
 **Acceptance Criteria:**
+
 - All tests pass (0 failures)
 - Code coverage maintained (>80% backend)
 - No CHILD enum references in tests
@@ -401,7 +434,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.A.1: FamilyMemberInvitation Aggregate
 
 **Subtasks:**
+
 - [ ] Create `InvitationId` value object (Vogen GUID):
+
   ```csharp
   [ValueObject<Guid>(conversions: Conversions.EfCoreValueConverter)]
   public readonly partial struct InvitationId
@@ -409,7 +444,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       public static InvitationId New() => From(Guid.NewGuid());
   }
   ```
+
 - [ ] Create `InvitationDisplayCode` value object (short code):
+
   ```csharp
   [ValueObject<string>]
   public readonly partial struct InvitationDisplayCode
@@ -423,7 +460,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
           From(GenerateRandomAlphanumeric(8)); // INV-KX7M2P format
   }
   ```
+
 - [ ] Create `InvitationToken` value object (64-char random):
+
   ```csharp
   [ValueObject<string>]
   public readonly partial struct InvitationToken
@@ -443,7 +482,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       }
   }
   ```
+
 - [ ] Create `FamilyMemberInvitation` aggregate root:
+
   ```csharp
   public class FamilyMemberInvitation : AggregateRoot<InvitationId>
   {
@@ -587,6 +628,7 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
   ```
 
 **Acceptance Criteria:**
+
 - Aggregate compiles without errors
 - Factory methods enforce business rules (email XOR username required)
 - Domain events are published correctly
@@ -596,7 +638,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.A.2: User Entity Extensions
 
 **Subtasks:**
+
 - [ ] Add managed account properties to `User` entity:
+
   ```csharp
   public class User : AggregateRoot<UserId>
   {
@@ -635,7 +679,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       }
   }
   ```
+
 - [ ] Create `Username` value object:
+
   ```csharp
   [ValueObject<string>(conversions: Conversions.EfCoreValueConverter)]
   public readonly partial struct Username
@@ -648,7 +694,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       private static string NormalizeInput(string input) => input.Trim().ToLowerInvariant();
   }
   ```
+
 - [ ] Create `FullName` value object:
+
   ```csharp
   [ValueObject<string>(conversions: Conversions.EfCoreValueConverter)]
   public readonly partial struct PersonName
@@ -661,10 +709,12 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       private static string NormalizeInput(string input) => input.Trim();
   }
   ```
+
 - [ ] Update User repository interface: `IUserRepository.GetByUsernameAsync(Username username)`
 - [ ] Create unit tests for managed account creation
 
 **Acceptance Criteria:**
+
 - User entity supports both email and managed account types
 - Username and FullName value objects have proper validation
 - Factory method generates synthetic email correctly
@@ -674,7 +724,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.A.3: Domain Events
 
 **Subtasks:**
+
 - [ ] Create `FamilyMemberInvitedEvent`:
+
   ```csharp
   public record FamilyMemberInvitedEvent(
       int EventVersion,
@@ -688,7 +740,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       bool IsResend = false
   ) : DomainEvent(EventVersion);
   ```
+
 - [ ] Create `ManagedAccountCreatedEvent`:
+
   ```csharp
   public record ManagedAccountCreatedEvent(
       int EventVersion,
@@ -702,7 +756,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       UserId CreatedByUserId
   ) : DomainEvent(EventVersion);
   ```
+
 - [ ] Create `InvitationAcceptedEvent`:
+
   ```csharp
   public record InvitationAcceptedEvent(
       int EventVersion,
@@ -712,7 +768,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       DateTime AcceptedAt
   ) : DomainEvent(EventVersion);
   ```
+
 - [ ] Create `InvitationCanceledEvent`:
+
   ```csharp
   public record InvitationCanceledEvent(
       int EventVersion,
@@ -722,10 +780,12 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       DateTime CanceledAt
   ) : DomainEvent(EventVersion);
   ```
+
 - [ ] Ensure all events include `EventVersion` field for future schema evolution
 - [ ] Create unit tests verifying event publishing from aggregate methods
 
 **Acceptance Criteria:**
+
 - All domain events are immutable records
 - EventVersion = 1 for all Phase 1 events
 - Events contain all necessary data for consumers
@@ -738,7 +798,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.B.1: Design Invitation Mutations Schema
 
 **Subtasks:**
+
 - [ ] Create `InviteFamilyMemberByEmailInput`:
+
   ```graphql
   input InviteFamilyMemberByEmailInput {
     familyId: ID!
@@ -747,7 +809,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     message: String  # Optional personal message for Phase 1 (resend/edit role features)
   }
   ```
+
 - [ ] Create `CreateManagedMemberInput`:
+
   ```graphql
   input CreateManagedMemberInput {
     familyId: ID!
@@ -771,7 +835,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     includeSymbols: Boolean!
   }
   ```
+
 - [ ] Create `BatchInviteFamilyMembersInput` (mixed mode):
+
   ```graphql
   input BatchInviteFamilyMembersInput {
     familyId: ID!
@@ -792,7 +858,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     passwordConfig: PasswordGenerationConfig!
   }
   ```
+
 - [ ] Create mutation payloads:
+
   ```graphql
   type InviteFamilyMemberByEmailPayload {
     invitation: PendingInvitation
@@ -848,7 +916,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.B.2: Design Query Schema
 
 **Subtasks:**
+
 - [ ] Create `FamilyMemberInvitation` queries:
+
   ```graphql
   extend type Query {
     familyMembers(familyId: ID!): [FamilyMemberType!]!
@@ -857,7 +927,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     invitationByToken(token: String!): PendingInvitation
   }
   ```
+
 - [ ] Create `CancelInvitationInput` and payload:
+
   ```graphql
   input CancelInvitationInput {
     invitationId: ID!
@@ -868,7 +940,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     errors: [MutationError!]
   }
   ```
+
 - [ ] Create `ResendInvitationInput`:
+
   ```graphql
   input ResendInvitationInput {
     invitationId: ID!
@@ -880,7 +954,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     errors: [MutationError!]
   }
   ```
+
 - [ ] Create `UpdateInvitationRoleInput`:
+
   ```graphql
   input UpdateInvitationRoleInput {
     invitationId: ID!
@@ -896,7 +972,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.B.3: Design Subscription Schema (Real-time Updates)
 
 **Subtasks:**
+
 - [ ] Create GraphQL subscriptions:
+
   ```graphql
   extend type Subscription {
     familyMembersChanged(familyId: ID!): FamilyMembersChangedPayload!
@@ -921,10 +999,12 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     REMOVED
   }
   ```
+
 - [ ] Document subscription lifecycle (connect, authenticate, filter by familyId)
 - [ ] Plan Redis PubSub integration (messages published on domain events)
 
 **Acceptance Criteria:**
+
 - GraphQL schema compiles and validates
 - Input/Command pattern maintained (separate inputs from commands)
 - Error codes comprehensive and descriptive
@@ -938,7 +1018,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.C.1: Zitadel JWT Service Authentication
 
 **Subtasks:**
+
 - [ ] Create `IZitadelManagementClient` interface:
+
   ```csharp
   public interface IZitadelManagementClient
   {
@@ -954,7 +1036,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       Task<bool> ValidateTokenAsync(string token); // For health checks
   }
   ```
+
 - [ ] Implement `ZitadelManagementClient`:
+
   ```csharp
   public class ZitadelManagementClient : IZitadelManagementClient
   {
@@ -1071,7 +1155,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       }
   }
   ```
+
 - [ ] Configure in `appsettings.json`:
+
   ```json
   {
     "Zitadel": {
@@ -1081,7 +1167,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     }
   }
   ```
+
 - [ ] Add dependency injection in `AuthModule.cs`:
+
   ```csharp
   services.AddMemoryCache();
   services.AddHttpClient<IZitadelManagementClient, ZitadelManagementClient>();
@@ -1089,6 +1177,7 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
   ```
 
 **Acceptance Criteria:**
+
 - JWT assertion created correctly with private key signing
 - Access token cached with automatic refresh 5min before expiry
 - CreateHumanUserAsync successfully creates users in Zitadel dev environment
@@ -1098,7 +1187,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.C.2: Password Generation Service
 
 **Subtasks:**
+
 - [ ] Create `IPasswordGenerationService` interface:
+
   ```csharp
   public interface IPasswordGenerationService
   {
@@ -1115,7 +1206,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       bool IncludeSymbols
   );
   ```
+
 - [ ] Implement `PasswordGenerationService`:
+
   ```csharp
   public class PasswordGenerationService : IPasswordGenerationService
   {
@@ -1196,6 +1289,7 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       }
   }
   ```
+
 - [ ] Create unit tests:
   - Generated passwords meet length requirements
   - Complexity requirements enforced
@@ -1203,6 +1297,7 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
   - Validation logic catches weak passwords
 
 **Acceptance Criteria:**
+
 - Password generation service creates cryptographically random passwords
 - Passphrase generation uses wordlist (2000+ common English words)
 - Complexity validation enforces 12+ chars, upper, lower, digit, symbol
@@ -1212,11 +1307,15 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.C.3: Rate Limiting Middleware
 
 **Subtasks:**
+
 - [ ] Install AspNetCoreRateLimit package:
+
   ```bash
   dotnet add package AspNetCoreRateLimit
   ```
+
 - [ ] Configure IP rate limiting in `Program.cs`:
+
   ```csharp
   services.AddMemoryCache();
   services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
@@ -1225,7 +1324,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 
   app.UseIpRateLimiting();
   ```
+
 - [ ] Configure in `appsettings.json`:
+
   ```json
   {
     "IpRateLimiting": {
@@ -1249,7 +1350,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
     }
   }
   ```
+
 - [ ] Add GraphQL-specific rate limiting for invitation mutations:
+
   ```csharp
   [RateLimit(Period = "1h", Limit = 20)] // Custom attribute
   public async Task<InviteFamilyMemberByEmailPayload> InviteFamilyMemberByEmailAsync(
@@ -1259,12 +1362,14 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       // ...
   }
   ```
+
 - [ ] Create integration tests verifying rate limiting:
   - 11th request in 1 hour returns 429 Too Many Requests
   - Rate limit resets after 1 hour
   - Different IPs have independent limits
 
 **Acceptance Criteria:**
+
 - Rate limiting active on invitation acceptance endpoint
 - 10 attempts per IP per hour enforced
 - 429 status code returned with Retry-After header
@@ -1278,7 +1383,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.D.1: FamilyMemberInvitation Table Migration
 
 **Subtasks:**
+
 - [ ] Create EF Core migration: `CreateFamilyMemberInvitationsTable`
+
   ```csharp
   protected override void Up(MigrationBuilder migrationBuilder)
   {
@@ -1354,7 +1461,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       ");
   }
   ```
+
 - [ ] Create EF Core entity configuration:
+
   ```csharp
   public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyMemberInvitation>
   {
@@ -1437,10 +1546,12 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       }
   }
   ```
+
 - [ ] Test migration on local dev database
 - [ ] Verify indexes are created correctly (`\d auth.family_member_invitations` in psql)
 
 **Acceptance Criteria:**
+
 - Migration runs successfully without errors
 - Unique index on token prevents duplicate tokens
 - Composite index on (family_id, status) optimizes dashboard queries
@@ -1451,7 +1562,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
 #### 1.D.2: User Table Extensions
 
 **Subtasks:**
+
 - [ ] Create migration: `AddManagedAccountFields`
+
   ```csharp
   protected override void Up(MigrationBuilder migrationBuilder)
   {
@@ -1497,7 +1610,9 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
           filter: "zitadel_user_id IS NOT NULL");
   }
   ```
+
 - [ ] Update User entity configuration:
+
   ```csharp
   builder.Property(u => u.Username)
       .HasColumnName("username")
@@ -1516,9 +1631,11 @@ Rename `UserRole.CHILD` → `UserRole.MANAGED_ACCOUNT` across the entire codebas
       .HasMaxLength(255)
       .IsRequired(false);
   ```
+
 - [ ] Test querying users by username
 
 **Acceptance Criteria:**
+
 - Migration adds columns without errors
 - Unique index on username prevents duplicates
 - Nullable fields allow existing users to remain unchanged
@@ -1556,7 +1673,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.A.1: InviteFamilyMemberByEmailCommand
 
 **Subtasks:**
+
 - [ ] Create command:
+
   ```csharp
   public record InviteFamilyMemberByEmailCommand(
       FamilyId FamilyId,
@@ -1566,7 +1685,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       string? Message = null
   ) : IRequest<Result<FamilyMemberInvitation>>;
   ```
+
 - [ ] Create command handler:
+
   ```csharp
   public class InviteFamilyMemberByEmailCommandHandler
       : IRequestHandler<InviteFamilyMemberByEmailCommand, Result<FamilyMemberInvitation>>
@@ -1612,6 +1733,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       }
   }
   ```
+
 - [ ] Create unit tests (AutoFixture + NSubstitute):
   - Happy path: invitation created successfully
   - Duplicate email: returns error
@@ -1619,6 +1741,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
   - Domain event published
 
 **Acceptance Criteria:**
+
 - Command handler enforces business rules (no duplicates)
 - Unit tests cover all paths (>90% coverage)
 - Domain events published via aggregate
@@ -1627,7 +1750,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.A.2: CreateManagedMemberCommand
 
 **Subtasks:**
+
 - [ ] Create command:
+
   ```csharp
   public record CreateManagedMemberCommand(
       FamilyId FamilyId,
@@ -1651,7 +1776,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       string LoginUrl
   );
   ```
+
 - [ ] Create command handler:
+
   ```csharp
   public class CreateManagedMemberCommandHandler
       : IRequestHandler<CreateManagedMemberCommand, Result<CreateManagedMemberResult>>
@@ -1780,7 +1907,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       public string LoginUrl { get; set; } = "https://app.family-hub.com/login";
   }
   ```
+
 - [ ] Configure in `appsettings.json`:
+
   ```json
   {
     "ManagedAccount": {
@@ -1789,6 +1918,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
     }
   }
   ```
+
 - [ ] Create unit tests:
   - Happy path: managed account created in Zitadel and local DB
   - Duplicate username: returns error
@@ -1797,6 +1927,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
   - Domain events published
 
 **Acceptance Criteria:**
+
 - Managed account created in Zitadel via API
 - User entity created with synthetic email
 - Password returned in result (never stored!)
@@ -1806,7 +1937,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.A.3: BatchInviteFamilyMembersCommand
 
 **Subtasks:**
+
 - [ ] Create command:
+
   ```csharp
   public record BatchInviteFamilyMembersCommand(
       FamilyId FamilyId,
@@ -1826,7 +1959,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 
   public record BatchError(int Index, string Type, string Message); // Type = "email" or "managed"
   ```
+
 - [ ] Create command handler with two-phase validation:
+
   ```csharp
   public class BatchInviteFamilyMembersCommandHandler
       : IRequestHandler<BatchInviteFamilyMembersCommand, Result<BatchInvitationResult>>
@@ -1942,6 +2077,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       }
   }
   ```
+
 - [ ] Create unit tests:
   - Happy path: 10 invitations (5 email, 5 managed) all succeed
   - Validation failure: duplicate email in batch, all rolled back
@@ -1949,6 +2085,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
   - Performance: 10 invitations complete in <2 seconds
 
 **Acceptance Criteria:**
+
 - Two-phase validation: all validated before any processed
 - Transaction ensures atomic success/failure
 - Errors include index for frontend mapping
@@ -1958,12 +2095,14 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.A.4: CancelInvitationCommand, ResendInvitationCommand, UpdateInvitationRoleCommand
 
 **Subtasks:**
+
 - [ ] Create `CancelInvitationCommand` and handler
 - [ ] Create `ResendInvitationCommand` and handler
 - [ ] Create `UpdateInvitationRoleCommand` and handler
 - [ ] Unit tests for all three commands
 
 **Acceptance Criteria:**
+
 - Cancel: marks invitation as canceled, publishes event
 - Resend: generates new token, extends expiration, publishes event
 - UpdateRole: changes role while pending, publishes event
@@ -1976,7 +2115,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.B.1: Implement GraphQL Mutations
 
 **Subtasks:**
+
 - [ ] Create `FamilyMemberInvitationMutations` class:
+
   ```csharp
   [ExtendObjectType(typeof(Mutation))]
   public class FamilyMemberInvitationMutations
@@ -2095,7 +2236,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       // Similarly for ResendInvitation and UpdateInvitationRole
   }
   ```
+
 - [ ] Create authorization policy:
+
   ```csharp
   services.AddAuthorization(options =>
   {
@@ -2106,6 +2249,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
           ));
   });
   ```
+
 - [ ] Integration tests for mutations:
   - InviteFamilyMemberByEmail: success path
   - CreateManagedMember: success path with credentials returned
@@ -2113,6 +2257,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
   - Authorization: non-admin returns 403 Forbidden
 
 **Acceptance Criteria:**
+
 - All mutations functional and tested
 - Authorization enforced via policy
 - GraphQL input → Command mapping correct
@@ -2122,7 +2267,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.B.2: Implement GraphQL Queries
 
 **Subtasks:**
+
 - [ ] Create `FamilyMemberInvitationQueries` class:
+
   ```csharp
   [ExtendObjectType(typeof(Query))]
   public class FamilyMemberInvitationQueries
@@ -2167,6 +2314,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       }
   }
   ```
+
 - [ ] Integration tests:
   - FamilyMembers: returns all members for authorized user
   - PendingInvitations: returns pending invitations for Owner/Admin
@@ -2174,6 +2322,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
   - Authorization: non-member cannot query family members
 
 **Acceptance Criteria:**
+
 - Queries enforce authorization
 - Performance: <100ms for 100-member family
 - Null safety: returns null for not found, not exception
@@ -2186,7 +2335,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.C.1: Outbox Table & Repository
 
 **Subtasks:**
+
 - [ ] Create migration: `CreateOutboxEventsTable`
+
   ```csharp
   protected override void Up(MigrationBuilder migrationBuilder)
   {
@@ -2225,7 +2376,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
           column: "created_at");
   }
   ```
+
 - [ ] Create `OutboxEvent` entity:
+
   ```csharp
   public class OutboxEvent
   {
@@ -2249,10 +2402,12 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       Failed = 2
   }
   ```
+
 - [ ] Create `IOutboxEventRepository` interface and implementation
 - [ ] Unit tests for outbox repository
 
 **Acceptance Criteria:**
+
 - Migration creates table with indexes
 - Outbox events stored as JSON in PostgreSQL
 - Repository can query pending events efficiently
@@ -2261,7 +2416,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.C.2: Domain Event Interceptor (Save to Outbox)
 
 **Subtasks:**
+
 - [ ] Create `DomainEventOutboxInterceptor`:
+
   ```csharp
   public class DomainEventOutboxInterceptor : SaveChangesInterceptor
   {
@@ -2310,16 +2467,20 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       }
   }
   ```
+
 - [ ] Register interceptor in `AuthDbContext`:
+
   ```csharp
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
   {
       optionsBuilder.AddInterceptors(new DomainEventOutboxInterceptor());
   }
   ```
+
 - [ ] Integration test: Domain event saved to outbox on SaveChangesAsync
 
 **Acceptance Criteria:**
+
 - Domain events automatically saved to outbox table
 - Events serialized as JSON with correct format
 - Aggregate events cleared after save (no duplicate publishing)
@@ -2328,7 +2489,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.C.3: Outbox Event Publisher (Background Worker)
 
 **Subtasks:**
+
 - [ ] Create `OutboxEventPublisher` background service:
+
   ```csharp
   public class OutboxEventPublisher : BackgroundService
   {
@@ -2438,7 +2601,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       public int MaxRetryAttempts { get; set; } = 5;
   }
   ```
+
 - [ ] Configure in `appsettings.json`:
+
   ```json
   {
     "Outbox": {
@@ -2447,14 +2612,18 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
     }
   }
   ```
+
 - [ ] Register in `Program.cs`:
+
   ```csharp
   services.Configure<OutboxOptions>(configuration.GetSection("Outbox"));
   services.AddHostedService<OutboxEventPublisher>();
   ```
+
 - [ ] Integration test: Outbox event published to RabbitMQ and marked as processed
 
 **Acceptance Criteria:**
+
 - Background worker polls outbox every 5 seconds
 - Events published to RabbitMQ with exponential backoff retry
 - Failed events marked with error message and retry count
@@ -2464,7 +2633,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.C.4: Outbox Cleanup Job (Archive Old Events)
 
 **Subtasks:**
+
 - [ ] Create Quartz.NET job: `OutboxCleanupJob`
+
   ```csharp
   public class OutboxCleanupJob : IJob
   {
@@ -2487,7 +2658,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       }
   }
   ```
+
 - [ ] Schedule job to run daily at 2 AM:
+
   ```csharp
   var job = JobBuilder.Create<OutboxCleanupJob>()
       .WithIdentity("OutboxCleanup", "Maintenance")
@@ -2502,6 +2675,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
   ```
 
 **Acceptance Criteria:**
+
 - Job runs daily at 2 AM
 - Events older than 90 days are archived
 - Performance: archiving 10,000 events takes <30 seconds
@@ -2513,13 +2687,17 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.D.1: Quartz.NET Installation & Configuration
 
 **Subtasks:**
+
 - [ ] Install Quartz.NET packages:
+
   ```bash
   dotnet add package Quartz
   dotnet add package Quartz.AspNetCore
   dotnet add package Quartz.Serialization.Json
   ```
+
 - [ ] Configure Quartz.NET in `Program.cs`:
+
   ```csharp
   services.AddQuartz(q =>
   {
@@ -2536,9 +2714,11 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       options.WaitForJobsToComplete = true;
   });
   ```
+
 - [ ] Verify Quartz.NET starts correctly in dev environment
 
 **Acceptance Criteria:**
+
 - Quartz.NET configured and starts without errors
 - In-memory job store used (sufficient for single instance)
 - Logs show scheduler started
@@ -2546,7 +2726,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.D.2: Managed Account Retry Job
 
 **Subtasks:**
+
 - [ ] Create `ManagedAccountRetryJob`:
+
   ```csharp
   public class ManagedAccountRetryJob : IJob
   {
@@ -2631,8 +2813,10 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       }
   }
   ```
+
 - [ ] Create `QueuedManagedAccountCreation` entity and repository
 - [ ] Schedule job to run every 1 minute:
+
   ```csharp
   services.AddQuartz(q =>
   {
@@ -2649,6 +2833,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
   ```
 
 **Acceptance Criteria:**
+
 - Job runs every 1 minute
 - Retries failed Zitadel account creations with exponential backoff
 - Gives up after 5 attempts (status = Failed)
@@ -2657,7 +2842,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 #### 2.D.3: Expired Invitation Cleanup Job
 
 **Subtasks:**
+
 - [ ] Create `ExpiredInvitationCleanupJob`:
+
   ```csharp
   public class ExpiredInvitationCleanupJob : IJob
   {
@@ -2682,7 +2869,9 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       }
   }
   ```
+
 - [ ] Schedule job to run daily at 3 AM:
+
   ```csharp
   services.AddQuartz(q =>
   {
@@ -2697,6 +2886,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
   ```
 
 **Acceptance Criteria:**
+
 - Job runs daily at 3 AM
 - Deletes invitations expired >30 days ago (14-day expiration + 30-day grace = 44 days total)
 - Performance: deleting 1,000 records takes <5 seconds
@@ -2719,6 +2909,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
 Due to message length constraints, I'll summarize the remaining phases:
 
 ## Phase 3: Frontend Wizard & Real-time Features (Days 11-15)
+
 - Generic wizard framework (frontend-developer)
 - Reactive forms with FormArray (frontend-developer)
 - Password strength UI with real-time preview (ui-designer)
@@ -2727,6 +2918,7 @@ Due to message length constraints, I'll summarize the remaining phases:
 - SessionStorage state persistence (frontend-developer)
 
 ## Phase 4: Management UI #26 (Days 16-18)
+
 - Family settings page layout (frontend-developer)
 - Current members table (frontend-developer)
 - Pending invitations dashboard (frontend-developer)
@@ -2734,12 +2926,14 @@ Due to message length constraints, I'll summarize the remaining phases:
 - Real-time subscription integration (frontend-developer)
 
 ## Phase 5: Testing & Quality (Days 19-22)
+
 - E2E tests with Playwright + TestContainers (test-automator)
 - Integration test suite completion (qa-expert)
 - WCAG 2.1 AA compliance validation (accessibility-tester)
 - Performance testing: batch processing, password generation (qa-expert)
 
 ## Phase 6: Review & Polish (Days 23-24)
+
 - Architecture review (architect-reviewer)
 - Code review (code-reviewer)
 - Documentation updates (technical-writer or backend-developer)
@@ -2752,6 +2946,7 @@ Due to message length constraints, I'll summarize the remaining phases:
 From issues #24, #25, #26, the feature is considered complete when:
 
 ### Backend
+
 - [x] FamilyMemberInvitation aggregate functional with all business logic
 - [x] User entity supports managed accounts with synthetic emails
 - [x] GraphQL mutations: inviteFamilyMemberByEmail, createManagedMember, batchInviteFamilyMembers, cancelInvitation, resendInvitation, updateInvitationRole
@@ -2765,6 +2960,7 @@ From issues #24, #25, #26, the feature is considered complete when:
 - [x] All integration tests passing (GraphQL + database)
 
 ### Frontend
+
 - [x] Generic wizard framework supports N steps
 - [x] Family creation wizard: 2 steps (Family Info, Invite Members)
 - [x] Wizard Step 2: mixed-mode batch invitations (email + managed accounts)
@@ -2781,6 +2977,7 @@ From issues #24, #25, #26, the feature is considered complete when:
 - [x] WCAG 2.1 AA compliance: keyboard navigation, focus management, ARIA labels
 
 ### Testing
+
 - [x] Unit tests: >80% backend coverage, >70% frontend coverage
 - [x] Integration tests: all GraphQL mutations/queries with PostgreSQL
 - [x] E2E tests: 10+ scenarios covering happy paths and edge cases
@@ -2801,6 +2998,7 @@ From issues #24, #25, #26, the feature is considered complete when:
   - Real-time subscription latency: <500ms
 
 ### Infrastructure
+
 - [x] Docker Compose: PostgreSQL, RabbitMQ, Redis, Zitadel (dev environment)
 - [x] Quartz.NET configured and jobs scheduled
 - [x] Rate limiting middleware active
@@ -2809,6 +3007,7 @@ From issues #24, #25, #26, the feature is considered complete when:
 - [x] Configuration: environment-specific settings (dev/staging/prod)
 
 ### Documentation
+
 - [x] GraphQL schema documented in domain-model-microservices-map.md
 - [x] Domain events documented in event-chains-reference.md
 - [x] ADR created: ADR-005-FAMILY-INVITATION-SYSTEM.md
@@ -2851,6 +3050,7 @@ From issues #24, #25, #26, the feature is considered complete when:
 ---
 
 **Next Steps:**
+
 1. User approves this implementation plan
 2. Kick off Phase 0 (Terminology Update) with database-administrator agent
 3. Daily progress tracking via GitHub issues and project board

@@ -40,9 +40,11 @@ Related to #
 <!-- List any new domain events published or consumed -->
 
 **Published:**
+
 - `EventName` - Description
 
 **Consumed:**
+
 - `EventName` - Description
 
 ### Event Chain Impact
@@ -94,6 +96,7 @@ Related to #
 ## Quality Checks
 
 ### Code Quality
+
 - [ ] Code follows project style guidelines
 - [ ] No compiler warnings
 - [ ] No linting errors
@@ -101,12 +104,14 @@ Related to #
 - [ ] DDD principles followed (bounded contexts respected)
 
 ### Security
+
 - [ ] No sensitive data exposed (secrets, PII)
 - [ ] Input validation implemented
 - [ ] Authorization checks in place
 - [ ] Security best practices followed
 
 ### Performance
+
 - [ ] Performance impact considered
 - [ ] No N+1 queries introduced
 - [ ] Appropriate caching used
@@ -157,6 +162,7 @@ Related to #
 ## Checklist
 
 ### Before Merge
+
 - [ ] PR title follows convention: `[Type] Brief description`
 - [ ] All CI checks passing
 - [ ] Code reviewed and approved
@@ -166,6 +172,7 @@ Related to #
 - [ ] Tests passing (100% new code covered)
 
 ### Post-Merge
+
 - [ ] Issue(s) closed
 - [ ] Deployed to staging/production (if applicable)
 - [ ] Monitoring dashboards checked

@@ -42,6 +42,7 @@ To use Family Hub, you must:
 4. Comply with all applicable laws
 
 **You are responsible for:**
+
 - Keeping your password secure and confidential
 - All activity under your account
 - Notifying us immediately of unauthorized access
@@ -51,6 +52,7 @@ To use Family Hub, you must:
 As a Family Administrator, you have special powers and responsibilities:
 
 **You can:**
+
 - Invite and remove family members
 - Assign roles and permissions (Parent, Teen, Child, Extended Family, Guest)
 - View all family data (calendar events, tasks, lists, etc.)
@@ -59,6 +61,7 @@ As a Family Administrator, you have special powers and responsibilities:
 - Delete the entire family account
 
 **You must:**
+
 - Obtain verifiable parental consent before adding children under 13
 - Respect family members' privacy rights
 - Ensure family members comply with these Terms
@@ -78,16 +81,18 @@ If you want to add a child under 13 to your Family:
 
 **When your child turns 13**: Their account automatically converts to a teen account. We'll notify you 30 days before this happens.
 
-See our [Privacy Policy](#) for detailed information on children's data handling.
+See our [Privacy Policy](privacy-policy.md) for detailed information on children's data handling.
 
 ### 2.4 Account Termination
 
 **You can:**
+
 - Delete your account at any time from Settings
 - Data deletion occurs within 30 days
 - You can export your data before deletion
 
 **We can:**
+
 - Suspend or terminate accounts that violate these Terms
 - Remove content that violates our policies
 - Terminate the Service with 90 days' notice
@@ -151,6 +156,7 @@ We reserve the right to report illegal activity to law enforcement.
 **You own your content.** When you upload or create content in Family Hub (events, tasks, lists, documents, photos), you retain all ownership rights.
 
 **What we don't own:**
+
 - Your calendar events
 - Your family photos
 - Your meal plans and recipes
@@ -162,18 +168,21 @@ We reserve the right to report illegal activity to law enforcement.
 To provide the Service, you grant us a limited license:
 
 **You grant us permission to:**
+
 - Store and display your content to you and your family members
 - Process your content to provide features (e.g., event chains, reminders)
 - Backup your content for disaster recovery
 - Use anonymized, aggregated data for service improvement (no personal identification)
 
 **This license is:**
+
 - Non-exclusive (you can use your content elsewhere)
 - Worldwide (we use cloud infrastructure globally)
 - Royalty-free (we don't pay you for this license)
 - Terminable (ends when you delete your content or account)
 
 **We will NOT:**
+
 - Sell your personal data to third parties
 - Use your content for advertising
 - Share your content publicly without permission
@@ -182,11 +191,13 @@ To provide the Service, you grant us a limited license:
 ### 4.3 Content Removal & Backup
 
 **You can:**
+
 - Delete any content at any time
 - Export all your data in JSON or CSV format
 - Request a complete data backup
 
 **We can:**
+
 - Remove content that violates these Terms or is illegal
 - Delete accounts inactive for more than 2 years (with 90 days' notice)
 
@@ -217,11 +228,13 @@ Family Hub owns all rights to:
 ### 5.2 Your Rights
 
 You may:
+
 - Use screenshots of the Service for personal use or reviews
 - Reference Family Hub in blog posts or social media
 - Provide feedback or feature requests (which we may use to improve the Service)
 
 You may NOT:
+
 - Copy, modify, or distribute our software
 - Remove copyright notices or branding
 - Create derivative works without permission
@@ -236,10 +249,12 @@ Family Hub may include content from third parties (recipe databases, calendar in
 If you believe content on Family Hub infringes your copyright:
 
 **Contact our DMCA Agent:**
+
 - Email: dmca@familyhub.app
 - Subject: DMCA Takedown Request
 
 **Include in your notice:**
+
 1. Description of the copyrighted work
 2. Location of the infringing content (URL)
 3. Your contact information
@@ -260,6 +275,7 @@ We'll investigate and remove infringing content within 72 hours.
 Family Hub offers multiple service tiers:
 
 **Free Tier:**
+
 - Up to 3 family members
 - Basic features: Calendar, Tasks, Shopping Lists
 - Limited storage (500 MB)
@@ -267,6 +283,7 @@ Family Hub offers multiple service tiers:
 - No budget tracking
 
 **Premium Tier ($9.99/month):**
+
 - Unlimited family members
 - All features: Event Chains, Meal Planning, Budget, Documents
 - 10 GB storage
@@ -274,32 +291,38 @@ Family Hub offers multiple service tiers:
 - No ads
 
 **Family Tier ($14.99/month):**
+
 - Everything in Premium
 - Up to 2 families (e.g., your household + aging parents)
 - Shared calendars across families
 - 25 GB storage
 
 **Enterprise Tier (Custom Pricing):**
+
 - Contact us for white-label, schools, or organizations
 
 ### 6.2 Billing Terms
 
 **Subscriptions:**
+
 - Billed monthly or annually (annual saves 20%)
 - Automatically renew unless canceled
 - You can cancel anytime from Settings
 - No refunds for partial months
 
 **Payment Methods:**
+
 - Credit card (Visa, Mastercard, Amex, Discover)
 - Debit card
 - PayPal (Phase 2+)
 
 **Billing Cycle:**
+
 - Charged on the date you subscribe
 - Example: Subscribe on Jan 15 → Next bill Feb 15
 
 **Failed Payments:**
+
 - We'll retry payment 3 times over 10 days
 - If payment fails, account downgrades to Free tier
 - Your data is not deleted; you just lose Premium features
@@ -307,15 +330,18 @@ Family Hub offers multiple service tiers:
 ### 6.3 Cancellation & Refunds
 
 **Cancellation:**
+
 - Cancel anytime from Account Settings
 - Access to Premium features continues until end of billing period
 - No prorated refunds for cancellations
 
 **Refunds:**
+
 - No refunds except as required by law or at our discretion
 - If you believe you were incorrectly charged, contact support@familyhub.app within 30 days
 
 **Downgrades:**
+
 - Downgrade from Premium to Free anytime
 - Data is preserved (calendar, tasks) but limited features
 - If storage exceeds Free tier limit (500 MB), you must delete files or upgrade
@@ -333,6 +359,7 @@ We may change subscription prices with 30 days' notice. You'll receive an email 
 **Family Hub is provided "AS IS" and "AS AVAILABLE" without warranties of any kind.**
 
 We do NOT guarantee:
+
 - Uninterrupted or error-free operation
 - That the Service will meet your specific needs
 - That all bugs will be fixed
@@ -352,6 +379,7 @@ Family Hub is a coordination tool, NOT professional advice:
 ### 7.3 Third-Party Services
 
 We integrate with third parties (Zitadel for authentication, cloud providers for hosting). We're not responsible for:
+
 - Third-party service outages
 - Changes to third-party APIs
 - Third-party data breaches (though we choose reputable providers)
@@ -359,6 +387,7 @@ We integrate with third parties (Zitadel for authentication, cloud providers for
 ### 7.4 Your Warranties to Us
 
 You represent and warrant that:
+
 - You have the right to use and share all content you upload
 - Your use complies with all applicable laws
 - You won't use the Service to infringe others' rights
@@ -383,6 +412,7 @@ You represent and warrant that:
 ### 8.2 Cap on Liability
 
 **Our total liability to you for all claims is limited to the greater of:**
+
 1. The amount you paid us in the 12 months before the claim
 2. $100 USD
 
@@ -391,6 +421,7 @@ You represent and warrant that:
 ### 8.3 Exceptions
 
 This limitation does NOT apply to:
+
 - Our gross negligence or willful misconduct
 - Death or personal injury caused by our negligence
 - Fraud or fraudulent misrepresentation
@@ -419,6 +450,7 @@ You agree to indemnify, defend, and hold harmless Family Hub, its officers, dire
 ### 9.2 Our Right to Control Defense
 
 If we're subject to a claim you must indemnify, we have the right to:
+
 - Choose our own legal counsel
 - Control the defense or settlement
 - Require your cooperation (providing information, testimony)
@@ -444,18 +476,21 @@ Before filing a lawsuit or arbitration, you agree to:
 If informal resolution fails, disputes will be resolved through **binding arbitration**, not court.
 
 **What is arbitration?**
+
 - A neutral third party (arbitrator) decides the dispute
 - Less formal than court
 - Usually faster and cheaper
 - Decision is final and binding
 
 **Arbitration Rules:**
+
 - Governed by the **American Arbitration Association (AAA) Consumer Arbitration Rules**
 - Arbitration conducted in **English**
 - Location: Your county of residence (if in the US) or remotely via video conference
 - Each party pays their own attorney fees unless the arbitrator decides otherwise
 
 **AAA Information:**
+
 - Website: www.adr.org
 - Phone: 1-800-778-7879
 
@@ -464,6 +499,7 @@ If informal resolution fails, disputes will be resolved through **binding arbitr
 **YOU AGREE TO ARBITRATE DISPUTES INDIVIDUALLY, NOT AS A CLASS ACTION.**
 
 You cannot:
+
 - Participate in a class action lawsuit against us
 - Join a class arbitration
 - Seek relief that affects other users
@@ -477,6 +513,7 @@ You can bring claims in small claims court if they qualify under your state's sm
 ### 10.5 Exceptions to Arbitration
 
 Arbitration does NOT apply to:
+
 - Intellectual property disputes (copyright, trademark infringement)
 - Injunctive relief (restraining orders, emergency court orders)
 - Disputes under $500 (either party can choose small claims court)
@@ -504,6 +541,7 @@ We may update these Terms from time to time. When we do:
 ### 11.2 Your Options
 
 If you don't agree with updated Terms:
+
 - Stop using the Service before the effective date
 - Delete your account
 - Export your data before the change takes effect
@@ -565,10 +603,12 @@ Provisions that by their nature should survive termination will survive: Section
 - **Support**: support@familyhub.app (for account issues, not legal questions)
 
 **COPPA Inquiries (Children Under 13):**
+
 - **Email**: privacy@familyhub.app
 - **COPPA FAQ**: [Link to Privacy Policy - Children's Privacy Section]
 
 **DMCA Agent:**
+
 - **Email**: dmca@familyhub.app
 
 ---
@@ -584,6 +624,7 @@ If you're accepting on behalf of a company or organization, you represent that y
 ---
 
 **Version History:**
+
 - v1.0 (December 20, 2025): Initial Terms of Service
 
 **Last Updated**: December 20, 2025

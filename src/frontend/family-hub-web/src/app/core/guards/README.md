@@ -15,10 +15,12 @@ Ensures user is authenticated before accessing protected routes.
 **File:** `auth.guard.ts`
 
 **Behavior:**
+
 - ✅ Allow: User is authenticated
 - ❌ Redirect: User not authenticated → `/login?returnUrl=<current>`
 
 **Usage:**
+
 ```typescript
 {
   path: 'dashboard',
@@ -34,10 +36,12 @@ Ensures user has a family before accessing family-specific routes.
 **File:** `family.guard.ts`
 
 **Behavior:**
+
 - ✅ Allow: User has family
 - ❌ Redirect: User has no family → `/family/create`
 
 **Usage:**
+
 ```typescript
 {
   path: 'dashboard',
@@ -53,10 +57,12 @@ Prevents users with families from accessing family creation wizard.
 **File:** `family.guard.ts`
 
 **Behavior:**
+
 - ✅ Allow: User has no family
 - ❌ Redirect: User has family → `/dashboard`
 
 **Usage:**
+
 ```typescript
 {
   path: 'family/create',
@@ -108,6 +114,7 @@ export const guardName: CanActivateFn = (route, state) => {
 ```
 
 ### Benefits
+
 - Simpler than class-based guards
 - Better tree-shaking
 - Easier testing
@@ -118,6 +125,7 @@ export const guardName: CanActivateFn = (route, state) => {
 ### 1. New User (No Family)
 
 **Flow:**
+
 ```
 1. User logs in
 2. authGuard: ✅ Pass
@@ -128,6 +136,7 @@ export const guardName: CanActivateFn = (route, state) => {
 ```
 
 **Route Access:**
+
 - ❌ `/dashboard` - Redirects to wizard
 - ✅ `/family/create` - Allowed
 - ✅ `/login` - Allowed (public)
@@ -135,6 +144,7 @@ export const guardName: CanActivateFn = (route, state) => {
 ### 2. Existing User (Has Family)
 
 **Flow:**
+
 ```
 1. User logs in
 2. authGuard: ✅ Pass
@@ -143,6 +153,7 @@ export const guardName: CanActivateFn = (route, state) => {
 ```
 
 **Route Access:**
+
 - ✅ `/dashboard` - Allowed
 - ❌ `/family/create` - Redirects to dashboard
 - ✅ `/login` - Allowed (public)
@@ -150,12 +161,14 @@ export const guardName: CanActivateFn = (route, state) => {
 ### 3. Unauthenticated User
 
 **Flow:**
+
 ```
 1. User tries to access /dashboard
 2. authGuard: ❌ Redirect to /login?returnUrl=/dashboard
 ```
 
 **Route Access:**
+
 - ❌ `/dashboard` - Redirects to login
 - ❌ `/family/create` - Redirects to login
 - ✅ `/login` - Allowed (public)
@@ -206,16 +219,19 @@ describe('familyGuard', () => {
 ## Guard Responsibilities
 
 ### authGuard
+
 - Check user authentication status
 - Store return URL for post-login redirect
 - Protect ALL authenticated routes
 
 ### familyGuard
+
 - Check user has family
 - Redirect to wizard if no family
 - Protect family-specific routes
 
 ### noFamilyGuard
+
 - Check user has NO family
 - Redirect to dashboard if has family
 - Protect family creation wizard
@@ -256,6 +272,7 @@ console.log('familyGuard: User has no family. Redirecting to wizard.');
 ## Best Practices
 
 ### Do's
+
 - Chain guards in logical order (auth first, then feature guards)
 - Use descriptive console.log messages for debugging
 - Return true/false clearly (no implicit returns)
@@ -263,6 +280,7 @@ console.log('familyGuard: User has no family. Redirecting to wizard.');
 - Use TypeScript strict mode
 
 ### Don'ts
+
 - Don't put business logic in guards (use services)
 - Don't make HTTP calls in guards (check cached state)
 - Don't nest guards (use chaining instead)
@@ -274,6 +292,7 @@ console.log('familyGuard: User has no family. Redirecting to wizard.');
 ### Planned Guards
 
 #### roleGuard
+
 ```typescript
 // Protect admin routes
 export const adminGuard: CanActivateFn = (route, state) => {
@@ -283,6 +302,7 @@ export const adminGuard: CanActivateFn = (route, state) => {
 ```
 
 #### subscriptionGuard
+
 ```typescript
 // Protect premium features
 export const premiumGuard: CanActivateFn = (route, state) => {
@@ -292,6 +312,7 @@ export const premiumGuard: CanActivateFn = (route, state) => {
 ```
 
 #### onboardingGuard
+
 ```typescript
 // Force onboarding completion
 export const onboardingGuard: CanActivateFn = (route, state) => {
@@ -326,6 +347,7 @@ provideRouter(routes, withDebugTracing())
 ### DevTools
 
 Use Angular DevTools to inspect:
+
 - Route tree
 - Guard execution order
 - Navigation events
@@ -336,6 +358,7 @@ Use Angular DevTools to inspect:
 ### Class-Based to Functional Guards
 
 #### Before (Class-Based)
+
 ```typescript
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -355,6 +378,7 @@ export class AuthGuard implements CanActivate {
 ```
 
 #### After (Functional)
+
 ```typescript
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
@@ -369,6 +393,7 @@ export const authGuard: CanActivateFn = (route, state) => {
 ```
 
 ### Changes
+
 1. **No @Injectable():** Function, not class
 2. **inject() instead of constructor:** Functional DI
 3. **No class methods:** Direct function
@@ -384,6 +409,7 @@ export const authGuard: CanActivateFn = (route, state) => {
 ## Support
 
 For questions or issues:
+
 1. Check Angular Router documentation
 2. Review guard test files for examples
 3. See app.routes.ts for usage patterns

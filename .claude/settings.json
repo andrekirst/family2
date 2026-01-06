@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(jq -r '.tool_input.file_path'); if echo \"$file\" | grep -qE '\\.(ts|tsx|js|jsx)$'; then cd \"$(dirname \"$file\")\" && npx prettier --write \"$(basename \"$file\")\" 2>/dev/null && npx eslint --fix \"$file\" 2>/dev/null || true; elif echo \"$file\" | grep -q '\\.cs$'; then dotnet format \"$file\" 2>/dev/null || true; elif echo \"$file\" | grep -q '\\.md$'; then npx markdownlint-cli2 --fix \"$file\" 2>/dev/null || true; elif echo \"$file\" | grep -qE '\\.(json|ya?ml)$' && ! echo \"$file\" | grep -qE '(package-lock|Development|Local)\\.'; then npx prettier --write \"$file\" 2>/dev/null || true; fi",
+            "timeout": 30000
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -42,6 +42,7 @@ public class Family : AggregateRoot<FamilyId>
 ```
 
 **Problems:**
+
 - If a developer added a new mutation method and forgot `UpdatedAt = DateTime.UtcNow`, the timestamp would be stale
 - Tests had to assert on timestamps, which is an infrastructure concern, not domain logic
 - Mocking `DateTime.UtcNow` for tests required workarounds
@@ -57,6 +58,7 @@ public class Family : AggregateRoot<FamilyId>
 ### Architectural Context
 
 Family Hub follows **Domain-Driven Design (DDD)** with:
+
 - **Entity Base Class**: All entities inherit from `Entity<TId>` or `AggregateRoot<TId>`
 - **Value Objects**: Timestamps are NOT value objects (they're infrastructure metadata)
 - **Bounded Contexts**: Modular monolith with 8 modules, each with its own DbContext
@@ -89,6 +91,7 @@ public interface ISoftDeletable
 ```
 
 **Design Notes:**
+
 - `public set` required for EF Core interceptor access (C# interfaces cannot have `internal set`)
 - Protection achieved through `protected` constructors and domain method discipline
 - `ISoftDeletable` separate because not all entities need soft delete
@@ -171,6 +174,7 @@ public sealed class TimestampInterceptor : SaveChangesInterceptor
 ```
 
 **Key Features:**
+
 - Uses `TimeProvider` for testability (can inject `FakeTimeProvider`)
 - Strongly-typed: Explicit casting to `Entity<object>` for compile-time safety
 - Prevents `CreatedAt` modification via `IsModified = false`
@@ -382,10 +386,12 @@ All future modules should follow this pattern:
 ### Business vs. Infrastructure Timestamps
 
 **Automatic (Infrastructure):**
+
 - `CreatedAt` - Record creation time
 - `UpdatedAt` - Last modification time
 
 **Manual (Domain Logic):**
+
 - `EmailVerifiedAt` - When user verified their email (business event)
 - `DeletedAt` - Soft delete timestamp (explicit domain action)
 - `LastLoginAt` - User authentication tracking
@@ -397,6 +403,7 @@ All future modules should follow this pattern:
 **Approach:** Use PostgreSQL triggers to update `updated_at`.
 
 **Rejected Because:**
+
 - Doesn't work with in-memory or SQLite tests
 - Database-specific logic (breaks DB portability)
 - No control over timestamps in tests (can't use `FakeTimeProvider`)
@@ -406,6 +413,7 @@ All future modules should follow this pattern:
 **Approach:** Add `protected virtual void OnBeforeSave()` to `Entity<TId>`.
 
 **Rejected Because:**
+
 - Requires developers to remember to call `base.OnBeforeSave()`
 - Doesn't prevent manual `UpdatedAt` assignments
 - Less explicit than interceptor pattern
@@ -415,6 +423,7 @@ All future modules should follow this pattern:
 **Approach:** Repositories set timestamps before `SaveChanges`.
 
 **Rejected Because:**
+
 - Couples timestamp logic to repository implementations
 - Harder to test repository behavior in isolation
 - More verbose than interceptor
@@ -424,6 +433,7 @@ All future modules should follow this pattern:
 **Approach:** Continue using `DateTime.UtcNow` in domain methods.
 
 **Rejected Because:**
+
 - Primary motivation for this ADR was to eliminate manual timestamp management
 - Inconsistency risk remains
 - Verbose boilerplate in every mutation

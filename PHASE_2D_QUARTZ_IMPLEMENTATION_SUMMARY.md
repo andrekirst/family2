@@ -11,11 +11,13 @@ Successfully implemented Quartz.NET background job infrastructure for managed ac
 #### ✅ 2.D.1: Quartz.NET Installation & Configuration
 
 **Packages Installed:**
+
 - `Quartz` (v3.15.1)
 - `Quartz.AspNetCore` (v3.15.1)
 - `Quartz.Serialization.Json` (v3.15.1)
 
 **Configuration Added:**
+
 - Location: `/src/api/FamilyHub.Api/Program.cs`
 - Configuration:
   - In-memory job store
@@ -26,6 +28,7 @@ Successfully implemented Quartz.NET background job infrastructure for managed ac
 #### ✅ 2.D.2: Managed Account Retry Job
 
 **Implementation:**
+
 - **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/BackgroundJobs/ManagedAccountRetryJob.cs`
 - **Purpose:** Retry failed Zitadel account creations with exponential backoff
 - **Schedule:** Runs every 1 minute
@@ -38,6 +41,7 @@ Successfully implemented Quartz.NET background job infrastructure for managed ac
   - After 5 attempts: Mark as permanently failed
 
 **Features:**
+
 - [DisallowConcurrentExecution] attribute prevents overlapping runs
 - Scoped service resolution for database access
 - Comprehensive error handling and logging
@@ -48,11 +52,13 @@ Successfully implemented Quartz.NET background job infrastructure for managed ac
 #### ✅ 2.D.3: Expired Invitation Cleanup Job
 
 **Implementation:**
+
 - **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/BackgroundJobs/ExpiredInvitationCleanupJob.cs`
 - **Purpose:** Permanently delete invitations expired >30 days ago
 - **Schedule:** Daily at 3 AM UTC (cron: `0 0 3 * * ?`)
 
 **Features:**
+
 - [DisallowConcurrentExecution] attribute
 - Grace period: 30 days after expiration
 - Bulk deletion
@@ -65,6 +71,7 @@ Successfully implemented Quartz.NET background job infrastructure for managed ac
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Domain/QueuedManagedAccountCreation.cs`
 
 **Properties:**
+
 - `Id` (Guid): Primary key
 - `FamilyId` (FamilyId): Foreign key to families table
 - `Username` (Username): Vogen value object
@@ -80,6 +87,7 @@ Successfully implemented Quartz.NET background job infrastructure for managed ac
 - `UpdatedAt` (DateTime): Inherited from Entity<TId>
 
 **Methods:**
+
 - `Create()`: Factory method
 - `MarkAsProcessing()`: Transition to processing state
 - `MarkAsCompleted()`: Transition to completed state
@@ -90,12 +98,14 @@ Successfully implemented Quartz.NET background job infrastructure for managed ac
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Domain/ValueObjects/QueuedJobStatus.cs`
 
 **Valid Values:**
+
 - `Pending`: Waiting for retry
 - `Processing`: Currently being processed
 - `Completed`: Successfully processed
 - `Failed`: Permanently failed after 5 attempts
 
 **Features:**
+
 - Vogen source generator for value object pattern
 - EF Core value converter
 - Input normalization (lowercase, trimmed)
@@ -114,6 +124,7 @@ Constants for status values: `pending`, `processing`, `completed`, `failed`
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Domain/Repositories/IQueuedManagedAccountCreationRepository.cs`
 
 **Methods:**
+
 - `GetByIdAsync()`: Get single job by ID
 - `GetPendingJobsReadyForRetryAsync()`: Get pending/failed jobs where NextRetryAt <= NOW()
 - `GetExpiredInvitationsForCleanupAsync()`: Get invitations expired >30 days ago
@@ -137,6 +148,7 @@ EF Core implementation of the repository interface.
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Configurations/QueuedManagedAccountCreationConfiguration.cs`
 
 **Features:**
+
 - Table: `auth.queued_managed_account_creations`
 - Vogen value converters for: FamilyId, Username, FullName, UserRole, UserId, QueuedJobStatus
 - Indexes:
@@ -159,11 +171,13 @@ Added `DbSet<QueuedManagedAccountCreation>` property.
 The codebase has pre-existing compile errors in work-in-progress code (CancelInvitation, ResendInvitation commands). Created manual SQL migration to avoid requiring a full build.
 
 **To Apply Migration:**
+
 ```bash
 psql -U <username> -d family_hub -f docs/migrations/PHASE_2D_QUARTZ_SETUP_MANUAL_MIGRATION.sql
 ```
 
 **Or use EF Core Migrations (after fixing compile errors):**
+
 ```bash
 dotnet ef migrations add AddQueuedManagedAccountCreations --context AuthDbContext \
     --project Modules/FamilyHub.Modules.Auth --startup-project FamilyHub.Api
@@ -177,8 +191,10 @@ dotnet ef database update --context AuthDbContext
 **File:** `/src/api/FamilyHub.Api/Program.cs`
 
 **Added:**
+
 1. Quartz using statement
 2. Background jobs infrastructure registration:
+
    ```csharp
    services.AddQuartz(q =>
    {
@@ -204,11 +220,13 @@ dotnet ef database update --context AuthDbContext
 **Rationale:** Balance between quick retries for transient errors and avoiding API rate limits
 
 **Schedule:**
+
 - Immediate first attempt
 - 1 min, 5 min, 15 min, 1 hr, 4 hr
 - 5 total attempts before permanent failure
 
 **Benefits:**
+
 - Quick recovery from transient network errors (1-5 min)
 - Respects Zitadel rate limits with increasing delays
 - Clear failure boundary (5 attempts)
@@ -218,6 +236,7 @@ dotnet ef database update --context AuthDbContext
 **Decision:** 30 days after expiration before hard delete
 
 **Rationale:**
+
 - Gives users time to realize invitations expired
 - Allows support team to investigate issues
 - Reduces database bloat while maintaining audit trail
@@ -229,6 +248,7 @@ dotnet ef database update --context AuthDbContext
 **Decision:** Use Quartz in-memory store for Phase 1-4 (single instance)
 
 **Rationale:**
+
 - Simpler setup for MVP
 - Sufficient for single-instance deployment
 - Job data persisted in database (queued_managed_account_creations table)
@@ -240,6 +260,7 @@ dotnet ef database update --context AuthDbContext
 **Current:** Password stored encrypted but decryption is placeholder
 
 **TODO (before production):**
+
 - Implement proper encryption using ASP.NET Core Data Protection API
 - Generate ephemeral password for managed accounts (use PasswordGenerationService)
 - Consider: Should passwords be stored at all? Alternative: Generate password, create Zitadel user synchronously, force password reset on first login
@@ -281,6 +302,7 @@ dotnet ef database update --context AuthDbContext
 ### Immediate (Required for Phase 2)
 
 1. **Apply Database Migration:**
+
    ```bash
    psql -U <username> -d family_hub -f docs/migrations/PHASE_2D_QUARTZ_SETUP_MANUAL_MIGRATION.sql
    ```
@@ -301,22 +323,22 @@ dotnet ef database update --context AuthDbContext
 
 ### Phase 2+ (Enhancements)
 
-5. **Domain Events:**
+1. **Domain Events:**
    - Uncomment domain event publishing in `ManagedAccountRetryJob`
    - Events: `ManagedAccountCreated`, `ManagedAccountCreationFailed`
    - Notify creator via notification service
 
-6. **Monitoring & Observability:**
+2. **Monitoring & Observability:**
    - Add Prometheus metrics for job execution (success/failure rates)
    - Add custom Quartz job listener for telemetry
    - Alert on job failure rate threshold
 
-7. **Error Handling:**
+3. **Error Handling:**
    - Add specific exception types for Zitadel errors
    - Retry only transient errors (network, rate limit)
    - Don't retry permanent errors (invalid username, duplicate)
 
-8. **Security:**
+4. **Security:**
    - Implement encryption key rotation for passwords
    - Add audit logging for job processing
    - Review GDPR implications of storing encrypted passwords
@@ -326,22 +348,27 @@ dotnet ef database update --context AuthDbContext
 ### Created Files (9)
 
 **Domain:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/QueuedManagedAccountCreation.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/ValueObjects/QueuedJobStatus.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/Constants/QueuedJobStatusConstants.cs`
 
 **Repositories:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/Repositories/IQueuedManagedAccountCreationRepository.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Repositories/QueuedManagedAccountCreationRepository.cs`
 
 **Infrastructure:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/BackgroundJobs/ManagedAccountRetryJob.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/BackgroundJobs/ExpiredInvitationCleanupJob.cs`
 
 **Persistence:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Configurations/QueuedManagedAccountCreationConfiguration.cs`
 
 **Documentation:**
+
 - `/docs/migrations/PHASE_2D_QUARTZ_SETUP_MANUAL_MIGRATION.sql`
 
 ### Modified Files (4)

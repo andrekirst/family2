@@ -17,16 +17,19 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ## Quick Start
 
 ### For Legal Team
+
 1. Start with [LEGAL-COMPLIANCE-SUMMARY.md](LEGAL-COMPLIANCE-SUMMARY.md) - Overview of all deliverables
 2. Review [compliance-checklist.md](compliance-checklist.md) - 93 compliance items
 3. Engage attorneys for [legal review](#legal-review-required)
 
 ### For Engineering Team
+
 1. Review [Privacy Policy](privacy-policy.md) - Understand data handling requirements
 2. Review [compliance-checklist.md](compliance-checklist.md) - Technical implementation items
 3. Focus on COPPA consent flow (critical path)
 
 ### For Product Team
+
 1. Review [Terms of Service](terms-of-service.md) - Feature restrictions and user obligations
 2. Review [Privacy Policy Section 10](privacy-policy.md#10-childrens-privacy-coppa-compliance) - Children's features
 
@@ -43,6 +46,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 | **[cookie-policy.md](cookie-policy.md)** | Cookie usage and consent | 3,500 words | Draft | 🔴 Critical |
 
 **Publication Location:**
+
 - Website footer: Links to all three policies
 - Registration flow: Require acceptance of Terms and Privacy Policy
 - Cookie banner: Link to Cookie Policy
@@ -70,6 +74,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Applies to:** EU and UK users
 
 **Key Requirements:**
+
 - Legal basis for processing (consent, contract, legitimate interest)
 - Data subject rights (access, deletion, portability, objection)
 - Data breach notification (72 hours to supervisory authority)
@@ -80,6 +85,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Priority:** 🔴 Critical (before EU launch)
 
 **Documents:**
+
 - [Privacy Policy Section 4](privacy-policy.md#4-your-privacy-rights) - GDPR rights
 - [Privacy Policy Section 9](privacy-policy.md#9-international-data-transfers) - Data transfers
 - [DPA Template](data-processing-agreement-template.md) - Article 28 compliance
@@ -92,6 +98,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Applies to:** US users under 13 years old
 
 **Key Requirements:**
+
 - Verifiable parental consent before collecting data from children
 - Limited data collection (no email, phone, location, photos)
 - No marketing to children
@@ -102,6 +109,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Priority:** 🔴 CRITICAL (highest legal risk)
 
 **Documents:**
+
 - [Privacy Policy Section 10](privacy-policy.md#10-childrens-privacy-coppa-compliance) - COPPA compliance
 - [Terms of Service Section 2.3](terms-of-service.md#23-children-under-13-coppa-compliance) - Parental consent
 - [Compliance Checklist Section 2](compliance-checklist.md#2-coppa-compliance-15-usc-§§-65016506) - COPPA items
@@ -116,6 +124,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Applies to:** California residents
 
 **Key Requirements:**
+
 - Right to know what data is collected
 - Right to delete personal information
 - Right to opt-out of sale (N/A - we don't sell data)
@@ -126,6 +135,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Priority:** 🟠 High
 
 **Documents:**
+
 - [Privacy Policy Section 11](privacy-policy.md#11-state-specific-rights) - CCPA rights
 - [Compliance Checklist Section 3](compliance-checklist.md#3-ccpa--cpra-compliance-california) - CCPA items
 
@@ -159,6 +169,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Total Legal Budget (Pre-Launch + Phase 1):** $18,000-$36,000
 
 **Contact Legal Team:**
+
 - Email: legal@familyhub.app
 - Privacy: privacy@familyhub.app
 
@@ -167,14 +178,17 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ## Recommended Law Firms
 
 **COPPA Specialists:**
+
 1. **Kelley Drye & Warren LLP** (New York) - FTC enforcement defense
 2. **Hunton Andrews Kurth** (Multiple US offices) - Privacy, COPPA
 
 **GDPR / EU Privacy:**
+
 1. **Mason Hayes & Curran** (Dublin, Ireland) - GDPR, Irish DPC jurisdiction
 2. **Bird & Bird** (Multiple EU offices) - GDPR, data transfers
 
 **General Tech/Privacy:**
+
 1. **Foley & Lardner** - Tech startups, privacy
 2. **Cooley LLP** - Startup legal, privacy
 
@@ -187,6 +201,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ### Week 0-4 (Phase 0: Foundation)
 
 **Legal Tasks:**
+
 - [ ] Week 0: Engage COPPA attorney
 - [ ] Week 1-2: Legal review of Privacy Policy, Terms, Cookie Policy
 - [ ] Week 2-3: COPPA consent flow review
@@ -194,12 +209,14 @@ This folder contains all legal compliance documentation for Family Hub, includin
 - [ ] Week 3-4: Complete DPIAs for children's data and event chains
 
 **Technical Tasks:**
+
 - [ ] Week 2-3: Implement consent management UI
 - [ ] Week 3-4: Implement COPPA parental consent flow
 - [ ] Week 3-4: Implement age gate
 - [ ] Week 4: Implement cookie consent banner
 
 **Completion Criteria:**
+
 - ✅ All policies legally reviewed and approved
 - ✅ COPPA consent flow tested and documented
 - ✅ DPAs executed
@@ -210,17 +227,20 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ### Week 5-12 (Phase 1: MVP)
 
 **Legal Tasks:**
+
 - [ ] Week 5-8: Execute Standard Contractual Clauses (SCCs) with US processors
 - [ ] Week 5-8: GDPR legal review (EU attorney)
 - [ ] Week 8-10: State law compliance review (CCPA, Virginia, Colorado)
 
 **Technical Tasks:**
+
 - [ ] Week 5-8: Implement GDPR data subject rights (access, delete, export)
 - [ ] Week 5-8: Implement COPPA parental controls
 - [ ] Week 8-10: Implement CCPA consumer rights
 - [ ] Week 10-12: Implement data breach notification procedures
 
 **Completion Criteria:**
+
 - ✅ 90% compliance checklist completion
 - ✅ All GDPR/COPPA/CCPA rights functional
 - ✅ Clean legal sign-off for public launch
@@ -263,6 +283,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ### Quarterly Review (Q1, Q2, Q3, Q4)
 
 **Legal Team Reviews:**
+
 - Compliance checklist status
 - Regulatory changes (GDPR amendments, new state laws)
 - Data breach log
@@ -270,6 +291,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 - DPA renewals
 
 **Action Items:**
+
 - Update policies if regulations change
 - Re-engage legal counsel if major changes
 
@@ -278,6 +300,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ### Annual Audit (Q4)
 
 **External Audit (Phase 5+):**
+
 - Third-party privacy audit ($5,000-$10,000)
 - Security audit (penetration testing)
 - COPPA compliance audit
@@ -294,11 +317,13 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Risk Level:** 🔴 CRITICAL
 
 **Consequences:**
+
 - FTC fines up to $46,517 per violation
 - Reputational damage
 - Loss of user trust
 
 **Mitigation:**
+
 - Engage COPPA specialist attorney (Week 0)
 - Implement technical controls (no email, phone, location for under-13)
 - Annual COPPA audit (Phase 5+)
@@ -312,10 +337,12 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Risk Level:** 🟠 HIGH
 
 **Consequences:**
+
 - EU DPA fines up to €20M or 4% annual revenue
 - Loss of EU market access
 
 **Mitigation:**
+
 - Execute Standard Contractual Clauses (SCCs) with US processors
 - Conduct Transfer Impact Assessment (TIA)
 - Implement supplementary measures (encryption, access controls)
@@ -330,10 +357,12 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Risk Level:** 🟡 MEDIUM
 
 **Consequences:**
+
 - Reputational harm if health data leaked
 - User churn
 
 **Mitigation:**
+
 - Separate health data storage with field-level encryption
 - Explicit consent for health data collection (GDPR Article 9)
 - Disclaim medical advice in Privacy Policy and Terms
@@ -347,6 +376,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ### Q1: Do we need a Data Protection Officer (DPO)?
 
 **A:** Not required initially (< 250 employees, not core activity of large-scale sensitive data processing). Reassess if:
+>
 - >250 employees
 - Large-scale processing of special category data (health data)
 - Significant expansion into EU market
@@ -354,6 +384,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ### Q2: Can we use Google Analytics?
 
 **A:** Potentially problematic under GDPR (Schrems II concerns with data transfers to US). Alternatives:
+
 - **Plausible Analytics** (privacy-friendly, GDPR compliant, cookieless)
 - **Self-hosted analytics** (e.g., Matomo)
 - **First-party analytics** (build our own)
@@ -376,6 +407,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ### Q4: How do we handle divorce/custody disputes over family data?
 
 **A:**
+
 - Family Administrator has full access (clearly stated in Terms)
 - Any member can leave the family and take their personal data
 - Respond to court orders (divorce decrees, custody orders)
@@ -386,6 +418,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ### Q5: What happens when a child turns 13?
 
 **A:**
+
 - 30 days before 13th birthday: Email parent notification
 - On 13th birthday: Automatically convert account from Child → Teen
 - Teen account unlocks restricted features (can create events, add to lists)
@@ -398,16 +431,15 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ## Contact Information
 
 **Legal & Compliance Team:**
+
 - **Legal Advisor:** legal@familyhub.app
 - **Privacy Officer:** privacy@familyhub.app
 - **Data Protection Officer (if appointed):** dpo@familyhub.app
 
 **External Counsel:**
-- [COPPA Attorney Name]: [Email]
-- [GDPR Attorney Name]: [Email]
-- [General Counsel Name]: [Email]
 
 **Regulatory Authorities:**
+
 - **FTC (COPPA):** https://www.ftc.gov/COPPA
 - **Irish DPC (GDPR):** https://www.dataprotection.ie
 - **California AG (CCPA):** https://oag.ca.gov/privacy
@@ -417,6 +449,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 ## Version History
 
 **v1.0 (December 20, 2025):**
+
 - Initial legal documentation suite
 - Terms of Service drafted
 - Privacy Policy drafted (GDPR/COPPA/CCPA compliant)
@@ -434,6 +467,7 @@ This folder contains all legal compliance documentation for Family Hub, includin
 **Prepared By:** Legal Advisor (AI-assisted)
 
 **References:**
+
 - GDPR (EU Regulation 2016/679)
 - COPPA (15 U.S.C. §§ 6501–6506, 16 CFR Part 312)
 - CCPA (Cal. Civ. Code §§ 1798.100–1798.199)

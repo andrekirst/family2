@@ -257,12 +257,14 @@ public readonly partial struct Username
 ### Examples
 
 **Valid Usernames:**
+
 - `child_username`
 - `emma_smith_2015`
 - `alex123`
 - `kid_01`
 
 **Invalid Usernames:**
+
 - `Child_Username` (uppercase)
 - `emma-smith` (hyphen not allowed)
 - `al` (too short)
@@ -286,6 +288,7 @@ public readonly partial struct Username
 ```
 
 **Examples:**
+
 - `emma_kid@noemail.family-hub.internal`
 - `alex_username@noemail.family-hub.internal`
 
@@ -394,6 +397,7 @@ public class SecurePasswordGenerator : ISecurePasswordGenerator
 ```
 
 **Example Generated Passwords:**
+
 - `Xy9#mK2$pLqR4vT8`
 - `aB3!cD5@eF7#gH9$`
 - `Mn4%Pq6&Rs8*Tv2!`
@@ -405,6 +409,7 @@ public class SecurePasswordGenerator : ISecurePasswordGenerator
 ### 1. Password Display Security
 
 **Single Display Policy:**
+
 - Password is shown ONLY ONCE after account creation
 - Parent must copy or print the password immediately
 - No password recovery mechanism (parent must reset via Zitadel if lost)
@@ -462,6 +467,7 @@ export class PasswordDisplayModalComponent {
 ### 2. Parent Responsibilities
 
 **Parents Must:**
+
 - Save the generated password securely (password manager, secure note)
 - Teach children to keep credentials confidential
 - Monitor child's account activity (via parental controls - Phase 3+)
@@ -755,6 +761,7 @@ _logger.LogError(ex,
 ```
 
 **Sensitive Data Handling:**
+
 - **NEVER log passwords** (generated or user-provided)
 - **NEVER log private keys** or access tokens (log only token expiration)
 - **Mask email addresses** in logs: `user***@example.com`

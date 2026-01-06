@@ -111,26 +111,31 @@ External Dependencies:
 ### 1.2 Trust Boundaries
 
 **Trust Boundary 1: Internet → Ingress**
+
 - Untrusted user traffic
 - Potential DDoS, injection attacks
 - Protection: TLS, WAF, rate limiting
 
 **Trust Boundary 2: Ingress → API Gateway**
+
 - Partially trusted (authenticated)
 - Token validation required
 - Protection: JWT validation, RBAC
 
 **Trust Boundary 3: API Gateway → Microservices**
+
 - Trusted internal network
 - Service-to-service communication
 - Protection: Network policies, mutual TLS (future)
 
 **Trust Boundary 4: Microservices → Database**
+
 - Highly trusted
 - Data access layer
 - Protection: RLS, encrypted connections, least privilege
 
 **Trust Boundary 5: External Services**
+
 - Zitadel (Auth Provider): Partially trusted
 - Let's Encrypt: Trusted
 - Protection: TLS pinning, API key rotation
@@ -151,6 +156,7 @@ External Dependencies:
 ### 2.2 Critical Assets
 
 **User Data Assets:**
+
 1. **Children's Information (COPPA Protected)**
    - Names, birthdates, task history
    - Threat: Unauthorized access, data leak
@@ -173,21 +179,22 @@ External Dependencies:
 
 **System Assets:**
 5. **Authentication Credentials**
-   - OAuth tokens, session IDs, API keys
-   - Threat: Account takeover, privilege escalation
-   - Impact: Full system compromise
 
-6. **Database (PostgreSQL)**
+- OAuth tokens, session IDs, API keys
+- Threat: Account takeover, privilege escalation
+- Impact: Full system compromise
+
+1. **Database (PostgreSQL)**
    - All family data, multi-tenant storage
    - Threat: SQL injection, data exfiltration
    - Impact: Complete data breach
 
-7. **Event Bus (Redis)**
+2. **Event Bus (Redis)**
    - Real-time events, session data
    - Threat: Event manipulation, session hijacking
    - Impact: Data integrity compromise
 
-8. **Kubernetes Cluster**
+3. **Kubernetes Cluster**
    - Infrastructure control plane
    - Threat: Container escape, privilege escalation
    - Impact: Full infrastructure compromise
@@ -212,6 +219,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
 ### 3.2 Risk Scoring
 
 **Likelihood:**
+
 - 1 = Very Low (theoretical)
 - 2 = Low (requires sophisticated attacker)
 - 3 = Medium (moderate skill/resources)
@@ -219,6 +227,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
 - 5 = Very High (actively exploited in wild)
 
 **Impact:**
+
 - 1 = Negligible (minor inconvenience)
 - 2 = Low (limited data exposure)
 - 3 = Medium (service disruption, some data exposure)
@@ -228,6 +237,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
 **Risk Score = Likelihood × Impact**
 
 **Priority Levels:**
+
 - **Critical (20-25):** Immediate action required
 - **High (15-19):** Fix within 1 sprint
 - **Medium (8-14):** Fix within 2-3 sprints
@@ -576,6 +586,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
 ```
 
 **Impact:**
+
 - **Confidentiality:** HIGH - Full access to family data
 - **Integrity:** MEDIUM - Attacker could modify data
 - **Availability:** LOW - Unlikely to disrupt service
@@ -622,6 +633,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
 ```
 
 **Impact:**
+
 - **Confidentiality:** CRITICAL - All health data exposed
 - **Integrity:** CRITICAL - Data could be modified or deleted
 - **Availability:** CRITICAL - Database could be dropped
@@ -668,6 +680,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
 ```
 
 **Impact:**
+
 - **Legal:** CRITICAL - COPPA fines up to $43,280 per violation
 - **Reputational:** CRITICAL - Trust lost with families
 - **Confidentiality:** HIGH - Child's data exposed
@@ -716,6 +729,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
 ```
 
 **Impact:**
+
 - **Confidentiality:** CRITICAL - All data exposed
 - **Integrity:** CRITICAL - Full control of infrastructure
 - **Availability:** CRITICAL - Could shut down entire platform
@@ -764,6 +778,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
 ```
 
 **Impact:**
+
 - **Availability:** CRITICAL - Service unavailable
 - **Financial:** MEDIUM - Cloud costs increase
 - **Reputational:** HIGH - Users lose trust
@@ -857,17 +872,20 @@ R-011 to R-015: Medium (yellow)
 #### Authentication & Authorization
 
 **Implemented:**
+
 - OAuth 2.0 / OIDC via Zitadel
 - JWT token validation
 - Role-based access control (RBAC)
 
 **Planned (Phase 1):**
+
 - ✅ MFA enforcement for admins
 - ✅ Passwordless authentication (WebAuthn)
 - ✅ Session management with short token expiry (1 hour)
 - ✅ Refresh token rotation
 
 **Planned (Phase 2+):**
+
 - Magic link authentication
 - Biometric authentication (mobile)
 - Hardware security key support (YubiKey)
@@ -875,26 +893,31 @@ R-011 to R-015: Medium (yellow)
 #### Data Protection
 
 **Implemented:**
+
 - TLS 1.3 for all external connections
 - PostgreSQL encryption at rest
 
 **Planned (Phase 1):**
+
 - ✅ End-to-end encryption for health records
 - ✅ Field-level encryption for sensitive data (SSN, payment methods)
 - ✅ PII redaction in logs
 - ✅ Encrypted database backups (AES-256)
 
 **Planned (Phase 2+):**
+
 - Client-side encryption before upload (documents)
 - Zero-knowledge architecture for ultra-sensitive data
 
 #### Application Security
 
 **Implemented:**
+
 - Input validation (basic)
 - HTTPS-only connections
 
 **Planned (Phase 1):**
+
 - ✅ GraphQL query depth limiting (max 5 levels)
 - ✅ GraphQL query cost analysis (max 1000 points)
 - ✅ Rate limiting (100 req/min per IP)
@@ -903,6 +926,7 @@ R-011 to R-015: Medium (yellow)
 - ✅ Parameterized queries (SQL injection prevention)
 
 **Planned (Phase 2+):**
+
 - Web Application Firewall (WAF)
 - Runtime application self-protection (RASP)
 - Security headers (HSTS, X-Frame-Options, etc.)
@@ -910,10 +934,12 @@ R-011 to R-015: Medium (yellow)
 #### Infrastructure Security
 
 **Implemented:**
+
 - Kubernetes cluster (basic security)
 - Network policies (planned)
 
 **Planned (Phase 1):**
+
 - ✅ Pod Security Standards (restricted mode)
 - ✅ Non-root containers
 - ✅ Read-only root filesystems
@@ -923,6 +949,7 @@ R-011 to R-015: Medium (yellow)
 - ✅ Sealed Secrets for GitOps
 
 **Planned (Phase 2+):**
+
 - Service mesh with mTLS (Linkerd)
 - Runtime security monitoring (Falco)
 - Image signing and verification (Cosign)
@@ -931,16 +958,19 @@ R-011 to R-015: Medium (yellow)
 #### Monitoring & Incident Response
 
 **Implemented:**
+
 - Basic logging (Loki)
 - Metrics (Prometheus)
 
 **Planned (Phase 1):**
+
 - ✅ Comprehensive audit logging (all sensitive operations)
 - ✅ Security event correlation
 - ✅ Alerting for critical events
 - ✅ Incident response playbook
 
 **Planned (Phase 2+):**
+
 - Security Information and Event Management (SIEM)
 - Automated incident response (SOAR)
 - Forensics data collection
@@ -949,12 +979,14 @@ R-011 to R-015: Medium (yellow)
 ### 8.2 Implementation Timeline
 
 #### Phase 0 (Week 1-4): Foundation
+
 - ✅ TLS 1.3 configuration
 - ✅ Zitadel OAuth integration
 - ✅ Basic input validation
 - ✅ HTTPS-only enforcement
 
 #### Phase 1 (Week 5-12): Core Security
+
 - ✅ MFA for admins
 - ✅ RLS implementation and testing
 - ✅ Audit logging framework
@@ -963,24 +995,28 @@ R-011 to R-015: Medium (yellow)
 - ✅ Sealed Secrets
 
 #### Phase 2 (Week 13-18): Data Protection
+
 - ✅ End-to-end encryption for health data
 - ✅ Field-level encryption
 - ✅ PII redaction in logs
 - ✅ Encrypted backups
 
 #### Phase 3 (Week 19-26): Container Security
+
 - ✅ Pod Security Standards
 - ✅ Container image scanning (Trivy)
 - ✅ Non-root containers
 - ✅ Read-only filesystems
 
 #### Phase 4-5 (Week 27-40): Advanced Security
+
 - ⏳ WAF deployment
 - ⏳ Runtime security (Falco)
 - ⏳ Service mesh with mTLS
 - ⏳ Penetration testing
 
 #### Phase 6+ (Week 41+): Continuous Improvement
+
 - ⏳ Security automation
 - ⏳ Threat intelligence
 - ⏳ Bug bounty program
@@ -1025,16 +1061,19 @@ R-011 to R-015: Medium (yellow)
 ### 10.1 Review Schedule
 
 **Quarterly Reviews (Every 3 months):**
+
 - Update threat model with new features
 - Re-assess risk scores based on incidents
 - Update mitigations based on emerging threats
 
 **Annual Reviews:**
+
 - Comprehensive threat modeling workshop
 - External security audit integration
 - Compliance requirement updates
 
 **Trigger-Based Reviews:**
+
 - New major feature deployment
 - Significant architecture changes
 - Security incident or breach
@@ -1044,6 +1083,7 @@ R-011 to R-015: Medium (yellow)
 
 **Threat Model Owner:** Security Engineer
 **Contributors:**
+
 - DevOps Engineer (infrastructure threats)
 - Backend Developers (application threats)
 - Product Manager (business impact assessment)
@@ -1051,6 +1091,7 @@ R-011 to R-015: Medium (yellow)
 ### 10.3 Change Management
 
 All threat model changes must:
+
 1. Be reviewed by security team
 2. Update risk register accordingly
 3. Trigger mitigation plan updates
@@ -1063,31 +1104,37 @@ All threat model changes must:
 ### A.1 STRIDE Definitions
 
 **Spoofing Identity:**
+
 - Definition: Pretending to be someone or something else
 - Examples: Phishing, token theft, session hijacking
 - Countermeasures: Strong authentication, MFA, passwordless
 
 **Tampering with Data:**
+
 - Definition: Malicious modification of data
 - Examples: SQL injection, event manipulation, JWT tampering
 - Countermeasures: Input validation, integrity checks, signatures
 
 **Repudiation:**
+
 - Definition: Denying having performed an action
 - Examples: User claims they didn't delete data
 - Countermeasures: Audit logging, immutable logs, digital signatures
 
 **Information Disclosure:**
+
 - Definition: Exposing information to unauthorized parties
 - Examples: Data breach, log exposure, backup leak
 - Countermeasures: Encryption, access controls, data minimization
 
 **Denial of Service:**
+
 - Definition: Making system unavailable
 - Examples: DDoS, resource exhaustion, query performance
 - Countermeasures: Rate limiting, resource limits, monitoring
 
 **Elevation of Privilege:**
+
 - Definition: Gaining unauthorized permissions
 - Examples: Authorization bypass, RBAC misconfiguration
 - Countermeasures: Least privilege, RBAC audits, defense in depth
@@ -1099,6 +1146,7 @@ All threat model changes must:
 ### B.1 Zero-Trust Architecture
 
 **Principles:**
+
 1. Never trust, always verify
 2. Assume breach
 3. Verify explicitly
@@ -1106,6 +1154,7 @@ All threat model changes must:
 5. Segment access
 
 **Implementation:**
+
 - Mutual TLS between services (Phase 5+)
 - Token validation at every layer
 - Network microsegmentation
@@ -1114,26 +1163,31 @@ All threat model changes must:
 ### B.2 Defense in Depth
 
 **Layer 1: Edge Protection**
+
 - DDoS mitigation
 - WAF (future)
 - Rate limiting
 
 **Layer 2: Network Security**
+
 - Network policies
 - TLS encryption
 - Service mesh (future)
 
 **Layer 3: Application Security**
+
 - Input validation
 - Authentication/authorization
 - CSRF/XSS protection
 
 **Layer 4: Data Security**
+
 - Encryption at rest
 - Encryption in transit
 - Field-level encryption
 
 **Layer 5: Monitoring & Response**
+
 - Audit logging
 - Anomaly detection
 - Incident response

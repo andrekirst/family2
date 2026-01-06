@@ -16,6 +16,7 @@ Event Chain Automation is Family Hub's **PRIMARY DIFFERENTIATOR** - the feature 
 **Event chains** are automated workflows that trigger related actions across different domains (calendar, tasks, lists, notifications). They eliminate manual coordination and reduce mental load.
 
 **Example**: Doctor Appointment Chain
+
 ```
 User adds doctor appointment to calendar
   ↓ (automatic)
@@ -50,6 +51,7 @@ Reminder sent: "Refill prescription for Noah"
 **Duration**: 90 seconds, optional (can skip)
 
 **Onboarding Flow:**
+
 1. **Welcome**: "You're all set! Let's show you what makes Family Hub special."
 2. **Event Chain Introduction**:
    - **Headline**: "Meet Event Chains: Your Automation Assistant"
@@ -62,6 +64,7 @@ Reminder sent: "Refill prescription for Noah"
    - Button: [Yes, let's try!] or [Maybe later]
 
 **Design Principles:**
+
 - **Visual, not text-heavy**: Use animations and diagrams
 - **Skip-friendly**: "Skip" button always visible
 - **Optional**: Never block users from using the app
@@ -77,6 +80,7 @@ Reminder sent: "Refill prescription for Noah"
 **Trigger Examples:**
 
 #### Trigger 1: User Creates Recurring Task
+
 ```
 User: Creates task "Take out trash" (recurring weekly, Thursday 7pm)
   ↓
@@ -90,11 +94,13 @@ Suggestion appears (modal):
 ```
 
 **If user clicks "Yes":**
+
 - Pre-fill event chain builder with template
 - Show preview: "Here's what Noah will receive..."
 - One-tap activation
 
 #### Trigger 2: User Plans Meals
+
 ```
 User: Completes meal plan for the week (Mon-Fri dinners)
   ↓
@@ -108,11 +114,13 @@ Suggestion appears (toast notification):
 ```
 
 **If user clicks "Auto-generate":**
+
 - Event chain activates
 - Shopping list created instantly
 - Celebration: "🎉 Your shopping list is ready! (12 items)"
 
 #### Trigger 3: User Adds Doctor Appointment
+
 ```
 User: Adds calendar event "Noah - Doctor Appointment" (Thursday 3pm)
   ↓
@@ -138,6 +146,7 @@ Suggestion appears (inline, below event form):
 **Event Chains Section**: One of 6 top-level navigation items (not buried)
 
 **Desktop Sidebar:**
+
 ```
 📊 Dashboard
 📅 Calendar
@@ -148,6 +157,7 @@ Suggestion appears (inline, below event form):
 ```
 
 **Mobile Bottom Nav:**
+
 - Not in bottom 5 (space constraints)
 - Accessible from "More" menu OR from Dashboard widget
 
@@ -158,11 +168,13 @@ Suggestion appears (inline, below event form):
 ### 4. Suggested Chains (Personalized)
 
 **Based on User Behavior:**
+
 - Sarah uses meal planning → Suggest "Meal Plan → Shopping List" chain
 - Mike creates recurring tasks → Suggest "Recurring Chore Reminders" chain
 - Emma is a teen → Suggest "Homework → Study Reminder" chain
 
 **Suggested Chains Section** (in Event Chains page):
+
 ```
 ⭐ Suggested for You
 
@@ -185,6 +197,7 @@ Suggestion appears (inline, below event form):
 **Goal**: Make event chains understandable at a glance
 
 **Example: Doctor Appointment Chain Visualization**
+
 ```
 ┌─────────────────┐
 │ Calendar Event  │
@@ -216,6 +229,7 @@ Suggestion appears (inline, below event form):
 ```
 
 **Design Elements:**
+
 - **Arrows**: Show flow direction (trigger → action)
 - **Icons**: Calendar icon, task icon, notification icon
 - **Colors**: Brand blue for active steps, gray for future steps
@@ -226,6 +240,7 @@ Suggestion appears (inline, below event form):
 ### Status Indicators
 
 **Active Chains Dashboard Widget:**
+
 ```
 Active Event Chains (3)
 
@@ -249,6 +264,7 @@ Active Event Chains (3)
 ```
 
 **Status Types:**
+
 - ⏳ **Running**: Currently active, waiting for next trigger
 - ✅ **Complete**: Finished all steps
 - ❌ **Failed**: Error occurred (e.g., couldn't create task)
@@ -263,6 +279,7 @@ Active Event Chains (3)
 **Goal**: Pre-built chains for common use cases (zero configuration)
 
 **10 Pre-Built Templates:**
+
 1. **Doctor Appointment Chain** (prep → reminder → prescription → refill)
 2. **Meal Plan → Shopping List** (auto-generate list from meal plan)
 3. **Recurring Chore Reminders** (night before + morning of)
@@ -275,6 +292,7 @@ Active Event Chains (3)
 10. **Budget Alert** (spending threshold → alert → review expenses - Phase 2+)
 
 **Template Card Design:**
+
 ```
 ┌────────────────────────────────────────┐
 │ 🩺 Doctor Appointment Chain           │
@@ -290,6 +308,7 @@ Active Event Chains (3)
 ```
 
 **One-Tap Activation:**
+
 - User clicks "Use Template"
 - Modal: "Activate Doctor Appointment Chain?"
   - Preview: Shows what will happen
@@ -310,6 +329,7 @@ Active Event Chains (3)
 **Builder Interface (Desktop):**
 
 **Left Panel: Trigger Blocks**
+
 ```
 Triggers (What starts the chain?)
 - Calendar Event Created
@@ -321,6 +341,7 @@ Triggers (What starts the chain?)
 ```
 
 **Center Canvas: Visual Builder**
+
 ```
    ┌─────────────┐
    │  TRIGGER    │
@@ -340,6 +361,7 @@ Triggers (What starts the chain?)
 ```
 
 **Right Panel: Action Blocks**
+
 ```
 Actions (What should happen?)
 - Create Task
@@ -352,6 +374,7 @@ Actions (What should happen?)
 ```
 
 **Drag-Drop Interaction:**
+
 1. Drag "Trigger: Event Created" to canvas
 2. Drag "Action: Create Task" below it
 3. Draw arrow to connect
@@ -360,6 +383,7 @@ Actions (What should happen?)
 6. Save & Activate
 
 **Mobile Alternative** (Linear Step-by-Step):
+
 - Mobile can't drag-drop easily
 - Use linear wizard: "Step 1 → Step 2 → Step 3"
 
@@ -370,6 +394,7 @@ Actions (What should happen?)
 **Goal**: Build confidence before activation ("What will happen?")
 
 **Preview Modal:**
+
 ```
 ┌─────────────────────────────────────────────┐
 │ Preview: Doctor Appointment Chain           │
@@ -399,6 +424,7 @@ Actions (What should happen?)
 ```
 
 **Test Mode** (Phase 2+):
+
 - Click "Test Run" button
 - Simulate chain without actually creating tasks/events
 - View output: "Here's what would happen..."
@@ -411,6 +437,7 @@ Actions (What should happen?)
 ### First-Time Chain Setup
 
 **Guided Walkthrough:**
+
 1. User clicks "Use Template" (Doctor Appointment Chain)
 2. **Step 1: Explain Trigger**
    - "This chain starts when you add a doctor appointment to your calendar"
@@ -426,6 +453,7 @@ Actions (What should happen?)
    - Confirmation: "✨ Your Doctor Appointment Chain is active!"
 
 **Tooltips** (Contextual Help):
+
 - Hover/tap "?" icon for explanations
 - Example: "What's a trigger?" → "A trigger starts the chain (e.g., adding an event)"
 
@@ -434,6 +462,7 @@ Actions (What should happen?)
 ### Inline Help
 
 **Example Scenarios (In Template Gallery):**
+
 ```
 How does the Meal Plan → Shopping List chain work?
 
@@ -448,6 +477,7 @@ Time saved: 10 minutes (vs. manually copying ingredients)
 ```
 
 **Video Tutorials** (Phase 2+):
+
 - 90-second video for each template
 - Shows real example (screen recording)
 - Embedded in template detail page
@@ -457,6 +487,7 @@ Time saved: 10 minutes (vs. manually copying ingredients)
 ### Success Stories
 
 **Social Proof** (Build Trust):
+
 ```
 ⭐⭐⭐⭐⭐ 4.8 from 1,234 families
 
@@ -470,6 +501,7 @@ I felt like I had a personal assistant!"
 ```
 
 **Usage Stats** (Show Popularity):
+
 - "Used by 1,234 families"
 - "Saves 15 min/appointment on average"
 - "98% success rate (chains complete without errors)"
@@ -483,6 +515,7 @@ I felt like I had a personal assistant!"
 **Goal**: Transparency (what did the chain do?)
 
 **History View:**
+
 ```
 Doctor Appointment Chain - History
 
@@ -503,6 +536,7 @@ Doctor Appointment Chain - History
 ```
 
 **Undo Functionality:**
+
 - If chain made a mistake, user can undo
 - "Undo" button: Deletes all tasks/events created by chain
 - Confirmation required: "Undo Doctor Appointment Chain? This will delete 2 tasks."
@@ -512,6 +546,7 @@ Doctor Appointment Chain - History
 ### Activity Feed Integration
 
 **Dashboard Activity Feed:**
+
 ```
 Family Activity
 
@@ -536,6 +571,7 @@ Family Activity
 ### When Chains Fail
 
 **Common Failure Scenarios:**
+
 1. **Calendar event deleted before chain completes**
    - Result: Chain pauses, notifies user
    - Notification: "Doctor Appointment Chain paused (event was deleted)"
@@ -547,6 +583,7 @@ Family Activity
    - Notification: "Event chain failed. Tap to retry."
 
 **Error Notification:**
+
 ```
 ⚠️ Event Chain Error
 
@@ -563,6 +600,7 @@ Doctor Appointment Chain failed at Step 2:
 ### Global Chain Settings
 
 **Family Settings → Event Chains:**
+
 ```
 Event Chain Settings
 
@@ -597,16 +635,19 @@ Chain Limits:
 ### KPIs (Key Performance Indicators)
 
 **Discovery:**
+
 - **50%+ of users** activate at least 1 event chain within 7 days
 - **30%+ of new users** activate during onboarding tour
 - **40%+ conversion** on contextual suggestions
 
 **Engagement:**
+
 - **70%+ of active chains** use pre-built templates (not custom builder)
 - **3+ event chains** per family on average (after 30 days)
 - **95%+ success rate** (chains complete without errors)
 
 **Satisfaction:**
+
 - **NPS > 40** for event chain feature specifically
 - **4.5+ star rating** in user reviews mentioning event chains
 - **80%+ of users** say event chains save them time (survey)
@@ -618,16 +659,19 @@ Chain Limits:
 ### Why Event Chains Are Unbeatable
 
 **Cozi, FamilyWall, TimeTree, Picniic**: NONE offer automation
+
 - Users manually copy meal ingredients to shopping lists
 - Users manually create tasks for doctor appointments
 - Users manually set reminders for recurring chores
 
 **Family Hub**: Event chains do it automatically
+
 - **Time saved**: 10-30 minutes per workflow
 - **Mental load reduced**: 3-5 fewer things to remember
 - **Stress reduced**: No more "Did I forget something?"
 
 **Moat**: Event chains are complex to build (6-12 months dev time)
+
 - Competitors would need to rebuild their architecture
 - Family Hub has 12-18 month head start
 

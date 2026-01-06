@@ -18,6 +18,7 @@ Thank you for your interest in contributing to Family Hub! This guide will help 
 ### When to Create an Issue
 
 Create an issue when you want to:
+
 - **Propose a new feature** that aligns with the product roadmap
 - **Report a bug** or defect
 - **Track a phase deliverable** or epic
@@ -42,11 +43,13 @@ We provide 6 issue templates to help structure your contributions:
 Use when proposing new features or enhancements.
 
 **When to use:**
+
 - Adding new functionality to the platform
 - Enhancing existing features
 - Implementing features from the backlog
 
 **Required information:**
+
 - Implementation phase (Phase 0-6)
 - Microservice/bounded context
 - User story (As a... I want... So that...)
@@ -54,6 +57,7 @@ Use when proposing new features or enhancements.
 - RICE scoring (optional but recommended)
 
 **Example:**
+
 ```
 Title: [Feature] Add medication reminder notifications
 Phase: Phase 2
@@ -67,11 +71,13 @@ so that I never miss giving them their medicine.
 Use when reporting bugs or defects.
 
 **When to use:**
+
 - Something is broken or not working as expected
 - Error messages or crashes
 - Performance issues
 
 **Required information:**
+
 - Severity (Critical, High, Medium, Low)
 - Affected service/component
 - Steps to reproduce
@@ -79,6 +85,7 @@ Use when reporting bugs or defects.
 - Environment details
 
 **Example:**
+
 ```
 Title: [Bug] Calendar events not syncing in real-time
 Severity: High
@@ -91,11 +98,13 @@ Steps: 1. User A creates event, 2. User B doesn't see it for 5+ minutes
 Use for major phase deliverables that coordinate multiple sub-issues.
 
 **When to use:**
+
 - Tracking a full phase (e.g., Phase 1: Core MVP)
 - Major feature area requiring multiple sub-issues
 - Cross-service initiatives
 
 **Required information:**
+
 - Phase number
 - Context and objectives
 - Deliverables checklist
@@ -103,6 +112,7 @@ Use for major phase deliverables that coordinate multiple sub-issues.
 - Sub-issues list
 
 **Example:**
+
 ```
 Title: [Phase 2] Health Integration & Event Chains
 Deliverables:
@@ -116,18 +126,21 @@ Deliverables:
 Use for research tasks, spikes, or documentation work.
 
 **When to use:**
+
 - Technical investigations or proof-of-concepts
 - Architectural decision records (ADRs)
 - Documentation updates
 - Competitive analysis or market research
 
 **Required information:**
+
 - Research question or goal
 - Scope of investigation
 - Expected deliverables
 - Timeline
 
 **Example:**
+
 ```
 Title: [Research] Evaluate event bus alternatives (Redis vs RabbitMQ)
 Goal: Determine best event bus for production workloads
@@ -142,6 +155,7 @@ Deliverables:
 Use for technical debt or refactoring work.
 
 **When to use:**
+
 - Code quality issues (duplication, complexity)
 - Architecture improvements
 - Missing tests or flaky tests
@@ -149,6 +163,7 @@ Use for technical debt or refactoring work.
 - Security vulnerabilities
 
 **Required information:**
+
 - Severity (Critical, High, Medium, Low)
 - Affected service/component
 - Type of technical debt
@@ -156,6 +171,7 @@ Use for technical debt or refactoring work.
 - Proposed solution
 
 **Example:**
+
 ```
 Title: [Tech Debt] Refactor Calendar Service event handling
 Severity: Medium
@@ -175,11 +191,13 @@ Use when none of the templates fit.
 ### Feature Backlog
 
 All planned features are documented in `/docs/FEATURE_BACKLOG.md` with:
+
 - **208 total features** across 16 domains
 - **RICE scoring** for prioritization
 - **Phase assignments** (MVP, Phase 2, Phase 3+)
 
 **Before proposing a feature:**
+
 1. Check if it's already in the backlog
 2. Review its RICE score and priority
 3. Understand its phase assignment
@@ -197,6 +215,7 @@ The roadmap (`/docs/implementation-roadmap.md`) defines **6 phases**:
 - **Phase 6**: Mobile App & Extended Features (8+ weeks)
 
 **When creating issues:**
+
 - Align with current phase (check project status)
 - Respect phase dependencies
 - Consider cross-phase impacts
@@ -221,6 +240,7 @@ Family Hub uses **8 bounded contexts** (microservices):
 **Event chains** are Family Hub's flagship differentiator - automated cross-domain workflows.
 
 **Example:** Doctor Appointment Chain
+
 ```
 User schedules appointment (Health Service)
   ↓
@@ -234,6 +254,7 @@ Medication → shopping list (Shopping Service)
 ```
 
 **When creating features:**
+
 - Consider event chain integration
 - Document events published/consumed
 - Test end-to-end workflows
@@ -268,6 +289,7 @@ Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`):
 ### Code Review Guidelines
 
 **As a reviewer:**
+
 - Verify DDD boundaries respected (services don't cross bounded contexts)
 - Check event chain integration
 - Ensure tests cover happy path, errors, and edge cases
@@ -275,6 +297,7 @@ Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`):
 - Confirm documentation is complete
 
 **As an author:**
+
 - Respond to feedback promptly
 - Keep PRs focused and small
 - Explain architectural decisions
@@ -316,6 +339,7 @@ Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`):
 ## Labels Reference
 
 ### Type Labels
+
 - `type-feature` - New feature
 - `type-bug` - Bug or defect
 - `type-epic` - Phase deliverable
@@ -323,19 +347,23 @@ Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`):
 - `type-tech-debt` - Technical debt
 
 ### Phase Labels
+
 - `phase-0` through `phase-6` - Implementation phases
 - `phase-7-future` - Future work
 
 ### Service Labels
+
 - `service-auth`, `service-calendar`, `service-task`, etc.
 
 ### Priority Labels
+
 - `priority-p0` - Critical (must have)
 - `priority-p1` - High (should have)
 - `priority-p2` - Medium (nice to have)
 - `priority-p3` - Low (future)
 
 ### Status Labels
+
 - `status-triage` - Needs review
 - `status-planning` - Planning phase
 - `status-ready` - Ready for development
@@ -356,6 +384,7 @@ Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`):
 ## Project Philosophy
 
 Family Hub is built with:
+
 - **Privacy first** - GDPR compliance, no data selling
 - **Quality over speed** - Build it right from the start
 - **AI-assisted development** - Claude Code generates 60-80% of boilerplate

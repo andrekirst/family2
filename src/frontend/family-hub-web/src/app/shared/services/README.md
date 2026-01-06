@@ -226,6 +226,7 @@ interface WizardStepConfig {
 #### Methods
 
 ##### `initialize(steps: WizardStepConfig[]): void`
+
 Initializes wizard with step configurations. Resets all state.
 
 ```typescript
@@ -236,6 +237,7 @@ wizardService.initialize([
 ```
 
 ##### `nextStep(): void`
+
 Navigates to next step. Validates current step before navigating.
 
 ```typescript
@@ -243,6 +245,7 @@ wizardService.nextStep();
 ```
 
 ##### `previousStep(): void`
+
 Navigates to previous step. No validation performed.
 
 ```typescript
@@ -250,6 +253,7 @@ wizardService.previousStep();
 ```
 
 ##### `goToStep(index: number): void`
+
 Jumps to specific step by index.
 
 ```typescript
@@ -257,6 +261,7 @@ wizardService.goToStep(2); // Jump to third step
 ```
 
 ##### `setStepData<T>(stepId: string, data: T): void`
+
 Stores data for a specific step.
 
 ```typescript
@@ -264,6 +269,7 @@ wizardService.setStepData<{ name: string }>('step1', { name: 'John' });
 ```
 
 ##### `getStepData<T>(stepId: string): T | undefined`
+
 Retrieves data for a specific step.
 
 ```typescript
@@ -272,6 +278,7 @@ console.log(data?.name);
 ```
 
 ##### `validateStep(stepId: string): boolean`
+
 Validates a step using its validation function. Updates stepErrors signal.
 
 ```typescript
@@ -279,6 +286,7 @@ const isValid = wizardService.validateStep('step1');
 ```
 
 ##### `setStepErrors(stepId: string, errors: string[]): void`
+
 Manually set validation errors for a step.
 
 ```typescript
@@ -286,6 +294,7 @@ wizardService.setStepErrors('step1', ['Name is required', 'Email is invalid']);
 ```
 
 ##### `clearStepErrors(stepId: string): void`
+
 Clear validation errors for a step.
 
 ```typescript
@@ -293,6 +302,7 @@ wizardService.clearStepErrors('step1');
 ```
 
 ##### `hasStepErrors(stepId: string): boolean`
+
 Check if a step has validation errors.
 
 ```typescript
@@ -302,6 +312,7 @@ if (wizardService.hasStepErrors('step1')) {
 ```
 
 ##### `getStepErrors(stepId: string): string[]`
+
 Get validation errors for a step.
 
 ```typescript
@@ -310,6 +321,7 @@ errors.forEach(error => console.error(error));
 ```
 
 ##### `reset(): void`
+
 Resets wizard state (navigation, data, errors). Does not clear steps config.
 
 ```typescript

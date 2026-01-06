@@ -73,5 +73,5 @@ test('should create family', async ({ page }) => {
 ## Documentation
 
 - Migration plan: `/docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md`
-- Playwright docs: https://playwright.dev/
+- Playwright docs: <https://playwright.dev/>
 - Family Hub testing guide: `/docs/testing-guide.md`

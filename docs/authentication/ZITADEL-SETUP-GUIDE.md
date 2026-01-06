@@ -21,6 +21,7 @@
 ## Overview
 
 Family Hub uses **Zitadel** as its OAuth 2.0 / OpenID Connect provider. Zitadel handles:
+
 - User authentication (login/logout)
 - Multi-factor authentication (TOTP, WebAuthn)
 - Social login (Google, Microsoft, Apple)
@@ -30,6 +31,7 @@ Family Hub uses **Zitadel** as its OAuth 2.0 / OpenID Connect provider. Zitadel 
 **OAuth Flow:** Authorization Code with PKCE (Proof Key for Code Exchange)
 
 **Architecture:**
+
 ```
 Angular App → Zitadel Login UI → Authorization Code → Backend API
 Backend API → Validates JWT (RS256) → User Sync → Database
@@ -119,6 +121,7 @@ docker logs -f zitadel
 ```
 
 **Access Zitadel Console:**
+
 - URL: http://localhost:8080
 - First-time setup will prompt for admin account creation
 
@@ -163,6 +166,7 @@ Click **Continue**
 Click **Continue**
 
 **Review & Create:**
+
 - Review settings
 - Click **Create**
 
@@ -453,12 +457,14 @@ const routes: Routes = [
 ### Step 7: Test OAuth Flow
 
 **1. Start Backend:**
+
 ```bash
 cd src/api
 dotnet run --project FamilyHub.Api
 ```
 
 **2. Start Frontend:**
+
 ```bash
 cd src/web
 npm start
@@ -537,12 +543,15 @@ curl -X POST http://localhost:5002/graphql \
 **1. Sign up at https://zitadel.com**
 
 **2. Create Organization:**
+
 - Organization Name: `Family Hub Production`
 
 **3. Create Project:**
+
 - Project Name: `Family Hub`
 
 **4. Create Application:**
+
 - Application Name: `Family Hub Web`
 - Type: **Web** (PKCE)
 - Redirect URIs:
@@ -553,12 +562,14 @@ curl -X POST http://localhost:5002/graphql \
   - `https://www.familyhub.app`
 
 **5. Configure Custom Domain (Optional but Recommended):**
+
 - Go to **Organization Settings** → **Domain**
 - Add custom domain: `auth.familyhub.app`
 - Verify DNS records
 - Enable SSL
 
 **6. Copy Credentials:**
+
 - Client ID: `<PROD_CLIENT_ID>`
 - Client Secret: `<PROD_CLIENT_SECRET>`
 - Authority: `https://auth.familyhub.app` (or Zitadel-provided domain)
@@ -568,6 +579,7 @@ curl -X POST http://localhost:5002/graphql \
 **See Zitadel documentation:** https://zitadel.com/docs/self-hosting/deploy/overview
 
 **Requirements:**
+
 - PostgreSQL 12+
 - 2 GB RAM minimum
 - SSL/TLS certificate
@@ -824,11 +836,13 @@ dotnet test --filter "FullyQualifiedName~ZitadelOAuthFlowTests"
 ### Issue: "Zitadel settings are not configured"
 
 **Error:**
+
 ```
 System.InvalidOperationException: Zitadel settings are not configured
 ```
 
 **Solution:**
+
 1. Verify `appsettings.Development.json` contains `Zitadel` section
 2. Ensure all required fields are filled
 3. Restart API: `dotnet run`
@@ -838,11 +852,13 @@ System.InvalidOperationException: Zitadel settings are not configured
 ### Issue: "The token is expired"
 
 **Error:**
+
 ```
 OnAuthenticationFailed: The token is expired
 ```
 
 **Solution:**
+
 1. Token lifetime is 1 hour (default)
 2. Implement token refresh flow (frontend)
 3. Or: Re-login via Zitadel
@@ -852,11 +868,13 @@ OnAuthenticationFailed: The token is expired
 ### Issue: "Audience validation failed"
 
 **Error:**
+
 ```
 IDX10214: Audience validation failed. Audiences: '...'
 ```
 
 **Solution:**
+
 1. Check `appsettings.json` → `Zitadel.Audience` matches JWT `aud` claim
 2. In Zitadel console, verify application audience setting
 3. Restart API after config change
@@ -866,11 +884,13 @@ IDX10214: Audience validation failed. Audiences: '...'
 ### Issue: "Signature validation failed"
 
 **Error:**
+
 ```
 IDX10503: Signature validation failed. Keys tried: '...'
 ```
 
 **Solution:**
+
 1. Verify Zitadel is running: `curl http://localhost:8080/.well-known/openid-configuration`
 2. Check JWKS endpoint: `curl http://localhost:8080/oauth/v2/keys`
 3. Clear cached keys: Restart API
@@ -881,11 +901,13 @@ IDX10503: Signature validation failed. Keys tried: '...'
 ### Issue: "Invalid state parameter"
 
 **Error:**
+
 ```
 Invalid state parameter - possible CSRF attack
 ```
 
 **Solution:**
+
 1. Frontend: Verify `state` from callback matches stored value
 2. Check session storage: `sessionStorage.getItem('oauth_state')`
 3. State expires after use - don't reuse OAuth URLs
@@ -895,10 +917,12 @@ Invalid state parameter - possible CSRF attack
 ### Issue: Docker Compose Zitadel not starting
 
 **Symptoms:**
+
 - Container exits immediately
 - Logs show database connection errors
 
 **Solution:**
+
 ```bash
 # Check logs
 docker logs zitadel
@@ -934,6 +958,7 @@ sudo lsof -i :8080
 ### OWASP OAuth 2.0 Compliance
 
 ✅ **Implemented:**
+
 - PKCE (S256) - Prevents authorization code interception
 - State parameter - CSRF protection
 - Nonce parameter - Replay protection
@@ -944,23 +969,28 @@ sudo lsof -i :8080
 - Secure token exchange - Server-side only
 
 ⚠️ **Pending:**
+
 - HTTPS in production (required)
 - Rate limiting (recommended)
 
 ### Rotating Client Secrets
 
 **Zitadel Console:**
+
 1. Navigate to **Applications** → `Family Hub Web`
 2. Click **"Regenerate Secret"**
 3. Copy new secret immediately
 4. Update Key Vault:
+
    ```bash
    az keyvault secret set \
      --vault-name familyhub-secrets \
      --name "Zitadel--ClientSecret" \
      --value "<NEW_SECRET>"
    ```
+
 5. Restart API pods:
+
    ```bash
    kubectl rollout restart deployment/familyhub-api
    ```
@@ -970,16 +1000,19 @@ sudo lsof -i :8080
 ## Additional Resources
 
 **Zitadel Documentation:**
+
 - Official Docs: https://zitadel.com/docs
 - OAuth 2.0 Guide: https://zitadel.com/docs/guides/integrate/login/oidc
 - PKCE Flow: https://zitadel.com/docs/guides/integrate/login/oidc/authorization-code-pkce
 
 **Family Hub Documentation:**
+
 - OAuth Security Audit: `/tests/FamilyHub.Tests.Integration/Auth/OAUTH_SECURITY_AUDIT.md`
 - Completion Summary: `/docs/ZITADEL-OAUTH-COMPLETION-SUMMARY.md`
 - Architecture Decision: `/docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md` (coming soon)
 
 **Standards:**
+
 - OAuth 2.0 RFC: https://datatracker.ietf.org/doc/html/rfc6749
 - OpenID Connect: https://openid.net/specs/openid-connect-core-1_0.html
 - PKCE RFC: https://datatracker.ietf.org/doc/html/rfc7636

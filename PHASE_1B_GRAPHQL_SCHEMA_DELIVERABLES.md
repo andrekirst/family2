@@ -104,6 +104,7 @@ Completed comprehensive GraphQL schema design for the Family Member Invitation S
 ### Error Handling
 
 **Unified Error Structure:**
+
 ```graphql
 type UserError {
   code: InvitationErrorCode!
@@ -113,6 +114,7 @@ type UserError {
 ```
 
 **17 Error Codes:**
+
 - VALIDATION_FAILED
 - DUPLICATE_EMAIL
 - DUPLICATE_USERNAME
@@ -146,6 +148,7 @@ type UserError {
 ### Implementation Plan Alignment ✅
 
 **Phase 1.B.1: Invitation Mutations Schema**
+
 - [x] `InviteFamilyMemberByEmailInput` + payload
 - [x] `CreateManagedMemberInput` + payload (with password config)
 - [x] `BatchInviteFamilyMembersInput` + payload (mixed mode)
@@ -154,6 +157,7 @@ type UserError {
 - [x] Error enum `InvitationErrorCode`
 
 **Phase 1.B.2: Query Schema**
+
 - [x] `familyMembers(familyId)` signature
 - [x] `pendingInvitations(familyId)` signature
 - [x] `invitation(invitationId)` signature
@@ -161,6 +165,7 @@ type UserError {
 - [x] Authorization requirements documented
 
 **Phase 1.B.3: Subscription Schema**
+
 - [x] `familyMembersChanged(familyId)` signature
 - [x] `pendingInvitationsChanged(familyId)` signature
 - [x] Change types: ADDED, UPDATED, REMOVED
@@ -273,6 +278,7 @@ type UserError {
 **Ready to generate:**
 
 1. **TypeScript Types:**
+
    ```bash
    npm run graphql:codegen
    ```
@@ -316,6 +322,7 @@ type UserError {
 **None.** All files compile successfully with 0 errors.
 
 **Warnings:**
+
 - 1 deprecation warning in `FamilyMemberInvitationConfiguration.cs` (unrelated to GraphQL schema)
 
 ---
@@ -323,11 +330,13 @@ type UserError {
 ## Schema Validation
 
 **Build Command:**
+
 ```bash
 dotnet build Modules/FamilyHub.Modules.Auth/FamilyHub.Modules.Auth.csproj
 ```
 
 **Build Result:**
+
 ```
 ✅ Der Buildvorgang wurde erfolgreich ausgeführt.
    1 Warnung(en)
@@ -345,6 +354,7 @@ https://localhost:5001/graphql
 ```
 
 **Introspection Query:**
+
 ```graphql
 query IntrospectionQuery {
   __schema {
@@ -362,10 +372,12 @@ query IntrospectionQuery {
 ## Redis PubSub Configuration
 
 **Channels:**
+
 - `family-members-changed` - Family member updates
 - `pending-invitations-changed` - Invitation updates
 
 **Domain Event Mapping:**
+
 ```
 InvitationAcceptedEvent → family-members-changed (ADDED)
 FamilyMemberInvitedEvent → pending-invitations-changed (ADDED)
@@ -378,15 +390,19 @@ InvitationUpdatedEvent → pending-invitations-changed (UPDATED)
 ## References
 
 ### Architecture Decisions
+
 - [ADR-003: GraphQL Input/Command Pattern](/docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md)
 
 ### Implementation Plan
+
 - [Epic #24 Implementation Plan](/IMPLEMENTATION_PLAN_EPIC_24.md)
 
 ### GraphQL Documentation
+
 - [Invitation Schema Documentation](/src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/INVITATION_SCHEMA.md)
 
 ### Domain Model
+
 - [Domain Model and Microservices Map](/docs/architecture/domain-model-microservices-map.md)
 
 ---

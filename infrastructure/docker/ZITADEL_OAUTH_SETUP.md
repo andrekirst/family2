@@ -35,11 +35,13 @@
 ### Step 4: Configure Redirect URIs
 
 1. In the **Redirect URIs** section, add:
+
    ```
    http://localhost:4200/auth/callback
    ```
 
 2. (Optional) In **Post Logout Redirect URIs**, add:
+
    ```
    http://localhost:4200/login
    ```
@@ -47,6 +49,7 @@
 ### Step 5: Configure Grant Types
 
 Make sure these grant types are enabled:
+
 - ✅ **Authorization Code** (required for OAuth flow)
 - ✅ **Refresh Token** (recommended for token refresh)
 
@@ -64,6 +67,7 @@ Make sure these grant types are enabled:
 ### Step 7: (Optional) Additional Configuration
 
 You can also configure:
+
 - **Token Lifetime**: How long access tokens are valid (default: 12 hours)
 - **Refresh Token Lifetime**: How long refresh tokens are valid (default: 30 days)
 - **ID Token Lifetime**: How long ID tokens are valid (default: 12 hours)
@@ -96,6 +100,7 @@ Edit `/src/api/FamilyHub.Api/appsettings.Development.json`:
 ```
 
 Then restart the backend:
+
 ```bash
 cd /home/andrekirst/git/github/andrekirst/family2/src/api/FamilyHub.Api
 dotnet run
@@ -117,14 +122,17 @@ After configuration:
 ## Troubleshooting
 
 ### "Invalid redirect_uri" error
+
 - Verify the redirect URI in Zitadel matches exactly: `http://localhost:4200/auth/callback`
 - No trailing slashes
 
 ### "Invalid client" error
+
 - Verify Client ID and Client Secret are correct
 - Verify they're properly set in appsettings.Development.json
 
 ### "PKCE verification failed" error
+
 - Ensure Authentication Method is set to "PKCE" in Zitadel
 - Check browser console for codeVerifier in sessionStorage
 
@@ -133,6 +141,7 @@ After configuration:
 ## Security Notes
 
 ⚠️ **For Production:**
+
 - Use HTTPS for all URLs
 - Store Client Secret in Azure Key Vault or environment variables
 - Never commit Client Secret to git

@@ -1,4 +1,5 @@
 # Family Hub - Family Creation UI Implementation Plan
+
 **Multi-Agent Architectural Review**
 
 **Feature:** Family Creation UI for authenticated users without a family  
@@ -53,6 +54,7 @@ User logs in → Check family status (GraphQL query)
 **Objective:** Fix GraphQLService error handling WITHOUT breaking existing code.
 
 **Problem:** Current GraphQLService (lines 14-29) doesn't handle GraphQL errors properly:
+
 ```typescript
 // CURRENT (problematic)
 async query<T>(query: string, variables?: any): Promise<T> {
@@ -279,6 +281,7 @@ describe('GraphQLService', () => {
 **File:** `/home/andrekirst/git/github/andrekirst/family2/src/frontend/family-hub-web/src/app/shared/components/atoms/input/input.component.ts`
 
 **Requirements:**
+
 - Text input with Tailwind styling
 - Support Reactive Forms via `formControlName` (ControlValueAccessor)
 - States: default, focus, error, disabled
@@ -390,6 +393,7 @@ export class InputComponent implements ControlValueAccessor {
 **File:** `/home/andrekirst/git/github/andrekirst/family2/src/frontend/family-hub-web/src/app/shared/components/atoms/icon/icon.component.ts`
 
 **Icons Needed:**
+
 - `x-mark` (close button)
 - `exclamation-circle` (error icon)
 
@@ -448,6 +452,7 @@ export class IconComponent {
 ### 1.3 Modal Component with Focus Trap
 
 **Dependencies:**
+
 ```bash
 npm install focus-trap
 npm install -D @types/focus-trap
@@ -456,6 +461,7 @@ npm install -D @types/focus-trap
 **File:** `/home/andrekirst/git/github/andrekirst/family2/src/frontend/family-hub-web/src/app/shared/components/molecules/modal/modal.component.ts`
 
 **Requirements:**
+
 - Overlay backdrop
 - Centered responsive card
 - Optional close button (controlled by parent)
@@ -693,6 +699,7 @@ export function mapFamilyFromGraphQL(gql: FamilyGraphQLType): Family {
 **File:** `/home/andrekirst/git/github/andrekirst/family2/src/frontend/family-hub-web/src/app/core/services/family.service.ts`
 
 **Requirements:**
+
 - GraphQL query: `getUserFamilies` (using `queryWithErrors`)
 - GraphQL mutation: `createFamily` (using `mutateWithErrors`)
 - Angular Signals for state management
@@ -857,6 +864,7 @@ export class FamilyService {
 **File:** `/home/andrekirst/git/github/andrekirst/family2/src/frontend/family-hub-web/src/app/features/family/components/create-family-modal/create-family-modal.component.ts`
 
 **Requirements:**
+
 - Reactive Forms (not template-driven)
 - Validation: required, maxLength 50
 - Validation trigger: after blur (not while typing)
@@ -1129,6 +1137,7 @@ export class CreateFamilyModalComponent implements OnInit {
 **File:** `/home/andrekirst/git/github/andrekirst/family2/src/frontend/family-hub-web/src/app/features/dashboard/dashboard.component.ts`
 
 **Changes:**
+
 - Import FamilyService and CreateFamilyModalComponent
 - Call `getUserFamilies()` on init
 - Conditional rendering based on `hasFamily()` signal
@@ -1466,22 +1475,26 @@ test.describe('Family Creation Flow', () => {
 ### 5.3 Manual Testing Checklist
 
 **Browser Testing:**
+
 - ✅ Chrome (latest)
 - ✅ Firefox (latest)
 - ✅ Safari (latest)
 - ✅ Edge (latest)
 
 **Device Testing:**
+
 - ✅ Desktop (1920x1080)
 - ✅ Tablet (768x1024)
 - ✅ Mobile (375x667)
 
 **Screen Reader Testing:**
+
 - ✅ macOS VoiceOver + Safari
 - ✅ NVDA + Firefox (Windows)
 - ✅ JAWS + Chrome (Windows, if available)
 
 **Keyboard Navigation:**
+
 - ✅ Tab cycles through focusable elements
 - ✅ Enter submits form
 - ✅ Focus trapped in modal
@@ -1545,6 +1558,7 @@ e2e/
 ```
 
 **Dependencies to Install:**
+
 ```bash
 npm install focus-trap
 npm install -D @types/focus-trap
@@ -1611,6 +1625,7 @@ npm install -D @playwright/test @axe-core/playwright
 ## Success Criteria
 
 **Functional:**
+
 - ✅ User without family sees blocking modal on login
 - ✅ User with family goes directly to dashboard
 - ✅ Form validates after blur (not while typing)
@@ -1620,6 +1635,7 @@ npm install -D @playwright/test @axe-core/playwright
 - ✅ Modal closes on successful creation
 
 **Non-Functional:**
+
 - ✅ Test coverage >80% (unit + integration)
 - ✅ All E2E scenarios passing
 - ✅ Accessibility audit passing (WCAG 2.1 AA)
@@ -1630,6 +1646,7 @@ npm install -D @playwright/test @axe-core/playwright
 - ✅ TypeScript strict mode for new files
 
 **Code Quality:**
+
 - ✅ Reactive Forms (not template-driven)
 - ✅ Angular Signals for state management
 - ✅ Type-safe domain models with mappers
@@ -1641,6 +1658,7 @@ npm install -D @playwright/test @axe-core/playwright
 **END OF MULTI-AGENT IMPLEMENTATION PLAN**
 
 This plan incorporates insights from 4 specialized perspectives:
+
 - **@agent-angular-architect:** Reactive forms, Signals, architecture patterns
 - **@agent-typescript-pro:** Type safety, error handling, domain modeling
 - **@agent-ui-designer:** YAGNI, Tailwind patterns, visual consistency

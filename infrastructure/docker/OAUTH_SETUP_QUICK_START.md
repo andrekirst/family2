@@ -38,6 +38,7 @@ python3 create-zitadel-oauth-app.py --token YOUR_TOKEN_HERE
 ```
 
 **Done!** The script will:
+
 - ✅ Create project "Family Hub"
 - ✅ Create OIDC application "Family Hub Web" with PKCE
 - ✅ Configure redirect URIs
@@ -57,12 +58,14 @@ Follow the detailed guide: [ZITADEL_OAUTH_SETUP.md](./ZITADEL_OAUTH_SETUP.md)
 After setup (either option):
 
 1. **Start Backend**:
+
    ```bash
    cd /home/andrekirst/git/github/andrekirst/family2/src/api/FamilyHub.Api
    dotnet run
    ```
 
 2. **Start Frontend**:
+
    ```bash
    cd /home/andrekirst/git/github/andrekirst/family2/src/frontend/family-hub-web
    ng serve
@@ -81,25 +84,31 @@ After setup (either option):
 ## 🔧 Troubleshooting
 
 ### Script fails with "Failed to get organizations"
+
 - **Cause**: Invalid or expired token
 - **Fix**: Create a new Personal Access Token and try again
 
 ### Script fails with "Zitadel is not running"
+
 - **Cause**: Docker containers not started
 - **Fix**:
+
   ```bash
   cd /home/andrekirst/git/github/andrekirst/family2/infrastructure/docker
   docker-compose up -d
   ```
 
 ### "Invalid redirect_uri" error during login
+
 - **Cause**: Redirect URI mismatch
 - **Fix**: Verify in Zitadel application settings:
   - Redirect URI: `http://localhost:4200/auth/callback` (exact match, no trailing slash)
 
 ### Backend shows "invalid_client" error
+
 - **Cause**: Client ID mismatch
 - **Fix**: Check `/src/api/FamilyHub.Api/appsettings.Development.json`:
+
   ```json
   {
     "Zitadel": {
@@ -113,6 +122,7 @@ After setup (either option):
 ## 📝 What Gets Created
 
 **In Zitadel:**
+
 - Project: "Family Hub"
 - Application: "Family Hub Web"
   - Type: Web Application
@@ -122,7 +132,9 @@ After setup (either option):
   - Grant Types: Authorization Code, Refresh Token
 
 **In Backend:**
+
 - Updated: `/src/api/FamilyHub.Api/appsettings.Development.json`
+
   ```json
   {
     "Zitadel": {

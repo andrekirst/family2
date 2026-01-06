@@ -16,6 +16,7 @@ This phase implemented the foundation for the family member invitation system by
 #### 1. GraphQL Schema Restructure - Nested References API
 
 **Old Schema (Flat):**
+
 ```graphql
 query {
   availableRoles { value, label, description, badgeColorClass }
@@ -24,6 +25,7 @@ query {
 ```
 
 **New Schema (Nested):**
+
 ```graphql
 query {
   references {
@@ -36,18 +38,22 @@ query {
 ```
 
 **Files Created:**
+
 - `ReferenceDataType.cs` - Container record for `references { ... }` query
 - `RolesType.cs` - Nested record for `roles { all, invitable }`
 - `ReferenceDataTypeExtension.cs` - Resolver with `[ExtendObjectType("Query")]`
 - `RoleMetadata.cs` - Rich metadata type for roles
 
 **Files Deleted:**
+
 - `ReferenceDataQueries.cs` - Old flat query structure
 
 **Files Modified:**
+
 - `Program.cs` - Updated registration from `ReferenceDataQueries` to `ReferenceDataTypeExtension`
 
 **Rationale:**
+
 - Provides scalable API design for future reference data (statuses, permissions, etc.)
 - Follows GraphQL best practices (nested objects vs flat queries)
 - Type-safe nested structures in both C# and TypeScript
@@ -56,6 +62,7 @@ query {
 #### 2. Role Value Objects and Domain Model
 
 **Files Created/Modified:**
+
 - `UserRoleType.cs` - GraphQL enum (OWNER, ADMIN, MEMBER)
 - `UserRole.cs` - Vogen value object for domain model
 - Various `MapToGraphQLRole()` functions updated across 4 files
@@ -67,6 +74,7 @@ query {
 **File Created:** `role.service.ts`
 
 **Features:**
+
 - Signal-based reactive state management
 - LocalStorage caching with 24-hour TTL
 - Automatic cache expiration
@@ -75,10 +83,12 @@ query {
 - Computed signal for invitable roles (excludes OWNER)
 
 **Cache Keys:**
+
 - `family-hub:roles:all` - All available roles
 - `family-hub:roles:invitable` - Invitable roles (ADMIN, MEMBER)
 
 **GraphQL Query:**
+
 ```typescript
 const GET_AVAILABLE_ROLES = `
   query GetAvailableRoles {
@@ -99,12 +109,14 @@ const GET_AVAILABLE_ROLES = `
 #### 2. Component Updates
 
 **Files Modified:**
+
 - `invite-member-modal.component.ts/html` - Uses RoleService for dynamic role dropdown
 - `pending-invitations.component.ts/html` - Uses RoleService for role updates
 - `family-members-list.component.ts` - Updated role sorting to exclude MANAGED_ACCOUNT
 - `family.models.ts` - Added RoleMetadata interface, deprecated hardcoded constants
 
 **UI Improvements:**
+
 - Role dropdown populated from API (not hardcoded)
 - Roles alphabetically ordered (Admin before Member)
 - Member pre-selected by default
@@ -120,12 +132,14 @@ const GET_AVAILABLE_ROLES = `
 **Status:** NOT IMPLEMENTED - Deferred to future milestone
 
 **Rationale:**
+
 - The core infrastructure (roles API, invitation service, domain model) is complete
 - The wizard integration requires additional UX design and testing
 - Current implementation provides all necessary backend services and frontend components
 - Can be added incrementally without breaking changes
 
 **What Needs to Be Done:**
+
 1. **Multi-Step Wizard UI**
    - Step 1: Family Info (✅ Already exists)
    - Step 2: Invite Members (⏰ DEFERRED - Needs implementation)
@@ -155,6 +169,7 @@ const GET_AVAILABLE_ROLES = `
 **Dependencies:** Current implementation provides all required services
 
 **Implementation Plan:**
+
 ```
 1. Create multi-step wizard shell (1 day)
    - Route configuration
@@ -175,6 +190,7 @@ const GET_AVAILABLE_ROLES = `
 ```
 
 **Technical Notes:**
+
 - All backend services are ready (invitation mutations, role queries)
 - Frontend components exist and are tested (InviteMemberModalComponent, RoleService)
 - No breaking changes required - additive only
@@ -185,6 +201,7 @@ const GET_AVAILABLE_ROLES = `
 ## 🎯 Success Criteria
 
 ### What Was Achieved
+
 - ✅ GraphQL roles API restructured to nested schema
 - ✅ RoleService with LocalStorage caching implemented
 - ✅ Frontend components use dynamic API data (not hardcoded)
@@ -193,6 +210,7 @@ const GET_AVAILABLE_ROLES = `
 - ✅ All services running and tested
 
 ### What Remains
+
 - ⏰ Family creation wizard multi-step UI
 - ⏰ Wizard Step 2 - Invite Members integration
 - ⏰ E2E tests for complete wizard flow
@@ -202,12 +220,15 @@ const GET_AVAILABLE_ROLES = `
 ## 📚 Documentation Updates
 
 **Files Created:**
+
 - This document (`PHASE_3_ROLES_API_IMPLEMENTATION.md`)
 
 **Files Modified:**
+
 - `CLAUDE.md` - Updated with ADR-003 reference for GraphQL Input-Command pattern
 
 **Documentation Gaps (Future Work):**
+
 - User guide for wizard flow
 - E2E test documentation for wizard
 - Deployment/migration guide for nested API changes
@@ -217,12 +238,14 @@ const GET_AVAILABLE_ROLES = `
 ## 🧪 Testing Status
 
 ### Backend
+
 - ✅ Build: 0 errors (3 existing warnings)
 - ✅ GraphQL schema validated
 - ✅ Authorization working (requires OAuth token)
 - ⚠️ Unit tests for new types pending
 
 ### Frontend
+
 - ✅ Build: 0 errors (Sass deprecation warnings)
 - ✅ Role service loads data from API
 - ✅ Components render with dynamic roles
@@ -234,17 +257,20 @@ const GET_AVAILABLE_ROLES = `
 ## 🚀 Next Steps
 
 ### Immediate (This PR)
+
 1. ✅ Commit changes
 2. ✅ Push to remote
 3. ✅ Create PR for issues #24, #25, #26 (partial implementation)
 
 ### Short-Term (Next Sprint)
+
 1. Implement multi-step wizard UI (Issue #25)
 2. Add Wizard Step 2 - Invite Members
 3. E2E tests for wizard flow
 4. Close Issue #25
 
 ### Medium-Term (Phase 1)
+
 1. Implement Issue #26 - Family Management UI for ongoing invitations
 2. Add member removal/role change features
 3. Complete Phase 1 invitation system

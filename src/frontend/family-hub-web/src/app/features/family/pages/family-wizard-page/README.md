@@ -16,6 +16,7 @@ This component provides a guided multi-step flow for creating a new family. Curr
 ## Features
 
 ### Current Wizard Flow
+
 1. **Step 1:** Family Name (FamilyNameStepComponent)
    - Required field
    - 1-50 characters
@@ -23,15 +24,18 @@ This component provides a guided multi-step flow for creating a new family. Curr
    - Validation on navigation
 
 ### Future Wizard Flow (Planned)
+
 1. **Step 1:** Family Name - ✅ IMPLEMENTED
 2. **Step 2:** Family Members (optional) - PLANNED
 3. **Step 3:** Family Preferences (optional) - PLANNED
 
 ### Route Guards
+
 - **authGuard:** Ensures user is authenticated
 - **noFamilyGuard:** Prevents access if user already has family
 
 ### Error Handling
+
 - **Validation Errors:** Displayed in wizard UI, prevent navigation
 - **API Errors:** Displayed via FamilyService.error signal
 - **Network Errors:** Handled by GraphQLService
@@ -104,6 +108,7 @@ This component has no inputs or outputs. It's a route-level component that manag
 ```
 
 ### Validation Rules
+
 1. **Required:** Family name must be provided
 2. **Non-Empty:** After trimming, name must have content
 3. **Max Length:** 50 characters after trimming
@@ -112,6 +117,7 @@ This component has no inputs or outputs. It's a route-level component that manag
 ## Component Lifecycle
 
 ### 1. Initialization (ngOnInit)
+
 ```typescript
 ngOnInit() {
   // Guard check: redirect if user already has family
@@ -122,11 +128,13 @@ ngOnInit() {
 ```
 
 ### 2. User Interaction
+
 - User fills out wizard steps
 - Data automatically persisted by WizardService
 - Validation on navigation between steps
 
 ### 3. Completion (onWizardComplete)
+
 ```typescript
 async onWizardComplete(event: Map<string, unknown>) {
   // 1. Extract and validate data
@@ -151,40 +159,48 @@ async onWizardComplete(event: Map<string, unknown>) {
 ## Dependencies
 
 ### Services
+
 - **FamilyService:** Family state management and API calls
 - **Router:** Navigation after wizard completion
 
 ### Components
+
 - **WizardComponent:** Generic wizard container
 - **FamilyNameStepComponent:** Step 1 component
 
 ### Guards
+
 - **authGuard:** Ensures user authentication
 - **noFamilyGuard:** Prevents duplicate family creation
 
 ## Error Scenarios
 
 ### 1. User Already Has Family
+
 **Trigger:** User navigates to /family/create but has existing family
 **Behavior:** Redirected to /dashboard by noFamilyGuard or ngOnInit
 **User Feedback:** Silent redirect
 
 ### 2. Validation Error
+
 **Trigger:** User clicks Next with invalid data
 **Behavior:** Wizard displays validation errors, prevents navigation
 **User Feedback:** Error messages below fields
 
 ### 3. API Error (User Already Has Family)
+
 **Trigger:** User submits wizard, but API returns error
 **Behavior:** FamilyService.error signal set, displayed in wizard UI
 **User Feedback:** Error message: "User already has a family"
 
 ### 4. Network Error
+
 **Trigger:** Network failure during API call
 **Behavior:** GraphQLService throws error, caught by FamilyService
 **User Feedback:** Error message: "Failed to create family"
 
 ### 5. Missing Data (Defensive)
+
 **Trigger:** Wizard completes without required data (shouldn't happen)
 **Behavior:** Console error logged, stay on wizard
 **User Feedback:** No visual feedback (shouldn't occur)
@@ -198,6 +214,7 @@ npm test -- family-wizard-page.component.spec.ts
 ```
 
 ### Coverage Areas
+
 - Wizard configuration
 - Step validation functions
 - ngOnInit guard check
@@ -227,6 +244,7 @@ it('should create family and navigate on completion', async () => {
 ### Phase 2: Additional Steps
 
 #### Family Members Step
+
 ```typescript
 {
   id: 'family-members',
@@ -241,6 +259,7 @@ it('should create family and navigate on completion', async () => {
 ```
 
 #### Family Preferences Step
+
 ```typescript
 {
   id: 'family-preferences',
@@ -255,6 +274,7 @@ it('should create family and navigate on completion', async () => {
 ```
 
 ### Planned Features
+
 - [ ] Skip optional steps
 - [ ] Save progress and resume later
 - [ ] Invite family members during creation
@@ -266,6 +286,7 @@ it('should create family and navigate on completion', async () => {
 ## Best Practices
 
 ### Do's
+
 - Keep wizard configuration declarative
 - Validate data in `validateOnNext` functions
 - Trim user input before API submission
@@ -274,6 +295,7 @@ it('should create family and navigate on completion', async () => {
 - Use route guards for access control
 
 ### Don'ts
+
 - Don't manipulate WizardService directly (use inputs/outputs)
 - Don't skip validation for "convenience"
 - Don't navigate without checking for errors
@@ -283,6 +305,7 @@ it('should create family and navigate on completion', async () => {
 ## Integration Points
 
 ### 1. FamilyService
+
 ```typescript
 // Create family
 await this.familyService.createFamily(name);
@@ -299,6 +322,7 @@ if (this.familyService.hasFamily()) {
 ```
 
 ### 2. WizardComponent
+
 ```typescript
 <app-wizard
   title="Create Your Family"
@@ -309,6 +333,7 @@ if (this.familyService.hasFamily()) {
 ```
 
 ### 3. Router
+
 ```typescript
 // Navigate to dashboard
 this.router.navigate(['/dashboard']);
@@ -322,6 +347,7 @@ this.router.navigate(['/family/create']);
 ### From Modal to Wizard
 
 #### Before (CreateFamilyModalComponent)
+
 ```typescript
 <app-create-family-modal
   [isOpen]="!familyService.hasFamily()"
@@ -330,6 +356,7 @@ this.router.navigate(['/family/create']);
 ```
 
 #### After (FamilyWizardPageComponent)
+
 ```typescript
 // Route-based wizard
 {
@@ -340,6 +367,7 @@ this.router.navigate(['/family/create']);
 ```
 
 ### Key Changes
+
 1. **Modal → Full Page:** Better UX for multi-step flow
 2. **Imperative → Declarative:** Route guards handle access control
 3. **Single Step → Multi-Step:** Architected for expansion
@@ -358,6 +386,7 @@ this.router.navigate(['/family/create']);
 ## Support
 
 For questions or issues:
+
 1. Check WizardComponent documentation
 2. Review FamilyService for API integration
 3. See FamilyNameStepComponent for step implementation

@@ -454,6 +454,7 @@ Family Hub
 ### Desktop Navigation (Top Nav + Sidebar)
 
 **Top Navigation Bar** (persistent across all pages):
+
 - **Left**: Family Hub logo (click → Dashboard)
 - **Center**: Global search bar
 - **Right**:
@@ -466,6 +467,7 @@ Family Hub
     - Log Out
 
 **Left Sidebar** (collapsible):
+
 - 📊 Dashboard
 - 📅 Calendar
 - 📝 Lists
@@ -474,6 +476,7 @@ Family Hub
 - 👥 Family & Settings
 
 **Responsive Behavior**:
+
 - **Desktop (> 1024px)**: Sidebar expanded by default
 - **Tablet (640px - 1024px)**: Sidebar collapsed to icons only
 - **Mobile (< 640px)**: Sidebar hidden, bottom navigation visible
@@ -510,6 +513,7 @@ Family Hub
      - ⚙️ Preferences
 
 **Design**:
+
 - Fixed position (always visible, doesn't scroll away)
 - Active tab highlighted with brand color
 - Icons + labels (for clarity)
@@ -522,6 +526,7 @@ Family Hub
 #### Parent/Admin Navigation
 
 **Full Access** (sees all 6 top-level sections):
+
 - 📊 Dashboard
 - 📅 Calendar
 - 📝 Lists
@@ -530,6 +535,7 @@ Family Hub
 - 👥 Family & Settings (can manage family members, roles, billing)
 
 **Additional Features**:
+
 - Budget section (Phase 2+)
 - Family management (invite/remove members, change roles)
 - Event chain builder (advanced drag-drop)
@@ -540,11 +546,13 @@ Family Hub
 #### Co-Parent Navigation
 
 **Full Access** (same as Parent/Admin):
+
 - All 6 sections visible
 - Can create event chains
 - Can manage family (except billing)
 
 **Restrictions**:
+
 - Cannot delete primary admin
 - Cannot downgrade/cancel subscription (only primary admin)
 
@@ -555,21 +563,25 @@ Family Hub
 **Limited Access** (simplified UI):
 
 **Visible Sections** (4 top-level):
+
 - 📊 Dashboard (teen-optimized: shows assigned tasks, events, points)
 - 📅 Calendar (can see all family events, can create own events)
 - 📝 Lists (can add items to shared lists, can create personal lists)
 - ✅ Tasks & Chores (sees assigned tasks, can mark complete, earn points)
 
 **Hidden Sections**:
+
 - ⚡ Event Chains (view-only: can see active chains affecting them, cannot create/edit)
 - 💰 Budget (Phase 2+: cannot view family budget)
 
 **Additional Restrictions**:
+
 - Cannot invite new family members
 - Cannot change family settings
 - Cannot delete events created by parents (can only delete own events)
 
 **Gamification Emphasis**:
+
 - Dashboard shows points balance prominently
 - Badge showcase (unlocked achievements)
 - Leaderboard (friendly competition with siblings)
@@ -581,11 +593,13 @@ Family Hub
 **Heavily Restricted** (age-appropriate, simplified UI):
 
 **Visible Sections** (3 top-level):
+
 - 🏠 Home (child dashboard: today's tasks, upcoming events, points balance)
 - ✅ My Tasks (assigned chores, with icons and points)
 - 🎮 My Rewards (points, badges, streaks, rewards store)
 
 **Hidden Sections**:
+
 - 📅 Calendar (cannot view full family calendar, only sees own events on dashboard)
 - 📝 Lists (cannot access shopping/to-do lists)
 - ⚡ Event Chains (invisible to children)
@@ -593,12 +607,14 @@ Family Hub
 - 👥 Family Settings (invisible)
 
 **UI Simplifications**:
+
 - Large text (reading level: 2nd grade)
 - Visual icons for every task (🐕 "Feed dog", 🦷 "Brush teeth")
 - Minimal text (no long descriptions)
 - Gamification front and center (points, badges, confetti animations)
 
 **Parental Controls**:
+
 - Parents can view Noah's activity (tasks completed, points earned)
 - Parents configure rewards (100 points = $10, 50 points = extra screen time)
 
@@ -609,17 +625,20 @@ Family Hub
 **Guest-Level Access** (view-only for most features):
 
 **Visible Sections** (3 top-level):
+
 - 📊 Dashboard (limited: shows babysitting schedule, meal plans)
 - 📅 Calendar (can view events they're invited to, cannot create/edit)
 - 📝 Lists (can add items to shared shopping lists, cannot delete lists)
 
 **Hidden Sections**:
+
 - ✅ Tasks & Chores (cannot assign tasks, can see tasks assigned to grandparent)
 - ⚡ Event Chains (invisible)
 - 💰 Budget (invisible)
 - 👥 Family Settings (invisible, except own profile)
 
 **Accessibility**:
+
 - Large text mode (150% font size)
 - High contrast mode (light theme default)
 - Simplified navigation (no hamburger menus, clear labels)
@@ -631,6 +650,7 @@ Family Hub
 **Temporary, Scoped Access** (expires after 30 days or manual revocation):
 
 **Visible Sections** (2 top-level):
+
 - 🏠 Babysitting Info (custom dashboard showing only relevant info)
   - Tonight's schedule (Emma swim practice 4pm, Noah bedtime 8pm)
   - Emergency contacts (Sarah, Mike, 911)
@@ -639,11 +659,13 @@ Family Hub
 - 📋 Check-In/Out (log arrival/departure time)
 
 **Hidden Sections**:
+
 - All other sections invisible
 - Cannot view full family calendar
 - Cannot view budget or family settings
 
 **Privacy**:
+
 - Guest cannot see private family events
 - Guest cannot modify family data (read-only except check-in/out)
 - Guest access logged in audit trail (admin can see what guest viewed)
@@ -655,11 +677,13 @@ Family Hub
 ### Dashboard Design Philosophy
 
 **Widget-Based, Customizable Layout**:
+
 - Drag-and-drop widget reordering (desktop)
 - Hide/show widgets (personal ization)
 - Smart defaults based on role (parent sees budget widget, teen sees gamification widget)
 
 **Parent Dashboard Widgets**:
+
 1. **Today's Schedule** (next 3 events, "See all" link)
 2. **My Tasks** (top 5 tasks due today/this week)
 3. **Active Shopping Lists** (groceries, household items)
@@ -669,6 +693,7 @@ Family Hub
 7. **Budget Summary** (Phase 2+: monthly spending, budget vs. actual)
 
 **Teen Dashboard Widgets**:
+
 1. **My Day** (today's events and tasks)
 2. **My Tasks** (assigned chores, homework)
 3. **Points & Badges** (gamification emphasis)
@@ -676,6 +701,7 @@ Family Hub
 5. **Shopping Lists** (can add items)
 
 **Child Dashboard Widgets**:
+
 1. **My Chores Today** (3-5 visual task cards with icons)
 2. **My Points** (progress bar, confetti animation when milestone reached)
 3. **My Badges** (showcase unlocked achievements)
@@ -686,22 +712,27 @@ Family Hub
 ### Feature Grouping Logic
 
 **Time-Based Features** (Calendar, Events, Reminders):
+
 - Grouped under "Calendar" section
 - Related features: Recurring events, event chains (auto-create tasks from events)
 
 **Task-Based Features** (Tasks, Chores, Lists):
+
 - Grouped under "Tasks & Chores" and "Lists"
 - Related features: Gamification (points, badges), assignments
 
 **Planning Features** (Meals, Budget, Shopping):
+
 - Grouped under "Lists" (meal plans, shopping lists)
 - Budget in separate section (Phase 2+)
 
 **Automation Features** (Event Chains):
+
 - Standalone section (primary differentiator, cannot be buried)
 - Related features: Chain templates, chain builder, chain history
 
 **Social Features** (Family, Notifications, Messages - Phase 2+):
+
 - Grouped under "Family & Settings"
 - Related features: Family activity feed, member profiles
 
@@ -746,6 +777,7 @@ Family Hub
 ### Search and Discovery Patterns
 
 **Global Search** (always accessible in top nav):
+
 - Search scope: Current family only (privacy)
 - Search across: Events, tasks, lists, family members, event chains
 - Filters: By type (event, task, list), by person, by date range
@@ -753,12 +785,14 @@ Family Hub
 - Search suggestions: Autocomplete based on existing data
 
 **Contextual Search** (within each section):
+
 - Calendar: Search events by title, location, attendees
 - Tasks: Search tasks by title, assignee, status
 - Lists: Search list items by name, category
 - Event Chains: Search chains by name, trigger type
 
 **Advanced Search** (Phase 2+):
+
 - Date range filter (events/tasks between dates)
 - Person filter (show only items assigned to Emma)
 - Status filter (completed, pending, overdue)
@@ -812,16 +846,19 @@ Comprehensive table showing what each role can do:
 ### Role Switching Mechanism
 
 **No Explicit Role Switching Needed**:
+
 - UI adapts automatically based on logged-in user's role
 - Permissions enforced server-side (cannot bypass with client manipulation)
 
 **Admin Preview Mode** (optional feature for testing):
+
 - Parent can "Preview as Teen" to see Emma's dashboard
 - Parent can "Preview as Child" to see Noah's simplified UI
 - Useful for: Understanding what kids see, testing gamification features
 - Clear banner: "Previewing as Emma (Teen). Click here to return to your view."
 
 **Role Change Notification**:
+
 - If admin changes user's role (Emma: Teen → Parent), user receives notification
 - Next login: UI automatically adapts to new role
 - Explanation modal: "Your role has changed from Teen to Parent. You now have full access to Family Hub."
@@ -831,17 +868,20 @@ Comprehensive table showing what each role can do:
 ### Age-Appropriate Content Filtering
 
 **Children Under 13 (COPPA Compliance)**:
+
 - **Automatic filtering**: Cannot see budget, cannot see adult events (doctor appointments marked "private")
 - **Simplified language**: Notifications use kid-friendly language ("Hooray! You earned 10 points for feeding the dog!")
 - **No marketing**: Cannot receive promotional emails or notifications
 - **Parental oversight**: Sarah can view Noah's activity, points earned, badges unlocked
 
 **Teens (13-17)**:
+
 - **Age-appropriate**: Can see most family events, cannot see budget
 - **Privacy controls**: Emma can mark events as "Private" (hidden from child siblings)
 - **Gamification optional**: Teens can opt-out of gamification if they find it childish
 
 **Adults (18+)**:
+
 - **Full access**: No content filtering
 - **Privacy controls**: Can mark events/tasks as "Private" (hidden from teens/children)
 
@@ -881,12 +921,14 @@ Comprehensive table showing what each role can do:
 ### Sharing Links
 
 **Share Button** (available on events, tasks, lists):
+
 - Copy link to clipboard
 - Share via email (opens email client with pre-filled message)
 - Share via SMS (Phase 2+)
 - QR code (Phase 2+, for in-person sharing)
 
 **Link Permissions**:
+
 - Family-only: Link only works if recipient is a member of `familyId`
 - Guest access: Link grants temporary view-only access (expires in 24 hours)
 - Public sharing: Not supported (privacy-first approach)
@@ -903,22 +945,26 @@ Comprehensive table showing what each role can do:
 ### Responsive Behavior
 
 **Navigation**:
+
 - Mobile: Bottom nav (5 tabs)
 - Tablet: Sidebar (collapsed to icons)
 - Desktop: Sidebar (expanded)
 
 **Dashboard**:
+
 - Mobile: Single column, widgets stacked
 - Tablet: 2 columns
 - Desktop: 3 columns
 - Large Desktop: 4 columns (or 3 columns with wider widgets)
 
 **Calendar**:
+
 - Mobile: Day view default (Month view available, swipe to navigate)
 - Tablet: Week view default
 - Desktop: Month view default
 
 **Event Chain Builder**:
+
 - Mobile: Linear step-by-step flow (not drag-drop)
 - Tablet: Drag-drop available (with touch support)
 - Desktop: Full drag-drop visual builder

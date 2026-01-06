@@ -8,13 +8,16 @@
 ## What Was Completed ✅
 
 ### 1. Task 5: Domain Method Updates (100%)
+
 **Files Modified:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/User.cs`
   - Added `UpdateRole(UserRole newRole)` method
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/FamilyMemberInvitation.cs`
   - Added `UpdateRole(UserRole newRole)` method with validation
 
 **Code Added:**
+
 ```csharp
 // User.cs
 public void UpdateRole(UserRole newRole)
@@ -36,11 +39,14 @@ public void UpdateRole(UserRole newRole)
 ---
 
 ### 2. Task 6: Repository Extension (100%)
+
 **Files Modified:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/Repositories/IUserRepository.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Repositories/UserRepository.cs`
 
 **Code Added:**
+
 ```csharp
 // IUserRepository.cs
 Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
@@ -57,16 +63,20 @@ public async Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, Cancellation
 ---
 
 ### 3. Task 1: UpdateInvitationRole Command (100%)
+
 **Files Created:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/UpdateInvitationRole/UpdateInvitationRoleCommand.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/UpdateInvitationRole/UpdateInvitationRoleResult.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/UpdateInvitationRole/UpdateInvitationRoleCommandHandler.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/Factories/UpdateInvitationRolePayloadFactory.cs`
 
 **Files Modified:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/Mutations/InvitationMutations.cs` (added mutation)
 
 **Handler Logic:**
+
 1. ✅ Gets authenticated user
 2. ✅ Validates invitation exists
 3. ✅ Validates user is OWNER or ADMIN
@@ -77,6 +87,7 @@ public async Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, Cancellation
 8. ✅ Returns result
 
 **GraphQL Mutation Added:**
+
 ```csharp
 [Authorize(Policy = "RequireOwnerOrAdmin")]
 public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
@@ -99,14 +110,17 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 ---
 
 ### 4. Build Fixes Applied
+
 **Issue:** Missing using statements causing InvitationId resolution errors
 **Fix:** Added `using FamilyHub.SharedKernel.Domain.ValueObjects;` to:
+
 - `UpdateInvitationRoleCommand.cs`
 - `UpdateInvitationRoleResult.cs`
 - `CancelInvitationCommand.cs`
 
 **Issue:** ResendInvitation command referenced but not implemented
 **Fix:**
+
 - Commented out `using FamilyHub.Modules.Auth.Application.Commands.ResendInvitation;` in InvitationMutations.cs
 - Commented out ResendInvitation mutation in InvitationMutations.cs
 - Renamed `ResendInvitationPayloadFactory.cs` to `ResendInvitationPayloadFactory.cs.TODO` to prevent compilation
@@ -119,9 +133,11 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 ## What Remains TODO 📋
 
 ### Task 2: AcceptInvitation Command (NOT STARTED)
+
 **Estimated Time:** 45 minutes
 
 **Files to Create:**
+
 - `AcceptInvitationCommand.cs`
 - `AcceptInvitationResult.cs`
 - `AcceptInvitationCommandHandler.cs`
@@ -131,6 +147,7 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 - Add mutation to `InvitationMutations.cs`
 
 **Key Requirements:**
+
 - NO `[Authorize]` attribute (public endpoint for accepting invitations)
 - Validate token with `invitationRepository.GetByTokenAsync()`
 - Validate user email matches invitation email
@@ -142,10 +159,12 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 ---
 
 ### Task 3: BatchInviteFamilyMembers Command (NOT STARTED)
+
 **Estimated Time:** 90 minutes
 **Complexity:** HIGH
 
 **Files to Create:**
+
 - `BatchInviteFamilyMembersCommand.cs`
 - `BatchInviteFamilyMembersResult.cs`
 - `BatchInviteFamilyMembersCommandHandler.cs`
@@ -155,6 +174,7 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 - Add mutation to `InvitationMutations.cs`
 
 **Critical Pattern:** TWO-PHASE VALIDATION
+
 ```csharp
 // PHASE 1: VALIDATE ALL (no database changes)
 var errors = new List<UserError>();
@@ -193,6 +213,7 @@ catch (Exception)
 ```
 
 **Dependencies:**
+
 - `IZitadelManagementClient` - for creating managed accounts
 - `IPasswordGenerationService` - for generating secure passwords
 - `IFamilyMemberInvitationRepository`
@@ -202,14 +223,17 @@ catch (Exception)
 ---
 
 ### Task 4: GraphQL Queries (NOT STARTED)
+
 **Estimated Time:** 60 minutes
 
 **File to Create:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/Queries/InvitationQueries.cs`
 
 **4 Queries Required:**
 
 #### 1. FamilyMembers Query
+
 ```csharp
 [Authorize] // Any authenticated family member
 public async Task<List<FamilyMemberType>> FamilyMembers(
@@ -232,6 +256,7 @@ public async Task<List<FamilyMemberType>> FamilyMembers(
 ```
 
 #### 2. PendingInvitations Query
+
 ```csharp
 [Authorize(Policy = "RequireOwnerOrAdmin")]
 public async Task<List<PendingInvitationType>> PendingInvitations(
@@ -247,6 +272,7 @@ public async Task<List<PendingInvitationType>> PendingInvitations(
 ```
 
 #### 3. Invitation Query
+
 ```csharp
 [Authorize(Policy = "RequireOwnerOrAdmin")]
 public async Task<PendingInvitationType?> Invitation(
@@ -264,6 +290,7 @@ public async Task<PendingInvitationType?> Invitation(
 ```
 
 #### 4. InvitationByToken Query (PUBLIC)
+
 ```csharp
 // NO [Authorize] - public for invitation acceptance flow
 public async Task<PendingInvitationType?> InvitationByToken(
@@ -295,12 +322,15 @@ public async Task<PendingInvitationType?> InvitationByToken(
 ---
 
 ### Task 7: DI Registration (NOT STARTED)
+
 **Estimated Time:** 15 minutes
 
 **File to Modify:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/AuthModuleServiceRegistration.cs`
 
 **Check and Add if Missing:**
+
 ```csharp
 // Repository
 services.AddScoped<IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
@@ -328,15 +358,18 @@ services.AddAuthorization(options =>
 ---
 
 ### Unit Tests (NOT STARTED)
+
 **Estimated Time:** 2-3 hours
 
 **Files to Create:**
+
 - `UpdateInvitationRoleCommandHandlerTests.cs`
 - `AcceptInvitationCommandHandlerTests.cs`
 - `BatchInviteFamilyMembersCommandHandlerTests.cs`
 - `InvitationQueriesTests.cs`
 
 **Test Pattern Example:**
+
 ```csharp
 [Theory, AutoNSubstituteData]
 public async Task Handle_ValidRequest_UpdatesInvitationRole(
@@ -381,7 +414,9 @@ public async Task Handle_ValidRequest_UpdatesInvitationRole(
 ## Known Issues & Notes
 
 ### 1. Pre-Existing Build Errors
+
 The project had pre-existing build errors unrelated to this implementation:
+
 - `OutboxEventPublisher.cs:72` - Missing `IUnitOfWork` using statement
 - `InvitationMutations.cs` - Mutations returning `Result<T>` instead of unwrapped result
 - `OutboxEventConfiguration.cs:95` - `OutboxEvent` missing `DomainEvents` property
@@ -389,21 +424,27 @@ The project had pre-existing build errors unrelated to this implementation:
 **These are NOT from this session's work and should be addressed separately.**
 
 ### 2. PendingInvitationType Field Discrepancy
+
 Some factory files reference fields that don't exist in current `PendingInvitationType`:
+
 - `Username` field referenced in factories but not in type definition
 - `DisplayCode` field referenced in factories but not in type definition
 
 **Action Required:** Either:
+
 - Update `PendingInvitationType` to include these fields, OR
 - Fix all factories to use only existing fields
 
 ### 3. Result<T> Ambiguity
+
 Always use fully qualified `FamilyHub.SharedKernel.Domain.Result<T>` to avoid conflicts with `GreenDonut.Result<TValue>` from HotChocolate.
 
 ### 4. IMutationHandler Signature Issue
+
 The `IMutationHandler.Handle<TResult, TPayload>` expects unwrapped `TResult`, but handlers return `Result<TResult>`.
 
 **Possible solutions:**
+
 - Check if there's an overload that accepts `Result<T>`
 - Unwrap result in mutation before passing to handler
 - Update `IMutationHandler` interface (breaking change)
@@ -440,7 +481,8 @@ The `IMutationHandler.Handle<TResult, TPayload>` expects unwrapped `TResult`, bu
 
 ## Files Modified This Session
 
-### Created (8 files):
+### Created (8 files)
+
 1. `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/UpdateInvitationRole/UpdateInvitationRoleCommand.cs`
 2. `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/UpdateInvitationRole/UpdateInvitationRoleResult.cs`
 3. `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/UpdateInvitationRole/UpdateInvitationRoleCommandHandler.cs`
@@ -448,7 +490,8 @@ The `IMutationHandler.Handle<TResult, TPayload>` expects unwrapped `TResult`, bu
 5. `/home/andrekirst/git/github/andrekirst/family2/PHASE_2_IMPLEMENTATION_PROGRESS.md`
 6. `/home/andrekirst/git/github/andrekirst/family2/IMPLEMENTATION_SUMMARY.md` (this file)
 
-### Modified (7 files):
+### Modified (7 files)
+
 1. `/src/api/Modules/FamilyHub.Modules.Auth/Domain/User.cs` (added UpdateRole method)
 2. `/src/api/Modules/FamilyHub.Modules.Auth/Domain/FamilyMemberInvitation.cs` (added UpdateRole method)
 3. `/src/api/Modules/FamilyHub.Modules.Auth/Domain/Repositories/IUserRepository.cs` (added GetByFamilyIdAsync)
@@ -457,7 +500,8 @@ The `IMutationHandler.Handle<TResult, TPayload>` expects unwrapped `TResult`, bu
 6. `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/CancelInvitation/CancelInvitationCommand.cs` (added using)
 7. `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/UpdateInvitationRole/UpdateInvitationRoleCommand.cs` (added using)
 
-### Renamed (1 file):
+### Renamed (1 file)
+
 1. `ResendInvitationPayloadFactory.cs` → `ResendInvitationPayloadFactory.cs.TODO`
 
 ---

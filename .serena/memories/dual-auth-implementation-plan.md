@@ -5,6 +5,7 @@
 This plan addresses five interconnected requirements to make managed account creation more reliable and support dual authentication (username/email) with Zitadel OAuth.
 
 **Requirements:**
+
 1. Fix Service Account Authentication (401/403 errors)
 2. Handle Zitadel Internal Errors (500/503 with retry logic)
 3. Add Username Login Support (via Zitadel Actions)
@@ -21,6 +22,7 @@ This plan addresses five interconnected requirements to make managed account cre
 ### Problem Analysis
 
 Current ZitadelManagementClient issues:
+
 - **401/403 errors**: JWT assertion may have incorrect claims or signature
 - **Token caching race conditions**: Multiple threads might request new tokens simultaneously
 - **Clock skew handling**: 5-minute buffer may be insufficient for some deployments
@@ -33,6 +35,7 @@ Current ZitadelManagementClient issues:
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Security/ZitadelManagementClient.cs`
 
 **Changes:**
+
 ```csharp
 private string CreateJwtAssertion()
 {
@@ -97,6 +100,7 @@ public string OrganizationId { get; init; } = string.Empty;
 ```
 
 **appsettings.json example:**
+
 ```json
 {
   "Zitadel": {
@@ -113,6 +117,7 @@ public string OrganizationId { get; init; } = string.Empty;
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Security/ZitadelManagementClient.cs`
 
 **Changes:**
+
 ```csharp
 // ADD: SemaphoreSlim for thread-safe token refresh
 private static readonly SemaphoreSlim _tokenLock = new(1, 1);
@@ -207,6 +212,7 @@ private async Task<string?> GetAccessTokenAsync(CancellationToken cancellationTo
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Security/ZitadelManagementClient.cs`
 
 **Changes:**
+
 ```csharp
 private RsaSecurityKey LoadPrivateKey()
 {
@@ -288,6 +294,7 @@ private RsaSecurityKey LoadPrivateKey()
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/AuthModuleServiceRegistration.cs`
 
 **New Method:**
+
 ```csharp
 public static async Task ValidateZitadelConfigurationAsync(this IServiceProvider services)
 {
@@ -320,6 +327,7 @@ public static async Task ValidateZitadelConfigurationAsync(this IServiceProvider
 **File:** `/src/api/FamilyHub.Api/Program.cs`
 
 **Add after `var app = builder.Build();`:**
+
 ```csharp
 // Validate Zitadel configuration at startup (fail fast)
 if (!app.Environment.IsDevelopment())
@@ -333,6 +341,7 @@ if (!app.Environment.IsDevelopment())
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Security/ZitadelManagementClient.cs`
 
 **Add logger messages:**
+
 ```csharp
 [LoggerMessage(LogLevel.Debug, "Created JWT assertion: iss={issuer}, aud={audience}, exp={expiresAt}")]
 partial void LogJwtAssertionCreated(string issuer, string audience, DateTime expiresAt);
@@ -349,6 +358,7 @@ partial void LogPrivateKeyValidated(int keySize);
 **New Test File:** `/src/api/tests/FamilyHub.Tests.Unit/Auth/Infrastructure/Security/ZitadelManagementClientTests.cs`
 
 **Test Cases:**
+
 1. `CreateJwtAssertion_ShouldIncludeKidHeader_WhenKeyIdConfigured`
 2. `CreateJwtAssertion_ShouldIncludeJtiClaim_ToPreventReplayAttacks`
 3. `CreateJwtAssertion_ShouldIncludeClockSkewTolerance_InNotBefore`
@@ -364,6 +374,7 @@ partial void LogPrivateKeyValidated(int keySize);
 ### Problem Analysis
 
 Current implementation:
+
 - TODO comment in CreateManagedMemberCommandHandler (line 126)
 - Incomplete ManagedAccountRetryJob.cs.tmp
 - No in-memory retry queue implementation
@@ -376,6 +387,7 @@ Current implementation:
 **File:** `/src/api/Directory.Packages.props`
 
 **Add:**
+
 ```xml
 <PackageVersion Include="Polly" Version="8.5.0" />
 <PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" />
@@ -477,6 +489,7 @@ public static class ZitadelRetryPolicy
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Security/ZitadelManagementClient.cs`
 
 **Changes:**
+
 ```csharp
 public async Task<ZitadelUser> CreateHumanUserAsync(
     string username,
@@ -576,6 +589,7 @@ public async Task<ZitadelUser> CreateHumanUserAsync(
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/CreateManagedMember/CreateManagedMemberCommandHandler.cs`
 
 **Changes (around line 123-128):**
+
 ```csharp
 // 9. Create Zitadel user with automatic retry (3 attempts)
 string zitadelUserId;
@@ -627,6 +641,7 @@ catch (Exception ex)
 ```
 
 **Note:** Removed TODO for background job queue. Synchronous retry with Polly provides:
+
 - Immediate user feedback (no waiting for background job)
 - Simpler implementation (no queue, no persistence)
 - Acceptable for 3 fast retries (immediate, 2s, 4s = max 6s total)
@@ -637,6 +652,7 @@ catch (Exception ex)
 **New Test File:** `/src/api/tests/FamilyHub.Tests.Unit/Auth/Infrastructure/Resilience/ZitadelRetryPolicyTests.cs`
 
 **Test Cases:**
+
 1. `CreateHttpRetryPolicy_ShouldRetryImmediately_OnFirstFailure`
 2. `CreateHttpRetryPolicy_ShouldRetryAfter2Seconds_OnSecondFailure`
 3. `CreateHttpRetryPolicy_ShouldRetryAfter4Seconds_OnThirdFailure`
@@ -678,6 +694,7 @@ public async Task CreateManagedMember_ShouldRetryAndSucceed_WhenZitadelReturns50
 ### Problem Analysis
 
 Zitadel's default login only accepts email addresses. To support username login:
+
 - Must use Zitadel Actions API (JavaScript functions executed during auth flow)
 - Custom action validates input format (username vs email)
 - Maps username → synthetic email internally
@@ -833,6 +850,7 @@ read
 If Zitadel Actions API is unavailable or too complex, implement **Backend Proxy Pattern**:
 
 **New GraphQL Mutation:**
+
 ```graphql
 type Mutation {
   loginWithUsernameOrEmail(input: LoginWithUsernameOrEmailInput!): LoginWithUsernameOrEmailPayload!
@@ -850,6 +868,7 @@ type LoginWithUsernameOrEmailPayload {
 ```
 
 **Handler Logic:**
+
 1. Detect if input is email or username (regex)
 2. If username → query database for User with matching Username
 3. Extract synthetic email from User entity
@@ -865,6 +884,7 @@ type LoginWithUsernameOrEmailPayload {
 ### Problem Analysis
 
 During migration from username-only to email authentication:
+
 - Admin adds email to managed account
 - Both username and email should work for login
 - Admin manually revokes username method when ready
@@ -957,6 +977,7 @@ public partial class AddDualAuthenticationSupport : Migration
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Domain/User.cs`
 
 **Add Properties:**
+
 ```csharp
 /// <summary>
 /// Real email address for managed accounts (null if no email provided).
@@ -977,6 +998,7 @@ public bool UsernameLoginEnabled { get; private set; } = true;
 ```
 
 **Add Methods:**
+
 ```csharp
 /// <summary>
 /// Adds a real email to a managed account (migration path).
@@ -1077,6 +1099,7 @@ public sealed record AddRealEmailToManagedAccountResult
 ```
 
 **Handler:**
+
 ```csharp
 public sealed class AddRealEmailToManagedAccountCommandHandler(
     IUserRepository userRepository,
@@ -1152,6 +1175,7 @@ public sealed class AddRealEmailToManagedAccountCommandHandler(
 ```
 
 **GraphQL Mutation:**
+
 ```graphql
 type Mutation {
   addRealEmailToManagedAccount(input: AddRealEmailToManagedAccountInput!): AddRealEmailToManagedAccountPayload!
@@ -1287,6 +1311,7 @@ export class ManageDualAuthModalComponent {
 ### Testing
 
 **Unit Tests:**
+
 1. `AddRealEmail_ShouldSucceed_WhenUserIsManagedAccount`
 2. `AddRealEmail_ShouldFail_WhenEmailAlreadyInUse`
 3. `DisableUsernameLogin_ShouldSucceed_WhenRealEmailVerified`
@@ -1294,6 +1319,7 @@ export class ManageDualAuthModalComponent {
 5. `EnableUsernameLogin_ShouldSucceed_WhenPreviouslyDisabled`
 
 **Integration Test:**
+
 ```csharp
 [Fact]
 public async Task DualAuthentication_ShouldAllowBothMethods_UntilAdminDisables()
@@ -1332,11 +1358,13 @@ public async Task DualAuthentication_ShouldAllowBothMethods_UntilAdminDisables()
 ### Problem Analysis
 
 Current login flow:
+
 - Single "Sign in with Zitadel" button
 - Redirects to Zitadel's login UI
 - No input validation before redirect
 
 Required changes:
+
 - Auto-detect username vs email on frontend
 - Pass hint to backend for appropriate Zitadel flow
 - No user-visible tabs (seamless UX)
@@ -1348,6 +1376,7 @@ Required changes:
 **File:** `/src/frontend/family-hub-web/src/app/features/auth/components/login/login.component.ts`
 
 **Changes:**
+
 ```typescript
 @Component({
   selector: 'app-login',
@@ -1455,6 +1484,7 @@ export class LoginComponent {
 **File:** `/src/frontend/family-hub-web/src/app/core/services/auth.service.ts`
 
 **Add Method:**
+
 ```typescript
 async loginWithIdentifier(identifier: string, identifierType: 'email' | 'username'): Promise<void> {
   try {
@@ -1493,6 +1523,7 @@ async loginWithIdentifier(identifier: string, identifierType: 'email' | 'usernam
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Application/Queries/GetZitadelAuthUrl/GetZitadelAuthUrlQuery.cs`
 
 **Changes:**
+
 ```csharp
 public sealed record GetZitadelAuthUrlQuery(
     string? Identifier,      // NEW: Username or email
@@ -1501,6 +1532,7 @@ public sealed record GetZitadelAuthUrlQuery(
 ```
 
 **Handler:**
+
 ```csharp
 public async Task<GetZitadelAuthUrlResult> Handle(
     GetZitadelAuthUrlQuery request,
@@ -1616,22 +1648,26 @@ test.describe('Username/Email Login', () => {
 ### 6.1 Unit Tests
 
 **Service Account Authentication:**
+
 - JWT assertion generation with kid, jti, clock skew
 - Private key loading (PKCS#1, PKCS#8, validation)
 - Token caching with SemaphoreSlim (race conditions)
 - Configuration validation
 
 **Retry Logic:**
+
 - Polly policy retries (immediate, 2s, 4s)
 - Non-retriable errors (400, 401, 403, 404, 409)
 - CreateHumanUserAsync with retry wrapper
 
 **Dual Authentication:**
+
 - AddRealEmail (validation, uniqueness check)
 - DisableUsernameLogin (requires verified email)
 - EnableUsernameLogin (rollback)
 
 **Login UX:**
+
 - Email detection regex
 - Username detection regex
 - login_hint generation
@@ -1639,16 +1675,19 @@ test.describe('Username/Email Login', () => {
 ### 6.2 Integration Tests
 
 **ZitadelManagementClient:**
+
 - CreateHumanUserAsync with mock HTTP handler
 - Retry on 500/503, succeed on 3rd attempt
 - No retry on 409 (Conflict)
 
 **CreateManagedMemberCommandHandler:**
+
 - Success path with retry
 - Failure after 3 attempts (clear error message)
 - Conflict error (username taken)
 
 **Dual Authentication Flow:**
+
 - Add real email → verify → disable username login
 - Login with both methods before disabling
 - Login with email only after disabling
@@ -1656,10 +1695,12 @@ test.describe('Username/Email Login', () => {
 ### 6.3 E2E Tests (Playwright)
 
 **Username Login:**
+
 - Enter username → redirect to Zitadel with synthetic email login_hint
 - Enter email → redirect to Zitadel with email login_hint
 
 **Dual Authentication:**
+
 - Admin adds email to managed account
 - User logs in with username (success)
 - User logs in with email (success)
@@ -1670,11 +1711,13 @@ test.describe('Username/Email Login', () => {
 ### 6.4 Manual Testing
 
 **Zitadel Actions:**
+
 - Deploy action script to Zitadel
 - Test username login in Zitadel UI
 - Verify JWT claims are identical for username/email login
 
 **Service Account Validation:**
+
 - Startup validation (fail fast if misconfigured)
 - Monitor logs for JWT assertion details
 - Test with invalid private key (should fail gracefully)
@@ -1686,6 +1729,7 @@ test.describe('Username/Email Login', () => {
 ### 7.1 Deployment Sequence
 
 **Phase 1: Backend Changes (Week 1)**
+
 1. Deploy service account authentication fixes
 2. Deploy retry logic (Polly)
 3. Deploy dual authentication database migration
@@ -1694,6 +1738,7 @@ test.describe('Username/Email Login', () => {
 6. Monitor Seq logs for errors
 
 **Phase 2: Zitadel Actions (Week 2)**
+
 1. Test Zitadel action script locally
 2. Deploy action to Zitadel staging instance
 3. Manual testing (username/email login)
@@ -1701,12 +1746,14 @@ test.describe('Username/Email Login', () => {
 5. Monitor Zitadel logs for action failures
 
 **Phase 3: Frontend Changes (Week 3)**
+
 1. Deploy login component updates
 2. Deploy dual authentication admin UI
 3. E2E tests with Playwright
 4. User acceptance testing (UAT)
 
 **Phase 4: Production Launch (Week 4)**
+
 1. Blue-green deployment (backend + frontend)
 2. Smoke testing (login with username, login with email)
 3. Monitor error rates (Seq, Prometheus)
@@ -1715,18 +1762,21 @@ test.describe('Username/Email Login', () => {
 ### 7.2 Rollback Plan
 
 **If Zitadel Actions fail:**
+
 1. Disable action in Zitadel admin console
 2. Fall back to email-only login
 3. Investigate action logs
 4. Fix action script, redeploy
 
 **If service account auth fails:**
+
 1. Rollback to previous Docker image
 2. Check Zitadel service account permissions
 3. Validate private key format and path
 4. Re-deploy with fixed configuration
 
 **If dual authentication causes issues:**
+
 1. Rollback database migration (drop real_email columns)
 2. Disable admin UI for adding emails
 3. Notify users to continue using username-only login
@@ -1735,6 +1785,7 @@ test.describe('Username/Email Login', () => {
 ### 7.3 Monitoring & Alerting
 
 **Metrics to Monitor:**
+
 - Login success rate (username vs email)
 - Zitadel API error rate (401, 403, 500, 503)
 - Retry policy invocations (Polly)
@@ -1742,11 +1793,13 @@ test.describe('Username/Email Login', () => {
 - Dual authentication adoption rate
 
 **Alerting Thresholds:**
+
 - Login failure rate > 5% → Critical alert
 - Zitadel API error rate > 1% → Warning
 - Service account token refresh failures > 0 → Warning
 
 **Tools:**
+
 - Seq: Structured logging, query language
 - Prometheus: Metrics collection
 - Grafana: Dashboards, alerting
@@ -1761,6 +1814,7 @@ test.describe('Username/Email Login', () => {
 **New File:** `/docs/architecture/ADR-005-DUAL-AUTHENTICATION-ZITADEL.md`
 
 **Contents:**
+
 - Context: Managed account migration from username-only to email
 - Decision: Zitadel Actions API for username login, admin-controlled grace period
 - Alternatives: Backend proxy, automatic expiration, Zitadel custom UI
@@ -1772,6 +1826,7 @@ test.describe('Username/Email Login', () => {
 **New File:** `/docs/setup/ZITADEL-ACTIONS-SETUP.md`
 
 **Contents:**
+
 1. Prerequisites (Zitadel instance, service account, Management API access)
 2. Action script deployment (`deploy-zitadel-action.sh`)
 3. Testing username login (manual verification)
@@ -1783,6 +1838,7 @@ test.describe('Username/Email Login', () => {
 **New File:** `/docs/admin/MANAGING-DUAL-AUTHENTICATION.md`
 
 **Contents:**
+
 1. Overview of dual authentication
 2. Adding real email to managed account (GraphQL mutation, UI walkthrough)
 3. Disabling username login (when and why)
@@ -1794,6 +1850,7 @@ test.describe('Username/Email Login', () => {
 **New File:** `/docs/user/MIGRATING-TO-EMAIL-LOGIN.md`
 
 **Contents:**
+
 1. Why migrate to email login?
 2. How to request email addition (contact admin)
 3. Email verification process

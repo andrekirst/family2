@@ -117,6 +117,7 @@ Doctor Appointment Scheduled
 3. **Modern UX with privacy focus** - GDPR compliant without selling user data
 
 **Future Differentiator (Phase 7+):**
+
 - Self-hosting and federated architecture for ultimate data sovereignty
 
 ### Target Segments
@@ -186,6 +187,7 @@ Doctor Appointment Scheduled
 - **Target:** B2B (family therapists, eldercare organizations)
 
 **Future (Phase 7+):**
+
 - Self-hosted option (open source)
 - Federation between instances
 
@@ -273,6 +275,7 @@ Communication Service subscribes and sends notification
 - **CDN:** Cloudflare (static assets, DDoS protection)
 
 **Future (Phase 7+):**
+
 - Federation protocol (ActivityPub-inspired)
 - Self-hosted deployment options
 

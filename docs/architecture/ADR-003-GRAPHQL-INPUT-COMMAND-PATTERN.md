@@ -67,6 +67,7 @@ Vogen types require calling static `From(string)` factory methods to create inst
 **We will maintain separate GraphQL Input DTOs that map to MediatR Commands.**
 
 GraphQL mutations will:
+
 1. Accept Input DTOs with primitive types (string, int, etc.)
 2. Manually map Input → Command in the mutation method
 3. Use Vogen factory methods (`FamilyName.From()`) during mapping
@@ -241,6 +242,7 @@ builder.AddType<UserIdType>();
 ```
 
 **Rejected Because:**
+
 - Requires ~20-30 scalar type definitions (one per Vogen type)
 - Maintenance overhead: Every new Vogen type needs a scalar type
 - Still doesn't solve the core issue: Commands would contain Vogen types that GraphQL can't directly construct
@@ -251,6 +253,7 @@ builder.AddType<UserIdType>();
 **Approach:** Implement HotChocolate's `IInputFormatter` interface for Vogen deserialization.
 
 **Rejected Because:**
+
 - Low-level, complex API
 - Requires deep HotChocolate internals knowledge
 - Fragile (breaks with HotChocolate updates)
@@ -261,6 +264,7 @@ builder.AddType<UserIdType>();
 **Approach:** Abandon Vogen and use string/Guid everywhere.
 
 **Rejected Because:**
+
 - Loses type safety (can pass `UserId` where `FamilyId` expected)
 - Loses validation guarantees (invalid IDs can be constructed)
 - Loses self-documenting code (methods that take `Guid` vs. `UserId`)
@@ -271,6 +275,7 @@ builder.AddType<UserIdType>();
 **Approach:** Use Commands directly for mutations with primitives, Input → Command for mutations with Vogen types.
 
 **Rejected Because:**
+
 - Inconsistent pattern across codebase
 - Confusing for developers (when to use which approach?)
 - Still requires Input classes for most mutations (Family Hub uses Vogen extensively)
@@ -335,10 +340,12 @@ builder.AddType<UserIdType>();
 ### Current State
 
 **Pattern Applied To:**
+
 - `CreateFamilyInput` → `CreateFamilyCommand` (FamilyName value object)
 - `CompleteZitadelLoginInput` → `CompleteZitadelLoginCommand` (primitive types)
 
 **Files:**
+
 - Inputs: `/src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/Inputs/`
 - Commands: `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/`
 - Mutations: `/src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/Mutations/`
@@ -407,6 +414,7 @@ Renamed `FullName` value object to `PersonName` throughout the system for improv
 ### Mononym Support
 
 PersonName supports both single names and compound names (1-100 characters):
+
 - "Annika" (mononym)
 - "John Doe" (compound name)
 - "Marie-Claire Dubois" (hyphenated compound)

@@ -9,6 +9,7 @@ Supersedes: [ADR-005: Dual Authentication with Zitadel](archive/ADR-005-DUAL-AUT
 ## Context
 
 Family Hub authentication system was initially designed with dual authentication to support:
+
 1. **Email-based OAuth 2.0** for regular users (adults with email addresses)
 2. **Username-based authentication** for managed accounts (children, elderly family members without email)
 
@@ -169,6 +170,7 @@ enum UserRoleType {
 ### A. Keep Dual Authentication (ADR-005)
 
 **Rejected because:**
+
 - Implementation complexity outweighs benefits for MVP
 - No user validation that managed accounts are critical
 - Zitadel API limitations make it error-prone
@@ -176,6 +178,7 @@ enum UserRoleType {
 ### B. Use ASP.NET Identity with Local Password Storage
 
 **Rejected because:**
+
 - Contradicts "External OAuth Only" decision (ADR-002)
 - Increases security surface area (password storage, reset flows)
 - Loses benefits of external identity provider (Zitadel features, MFA, audit logs)
@@ -183,6 +186,7 @@ enum UserRoleType {
 ### C. Wait for User Research Before Deciding
 
 **Rejected because:**
+
 - Would delay MVP launch significantly
 - Can add managed accounts later if validated
 - Email-only is simpler default choice
@@ -220,6 +224,7 @@ DROP INDEX ix_users_real_email;
 ### GraphQL Schema Changes
 
 **Removed:**
+
 - `createManagedMember` mutation
 - `batchInviteFamilyMembers` mutation
 - `MANAGED_ACCOUNT` from UserRoleType enum
@@ -228,6 +233,7 @@ DROP INDEX ix_users_real_email;
 - `ManagedAccountResult` type
 
 **Kept:**
+
 - `inviteFamilyMemberByEmail` mutation (email-only)
 - `pendingInvitations` query (email-only)
 - `acceptInvitation` mutation

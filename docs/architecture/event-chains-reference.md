@@ -664,6 +664,7 @@ Event chains are automated workflows that span multiple bounded contexts (servic
 ```
 
 **Key Characteristics:**
+
 - **Complexity:** Medium
 - **Services Involved:** Auth Service, Communication Service, Zitadel (external)
 - **Average Duration:**
@@ -683,11 +684,13 @@ Event chains are automated workflows that span multiple bounded contexts (servic
 - New member added to family upon acceptance
 
 **Phase 1 Implementation:**
+
 - Email invitations stored but emails not sent (logged only)
 - Child accounts created immediately in Zitadel
 - In-app notifications for member additions
 
 **Phase 2+ Enhancements:**
+
 - Email delivery via Communication Service
 - SMS invitations as alternative
 - Invitation reminders (7 days before expiration)

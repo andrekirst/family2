@@ -11,6 +11,7 @@
 Successfully replaced custom authentication (email/password + JWT) with **Zitadel OAuth 2.0/OIDC integration**. The implementation is **production-ready** with 2 minor TODOs (HTTPS + rate limiting).
 
 **Key Achievements:**
+
 - ✅ **Phase 2:** OAuth 2.0 integration with PKCE, JWT validation, user sync
 - ✅ **Phase 3:** Integration tests (4/4 passing), security audit (80% compliance)
 - ✅ **Build Status:** 0 errors, 0 warnings
@@ -23,17 +24,20 @@ Successfully replaced custom authentication (email/password + JWT) with **Zitade
 ### Day 4-5: Configuration & Packages ✅
 
 **NuGet Packages Installed:**
+
 ```bash
 Microsoft.AspNetCore.Authentication.OpenIdConnect v8.0.11
 IdentityModel v7.0.0
 ```
 
 **Configuration Created:**
+
 - `ZitadelSettings.cs` - OAuth configuration model
 - `appsettings.Development.json` - Local Zitadel settings
 - Validation method `IsValid()` for required settings
 
 **Configuration Structure:**
+
 ```json
 {
   "Zitadel": {
@@ -52,12 +56,14 @@ IdentityModel v7.0.0
 ### Day 6: OAuth Commands ✅
 
 **GetZitadelAuthUrlQuery Created:**
+
 - **Purpose:** Generates OAuth authorization URL with PKCE parameters
 - **Output:** Authorization URL + code verifier for frontend
 - **Security:** S256 PKCE, state parameter, nonce parameter
 - **Handler:** `GetZitadelAuthUrlQueryHandler.cs`
 
 **CompleteZitadelLoginCommand Created:**
+
 - **Purpose:** Exchanges authorization code for tokens and syncs users
 - **Input:** Authorization code + code verifier (PKCE)
 - **Output:** Access token, user ID, email, expiration
@@ -65,6 +71,7 @@ IdentityModel v7.0.0
 - **Handler:** `CompleteZitadelLoginCommandHandler.cs`
 
 **User Sync Logic:**
+
 ```csharp
 private async Task<User> GetOrCreateUserAsync(...)
 {
@@ -82,6 +89,7 @@ private async Task<User> GetOrCreateUserAsync(...)
 ```
 
 **Repository Method Added:**
+
 - `IUserRepository.GetByExternalUserIdAsync()` - Lookup users by OAuth provider ID
 
 ---
@@ -89,22 +97,26 @@ private async Task<User> GetOrCreateUserAsync(...)
 ### Day 7: GraphQL Integration ✅
 
 **GraphQL Queries:**
+
 - `getZitadelAuthUrl` - Returns authorization URL and code verifier
 - **Input:** None
 - **Output:** `GetZitadelAuthUrlPayload { authorizationUrl, codeVerifier, state }`
 
 **GraphQL Mutations:**
+
 - `completeZitadelLogin` - Completes OAuth login flow
 - **Input:** `CompleteZitadelLoginInput { authorizationCode, codeVerifier }`
 - **Output:** `CompleteZitadelLoginPayload { authenticationResult?, errors? }`
 
 **Error Handling:**
+
 - `UserError` type for structured error responses
 - Validation errors (FluentValidation)
 - OAuth errors (token exchange failures)
 - Generic errors (unexpected exceptions)
 
 **Files Created:**
+
 ```
 /Presentation/GraphQL/Queries/AuthQueries.cs
 /Presentation/GraphQL/Mutations/AuthMutations.cs
@@ -115,6 +127,7 @@ private async Task<User> GetOrCreateUserAsync(...)
 ```
 
 **Program.cs Registration:**
+
 ```csharp
 .AddTypeExtension<AuthQueries>()
 .AddTypeExtension<AuthMutations>()
@@ -125,6 +138,7 @@ private async Task<User> GetOrCreateUserAsync(...)
 ### Day 8: JWT Validation ✅
 
 **JWT Bearer Authentication Configured:**
+
 ```csharp
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -152,6 +166,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 ```
 
 **CurrentUserService Updated:**
+
 ```csharp
 public UserId? GetUserId()
 {
@@ -173,6 +188,7 @@ public UserId? GetUserId()
 ```
 
 **Security Features:**
+
 - RS256 JWT signature validation
 - Automatic JWKS discovery and rotation
 - Audience validation (`family-hub-api`)
@@ -187,6 +203,7 @@ public UserId? GetUserId()
 ### Day 9: Integration Tests ✅
 
 **Test Framework Setup:**
+
 ```bash
 dotnet add package Moq --version 4.20.70
 dotnet add package Microsoft.AspNetCore.Mvc.Testing --version 8.0.11
@@ -194,6 +211,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ```
 
 **Integration Tests Created:**
+
 1. **`CompleteZitadelLogin_NewUser_CreatesUserViaCreateFromOAuth`**
    - ✅ Verifies new user creation via OAuth
    - ✅ Tests token exchange and user sync
@@ -217,6 +235,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 **Test Results:** ✅ **4/4 PASSING** (0 failures)
 
 **Test Coverage:**
+
 - OAuth authorization code flow
 - PKCE validation
 - User creation and sync
@@ -247,6 +266,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 **Security Rating:** 🟢 **STRONG**
 
 **Penetration Tests:**
+
 - ✅ Invalid authorization code rejection
 - ⚠️ Expired JWT (manual test required)
 - ⚠️ Tampered signature (manual test required)
@@ -261,6 +281,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ### Created (22 files)
 
 **Application Layer:**
+
 ```
 /Application/Queries/GetZitadelAuthUrl/GetZitadelAuthUrlQuery.cs
 /Application/Queries/GetZitadelAuthUrl/GetZitadelAuthUrlResult.cs
@@ -272,11 +293,13 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ```
 
 **Infrastructure Layer:**
+
 ```
 /Infrastructure/Configuration/ZitadelSettings.cs
 ```
 
 **Presentation Layer:**
+
 ```
 /Presentation/GraphQL/Queries/AuthQueries.cs
 /Presentation/GraphQL/Mutations/AuthMutations.cs
@@ -288,12 +311,14 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ```
 
 **Tests:**
+
 ```
 /tests/FamilyHub.Tests.Integration/Auth/ZitadelOAuthFlowTests.cs
 /tests/FamilyHub.Tests.Integration/Auth/OAUTH_SECURITY_AUDIT.md
 ```
 
 **Documentation:**
+
 ```
 /docs/ZITADEL-OAUTH-COMPLETION-SUMMARY.md (this file)
 ```
@@ -314,6 +339,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ## Build & Test Status
 
 **Build:**
+
 ```
 ✅ 0 errors
 ✅ 0 warnings
@@ -321,6 +347,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ```
 
 **Tests:**
+
 ```
 ✅ 4/4 integration tests passing
 ✅ 0 failures
@@ -328,6 +355,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ```
 
 **Database:**
+
 - ✅ Using existing PostgreSQL instance
 - ✅ No schema changes required
 - ✅ OAuth users persist correctly
@@ -339,6 +367,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ### High Priority (Before Production Launch)
 
 **1. Enable HTTPS in Production** 🔴 **CRITICAL**
+
 ```bash
 # Action items:
 - [ ] Install SSL/TLS certificate (Let's Encrypt)
@@ -348,6 +377,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ```
 
 **2. Implement Rate Limiting** 🟡 **HIGH**
+
 ```bash
 # Action items:
 - [ ] Install AspNetCoreRateLimit package
@@ -359,6 +389,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ### Medium Priority (Post-MVP)
 
 **3. Manual Penetration Tests**
+
 ```bash
 # Action items:
 - [ ] Test expired JWT rejection
@@ -368,6 +399,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ```
 
 **4. Security Monitoring**
+
 ```bash
 # Action items:
 - [ ] Failed authentication logging
@@ -401,6 +433,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ### Configuration
 
 - [ ] **appsettings.Production.json**
+
   ```json
   {
     "Zitadel": {
@@ -440,6 +473,7 @@ dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.11
 ### 1. Get Zitadel Authorization URL
 
 **Request:**
+
 ```graphql
 query GetZitadelAuthUrl {
   getZitadelAuthUrl {
@@ -451,6 +485,7 @@ query GetZitadelAuthUrl {
 ```
 
 **Response:**
+
 ```json
 {
   "data": {
@@ -464,6 +499,7 @@ query GetZitadelAuthUrl {
 ```
 
 **Frontend Flow:**
+
 1. Call `getZitadelAuthUrl` query
 2. Store `codeVerifier` and `state` in session storage
 3. Redirect user to `authorizationUrl`
@@ -477,6 +513,7 @@ query GetZitadelAuthUrl {
 ### 2. Complete Zitadel Login
 
 **Request:**
+
 ```graphql
 mutation CompleteZitadelLogin($input: CompleteZitadelLoginInput!) {
   completeZitadelLogin(input: $input) {
@@ -501,6 +538,7 @@ mutation CompleteZitadelLogin($input: CompleteZitadelLoginInput!) {
 ```
 
 **Variables:**
+
 ```json
 {
   "input": {
@@ -511,6 +549,7 @@ mutation CompleteZitadelLogin($input: CompleteZitadelLoginInput!) {
 ```
 
 **Success Response:**
+
 ```json
 {
   "data": {
@@ -533,6 +572,7 @@ mutation CompleteZitadelLogin($input: CompleteZitadelLoginInput!) {
 ```
 
 **Error Response:**
+
 ```json
 {
   "data": {
@@ -557,12 +597,14 @@ mutation CompleteZitadelLogin($input: CompleteZitadelLoginInput!) {
 ### Authentication Flow (Before → After)
 
 **Before (Custom Auth):**
+
 ```
 User → GraphQL → RegisterUser → BCrypt → DB (password_hash)
 User → GraphQL → Login → JWT generation (HS256) → Custom refresh tokens
 ```
 
 **After (Zitadel OAuth):**
+
 ```
 User → Angular → Zitadel UI → Authorization code → Backend exchanges code
 Backend → Validates Zitadel JWT (RS256, JWKS) → User.CreateFromOAuth() → DB (no password_hash)
@@ -587,16 +629,19 @@ API calls → JWT Bearer middleware → JWKS validation → CurrentUserService e
 ## Performance Metrics
 
 ### Startup Time
+
 - ✅ API starts in ~2 seconds (same as before)
 - ✅ JWKS discovery happens asynchronously
 
 ### OAuth Flow Latency
+
 - Authorization URL generation: <50ms
 - Token exchange: ~200ms (network call to Zitadel)
 - User sync: ~100ms (database lookup/insert)
 - **Total OAuth login:** ~350ms
 
 ### JWT Validation Overhead
+
 - First request: ~100ms (JWKS discovery + cache)
 - Subsequent requests: <10ms (cached JWKS)
 - Negligible impact on API performance
@@ -625,17 +670,17 @@ API calls → JWT Bearer middleware → JWKS validation → CurrentUserService e
 
 ### Future (Post-MVP)
 
-4. **Token Refresh Flow**
+1. **Token Refresh Flow**
    - Implement refresh token rotation
    - Sliding session expiration
    - Automatic token renewal
 
-5. **2FA Enforcement**
+2. **2FA Enforcement**
    - Enable TOTP for admin accounts
    - Optional WebAuthn for users
    - Recovery code generation
 
-6. **Single Sign-On (SSO)**
+3. **Single Sign-On (SSO)**
    - Google OAuth (via Zitadel)
    - Microsoft OAuth (via Zitadel)
    - Apple Sign-In (via Zitadel)
@@ -687,6 +732,7 @@ export class ZitadelAuthService {
 ```
 
 **Auth Callback Route:**
+
 ```typescript
 // /auth/callback
 @Component({ ... })
@@ -713,6 +759,7 @@ export class AuthCallbackComponent implements OnInit {
 ✅ **Phases 2-3 COMPLETE:** Zitadel OAuth 2.0 integration is production-ready with minor TODOs (HTTPS + rate limiting).
 
 **Key Successes:**
+
 - Secure OAuth 2.0 implementation (PKCE, JWT validation, state/nonce)
 - 100% test coverage (4/4 integration tests passing)
 - 80% OWASP OAuth 2.0 compliance (8/10 controls)
@@ -720,12 +767,14 @@ export class AuthCallbackComponent implements OnInit {
 - Comprehensive documentation
 
 **Production Readiness:**
+
 - ⚠️ **CONDITIONAL:** Complete HTTPS + rate limiting before launch
 - ✅ **Security:** Strong OAuth implementation
 - ✅ **Testing:** Verified OAuth flow end-to-end
 - ✅ **Documentation:** Complete setup and audit docs
 
 **Timeline Achievement:**
+
 - ✅ **Completed Days 4-10:** 7 days (on schedule)
 - ✅ **Original estimate:** 7 days
 - ✅ **Actual duration:** 7 days
@@ -742,6 +791,7 @@ export class AuthCallbackComponent implements OnInit {
 ### Before Cleanup
 
 **4 migrations existed:**
+
 1. `20251222060636_InitialCreate.cs` - Created users table WITH password_hash
 2. `20251222073643_AddRefreshTokens.cs` - Created refresh_tokens table
 3. `20251222084026_AddEmailVerificationToken.cs` - Created email_verification_tokens table
@@ -752,9 +802,11 @@ export class AuthCallbackComponent implements OnInit {
 ### After Cleanup
 
 **1 clean migration:**
+
 - `20251222113625_InitialCreate.cs` - **OAuth-only schema from the start**
 
 **Schema highlights:**
+
 - ✅ NO password_hash column in users table
 - ✅ external_user_id VARCHAR(255) NOT NULL
 - ✅ external_provider VARCHAR(50) NOT NULL
@@ -766,6 +818,7 @@ export class AuthCallbackComponent implements OnInit {
 Since the database could be reset (early development), we squashed all 4 migrations into a single clean InitialCreate migration that shows OAuth-only design from the start.
 
 **Benefits:**
+
 - ✅ Clean migration history for future developers
 - ✅ No evidence of abandoned custom auth system
 - ✅ Easier to understand authentication architecture
@@ -775,22 +828,26 @@ Since the database could be reset (early development), we squashed all 4 migrati
 ### Impact
 
 **Local Development:**
+
 - Database reset: Completed successfully
 - Migration files: Old migrations backed up to `migration_backup/`
 - Build: 0 errors, 0 warnings
 - Tests: All passing (6/6 tests)
 
 **Production:**
+
 - No impact (not yet deployed)
 
 ### Files Changed
 
 **Deleted (9 files):**
+
 - 4 migration .cs files
 - 4 migration .Designer.cs files
 - 1 AuthDbContextModelSnapshot.cs
 
 **Created (3 files):**
+
 - `20251222113625_InitialCreate.cs` (clean OAuth-only migration)
 - `20251222113625_InitialCreate.Designer.cs`
 - `AuthDbContextModelSnapshot.cs` (regenerated)
@@ -799,10 +856,12 @@ Since the database could be reset (early development), we squashed all 4 migrati
 
 **Build Status:** ✅ Succeeded (0 errors, 0 warnings)
 **Test Results:** ✅ All passed (6/6 tests)
+
 - Unit tests: 1/1 passed
 - Integration tests: 5/5 passed (including OAuth flow tests)
 
 **Migration Content Verified:**
+
 - ✅ NO password_hash column
 - ✅ external_user_id and external_provider are NOT NULL
 - ✅ Unique index on (external_provider, external_user_id)

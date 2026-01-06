@@ -11,11 +11,13 @@
 Cookies are small text files that websites and apps place on your device (computer, phone, tablet) when you visit them. They help websites remember your preferences, keep you logged in, and provide a better user experience.
 
 **Types of data stored:**
+
 - Session identifiers (keep you logged in)
 - Preferences (dark mode, language, timezone)
 - Analytics data (pages visited, features used)
 
 **Cookies are NOT:**
+
 - ❌ Viruses or malware
 - ❌ Programs that run on your device
 - ❌ Able to access other files on your device
@@ -31,6 +33,7 @@ We use cookies to provide, improve, and secure our Service. Here's a breakdown o
 **Purpose:** These cookies are necessary for the Service to work. You cannot disable them.
 
 **What they do:**
+
 - **Authentication**: Keep you logged in to your account
 - **Session management**: Maintain your active session
 - **Security**: Prevent CSRF (Cross-Site Request Forgery) attacks
@@ -53,6 +56,7 @@ We use cookies to provide, improve, and secure our Service. Here's a breakdown o
 **Purpose:** These cookies help us understand how you use the Service so we can improve it.
 
 **What they do:**
+
 - **Analytics**: Track page views, feature usage, user flows
 - **Error monitoring**: Detect bugs and crashes
 - **Performance monitoring**: Measure page load times
@@ -65,12 +69,14 @@ We use cookies to provide, improve, and secure our Service. Here's a breakdown o
 | `plausible_ignore` | Opt-out of Plausible Analytics | Persistent | plausible.io |
 
 **Third-Party Service:**
+
 - **Plausible Analytics**: Privacy-friendly analytics (GDPR compliant, no personal data)
 - **Privacy Policy**: https://plausible.io/privacy
 
 **Can you disable them?** Yes. Go to Settings → Privacy → Cookie Preferences → Performance Cookies: Off.
 
 **What happens if disabled?**
+
 - We won't track which pages you visit
 - We'll still fix bugs reported by other users
 - Service functionality is not affected
@@ -82,6 +88,7 @@ We use cookies to provide, improve, and secure our Service. Here's a breakdown o
 **Purpose:** These cookies remember your preferences so you don't have to set them every time.
 
 **What they do:**
+
 - **Theme**: Remember dark mode vs. light mode
 - **Language**: Remember your language preference (English, Spanish, etc.)
 - **Timezone**: Display events in your local timezone
@@ -98,6 +105,7 @@ We use cookies to provide, improve, and secure our Service. Here's a breakdown o
 **Can you disable them?** Yes. Go to Settings → Privacy → Cookie Preferences → Preference Cookies: Off.
 
 **What happens if disabled?**
+
 - You'll see default theme (light mode) every time
 - Events display in UTC instead of your timezone
 - You'll need to set language preference each session
@@ -109,6 +117,7 @@ We use cookies to provide, improve, and secure our Service. Here's a breakdown o
 **Family Hub does NOT use marketing or advertising cookies.**
 
 **We do NOT:**
+
 - ❌ Track you across other websites
 - ❌ Build advertising profiles
 - ❌ Share data with advertising networks
@@ -127,6 +136,7 @@ We use a few third-party services that set their own cookies:
 **Purpose:** OAuth 2.0 authentication (login)
 
 **Cookies set:**
+
 - `zitadel_session`: OAuth session identifier
 - `zitadel_csrf`: CSRF protection
 
@@ -145,6 +155,7 @@ We use a few third-party services that set their own cookies:
 **Purpose:** Credit card processing for Premium/Family subscriptions
 
 **Cookies set:**
+
 - `__stripe_mid`: Merchant identifier (fraud detection)
 - `__stripe_sid`: Session identifier
 
@@ -200,29 +211,35 @@ We use a few third-party services that set their own cookies:
 **You can block or delete cookies in your browser:**
 
 **Google Chrome:**
+
 1. Settings → Privacy and security → Cookies and other site data
 2. Choose "Block all cookies" or "Block third-party cookies"
 3. To delete: "See all cookies and site data" → Remove familyhub.app
 
 **Firefox:**
+
 1. Settings → Privacy & Security → Cookies and Site Data
 2. Choose "Block cookies" or select exceptions
 3. To delete: "Manage Data" → Remove familyhub.app
 
 **Safari:**
+
 1. Preferences → Privacy → Manage Website Data
 2. Search for familyhub.app → Remove
 3. Or enable "Block all cookies"
 
 **Edge:**
+
 1. Settings → Cookies and site permissions → Manage and delete cookies
 2. Choose "Block all cookies" or exceptions
 3. To delete: "See all cookies and site data" → Remove familyhub.app
 
 **Mobile (iOS Safari):**
+
 1. Settings → Safari → Block All Cookies
 
 **Mobile (Android Chrome):**
+
 1. Settings → Site settings → Cookies
 2. Choose "Block third-party cookies" or "Block all cookies"
 
@@ -235,6 +252,7 @@ We use a few third-party services that set their own cookies:
 **We respect your browser's Do Not Track (DNT) setting.**
 
 **If DNT is enabled:**
+
 - Performance cookies are automatically disabled
 - Essential cookies remain active (required for functionality)
 - Preference cookies respect your choice
@@ -242,12 +260,15 @@ We use a few third-party services that set their own cookies:
 **How to enable DNT:**
 
 **Chrome:**
+
 - Settings → Privacy and security → Send a "Do Not Track" request
 
 **Firefox:**
+
 - Settings → Privacy & Security → Send websites a "Do Not Track" signal
 
 **Safari:**
+
 - Preferences → Privacy → Website tracking: "Prevent cross-site tracking"
 
 ---
@@ -272,20 +293,24 @@ Learn more: Cookie Policy
 **Your choices:**
 
 **Accept All Cookies:**
+
 - Essential, performance, and preference cookies enabled
 - Recommended for best experience
 
 **Customize:**
+
 - Choose which cookie categories to enable
 - Opens detailed cookie preferences
 
 **Essential Only:**
+
 - Only essential cookies enabled
 - Performance and preference cookies disabled
 
 ### Managing Consent Later
 
 **Change your mind?**
+
 - Go to Settings → Privacy → Cookie Preferences
 - Update your choices anytime
 
@@ -296,15 +321,18 @@ Learn more: Cookie Policy
 **Special protections for children:**
 
 **We do NOT:**
+
 - ❌ Use tracking cookies for children under 13
 - ❌ Use analytics cookies for child accounts
 - ❌ Profile children for any purpose
 
 **Child accounts only use:**
+
 - ✅ Essential cookies (authentication, security)
 - ❌ No performance or preference cookies
 
 **Parental Control:**
+
 - Parents can view cookie settings for child accounts
 - Parents cannot enable tracking cookies for children (COPPA compliance)
 
@@ -323,6 +351,7 @@ Learn more: Cookie Policy
 - ✅ No cookie walls (you can use the Service with essential cookies only)
 
 **ePrivacy Directive compliance:**
+
 - Consent obtained before cookies are set (except essential)
 - Consent is freely given, specific, informed, and unambiguous
 
@@ -331,6 +360,7 @@ Learn more: Cookie Policy
 **We do NOT sell personal information.**
 
 **Cookies we use:**
+
 - Do NOT track you across websites
 - Do NOT build advertising profiles
 - Do NOT share data with third-party advertisers
@@ -355,11 +385,13 @@ Learn more: Cookie Policy
 ## Updates to This Policy
 
 **We may update this Cookie Policy to:**
+
 - Add new cookies (for new features)
 - Remove cookies (if we stop using a service)
 - Improve clarity
 
 **When we update:**
+
 1. **Notice**: We'll update the "Last Updated" date at the top
 2. **Notification**: Material changes will trigger an email notification
 3. **Re-consent**: For significant changes, we may ask for your consent again
@@ -377,6 +409,7 @@ Learn more: Cookie Policy
 - **Response Time:** Within 2 business days
 
 **Data Protection Officer (EU/UK):**
+
 - **Email:** dpo@familyhub.app
 
 **Postal Address:**
@@ -390,11 +423,13 @@ United States of America
 ## Additional Resources
 
 **Learn more about cookies:**
+
 - **All About Cookies:** https://www.allaboutcookies.org
 - **EU Cookie Law:** https://gdpr.eu/cookies
 - **FTC Consumer Information:** https://www.ftc.gov/site-information/privacy-policy/internet-cookies
 
 **Browser cookie guides:**
+
 - **Chrome:** https://support.google.com/chrome/answer/95647
 - **Firefox:** https://support.mozilla.org/en-US/kb/clear-cookies-and-site-data-firefox
 - **Safari:** https://support.apple.com/guide/safari/manage-cookies-sfri11471
@@ -431,6 +466,7 @@ United States of America
 ---
 
 **Version History:**
+
 - v1.0 (December 20, 2025): Initial Cookie Policy
 
 **Last Updated**: December 20, 2025

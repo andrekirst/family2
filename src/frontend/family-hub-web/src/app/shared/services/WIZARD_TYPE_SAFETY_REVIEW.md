@@ -128,6 +128,7 @@ public getStepData<T>(stepId: string): T | undefined {
 #### 1. Type Assertion in `getStepData<T>`
 
 **Current Approach:**
+
 ```typescript
 public getStepData<T>(stepId: string): T | undefined {
   return this._stepData().get(stepId) as T | undefined;
@@ -135,12 +136,14 @@ public getStepData<T>(stepId: string): T | undefined {
 ```
 
 **Why This Is Acceptable:**
+
 - Generic storage requires type assertion at retrieval
 - Alternative (runtime validation) adds complexity
 - JSDoc clearly documents caller responsibility
 - TypeScript's type system cannot enforce runtime type matching for generic storage
 
 **Safer Alternative (Optional):**
+
 ```typescript
 export type TypeGuard<T> = (value: unknown) => value is T;
 
@@ -172,16 +175,19 @@ const data = wizardService.getStepDataSafe('step1', isStep1Data);
 #### 2. Validation Return Type: `null` vs `undefined`
 
 **Current Convention:**
+
 - `null` = validation passed successfully (intentional "valid" state)
 - `string[]` = validation failed with errors
 - `undefined` = step data doesn't exist (via `getStepData`)
 
 **Why This Is Acceptable:**
+
 - Semantic clarity: `null` explicitly means "validated and valid"
 - Differentiates "no errors" from "not validated"
 - Consistent with common validation pattern conventions
 
 **Alternative (TypeScript Convention):**
+
 ```typescript
 // Use undefined for consistency
 validateOnNext?: (stepData: ReadonlyMap<string, unknown>) => string[] | undefined;
@@ -427,7 +433,7 @@ The existing test suite (`wizard.service.spec.ts`) provides excellent coverage:
 
 The WizardService implementation demonstrates **strong TypeScript practices** with excellent strict mode compliance and proper use of modern Angular Signal patterns. The applied improvements enhance type safety around validation functions and immutability.
 
-### Final Recommendations:
+### Final Recommendations
 
 1. ✅ **Keep current implementation** - Type safety is solid
 2. ✅ **Applied improvements** - ReadonlyMap, readonly properties, explicit types

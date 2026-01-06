@@ -332,6 +332,12 @@ docs/.jekyll-cache/
 # Custom Family Hub Specific
 ###############################################################################
 
+# Claude Code settings
+# .claude/settings.json - Project-wide hooks (DO commit for team consistency)
+# .claude/settings.local.json - User-local overrides (DO NOT commit - personal settings)
+.claude/settings.local.json
+.claude/cache/
+
 # Claude Code plans (keep in Git for collaboration)
 # .claude/plans/
 

@@ -7,9 +7,10 @@
 
 ## Task 1: UpdateInvitationRole Command (30 minutes)
 
-### Files to Create:
+### Files to Create
 
 **1.1 Command:**
+
 ```csharp
 // Location: /src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/UpdateInvitationRole/UpdateInvitationRoleCommand.cs
 
@@ -26,6 +27,7 @@ public record UpdateInvitationRoleCommand(
 ```
 
 **1.2 Result:**
+
 ```csharp
 // UpdateInvitationRoleResult.cs
 
@@ -37,6 +39,7 @@ public record UpdateInvitationRoleResult
 ```
 
 **1.3 Handler:**
+
 ```csharp
 // UpdateInvitationRoleCommandHandler.cs
 
@@ -91,6 +94,7 @@ public sealed partial class UpdateInvitationRoleCommandHandler(
 ```
 
 **1.4 Add UpdateRole method to FamilyMemberInvitation:**
+
 ```csharp
 // Location: /src/api/Modules/FamilyHub.Modules.Auth/Domain/FamilyMemberInvitation.cs
 
@@ -109,6 +113,7 @@ public void UpdateRole(UserRole newRole)
 ```
 
 **1.5 Payload Factory:**
+
 ```csharp
 // Location: /src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/Factories/UpdateInvitationRolePayloadFactory.cs
 
@@ -134,6 +139,7 @@ public class UpdateInvitationRolePayloadFactory
 ```
 
 **1.6 Add to InvitationMutations:**
+
 ```csharp
 [Authorize(Policy = "RequireOwnerOrAdmin")]
 public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
@@ -157,9 +163,10 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 
 ## Task 2: AcceptInvitation Command (45 minutes)
 
-### Files to Create:
+### Files to Create
 
 **2.1 Command:**
+
 ```csharp
 // AcceptInvitationCommand.cs
 
@@ -169,6 +176,7 @@ public record AcceptInvitationCommand(
 ```
 
 **2.2 Handler Logic:**
+
 ```csharp
 public async Task<Result<AcceptInvitationResult>> Handle(...)
 {
@@ -214,6 +222,7 @@ public async Task<Result<AcceptInvitationResult>> Handle(...)
 ```
 
 **2.3 Add UpdateRole to User:**
+
 ```csharp
 // /src/api/Modules/FamilyHub.Modules.Auth/Domain/User.cs
 
@@ -230,7 +239,8 @@ public void UpdateRole(UserRole newRole)
 
 **COMPLEX:** Implements two-phase validation pattern.
 
-### Handler Structure:
+### Handler Structure
+
 ```csharp
 public async Task<Result<BatchInvitationResult>> Handle(...)
 {
@@ -306,7 +316,7 @@ public async Task<Result<BatchInvitationResult>> Handle(...)
 
 ## Task 4: GraphQL Queries (60 minutes)
 
-### Create InvitationQueries.cs:
+### Create InvitationQueries.cs
 
 ```csharp
 // Location: /src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/Queries/InvitationQueries.cs
@@ -430,7 +440,7 @@ public sealed class InvitationQueries
 
 ## Task 5: Dependency Injection Registration (15 minutes)
 
-### Update AuthModuleServiceRegistration.cs:
+### Update AuthModuleServiceRegistration.cs
 
 ```csharp
 // Location: /src/api/Modules/FamilyHub.Modules.Auth/AuthModuleServiceRegistration.cs
@@ -471,7 +481,8 @@ public static class AuthModuleServiceRegistration
 
 ## Task 6: Add Missing Domain Methods
 
-### User.cs:
+### User.cs
+
 ```csharp
 public void UpdateRole(UserRole newRole)
 {
@@ -479,7 +490,8 @@ public void UpdateRole(UserRole newRole)
 }
 ```
 
-### FamilyMemberInvitation.cs:
+### FamilyMemberInvitation.cs
+
 ```csharp
 public void UpdateRole(UserRole newRole)
 {
@@ -493,12 +505,14 @@ public void UpdateRole(UserRole newRole)
 }
 ```
 
-### IUserRepository.cs:
+### IUserRepository.cs
+
 ```csharp
 Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
 ```
 
-### UserRepository.cs:
+### UserRepository.cs
+
 ```csharp
 public async Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
 {
@@ -526,6 +540,7 @@ public async Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, Cancellation
 ## Testing Checklist
 
 After implementation:
+
 - [ ] All 7 command handlers have unit tests
 - [ ] All 7 mutations return correct payloads
 - [ ] All 4 queries return correct data

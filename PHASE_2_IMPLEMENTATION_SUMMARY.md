@@ -12,6 +12,7 @@
 ### ✅ Completed Components
 
 #### 1. Repository Layer
+
 - **`IFamilyMemberInvitationRepository`** - Interface with 9 methods for invitation management
   - Location: `/src/api/Modules/FamilyHub.Modules.Auth/Domain/Repositories/IFamilyMemberInvitationRepository.cs`
   - Methods: GetByIdAsync, GetByTokenAsync, GetPendingByFamilyIdAsync, GetPendingByEmailAsync, GetPendingByUsernameAsync, GetByFamilyIdAsync, AddAsync, UpdateAsync, IsUserMemberOfFamilyAsync
@@ -24,6 +25,7 @@
 #### 2. Command Handlers (4/7 Implemented)
 
 **✅ InviteFamilyMemberByEmailCommandHandler**
+
 - Location: `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/InviteFamilyMemberByEmail/`
 - Features:
   - Validates family exists
@@ -35,6 +37,7 @@
 - Business Rules Enforced: 9 validation checks
 
 **✅ CreateManagedMemberCommandHandler**
+
 - Location: `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/CreateManagedMember/`
 - Features:
   - Validates password configuration (length 12-32)
@@ -49,6 +52,7 @@
 - **TODO:** Implement background job queueing for Zitadel API failures
 
 **✅ CancelInvitationCommandHandler**
+
 - Location: `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/CancelInvitation/`
 - Features:
   - Validates invitation exists
@@ -58,6 +62,7 @@
   - Returns Result (success/failure)
 
 **✅ ResendInvitationCommandHandler**
+
 - Location: `/src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/ResendInvitation/`
 - Features:
   - Validates invitation exists
@@ -70,12 +75,14 @@
 #### 3. Domain Model Updates
 
 **✅ User Entity - Role Property Added**
+
 - Location: `/src/api/Modules/FamilyHub.Modules.Auth/Domain/User.cs`
 - Added: `public UserRole Role { get; private set; }`
 - Updated constructors to initialize Role (default: UserRole.Member)
 - Updated CreateManagedAccount factory method to accept role parameter
 
 **✅ ManagedAccountCreatedEvent - Extended**
+
 - Location: `/src/api/Modules/FamilyHub.Modules.Auth/Domain/Events/ManagedAccountCreatedEvent.cs`
 - Added properties: SyntheticEmail, CreatedAt
 - Updated constructor with 11 parameters
@@ -83,6 +90,7 @@
 #### 4. GraphQL Layer
 
 **✅ InvitationMutations**
+
 - Location: `/src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/Mutations/InvitationMutations.cs`
 - Mutations Implemented (4/7):
   1. `InviteFamilyMemberByEmail` - Email-based invitations
@@ -92,6 +100,7 @@
 - Authorization: `[Authorize(Policy = "RequireOwnerOrAdmin")]` on all mutations
 
 **✅ Payload Factories (4/7 Implemented)**
+
 1. **InviteFamilyMemberByEmailPayloadFactory** - Maps Result → Payload
 2. **CreateManagedMemberPayloadFactory** - Maps Result → Payload with credentials
 3. **CancelInvitationPayloadFactory** - Maps Result → Payload
@@ -102,33 +111,40 @@
 ## ⚠️ Not Yet Implemented
 
 ### Missing Command Handlers (3)
+
 1. **UpdateInvitationRoleCommandHandler** - Edit role before acceptance
 2. **AcceptInvitationCommandHandler** - Accept invitation via token
 3. **BatchInviteFamilyMembersCommandHandler** - Mixed-mode batch processing
 
 ### Missing GraphQL Mutations (3)
+
 1. **UpdateInvitationRole** mutation
 2. **AcceptInvitation** mutation
 3. **BatchInviteFamilyMembers** mutation
 
 ### Missing Payload Factories (3)
+
 1. **UpdateInvitationRolePayloadFactory**
 2. **AcceptInvitationPayloadFactory**
 3. **BatchInviteFamilyMembersPayloadFactory**
 
 ### Missing GraphQL Queries (4)
+
 1. **FamilyMembers(familyId)** - Returns FamilyMemberType[]
 2. **PendingInvitations(familyId)** - Returns PendingInvitationType[]
 3. **Invitation(invitationId)** - Returns single invitation
 4. **InvitationByToken(token)** - For acceptance flow
 
 ### Authorization Policy Not Registered
+
 - Need to add `"RequireOwnerOrAdmin"` policy to `AuthModuleServiceRegistration.cs`
 
 ### Repository Registration
+
 - Need to register `IFamilyMemberInvitationRepository` → `FamilyMemberInvitationRepository` in DI container
 
 ### Payload Factory Registration
+
 - Need to register payload factories in DI container
 
 ---
@@ -136,6 +152,7 @@
 ## File Locations
 
 ### Command Handlers
+
 ```
 /src/api/Modules/FamilyHub.Modules.Auth/Application/Commands/
 ├── InviteFamilyMemberByEmail/
@@ -159,6 +176,7 @@
 ```
 
 ### GraphQL Layer
+
 ```
 /src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/
 ├── Mutations/
@@ -175,6 +193,7 @@
 ```
 
 ### Domain & Persistence
+
 ```
 /src/api/Modules/FamilyHub.Modules.Auth/
 ├── Domain/
@@ -193,6 +212,7 @@
 ## Code Quality Metrics
 
 ### Lines of Code
+
 - Command Handlers: ~600 lines
 - Repository: ~100 lines
 - GraphQL Mutations: ~115 lines
@@ -201,6 +221,7 @@
 - **Total:** ~965 lines of production code
 
 ### Business Rules Enforced
+
 - ✅ Email duplicate detection (family-scoped)
 - ✅ Username duplicate detection (family-scoped)
 - ✅ Authorization checks (OWNER/ADMIN only)
@@ -211,6 +232,7 @@
 - ✅ Token regeneration on resend
 
 ### Logging
+
 - All handlers use LoggerMessage source generator (performance-optimized)
 - 10 log messages per handler (Info/Warning/Error levels)
 - Structured logging with entity IDs
@@ -220,6 +242,7 @@
 ## Testing Recommendations
 
 ### Unit Tests (Priority 1)
+
 1. **InviteFamilyMemberByEmailCommandHandlerTests** - 10 test cases
    - Happy path: Create invitation successfully
    - Validation: Family not found, user not found, unauthorized
@@ -232,6 +255,7 @@
 4. **ResendInvitationCommandHandlerTests** - 6 test cases
 
 ### Integration Tests (Priority 2)
+
 1. **InvitationMutations E2E** - GraphQL mutations with TestServer
 2. **Repository Integration** - PostgreSQL with Testcontainers
 3. **Authorization Policy** - OWNER/ADMIN access control
@@ -241,38 +265,44 @@
 ## Next Steps (Phase 2 Completion)
 
 ### Immediate (Day 1)
+
 1. ✅ Implement `UpdateInvitationRoleCommandHandler`
 2. ✅ Implement `AcceptInvitationCommandHandler`
 3. ✅ Create corresponding payload factories
 4. ✅ Add mutations to InvitationMutations.cs
 
 ### Short-Term (Day 2)
-5. ✅ Implement `BatchInviteFamilyMembersCommandHandler` with two-phase validation
-6. ✅ Create `InvitationQueries.cs` with 4 query resolvers
-7. ✅ Register all repositories and factories in DI container
-8. ✅ Add authorization policy to `AuthModuleServiceRegistration.cs`
+
+1. ✅ Implement `BatchInviteFamilyMembersCommandHandler` with two-phase validation
+2. ✅ Create `InvitationQueries.cs` with 4 query resolvers
+3. ✅ Register all repositories and factories in DI container
+4. ✅ Add authorization policy to `AuthModuleServiceRegistration.cs`
 
 ### Testing (Day 3)
-9. ✅ Write unit tests for all command handlers (>90% coverage target)
-10. ✅ Write integration tests for GraphQL mutations
-11. ✅ Test authorization policy enforcement
+
+1. ✅ Write unit tests for all command handlers (>90% coverage target)
+2. ✅ Write integration tests for GraphQL mutations
+3. ✅ Test authorization policy enforcement
 
 ---
 
 ## Known Issues & TODOs
 
 ### Critical
+
 - **TODO:** Implement background job queueing for Zitadel API failures
   - Create QueuedManagedAccountCreation entity (already exists in DB)
   - Implement retry logic with exponential backoff
   - Add Quartz.NET job for processing queue
 
 ### Important
+
 - **TODO:** Add validation for Message field (max 500 chars)
 - **TODO:** Implement rate limiting for invitation endpoints (10 attempts per hour)
 - **TODO:** Add integration with email service for sending invitation emails
 
 ### Nice-to-Have
+
 - **TODO:** Add invitation statistics (pending count, acceptance rate)
 - **TODO:** Implement invitation expiration cleanup job (hard delete after 30 days)
 - **TODO:** Add invitation audit log (who invited, when, status changes)
@@ -282,16 +312,19 @@
 ## Architecture Decisions
 
 ### Why Separate Input and Command?
+
 **Decision:** Maintain separate GraphQL Input DTOs and MediatR Commands
 **Rationale:** HotChocolate cannot natively deserialize Vogen value objects from JSON
 **Reference:** [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md)
 
 ### Why Factory Pattern for Payloads?
+
 **Decision:** Use IPayloadFactory<TResult, TPayload> with DI injection
 **Rationale:** Type-safe, reflection-free, testable payload construction
 **Benefit:** Centralized error handling in MutationHandler
 
 ### Why Mark Managed Accounts as Accepted Immediately?
+
 **Decision:** Managed accounts have Status=Accepted immediately after creation
 **Rationale:** No email-based acceptance flow (synthetic email is auto-verified)
 **Implication:** FamilyMemberInvitation serves as audit trail for managed accounts
@@ -301,11 +334,13 @@
 ## Dependencies
 
 ### External Services
+
 - **Zitadel:** User creation via IZitadelManagementClient
 - **PostgreSQL:** EF Core with AuthDbContext
 - **RabbitMQ:** Domain event publishing (via outbox pattern)
 
 ### Internal Services
+
 - **IPasswordGenerationService:** Cryptographic password generation
 - **ICurrentUserService:** Authenticated user extraction
 - **IUnitOfWork:** Transaction management
@@ -316,17 +351,20 @@
 ## Compliance
 
 ### Security
+
 - ✅ Credentials returned only once (never stored in plaintext)
 - ✅ Authorization enforced via [Authorize] attribute
 - ✅ Rate limiting planned (not yet implemented)
 - ✅ Audit trail via domain events
 
 ### Privacy
+
 - ✅ Synthetic emails for managed accounts (privacy-preserving)
 - ✅ No PII in logs (only entity IDs)
 - ✅ GDPR-compliant data retention (30-day grace period)
 
 ### Testing
+
 - ✅ Unit tests use [Theory, AutoNSubstituteData]
 - ✅ FluentAssertions for all assertions
 - ✅ Vogen value objects created manually in tests

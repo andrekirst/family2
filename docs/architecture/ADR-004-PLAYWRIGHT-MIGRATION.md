@@ -37,11 +37,13 @@ Family Hub's E2E testing strategy initially used Cypress v15.8.1 for frontend te
 ### Migration Approach
 
 **Big-Bang Migration** (chosen):
+
 - Convert all Cypress tests to Playwright in a single effort
 - Delete Cypress infrastructure immediately after conversion
 - Document migration in ADR-004
 
 **Alternatives Considered:**
+
 - ❌ **Incremental Migration**: Keep both frameworks temporarily
   - Rejected: Maintenance burden, confusion, slower migration
 - ❌ **Keep Cypress**: Continue with Cypress only
@@ -50,6 +52,7 @@ Family Hub's E2E testing strategy initially used Cypress v15.8.1 for frontend te
 ### Testing Strategy
 
 **Playwright Configuration:**
+
 ```typescript
 {
   testDir: './e2e',
@@ -66,6 +69,7 @@ Family Hub's E2E testing strategy initially used Cypress v15.8.1 for frontend te
 ```
 
 **Fixture Pattern** (replaces Cypress custom commands):
+
 ```typescript
 // Cypress (global commands)
 cy.mockOAuthLogin();
@@ -79,6 +83,7 @@ test('...', async ({ authenticatedPage, interceptGraphQL }) => {
 ```
 
 **API-First Event Chain Testing:**
+
 ```typescript
 // 1. Create via GraphQL API (not UI)
 const result = await client.mutate(CREATE_APPOINTMENT_MUTATION, variables);
@@ -104,12 +109,14 @@ await expect(page.getByText('Doctor: Dr. Smith')).toBeVisible();
 ### Migration Phases (6 phases, 10-14 days)
 
 **Phase 1: Foundation & Installation** (1-2 days)
+
 - Install @playwright/test, @axe-core/playwright, amqplib
 - Create playwright.config.ts with cross-browser projects
 - Create e2e/ directory structure
 - Remove Cypress from package.json
 
 **Phase 2: Fixtures & Infrastructure** (2-3 days)
+
 - Vogen TypeScript mirrors (Email, UserId, FamilyId, FamilyName)
 - Auth fixture (OAuth token mocking)
 - GraphQL fixture (request interception)
@@ -118,23 +125,27 @@ await expect(page.getByText('Doctor: Dr. Smith')).toBeVisible();
 - API helper utilities (GraphQLClient class)
 
 **Phase 3: Test Migration** (3-4 days)
+
 - Convert family-creation.cy.ts → family-creation.spec.ts (20+ tests)
 - Convert accessibility tests with @axe-core/playwright
 - Delete debug test files (wizard-debug, wizard-simple, wizard-timing)
 - All tests passing with retries: 0
 
 **Phase 4: Expansion & Event Chain Testing** (2-3 days)
+
 - Cross-browser smoke tests (4 tests × 3 browsers)
 - Event chain test templates (doctor appointment, prescription)
 - Demonstrate API-first testing pattern
 
 **Phase 5: CI/CD Integration** (1-2 days)
+
 - Update .github/workflows/ci.yml
 - Install Playwright browsers with --with-deps
 - Upload artifacts (HTML report 30d, traces 7d, JUnit 30d)
 - CI environment detection in global-setup/teardown
 
 **Phase 6: Documentation & Cleanup** (1 day)
+
 - Create ADR-004-PLAYWRIGHT-MIGRATION.md
 - Update CLAUDE.md with Playwright patterns
 - Delete cypress/ directory and cypress.config.ts
@@ -209,16 +220,19 @@ e2e/tests/
 ### Prototype Results (December 2024)
 
 **Cross-Browser Testing:**
+
 - ✅ Chromium: All tests passing (baseline)
 - ✅ Firefox: All tests passing (some CSS flexbox differences noted)
 - ✅ WebKit: All tests passing (localStorage timing quirks handled)
 
 **Performance Benchmarks:**
+
 - UI-driven test: 15-30 seconds (Playwright) vs 20-40 seconds (Cypress)
 - API-first test: 2-5 seconds (Playwright only - Cypress can't do this)
 - Full suite (66 tests × 3 browsers): ~8 minutes sequential
 
 **Developer Experience:**
+
 - Trace viewer: Game-changer for debugging (vs watching Cypress videos)
 - UI mode: Interactive test development (vs Cypress Test Runner)
 - test.step(): Self-documenting tests (vs comment-only documentation)
@@ -364,6 +378,7 @@ Once Health, Calendar, Task, Shopping, and Communication modules are implemented
 ### Code Statistics
 
 **New Files Created:** 24
+
 - Configuration: 3 (playwright.config.ts, tsconfig.e2e.json)
 - Fixtures: 3 (auth, graphql, rabbitmq)
 - Support: 4 (vogen-mirrors, constants, types, api-helpers)
@@ -372,10 +387,12 @@ Once Health, Calendar, Task, Shopping, and Communication modules are implemented
 - Documentation: 3 (ADR-004, migration summary, CLAUDE.md updates)
 
 **Files Modified:** 2
+
 - package.json (dependencies and scripts)
 - .github/workflows/ci.yml (E2E job)
 
 **Files Deleted:** 5+
+
 - cypress/ directory (entire tree)
 - cypress.config.ts
 - Debug test files (wizard-debug, wizard-simple, wizard-timing)
@@ -383,12 +400,14 @@ Once Health, Calendar, Task, Shopping, and Communication modules are implemented
 ### Test Coverage Comparison
 
 **Before (Cypress):**
+
 - 20+ tests (family creation + accessibility)
 - 1 browser (Chromium only)
 - 0 event chain tests
 - **Total: 20 test runs**
 
 **After (Playwright):**
+
 - 22 tests (family creation + accessibility + cross-browser)
 - 3 browsers (Chromium, Firefox, WebKit)
 - 2 event chain templates (ready for Phase 2)

@@ -12,6 +12,7 @@
 Family Hub was originally designed as 8 microservices from day one, deployed on Kubernetes with GraphQL schema stitching across services. While this architecture is sound for a team, **it's over-engineered for a single developer** with AI assistance.
 
 **The Problem**:
+
 - 8 microservices + API Gateway + Event Bus = 10+ deployments
 - Kubernetes operational overhead = 30-40% of development time
 - Distributed debugging is 5-10x harder than monolith
@@ -81,6 +82,7 @@ family-hub-api/ (Single .NET Core 10 Project)
 **Developer Time Budget**: 20 hours/week = ~1,000 hours/year
 
 **Microservices Architecture**:
+
 ```
 Development: 15 hours/week (CI/CD overhead)
 Debugging: 5 hours/week (distributed tracing, logs)
@@ -92,6 +94,7 @@ Total: 29 hours/week (9 hours OVER budget)
 ```
 
 **Modular Monolith**:
+
 ```
 Development: 20 hours/week (single codebase)
 Debugging: 2 hours/week (F5, breakpoints work)
@@ -140,16 +143,19 @@ The modular monolith **preserves the microservices migration path**:
 ### Mitigation Strategies
 
 **For Scalability Limit**:
+
 - **Threshold**: Extract to microservices when hitting 1,000 families (Phase 5)
 - **Monitoring**: Track performance metrics, set alerts at 70% capacity
 - **Preparation**: Maintain clean module boundaries for easy extraction
 
 **For Single Point of Failure**:
+
 - **High Availability**: Run 2 instances behind load balancer (Phase 3+)
 - **Health Checks**: Liveness and readiness probes
 - **Auto-Restart**: Docker/Kubernetes auto-restart on crash
 
 **For Resource Limits**:
+
 - **Vertical Scaling**: Can handle 5,000 families with 8-16GB RAM
 - **Profiling**: Identify bottlenecks early
 - **Extract Early**: If one module hits limits, extract it first
@@ -314,6 +320,7 @@ public class InProcessEventBus : IEventBus
 ### Module Communication
 
 **Current (Modular Monolith)**:
+
 ```csharp
 // In-process call via interface
 public class HealthAppointmentService
@@ -333,6 +340,7 @@ public class HealthAppointmentService
 ```
 
 **Future (Microservices)**:
+
 ```csharp
 // HTTP call via client
 public class HealthAppointmentService
@@ -360,6 +368,7 @@ public class HealthAppointmentService
 ### Alternative 1: Microservices from Day 1 (Original Plan)
 
 **Rejected** because:
+
 - Too complex for single developer (40% time on ops)
 - High risk of developer burnout (CRITICAL risk)
 - Slower time to market (16-22 months)
@@ -368,6 +377,7 @@ public class HealthAppointmentService
 ### Alternative 2: Pure Monolith (No Module Boundaries)
 
 **Rejected** because:
+
 - Harder to extract to microservices later
 - Poor separation of concerns
 - Difficult to test independently
@@ -376,6 +386,7 @@ public class HealthAppointmentService
 ### Alternative 3: Microservices for Core, Monolith for Rest
 
 **Rejected** because:
+
 - Complexity of managing both paradigms
 - Unclear which services to split initially
 - Better to validate product-market fit first

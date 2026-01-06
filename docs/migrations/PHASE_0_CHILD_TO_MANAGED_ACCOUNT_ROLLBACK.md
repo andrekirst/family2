@@ -12,6 +12,7 @@
 This document outlines rollback procedures for each step of the 3-phase CHILD → MANAGED_ACCOUNT role migration.
 
 **Migration Strategy:**
+
 - **Step 0.1:** Add MANAGED_ACCOUNT to C# code, keep CHILD (✅ COMPLETED)
 - **Step 0.2:** Migrate data from CHILD → MANAGED_ACCOUNT (✅ COMPLETED - Verification-only)
 - **Step 0.3:** Remove CHILD from C# code (✅ COMPLETED)
@@ -24,6 +25,7 @@ This document outlines rollback procedures for each step of the 3-phase CHILD �
 **Status:** ✅ Applied to database
 **Database Changes:** None (empty migration)
 **Code Changes:**
+
 - Added `UserRoleConstants.ManagedAccountValue` constant
 - Added `UserRole.ManagedAccount` static property
 - Marked `UserRole.Child` as `[Obsolete]`
@@ -48,6 +50,7 @@ dotnet build src/api/Modules/FamilyHub.Modules.Auth
 ```
 
 **Verification:**
+
 ```bash
 # Check migrations list
 dotnet ef migrations list --context AuthDbContext \
@@ -110,17 +113,20 @@ dotnet build src/api/Modules/FamilyHub.Modules.Auth
 ### If Application Fails After Migration
 
 1. **Check application logs:**
+
 ```bash
 docker logs familyhub-api --tail 100
 ```
 
-2. **Verify database state:**
+1. **Verify database state:**
+
 ```bash
 docker exec -it familyhub-postgres psql -U familyhub -d familyhub \
   -c "SELECT role, COUNT(*) FROM auth.users GROUP BY role;"
 ```
 
-3. **Rollback immediately:**
+1. **Rollback immediately:**
+
 ```bash
 # Revert git commit
 git revert HEAD

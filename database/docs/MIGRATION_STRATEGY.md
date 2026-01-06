@@ -550,18 +550,21 @@ public class AuthDbContextIntegrationTests : IAsyncLifetime
 ### Common Issues
 
 **Issue: "No migrations configuration type was found"**
+
 ```bash
 # Ensure you're specifying the correct context
 dotnet ef migrations add InitialCreate --context AuthDbContext
 ```
 
 **Issue: "The context class 'AuthDbContext' could not be found"**
+
 ```bash
 # Ensure you're in the correct project directory
 cd src/api/Modules/FamilyHub.Modules.Auth
 ```
 
 **Issue: Migration conflicts**
+
 ```bash
 # Remove conflicting migration
 dotnet ef migrations remove --context AuthDbContext

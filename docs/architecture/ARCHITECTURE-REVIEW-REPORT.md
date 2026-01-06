@@ -32,6 +32,7 @@ Both independent architecture reviews converged on the same critical finding: **
 **START WITH MODULAR MONOLITH → EXTRACT TO MICROSERVICES IN PHASE 5+**
 
 **Impact**:
+
 - **Time Savings**: -200 hours (-8-10 weeks)
 - **Cost Savings**: -$95-155/month in Phase 1-4
 - **Complexity Reduction**: 10x simpler deployment and debugging
@@ -44,6 +45,7 @@ Both independent architecture reviews converged on the same critical finding: **
 ### Recommendation: PIVOT FROM MICROSERVICES
 
 **Phase 1-4 (Months 1-9)**: Modular Monolith
+
 ```
 family-hub-api/ (Single .NET Project)
 ├── Modules/
@@ -62,6 +64,7 @@ family-hub-api/ (Single .NET Project)
 ```
 
 **Phase 5+ (Months 10-18)**: Extract to Microservices
+
 - Use Strangler Fig pattern
 - Extract Calendar Service first (highest traffic)
 - Extract Task Service second
@@ -108,6 +111,7 @@ Phase 7: Complete Extraction (100% microservices)
 ### Technology Stack Confirmed by Stakeholder
 
 **✅ CONFIRMED Technology Choices**:
+
 - **Backend**: .NET Core 10 / C# 14 with Hot Chocolate GraphQL
 - **Frontend**: Angular v21 + TypeScript + Tailwind CSS
 - **API**: GraphQL from Phase 1 (not deferred)
@@ -122,6 +126,7 @@ Phase 7: Complete Extraction (100% microservices)
 **Assessment**: Modern, performant choice for this use case
 
 **Strengths**:
+
 - Modern, performant, cross-platform
 - Hot Chocolate GraphQL library is mature
 - Strong typing reduces bugs
@@ -134,6 +139,7 @@ Phase 7: Complete Extraction (100% microservices)
 **Assessment**: Angular v21 with TypeScript
 
 **Strengths**:
+
 - Enterprise-grade patterns built-in
 - Strong typing with TypeScript
 - Comprehensive framework (routing, forms, HTTP, etc.)
@@ -146,6 +152,7 @@ Phase 7: Complete Extraction (100% microservices)
 **Assessment**: GraphQL from the beginning
 
 **Implementation Strategy for Modular Monolith**:
+
 ```
 Phase 1-4: Single GraphQL Gateway (Modular Monolith)
   └── Hot Chocolate with merged schemas from all modules
@@ -158,6 +165,7 @@ Phase 5+: Distributed GraphQL (Microservices)
 ```
 
 **Advantages in Modular Monolith**:
+
 - Single GraphQL server (no schema stitching complexity)
 - Easy to merge module schemas with Hot Chocolate
 - Better type safety than REST
@@ -170,16 +178,19 @@ Phase 5+: Distributed GraphQL (Microservices)
 **Assessment**: Excellent choice
 
 **Strengths**:
+
 - Row-Level Security (RLS) for multi-tenancy is production-ready
 - Cost-effective ($100/month vs $10,000/month for dedicated DBs)
 - JSON support for flexible schema
 - Excellent scalability path
 
 **Concerns**:
+
 - RLS adds 10-15% query overhead (acceptable trade-off)
 - Requires RLS testing framework (CRITICAL for security)
 
 **Recommendations**:
+
 1. ✅ **Implement RLS testing in Phase 1** (prevent tenant data leaks)
 2. ✅ **Use PgBouncer for connection pooling** (essential for microservices later)
 3. ✅ **Add application-level tenant checks** (defense in depth)
@@ -191,6 +202,7 @@ Phase 5+: Distributed GraphQL (Microservices)
 **Current Plan**: Redis Pub/Sub → RabbitMQ (Phase 5+)
 
 **CRITICAL Problem**: Redis Pub/Sub has no persistence
+
 - Events lost if Redis crashes
 - No delivery guarantees
 - No replay capability
@@ -199,6 +211,7 @@ Phase 5+: Distributed GraphQL (Microservices)
 **Recommendation**: **RabbitMQ from Phase 1 OR Event Store Pattern**
 
 **Option A: RabbitMQ from Day 1** ✅ **RECOMMENDED**
+
 ```yaml
 Pros:
   - Persistent messaging
@@ -214,6 +227,7 @@ Verdict: Worth the complexity for reliability
 ```
 
 **Option B: Event Store Pattern with Redis**
+
 ```csharp
 // Dual-write pattern
 public async Task PublishEventAsync<TEvent>(TEvent evt)
@@ -237,11 +251,13 @@ public async Task PublishEventAsync<TEvent>(TEvent evt)
 **Recommendation**: **Docker Compose → PaaS → Kubernetes (Phased)**
 
 **Rationale**:
+
 - **Complexity**: Kubernetes requires 200+ hours to implement and manage
 - **Overhead**: 30-40% of development time on DevOps instead of features
 - **Overkill**: Can handle 1,000 families with Docker Compose
 
 **Proposed**:
+
 ```
 Phase 1-3 (Months 1-6): Docker Compose
   └── Local: docker-compose up
@@ -262,6 +278,7 @@ Phase 5+ (Months 10+): Kubernetes
 ```
 
 **Cost-Benefit Analysis**:
+
 ```
 Kubernetes Overhead: 200 hours in Phase 1-5
 Developer Time Value: $50/hour
@@ -280,6 +297,7 @@ Timeline: Phase 5+ (after MVP validation)
 **Recommendation**: **Zitadel POC in Week 2-3 with Fallback Plan**
 
 **POC Success Criteria**:
+
 - Complete OAuth 2.0 flow working
 - JWT token validation
 - Refresh token handling
@@ -288,16 +306,19 @@ Timeline: Phase 5+ (after MVP validation)
 **Fallback Options** (if POC fails or exceeds 30 hours):
 
 **Option A: Keycloak** (More mature alternative)
+
 - Pros: Mature (2014), large community, proven at scale
 - Cons: Java-based (heavier), complex configuration
 - Timeline: +1 week vs Zitadel
 
 **Option B: ASP.NET Core Identity** (Custom)
+
 - Pros: Full control, simpler, proven, no external dependency
 - Cons: More code to maintain, security responsibility
 - Timeline: +2-3 weeks vs Zitadel
 
 **Option C: Auth0** (Managed service)
+
 - Pros: Managed, reliable, excellent docs
 - Cons: $23/month minimum, vendor lock-in
 - Timeline: Fastest (1 week)
@@ -330,12 +351,14 @@ All 8 services have well-defined boundaries:
 **Merge Communication Service into API Gateway**
 
 **Rationale**:
+
 - Communication is purely reactive (consumes events, sends notifications)
 - No complex domain logic
 - High coupling to all other services (7 dependencies)
 - Small codebase (~500-1000 LOC)
 
 **Proposed Structure**:
+
 ```
 API Gateway
 ├── GraphQL Federation (or REST routing)
@@ -366,23 +389,27 @@ API Gateway
 ### Scaling Path
 
 **Phase 1-2: Single Instance**
+
 - PostgreSQL: 4 vCPU, 8GB RAM
 - Cost: $40/month (DigitalOcean)
 - Capacity: 1,000 families
 
 **Phase 3-4: Vertical Scaling + Caching**
+
 - PostgreSQL: 8 vCPU, 16GB RAM
 - Redis caching layer
 - Cost: $100/month
 - Capacity: 5,000 families
 
 **Phase 5: Horizontal Scaling**
+
 - PostgreSQL read replicas (1 primary + 2 replicas)
 - Application auto-scaling (Kubernetes HPA)
 - Cost: $400/month
 - Capacity: 50,000 families
 
 **Phase 6+: Distributed Architecture**
+
 - PostgreSQL sharding (by family_group_id)
 - Multi-region deployment
 - CDN for static assets
@@ -394,6 +421,7 @@ API Gateway
 ### Performance Targets ⚠️ ADJUSTED
 
 **Current Targets** (too aggressive):
+
 - API Response (p95): <2s → <1s → <500ms
 - Page Load: <3s → <2s → <1s
 - Event Chain Latency: <5s → <3s → <2s
@@ -442,6 +470,7 @@ public async Task RLS_ShouldPreventAccessToOtherFamilyData()
 ```
 
 **RLS Enforcement Check** (run in CI/CD):
+
 ```sql
 -- Ensure RLS is enabled on all tenant tables
 SELECT schemaname, tablename, rowsecurity
@@ -490,6 +519,7 @@ public class TenantScopedRepository<T>
 **Current**: Choreography (services react to events independently)
 
 **Problem**: No failure handling
+
 ```
 Doctor Appointment Chain:
 1. ✅ Appointment created (Health Service)
@@ -548,6 +578,7 @@ public class DoctorAppointmentSaga : ISaga
 ```
 
 **When to Use**:
+
 - ✅ Critical user-facing workflows (doctor appointment, meal planning)
 - ✅ Multi-step workflows requiring rollback
 - ❌ Simple notifications (fire-and-forget okay)
@@ -645,12 +676,14 @@ public class DoctorAppointmentSaga : ISaga
 ### Confidence Assessment
 
 **With Current Microservices Architecture**:
+
 - 40% confidence in technical success
 - 30% confidence in avoiding developer burnout
 - 50% confidence in 18-month timeline
 - **Overall**: 🔴 **LOW CONFIDENCE (40%)**
 
 **With Revised Modular Monolith Architecture**:
+
 - 80% confidence in technical success
 - 75% confidence in avoiding developer burnout
 - 80% confidence in 12-14 month timeline
@@ -775,6 +808,7 @@ You can always upgrade to the Ferrari later - and the architecture is designed t
 **Start simple. Validate. Then scale.**
 
 The revised architecture:
+
 - ✅ Reduces complexity by 70%
 - ✅ Saves 200+ development hours
 - ✅ Cuts infrastructure costs by 60%
@@ -800,6 +834,7 @@ Build a **sustainable**, **maintainable**, **debuggable** system first. Optimize
 **Next Step**: Approve revised architecture and begin Phase 0
 
 **Related Documents**:
+
 - [Architectural Decision Records](ADR-001-MODULAR-MONOLITH-FIRST.md)
 - [Microservices Migration Plan](MICROSERVICES-MIGRATION-PLAN.md)
 - [Simplification Recommendations](SIMPLIFICATION-RECOMMENDATIONS.md)

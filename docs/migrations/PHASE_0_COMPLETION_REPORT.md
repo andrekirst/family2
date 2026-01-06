@@ -23,6 +23,7 @@ Phase 0 successfully migrated the UserRole terminology from `CHILD` to `MANAGED_
 **Migration:** `20260104215155_AddManagedAccountRole.cs`
 
 **Changes:**
+
 - Added `UserRoleConstants.ManagedAccountValue = "managed_account"`
 - Added `UserRole.ManagedAccount` static property
 - Marked `UserRole.Child` as `[Obsolete]` (with pragma warnings)
@@ -39,17 +40,20 @@ Phase 0 successfully migrated the UserRole terminology from `CHILD` to `MANAGED_
 **Migration:** `20260104215404_MigrateChildToManagedAccount.cs`
 
 **Key Discovery:**
+
 - UserRole is **NOT stored in database** (no `role` column in `auth.users` table)
 - Roles are computed dynamically via `User.GetRoleInFamily()` method
 - Current logic: `user.Id == family.OwnerId ? Owner : Member`
 - No data migration needed
 
 **Changes:**
+
 - Added verification SQL to confirm no `role` column exists
 - Added audit logging for migration checkpoint
 - Migration is verification-only (NO data changes)
 
 **Verification Results:**
+
 ```sql
 -- Verified: No role column in auth.users table
 -- Current active user count logged
@@ -64,12 +68,14 @@ Phase 0 successfully migrated the UserRole terminology from `CHILD` to `MANAGED_
 ### ✅ Task 0.3: Remove CHILD Enum Value
 
 **Changes:**
+
 - Removed `UserRoleConstants.ChildValue` constant
 - Removed `UserRole.Child` static property
 - Removed `CHILD` from `ValidRoles` array
 - Removed `[Obsolete]` attributes and pragma warnings
 
 **Code Search Results:**
+
 - No remaining `UserRole.Child` references in C# code
 - Only references in migration comments (intentional documentation)
 - "child" in documentation text ("children, elderly") - not code
@@ -104,11 +110,13 @@ Phase 0 successfully migrated the UserRole terminology from `CHILD` to `MANAGED_
    - Currently returns empty list (Phase 0)
 
 **FamilyType Updates:**
+
 - Added `members: [FamilyMember!]!` field (resolves from `Family.Members`)
 - Added `pendingInvitations: [PendingInvitation!]!` field (returns empty list in Phase 0)
 - Added `MapToGraphQLRole()` helper method (domain → GraphQL enum mapping)
 
 **GraphQL Schema Changes:**
+
 ```graphql
 type Family {
   id: UUID!
@@ -167,6 +175,7 @@ enum InvitationStatus {               # NEW - Phase 0 (for future use)
 **Test Results:**
 
 **Unit Tests:**
+
 ```
 ✅ Total: 44 tests
 ✅ Passed: 44
@@ -176,6 +185,7 @@ enum InvitationStatus {               # NEW - Phase 0 (for future use)
 ```
 
 **Integration Tests:**
+
 ```
 ✅ Total: 22 tests
 ✅ Passed: 20
@@ -185,6 +195,7 @@ enum InvitationStatus {               # NEW - Phase 0 (for future use)
 ```
 
 **Build Verification:**
+
 ```bash
 # All projects build successfully
 ✅ FamilyHub.SharedKernel
@@ -198,6 +209,7 @@ enum InvitationStatus {               # NEW - Phase 0 (for future use)
 ```
 
 **Database Verification:**
+
 ```sql
 -- Migration history confirmed
 SELECT migration_id FROM "__EFMigrationsHistory" ORDER BY migration_id DESC LIMIT 3;
@@ -213,11 +225,13 @@ SELECT migration_id FROM "__EFMigrationsHistory" ORDER BY migration_id DESC LIMI
 ## Migration Strategy Analysis
 
 ### Original Plan (3-Step Safe Migration)
+
 1. ✅ Add MANAGED_ACCOUNT, keep CHILD (allows rollback)
 2. ✅ Migrate data CHILD → MANAGED_ACCOUNT (if data exists)
 3. ✅ Remove CHILD from code (after verification)
 
 ### Actual Execution
+
 1. ✅ Added MANAGED_ACCOUNT to C# code (no DB changes)
 2. ✅ Verified no role data exists in database (NO-OP migration)
 3. ✅ Removed CHILD from C# code cleanly
@@ -227,6 +241,7 @@ SELECT migration_id FROM "__EFMigrationsHistory" ORDER BY migration_id DESC LIMI
 **Discovery:** UserRole is a **computed value**, not persisted data.
 
 **Current Implementation:**
+
 ```csharp
 // Domain/User.cs
 public UserRole GetRoleInFamily(Family family)
@@ -236,12 +251,14 @@ public UserRole GetRoleInFamily(Family family)
 ```
 
 **Implications:**
+
 - No `role` column in `auth.users` table
 - Roles determined by ownership relationship
 - Only `Owner` and `Member` roles used currently
 - `Admin` and `ManagedAccount` roles exist in code but not used yet
 
 **Future Consideration:**
+
 - Phase 1 invitation system will likely persist roles
 - When roles are persisted, a real data migration will be needed
 - Migration patterns from Phase 0 can be reused
@@ -282,6 +299,7 @@ public UserRole GetRoleInFamily(Family family)
 ## Database Schema State
 
 ### Current Schema (auth.users)
+
 ```sql
 Table "auth.users"
 - id                 uuid (PK)
@@ -299,6 +317,7 @@ NO role column (roles computed dynamically)
 ```
 
 ### Migration History
+
 ```sql
 SELECT migration_id, product_version FROM "__EFMigrationsHistory"
 ORDER BY migration_id DESC LIMIT 5;
@@ -315,6 +334,7 @@ ORDER BY migration_id DESC LIMIT 5;
 ## Breaking Changes
 
 ### C# Code (Internal)
+
 - **REMOVED:** `UserRole.Child` (marked obsolete in 0.1, removed in 0.3)
 - **REMOVED:** `UserRoleConstants.ChildValue`
 - **ADDED:** `UserRole.ManagedAccount`
@@ -323,6 +343,7 @@ ORDER BY migration_id DESC LIMIT 5;
 **Impact:** None (no code referenced `UserRole.Child`)
 
 ### GraphQL Schema (External)
+
 - **ADDED:** `UserRole` enum (new type)
 - **ADDED:** `FamilyMember` type (new type)
 - **ADDED:** `InvitationStatus` enum (new type)
@@ -333,6 +354,7 @@ ORDER BY migration_id DESC LIMIT 5;
 **Impact:** Non-breaking additions (existing queries still work)
 
 **Frontend Migration Required:**
+
 - Update GraphQL fragments to include new fields (optional)
 - Use `UserRole` enum instead of string literals (recommended)
 - Prepare for Phase 1 invitation UI (new types available)
@@ -342,6 +364,7 @@ ORDER BY migration_id DESC LIMIT 5;
 ## Lessons Learned
 
 ### What Went Well
+
 1. **Safe 3-step migration** prevented premature deletion of CHILD enum
 2. **Database investigation** revealed roles are computed (saved migration effort)
 3. **Comprehensive documentation** provides clear rollback procedures
@@ -349,11 +372,13 @@ ORDER BY migration_id DESC LIMIT 5;
 5. **GraphQL schema prepared** for Phase 1 (ahead of schedule)
 
 ### Challenges Encountered
+
 1. **Initial assumption:** Expected role column in database (didn't exist)
 2. **Migration complexity:** Over-engineered for simple enum rename
 3. **Documentation debt:** Role computation not documented initially
 
 ### Improvements for Future Phases
+
 1. **Investigate database schema first** before creating migrations
 2. **Document domain logic clearly** (e.g., role computation rules)
 3. **Use ADR for significant decisions** (e.g., "Why roles are computed, not persisted")
@@ -366,6 +391,7 @@ ORDER BY migration_id DESC LIMIT 5;
 Phase 0 is **COMPLETE** and **BLOCKS REMOVED** for Phase 1 implementation.
 
 **Phase 1 Prerequisites (Now Ready):**
+
 - ✅ UserRole enum uses MANAGED_ACCOUNT terminology
 - ✅ GraphQL schema includes invitation types
 - ✅ Database migrations tested and documented
@@ -373,6 +399,7 @@ Phase 0 is **COMPLETE** and **BLOCKS REMOVED** for Phase 1 implementation.
 - ✅ Zero technical debt from Phase 0
 
 **Phase 1 Implementation Can Begin:**
+
 1. Create `Invitation` domain entity and aggregate
 2. Implement `InviteUserCommand` and handler
 3. Create invitation repository and database table
@@ -382,6 +409,7 @@ Phase 0 is **COMPLETE** and **BLOCKS REMOVED** for Phase 1 implementation.
 7. Create frontend invitation UI
 
 **Estimated Timeline:**
+
 - Phase 1: 2-3 weeks (per implementation plan)
 - Dependencies: Email service setup, role persistence migration
 
@@ -420,5 +448,6 @@ All acceptance criteria met. No technical debt introduced. GraphQL schema prepar
 ---
 
 _For detailed implementation steps, see:_
+
 - `/docs/migrations/PHASE_0_CHILD_TO_MANAGED_ACCOUNT_ROLLBACK.md`
 - `IMPLEMENTATION_PLAN_EPIC_24.md` (Epic #24 master plan)

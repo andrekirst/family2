@@ -16,12 +16,14 @@
 **File:** `src/app/core/services/graphql.service.ts`
 
 **Implementation:**
+
 - Custom `GraphQLError` class for typed error handling
 - `GraphQLErrorResponse` interface for response validation
 - Error handling in both `query()` and `mutate()` methods
 - TypeScript type safety for error extensions
 
 **Tests:** 15 passing tests
+
 - Query error handling (GraphQL errors, network errors)
 - Mutation error handling
 - Error message aggregation
@@ -38,6 +40,7 @@
 **File:** `src/app/shared/components/atoms/icon/icon.component.ts`
 
 **Features:**
+
 - SVG wrapper for Heroicons
 - 3 sizes: sm (w-4 h-4), md (w-5 h-5), lg (w-6 h-6)
 - Custom class support
@@ -45,6 +48,7 @@
 - 5 icons implemented: users, x-mark, check, exclamation-circle, fallback
 
 **Tests:** 19 passing tests
+
 - Size rendering
 - Icon path selection
 - Custom class application
@@ -55,6 +59,7 @@
 **File:** `src/app/shared/components/atoms/input/input.component.ts`
 
 **Features:**
+
 - ControlValueAccessor implementation (Angular Reactive Forms)
 - Types: text, email, password
 - Character counter (real-time, color-coded)
@@ -63,6 +68,7 @@
 - WCAG 2.1 AA compliant
 
 **Tests:** 35 passing tests
+
 - ControlValueAccessor methods (writeValue, registerOnChange, registerOnTouched)
 - Character counter (color changes at 45/50)
 - Error display (aria-invalid, aria-describedby)
@@ -74,6 +80,7 @@
 **File:** `src/app/shared/components/molecules/modal/modal.component.ts`
 
 **Features:**
+
 - Accessible dialog (role="dialog", aria-modal="true")
 - Backdrop with click-to-close (if closeable)
 - Escape key handling (if closeable)
@@ -82,6 +89,7 @@
 - Customizable title
 
 **Tests:** 26 passing tests
+
 - Rendering behavior
 - Keyboard navigation (Escape key)
 - Backdrop click handling
@@ -98,6 +106,7 @@
 **File:** `src/app/features/family/services/family.service.ts`
 
 **Implementation:**
+
 - **Signals:**
   - `currentFamily: signal<Family | null>(null)` - Active family state
   - `isLoading: signal<boolean>(false)` - Loading state
@@ -110,6 +119,7 @@
   - `handleError(err, fallback)` - Error handling with GraphQLError support
 
 - **GraphQL Queries:**
+
   ```graphql
   query GetUserFamilies {
     getUserFamilies {
@@ -124,6 +134,7 @@
   ```
 
 - **GraphQL Mutations:**
+
   ```graphql
   mutation CreateFamily($input: CreateFamilyInput!) {
     createFamily(input: $input) {
@@ -142,6 +153,7 @@
   ```
 
 **Tests:** 23 passing tests
+
 - Initial state validation
 - Load families (success, empty, errors)
 - Create family (success, business errors, network errors)
@@ -157,6 +169,7 @@
 **File:** `src/app/features/family/components/create-family-modal/create-family-modal.component.ts`
 
 **Features:**
+
 - Integrates Modal, Input, Icon components
 - Reactive Forms with validation
   - Required field
@@ -169,6 +182,7 @@
 - Success event emission
 
 **Template Structure:**
+
 ```html
 <app-modal [isOpen]="isOpen" title="Create Your Family" [closeable]="false">
   <form [formGroup]="familyForm" (ngSubmit)="onSubmit()">
@@ -192,6 +206,7 @@
 ```
 
 **Tests:** 28 passing tests
+
 - Form initialization (empty, invalid)
 - Validation (required, maxLength)
 - Submit button state (disabled when invalid/submitting)
@@ -213,6 +228,7 @@
 **File:** `src/app/features/dashboard/dashboard.component.ts`
 
 **Changes:**
+
 1. **Imports:** FamilyService, CreateFamilyModalComponent, IconComponent
 2. **Dependency Injection:** `familyService = inject(FamilyService)`
 3. **OnInit:** `familyService.loadUserFamilies()`
@@ -222,6 +238,7 @@
    - Show loading overlay when `familyService.isLoading()`
 
 **Template Structure:**
+
 ```html
 <!-- Create Family Modal (shown when no family) -->
 <app-create-family-modal
@@ -252,6 +269,7 @@
 ```
 
 **Dashboard Content:**
+
 - **Header:** Family name, member count, user email, sign out button
 - **Family Info Card:** Name, member count, creation date
 - **User Account Card:** Email, email verification status
@@ -264,12 +282,14 @@
 ### Phase 5: E2E Testing + Accessibility ✅
 
 **Technology Stack:**
+
 - **Cypress 15.8.1** - E2E testing framework
 - **cypress-axe 1.7.0** - Accessibility testing (axe-core integration)
 - **axe-core 4.11.0** - WCAG 2.1 AA validation engine
 - **cypress-real-events 1.15.0** - Realistic keyboard/mouse events
 
 **Files Created:**
+
 1. `cypress.config.ts` - Cypress configuration
 2. `cypress/support/e2e.ts` - Global setup with axe-core
 3. `cypress/support/commands.ts` - Custom commands (mockOAuthLogin, interceptGraphQL)
@@ -279,25 +299,30 @@
 **Test Coverage (20+ tests across 7 scenarios):**
 
 #### 1. Happy Path (1 test)
+
 - Complete family creation from login to dashboard
 - Verifies modal appearance, form submission, dashboard update
 
 #### 2. Form Validation (4 tests)
+
 - Empty name validation
 - Max length validation (50 characters)
 - Character counter real-time updates
 - Submit button state management
 
 #### 3. API Error Handling (2 tests)
+
 - Business rule violation (user already has family)
 - Network errors (500 Internal Server Error)
 
 #### 4. Keyboard Navigation (3 tests)
+
 - Tab navigation through modal elements
 - Form submission with Enter key
 - Escape key handling (modal cannot be closed)
 
 #### 5. Accessibility Compliance (5 tests)
+
 - WCAG 2.1 AA compliance with axe-core
 - ARIA attributes on input fields
 - ARIA attributes on error messages
@@ -305,10 +330,12 @@
 - Screen reader announcements for loading states
 
 #### 6. Loading States (2 tests)
+
 - Loading overlay when fetching families
 - Submit button disabled during creation
 
 #### 7. User Experience Edge Cases (2 tests)
+
 - Rapid form submissions (prevents duplicate requests)
 - Form reset after successful creation
 
@@ -341,6 +368,7 @@ cy.checkA11y('[role="dialog"]', {
 ```
 
 **NPM Scripts:**
+
 ```json
 {
   "e2e": "cypress open",           // Interactive mode
@@ -435,22 +463,26 @@ cy.checkA11y('[role="dialog"]', {
 ### Development
 
 1. **Start development server:**
+
    ```bash
    cd src/frontend/family-hub-web
    npm start
    ```
 
 2. **Run unit tests:**
+
    ```bash
    npm test
    ```
 
 3. **Run E2E tests (interactive):**
+
    ```bash
    npm run e2e
    ```
 
 4. **Run E2E tests (headless):**
+
    ```bash
    npm run e2e:headless
    ```
@@ -476,17 +508,20 @@ cy.checkA11y('[role="dialog"]', {
 **1. Angular Signals vs RxJS Observables**
 
 This implementation demonstrates Angular's new Signals API (Angular 16+), which provides:
+
 - **Simpler syntax:** `currentFamily()` instead of `currentFamily$ | async`
 - **Automatic change detection:** No manual subscriptions or unsubscriptions
 - **Computed values:** `hasFamily = computed(() => currentFamily() !== null)`
 - **Type safety:** Full TypeScript inference without explicit types
 
 **When to use Signals:**
+
 - Component state (loading, error, data)
 - Computed derived state
 - Simple synchronous updates
 
 **When to use RxJS:**
+
 - Complex async operations (debouncing, throttling)
 - HTTP requests (already Observable-based)
 - Event streams with operators (map, filter, switchMap)
@@ -494,6 +529,7 @@ This implementation demonstrates Angular's new Signals API (Angular 16+), which 
 **2. Test-Driven Development (TDD) Benefits**
 
 Writing tests first forced better design decisions:
+
 - **Clear interfaces:** Components have minimal, well-defined APIs
 - **Separation of concerns:** FamilyService handles data, components handle UI
 - **Edge case coverage:** Tests caught 9 bugs before implementation (e.g., signal spy configuration)
@@ -502,6 +538,7 @@ Writing tests first forced better design decisions:
 **3. Accessibility as First-Class Citizen**
 
 Accessibility was not an afterthought:
+
 - **axe-core integration:** Automated WCAG 2.1 AA validation in E2E tests
 - **Semantic HTML:** `<button>`, `<form>`, `role="dialog"` instead of `<div>`
 - **ARIA attributes:** `aria-label`, `aria-invalid`, `aria-live` for screen readers
@@ -529,24 +566,24 @@ Accessibility was not an afterthought:
 
 ### Short-Term (Month 1)
 
-3. **Family Member Invitations**
+1. **Family Member Invitations**
    - Email invitation flow
    - Accept/reject invitation UI
    - Family member list component
 
-4. **Calendar Module Integration**
+2. **Calendar Module Integration**
    - Calendar page with FullCalendar
    - Create/edit/delete events
    - Family calendar view
 
 ### Mid-Term (Month 2-3)
 
-5. **Task Module Integration**
+1. **Task Module Integration**
    - Task list component
    - Task creation/assignment
    - Recurring tasks
 
-6. **Event Chain Automation**
+2. **Event Chain Automation**
    - Doctor appointment → calendar event → task workflow
    - First end-to-end event chain demonstration
 

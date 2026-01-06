@@ -217,6 +217,7 @@ const categoryColors = {
 **WCAG 2.1 AA Compliance**
 
 All color combinations meet minimum contrast ratios:
+
 - Normal text (< 18px): 4.5:1
 - Large text (≥ 18px or bold ≥ 14px): 3:1
 - UI components: 3:1
@@ -250,6 +251,7 @@ All color combinations meet minimum contrast ratios:
 ```
 
 **Why Inter?**
+
 - Excellent readability at small sizes
 - Wide range of weights (100-900)
 - Great for UI and body text
@@ -539,6 +541,7 @@ Bold (700):     Headings, section titles
 ### Icon Library: Heroicons (Tailwind)
 
 **Why Heroicons?**
+
 - Consistent with Tailwind CSS ecosystem
 - Two variants: Outline (24px) and Solid (20px)
 - MIT licensed, free to use
@@ -655,6 +658,7 @@ cake              - Birthday
 ### Style Guidelines
 
 **Characteristics:**
+
 - **Friendly & Approachable**: Rounded shapes, soft edges
 - **Diverse & Inclusive**: Represent all family types
 - **Simple & Clear**: Minimal detail, easy to understand
@@ -664,6 +668,7 @@ cake              - Birthday
 ### Illustration Types
 
 **1. Hero Illustrations (Large)**
+
 - Onboarding screens
 - Empty states
 - Error pages
@@ -671,12 +676,14 @@ cake              - Birthday
 - Size: 400x300px to 600x450px
 
 **2. Spot Illustrations (Medium)**
+
 - Success confirmations
 - Achievement unlocks
 - Feature highlights
 - Size: 200x200px to 300x300px
 
 **3. Icons/Glyphs (Small)**
+
 - Category markers
 - Status indicators
 - Inline embellishments
@@ -694,12 +701,14 @@ Neutral (Gray):     Shadows, outlines, secondary objects
 ### Illustration Library
 
 **Recommended Libraries:**
+
 - **unDraw** (undraw.co) - Free, customizable, diverse
 - **Blush** (blush.design) - Mix and match, various styles
 - **Humaaans** (humaaans.com) - Diverse, customizable people
 - **Storyset** (storyset.com) - Animated, free
 
 **Custom Illustrations:**
+
 - Commission custom family-themed illustrations
 - Ensure diversity in representation
 - Maintain consistent style across all assets
@@ -731,6 +740,7 @@ Neutral (Gray):     Shadows, outlines, secondary objects
 ```
 
 **Sizes:**
+
 ```css
 /* Small */
 .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
@@ -851,6 +861,7 @@ Neutral (Gray):     Shadows, outlines, secondary objects
 ```
 
 **Input States:**
+
 ```css
 /* Default */
 .input { border-color: var(--gray-300); }
@@ -1857,4 +1868,3 @@ input[type="checkbox"]:checked {
 **Document Status:** Design System Complete
 **Next Steps:** Implement in Angular components, create Storybook documentation
 **Related Documents:** wireframes.md, angular-component-specs.md, responsive-design-guide.md
-

@@ -40,6 +40,7 @@ mutation RegisterUser($input: RegisterUserInput!) {
 ```
 
 **Password Requirements:**
+
 - Minimum 8 characters
 - Maximum 128 characters
 - At least 1 uppercase letter (A-Z)
@@ -205,6 +206,7 @@ mutation Login($input: LoginInput!) {
 **JWT Token Claims:**
 
 The access token contains the following claims:
+
 - `sub` (subject): User ID (GUID)
 - `email`: User's email address
 - `jti` (JWT ID): Unique token identifier
@@ -215,6 +217,7 @@ The access token contains the following claims:
 - `aud` (audience): Client identifier (family-hub-client)
 
 **Token Expiration:**
+
 - Access Token: 15 minutes
 - Refresh Token: 7 days
 
@@ -231,11 +234,13 @@ The access token contains the following claims:
 ## Testing with GraphQL Playground
 
 1. Start the API:
+
    ```bash
    dotnet run --project FamilyHub.Api
    ```
 
 2. Open Banana Cake Pop (Hot Chocolate GraphQL IDE):
+
    ```
    http://localhost:5000/graphql
    ```
@@ -243,6 +248,7 @@ The access token contains the following claims:
 3. Use the mutation example above to register a user
 
 4. Verify in database:
+
    ```bash
    docker exec familyhub-postgres psql -U familyhub -d familyhub -c "SELECT id, email, email_verified, created_at FROM auth.users;"
    ```

@@ -16,6 +16,7 @@ This component is the first (and currently only) step in the family creation wiz
 ## Features
 
 ### Core Functionality
+
 - Reactive form with Angular Validators
 - Real-time character counter (0/50)
 - Touch-based validation (errors shown only after blur)
@@ -23,16 +24,19 @@ This component is the first (and currently only) step in the family creation wiz
 - Automatic data emission to WizardService
 
 ### Validation Rules
+
 1. **Required:** Family name cannot be empty
 2. **Max Length:** 50 characters maximum
 3. **Touched:** Errors only shown after field interaction
 
 ### Character Counter
+
 - **Gray:** 0-40 characters (normal state)
 - **Amber:** 41-50 characters (approaching limit)
 - **Red:** 51+ characters (blocked by maxlength attribute)
 
 ### Accessibility
+
 - `aria-label`: "Family name"
 - `aria-required`: true
 - `aria-invalid`: Set based on validation state
@@ -162,6 +166,7 @@ npm test -- family-name-step.component.spec.ts
 ```
 
 ### Coverage Areas
+
 - Form initialization with/without data
 - Validation error messages
 - Data change emission
@@ -186,6 +191,7 @@ it('should emit dataChange when form value changes', (done) => {
 This component replaces the family name input from `CreateFamilyModalComponent`. Key differences:
 
 ### Before (Modal)
+
 ```typescript
 // Entire form in modal with submit button
 <app-modal>
@@ -197,6 +203,7 @@ This component replaces the family name input from `CreateFamilyModalComponent`.
 ```
 
 ### After (Wizard Step)
+
 ```typescript
 // Just the form fields, no submit button
 <div class="space-y-6">
@@ -207,6 +214,7 @@ This component replaces the family name input from `CreateFamilyModalComponent`.
 ```
 
 ### Changes
+
 1. **No submit button:** WizardComponent handles navigation
 2. **Data emission:** Uses Output instead of service call
 3. **No loading state:** WizardComponent handles submission
@@ -215,6 +223,7 @@ This component replaces the family name input from `CreateFamilyModalComponent`.
 ## Future Enhancements
 
 ### Phase 2+
+
 - [ ] Real-time uniqueness check (backend validation)
 - [ ] Suggestion list based on common family names
 - [ ] Auto-capitalize first letter
@@ -222,6 +231,7 @@ This component replaces the family name input from `CreateFamilyModalComponent`.
 - [ ] Family name templates
 
 ### Accessibility Improvements
+
 - [ ] Screen reader announcement for character count milestones
 - [ ] High contrast mode support
 - [ ] Keyboard shortcuts for common actions
@@ -229,6 +239,7 @@ This component replaces the family name input from `CreateFamilyModalComponent`.
 ## Best Practices
 
 ### Do's
+
 - Keep form logic isolated to this component
 - Emit data changes reactively
 - Show errors only after touch
@@ -236,6 +247,7 @@ This component replaces the family name input from `CreateFamilyModalComponent`.
 - Test all validation scenarios
 
 ### Don'ts
+
 - Don't call APIs directly (use WizardService)
 - Don't handle navigation (WizardComponent does this)
 - Don't show loading spinners (parent handles)
@@ -252,6 +264,7 @@ This component replaces the family name input from `CreateFamilyModalComponent`.
 ## Support
 
 For questions or issues:
+
 1. Check WizardService documentation
 2. Review FamilyWizardPageComponent integration
 3. See WizardComponent for dynamic loading patterns

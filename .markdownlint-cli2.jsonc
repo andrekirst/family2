@@ -1,0 +1,56 @@
+{
+  // Markdown linting rules for Family Hub documentation
+  // See: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+  "config": {
+    "default": true,
+
+    // MD013: Line length - DISABLED (not auto-fixable, creates too much noise)
+    "MD013": false,
+
+    // MD024: Multiple headings with same content - WARN (common in ADRs)
+    "MD024": { "siblings_only": true },
+
+    // MD033: Inline HTML - ALLOW (needed for complex tables)
+    "MD033": false,
+
+    // MD034: Bare URLs - ALLOW (documentation style choice)
+    "MD034": false,
+
+    // MD036: Emphasis as heading - ALLOW (style choice)
+    "MD036": false,
+
+    // MD040: Code blocks should have language - DISABLED (not auto-fixable)
+    "MD040": false,
+
+    // MD041: First line must be top-level heading - DISABLED (some docs have front matter)
+    "MD041": false,
+
+    // MD051: Link fragments - DISABLED (false positives on valid anchor links)
+    "MD051": false,
+
+    // MD060: Table column formatting - DISABLED (not actually auto-fixable in practice)
+    "MD060": false
+  },
+
+  "globs": ["**/*.md"],
+
+  "ignores": [
+    "node_modules/**",
+    "**/node_modules/**",
+    ".git/",
+    "dist/",
+    "build/",
+    "coverage/",
+    "bin/",
+    "obj/",
+    "playwright-report/",
+    "e2e/test-results/",
+    "e2e/playwright-report/",
+    ".angular/",
+    "package-lock.json",
+    "**/package-lock.json"
+  ],
+
+  "fix": true
+}

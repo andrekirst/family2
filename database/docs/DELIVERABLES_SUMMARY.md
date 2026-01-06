@@ -12,6 +12,7 @@
 This deliverable provides a complete, production-ready database schema design for the Auth Module, implementing user registration, authentication, family group management, and OAuth 2.0 integration with Zitadel.
 
 **Scope:**
+
 - User identity and authentication
 - Email verification workflow
 - Password reset workflow
@@ -300,6 +301,7 @@ This deliverable provides a complete, production-ready database schema design fo
 **Decision:** Use UUID v4 (gen_random_uuid()) for all primary keys
 
 **Rationale:**
+
 - Distributed system compatibility
 - Non-sequential IDs (security benefit)
 - Global uniqueness across services
@@ -311,6 +313,7 @@ This deliverable provides a complete, production-ready database schema design fo
 **Decision:** Implement soft deletes with `deleted_at` timestamp
 
 **Rationale:**
+
 - GDPR compliance (retain data for 30 days)
 - Audit trail preservation
 - Data recovery capability
@@ -322,6 +325,7 @@ This deliverable provides a complete, production-ready database schema design fo
 **Decision:** Enable RLS on all tables with per-user/per-family policies
 
 **Rationale:**
+
 - Defense in depth (database-level multi-tenancy)
 - Protection against application bugs
 - Simplified application code (no need for WHERE user_id = ?)
@@ -333,6 +337,7 @@ This deliverable provides a complete, production-ready database schema design fo
 **Decision:** Use bcrypt with cost factor 12 (60-character hash)
 
 **Rationale:**
+
 - Industry standard for password hashing
 - Adaptive cost factor (can increase over time)
 - Built-in salt generation
@@ -342,10 +347,12 @@ This deliverable provides a complete, production-ready database schema design fo
 ### 5. Token Expiration
 
 **Decision:**
+
 - Email verification: 24-48 hours
 - Password reset: 1-4 hours
 
 **Rationale:**
+
 - Email verification: Reasonable time for users to check email
 - Password reset: Short window to prevent unauthorized access
 - Database-level expiration enforcement (expires_at CHECK)
@@ -356,6 +363,7 @@ This deliverable provides a complete, production-ready database schema design fo
 **Decision:** Comprehensive audit log with JSONB event_data
 
 **Rationale:**
+
 - Security monitoring and compliance
 - Incident investigation support
 - User activity tracking
@@ -368,6 +376,7 @@ This deliverable provides a complete, production-ready database schema design fo
 **Decision:** Four roles (owner, admin, member, child)
 
 **Rationale:**
+
 - Clear permission boundaries
 - Support for parental controls (child role)
 - Delegation capability (admin role)
@@ -379,6 +388,7 @@ This deliverable provides a complete, production-ready database schema design fo
 **Decision:** Database triggers for audit logging and validation
 
 **Rationale:**
+
 - Guaranteed execution (can't be bypassed)
 - Centralized business logic
 - Reduced application code complexity
@@ -445,27 +455,32 @@ SELECT COUNT(*) FROM auth.users WHERE id = 'user-2-uuid';
 ### Immediate (Phase 0 - Foundation)
 
 1. **Set up PostgreSQL 16 database**
+
    ```bash
    createdb family_hub_dev
    ```
 
 2. **Run migrations**
+
    ```bash
    ./database/scripts/run_migrations.sh auth
    ```
 
 3. **Load test data** (development only)
+
    ```bash
    psql family_hub_dev -f database/migrations/auth/004_seed_data.sql
    ```
 
 4. **Verify schema**
+
    ```bash
    psql family_hub_dev -c "\dt auth.*"
    psql family_hub_dev -c "\di auth.*"
    ```
 
 5. **Test RLS policies**
+
    ```sql
    SET app.current_user_id = '00000000-0000-0000-0000-000000000001';
    SELECT * FROM auth.users;  -- Should only return 1 row

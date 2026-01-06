@@ -105,6 +105,7 @@
 ```
 
 **Interaction Notes:**
+
 - Email validation on blur
 - Password visibility toggle icon
 - Smooth transitions between login/signup
@@ -1957,6 +1958,7 @@ Bottom Sheet States:
 ### Empty States
 
 All views should have friendly empty states with:
+
 - Illustrative icon or image
 - Clear message explaining what goes here
 - Primary action button to add first item
@@ -1974,4 +1976,3 @@ All views should have friendly empty states with:
 **Document Status:** Wireframes Complete
 **Next Steps:** Review with stakeholders, validate user flows, begin high-fidelity designs
 **Related Documents:** design-system.md, angular-component-specs.md
-

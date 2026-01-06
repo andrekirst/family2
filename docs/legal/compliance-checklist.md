@@ -12,6 +12,7 @@
 This checklist ensures Family Hub maintains compliance with all applicable privacy and data protection regulations across jurisdictions where we operate.
 
 **Key Regulations Covered:**
+
 - GDPR (General Data Protection Regulation) - EU
 - UK GDPR - United Kingdom
 - COPPA (Children's Online Privacy Protection Act) - USA
@@ -21,6 +22,7 @@ This checklist ensures Family Hub maintains compliance with all applicable priva
 - Other US state privacy laws
 
 **Review Schedule:**
+
 - Quarterly internal review
 - Annual external audit (Phase 5+)
 - Immediate review upon regulatory changes
@@ -553,11 +555,13 @@ This checklist ensures Family Hub maintains compliance with all applicable priva
 ## Contact & Escalation
 
 **Compliance Team:**
+
 - **Legal Advisor**: legal@familyhub.app
 - **Privacy Officer**: privacy@familyhub.app
 - **Security Team**: security@familyhub.app
 
 **Escalation Path:**
+
 1. Compliance Team Member
 2. Legal Advisor
 3. Chief Privacy Officer (if appointed)
@@ -565,6 +569,7 @@ This checklist ensures Family Hub maintains compliance with all applicable priva
 5. CEO
 
 **External Counsel:**
+
 - [Law Firm Name]: [Contact Info] - GDPR, CCPA expertise
 - [Law Firm Name]: [Contact Info] - COPPA expertise
 
@@ -573,6 +578,7 @@ This checklist ensures Family Hub maintains compliance with all applicable priva
 ## Document Control
 
 **Version History:**
+
 - v1.0 (December 20, 2025): Initial compliance checklist
 
 **Next Review:** March 31, 2026 (Q1 2026)
@@ -580,6 +586,7 @@ This checklist ensures Family Hub maintains compliance with all applicable priva
 **Owner:** Legal & Compliance Team
 
 **Approvals:**
+
 - [ ] Chief Privacy Officer
 - [ ] General Counsel
 - [ ] CEO

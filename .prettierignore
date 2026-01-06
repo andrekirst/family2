@@ -1,0 +1,35 @@
+# Build outputs
+dist/
+build/
+coverage/
+bin/
+obj/
+
+# Dependencies
+node_modules/
+
+# Lock files (auto-generated)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Secrets and local configs
+appsettings.Development.json
+appsettings.*.Local.json
+.env
+.env.local
+
+# Auto-generated files
+**/Migrations/*.Designer.cs
+*.generated.ts
+*.spec.ts.snap
+
+# E2E artifacts
+e2e/test-results/
+e2e/playwright-report/
+
+# Git
+.git/
+
+# Angular cache
+.angular/

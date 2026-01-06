@@ -31,6 +31,7 @@ Successfully migrated Family Hub's E2E testing infrastructure from Cypress v15.8
 ### Test Coverage Comparison
 
 **Before (Cypress):**
+
 - Framework: Cypress v15.8.1
 - Browsers: Chromium only
 - Tests: 20+ tests (family creation + accessibility)
@@ -39,6 +40,7 @@ Successfully migrated Family Hub's E2E testing infrastructure from Cypress v15.8
 - API Testing: Limited support
 
 **After (Playwright):**
+
 - Framework: Playwright v1.57.0
 - Browsers: Chromium + Firefox + WebKit
 - Tests: 22 active tests + 2 event chain templates
@@ -55,11 +57,13 @@ Successfully migrated Family Hub's E2E testing infrastructure from Cypress v15.8
 ### 1. Cross-Browser Testing
 
 **Coverage:**
+
 - Chromium (Chrome/Edge) - 65% market share
 - Firefox (Gecko) - 3-5% market share
 - WebKit (Safari) - 15-20% market share (critical for iOS)
 
 **Benefits:**
+
 - Catch browser-specific CSS rendering issues
 - Verify keyboard navigation across engines
 - Test localStorage/cookie behavior (WebKit strictest)
@@ -68,6 +72,7 @@ Successfully migrated Family Hub's E2E testing infrastructure from Cypress v15.8
 ### 2. API-First Testing Infrastructure
 
 **Performance:**
+
 - UI-driven test: 15-30 seconds
 - API-first test: 2-5 seconds
 - **10x speed improvement**
@@ -75,6 +80,7 @@ Successfully migrated Family Hub's E2E testing infrastructure from Cypress v15.8
 ### 3. Superior Debugging Experience
 
 **Playwright Trace Viewer:**
+
 - Timeline view (visual test execution)
 - Network tab (all HTTP requests/responses)
 - Console logs (browser console output)
@@ -120,13 +126,16 @@ Successfully migrated Family Hub's E2E testing infrastructure from Cypress v15.8
 ### Test Execution Time
 
 **Local Development (Sequential):**
+
 - Single browser (Chromium): ~2 minutes (22 tests)
 - All browsers (3): ~6-8 minutes (66 test runs)
 
 **CI/CD (GitHub Actions):**
+
 - Full suite: ~8-10 minutes (includes infrastructure setup)
 
 **Comparison to Cypress:**
+
 - Similar execution time (~5-10 minutes)
 - 3x more test coverage (66 vs 20 runs)
 - Better debugging artifacts (traces vs videos)
@@ -142,6 +151,7 @@ Successfully migrated Family Hub's E2E testing infrastructure from Cypress v15.8
 ### 2. Debugging Workflow
 
 **Before (Cypress):**
+
 1. Test fails in CI
 2. Download video artifact
 3. Watch 2-minute video
@@ -150,6 +160,7 @@ Successfully migrated Family Hub's E2E testing infrastructure from Cypress v15.8
 6. Commit, push, wait for CI
 
 **After (Playwright):**
+
 1. Test fails in CI
 2. Download trace.zip (1 file)
 3. Run: npx playwright show-trace trace.zip

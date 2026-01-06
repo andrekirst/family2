@@ -13,6 +13,7 @@ Phase 2 builds upon Phase 1's generic wizard framework to create a production-re
 **Completion Date:** 2026-01-03
 
 **Components Delivered:**
+
 - FamilyNameStepComponent (wizard step)
 - FamilyWizardPageComponent (page container)
 - familyGuard (route guard)
@@ -57,16 +58,19 @@ Router.navigate('/dashboard') (success)
 ### State Management
 
 **Local Form State:**
+
 - FamilyNameStepComponent manages reactive form
 - Emits changes via dataChange output
 - WizardService persists step data in Map
 
 **Global Family State:**
+
 - FamilyService manages family data via signals
 - currentFamily signal updated on creation
 - hasFamily computed signal for guards
 
 **Navigation State:**
+
 - WizardService tracks currentStepIndex
 - Router handles page navigation
 - Guards control route access
@@ -80,6 +84,7 @@ Router.navigate('/dashboard') (success)
 **Purpose:** Collect and validate family name input.
 
 **Features:**
+
 - Reactive form with validators
 - Real-time character counter
 - Touch-based error display
@@ -87,6 +92,7 @@ Router.navigate('/dashboard') (success)
 - WCAG 2.1 AA accessibility
 
 **Form Schema:**
+
 ```typescript
 {
   name: FormControl<string> // required, maxLength(50)
@@ -94,16 +100,19 @@ Router.navigate('/dashboard') (success)
 ```
 
 **Validation:**
+
 - Required: "Family name is required"
 - MaxLength(50): "Family name must be 50 characters or less"
 - Errors shown only after touch
 
 **Character Counter:**
+
 - Gray (0-40 chars): Normal
 - Amber (41-50 chars): Warning
 - Red (51+ chars): Error (blocked by maxlength)
 
 **Test Coverage:**
+
 - Form initialization
 - Data change emission
 - Validation messages
@@ -117,6 +126,7 @@ Router.navigate('/dashboard') (success)
 **Purpose:** Configure and orchestrate family creation wizard.
 
 **Features:**
+
 - Wizard step configuration
 - Validation logic
 - API integration
@@ -124,11 +134,13 @@ Router.navigate('/dashboard') (success)
 - Success navigation
 
 **Wizard Steps:**
+
 1. family-name (FamilyNameStepComponent) - CURRENT
 2. family-members (planned)
 3. family-preferences (planned)
 
 **Validation Logic:**
+
 ```typescript
 validateOnNext: (stepData) => {
   const data = stepData.get('family-name') as FamilyNameStepData;
@@ -153,6 +165,7 @@ validateOnNext: (stepData) => {
 ```
 
 **Completion Flow:**
+
 1. Extract step data
 2. Validate presence
 3. Trim whitespace
@@ -161,6 +174,7 @@ validateOnNext: (stepData) => {
 6. Navigate to dashboard
 
 **Test Coverage:**
+
 - Wizard configuration
 - Step validation
 - ngOnInit guard check
@@ -175,16 +189,19 @@ validateOnNext: (stepData) => {
 **Guards Implemented:**
 
 #### familyGuard
+
 - **Purpose:** Require family to access route
 - **Redirect:** /family/create (if no family)
 - **Usage:** Dashboard, family features
 
 #### noFamilyGuard
+
 - **Purpose:** Require NO family to access route
 - **Redirect:** /dashboard (if has family)
 - **Usage:** Family creation wizard
 
 **Pattern:**
+
 ```typescript
 export const guardName: CanActivateFn = (route, state) => {
   const service = inject(Service);
@@ -200,6 +217,7 @@ export const guardName: CanActivateFn = (route, state) => {
 ```
 
 **Test Coverage:**
+
 - Allow scenarios
 - Deny scenarios
 - Redirect behavior
@@ -310,6 +328,7 @@ npm test -- --coverage
 ### Manual Testing
 
 **Test Case 1: New User Flow**
+
 1. Log in as new user (no family)
 2. Verify redirect to /family/create
 3. Fill in family name
@@ -318,12 +337,14 @@ npm test -- --coverage
 6. Verify family appears in header
 
 **Test Case 2: Existing User Flow**
+
 1. Log in as user with family
 2. Verify redirect to /dashboard
 3. Try to access /family/create
 4. Verify redirect back to /dashboard
 
 **Test Case 3: Validation**
+
 1. Navigate to /family/create
 2. Leave family name empty
 3. Click "Create Family"
@@ -334,6 +355,7 @@ npm test -- --coverage
 8. Verify error clears
 
 **Test Case 4: Navigation**
+
 1. Start wizard
 2. Click "Back" (should be disabled on first step)
 3. Enter name
@@ -404,6 +426,7 @@ onFamilyCreated() {
 ```
 
 ### Benefits
+
 1. **Separation of Concerns:** Routing logic separate from components
 2. **Better UX:** Full-page wizard vs modal
 3. **Extensibility:** Easy to add steps
@@ -413,12 +436,14 @@ onFamilyCreated() {
 ## Performance Considerations
 
 ### Bundle Size
+
 - FamilyNameStepComponent: ~3KB
 - FamilyWizardPageComponent: ~2KB
 - Guards: ~1KB
 - Total: ~6KB (minified + gzipped)
 
 ### Lazy Loading
+
 ```typescript
 // Future optimization
 {
@@ -428,6 +453,7 @@ onFamilyCreated() {
 ```
 
 ### Rendering Performance
+
 - OnPush change detection in all components
 - Signals for reactive state
 - No unnecessary re-renders
@@ -438,11 +464,13 @@ onFamilyCreated() {
 ### WCAG 2.1 AA Compliance
 
 **Keyboard Navigation:**
+
 - Tab through form fields
 - Enter to submit
 - Escape to cancel (future)
 
 **Screen Reader:**
+
 - aria-label on inputs
 - aria-required on required fields
 - aria-invalid on validation errors
@@ -450,12 +478,14 @@ onFamilyCreated() {
 - role="alert" on error messages
 
 **Visual:**
+
 - Color contrast ratio > 4.5:1
 - Focus indicators visible
 - Error messages clear
 - Character counter color-coded
 
 **Testing:**
+
 ```bash
 # Lighthouse audit
 npm run lighthouse
@@ -467,16 +497,19 @@ npm run a11y-audit
 ## Security
 
 ### XSS Prevention
+
 - All user input sanitized by Angular
 - No innerHTML usage
 - Reactive forms with validators
 
 ### CSRF Protection
+
 - GraphQL mutations use POST
 - CSRF tokens in headers
 - Same-origin policy
 
 ### Input Validation
+
 - Client-side: Length, required
 - Server-side: Length, uniqueness, sanitization
 - Defense in depth
@@ -484,14 +517,17 @@ npm run a11y-audit
 ## Known Issues
 
 ### Issue 1: Character Counter Overflow
+
 **Status:** Resolved
 **Fix:** Added padding-right to input when counter shown
 
 ### Issue 2: Back Button on First Step
+
 **Status:** Expected behavior
 **Note:** Back button disabled on first step (correct)
 
 ### Issue 3: Multiple Effect Emissions
+
 **Status:** Being monitored
 **Note:** Form emits via both effect and valueChanges (intentional for compatibility)
 
@@ -500,12 +536,14 @@ npm run a11y-audit
 ### Phase 3: Additional Steps
 
 **Step 2: Family Members**
+
 - Add initial family members
 - Email invitations
 - Role assignment
 - Optional step
 
 **Step 3: Family Preferences**
+
 - Timezone
 - Language
 - Privacy settings
@@ -514,21 +552,25 @@ npm run a11y-audit
 ### Phase 4: Advanced Features
 
 **Progress Persistence:**
+
 - Save wizard progress to localStorage
 - Resume later
 - Auto-save on navigation
 
 **Conditional Steps:**
+
 - Skip optional steps
 - Dynamic step visibility
 - Branching logic
 
 **Validation Improvements:**
+
 - Real-time uniqueness check
 - Debounced API validation
 - Async validators
 
 **UX Enhancements:**
+
 - Family name suggestions
 - Auto-capitalize
 - Emoji picker
@@ -539,6 +581,7 @@ npm run a11y-audit
 ### Wizard Doesn't Render
 
 **Check:**
+
 1. WizardComponent imported in FamilyWizardPageComponent
 2. Steps configuration not empty
 3. Component types valid
@@ -547,6 +590,7 @@ npm run a11y-audit
 ### Step Component Not Found
 
 **Check:**
+
 1. FamilyNameStepComponent imported
 2. Component is standalone
 3. No circular dependencies
@@ -555,6 +599,7 @@ npm run a11y-audit
 ### Navigation Not Working
 
 **Check:**
+
 1. Guards imported in routes
 2. FamilyService.hasFamily() returning correct value
 3. Router navigate called with correct path
@@ -563,6 +608,7 @@ npm run a11y-audit
 ### Validation Errors
 
 **Check:**
+
 1. validateOnNext function defined
 2. Step ID matches in Map
 3. Data type cast correct
@@ -586,6 +632,7 @@ npm run a11y-audit
 ## Metrics
 
 ### Code Metrics
+
 - **Components:** 2 (FamilyNameStep, FamilyWizardPage)
 - **Guards:** 2 (familyGuard, noFamilyGuard)
 - **Tests:** 3 spec files
@@ -593,12 +640,14 @@ npm run a11y-audit
 - **Test Coverage:** 95%+
 
 ### Performance Metrics
+
 - **Bundle Size:** ~6KB (minified + gzipped)
 - **Load Time:** <100ms
 - **Render Time:** <50ms
 - **Lighthouse Score:** 98/100
 
 ### Quality Metrics
+
 - **TypeScript:** Strict mode enabled
 - **ESLint:** Zero errors
 - **Prettier:** Formatted
@@ -615,6 +664,7 @@ npm run a11y-audit
 ## Support
 
 For questions or issues:
+
 1. Check component README files
 2. Review unit tests for usage examples
 3. See WizardComponent documentation

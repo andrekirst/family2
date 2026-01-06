@@ -1,11 +1,13 @@
 # Family Management UI - Implementation Plan
 
 ## Overview
+
 Implement the Family Management UI to complete Week 7 of Phase 1, providing a complete end-to-end vertical slice for the family member invitation system.
 
 ## Architecture
 
 ### Component Structure
+
 ```
 features/family/
 ├── pages/
@@ -179,6 +181,7 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 **Purpose:** Main page that combines members list, pending invitations, and invite action.
 
 **Layout:**
+
 ```
 ┌─────────────────────────────────────────────────┐
 │ Family Management                               │
@@ -202,6 +205,7 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 ```
 
 **Features:**
+
 - Auto-loads members and invitations on mount
 - Refresh button to reload data
 - Role-based visibility (only OWNER/ADMIN can see this page)
@@ -213,10 +217,12 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 **Purpose:** Display all family members with their roles.
 
 **Props:**
+
 - `members: FamilyMember[]` - Array of family members
 - `currentUserRole: string` - Current user's role (for permission checks)
 
 **Features:**
+
 - Role badge with color coding:
   - OWNER: purple
   - ADMIN: blue
@@ -233,10 +239,12 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 **Purpose:** Display pending invitations with cancel action.
 
 **Props:**
+
 - `invitations: PendingInvitation[]` - Array of pending invitations
 - `onCancel: (invitationId: string) => void` - Callback for cancel action
 
 **Features:**
+
 - Show different displays for email vs managed account invitations
 - Show expiration countdown (e.g., "Expires in 13 days")
 - Cancel button (with confirmation dialog)
@@ -250,12 +258,14 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 **Purpose:** Form for inviting new members (both email and managed accounts).
 
 **Features:**
+
 - Tab switcher:
   - **Email Invitations** tab
   - **Managed Accounts** tab
   - **Batch Mode** tab (allows CSV/multi-entry)
 
 **Email Invitation Form:**
+
 ```typescript
 {
   email: string;              // Required, validated
@@ -265,6 +275,7 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 ```
 
 **Managed Account Form:**
+
 ```typescript
 {
   username: string;           // Required, 3-20 chars, alphanumeric
@@ -281,11 +292,13 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 ```
 
 **Validation:**
+
 - Email format validation
 - Username uniqueness check
 - Role authorization check (current user must be OWNER/ADMIN)
 
 **Actions:**
+
 - Submit → calls `batchInviteFamilyMembers` mutation
 - Cancel → closes modal
 - On success with managed account → opens CredentialsDisplayModal
@@ -297,6 +310,7 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 **Purpose:** One-time display of generated credentials for managed accounts.
 
 **Critical Security Features:**
+
 - ⚠️ **ONE-TIME VIEW ONLY** - credentials are NEVER retrievable after closing
 - Cannot be reopened after closing
 - Print button for physical copy
@@ -304,6 +318,7 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 - Large warning banner explaining one-time nature
 
 **Layout:**
+
 ```
 ┌───────────────────────────────────────────────┐
 │ ⚠️ IMPORTANT: Save These Credentials Now     │
@@ -321,11 +336,13 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 ```
 
 **Props:**
+
 - `credentials: ManagedAccountCredentials` - Credentials to display
 - `username: string` - Associated username
 - `onClose: () => void` - Callback when closed
 
 **Features:**
+
 - Cannot be closed via ESC key or backdrop click (must click "I Have Saved This")
 - Confirmation dialog before closing
 - Print view optimized for physical storage
@@ -337,10 +354,12 @@ mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
 **Purpose:** Reusable component for displaying user roles with consistent styling.
 
 **Props:**
+
 - `role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'MANAGED_ACCOUNT'` - Role to display
 - `size?: 'sm' | 'md' | 'lg'` - Size variant (default: 'md')
 
 **Styling:**
+
 ```typescript
 const roleStyles = {
   OWNER:           'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
@@ -368,6 +387,7 @@ export class RoleGuard {
 ```
 
 **Route Configuration:**
+
 ```typescript
 {
   path: 'family/manage',
@@ -391,6 +411,7 @@ export class HasRoleDirective {
 ```
 
 **Usage:**
+
 ```html
 <button *hasRole="['OWNER', 'ADMIN']" (click)="inviteMember()">
   Invite Member
@@ -437,6 +458,7 @@ export class FamilyService {
 ## Testing Strategy
 
 ### Unit Tests
+
 - [ ] FamilyMembersList component rendering
 - [ ] PendingInvitations component rendering
 - [ ] InviteMemberModal form validation
@@ -446,12 +468,14 @@ export class FamilyService {
 - [ ] RoleGuard permission logic
 
 ### Integration Tests
+
 - [ ] FamilyManagementPage loads data on mount
 - [ ] Invite flow completes successfully
 - [ ] Cancel invitation works
 - [ ] Role-based visibility enforcement
 
 ### E2E Tests (Playwright)
+
 - [ ] Complete email invitation workflow
 - [ ] Complete managed account creation workflow
 - [ ] Credentials display and save workflow
@@ -461,40 +485,47 @@ export class FamilyService {
 ## Implementation Order
 
 ### Phase 1: Services & Models (1-2 hours)
+
 1. ✅ Define TypeScript interfaces
 2. ✅ Create InvitationService
 3. ✅ Extend FamilyService with member queries
 4. ✅ Write service unit tests
 
 ### Phase 2: Core Components (3-4 hours)
+
 1. ✅ Create RoleBadge component
 2. ✅ Create FamilyMembersList component
 3. ✅ Create PendingInvitationsComponent
 4. ✅ Write component unit tests
 
 ### Phase 3: Modals (2-3 hours)
+
 1. ✅ Create InviteMemberModal component
 2. ✅ Create CredentialsDisplayModal component
 3. ✅ Write modal unit tests
 
 ### Phase 4: Page Integration (2-3 hours)
+
 1. ✅ Create FamilyManagementPage
 2. ✅ Wire up all components
 3. ✅ Add routing
 4. ✅ Write integration tests
 
 ### Phase 5: Permissions (1-2 hours)
+
 1. ✅ Create RoleGuard
 2. ✅ Create *hasRole directive
 3. ✅ Apply guards to routes
 4. ✅ Write permission tests
 
 ### Phase 6: E2E Testing (2-3 hours)
+
 1. ✅ Write invitation E2E tests
 2. ✅ Write credentials display E2E test
 3. ✅ Write permission enforcement E2E test
 
 ### Phase 7: Polish & Documentation (1-2 hours)
+
 1. ✅ Add loading states
 2. ✅ Add error handling
 3. ✅ Add accessibility labels
@@ -505,6 +536,7 @@ export class FamilyService {
 ## Success Criteria
 
 ✅ **Functional:**
+
 - Owner/Admin can view all family members with roles
 - Owner/Admin can view pending invitations
 - Owner/Admin can invite members via email or managed account
@@ -512,6 +544,7 @@ export class FamilyService {
 - Non-owners/admins cannot access family management page
 
 ✅ **Technical:**
+
 - All unit tests passing (>80% coverage)
 - All integration tests passing
 - All E2E tests passing
@@ -519,6 +552,7 @@ export class FamilyService {
 - No console errors or warnings
 
 ✅ **UX:**
+
 - Loading states for all async operations
 - Error messages for failed operations
 - Confirmation dialogs for destructive actions
@@ -530,6 +564,7 @@ export class FamilyService {
 After completing the Family Management UI (Week 7), the next phase is:
 
 **Weeks 8-10: Calendar Service**
+
 - CalendarEvent aggregate (backend)
 - Calendar view UI (FullCalendar integration)
 - Event creation and editing

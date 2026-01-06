@@ -69,6 +69,7 @@
 ### ✅ Code Organization
 
 - [x] **File Structure**
+
   ```
   /Application/
     /Queries/GetZitadelAuthUrl/      ✅ CQRS pattern
@@ -283,6 +284,7 @@
   - [ ] Copy ClientId and ClientSecret
 
 - [ ] **appsettings.Staging.json**
+
   ```json
   {
     "Zitadel": {
@@ -304,6 +306,7 @@
 ### Deployment
 
 - [ ] **Build & Push Docker Image**
+
   ```bash
   docker build -t familyhub-api:staging .
   docker tag familyhub-api:staging acr.io/familyhub-api:staging
@@ -311,6 +314,7 @@
   ```
 
 - [ ] **Deploy to Kubernetes**
+
   ```bash
   kubectl apply -f k8s/staging/
   kubectl rollout status deployment/familyhub-api -n staging
@@ -389,6 +393,7 @@
   - [ ] Configure custom domain: `auth.familyhub.app`
 
 - [ ] **appsettings.Production.json**
+
   ```json
   {
     "Zitadel": {
@@ -416,6 +421,7 @@
 ### Security Hardening
 
 - [ ] **Rate Limiting**
+
   ```csharp
   services.Configure<IpRateLimitOptions>(options =>
   {
@@ -432,6 +438,7 @@
   ```
 
 - [ ] **CORS**
+
   ```csharp
   options.AddPolicy("Production", policy =>
   {
@@ -452,6 +459,7 @@
 ### Deployment
 
 - [ ] **Database Backup**
+
   ```bash
   pg_dump -h production-db -U familyhub familyhub > backup_before_oauth_$(date +%Y%m%d).sql
   ```
@@ -491,6 +499,7 @@
 ### User Communication
 
 - [ ] **Migration Email (2 weeks before)**
+
   ```
   Subject: Important: Family Hub Login Update
 
@@ -572,6 +581,7 @@
 ### If OAuth Fails in Production
 
 **Symptoms:**
+
 - High error rate (> 10%)
 - Users unable to login
 - JWT validation failures
@@ -580,12 +590,14 @@
 **Immediate Actions:**
 
 1. **Alert Team**
+
    ```bash
    # Notify on-call engineer
    pagerduty trigger --service familyhub-api --description "OAuth failure"
    ```
 
 2. **Switch to Blue Environment**
+
    ```bash
    # Immediate traffic switch
    kubectl patch service familyhub-api -p '{"spec":{"selector":{"version":"blue"}}}'
@@ -603,6 +615,7 @@
    - [ ] Schedule re-deployment
 
 **Prevention:**
+
 - Staging deployment for 7 days before production
 - Gradual traffic rollout (10% → 50% → 100%)
 - Blue environment kept running for 24h after deployment

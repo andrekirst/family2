@@ -26,12 +26,14 @@ Family Hub is committed to creating an inclusive, accessible platform that serve
 ### 1. Perceivable
 
 #### 1.1 Text Alternatives (Level A)
+
 - **Images**: All images have descriptive alt text
 - **Icons**: Icon buttons have aria-label attributes
 - **Charts**: Data visualizations include text summaries
 - **Decorative elements**: Use `alt=""` or `aria-hidden="true"`
 
 **Implementation:**
+
 ```html
 <!-- Good -->
 <img src="calendar-icon.svg" alt="Calendar" />
@@ -43,17 +45,20 @@ Family Hub is committed to creating an inclusive, accessible platform that serve
 ```
 
 #### 1.2 Time-Based Media (Level A)
+
 - **Video tutorials**: Provide captions and transcripts
 - **Audio notifications**: Visual alternatives available
 - **Animated content**: Can be paused or disabled
 
 #### 1.3 Adaptable (Level A)
+
 - **Semantic HTML**: Use proper heading hierarchy (h1-h6)
 - **Landmarks**: `<nav>`, `<main>`, `<aside>`, `<footer>`
 - **Lists**: Use `<ul>`, `<ol>` for grouped items
 - **Forms**: Properly labeled inputs with `<label>` elements
 
 **Semantic Structure:**
+
 ```html
 <main>
   <h1>Dashboard</h1>
@@ -70,11 +75,13 @@ Family Hub is committed to creating an inclusive, accessible platform that serve
 #### 1.4 Distinguishable (Level AA)
 
 **Color Contrast Requirements:**
+
 - **Normal text** (< 18pt): 4.5:1 contrast ratio minimum
 - **Large text** (≥ 18pt or 14pt bold): 3:1 contrast ratio minimum
 - **UI components**: 3:1 contrast ratio (buttons, form inputs, icons)
 
 **Verified Combinations:**
+
 | Element | Foreground | Background | Ratio | Pass |
 |---------|------------|------------|-------|------|
 | Body text | #1F2937 | #FFFFFF | 16.1:1 | ✅ AA |
@@ -84,16 +91,19 @@ Family Hub is committed to creating an inclusive, accessible platform that serve
 | Error message | #DC2626 | #FFFFFF | 5.9:1 | ✅ AA |
 
 **Color Independence:**
+
 - Never rely on color alone to convey information
 - Use icons + color (green checkmark for success, red X for error)
 - Underline links in addition to color change
 
 **Text Resizing:**
+
 - Support 200% zoom without horizontal scrolling
 - Responsive typography (scales with viewport)
 - No fixed pixel font sizes (use rem/em)
 
 **Focus Indicators:**
+
 - Visible focus outline (3px solid, high contrast)
 - Never remove `:focus` styles
 - Focus order follows logical reading order
@@ -115,17 +125,20 @@ input:focus-visible {
 #### 2.1 Keyboard Accessible (Level A)
 
 **All functionality available via keyboard:**
+
 - Tab navigation through interactive elements
 - Enter/Space to activate buttons/links
 - Arrow keys for navigation (calendar, dropdowns)
 - Escape to close modals/dialogs
 
 **Skip Links:**
+
 ```html
 <a href="#main-content" class="skip-link">Skip to main content</a>
 ```
 
 **Keyboard Shortcuts (optional, Phase 2+):**
+
 | Shortcut | Action |
 |----------|--------|
 | Alt + D | Go to Dashboard |
@@ -136,16 +149,19 @@ input:focus-visible {
 | Escape | Close modal/menu |
 
 #### 2.2 Enough Time (Level A)
+
 - **No time limits** on form submission
 - **Session timeout**: 30-minute warning before logout
 - **Notifications**: Stay visible until dismissed (no auto-dismiss)
 
 #### 2.3 Seizures and Physical Reactions (Level A)
+
 - **No flashing content** > 3 times per second
 - **Parallax effects**: Respect `prefers-reduced-motion`
 - **Animations**: Can be disabled in preferences
 
 **Reduced Motion:**
+
 ```css
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -157,6 +173,7 @@ input:focus-visible {
 ```
 
 #### 2.4 Navigable (Level AA)
+
 - **Page titles**: Descriptive, unique (`<title>Family Hub - Dashboard</title>`)
 - **Focus order**: Logical, follows visual layout
 - **Link purpose**: Clear from text alone ("Edit event" not "Click here")
@@ -164,6 +181,7 @@ input:focus-visible {
 - **Headings**: Properly nested, describe content
 
 #### 2.5 Input Modalities (Level A)
+
 - **Touch targets**: Minimum 44×44px (Nielsen Norman Group)
 - **Gestures**: Alternatives to complex gestures (swipe to delete also has button)
 - **Motion actuation**: No shake-to-undo (Phase 2+ consideration)
@@ -173,12 +191,14 @@ input:focus-visible {
 ### 3. Understandable
 
 #### 3.1 Readable (Level A)
+
 - **Language**: `<html lang="en">`
 - **Language changes**: Mark inline with `lang` attribute
 - **Reading level**: 8th grade or lower for general content
 - **Jargon**: Avoid or explain technical terms
 
 #### 3.2 Predictable (Level A)
+
 - **Consistent navigation**: Same order across all pages
 - **Consistent identification**: Icons/labels mean the same thing everywhere
 - **No context changes on focus**: Opening a dropdown doesn't submit a form
@@ -187,11 +207,13 @@ input:focus-visible {
 #### 3.3 Input Assistance (Level AA)
 
 **Form Validation:**
+
 - **Error identification**: Clearly state what's wrong
 - **Error suggestions**: "Email must include @" not "Invalid format"
 - **Error prevention**: Confirm before destructive actions (delete family)
 
 **Example:**
+
 ```html
 <form>
   <label for="email">Email address</label>
@@ -212,11 +234,13 @@ input:focus-visible {
 ### 4. Robust
 
 #### 4.1 Compatible (Level A)
+
 - **Valid HTML**: Pass W3C validation
 - **ARIA**: Use only when HTML semantics aren't sufficient
 - **Name, Role, Value**: All UI components expose these to assistive tech
 
 **ARIA Best Practices:**
+
 ```html
 <!-- Modal -->
 <div role="dialog" aria-labelledby="modal-title" aria-modal="true">
@@ -242,6 +266,7 @@ input:focus-visible {
 ## COPPA Compliance (Children Under 13)
 
 ### Overview
+
 The Children's Online Privacy Protection Act (COPPA) requires parental consent before collecting personal information from children under 13.
 
 ### COPPA Requirements
@@ -249,6 +274,7 @@ The Children's Online Privacy Protection Act (COPPA) requires parental consent b
 #### 1. Parental Consent Mechanism
 
 **Verifiable Parental Consent Methods:**
+
 - **Email + confirmation** (acceptable for Family Hub use case)
   1. Parent creates child account
   2. System sends consent email to parent's verified email
@@ -256,6 +282,7 @@ The Children's Online Privacy Protection Act (COPPA) requires parental consent b
   4. Child account activated
 
 **Implementation Flow:**
+
 ```
 Parent (Sarah) → Add Child Member → Enter child name & birthdate
   ↓
@@ -271,6 +298,7 @@ Consent logged with timestamp (audit trail)
 ```
 
 **Alternative (Phase 2+):**
+
 - Credit card verification ($0.50 charge, refunded)
 - Video conference verification
 - Government ID upload
@@ -278,6 +306,7 @@ Consent logged with timestamp (audit trail)
 #### 2. Limited Data Collection
 
 **What we CANNOT collect from children:**
+
 - ❌ Email address (unless parent-provided)
 - ❌ Phone number
 - ❌ Physical address
@@ -287,6 +316,7 @@ Consent logged with timestamp (audit trail)
 - ❌ Persistent identifiers for advertising
 
 **What we CAN collect (with consent):**
+
 - ✅ First name (for task assignment)
 - ✅ Birthdate (for age verification)
 - ✅ Task completion data (for gamification)
@@ -294,6 +324,7 @@ Consent logged with timestamp (audit trail)
 - ✅ Parent-assigned chores
 
 **Data Minimization:**
+
 - Store only what's necessary for functionality
 - No third-party analytics for child accounts (no Google Analytics)
 - No targeted advertising (Family Hub has no ads anyway)
@@ -301,12 +332,14 @@ Consent logged with timestamp (audit trail)
 #### 3. Parental Control & Oversight
 
 **Parents can:**
+
 - ✅ View Noah's activity (tasks completed, points earned)
 - ✅ Delete Noah's data (from Family Settings)
 - ✅ Modify Noah's permissions
 - ✅ Revoke consent (delete child account)
 
 **Parental Dashboard:**
+
 ```
 Noah Thompson (Age 7)
 ├── Activity Log
@@ -326,11 +359,13 @@ Noah Thompson (Age 7)
 #### 4. Data Retention & Deletion
 
 **Retention Policy:**
+
 - Child data retained only while account is active
 - When child turns 13: Account converts to teen account (parent notified)
 - When parent deletes child account: All data deleted within 30 days
 
 **Right to Deletion:**
+
 - Parent can delete child data at any time
 - Delete button in Family Settings → Noah's profile
 - Confirmation required: "Delete all of Noah's data? This cannot be undone."
@@ -338,11 +373,13 @@ Noah Thompson (Age 7)
 #### 5. No Direct Marketing to Children
 
 **Prohibited:**
+
 - ❌ Sending promotional emails to child
 - ❌ Push notifications about new features (to child)
 - ❌ In-app ads (Family Hub has none anyway)
 
 **Allowed:**
+
 - ✅ Task reminders ("Time to feed the dog!")
 - ✅ Points earned notifications ("You earned 10 points!")
 - ✅ Parent-sent messages
@@ -350,6 +387,7 @@ Noah Thompson (Age 7)
 #### 6. Privacy Policy (Plain Language)
 
 **Child-Friendly Privacy Notice:**
+
 ```markdown
 # Privacy for Kids
 
@@ -381,6 +419,7 @@ Questions? Ask your parent!
 ### Children (Under 13) - Noah's Experience
 
 **UI Simplifications:**
+
 - **Large text**: 18pt minimum, 2nd grade reading level
 - **Visual icons**: Every task has icon/emoji (🐕 "Feed dog", 🦷 "Brush teeth")
 - **Minimal text**: 3-7 words per task description
@@ -388,17 +427,20 @@ Questions? Ask your parent!
 - **No complex features**: No calendar, no lists, just "My Tasks"
 
 **Gamification Emphasis:**
+
 - **Points**: Large, animated counter ("+10 points!" with confetti)
 - **Badges**: Visual showcase (gold star, trophy icons)
 - **Progress bars**: Visual representation of completion
 - **Sounds**: "Task complete!" audio feedback (parent can disable)
 
 **Color Coding:**
+
 - **High contrast**: Dark text on light background
 - **Color + shape**: Green checkmark (not just green)
 - **Simple palette**: 3-4 colors max
 
 **Example Task Card:**
+
 ```
 ┌─────────────────────────────┐
 │  🐕                          │
@@ -412,18 +454,21 @@ Questions? Ask your parent!
 ### Teens (13-17) - Emma's Experience
 
 **Modern, Minimalist UI:**
+
 - **Dark mode**: Default for teens
 - **Swipe gestures**: Native mobile interactions
 - **Icon-heavy**: Less text, more visual
 - **Fast**: No loading spinners, instant updates
 
 **Privacy Controls:**
+
 - Emma can mark events as "Private" (hidden from Noah)
 - Emma can opt-out of gamification (if she finds it childish)
 
 ### Seniors (Extended Family) - Margaret's Experience
 
 **Accessibility Enhancements:**
+
 - **Large text**: 150% default font size
 - **High contrast**: Light mode default
 - **Simple navigation**: No hamburger menus, clear labels ("Calendar" not "📅")
@@ -431,6 +476,7 @@ Questions? Ask your parent!
 - **Voice input**: Siri dictation for shopping lists
 
 **Error Prevention:**
+
 - **Confirmation dialogs**: "Are you sure you want to delete this event?"
 - **Undo**: 10-second undo for accidental deletions
 - **Read-only default**: Margaret can view but can't accidentally delete Sarah's events
@@ -442,12 +488,14 @@ Questions? Ask your parent!
 ### Screen Readers
 
 **Supported:**
+
 - **NVDA** (Windows, free)
 - **JAWS** (Windows, paid)
 - **VoiceOver** (iOS/macOS, built-in)
 - **TalkBack** (Android, built-in)
 
 **Best Practices:**
+
 - **Semantic HTML**: Use `<button>` not `<div role="button">`
 - **ARIA labels**: Describe icon buttons (`aria-label="Add event"`)
 - **Live regions**: Announce dynamic updates (`aria-live="polite"`)
@@ -455,6 +503,7 @@ Questions? Ask your parent!
 - **Focus management**: Move focus to modal when opened
 
 **Testing:**
+
 - Test all critical flows with VoiceOver (iOS)
 - Test with NVDA (free, Windows)
 - Hire accessibility consultant for audit (Phase 1 completion)
@@ -462,11 +511,13 @@ Questions? Ask your parent!
 ### Screen Magnifiers
 
 **Zoom Support:**
+
 - **200% zoom**: No horizontal scrolling required
 - **400% zoom**: Content reflows, still usable
 - **Pinch-to-zoom**: Enabled on mobile (no `user-scalable=no`)
 
 **Implementation:**
+
 ```html
 <!-- Good -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -478,6 +529,7 @@ Questions? Ask your parent!
 ### Voice Control
 
 **Voice Access (Android) / Voice Control (iOS):**
+
 - All interactive elements have accessible names
 - Buttons have visible text labels (not just icons)
 - Voice commands: "Tap Add Event", "Scroll down", "Go back"
@@ -485,6 +537,7 @@ Questions? Ask your parent!
 ### Keyboard-Only Users
 
 **Full keyboard navigation:**
+
 - Tab order follows visual layout
 - Enter/Space activates buttons
 - Arrow keys navigate dropdowns, calendar
@@ -498,12 +551,14 @@ Questions? Ask your parent!
 ### Automated Testing
 
 **Tools:**
+
 - **axe DevTools** (Chrome extension) - Run on every page
 - **Lighthouse** (Chrome DevTools) - Accessibility score 90+
 - **WAVE** (WebAIM) - Identify errors and warnings
 - **Pa11y** (CI integration) - Automated accessibility testing
 
 **CI/CD Integration:**
+
 ```yaml
 # GitHub Actions
 - name: Run accessibility tests
@@ -517,6 +572,7 @@ Questions? Ask your parent!
 #### WCAG 2.1 AA Checklist (50 items)
 
 **Perceivable:**
+
 - [ ] All images have alt text
 - [ ] Color contrast meets 4.5:1 (text) and 3:1 (UI)
 - [ ] Content is not conveyed by color alone
@@ -524,6 +580,7 @@ Questions? Ask your parent!
 - [ ] Focus indicators are visible (3px outline)
 
 **Operable:**
+
 - [ ] All functionality available via keyboard
 - [ ] Skip links present ("Skip to main content")
 - [ ] No keyboard traps
@@ -532,6 +589,7 @@ Questions? Ask your parent!
 - [ ] Animations respect `prefers-reduced-motion`
 
 **Understandable:**
+
 - [ ] Page titles are descriptive
 - [ ] Language is set (`<html lang="en">`)
 - [ ] Navigation is consistent across pages
@@ -539,6 +597,7 @@ Questions? Ask your parent!
 - [ ] Error messages provide suggestions
 
 **Robust:**
+
 - [ ] HTML validates (W3C)
 - [ ] ARIA is used correctly
 - [ ] Works with screen readers (VoiceOver, NVDA)
@@ -559,6 +618,7 @@ Questions? Ask your parent!
 ### User Testing
 
 **Test with Real Users:**
+
 1. **Screen reader user** (test with VoiceOver/NVDA)
 2. **Keyboard-only user** (no mouse)
 3. **Low vision user** (magnification, high contrast)
@@ -566,6 +626,7 @@ Questions? Ask your parent!
 5. **Child user** (Noah persona, 7 years old, supervised)
 
 **Test Scenarios:**
+
 - Onboarding: Create family, add members
 - Create event: Add to calendar, set reminder
 - Assign task: Assign chore to child
@@ -613,11 +674,13 @@ We welcome feedback on accessibility. If you encounter any barriers, please emai
 ## Accessibility Roadmap
 
 ### Phase 0 (Foundation)
+
 - [x] Define accessibility strategy
 - [ ] Set up automated testing (axe, Pa11y)
 - [ ] Establish WCAG 2.1 AA baseline
 
 ### Phase 1 (MVP)
+
 - [ ] Implement semantic HTML structure
 - [ ] Ensure 4.5:1 color contrast
 - [ ] Full keyboard navigation
@@ -625,12 +688,14 @@ We welcome feedback on accessibility. If you encounter any barriers, please emai
 - [ ] Screen reader testing (VoiceOver, NVDA)
 
 ### Phase 2
+
 - [ ] High contrast mode (beyond standard)
 - [ ] Keyboard shortcuts (Alt + D for Dashboard, etc.)
 - [ ] Voice control optimization
 - [ ] Third-party accessibility audit
 
 ### Phase 3+
+
 - [ ] WCAG 2.1 Level AAA (where feasible)
 - [ ] International accessibility standards (EN 301 549)
 - [ ] Accessibility training for development team

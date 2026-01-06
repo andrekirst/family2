@@ -76,6 +76,7 @@ Family Hub uses **Entity Framework Core Code-First migrations** instead of custo
 - **PostgreSQL-specific features** (RLS, triggers) via `migrationBuilder.Sql()`
 
 See `/database/docs/MIGRATION_STRATEGY.md` for comprehensive guide including:
+
 - Creating migrations
 - Applying migrations
 - Rollback strategies
@@ -230,6 +231,7 @@ The original SQL migration scripts created during Phase 0 planning are preserved
 ```
 
 **These scripts are NOT executed** - they serve as **reference documentation** for:
+
 - RLS policy patterns
 - Trigger logic
 - Database constraints
@@ -240,6 +242,7 @@ See `/database/docs/reference/sql-design/README.md` for details.
 ### Schema Design
 
 Comprehensive schema design documentation:
+
 - **Auth Module**: `/database/docs/AUTH_SCHEMA_DESIGN.md`
 
 These documents describe the intended database structure, relationships, and features that are implemented via EF Core migrations.

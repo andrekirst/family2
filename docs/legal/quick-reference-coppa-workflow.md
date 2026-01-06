@@ -13,12 +13,14 @@
 The Children's Online Privacy Protection Act (COPPA) requires **verifiable parental consent** before collecting personal information from children under 13.
 
 **Key Requirements:**
+
 1. Obtain verifiable parental consent before collecting data
 2. Collect only necessary data (minimal data collection)
 3. Provide parental controls (view, modify, delete)
 4. No marketing to children
 
 **Consequences of Non-Compliance:**
+
 - FTC fines up to $46,517 per violation
 - Reputational damage
 - Loss of user trust
@@ -93,6 +95,7 @@ You can view, modify, or delete Noah's data anytime.
 ```
 
 **Backend Action:**
+
 - Create child account in "Pending Consent" state
 - Generate unique consent token (expires in 7 days)
 - Send consent email to parent's verified email address
@@ -199,6 +202,7 @@ Page:
 ```
 
 **Backend Action:**
+
 1. Validate consent token (not expired, matches parent + child)
 2. Mark child account as "Consent Given"
 3. Log consent with timestamp (audit trail)
@@ -446,6 +450,7 @@ Why are you deleting Noah's account?
 ```
 
 **Backend Action:**
+
 - Soft delete: Mark account as deleted (retain for 30 days)
 - Hard delete after 30 days: Permanently erase all data
 - Send confirmation email to parent
@@ -563,6 +568,7 @@ Questions? Email privacy@familyhub.app
 ### On 13th Birthday
 
 **Backend Action:**
+
 1. Update user role: Child → Teen
 2. Unlock restricted features (create events, add to lists)
 3. Send notification to parent
@@ -677,6 +683,7 @@ ORDER BY cl.consented_at DESC;
 ## Legal Review Checklist
 
 **Engage COPPA Attorney:**
+
 - [ ] Review parental consent flow (email + confirmation)
 - [ ] Validate data collection restrictions (no email, phone, location)
 - [ ] Audit privacy notice (clear, plain language)
@@ -693,15 +700,18 @@ ORDER BY cl.consented_at DESC;
 ## Emergency Contacts
 
 **FTC COPPA Inquiries:**
+
 - Website: https://www.ftc.gov/COPPA
 - Phone: 1-877-FTC-HELP (1-877-382-4357)
 - Email: consumerline@ftc.gov
 
 **Legal Team:**
+
 - Privacy Officer: privacy@familyhub.app
 - COPPA Attorney: [Name] ([Email])
 
 **Incident Response (COPPA Violation):**
+
 1. Immediately notify parent via email
 2. Delete child's data within 24 hours
 3. Document incident and remediation
@@ -714,6 +724,7 @@ ORDER BY cl.consented_at DESC;
 COPPA compliance is CRITICAL to Family Hub's legal foundation. Follow this workflow meticulously and engage a COPPA specialist attorney before public launch.
 
 **Key Takeaways:**
+
 - Verifiable parental consent is required (email + confirmation)
 - Collect only minimal data (first name, birthdate, tasks)
 - No email, phone, location, photos for children < 13
@@ -722,6 +733,7 @@ COPPA compliance is CRITICAL to Family Hub's legal foundation. Follow this workf
 - Age transition at 13 is automatic
 
 **Next Steps:**
+
 1. Week 0: Engage COPPA attorney
 2. Week 3-4: Implement parental consent flow
 3. Week 4: Test COPPA workflow end-to-end

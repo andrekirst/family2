@@ -10,6 +10,7 @@
 ## Overview
 
 This document defines the complete GraphQL schema for the Family Member Invitation System, including:
+
 - **Mutations:** Create, cancel, resend, accept invitations
 - **Queries:** Retrieve family members and pending invitations
 - **Subscriptions:** Real-time updates for members and invitations
@@ -24,6 +25,7 @@ This document defines the complete GraphQL schema for the Family Member Invitati
 Send a token-based email invitation with 14-day expiration.
 
 **Input:**
+
 ```graphql
 input InviteFamilyMemberByEmailInput {
   familyId: ID!
@@ -34,6 +36,7 @@ input InviteFamilyMemberByEmailInput {
 ```
 
 **Payload:**
+
 ```graphql
 type InviteFamilyMemberByEmailPayload {
   invitation: PendingInvitation
@@ -45,6 +48,7 @@ type InviteFamilyMemberByEmailPayload {
 **Authorization:** Requires OWNER or ADMIN role.
 
 **Example:**
+
 ```graphql
 mutation {
   inviteFamilyMemberByEmail(input: {
@@ -76,6 +80,7 @@ mutation {
 Create a Zitadel-managed account with auto-generated credentials (for children, elderly, etc.).
 
 **Input:**
+
 ```graphql
 input CreateManagedMemberInput {
   familyId: ID!
@@ -95,6 +100,7 @@ input PasswordGenerationConfigInput {
 ```
 
 **Payload:**
+
 ```graphql
 type CreateManagedMemberPayload {
   invitation: PendingInvitation
@@ -115,12 +121,14 @@ type ManagedAccountCredentials {
 **Authorization:** Requires OWNER or ADMIN role.
 
 **Security:**
+
 - Credentials are returned **only once** during creation
 - Never stored in plaintext
 - Never retrievable via API after creation
 - Frontend must display credentials with copy/download options
 
 **Example:**
+
 ```graphql
 mutation {
   createManagedMember(input: {
@@ -162,6 +170,7 @@ mutation {
 Invite multiple members in a single mutation (mixed mode: email + managed accounts).
 
 **Input:**
+
 ```graphql
 input BatchInviteFamilyMembersInput {
   familyId: ID!
@@ -184,6 +193,7 @@ input ManagedAccountInput {
 ```
 
 **Payload:**
+
 ```graphql
 type BatchInviteFamilyMembersPayload {
   emailInvitations: [PendingInvitation!]
@@ -201,11 +211,13 @@ type ManagedAccountResult {
 **Authorization:** Requires OWNER or ADMIN role.
 
 **Validation:**
+
 - Two-phase: Validate all inputs, then commit all (atomic)
 - Batch size limited to 20 invitations (configurable in appsettings.json)
 - Duplicate detection across both email and managed accounts
 
 **Example:**
+
 ```graphql
 mutation {
   batchInviteFamilyMembers(input: {
@@ -248,6 +260,7 @@ mutation {
 Cancel a pending invitation (before acceptance).
 
 **Input:**
+
 ```graphql
 input CancelInvitationInput {
   invitationId: ID!
@@ -255,6 +268,7 @@ input CancelInvitationInput {
 ```
 
 **Payload:**
+
 ```graphql
 type CancelInvitationPayload {
   success: Boolean!
@@ -265,6 +279,7 @@ type CancelInvitationPayload {
 **Authorization:** Requires OWNER or ADMIN role.
 
 **Example:**
+
 ```graphql
 mutation {
   cancelInvitation(input: {
@@ -286,6 +301,7 @@ mutation {
 Resend a pending or expired invitation with new token and extended expiration.
 
 **Input:**
+
 ```graphql
 input ResendInvitationInput {
   invitationId: ID!
@@ -294,6 +310,7 @@ input ResendInvitationInput {
 ```
 
 **Payload:**
+
 ```graphql
 type ResendInvitationPayload {
   invitation: PendingInvitation
@@ -305,12 +322,14 @@ type ResendInvitationPayload {
 **Authorization:** Requires OWNER or ADMIN role.
 
 **Behavior:**
+
 - Generates new invitation token
 - Extends expiration by 14 days
 - Updates status to PENDING if previously EXPIRED
 - Publishes `FamilyMemberInvitedEvent` with `isResend: true`
 
 **Example:**
+
 ```graphql
 mutation {
   resendInvitation(input: {
@@ -337,6 +356,7 @@ mutation {
 Update the role of a pending invitation (before acceptance).
 
 **Input:**
+
 ```graphql
 input UpdateInvitationRoleInput {
   invitationId: ID!
@@ -345,6 +365,7 @@ input UpdateInvitationRoleInput {
 ```
 
 **Payload:**
+
 ```graphql
 type UpdateInvitationRolePayload {
   invitation: PendingInvitation
@@ -356,10 +377,12 @@ type UpdateInvitationRolePayload {
 **Authorization:** Requires OWNER or ADMIN role.
 
 **Validation:**
+
 - Cannot update to OWNER role
 - Invitation must be in PENDING status
 
 **Example:**
+
 ```graphql
 mutation {
   updateInvitationRole(input: {
@@ -385,6 +408,7 @@ mutation {
 Accept a family invitation using the invitation token.
 
 **Input:**
+
 ```graphql
 input AcceptInvitationInput {
   token: String!  # 64-character URL-safe base64
@@ -392,6 +416,7 @@ input AcceptInvitationInput {
 ```
 
 **Payload:**
+
 ```graphql
 type AcceptInvitationPayload {
   family: Family
@@ -404,11 +429,13 @@ type AcceptInvitationPayload {
 **Authorization:** Requires authenticated user (any role).
 
 **Validation:**
+
 - Token must be valid and not expired
 - User email must match invitation email
 - Invitation must be in PENDING status
 
 **Example:**
+
 ```graphql
 mutation {
   acceptInvitation(input: {
@@ -436,6 +463,7 @@ mutation {
 Retrieve all members of a family.
 
 **Signature:**
+
 ```graphql
 familyMembers(familyId: ID!): [FamilyMemberType!]!
 ```
@@ -443,6 +471,7 @@ familyMembers(familyId: ID!): [FamilyMemberType!]!
 **Authorization:** Requires family membership (any role).
 
 **Example:**
+
 ```graphql
 query {
   familyMembers(familyId: "123e4567-e89b-12d3-a456-426614174000") {
@@ -463,6 +492,7 @@ query {
 Retrieve all pending invitations for a family.
 
 **Signature:**
+
 ```graphql
 pendingInvitations(familyId: ID!): [PendingInvitation!]!
 ```
@@ -470,6 +500,7 @@ pendingInvitations(familyId: ID!): [PendingInvitation!]!
 **Authorization:** Requires OWNER or ADMIN role.
 
 **Example:**
+
 ```graphql
 query {
   pendingInvitations(familyId: "123e4567-e89b-12d3-a456-426614174000") {
@@ -493,6 +524,7 @@ query {
 Retrieve a single invitation by ID.
 
 **Signature:**
+
 ```graphql
 invitation(invitationId: ID!): PendingInvitation
 ```
@@ -500,6 +532,7 @@ invitation(invitationId: ID!): PendingInvitation
 **Authorization:** Requires OWNER or ADMIN role.
 
 **Example:**
+
 ```graphql
 query {
   invitation(invitationId: "123e4567-e89b-12d3-a456-426614174001") {
@@ -519,6 +552,7 @@ query {
 Retrieve an invitation by its token (for acceptance flow).
 
 **Signature:**
+
 ```graphql
 invitationByToken(token: String!): PendingInvitation
 ```
@@ -526,6 +560,7 @@ invitationByToken(token: String!): PendingInvitation
 **Authorization:** Public (no authentication required).
 
 **Example:**
+
 ```graphql
 query {
   invitationByToken(token: "a7b3c9d2e5f8g1h4i6j7k8l9m0n2o3p4q5r6s7t8u9v0w1x2y3z4a5b6c7d8e9f0") {
@@ -547,11 +582,13 @@ query {
 Real-time updates when family members change.
 
 **Signature:**
+
 ```graphql
 familyMembersChanged(familyId: ID!): FamilyMembersChangedPayload!
 ```
 
 **Payload:**
+
 ```graphql
 type FamilyMembersChangedPayload {
   familyId: ID!
@@ -563,11 +600,13 @@ type FamilyMembersChangedPayload {
 **Authorization:** Requires family membership (any role).
 
 **Triggers:**
+
 - ADDED: Invitation accepted, new member joined
 - UPDATED: Member role changed
 - REMOVED: Member left or removed
 
 **Example:**
+
 ```graphql
 subscription {
   familyMembersChanged(familyId: "123e4567-e89b-12d3-a456-426614174000") {
@@ -588,11 +627,13 @@ subscription {
 Real-time updates when pending invitations change.
 
 **Signature:**
+
 ```graphql
 pendingInvitationsChanged(familyId: ID!): PendingInvitationsChangedPayload!
 ```
 
 **Payload:**
+
 ```graphql
 type PendingInvitationsChangedPayload {
   familyId: ID!
@@ -604,11 +645,13 @@ type PendingInvitationsChangedPayload {
 **Authorization:** Requires OWNER or ADMIN role.
 
 **Triggers:**
+
 - ADDED: New invitation created
 - UPDATED: Invitation resent, role updated
 - REMOVED: Invitation accepted, canceled, or expired
 
 **Example:**
+
 ```graphql
 subscription {
   pendingInvitationsChanged(familyId: "123e4567-e89b-12d3-a456-426614174000") {
@@ -666,6 +709,7 @@ enum InvitationErrorCode {
 ### Error Examples
 
 **Validation Error:**
+
 ```json
 {
   "errors": [
@@ -679,6 +723,7 @@ enum InvitationErrorCode {
 ```
 
 **Duplicate Error:**
+
 ```json
 {
   "errors": [
@@ -692,6 +737,7 @@ enum InvitationErrorCode {
 ```
 
 **Authorization Error:**
+
 ```json
 {
   "errors": [
@@ -823,18 +869,21 @@ test('should receive real-time invitation updates', async ({ rabbitmq, client })
 ## Next Steps
 
 **For backend-developer:**
+
 1. Implement MediatR commands corresponding to each input type
 2. Implement mutation resolvers in `InvitationMutations.cs`
 3. Implement query resolvers in `InvitationQueries.cs`
 4. Implement subscription resolvers in `InvitationSubscriptions.cs`
 
 **For frontend-developer:**
+
 1. Generate TypeScript types from GraphQL schema
 2. Create Apollo mutation hooks
 3. Create Apollo subscription hooks
 4. Implement UI components using generated types
 
 **For test-automator:**
+
 1. Write E2E tests for all mutations
 2. Write E2E tests for real-time subscriptions
 3. Validate error handling with edge cases

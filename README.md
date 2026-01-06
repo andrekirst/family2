@@ -16,6 +16,7 @@ Family Hub is a comprehensive family organization platform that goes beyond simp
 ### The Problem
 
 Managing a family requires juggling multiple apps and remembering countless details:
+
 - Doctor appointments need to be in the calendar
 - Prescriptions need to be picked up
 - Grocery shopping for the week's meal plan
@@ -29,6 +30,7 @@ Each of these requires manual coordination across different tools, creating ment
 Family Hub automates the coordination with **event chains**. Here's how it works:
 
 **Example: Doctor Appointment Event Chain**
+
 ```
 1. You schedule a doctor appointment
    ↓ (automatic)
@@ -52,6 +54,7 @@ All of this happens automatically. You only schedule the appointment.
 ## Key Features
 
 ### Core Features (Phase 1-2)
+
 - **Shared Family Calendar:** Events visible to all family members
 - **Task Management:** Create, assign, and track tasks
 - **Health Tracking:** Doctor appointments and prescriptions
@@ -64,6 +67,7 @@ All of this happens automatically. You only schedule the appointment.
 ### Phase 1 - Foundation (In Progress)
 
 **Family Management:**
+
 - ✅ **Family Creation** (#15) - Users can create family groups with authentication
   - GraphQL mutation: `createFamily`
   - Business rule: One family per user enforced
@@ -71,11 +75,13 @@ All of this happens automatically. You only schedule the appointment.
   - Implemented: 2025-12-30
 
 **In Development:**
+
 - Family invitation system
 - Role-based permissions
 - Family settings management
 
 ### Advanced Features (Phase 3-4)
+
 - **Meal Planning:** Weekly meal plans with recipes
 - **Recipe Management:** Store and organize family recipes
 - **Finance Tracking:** Budget management and expense tracking
@@ -83,6 +89,7 @@ All of this happens automatically. You only schedule the appointment.
 - **Search:** Global search across all data
 
 ### Future Features (Phase 5-6)
+
 - **Mobile Apps:** iOS and Android native apps
 - **Offline Mode:** Work without internet connection
 - **AI Suggestions:** Smart task and meal recommendations
@@ -94,6 +101,7 @@ All of this happens automatically. You only schedule the appointment.
 ## Technology Stack
 
 ### Backend
+
 - **.NET Core 10** with C# 14
 - **Hot Chocolate GraphQL** for unified API
 - **PostgreSQL 16** for data persistence
@@ -101,12 +109,14 @@ All of this happens automatically. You only schedule the appointment.
 - **Zitadel** for authentication (OAuth 2.0 / OIDC)
 
 ### Frontend
+
 - **Angular v21** with TypeScript
 - **Tailwind CSS** for styling
 - **Apollo Client** for GraphQL
 - **RxJS** for reactive programming
 
 ### Infrastructure
+
 - **Kubernetes** for container orchestration
 - **Docker** for containerization
 - **Prometheus + Grafana** for monitoring
@@ -114,6 +124,7 @@ All of this happens automatically. You only schedule the appointment.
 - **GitHub Actions** for CI/CD
 
 ### Architecture
+
 - **Microservices:** 8 bounded contexts (DDD)
 - **Event-Driven:** Redis Pub/Sub (Phase 1-4), RabbitMQ (Phase 5+)
 - **CQRS Pattern:** For complex queries
@@ -212,6 +223,7 @@ Comprehensive business analysis and technical documentation is available in the 
 **Note:** The project is currently in the planning phase. Development will begin with Phase 0 (Foundation & Tooling).
 
 ### Prerequisites (Planned)
+
 - .NET Core 10 SDK
 - Node.js 20+ and npm
 - Docker Desktop or Minikube
@@ -245,6 +257,7 @@ npm start
 This is currently a solo project with AI assistance. Contributions will be welcome after the MVP launch (Phase 2).
 
 ### Planned Contribution Areas
+
 - Feature development
 - Bug fixes
 - Documentation improvements
@@ -299,6 +312,7 @@ See [ADR-004](docs/architecture/ADR-004-TIMESTAMP-INTERCEPTOR-PATTERN.md) for co
 This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
 
 **What this means:**
+
 - You can use, modify, and distribute this software freely
 - If you modify and deploy it as a network service, you must make your source code available
 - This protects against proprietary forks while keeping the project open
@@ -310,12 +324,14 @@ See [LICENSE](LICENSE) for full details.
 ## Project Goals
 
 ### Primary Goals
+
 1. **Save Time:** Reduce family organization overhead by 50% through automation
 2. **Reduce Mental Load:** Fewer things to remember, fewer apps to manage
 3. **Strengthen Family Connection:** Shared visibility and coordination
 4. **Maintain Privacy:** Family data under their control (self-hosting option)
 
 ### Technical Goals
+
 1. **Showcase DDD/Event-Driven Architecture:** Real-world implementation of modern patterns
 2. **Demonstrate Microservices:** Properly bounded contexts with clear integration
 3. **AI-Assisted Development:** Document the effectiveness of Claude Code for solo development
@@ -326,6 +342,7 @@ See [LICENSE](LICENSE) for full details.
 ## Success Metrics
 
 ### MVP Success (End of Phase 2)
+
 - 5-10 daily active families
 - 20+ calendar events created per week
 - 30+ tasks completed per week
@@ -333,6 +350,7 @@ See [LICENSE](LICENSE) for full details.
 - Average event chain latency <5 seconds
 
 ### Production Success (End of Phase 5)
+
 - 50+ monthly active families
 - System uptime >99.5%
 - p95 response time <2 seconds
@@ -346,6 +364,7 @@ See [LICENSE](LICENSE) for full details.
 Unlike other family organization apps, Family Hub doesn't just store information - it **coordinates** your family life automatically.
 
 **Traditional Approach:**
+
 1. Schedule doctor appointment in calendar app
 2. Set reminder in reminder app
 3. Add medication to notes app
@@ -354,6 +373,7 @@ Unlike other family organization apps, Family Hub doesn't just store information
 6. Set reminder for refill date
 
 **Family Hub Approach:**
+
 1. Schedule doctor appointment
 2. Everything else happens automatically
 
@@ -374,19 +394,23 @@ This is the power of event chain automation.
 ## Development Philosophy
 
 ### Single Developer with AI Assistance
+
 This project embraces AI-assisted development with Claude Code:
+
 - 60-80% of boilerplate code generated by AI
 - 70% of unit tests automated
 - 80% of documentation AI-assisted
 - Human developer focuses on domain logic and architecture
 
 ### MVP-First Approach
+
 - Deliver value incrementally
 - Validate assumptions early
 - Ruthless prioritization
 - Technical debt awareness
 
 ### Quality Over Speed
+
 - Comprehensive testing (unit, integration, E2E)
 - Security by design
 - Performance monitoring from day one
@@ -397,11 +421,13 @@ This project embraces AI-assisted development with Claude Code:
 ## Support
 
 ### During Development (Phase 0-5)
+
 - GitHub Issues for bug reports
 - GitHub Discussions for feature requests
 - Email: [TBD]
 
 ### Post-Launch (Phase 6+)
+
 - Community Discord server
 - User documentation and tutorials
 - Video walkthroughs
@@ -422,21 +448,25 @@ This project embraces AI-assisted development with Claude Code:
 ## Roadmap Highlights
 
 ### Q1 2026 (Weeks 1-13)
+
 - Phase 0: Development environment setup
 - Phase 1: MVP with auth, calendar, and tasks
 - First family beta testers onboarded
 
 ### Q2 2026 (Weeks 14-26)
+
 - Phase 2: Health integration and event chains
 - Phase 3: Meal planning and finance tracking
 - 10 families using the platform
 
 ### Q3 2026 (Weeks 27-39)
+
 - Phase 4: Advanced features (recurrence, search)
 - Phase 5: Production hardening and security audit
 - Beta testing with 20+ families
 
 ### Q4 2026 (Weeks 40-52+)
+
 - Phase 6: Mobile apps and AI features
 - Public beta launch
 - 50+ families using Family Hub
@@ -454,21 +484,27 @@ This project embraces AI-assisted development with Claude Code:
 ## Frequently Asked Questions
 
 ### Why not use existing tools like Google Calendar + Todoist?
+
 Existing tools require manual coordination. Family Hub automates the connections between different aspects of family life, saving time and mental energy.
 
 ### Is my family's data secure?
+
 Yes. Data is encrypted at rest and in transit. You can self-host for complete control. Security audits will be conducted before public launch.
 
 ### How much does it cost?
+
 Free during beta. Post-launch: Freemium model (free for up to 5 family members, paid for larger groups or premium features). Self-hosting is always free.
 
 ### Can I contribute?
+
 Not yet, but contributions will be welcome after MVP launch (Phase 2). Watch the repo for updates.
 
 ### What if the project is abandoned?
+
 The AGPL-3.0 license ensures the code remains open. The community can fork and continue development. Phase boundaries enable clean handoff points.
 
 ### Is it production-ready?
+
 No, currently in planning phase. Production readiness targeted for Q3 2026 (Phase 5 completion).
 
 ---

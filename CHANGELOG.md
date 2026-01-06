@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Family creation feature (#15) - 2025-12-30
   - GraphQL mutation `createFamily` for authenticated users
   - Business rule: One family per user enforced
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Source-generated logging for zero-allocation performance
 
 ### Technical Implementation
+
 - **Domain Layer:**
   - `IFamilyRepository` interface
   - `Family` aggregate root with factory methods
@@ -41,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Coverage: 94% (48/51 tests passing, 2 intentionally skipped)
 
 ### Infrastructure
+
 - PostgreSQL 16 with Row-Level Security (RLS)
 - EF Core Code-First migrations
 - Zitadel OAuth 2.0 authentication
@@ -48,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .NET 10 / C# 14
 
 ### Documentation
+
 - ADR-003: GraphQL Input → Command mapping pattern
 - Code review completed with "Approved with Comments" status
 - XML documentation for all public APIs
@@ -56,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0-alpha] - 2025-12-30
 
 ### Project Setup
+
 - Initial project structure (Modular Monolith architecture)
 - Phase 1 Preparation completed (Issues #4-11)
 - OAuth integration with Zitadel (ADR-002)

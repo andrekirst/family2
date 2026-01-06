@@ -1033,6 +1033,7 @@ query {
 ```
 
 **Impact:**
+
 - Service degradation or crash
 - Excessive cloud costs
 - Poor user experience

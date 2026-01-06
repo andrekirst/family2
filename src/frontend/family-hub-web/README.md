@@ -13,14 +13,17 @@ OAuth 2.0 authentication frontend for Family Hub, integrated with Zitadel.
 ## Architecture
 
 ### Standalone Components
+
 - No NgModules - fully standalone architecture
 - Lazy loading with loadComponent()
 
 ### State Management
+
 - **Angular Signals** for reactive auth state
 - Computed signals for derived state
 
 ### Atomic Design Pattern
+
 ```
 atoms/       → Button, Spinner
 molecules/   → Form fields, Cards (future)
@@ -53,26 +56,31 @@ pages/       → Login, Dashboard, etc.
 ## Development
 
 ### Prerequisites
+
 ```bash
 Node.js 18+
 npm 9+
 ```
 
 ### Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### Run Development Server
+
 ```bash
 ng serve
 # Navigate to http://localhost:4200
 ```
 
 ### Backend API
-Ensure backend is running at http://localhost:5002/graphql
+
+Ensure backend is running at <http://localhost:5002/graphql>
 
 ### Build for Production
+
 ```bash
 ng build --configuration production
 ```
@@ -111,6 +119,7 @@ src/app/
 ## Environment Configuration
 
 **environment.ts (development):**
+
 ```typescript
 export const environment = {
   production: false,
@@ -121,6 +130,7 @@ export const environment = {
 ```
 
 **environment.prod.ts (production):**
+
 ```typescript
 export const environment = {
   production: true,
@@ -133,30 +143,36 @@ export const environment = {
 ## Troubleshooting
 
 ### "Invalid state parameter" Error
+
 - CSRF protection triggered
 - Clear sessionStorage and try again
 
 ### Token Not Persisting
+
 - Check localStorage for `family_hub_access_token`
 - Verify token expiration date
 
 ### GraphQL Errors
-- Ensure backend is running at http://localhost:5002/graphql
+
+- Ensure backend is running at <http://localhost:5002/graphql>
 - Check browser console for detailed error messages
 
 ### Redirect Loop
+
 - Clear all browser storage (localStorage + sessionStorage)
 - Restart development server
 
 ## Testing
 
 ### Build Verification
+
 ```bash
 ng build --configuration development
 ```
 
 ### Manual Testing Flow
-1. Navigate to http://localhost:4200
+
+1. Navigate to <http://localhost:4200>
 2. Should redirect to `/login`
 3. Click "Sign in with Zitadel"
 4. Complete authentication in Zitadel UI
@@ -168,11 +184,13 @@ ng build --configuration development
 ## Implementation Status
 
 ✅ **Phase 1: Project Setup** - Complete
+
 - Angular v18 project created
 - Tailwind CSS configured with design tokens
 - Environment configuration files
 
 ✅ **Phase 2: Core Services** - Complete
+
 - Auth State Models
 - GraphQL Service
 - AuthService with Signals
@@ -180,19 +198,23 @@ ng build --configuration development
 - HTTP Interceptor
 
 ✅ **Phase 3: Atomic Components** - Complete
+
 - Button component
 - Spinner component
 
 ✅ **Phase 4: Auth Components** - Complete
+
 - Login component
 - OAuth Callback component
 
 ✅ **Phase 5: Dashboard & Routing** - Complete
+
 - Dashboard component
 - App routing configured
 - App configuration with HTTP client
 
 ⚠️ **Phase 6: Testing & Documentation** - Partial
+
 - ✅ Build verification (0 errors)
 - ✅ README documentation
 - ⏳ Unit tests (pending)

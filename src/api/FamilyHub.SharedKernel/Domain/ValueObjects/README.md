@@ -175,6 +175,7 @@ public class User : AggregateRoot<UserId>
 ## Benefits of Using Vogen
 
 1. **Type Safety**: Prevents accidental assignment of wrong types
+
    ```csharp
    // Compile error: Cannot implicitly convert UserId to FamilyId
    UserId userId = UserId.New();
@@ -182,11 +183,13 @@ public class User : AggregateRoot<UserId>
    ```
 
 2. **Domain Validation**: Ensures only valid values exist
+
    ```csharp
    var email = Email.From("invalid"); // ❌ Throws ValueObjectValidationException
    ```
 
 3. **Self-Documenting Code**: Makes intent clear
+
    ```csharp
    // Before: What does this Guid represent?
    public void AssignTask(Guid id) { }

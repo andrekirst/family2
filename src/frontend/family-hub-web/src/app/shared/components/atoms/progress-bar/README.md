@@ -22,6 +22,7 @@ A responsive, accessible progress indicator component for wizard interfaces and 
 ```
 
 **Output:**
+
 - **Desktop (≥768px)**: Linear bar at 33% with "Step 2 of 4" text
 - **Mobile (<768px)**: 4 dots, first 2 blue (active), last 2 gray (inactive)
 
@@ -216,6 +217,7 @@ ng test --include='**/progress-bar.component.spec.ts'
 ```
 
 **Test Coverage:**
+
 - Progress percentage calculation (0%, 33%, 67%, 100%)
 - Step text generation ("Step 2 of 4")
 - ARIA label generation

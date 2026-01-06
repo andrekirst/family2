@@ -9,6 +9,7 @@ These files are NOT executed in the application. They serve as design documentat
 This folder contains the original SQL migration scripts created by the database administrator agent as part of the database schema design process. While the project has transitioned to **EF Core Code-First migrations** for actual schema management, these SQL scripts remain valuable as:
 
 ### 1. Design Reference
+
 - **Complete schema design** for all 8 modules
 - **Row-Level Security (RLS) policies** - design patterns for multi-tenancy
 - **Trigger logic** - automated workflows and audit trails
@@ -16,7 +17,9 @@ This folder contains the original SQL migration scripts created by the database 
 - **Seed data examples** - test data structure and format
 
 ### 2. PostgreSQL-Specific Features
+
 When implementing EF Core migrations, developers can reference these scripts for:
+
 - RLS policy syntax and patterns
 - Trigger implementations
 - Custom functions
@@ -25,6 +28,7 @@ When implementing EF Core migrations, developers can reference these scripts for
 These features are added to EF Core migrations using `migrationBuilder.Sql()`.
 
 ### 3. Documentation
+
 - Comprehensive table designs
 - Index strategies
 - Security policies
@@ -50,6 +54,7 @@ sql-design/
 **The actual database schema is created using EF Core Code-First migrations.**
 
 See `/database/docs/MIGRATION_STRATEGY.md` for:
+
 - How to create EF Core migrations
 - How to incorporate PostgreSQL-specific features (RLS, triggers)
 - Module-specific DbContext configurations
@@ -75,6 +80,7 @@ When implementing a module, developers should:
    - Constraints
 
 4. **Generate EF Core migration**
+
    ```bash
    dotnet ef migrations add InitialCreate --context AuthDbContext
    ```
@@ -86,15 +92,18 @@ When implementing a module, developers should:
 ## Example: Auth Module
 
 ### SQL Reference (this folder)
+
 - `/migrations/auth/001_create_auth_schema.sql` - Table definitions
 - `/migrations/auth/002_create_rls_policies.sql` - RLS policies
 
 ### EF Core Implementation (actual code)
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/User.cs` - Entity
 - `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Configurations/UserConfiguration.cs` - Fluent API
 - `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Migrations/20250122_InitialCreate.cs` - Migration
 
 The EF Core migration includes:
+
 - Auto-generated table creation (from Fluent API)
 - Manual SQL for RLS policies (from reference scripts)
 - Manual SQL for triggers (from reference scripts)

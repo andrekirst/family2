@@ -1,0 +1,19 @@
+# Build outputs
+dist/
+build/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.generated.ts
+*.spec.ts.snap
+
+# E2E test artifacts
+e2e/test-results/
+e2e/playwright-report/
+e2e/.cache/
+
+# Angular artifacts
+.angular/

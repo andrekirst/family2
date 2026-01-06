@@ -655,6 +655,7 @@ Create the name of the service account to use
 ### 4.1 Environment-Specific Values
 
 **values-dev.yaml:**
+
 ```yaml
 # Development overrides
 global:
@@ -698,6 +699,7 @@ task-service:
 ```
 
 **values-staging.yaml:**
+
 ```yaml
 # Staging overrides
 global:
@@ -721,6 +723,7 @@ serviceDefaults:
 ```
 
 **values-production.yaml:**
+
 ```yaml
 # Production overrides
 global:
@@ -787,6 +790,7 @@ api-gateway:
 ### 5.1 Deployment Commands
 
 **Development:**
+
 ```bash
 helm install family-hub ./family-hub-helm \
   --namespace family-hub \
@@ -795,6 +799,7 @@ helm install family-hub ./family-hub-helm \
 ```
 
 **Staging:**
+
 ```bash
 helm upgrade --install family-hub ./family-hub-helm \
   --namespace family-hub \
@@ -803,6 +808,7 @@ helm upgrade --install family-hub ./family-hub-helm \
 ```
 
 **Production:**
+
 ```bash
 helm upgrade --install family-hub ./family-hub-helm \
   --namespace family-hub \
@@ -815,6 +821,7 @@ helm upgrade --install family-hub ./family-hub-helm \
 ### 5.2 Secret Management
 
 **Using Sealed Secrets:**
+
 ```bash
 # Create secret locally
 kubectl create secret generic calendar-service-db \
@@ -838,6 +845,7 @@ git push
 ### 5.3 ArgoCD Integration
 
 **Application Manifest:**
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -867,6 +875,7 @@ spec:
 ### 5.4 Version Management
 
 **Helm Chart Versioning:**
+
 ```yaml
 # Follow SemVer
 # MAJOR.MINOR.PATCH
@@ -881,6 +890,7 @@ appVersion: "1.2.3"  # Application version
 ```
 
 **Release Process:**
+
 ```bash
 # 1. Update Chart.yaml version
 # 2. Update appVersion if application changed
@@ -924,6 +934,7 @@ helm test family-hub --namespace family-hub
 ## Appendix B: Chart Publishing
 
 **ChartMuseum (Self-Hosted):**
+
 ```bash
 # Install ChartMuseum
 helm repo add chartmuseum https://chartmuseum.github.io/charts

@@ -8,6 +8,7 @@
 ## Completed Tasks ✅
 
 ### Task 5: Domain Method Updates (100% DONE)
+
 - ✅ Added `User.UpdateRole(UserRole newRole)` method
 - ✅ Added `FamilyMemberInvitation.UpdateRole(UserRole newRole)` method with validation
 - **Files Modified:**
@@ -15,6 +16,7 @@
   - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/FamilyMemberInvitation.cs`
 
 ### Task 6: Repository Extension (100% DONE)
+
 - ✅ Added `GetByFamilyIdAsync()` to `IUserRepository`
 - ✅ Implemented `GetByFamilyIdAsync()` in `UserRepository`
 - **Files Modified:**
@@ -22,6 +24,7 @@
   - `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Repositories/UserRepository.cs`
 
 ### Task 1: UpdateInvitationRole Command (90% DONE)
+
 - ✅ Created `UpdateInvitationRoleCommand.cs`
 - ✅ Created `UpdateInvitationRoleResult.cs`
 - ✅ Created `UpdateInvitationRoleCommandHandler.cs`
@@ -43,6 +46,7 @@
 **Problem:** Project currently has build errors due to missing command implementations that are referenced by existing mutations/factories.
 
 **Required Fix:**
+
 1. ResendInvitation command files don't exist but are referenced in:
    - `ResendInvitationPayloadFactory.cs`
    - `InvitationMutations.cs` (line 5, 113-120)
@@ -52,6 +56,7 @@
 3. AcceptInvitation and BatchInviteFamilyMembers directories are empty
 
 **Immediate Action Required:**
+
 - Create stub/placeholder implementations for ResendInvitation OR
 - Comment out references in mutations until command is implemented OR
 - Implement full ResendInvitation command (30 min estimated)
@@ -61,9 +66,11 @@
 ### Task 1: UpdateInvitationRole (10% remaining)
 
 **What's left:**
+
 - Add mutation method to `InvitationMutations.cs`
 
 **Implementation:**
+
 ```csharp
 [Authorize(Policy = "RequireOwnerOrAdmin")]
 public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
@@ -90,6 +97,7 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 ### Task 2: AcceptInvitation Command (NOT STARTED)
 
 **Files to Create:**
+
 1. `AcceptInvitationCommand.cs`
 2. `AcceptInvitationResult.cs`
 3. `AcceptInvitationCommandHandler.cs`
@@ -99,6 +107,7 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 7. Mutation in `InvitationMutations.cs`
 
 **Business Logic:**
+
 - No `[Authorize]` attribute (public endpoint)
 - Validates token is valid
 - Validates authenticated user email matches invitation email
@@ -115,6 +124,7 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 **Complexity:** HIGH - implements two-phase validation pattern
 
 **Files to Create:**
+
 1. `BatchInviteFamilyMembersCommand.cs`
 2. `BatchInviteFamilyMembersResult.cs`
 3. `BatchInviteFamilyMembersCommandHandler.cs`
@@ -124,6 +134,7 @@ public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
 7. Mutation in `InvitationMutations.cs`
 
 **Implementation Pattern:**
+
 ```csharp
 // PHASE 1: VALIDATE ALL
 var validationErrors = new List<UserError>();
@@ -163,6 +174,7 @@ catch (Exception ex)
 ```
 
 **Dependencies:**
+
 - `IZitadelManagementClient`
 - `IPasswordGenerationService`
 - `IFamilyMemberInvitationRepository`
@@ -176,6 +188,7 @@ catch (Exception ex)
 ### Task 4: GraphQL Queries (NOT STARTED)
 
 **File to Create:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/Queries/InvitationQueries.cs`
 
 **4 Queries Required:**
@@ -205,6 +218,7 @@ catch (Exception ex)
 ### Task 7: DI Registration (NOT STARTED)
 
 **File to Modify:**
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/AuthModuleServiceRegistration.cs`
 
 **Required Registrations:**
@@ -247,7 +261,7 @@ services.AddAuthorization(options =>
 
 **Fix:** These are missing `using FamilyHub.Modules.Auth.Domain.ValueObjects;` statements
 
-3. **ResendInvitationResult not found** (2 occurrences)
+1. **ResendInvitationResult not found** (2 occurrences)
    - `ResendInvitationPayloadFactory.cs:12,14`
 
 **Fix:** Create the ResendInvitation command files OR comment out factory/mutation
@@ -259,12 +273,14 @@ services.AddAuthorization(options =>
 **Unit Tests:** NOT CREATED YET
 
 **Required Test Files:**
+
 - `UpdateInvitationRoleCommandHandlerTests.cs`
 - `AcceptInvitationCommandHandlerTests.cs`
 - `BatchInviteFamilyMembersCommandHandlerTests.cs`
 - `InvitationQueriesTests.cs`
 
 **Test Patterns:**
+
 - Use `[Theory, AutoNSubstituteData]` for dependency injection
 - Use FluentAssertions (`.Should()` syntax)
 - Create Vogen value objects manually (`UserId.New()`, `Email.From()`)
@@ -294,33 +310,40 @@ services.AddAuthorization(options =>
 ## Recommended Next Steps
 
 ### Priority 1: Fix Build (30 min)
+
 1. Add missing `using` statements to fix InvitationId errors
 2. Create ResendInvitation command files (or temporarily comment out references)
 3. Verify project builds successfully
 
 ### Priority 2: Complete Task 1 (10 min)
+
 1. Add UpdateInvitationRole mutation to InvitationMutations.cs
 2. Test mutation with GraphQL playground
 
 ### Priority 3: Implement Task 2 (45 min)
+
 1. Create AcceptInvitation command, handler, result
 2. Create AcceptInvitation GraphQL files
 3. Add mutation to InvitationMutations.cs
 
 ### Priority 4: Implement Task 4 (60 min)
+
 1. Create InvitationQueries.cs with all 4 queries
 2. Register queries in GraphQL schema
 
 ### Priority 5: Implement Task 3 (90 min)
+
 1. Create BatchInviteFamilyMembers command with two-phase validation
 2. Implement atomic transaction handling
 3. Add mutation
 
 ### Priority 6: DI Registration (15 min)
+
 1. Register all payload factories
 2. Add authorization policy if missing
 
 ### Priority 7: Unit Tests (2-3 hours)
+
 1. Test all command handlers
 2. Test all queries
 3. Test authorization policies

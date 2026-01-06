@@ -62,6 +62,7 @@ public class OutboxEvent : Entity<OutboxEventId>
 ```
 
 **States:**
+
 - **Pending (0):** Waiting to be published (default, retries forever)
 - **Processed (1):** Successfully published to RabbitMQ
 - **Failed (2):** Permanently failed (requires manual intervention)
@@ -99,6 +100,7 @@ CREATE INDEX ix_outbox_events_created_at ON auth.outbox_events (created_at);
 **Implementation:** `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Repositories/OutboxEventRepository.cs`
 
 **Key Methods:**
+
 - `GetPendingEventsAsync(batchSize)` - Fetch events to publish
 - `GetEventsForArchivalAsync(olderThan)` - Fetch old events for cleanup
 - `AddRangeAsync(events)` - Bulk insert
@@ -109,6 +111,7 @@ CREATE INDEX ix_outbox_events_created_at ON auth.outbox_events (created_at);
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Persistence/DomainEventOutboxInterceptor.cs`
 
 **Behavior:**
+
 - Intercepts `SaveChangesAsync()` before commit
 - Collects all domain events from tracked aggregates
 - Converts each event to `OutboxEvent` (JSON serialization)
@@ -117,6 +120,7 @@ CREATE INDEX ix_outbox_events_created_at ON auth.outbox_events (created_at);
 - Lets EF Core commit everything atomically
 
 **Event Extraction:**
+
 - `EventType`: Full class name (e.g., `FamilyHub.Modules.Auth.Domain.Events.FamilyMemberInvitedEvent`)
 - `AggregateType`: Extracted from event type ("FamilyMemberInvitation" from "FamilyMemberInvitedEvent")
 - `AggregateId`: Extracted from event properties (InvitationId, UserId, etc.)
@@ -128,6 +132,7 @@ CREATE INDEX ix_outbox_events_created_at ON auth.outbox_events (created_at);
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/BackgroundServices/OutboxEventPublisher.cs`
 
 **Configuration:**
+
 - Poll interval: 5 seconds
 - Batch size: 100 events
 - Exchange: `family-hub.events`
@@ -148,6 +153,7 @@ Exponential backoff with max delay capped at 15 minutes. Retries **forever** (no
 | 8+ | 900 seconds (15 min) forever |
 
 **Processing Logic:**
+
 1. Fetch batch of pending events (status = Pending, ordered by created_at)
 2. For each event:
    - Check if retry delay has elapsed (based on UpdatedAt timestamp)
@@ -179,6 +185,7 @@ public Task PublishAsync(string exchange, string routingKey, string message, Can
 **File:** `/src/api/Modules/FamilyHub.Modules.Auth/AuthModuleServiceRegistration.cs`
 
 **Registrations:**
+
 ```csharp
 // Outbox interceptor
 services.AddSingleton<DomainEventOutboxInterceptor>();
@@ -209,6 +216,7 @@ services.AddHostedService<OutboxEventPublisher>();
 **Implementation:** Phase 2.C.4 (Quartz.NET cleanup job) - **TO BE IMPLEMENTED**
 
 **Recommended Approach:**
+
 1. Create Quartz.NET job: `OutboxCleanupJob`
 2. Schedule: Daily at 2 AM
 3. Logic:
@@ -240,6 +248,7 @@ services.AddHostedService<OutboxEventPublisher>();
 ### Integration Tests (TO BE IMPLEMENTED)
 
 1. **End-to-End Flow:**
+
    ```csharp
    [Fact]
    public async Task CreateInvitation_ShouldSaveDomainEventToOutbox()
@@ -261,6 +270,7 @@ services.AddHostedService<OutboxEventPublisher>();
    ```
 
 2. **Publisher Integration:**
+
    ```csharp
    [Fact]
    public async Task OutboxPublisher_ShouldPublishPendingEvents()
@@ -343,22 +353,26 @@ services.AddHostedService<OutboxEventPublisher>();
 ## Files Created
 
 ### Domain Layer
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/OutboxEvent.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/ValueObjects/OutboxEventId.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Domain/Repositories/IOutboxEventRepository.cs`
 
 ### Persistence Layer
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Repositories/OutboxEventRepository.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Configurations/OutboxEventConfiguration.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Migrations/20260105000000_CreateOutboxEventsTable.cs`
 
 ### Infrastructure Layer
+
 - `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Persistence/DomainEventOutboxInterceptor.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/BackgroundServices/OutboxEventPublisher.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Messaging/IRabbitMqPublisher.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Messaging/StubRabbitMqPublisher.cs`
 
 ### Configuration
+
 - **Modified:** `/src/api/Modules/FamilyHub.Modules.Auth/AuthModuleServiceRegistration.cs`
 - **Modified:** `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/AuthDbContext.cs`
 
@@ -382,6 +396,7 @@ services.AddHostedService<OutboxEventPublisher>();
 ## Next Steps
 
 1. **Apply Migration:**
+
    ```bash
    cd /home/andrekirst/git/github/andrekirst/family2/src/api
    dotnet ef database update --context AuthDbContext --project Modules/FamilyHub.Modules.Auth --startup-project FamilyHub.Api

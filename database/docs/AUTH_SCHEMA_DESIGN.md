@@ -17,6 +17,7 @@ This document provides the complete database schema design for the Auth Module, 
 **Implementation Note:** This design is implemented using **EF Core Code-First migrations**, not the SQL scripts shown in this document. The SQL scripts in `/database/docs/reference/sql-design/` serve as reference documentation for understanding the intended schema structure, Row-Level Security policies, triggers, and constraints. See `/database/docs/MIGRATION_STRATEGY.md` for the actual implementation approach.
 
 **Key Features:**
+
 - User registration with email verification
 - Password reset workflow with secure tokens
 - Family group management with role-based access
@@ -469,6 +470,7 @@ COMMENT ON COLUMN auth.auth_audit_log.user_id IS 'User associated with event (nu
 ### Primary Keys
 
 All tables use UUID primary keys generated with `gen_random_uuid()` for:
+
 - Distributed system compatibility
 - Non-sequential IDs (security)
 - Global uniqueness across services
@@ -484,6 +486,7 @@ All tables use UUID primary keys generated with `gen_random_uuid()` for:
 ### Foreign Keys
 
 All foreign keys use appropriate `ON DELETE` actions:
+
 - `CASCADE` - For dependent entities (tokens, user_families)
 - `RESTRICT` - For ownership references (family owner)
 - `SET NULL` - For optional references (invited_by, audit logs)
@@ -499,6 +502,7 @@ All foreign keys use appropriate `ON DELETE` actions:
 ### Performance Indexes
 
 Composite indexes optimized for common query patterns:
+
 - User lookups by email (WHERE deleted_at IS NULL)
 - Family member queries (family_id + role)
 - Audit log time-series queries (user_id + created_at DESC)
@@ -621,6 +625,7 @@ ALTER ROLE family_hub_service BYPASSRLS;
 Migration scripts are located in `/database/migrations/auth/`.
 
 See:
+
 - `001_create_auth_schema.sql` - Schema and tables
 - `002_create_rls_policies.sql` - Row-Level Security
 - `003_create_triggers.sql` - Triggers and functions
@@ -814,6 +819,7 @@ HAVING COUNT(*) >= 5;
 ### Connection Pooling
 
 Recommended PgBouncer configuration:
+
 ```ini
 pool_mode = transaction
 max_client_conn = 1000
@@ -912,6 +918,7 @@ CREATE TABLE auth.auth_audit_log_2025_01
 ### Zitadel OAuth 2.0 Integration
 
 **User Registration Flow:**
+
 ```
 1. User registers in Family Hub
 2. Create user in auth.users (password_hash, email)
@@ -921,6 +928,7 @@ CREATE TABLE auth.auth_audit_log_2025_01
 ```
 
 **OAuth Login Flow:**
+
 ```
 1. User authenticates via Zitadel (OAuth 2.0 / OIDC)
 2. Receive JWT access token from Zitadel
@@ -935,6 +943,7 @@ CREATE TABLE auth.auth_audit_log_2025_01
 ### GraphQL API Integration
 
 **User Queries:**
+
 ```graphql
 type User {
   id: ID!
@@ -951,6 +960,7 @@ type Query {
 ```
 
 **Mutations:**
+
 ```graphql
 type Mutation {
   registerUser(input: RegistrationInput!): AuthPayload!
@@ -967,16 +977,19 @@ type Mutation {
 ### Email Service Integration
 
 **Email Verification:**
+
 - Template: `email-verification.html`
 - Variables: `{user_name, verification_link}`
 - Trigger: After user registration
 
 **Password Reset:**
+
 - Template: `password-reset.html`
 - Variables: `{user_name, reset_link, expires_in_hours}`
 - Trigger: On password reset request
 
 **Family Invitation:**
+
 - Template: `family-invitation.html`
 - Variables: `{inviter_name, family_name, invitation_link}`
 - Trigger: When user invited to family
@@ -992,6 +1005,7 @@ public record MemberAddedToFamilyEvent(Guid GroupId, Guid UserId, FamilyRole Rol
 ```
 
 **Event Bus Integration:**
+
 - Publish via RabbitMQ (Phase 1: in-process, Phase 5+: network)
 - Consumed by Communication Service for notifications
 - Event sourcing for audit compliance
@@ -1078,6 +1092,7 @@ AND deleted_at < CURRENT_TIMESTAMP - INTERVAL '30 days';
 ### Database Size Estimates
 
 **Initial (MVP with 100 users):**
+
 - `users`: ~10 KB
 - `families`: ~5 KB
 - `user_families`: ~15 KB
@@ -1085,6 +1100,7 @@ AND deleted_at < CURRENT_TIMESTAMP - INTERVAL '30 days';
 - Total: ~1 MB
 
 **At Scale (10,000 users, 2,000 families):**
+
 - `users`: ~1 MB
 - `families`: ~200 KB
 - `user_families`: ~2 MB

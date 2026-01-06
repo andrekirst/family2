@@ -1062,4 +1062,3 @@ export class EmptyStateComponent {
 **Document Status:** Interaction Design Guide Complete
 **Next Steps:** Implement animations, test on devices, refine timings
 **Related Documents:** design-system.md, angular-component-specs.md
-

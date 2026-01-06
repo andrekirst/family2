@@ -736,6 +736,7 @@ CREATE POLICY family_isolation_policy ON health.prescriptions
 | Add SAST rule for SQL authorization checks | Security Lead | 2025-12-30 | ⏳ Pending |
 | Create runbook for data breach response | Security Team | 2026-01-10 | ⏳ Pending |
 | Quarterly security training for all developers | HR + Security | 2026-01-15 | ⏳ Pending |
+
 ```
 
 ### 6.2 Continuous Improvement

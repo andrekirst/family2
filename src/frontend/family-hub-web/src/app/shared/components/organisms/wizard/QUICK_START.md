@@ -87,9 +87,10 @@ onComplete(data: Map<string, unknown>) {
 }
 ```
 
-## That's It!
+## That's It
 
 You now have a fully functional wizard with:
+
 - Step navigation (Back/Next)
 - Progress indicator
 - Validation

@@ -20,11 +20,13 @@ dotnet ef database update --context AuthDbContext
 The Quartz.NET scheduler is configured in `/src/api/FamilyHub.Api/Program.cs` with:
 
 **Job 1: ManagedAccountRetryJob**
+
 - Schedule: Every 1 minute
 - Purpose: Retry failed Zitadel account creations
 - Retry Schedule: 1min → 5min → 15min → 1hr → 4hr (5 attempts max)
 
 **Job 2: ExpiredInvitationCleanupJob**
+
 - Schedule: Daily at 3 AM UTC
 - Purpose: Delete invitations expired >30 days ago
 
@@ -161,12 +163,14 @@ foreach (var jobKey in jobKeys)
 ### Job Not Running
 
 **Check:**
+
 1. Quartz.NET packages installed correctly
 2. Jobs registered in Program.cs
 3. QuartzHostedService started (check logs)
 4. Database connection working
 
 **Logs to Check:**
+
 ```
 [ERR] Failed to execute job
 [ERR] Database connection failed
@@ -175,6 +179,7 @@ foreach (var jobKey in jobKeys)
 ### Jobs Running but No Data Processing
 
 **Check:**
+
 1. Database table `queued_managed_account_creations` exists
 2. Repository registered in DI container (`AuthModuleServiceRegistration.cs`)
 3. Scoped service resolution working (check DI errors)
@@ -203,12 +208,14 @@ public class PasswordEncryptionService(IDataProtectionProvider provider)
 ### Zitadel API Errors
 
 **Common Issues:**
+
 - Invalid access token (check Zitadel settings)
 - Rate limiting (exponential backoff handles this)
 - Network errors (retry logic handles this)
 - Invalid username format (permanent error - should NOT retry)
 
 **Check Logs:**
+
 ```
 [WRN] Failed to create Zitadel user for job {JobId}, attempt {RetryCount}: {Error}
 [ERR] Job {JobId} failed permanently after {RetryCount} attempts
@@ -217,6 +224,7 @@ public class PasswordEncryptionService(IDataProtectionProvider provider)
 ## Files Reference
 
 **Key Files:**
+
 - **Jobs:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/BackgroundJobs/`
   - `ManagedAccountRetryJob.cs`
   - `ExpiredInvitationCleanupJob.cs`

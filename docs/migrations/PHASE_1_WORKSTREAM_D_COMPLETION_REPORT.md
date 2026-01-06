@@ -25,6 +25,7 @@ Phase 1, Workstream D successfully created EF Core migrations for the FamilyMemb
 **Table:** `auth.family_member_invitations`
 
 **Schema Structure:**
+
 ```sql
 Table "auth.family_member_invitations"
 - invitation_id      uuid (PK)
@@ -45,6 +46,7 @@ Table "auth.family_member_invitations"
 ```
 
 **Indexes Created:**
+
 ```sql
 1. pk_family_member_invitations (PRIMARY KEY on invitation_id)
 2. ix_family_member_invitations_token (UNIQUE on token) -- Fast acceptance lookups
@@ -55,13 +57,16 @@ Table "auth.family_member_invitations"
 ```
 
 **Check Constraints:**
+
 ```sql
 ck_family_member_invitations_email_xor_username:
   (email IS NOT NULL AND username IS NULL) OR (email IS NULL AND username IS NOT NULL)
 ```
+
 **Enforces:** Email invitations XOR managed account invitations (exactly one identifier required)
 
 **Foreign Keys:**
+
 ```sql
 1. fk_family_member_invitations_families_family_id
    - REFERENCES auth.families(id)
@@ -73,6 +78,7 @@ ck_family_member_invitations_email_xor_username:
 ```
 
 **Configuration:** `FamilyMemberInvitationConfiguration.cs`
+
 - Vogen converters for all value objects (InvitationId, Email, Username, FullName, etc.)
 - UserRole stored as VARCHAR with custom conversion
 - InvitationStatus stored as VARCHAR with Vogen converter
@@ -85,6 +91,7 @@ ck_family_member_invitations_email_xor_username:
 **Migration:** Same migration (`20260104222030_CreateFamilyMemberInvitationsTable.cs`)
 
 **New Columns Added to auth.users:**
+
 ```sql
 - username          varchar(20) nullable
 - full_name         varchar(100) nullable
@@ -92,6 +99,7 @@ ck_family_member_invitations_email_xor_username:
 ```
 
 **Indexes Created:**
+
 ```sql
 1. ix_users_username (UNIQUE on username)
    - WHERE username IS NOT NULL (filtered index, PostgreSQL partial index)
@@ -103,6 +111,7 @@ ck_family_member_invitations_email_xor_username:
 ```
 
 **Configuration Updates:** `UserConfiguration.cs`
+
 - Added Username property with Vogen converter
 - Added FullName property with Vogen converter
 - Added ZitadelUserId property (primitive string, nullable)
@@ -114,16 +123,19 @@ ck_family_member_invitations_email_xor_username:
 ## Migration Strategy Analysis
 
 ### Original Plan (Separate Migrations)
+
 1. Migration 1: `CreateFamilyMemberInvitationsTable`
 2. Migration 2: `AddManagedAccountFields`
 
 ### Actual Execution (Consolidated)
+
 1. ✅ Single Migration: `CreateFamilyMemberInvitationsTable`
    - Creates `family_member_invitations` table
    - Adds User extensions (username, full_name, zitadel_user_id)
    - All indexes and constraints in one atomic operation
 
 ### Benefits of Consolidation
+
 1. **Atomicity:** Single transaction, all-or-nothing deployment
 2. **Simplicity:** One migration to apply, one to rollback
 3. **Performance:** Reduced migration execution time
@@ -134,6 +146,7 @@ ck_family_member_invitations_email_xor_username:
 ## Database Verification
 
 ### Migration History
+
 ```sql
 SELECT migration_id FROM "__EFMigrationsHistory" ORDER BY migration_id DESC LIMIT 5;
 
@@ -145,6 +158,7 @@ SELECT migration_id FROM "__EFMigrationsHistory" ORDER BY migration_id DESC LIMI
 ```
 
 ### Table Verification
+
 ```bash
 # FamilyMemberInvitations table exists with all columns
 \d auth.family_member_invitations
@@ -157,6 +171,7 @@ SELECT migration_id FROM "__EFMigrationsHistory" ORDER BY migration_id DESC LIMI
 ```
 
 ### Index Performance Verification
+
 ```sql
 SELECT indexname, indexdef
 FROM pg_indexes
@@ -173,6 +188,7 @@ WHERE schemaname = 'auth' AND tablename = 'family_member_invitations';
 ## Code Quality
 
 ### Build Status
+
 ```
 ✅ FamilyHub.SharedKernel    - 0 errors, 0 warnings
 ✅ FamilyHub.Infrastructure   - 0 errors, 0 warnings
@@ -182,6 +198,7 @@ WHERE schemaname = 'auth' AND tablename = 'family_member_invitations';
 ```
 
 ### Unit Tests
+
 ```
 ✅ Total: 142 tests
 ✅ Passed: 142
@@ -191,6 +208,7 @@ WHERE schemaname = 'auth' AND tablename = 'family_member_invitations';
 ```
 
 **New Tests (from Phase 1.A):**
+
 - FamilyMemberInvitationTests (21 tests)
 - InvitationIdTests (4 tests)
 - InvitationTokenTests (7 tests)
@@ -203,7 +221,9 @@ WHERE schemaname = 'auth' AND tablename = 'family_member_invitations';
 ## Technical Decisions & Patterns
 
 ### 1. Vogen Value Objects
+
 **Pattern:** All domain primitives use Vogen source generator
+
 ```csharp
 // InvitationId
 [ValueObject<Guid>(conversions: Conversions.Default | Conversions.EfCoreValueConverter)]
@@ -215,13 +235,16 @@ builder.Property(i => i.Id)
 ```
 
 **Benefits:**
+
 - Type safety (no primitive obsession)
 - Validation at value creation
 - Auto-generated EF Core converters
 - Consistent patterns across codebase
 
 ### 2. Filtered Indexes (PostgreSQL Partial Indexes)
+
 **Pattern:** Unique indexes on nullable columns
+
 ```csharp
 builder.HasIndex(u => u.Username)
     .IsUnique()
@@ -230,12 +253,15 @@ builder.HasIndex(u => u.Username)
 ```
 
 **Benefits:**
+
 - Prevents duplicate usernames
 - Allows multiple NULL values (for regular OAuth users)
 - Optimal index size (excludes NULL rows)
 
 ### 3. Check Constraints (Modern API)
+
 **Pattern:** Configure constraints in `ToTable()` builder
+
 ```csharp
 builder.ToTable("family_member_invitations", "auth", t =>
 {
@@ -246,12 +272,15 @@ builder.ToTable("family_member_invitations", "auth", t =>
 ```
 
 **Benefits:**
+
 - No EF1001 warnings (deprecated API avoided)
 - Cleaner configuration code
 - Table-scoped constraint definition
 
 ### 4. Foreign Key Cascade Behavior
+
 **Pattern:** `DeleteBehavior.Restrict` for all invitation relationships
+
 ```csharp
 builder.HasOne<Family>()
     .WithMany()
@@ -260,6 +289,7 @@ builder.HasOne<Family>()
 ```
 
 **Benefits:**
+
 - Prevents accidental data loss
 - Explicit deletion required (safer)
 - Preserves invitation audit trail
@@ -269,15 +299,18 @@ builder.HasOne<Family>()
 ## Index Strategy (from Technical Interview)
 
 ### Chosen Indexes
+
 1. **Unique on token** - Fastest acceptance lookup (O(1) hash index)
 2. **Index on expires_at** - Cleanup job efficiency
 3. **Composite on (family_id, status)** - Dashboard query optimization
 
 ### Rejected Indexes
+
 - ~~Composite on (family_id, email)~~ - Low cardinality on email
 - ~~Index on status alone~~ - Too low selectivity
 
 ### Future Considerations
+
 - Monitor query performance in production
 - Add covering indexes if needed (e.g., include display_code in token index)
 - Consider partitioning if table grows > 10M rows
@@ -287,6 +320,7 @@ builder.HasOne<Family>()
 ## Rollback Procedures
 
 ### Rollback Migration
+
 ```bash
 # Remove migration
 dotnet ef migrations remove --context AuthDbContext \
@@ -301,6 +335,7 @@ dotnet ef database update 20260104215404_MigrateChildToManagedAccount \
 ```
 
 ### Manual Rollback (if needed)
+
 ```sql
 -- Drop table
 DROP TABLE IF EXISTS auth.family_member_invitations CASCADE;
@@ -320,6 +355,7 @@ WHERE migration_id = '20260104222030_CreateFamilyMemberInvitationsTable';
 ## Breaking Changes
 
 ### Database Schema (External)
+
 - **ADDED:** `auth.family_member_invitations` table (new entity)
 - **ADDED:** `auth.users.username` column (nullable)
 - **ADDED:** `auth.users.full_name` column (nullable)
@@ -328,6 +364,7 @@ WHERE migration_id = '20260104222030_CreateFamilyMemberInvitationsTable';
 **Impact:** Non-breaking (all new columns nullable, new table)
 
 ### C# Code (Internal)
+
 - **ADDED:** `FamilyMemberInvitationConfiguration` class
 - **UPDATED:** `UserConfiguration` class (new property configurations)
 - **UPDATED:** `AuthDbContext` (new DbSet for FamilyMemberInvitations)
@@ -355,11 +392,13 @@ WHERE migration_id = '20260104222030_CreateFamilyMemberInvitationsTable';
 ## Files Created/Modified
 
 ### Created Files (3)
+
 1. `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Configurations/FamilyMemberInvitationConfiguration.cs`
 2. `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Migrations/20260104222030_CreateFamilyMemberInvitationsTable.cs`
 3. `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Migrations/20260104222030_CreateFamilyMemberInvitationsTable.Designer.cs`
 
 ### Modified Files (3)
+
 1. `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/Configurations/UserConfiguration.cs`
 2. `/src/api/Modules/FamilyHub.Modules.Auth/Persistence/AuthDbContext.cs`
 3. `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Security/ZitadelManagementClient.cs` (fixed missing using)
@@ -371,6 +410,7 @@ WHERE migration_id = '20260104222030_CreateFamilyMemberInvitationsTable';
 Phase 1, Workstream D is **COMPLETE** and **UNBLOCKS Workstream E**.
 
 **Workstream E Prerequisites (Now Ready):**
+
 - ✅ Database schema created and verified
 - ✅ FamilyMemberInvitation table with all indexes
 - ✅ User extensions (username, full_name, zitadel_user_id)
@@ -378,6 +418,7 @@ Phase 1, Workstream D is **COMPLETE** and **UNBLOCKS Workstream E**.
 - ✅ All unit tests passing (142/142)
 
 **Workstream E Implementation:**
+
 1. Create `IFamilyMemberInvitationRepository` interface
 2. Implement `FamilyMemberInvitationRepository` with EF Core
 3. Register repository in DI container
@@ -409,6 +450,7 @@ Phase 1, Workstream D is **COMPLETE** and **UNBLOCKS Workstream E**.
 ## Lessons Learned
 
 ### What Went Well
+
 1. **Single Consolidated Migration:** EF Core auto-detected both table creation AND User extensions in one migration
 2. **Vogen Integration:** Seamless value object conversion with generated converters
 3. **Modern EF Core APIs:** Using `ToTable(t => t.HasCheckConstraint())` avoided deprecation warnings
@@ -416,10 +458,12 @@ Phase 1, Workstream D is **COMPLETE** and **UNBLOCKS Workstream E**.
 5. **Comprehensive Testing:** 142 unit tests ensure domain logic correctness
 
 ### Challenges Encountered
+
 1. **Missing using directive:** ZitadelManagementClient.cs missing `Microsoft.Extensions.Logging` (quick fix)
 2. **Integration tests:** Deferred to Workstream E (repository layer not implemented yet)
 
 ### Improvements for Future Phases
+
 1. **Index Monitoring:** Add query performance logging to validate index effectiveness
 2. **Migration Testing:** Consider creating migration rollback tests
 3. **Documentation:** Generate ER diagram from EF Core model for visual reference
