@@ -24,7 +24,7 @@ interface InviteFamilyMemberByEmailResponse {
  */
 interface InviteEmailResult {
   successCount: number;
-  errors: Array<{ message: string; code?: string; field?: string }>;
+  errors: { message: string; code?: string; field?: string }[];
 }
 
 /**
@@ -132,7 +132,7 @@ export class InvitationService {
    */
   async inviteFamilyMembersByEmail(
     familyId: string,
-    invitations: Array<{ email: string; role: 'ADMIN' | 'MEMBER' }>
+    invitations: { email: string; role: 'ADMIN' | 'MEMBER' }[]
   ): Promise<InviteEmailResult> {
     this.isLoading.set(true);
     this.error.set(null);

@@ -97,7 +97,7 @@ describe('AuthService - Email OAuth', () => {
       graphqlServiceMock.query.and.returnValue(Promise.resolve(mockResponse));
 
       // Spy on window.location.href setter
-      let redirectUrl: string = '';
+      let redirectUrl = '';
       Object.defineProperty(window, 'location', {
         value: {
           set href(url: string) {

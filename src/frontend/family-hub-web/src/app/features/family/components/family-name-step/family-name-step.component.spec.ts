@@ -3,7 +3,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { FamilyNameStepComponent, FamilyNameStepData } from './family-name-step.component';
 import { InputComponent } from '../../../../shared/components/atoms/input/input.component';
 import { IconComponent } from '../../../../shared/components/atoms/icon/icon.component';
-import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 
 describe('FamilyNameStepComponent', () => {

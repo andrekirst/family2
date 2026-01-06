@@ -42,7 +42,7 @@ export class InviteMemberModalComponent implements OnInit {
   /**
    * Emits when modal should close.
    */
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
 
   /**
    * Reactive form for email invitations.
@@ -190,8 +190,9 @@ export class InviteMemberModalComponent implements OnInit {
 
     try {
       await this.submitEmailInvitations();
-    } catch (err: any) {
-      this.errors.set([err.message || 'An unexpected error occurred']);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      this.errors.set([errorMessage]);
       this.showResults.set(true);
     } finally {
       this.isSubmitting.set(false);
@@ -231,7 +232,7 @@ export class InviteMemberModalComponent implements OnInit {
    * Extracts valid email-role pairs from FormArray.
    * Returns array of objects with email and role properties.
    */
-  private parseEmailInvitations(): Array<{ email: string; role: 'ADMIN' | 'MEMBER' }> {
+  private parseEmailInvitations(): { email: string; role: 'ADMIN' | 'MEMBER' }[] {
     return this.emailInvitationControls.controls
       .map(group => ({
         email: group.get('email')?.value?.trim() || '',
@@ -276,9 +277,9 @@ export class InviteMemberModalComponent implements OnInit {
    * Closes the modal and resets state.
    */
   closeModal(): void {
+    this.closed.emit();
     this.clearForm();
     this.clearResults();
-    this.close.emit();
   }
 
   /**

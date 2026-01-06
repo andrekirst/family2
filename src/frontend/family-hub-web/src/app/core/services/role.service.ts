@@ -86,7 +86,7 @@ export class RoleService {
     )
   );
 
-  constructor(private graphql: GraphQLService) {}
+  private graphql = inject(GraphQLService);
 
   /**
    * Loads all available roles from cache or API.

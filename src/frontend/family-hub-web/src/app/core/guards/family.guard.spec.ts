@@ -183,7 +183,7 @@ describe('Family Guards', () => {
       mockRouter.createUrlTree.and.returnValue(mockUrlTree);
 
       // User has no family
-      let result1 = TestBed.runInInjectionContext(() =>
+      const result1 = TestBed.runInInjectionContext(() =>
         familyGuard(mockRoute, mockState)
       );
       expect(result1).toBe(mockUrlTree);
@@ -192,7 +192,7 @@ describe('Family Guards', () => {
       hasFamilySignal.set(true);
 
       // User now has family
-      let result2 = TestBed.runInInjectionContext(() =>
+      const result2 = TestBed.runInInjectionContext(() =>
         familyGuard(mockRoute, mockState)
       );
       expect(result2).toBe(true);
@@ -201,7 +201,7 @@ describe('Family Guards', () => {
     it('should handle null family service gracefully', () => {
       // This test ensures guards don't crash if service is null
       // (Should not happen in practice, but good defensive programming)
-      const nullService = { hasFamily: signal(false) } as any;
+      const nullService: Partial<FamilyService> = { hasFamily: signal(false) };
       const mockUrlTree = {} as UrlTree;
       TestBed.overrideProvider(FamilyService, { useValue: nullService });
       mockRouter.createUrlTree.and.returnValue(mockUrlTree);

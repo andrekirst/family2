@@ -182,7 +182,7 @@ export class FamilyMembersStepComponent {
 export class FamilyReviewStepComponent {
   @Input() data: { allData?: Map<string, unknown> } = {};
 
-  familyName: string = '';
+  familyName = '';
   members: string[] = [];
 
   ngOnInit() {

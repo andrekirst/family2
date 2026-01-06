@@ -192,7 +192,7 @@ describe('FamilyWizardPageComponent', () => {
 
     it('should handle undefined family name', async () => {
       const stepData = new Map<string, unknown>();
-      stepData.set('family-name', { name: undefined } as any);
+      stepData.set('family-name', { name: undefined } as { name: undefined });
 
       await component.onWizardComplete(stepData);
 
