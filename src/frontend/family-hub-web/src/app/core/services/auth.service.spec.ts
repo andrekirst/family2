@@ -2,26 +2,42 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { GraphQLService } from './graphql.service';
+import { WindowRef } from './window-ref.service';
 
 /**
  * Unit tests for AuthService email-only OAuth authentication.
  * Tests OAuth flow with email-based login_hint parameter.
+ *
+ * Note: These tests mock WindowRef service to prevent actual page redirects during testing.
+ * This approach avoids browser security restrictions on window.location mocking.
  */
 describe('AuthService - Email OAuth', () => {
   let service: AuthService;
   let graphqlServiceMock: jasmine.SpyObj<GraphQLService>;
   let routerMock: jasmine.SpyObj<Router>;
+  let mockWindow: { location: { href: string } };
 
   beforeEach(() => {
     // Create mocks
     graphqlServiceMock = jasmine.createSpyObj('GraphQLService', ['query', 'mutate']);
     routerMock = jasmine.createSpyObj('Router', ['navigate']);
 
+    // Create mock window object with settable location.href
+    mockWindow = {
+      location: {
+        href: ''
+      }
+    };
+
+    // Clear sessionStorage before each test
+    sessionStorage.clear();
+
     TestBed.configureTestingModule({
       providers: [
         AuthService,
         { provide: GraphQLService, useValue: graphqlServiceMock },
-        { provide: Router, useValue: routerMock }
+        { provide: Router, useValue: routerMock },
+        { provide: WindowRef, useValue: { nativeWindow: mockWindow } }
       ]
     });
 
@@ -41,13 +57,6 @@ describe('AuthService - Email OAuth', () => {
       };
 
       graphqlServiceMock.query.and.returnValue(Promise.resolve(mockResponse));
-
-      // Spy on window.location.href setter
-      const locationHrefSpy = jasmine.createSpy('locationHrefSpy');
-      Object.defineProperty(window, 'location', {
-        value: { href: locationHrefSpy },
-        writable: true
-      });
 
       // Act
       await service.login(email);
@@ -96,25 +105,11 @@ describe('AuthService - Email OAuth', () => {
 
       graphqlServiceMock.query.and.returnValue(Promise.resolve(mockResponse));
 
-      // Spy on window.location.href setter
-      let redirectUrl = '';
-      Object.defineProperty(window, 'location', {
-        value: {
-          set href(url: string) {
-            redirectUrl = url;
-          },
-          get href() {
-            return redirectUrl;
-          }
-        },
-        writable: true
-      });
-
       // Act
       await service.login(email);
 
       // Assert
-      expect(redirectUrl).toBe(authUrl);
+      expect(mockWindow.location.href).toBe(authUrl);
     });
 
     it('should omit loginHint when identifier is not provided', async () => {

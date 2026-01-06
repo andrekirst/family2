@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { GraphQLService } from './graphql.service';
+import { WindowRef } from './window-ref.service';
 import {
   AuthState,
   GetZitadelAuthUrlResponse,
@@ -29,6 +30,7 @@ export class AuthService {
 
   private readonly graphql = inject(GraphQLService);
   private readonly router = inject(Router);
+  private readonly windowRef = inject(WindowRef);
 
   constructor() {
     this.initializeAuthState();
@@ -81,7 +83,7 @@ export class AuthService {
       sessionStorage.setItem('oauth_state', state);
 
       // Redirect to Zitadel OAuth UI
-      window.location.href = authorizationUrl;
+      this.windowRef.nativeWindow.location.href = authorizationUrl;
     } catch (error) {
       console.error('Login failed:', error);
       throw new Error('Failed to initiate login');
