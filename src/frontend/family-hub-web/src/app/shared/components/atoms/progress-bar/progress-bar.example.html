@@ -66,22 +66,30 @@
 
     <!-- Wizard Content -->
     <div class="mt-8 min-h-[200px]">
-      <div *ngIf="wizardStep === 1">
-        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 1: Family Details</h3>
-        <p class="text-gray-600">Enter your family name and description...</p>
-      </div>
-      <div *ngIf="wizardStep === 2">
-        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 2: Add Members</h3>
-        <p class="text-gray-600">Invite family members to join...</p>
-      </div>
-      <div *ngIf="wizardStep === 3">
-        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 3: Setup Preferences</h3>
-        <p class="text-gray-600">Configure your family settings...</p>
-      </div>
-      <div *ngIf="wizardStep === 4">
-        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 4: Review & Create</h3>
-        <p class="text-gray-600">Review your family information...</p>
-      </div>
+      @if (wizardStep === 1) {
+        <div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 1: Family Details</h3>
+          <p class="text-gray-600">Enter your family name and description...</p>
+        </div>
+      }
+      @if (wizardStep === 2) {
+        <div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 2: Add Members</h3>
+          <p class="text-gray-600">Invite family members to join...</p>
+        </div>
+      }
+      @if (wizardStep === 3) {
+        <div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 3: Setup Preferences</h3>
+          <p class="text-gray-600">Configure your family settings...</p>
+        </div>
+      }
+      @if (wizardStep === 4) {
+        <div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 4: Review & Create</h3>
+          <p class="text-gray-600">Review your family information...</p>
+        </div>
+      }
     </div>
 
     <!-- Navigation Buttons -->

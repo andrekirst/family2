@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { WizardComponent } from './wizard.component';
@@ -22,7 +22,7 @@ import { WizardService, WizardStepConfig } from '../../../services/wizard.servic
     </div>
   `
 })
-class TestStepComponent {
+class TestStepComponent implements OnInit {
   @Input() data?: { value: string };
   @Output() dataChange = new EventEmitter<{ value: string }>();
 
