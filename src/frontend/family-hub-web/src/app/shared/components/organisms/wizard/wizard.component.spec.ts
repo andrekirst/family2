@@ -270,8 +270,10 @@ describe('WizardComponent', () => {
       component.onNext();
 
       expect(emittedData).toBeTruthy();
-      expect((emittedData as Map<string, unknown>).get('step1')).toEqual({ value: 'test' });
-      expect((emittedData as Map<string, unknown>).get('step2')).toEqual({ name: 'Test Name' });
+      if (emittedData) {
+        expect((emittedData as Map<string, unknown>).get('step1')).toEqual({ value: 'test' });
+        expect((emittedData as Map<string, unknown>).get('step2')).toEqual({ name: 'Test Name' });
+      }
     });
   });
 

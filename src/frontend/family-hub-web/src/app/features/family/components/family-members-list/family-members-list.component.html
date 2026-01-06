@@ -23,7 +23,7 @@
 <!-- Members list -->
 @if (sortedMembers().length > 0) {
   <div class="space-y-3">
-    @for (member of sortedMembers(); track member.userId) {
+    @for (member of sortedMembers(); track member.id) {
       <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
           <!-- Member info -->

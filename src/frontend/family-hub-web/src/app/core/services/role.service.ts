@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { GraphQLService } from './graphql.service';
 import { RoleMetadata, UserRole } from '../../features/family/models/family.models';
 

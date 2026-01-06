@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { FamilyService, Family } from './family.service';
 import { GraphQLService, GraphQLError } from '../../../core/services/graphql.service';
+import { FamilyMember } from '../models/family.models';
 
 describe('FamilyService', () => {
   let service: FamilyService;
@@ -29,6 +30,10 @@ describe('FamilyService', () => {
       expect(service.currentFamily()).toBeNull();
     });
 
+    it('should initialize with empty familyMembers', () => {
+      expect(service.familyMembers()).toEqual([]);
+    });
+
     it('should initialize with isLoading false', () => {
       expect(service.isLoading()).toBe(false);
     });
@@ -42,57 +47,55 @@ describe('FamilyService', () => {
     });
   });
 
-  describe('loadUserFamilies()', () => {
+  describe('loadCurrentFamily()', () => {
     it('should set isLoading to true during load', () => {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       graphqlService.query.and.returnValue(new Promise<never>(() => {})); // Never resolves
 
-      service.loadUserFamilies();
+      service.loadCurrentFamily();
 
       expect(service.isLoading()).toBe(true);
     });
 
-    it('should load families and set currentFamily to first family', async () => {
-      const mockFamilies: Family[] = [
-        {
-          familyId: { value: 'family-123' },
-          name: 'Smith Family',
-          memberCount: 3,
-          createdAt: '2025-12-30T00:00:00Z'
+    it('should load family and set currentFamily', async () => {
+      const mockFamily: Family = {
+        id: 'family-123',
+        name: 'Smith Family',
+        auditInfo: {
+          createdAt: '2025-12-30T00:00:00Z',
+          updatedAt: '2025-12-30T00:00:00Z'
         }
-      ];
+      };
 
       graphqlService.query.and.returnValue(Promise.resolve({
-        getUserFamilies: {
-          families: mockFamilies
-        }
+        family: mockFamily
       }));
 
-      await service.loadUserFamilies();
+      await service.loadCurrentFamily();
 
-      expect(service.currentFamily()).toEqual(mockFamilies[0]);
+      expect(service.currentFamily()).toEqual(mockFamily);
       expect(service.isLoading()).toBe(false);
       expect(service.error()).toBeNull();
+      expect(service.hasFamily()).toBe(true);
     });
 
-    it('should handle empty families array', async () => {
+    it('should handle null family (user has no family)', async () => {
       graphqlService.query.and.returnValue(Promise.resolve({
-        getUserFamilies: {
-          families: []
-        }
+        family: null
       }));
 
-      await service.loadUserFamilies();
+      await service.loadCurrentFamily();
 
       expect(service.currentFamily()).toBeNull();
       expect(service.isLoading()).toBe(false);
+      expect(service.hasFamily()).toBe(false);
     });
 
     it('should set error when query fails', async () => {
       const errorMessage = 'Network error';
       graphqlService.query.and.returnValue(Promise.reject(new Error(errorMessage)));
 
-      await service.loadUserFamilies();
+      await service.loadCurrentFamily();
 
       expect(service.error()).toContain(errorMessage);
       expect(service.isLoading()).toBe(false);
@@ -100,28 +103,22 @@ describe('FamilyService', () => {
     });
 
     it('should handle GraphQLError', async () => {
-      const graphqlError = new GraphQLError([
-        { message: 'Unauthorized access' }
-      ]);
-
+      const graphqlError = new GraphQLError('GraphQL validation error', []);
       graphqlService.query.and.returnValue(Promise.reject(graphqlError));
 
-      await service.loadUserFamilies();
+      await service.loadCurrentFamily();
 
-      expect(service.error()).toContain('GraphQL errors occurred');
+      expect(service.error()).toBe('GraphQL validation error');
       expect(service.isLoading()).toBe(false);
     });
 
-    it('should call GraphQL query with correct query string', async () => {
-      graphqlService.query.and.returnValue(Promise.resolve({
-        getUserFamilies: { families: [] }
-      }));
+    it('should handle unknown error type with fallback message', async () => {
+      graphqlService.query.and.returnValue(Promise.reject('Unknown error'));
 
-      await service.loadUserFamilies();
+      await service.loadCurrentFamily();
 
-      expect(graphqlService.query).toHaveBeenCalled();
-      const callArgs = graphqlService.query.calls.mostRecent().args;
-      expect(callArgs[0]).toContain('getUserFamilies');
+      expect(service.error()).toBe('Failed to load family');
+      expect(service.isLoading()).toBe(false);
     });
   });
 
@@ -130,119 +127,19 @@ describe('FamilyService', () => {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       graphqlService.mutate.and.returnValue(new Promise<never>(() => {})); // Never resolves
 
-      service.createFamily('Test Family');
+      service.createFamily('New Family');
 
       expect(service.isLoading()).toBe(true);
     });
 
-    it('should create family and set currentFamily on success', async () => {
+    it('should create family and set currentFamily', async () => {
       const mockFamily: Family = {
-        familyId: { value: 'new-family-456' },
-        name: 'Test Family',
-        memberCount: 1,
-        createdAt: '2025-12-30T00:00:00Z'
-      };
-
-      graphqlService.mutate.and.returnValue(Promise.resolve({
-        createFamily: {
-          family: mockFamily,
-          errors: null
-        }
-      }));
-
-      await service.createFamily('Test Family');
-
-      expect(service.currentFamily()).toEqual(mockFamily);
-      expect(service.isLoading()).toBe(false);
-      expect(service.error()).toBeNull();
-    });
-
-    it('should set error when API returns errors', async () => {
-      graphqlService.mutate.and.returnValue(Promise.resolve({
-        createFamily: {
-          family: null,
-          errors: [
-            { message: 'User already has a family', code: 'BUSINESS_RULE_VIOLATION' }
-          ]
-        }
-      }));
-
-      await service.createFamily('Test Family');
-
-      expect(service.error()).toBe('User already has a family');
-      expect(service.currentFamily()).toBeNull();
-      expect(service.isLoading()).toBe(false);
-    });
-
-    it('should handle mutation failure (network error)', async () => {
-      const errorMessage = 'Failed to connect';
-      graphqlService.mutate.and.returnValue(Promise.reject(new Error(errorMessage)));
-
-      await service.createFamily('Test Family');
-
-      expect(service.error()).toContain(errorMessage);
-      expect(service.isLoading()).toBe(false);
-    });
-
-    it('should call GraphQL mutate with correct mutation string', async () => {
-      graphqlService.mutate.and.returnValue(Promise.resolve({
-        createFamily: { family: null, errors: null }
-      }));
-
-      await service.createFamily('Test Family');
-
-      expect(graphqlService.mutate).toHaveBeenCalledWith(
-        jasmine.stringContaining('createFamily'),
-        { input: { name: 'Test Family' } }
-      );
-    });
-
-    it('should pass family name as input variable', async () => {
-      graphqlService.mutate.and.returnValue(Promise.resolve({
-        createFamily: { family: null, errors: null }
-      }));
-
-      await service.createFamily('Smith Family');
-
-      expect(graphqlService.mutate).toHaveBeenCalledWith(
-        jasmine.anything(),
-        { input: { name: 'Smith Family' } }
-      );
-    });
-  });
-
-  describe('hasFamily computed signal', () => {
-    it('should return false when currentFamily is null', () => {
-      expect(service.hasFamily()).toBe(false);
-    });
-
-    it('should return true when currentFamily is set', async () => {
-      const mockFamily: Family = {
-        familyId: { value: 'family-789' },
-        name: 'Jones Family',
-        memberCount: 2,
-        createdAt: '2025-12-30T00:00:00Z'
-      };
-
-      graphqlService.query.and.returnValue(Promise.resolve({
-        getUserFamilies: {
-          families: [mockFamily]
-        }
-      }));
-
-      await service.loadUserFamilies();
-
-      expect(service.hasFamily()).toBe(true);
-    });
-
-    it('should reactively update when currentFamily changes', async () => {
-      expect(service.hasFamily()).toBe(false);
-
-      const mockFamily: Family = {
-        familyId: { value: 'family-999' },
+        id: 'new-family-456',
         name: 'New Family',
-        memberCount: 1,
-        createdAt: '2025-12-30T00:00:00Z'
+        auditInfo: {
+          createdAt: '2025-12-30T00:00:00Z',
+          updatedAt: '2025-12-30T00:00:00Z'
+        }
       };
 
       graphqlService.mutate.and.returnValue(Promise.resolve({
@@ -254,62 +151,190 @@ describe('FamilyService', () => {
 
       await service.createFamily('New Family');
 
+      expect(service.currentFamily()).toEqual(mockFamily);
+      expect(service.isLoading()).toBe(false);
+      expect(service.error()).toBeNull();
       expect(service.hasFamily()).toBe(true);
     });
-  });
 
-  describe('Error Handling', () => {
-    it('should clear error before new operation', async () => {
-      // First operation fails
-      graphqlService.query.and.returnValue(Promise.reject(new Error('First error')));
-      await service.loadUserFamilies();
-      expect(service.error()).toContain('First error');
-
-      // Second operation succeeds
-      graphqlService.query.and.returnValue(Promise.resolve({
-        getUserFamilies: { families: [] }
+    it('should handle business logic errors', async () => {
+      graphqlService.mutate.and.returnValue(Promise.resolve({
+        createFamily: {
+          family: null,
+          errors: [
+            { message: 'User already has a family', code: 'FAMILY_ALREADY_EXISTS' }
+          ]
+        }
       }));
-      await service.loadUserFamilies();
 
-      expect(service.error()).toBeNull();
+      await service.createFamily('New Family');
+
+      expect(service.currentFamily()).toBeNull();
+      expect(service.error()).toBe('User already has a family');
+      expect(service.isLoading()).toBe(false);
     });
 
-    it('should handle unknown error types gracefully', async () => {
-      graphqlService.mutate.and.returnValue(Promise.reject('String error'));
+    it('should set error when mutation fails', async () => {
+      const errorMessage = 'Network error';
+      graphqlService.mutate.and.returnValue(Promise.reject(new Error(errorMessage)));
 
-      await service.createFamily('Test');
+      await service.createFamily('New Family');
 
-      expect(service.error()).toBe('Failed to create family');
+      expect(service.error()).toContain(errorMessage);
+      expect(service.isLoading()).toBe(false);
+      expect(service.currentFamily()).toBeNull();
+    });
+
+    it('should handle empty family name validation', async () => {
+      graphqlService.mutate.and.returnValue(Promise.resolve({
+        createFamily: {
+          family: null,
+          errors: [
+            { message: 'Family name is required', code: 'VALIDATION_ERROR' }
+          ]
+        }
+      }));
+
+      await service.createFamily('');
+
+      expect(service.error()).toBe('Family name is required');
     });
   });
 
-  describe('Multiple Families Scenario', () => {
-    it('should set currentFamily to first family when multiple exist', async () => {
-      const mockFamilies: Family[] = [
+  describe('loadFamilyMembers()', () => {
+    const mockFamilyId = 'family-789';
+
+    it('should set isLoading to true during load', () => {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      graphqlService.query.and.returnValue(new Promise<never>(() => {})); // Never resolves
+
+      service.loadFamilyMembers(mockFamilyId);
+
+      expect(service.isLoading()).toBe(true);
+    });
+
+    it('should load family members', async () => {
+      const mockMembers: FamilyMember[] = [
         {
-          familyId: { value: 'family-1' },
-          name: 'First Family',
-          memberCount: 3,
-          createdAt: '2025-12-30T00:00:00Z'
+          id: 'user-1',
+          email: 'alice@example.com',
+          role: 'OWNER',
+          emailVerified: true,
+          auditInfo: {
+            createdAt: '2025-12-30T00:00:00Z',
+            updatedAt: '2025-12-30T00:00:00Z'
+          }
         },
         {
-          familyId: { value: 'family-2' },
-          name: 'Second Family',
-          memberCount: 2,
-          createdAt: '2025-12-29T00:00:00Z'
+          id: 'user-2',
+          email: 'bob@example.com',
+          role: 'ADMIN',
+          emailVerified: true,
+          auditInfo: {
+            createdAt: '2025-12-30T00:00:00Z',
+            updatedAt: '2025-12-30T00:00:00Z'
+          }
         }
       ];
 
       graphqlService.query.and.returnValue(Promise.resolve({
-        getUserFamilies: {
-          families: mockFamilies
-        }
+        familyMembers: mockMembers
       }));
 
-      await service.loadUserFamilies();
+      await service.loadFamilyMembers(mockFamilyId);
 
-      expect(service.currentFamily()).toEqual(mockFamilies[0]);
-      expect(service.currentFamily()?.name).toBe('First Family');
+      expect(service.familyMembers()).toEqual(mockMembers);
+      expect(service.isLoading()).toBe(false);
+      expect(service.error()).toBeNull();
+    });
+
+    it('should handle empty family members', async () => {
+      graphqlService.query.and.returnValue(Promise.resolve({
+        familyMembers: []
+      }));
+
+      await service.loadFamilyMembers(mockFamilyId);
+
+      expect(service.familyMembers()).toEqual([]);
+      expect(service.isLoading()).toBe(false);
+    });
+
+    it('should set error when query fails', async () => {
+      const errorMessage = 'Network error';
+      graphqlService.query.and.returnValue(Promise.reject(new Error(errorMessage)));
+
+      await service.loadFamilyMembers(mockFamilyId);
+
+      expect(service.error()).toContain(errorMessage);
+      expect(service.isLoading()).toBe(false);
+      expect(service.familyMembers()).toEqual([]);
+    });
+
+    it('should handle invalid family ID', async () => {
+      graphqlService.query.and.returnValue(Promise.resolve({
+        familyMembers: []
+      }));
+
+      await service.loadFamilyMembers('invalid-id');
+
+      expect(service.familyMembers()).toEqual([]);
+    });
+  });
+
+  describe('Computed Signals', () => {
+    it('hasFamily should be true when currentFamily is set', async () => {
+      const mockFamily: Family = {
+        id: 'family-1',
+        name: 'Test Family',
+        auditInfo: {
+          createdAt: '2025-12-30T00:00:00Z',
+          updatedAt: '2025-12-30T00:00:00Z'
+        }
+      };
+
+      graphqlService.query.and.returnValue(Promise.resolve({
+        family: mockFamily
+      }));
+
+      await service.loadCurrentFamily();
+
+      expect(service.hasFamily()).toBe(true);
+    });
+
+    it('hasFamily should be false when currentFamily is null', async () => {
+      graphqlService.query.and.returnValue(Promise.resolve({
+        family: null
+      }));
+
+      await service.loadCurrentFamily();
+
+      expect(service.hasFamily()).toBe(false);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should clear previous errors on new operation', async () => {
+      // First operation fails
+      graphqlService.query.and.returnValue(Promise.reject(new Error('First error')));
+      await service.loadCurrentFamily();
+      expect(service.error()).toBe('First error');
+
+      // Second operation succeeds
+      const mockFamily: Family = {
+        id: 'family-999',
+        name: 'Success Family',
+        auditInfo: {
+          createdAt: '2025-12-30T00:00:00Z',
+          updatedAt: '2025-12-30T00:00:00Z'
+        }
+      };
+      graphqlService.query.and.returnValue(Promise.resolve({
+        family: mockFamily
+      }));
+      await service.loadCurrentFamily();
+
+      expect(service.error()).toBeNull();
+      expect(service.currentFamily()).toEqual(mockFamily);
     });
   });
 });
