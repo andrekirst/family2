@@ -548,9 +548,9 @@ We use RICE scoring to prioritize features:
 
 #### MVP
 
-- User registration & authentication (Zitadel)
+- User registration & authentication (Zitadel OAuth 2.0 - email only)
 - Family creation and invite codes
-- Family member invites - Wizard step (email + username/password for children)
+- Family member invites - Wizard step (email invitations)
 - Family member invites - Management UI (ongoing member addition)
 - User profiles (name, avatar, role)
 - Family settings (timezone, language, notifications)
@@ -558,13 +558,19 @@ We use RICE scoring to prioritize features:
 #### Phase 2
 
 - Multi-family support (users in multiple families)
-- Role-based permissions (admin, parent, child)
+- Role-based permissions (admin, parent, member)
 
 #### Phase 3+
 
 - Extended family connections
 - Family network and social features
 - Guest access (temporary babysitters)
+
+#### Phase 7+ (DEFERRED - Post-MVP)
+
+- Managed accounts (children, elderly without email) with username-based authentication
+- Migration path from username to email authentication
+- See ADR-006 for rationale - deferred based on user research validation
 
 ### 2. Calendar Management
 

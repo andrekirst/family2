@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, effect } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { InputComponent } from '../../../../shared/components/atoms/input/input.component';

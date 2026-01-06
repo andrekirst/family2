@@ -218,7 +218,7 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
         // Assert - User's family should be updated to the second family
         secondResult.Should().NotBeNull();
         secondResult.FamilyId.Should().NotBe(firstResult.FamilyId);
-        
+
         var updatedUser = await userRepo.GetByIdAsync(user.Id);
         updatedUser.Should().NotBeNull();
         updatedUser!.FamilyId.Should().Be(secondResult.FamilyId);

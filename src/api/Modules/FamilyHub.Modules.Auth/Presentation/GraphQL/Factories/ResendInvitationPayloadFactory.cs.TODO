@@ -1,0 +1,35 @@
+using FamilyHub.Modules.Auth.Application.Commands.ResendInvitation;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.SharedKernel.Presentation.GraphQL;
+
+namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Factories;
+
+/// <summary>
+/// Factory for creating ResendInvitationPayload instances.
+/// </summary>
+public class ResendInvitationPayloadFactory
+    : IPayloadFactory<ResendInvitationResult, ResendInvitationPayload>
+{
+    public ResendInvitationPayload Success(ResendInvitationResult result)
+    {
+        var invitation = new PendingInvitationType
+        {
+            Id = result.InvitationId.Value,
+            Email = result.Email.Value,
+            Username = null,
+            Role = result.Role.Value,
+            Status = result.Status.Value,
+            InvitedAt = DateTime.UtcNow,
+            ExpiresAt = result.ExpiresAt,
+            DisplayCode = null
+        };
+
+        return new ResendInvitationPayload(invitation);
+    }
+
+    public ResendInvitationPayload Error(IReadOnlyList<UserError> errors)
+    {
+        return new ResendInvitationPayload(errors);
+    }
+}

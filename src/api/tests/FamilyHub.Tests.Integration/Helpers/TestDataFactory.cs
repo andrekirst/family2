@@ -34,12 +34,12 @@ public static class TestDataFactory
         var testId = Guid.NewGuid().ToString("N")[..8];
         var email = $"{emailPrefix}-{testId}@example.com";
         var familyName = $"{emailPrefix} Family {testId}";
-        
+
         // Create family first (required by foreign key constraint)
         var family = Family.Create(FamilyName.From(familyName), UserId.New()); // Temp owner
         await familyRepository.AddAsync(family);
         await unitOfWork.SaveChangesAsync();
-        
+
         // Create user with family ID
         var user = User.CreateFromOAuth(
             Email.From(email),
@@ -47,13 +47,13 @@ public static class TestDataFactory
             "zitadel",
             family.Id
         );
-        
+
         // Transfer ownership to user
         family.TransferOwnership(user.Id);
-        
+
         await userRepository.AddAsync(user);
         await unitOfWork.SaveChangesAsync();
-        
+
         return user;
     }
 

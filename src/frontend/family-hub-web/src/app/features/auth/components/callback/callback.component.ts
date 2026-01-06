@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { FamilyService } from '../../../family/services/family.service';
 import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/spinner.component';
 
 
@@ -49,6 +50,7 @@ export class CallbackComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly familyService = inject(FamilyService);
 
   error: string | null = null;
 
@@ -69,11 +71,21 @@ export class CallbackComponent implements OnInit {
       // Complete OAuth flow
       await this.authService.completeLogin(code, state);
 
-      // Get return URL from query params (if set before login)
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+      // Load family data after successful login
+      await this.familyService.loadCurrentFamily();
 
-      // Redirect to dashboard or return URL
-      this.router.navigate([returnUrl]);
+      // Determine redirect URL based on family status
+      let redirectUrl: string;
+      if (this.familyService.hasFamily()) {
+        // User has family - go to dashboard or return URL
+        redirectUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+      } else {
+        // User has no family - go to family creation wizard
+        redirectUrl = '/family/create';
+      }
+
+      // Redirect
+      this.router.navigate([redirectUrl]);
 
     } catch (error: unknown) {
       console.error('OAuth callback error:', error);

@@ -64,13 +64,14 @@
 
 ### Architecture Questions
 
-**Read these 5 docs:**
+**Read these 6 docs:**
 1. [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Modular monolith decision rationale
 2. [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md) - OAuth 2.0 with Zitadel (vs Auth0, Keycloak, ASP.NET Identity)
 3. [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md) - GraphQL Input/Command pattern (Vogen compatibility)
 4. [ADR-004](docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md) - Playwright migration (vs Cypress, cross-browser, event chains)
-5. [Domain Model](docs/architecture/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
-6. [Event Chains Reference](docs/architecture/event-chains-reference.md) - Event-driven patterns and workflows
+5. [ADR-006](docs/architecture/ADR-006-EMAIL-ONLY-AUTHENTICATION.md) - Email-only authentication via Zitadel OAuth 2.0 (simplified from ADR-005)
+6. [Domain Model](docs/architecture/domain-model-microservices-map.md) - 8 DDD modules, domain events, GraphQL schemas
+7. [Event Chains Reference](docs/architecture/event-chains-reference.md) - Event-driven patterns and workflows
 
 ### Planning & Roadmap Questions
 
@@ -93,7 +94,8 @@
 **51 documents** organized in 9 thematic folders. See **[docs/INDEX.md](docs/INDEX.md)** for complete documentation map.
 
 **Quick Access:**
-- **Architecture:** [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md), [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md), [ADR-004](docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md)
+- **Architecture:** [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md), [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md), [ADR-004](docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md), [ADR-005](docs/architecture/ADR-005-DUAL-AUTHENTICATION-ZITADEL.md)
+- **Authentication:** [Admin Guide](docs/authentication/DUAL-AUTHENTICATION-ADMIN-GUIDE.md), [User Guide](docs/authentication/DUAL-AUTHENTICATION-USER-GUIDE.md)
 - **Development:** [Domain Model](docs/architecture/domain-model-microservices-map.md), [Event Chains](docs/architecture/event-chains-reference.md)
 - **Product:** [Product Strategy](docs/product-strategy/PRODUCT_STRATEGY.md), [Roadmap](docs/product-strategy/implementation-roadmap.md), [Feature Backlog](docs/product-strategy/FEATURE_BACKLOG.md)
 
@@ -366,5 +368,5 @@ npx playwright test      # Runs all tests on 3 browsers (CI auto-detected)
 
 _This guide was created to help Claude Code navigate the Family Hub project efficiently. For full context, always refer to the `/docs/` folder._
 
-**Last updated:** 2025-12-30
-**CLAUDE.md version:** 3.0 (Performance optimized: 1,083 → 266 lines, 75% reduction)
+**Last updated:** 2026-01-06
+**CLAUDE.md version:** 3.1 (Added dual authentication patterns from ADR-005)

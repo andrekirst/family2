@@ -1,3 +1,4 @@
+using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.Exceptions;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -108,6 +109,121 @@ public class MutationHandler(IServiceProvider services, ILogger<MutationHandler>
         {
             // Unexpected exceptions represent system errors
             // Log as Error with full exception details for debugging
+            logger.LogError(ex,
+                "Unexpected exception in {PayloadType}: {ExceptionType}",
+                typeof(TPayload).Name, ex.GetType().Name);
+
+            var factory = services.GetRequiredService<IPayloadFactory<TResult, TPayload>>();
+            return factory.Error([
+                new UserError
+                {
+                    Code = "INTERNAL_ERROR",
+                    Message = "An unexpected error occurred. Please try again.",
+                    Field = null
+                }
+            ]);
+        }
+    }
+
+    /// <summary>
+    /// Executes a mutation action that returns Result<TResult> and handles both success and failure cases.
+    /// </summary>
+    public async Task<TPayload> Handle<TResult, TPayload>(
+        Func<Task<Result<TResult>>> action)
+        where TPayload : IPayloadWithErrors
+    {
+        try
+        {
+            // Execute the mutation logic
+            var result = await action();
+
+            // Resolve the payload factory from DI
+            var factory = services.GetRequiredService<IPayloadFactory<TResult, TPayload>>();
+
+            // Check if Result<T> indicates success or failure
+            if (result.IsSuccess)
+            {
+                return factory.Success(result.Value);
+            }
+            else
+            {
+                // Convert Result failure to GraphQL errors
+                return factory.Error([
+                    new UserError
+                    {
+                        Code = "BUSINESS_LOGIC_ERROR",
+                        Message = result.Error,
+                        Field = null
+                    }
+                ]);
+            }
+        }
+        catch (BusinessException ex)
+        {
+            logger.LogWarning(ex,
+                "Business exception in {PayloadType}: {Code} - {Message}",
+                typeof(TPayload).Name, ex.Code, ex.Message);
+
+            var factory = services.GetRequiredService<IPayloadFactory<TResult, TPayload>>();
+            return factory.Error([
+                new UserError
+                {
+                    Code = ex.Code,
+                    Message = ex.Message,
+                    Field = null
+                }
+            ]);
+        }
+        catch (ValidationException validationEx)
+        {
+            logger.LogWarning(
+                "Validation failed in {PayloadType}: {ErrorCount} errors",
+                typeof(TPayload).Name, validationEx.Errors.Count());
+
+            var factory = services.GetRequiredService<IPayloadFactory<TResult, TPayload>>();
+            var errors = validationEx.Errors.Select(e => new UserError
+            {
+                Code = "VALIDATION_ERROR",
+                Message = e.ErrorMessage,
+                Field = e.PropertyName
+            }).ToList();
+
+            return factory.Error(errors);
+        }
+        catch (ValueObjectValidationException vogenEx)
+        {
+            logger.LogWarning(vogenEx,
+                "Vogen validation failed in {PayloadType}: {Message}",
+                typeof(TPayload).Name, vogenEx.Message);
+
+            var factory = services.GetRequiredService<IPayloadFactory<TResult, TPayload>>();
+            return factory.Error([
+                new UserError
+                {
+                    Code = "VALIDATION_ERROR",
+                    Message = vogenEx.Message,
+                    Field = null
+                }
+            ]);
+        }
+        catch (UnauthorizedAccessException unauthorizedEx)
+        {
+            logger.LogWarning(unauthorizedEx,
+                "Unauthorized access in {PayloadType}: {Message}",
+                typeof(TPayload).Name, unauthorizedEx.Message);
+
+            var factory = services.GetRequiredService<IPayloadFactory<TResult, TPayload>>();
+            return factory.Error([
+                new UserError
+                {
+                    Code = "UNAUTHENTICATED",
+                    Message = unauthorizedEx.Message,
+                    Field = null
+                }
+            ]);
+        }
+        catch (Exception ex)
+        {
             logger.LogError(ex,
                 "Unexpected exception in {PayloadType}: {ExceptionType}",
                 typeof(TPayload).Name, ex.GetType().Name);

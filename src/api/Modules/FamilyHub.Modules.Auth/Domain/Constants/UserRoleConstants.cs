@@ -25,9 +25,9 @@ public static class UserRoleConstants
     public const string MemberValue = "member";
 
     /// <summary>
-    /// Child role - limited permissions for child accounts.
-    /// Read-only access to family calendar and shared lists.
-    /// Requires parental approval for actions.
+    /// Managed Account role - accounts managed by family admins (children, elderly, etc.).
+    /// Limited permissions with delegated management capabilities.
+    /// Requires admin approval for sensitive actions.
     /// </summary>
-    public const string ChildValue = "child";
+    public const string ManagedAccountValue = "managed_account";
 }

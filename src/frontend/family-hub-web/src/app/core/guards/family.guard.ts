@@ -32,11 +32,9 @@ import { FamilyService } from '../../features/family/services/family.service';
  * **NOTE:** Family data is already loaded by APP_INITIALIZER before routing begins.
  * This guard simply checks the pre-loaded data without making additional API calls.
  *
- * @param route - Activated route snapshot
- * @param state - Router state snapshot
  * @returns True if user has family, UrlTree redirect otherwise
  */
-export const familyGuard: CanActivateFn = (route, state) => {
+export const familyGuard: CanActivateFn = () => {
   const familyService = inject(FamilyService);
   const router = inject(Router);
 
@@ -83,11 +81,9 @@ export const familyGuard: CanActivateFn = (route, state) => {
  * **NOTE:** Family data is already loaded by APP_INITIALIZER before routing begins.
  * This guard simply checks the pre-loaded data without making additional API calls.
  *
- * @param route - Activated route snapshot
- * @param state - Router state snapshot
  * @returns True if user has no family, UrlTree redirect otherwise
  */
-export const noFamilyGuard: CanActivateFn = (route, state) => {
+export const noFamilyGuard: CanActivateFn = () => {
   const familyService = inject(FamilyService);
   const router = inject(Router);
 

@@ -1,0 +1,19 @@
+using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.SharedKernel.Domain.ValueObjects;
+
+namespace FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
+
+/// <summary>
+/// Result of inviting a family member by email.
+/// </summary>
+public record InviteFamilyMemberByEmailResult
+{
+    public required InvitationId InvitationId { get; init; }
+    public required Email Email { get; init; }
+    public required UserRole Role { get; init; }
+    public required InvitationToken Token { get; init; }
+    public required InvitationDisplayCode DisplayCode { get; init; }
+    public required DateTime ExpiresAt { get; init; }
+    public required InvitationStatus Status { get; init; }
+}

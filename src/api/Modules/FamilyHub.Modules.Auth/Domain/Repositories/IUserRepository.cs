@@ -76,4 +76,12 @@ public interface IUserRepository
     /// </summary>
     /// <param name="user">The user to remove.</param>
     void Remove(User user);
+
+    /// <summary>
+    /// Gets all users belonging to a specific family.
+    /// </summary>
+    /// <param name="familyId">The family ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of users in the family.</returns>
+    Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
 }

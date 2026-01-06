@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { GraphQLService } from './graphql.service';
+import { WindowRef } from './window-ref.service';
 import {
   AuthState,
   GetZitadelAuthUrlResponse,
@@ -29,6 +30,7 @@ export class AuthService {
 
   private readonly graphql = inject(GraphQLService);
   private readonly router = inject(Router);
+  private readonly windowRef = inject(WindowRef);
 
   constructor() {
     this.initializeAuthState();
@@ -51,11 +53,18 @@ export class AuthService {
     }
   }
 
-  async login(): Promise<void> {
+  /**
+   * Initiates OAuth login with Zitadel.
+   * @param identifier - Email address entered by user (optional, used as login_hint)
+   */
+  async login(identifier?: string): Promise<void> {
     try {
+      // Use identifier as email for login_hint parameter
+      const loginHint = identifier?.trim() || undefined;
+
       const query = `
-        query GetZitadelAuthUrl {
-          zitadelAuthUrl {
+        query GetZitadelAuthUrl($loginHint: String) {
+          zitadelAuthUrl(loginHint: $loginHint) {
             authorizationUrl
             codeVerifier
             state
@@ -63,7 +72,10 @@ export class AuthService {
         }
       `;
 
-      const response = await this.graphql.query<GetZitadelAuthUrlResponse>(query);
+      const response = await this.graphql.query<GetZitadelAuthUrlResponse>(
+        query,
+        { loginHint }
+      );
       const { authorizationUrl, codeVerifier, state } = response.zitadelAuthUrl;
 
       // Store PKCE verifier and state in sessionStorage (temporary)
@@ -71,7 +83,7 @@ export class AuthService {
       sessionStorage.setItem('oauth_state', state);
 
       // Redirect to Zitadel OAuth UI
-      window.location.href = authorizationUrl;
+      this.windowRef.nativeWindow.location.href = authorizationUrl;
     } catch (error) {
       console.error('Login failed:', error);
       throw new Error('Failed to initiate login');

@@ -89,6 +89,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey(u => u.FamilyId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Role with Vogen value converter
+        builder.Property(u => u.Role)
+            .HasConversion(new Domain.ValueObjects.UserRole.EfCoreValueConverter())
+            .HasColumnName("role")
+            .HasMaxLength(50)
+            .IsRequired();
+
+
         // Ignore domain events collection (handled by base class)
         builder.Ignore(u => u.DomainEvents);
     }

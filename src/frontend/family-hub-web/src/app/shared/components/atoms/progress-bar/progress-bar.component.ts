@@ -74,8 +74,8 @@ import { CommonModule } from '@angular/common';
   `]
 })
 export class ProgressBarComponent {
-  @Input() currentStep: number = 1;
-  @Input() totalSteps: number = 1;
+  @Input() currentStep = 1;
+  @Input() totalSteps = 1;
   @Input() variant: 'linear' | 'dots' | 'responsive' = 'responsive';
 
   /**

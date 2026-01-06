@@ -26,11 +26,11 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureServices(services =>
         {
-            // Remove the existing DbContext registrations (including factory and pool)
+            // Remove the existing DbContext registrations
             services.RemoveAll<DbContextOptions<AuthDbContext>>();
             services.RemoveAll<AuthDbContext>();
             services.RemoveAll<IDbContextFactory<AuthDbContext>>();
-            services.RemoveAll(typeof(Microsoft.EntityFrameworkCore.Internal.IDbContextPool<>).MakeGenericType(typeof(AuthDbContext)));
+            // Note: IDbContextPool is internal - EF Core will handle pool cleanup automatically
 
             // Add AuthDbContext with test container connection string
             // Use AddPooledDbContextFactory to match production setup (singleton-safe)

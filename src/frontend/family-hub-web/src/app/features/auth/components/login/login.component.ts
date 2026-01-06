@@ -1,11 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ButtonComponent } from '../../../../shared/components/atoms/button/button.component';
+import { InputComponent } from '../../../../shared/components/atoms/input/input.component';
 
 @Component({
     selector: 'app-login',
-    imports: [ButtonComponent],
+    imports: [FormsModule, ButtonComponent, InputComponent],
     template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div class="max-w-md w-full space-y-8">
@@ -23,15 +25,37 @@ import { ButtonComponent } from '../../../../shared/components/atoms/button/butt
             Welcome Back
           </h2>
 
-          <app-button
-            variant="primary"
-            size="lg"
-            [loading]="isLoading"
-            (clicked)="login()"
-            class="w-full"
-          >
-            Sign in with Zitadel
-          </app-button>
+          <form (ngSubmit)="login()" class="space-y-6">
+            <div>
+              <label for="identifier" class="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <app-input
+                id="identifier"
+                type="email"
+                placeholder="Enter your email address"
+                [(ngModel)]="identifier"
+                name="identifier"
+                [required]="true"
+                autocomplete="username"
+                class="w-full"
+              />
+              @if (errorMessage()) {
+                <p class="mt-2 text-sm text-red-600">{{ errorMessage() }}</p>
+              }
+            </div>
+
+            <app-button
+              type="submit"
+              variant="primary"
+              size="lg"
+              [loading]="isLoading()"
+              [disabled]="!identifier.trim()"
+              class="w-full"
+            >
+              Sign in
+            </app-button>
+          </form>
 
           <p class="mt-4 text-sm text-gray-500 text-center">
             Secure authentication powered by Zitadel
@@ -49,7 +73,9 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  isLoading = false;
+  identifier = '';
+  isLoading = signal(false);
+  errorMessage = signal<string | null>(null);
 
   constructor() {
     // Redirect if already authenticated
@@ -59,14 +85,22 @@ export class LoginComponent {
   }
 
   async login(): Promise<void> {
+    if (!this.identifier.trim()) {
+      this.errorMessage.set('Please enter your email or username');
+      return;
+    }
+
     try {
-      this.isLoading = true;
-      await this.authService.login();
+      this.isLoading.set(true);
+      this.errorMessage.set(null);
+      await this.authService.login(this.identifier.trim());
       // Will redirect to Zitadel, so loading state stays true
     } catch (error) {
       console.error('Login error:', error);
-      this.isLoading = false;
-      alert('Login failed. Please try again.');
+      this.isLoading.set(false);
+      this.errorMessage.set(
+        error instanceof Error ? error.message : 'Login failed. Please try again.'
+      );
     }
   }
 }

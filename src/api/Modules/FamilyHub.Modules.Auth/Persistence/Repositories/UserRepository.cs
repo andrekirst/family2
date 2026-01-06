@@ -68,10 +68,7 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     /// <inheritdoc />
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
-        if (user == null)
-        {
-            throw new ArgumentNullException(nameof(user));
-        }
+        ArgumentNullException.ThrowIfNull(user);
 
         await _context.Users.AddAsync(user, cancellationToken);
     }
@@ -79,10 +76,7 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     /// <inheritdoc />
     public void Update(User user)
     {
-        if (user == null)
-        {
-            throw new ArgumentNullException(nameof(user));
-        }
+        ArgumentNullException.ThrowIfNull(user);
 
         // In EF Core with change tracking, this is often not necessary
         // EF tracks changes automatically when entities are loaded from the context
@@ -93,11 +87,16 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     /// <inheritdoc />
     public void Remove(User user)
     {
-        if (user == null)
-        {
-            throw new ArgumentNullException(nameof(user));
-        }
+        ArgumentNullException.ThrowIfNull(user);
 
         _context.Users.Remove(user);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .Where(u => u.FamilyId == familyId)
+            .ToListAsync(cancellationToken);
     }
 }

@@ -8,13 +8,12 @@ import {
   ViewChild,
   ViewContainerRef,
   ComponentRef,
-  effect,
   AfterViewInit,
   inject,
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { trigger, transition, style, animate, query } from '@angular/animations';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { WizardService, WizardStepConfig } from '../../../services/wizard.service';
 import { ProgressBarComponent } from '../../atoms/progress-bar/progress-bar.component';
 import { ButtonComponent } from '../../atoms/button/button.component';
@@ -208,7 +207,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
    * Wizard title displayed in header.
    * @default 'Wizard'
    */
-  @Input() title: string = 'Wizard';
+  @Input() title = 'Wizard';
 
   /**
    * Array of step configurations defining the wizard flow.
@@ -221,7 +220,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
    * Text for submit button on final step.
    * @default 'Complete'
    */
-  @Input() submitButtonText: string = 'Complete';
+  @Input() submitButtonText = 'Complete';
 
   // ===== Outputs =====
 
@@ -245,7 +244,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
    * Note: Current design has no explicit cancel button,
    * but provided for future extensibility.
    */
-  @Output() cancel = new EventEmitter<void>();
+  @Output() canceled = new EventEmitter<void>();
 
   // ===== ViewChild References =====
 

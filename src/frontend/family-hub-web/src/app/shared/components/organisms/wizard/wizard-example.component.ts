@@ -7,7 +7,7 @@
  * NOT USED IN PRODUCTION - For reference and testing only.
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { WizardComponent } from './wizard.component';
 import { WizardStepConfig } from '../../../services/wizard.service';
@@ -51,7 +51,7 @@ import { WizardStepConfig } from '../../../services/wizard.service';
     </div>
   `
 })
-export class FamilyNameStepComponent {
+export class FamilyNameStepComponent implements OnInit {
   @Input() data: { familyName?: string } = {};
   @Output() dataChange = new EventEmitter<{ familyName: string }>();
 
@@ -111,7 +111,7 @@ export class FamilyNameStepComponent {
     </div>
   `
 })
-export class FamilyMembersStepComponent {
+export class FamilyMembersStepComponent implements OnInit {
   @Input() data: { members?: string[] } = {};
   @Output() dataChange = new EventEmitter<{ members: string[] }>();
 
@@ -179,10 +179,10 @@ export class FamilyMembersStepComponent {
     </div>
   `
 })
-export class FamilyReviewStepComponent {
+export class FamilyReviewStepComponent implements OnInit {
   @Input() data: { allData?: Map<string, unknown> } = {};
 
-  familyName: string = '';
+  familyName = '';
   members: string[] = [];
 
   ngOnInit() {

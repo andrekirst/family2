@@ -51,5 +51,58 @@ public class FamilyType : ObjectType<Family>
                     UpdatedAt = family.UpdatedAt
                 };
             });
+
+        descriptor
+            .Field("members")
+            .Type<NonNullType<ListType<NonNullType<ObjectType<FamilyMemberType>>>>>()
+            .Description("Active members of this family with their roles")
+            .Resolve(ctx =>
+            {
+                var family = ctx.Parent<Family>();
+                // Map domain Users to FamilyMemberType with roles
+                return family.Members
+                    .Where(u => u.DeletedAt == null) // Exclude soft-deleted users
+                    .Select(user => new FamilyMemberType
+                    {
+                        Id = user.Id.Value,
+                        Email = user.Email.Value,
+                        EmailVerified = user.EmailVerified,
+                        Role = MapToGraphQLRole(user.GetRoleInFamily(family)),
+                        JoinedAt = user.CreatedAt, // User creation time = family join time
+                        IsOwner = user.Id == family.OwnerId,
+                        AuditInfo = new AuditInfoType
+                        {
+                            CreatedAt = user.CreatedAt,
+                            UpdatedAt = user.UpdatedAt
+                        }
+                    })
+                    .ToList();
+            });
+
+        descriptor
+            .Field("pendingInvitations")
+            .Type<NonNullType<ListType<NonNullType<ObjectType<PendingInvitationType>>>>>()
+            .Description("Pending invitations to join this family (Phase 1+, currently returns empty list)")
+            .Resolve(ctx =>
+            {
+                // Phase 0: Return empty list (invitation system not yet implemented)
+                // Phase 1+: Query InvitationRepository for pending invitations
+                return new List<PendingInvitationType>();
+            });
+    }
+
+    /// <summary>
+    /// Maps domain UserRole to GraphQL UserRoleType.
+    /// </summary>
+    private static UserRoleType MapToGraphQLRole(Domain.ValueObjects.UserRole domainRole)
+    {
+        var roleValue = domainRole.Value.ToLowerInvariant();
+        return roleValue switch
+        {
+            "owner" => UserRoleType.OWNER,
+            "admin" => UserRoleType.ADMIN,
+            "member" => UserRoleType.MEMBER,
+            _ => throw new InvalidOperationException($"Unknown role: {roleValue}")
+        };
     }
 }

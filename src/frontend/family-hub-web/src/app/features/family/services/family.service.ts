@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { GraphQLService, GraphQLError } from '../../../core/services/graphql.service';
+import { FamilyMember } from '../models/family.models';
 
 /**
  * Family domain model matching backend GraphQL schema.
@@ -7,7 +8,10 @@ import { GraphQLService, GraphQLError } from '../../../core/services/graphql.ser
 export interface Family {
   id: string;
   name: string;
-  createdAt: string;
+  auditInfo: {
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
 /**
@@ -15,6 +19,13 @@ export interface Family {
  */
 interface GetCurrentFamilyResponse {
   family: Family | null;
+}
+
+/**
+ * GraphQL response type for GetFamilyMembers query.
+ */
+interface GetFamilyMembersResponse {
+  familyMembers: FamilyMember[];
 }
 
 /**
@@ -55,6 +66,12 @@ export class FamilyService {
   currentFamily = signal<Family | null>(null);
 
   /**
+   * Signal holding all members of the current family.
+   * Empty array when family has no members or not loaded yet.
+   */
+  familyMembers = signal<FamilyMember[]>([]);
+
+  /**
    * Signal indicating whether an async operation is in progress.
    * Used to show loading spinners.
    */
@@ -88,7 +105,10 @@ export class FamilyService {
           family {
             id
             name
-            createdAt
+            auditInfo {
+              createdAt
+              updatedAt
+            }
           }
         }
       `;
@@ -149,6 +169,45 @@ export class FamilyService {
       }
     } catch (err) {
       this.handleError(err, 'Failed to create family');
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  /**
+   * Loads all members of the specified family.
+   *
+   * @param familyId - UUID of the family
+   * @returns Promise that resolves when load completes
+   */
+  async loadFamilyMembers(familyId: string): Promise<void> {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    try {
+      const query = `
+        query GetFamilyMembers($familyId: UUID!) {
+          familyMembers(familyId: $familyId) {
+            id
+            email
+            emailVerified
+            role
+            auditInfo {
+              createdAt
+              updatedAt
+            }
+          }
+        }
+      `;
+
+      const response = await this.graphqlService.query<GetFamilyMembersResponse>(
+        query,
+        { familyId }
+      );
+
+      this.familyMembers.set(response.familyMembers);
+    } catch (err) {
+      this.handleError(err, 'Failed to load family members');
     } finally {
       this.isLoading.set(false);
     }

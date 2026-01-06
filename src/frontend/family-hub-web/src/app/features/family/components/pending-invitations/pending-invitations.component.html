@@ -1,0 +1,146 @@
+<!-- Loading state -->
+@if (isLoading()) {
+  <div class="flex justify-center items-center py-8">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+  </div>
+}
+
+<!-- Error state -->
+@if (error() && !isLoading()) {
+  <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+    <div class="flex items-center gap-2">
+      <svg class="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clip-rule="evenodd" />
+      </svg>
+      <p class="text-sm text-red-800">{{ error() }}</p>
+    </div>
+  </div>
+}
+
+<!-- Empty state -->
+@if (!isLoading() && !error() && pendingInvitations().length === 0) {
+  <div class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+    <svg class="mx-auto h-12 w-12 text-gray-400"
+         fill="none"
+         stroke="currentColor"
+         viewBox="0 0 24 24"
+         aria-hidden="true">
+      <path stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">
+      No pending invitations
+    </h3>
+    <p class="mt-1 text-sm text-gray-500">
+      All invitations have been accepted or expired.
+    </p>
+  </div>
+}
+
+<!-- Invitations list -->
+@if (!isLoading() && !error() && pendingInvitations().length > 0) {
+  <div class="space-y-3">
+    @for (invitation of pendingInvitations(); track invitation.id) {
+      <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+           [class.opacity-50]="isUpdating(invitation.id)"
+           [class.pointer-events-none]="isUpdating(invitation.id)">
+
+        <div class="flex items-start justify-between gap-4">
+          <!-- Invitation info -->
+          <div class="flex-1 min-w-0">
+            <!-- Email and status -->
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="h-5 w-5 text-gray-400 flex-shrink-0"
+                   fill="none"
+                   stroke="currentColor"
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm font-medium text-gray-900 truncate">
+                {{ invitation.email }}
+              </span>
+            </div>
+
+            <!-- Display code -->
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs text-gray-500">Display Code:</span>
+              <code class="px-2 py-1 bg-gray-100 text-purple-600 rounded font-mono text-sm font-semibold">
+                {{ invitation.displayCode }}
+              </code>
+            </div>
+
+            <!-- Expiry info -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500">Expires:</span>
+              <span class="text-xs font-medium"
+                    [class.text-red-600]="isExpired(invitation.expiresAt)"
+                    [class.dark:text-red-400]="isExpired(invitation.expiresAt)"
+                    [class.text-amber-600]="!isExpired(invitation.expiresAt)"
+                    [class.dark:text-amber-400]="!isExpired(invitation.expiresAt)">
+                {{ getExpiryText(invitation.expiresAt) }}
+                <span class="text-gray-400">({{ formatDate(invitation.expiresAt) }})</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Role and actions -->
+          <div class="flex flex-col items-end gap-2">
+            <!-- Role selector -->
+            <div class="flex items-center gap-2">
+              <label for="role-{{ invitation.id }}" class="text-xs text-gray-500 sr-only">
+                Role for {{ invitation.email }}
+              </label>
+              <select
+                [id]="'role-' + invitation.id"
+                [ngModel]="invitation.role"
+                (ngModelChange)="updateRole(invitation, $event)"
+                [disabled]="isUpdating(invitation.id) || rolesLoading()"
+                class="px-3 py-1.5 text-sm rounded-md border border-gray-300 bg-white transition-colors outline-none appearance-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (rolesLoading()) {
+                  <option value="">Loading...</option>
+                }
+                @if (rolesError()) {
+                  <option value="">Failed to load</option>
+                }
+                @for (role of availableRoles(); track role.value) {
+                  <option [value]="role.value"
+                          [selected]="role.value === invitation.role">
+                    {{ role.label }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <!-- Cancel button -->
+            <button
+              (click)="cancelInvitation(invitation)"
+              [disabled]="isUpdating(invitation.id)"
+              class="px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md border border-red-300 dark:border-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Cancel invitation">
+              <span class="flex items-center gap-1">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading overlay -->
+        @if (isUpdating(invitation.id)) {
+          <div class="absolute inset-0 bg-white/50 flex items-center justify-center rounded-lg">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
