@@ -83,6 +83,10 @@ public static class AuthModuleServiceRegistration
         // User Context - Scoped service holding authenticated user context for current request
         services.AddScoped<IUserContext, UserContextService>();
 
+        // Validation Cache - Scoped per HTTP request to eliminate duplicate database queries
+        // between validators and handlers
+        services.AddScoped<IValidationCache, ValidationCache>();
+
         // GraphQL Mutation Handler & Payload Factories
         services.AddScoped<IMutationHandler, MutationHandler>();
         services.AddPayloadFactoriesFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);

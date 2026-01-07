@@ -23,7 +23,8 @@ public sealed class AcceptInvitationCommandValidatorTests
     public async Task Validate_WithValidInvitation_ShouldPass(
         [Frozen] IFamilyMemberInvitationRepository invitationRepository,
         [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUserContext userContext)
+        [Frozen] IUserContext userContext,
+        [Frozen] IValidationCache validationCache)
     {
         // Arrange
         var familyId = FamilyId.New();
@@ -44,7 +45,7 @@ public sealed class AcceptInvitationCommandValidatorTests
             .Returns(family);
 
         var validator = new AcceptInvitationCommandValidator(
-            invitationRepository, familyRepository, userContext, timeProvider);
+            invitationRepository, familyRepository, userContext, timeProvider, validationCache);
         var command = new AcceptInvitationCommand(invitation.Token);
 
         // Act
@@ -55,6 +56,46 @@ public sealed class AcceptInvitationCommandValidatorTests
         result.Errors.Should().BeEmpty();
     }
 
+    [Theory, AutoNSubstituteData]
+    public async Task Validate_WithValidInvitation_ShouldCacheInvitationAndFamily(
+        [Frozen] IFamilyMemberInvitationRepository invitationRepository,
+        [Frozen] IFamilyRepository familyRepository,
+        [Frozen] IUserContext userContext,
+        [Frozen] IValidationCache validationCache)
+    {
+        // Arrange
+        var familyId = FamilyId.New();
+        var email = Email.From("test@example.com");
+        var invitedByUserId = UserId.New();
+        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+            familyId, email, UserRole.Member, invitedByUserId);
+
+        var family = Family.Create(FamilyName.From("Test Family"), invitedByUserId);
+        var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+
+        // Mock
+        userContext.User.Returns(user);
+        invitationRepository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+            .Returns(invitation);
+        familyRepository.GetByIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(family);
+
+        var validator = new AcceptInvitationCommandValidator(
+            invitationRepository, familyRepository, userContext, timeProvider, validationCache);
+        var command = new AcceptInvitationCommand(invitation.Token);
+
+        // Act
+        var result = await validator.ValidateAsync(command);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+
+        // Verify cache was populated
+        validationCache.Received(1).Set($"FamilyMemberInvitation:{invitation.Token.Value}", invitation);
+        validationCache.Received(1).Set($"Family:{familyId.Value}", family);
+    }
+
     #endregion
 
     #region Token Validation
@@ -63,7 +104,8 @@ public sealed class AcceptInvitationCommandValidatorTests
     public async Task Validate_WithNonExistentToken_ShouldFailWithInvalidTokenMessage(
         [Frozen] IFamilyMemberInvitationRepository invitationRepository,
         [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUserContext userContext)
+        [Frozen] IUserContext userContext,
+        [Frozen] IValidationCache validationCache)
     {
         // Arrange
         var token = InvitationToken.Generate();
@@ -73,7 +115,7 @@ public sealed class AcceptInvitationCommandValidatorTests
             .Returns((FamilyMemberInvitation?)null);
 
         var validator = new AcceptInvitationCommandValidator(
-            invitationRepository, familyRepository, userContext, timeProvider);
+            invitationRepository, familyRepository, userContext, timeProvider, validationCache);
         var command = new AcceptInvitationCommand(token);
 
         // Act
@@ -93,7 +135,8 @@ public sealed class AcceptInvitationCommandValidatorTests
     public async Task Validate_WithAcceptedInvitation_ShouldFailWithStatusMessage(
         [Frozen] IFamilyMemberInvitationRepository invitationRepository,
         [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUserContext userContext)
+        [Frozen] IUserContext userContext,
+        [Frozen] IValidationCache validationCache)
     {
         // Arrange
         var familyId = FamilyId.New();
@@ -110,7 +153,7 @@ public sealed class AcceptInvitationCommandValidatorTests
             .Returns(invitation);
 
         var validator = new AcceptInvitationCommandValidator(
-            invitationRepository, familyRepository, userContext, timeProvider);
+            invitationRepository, familyRepository, userContext, timeProvider, validationCache);
         var command = new AcceptInvitationCommand(invitation.Token);
 
         // Act
@@ -126,7 +169,8 @@ public sealed class AcceptInvitationCommandValidatorTests
     public async Task Validate_WithCanceledInvitation_ShouldFailWithStatusMessage(
         [Frozen] IFamilyMemberInvitationRepository invitationRepository,
         [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUserContext userContext)
+        [Frozen] IUserContext userContext,
+        [Frozen] IValidationCache validationCache)
     {
         // Arrange
         var familyId = FamilyId.New();
@@ -143,7 +187,7 @@ public sealed class AcceptInvitationCommandValidatorTests
             .Returns(invitation);
 
         var validator = new AcceptInvitationCommandValidator(
-            invitationRepository, familyRepository, userContext, timeProvider);
+            invitationRepository, familyRepository, userContext, timeProvider, validationCache);
         var command = new AcceptInvitationCommand(invitation.Token);
 
         // Act
@@ -163,7 +207,8 @@ public sealed class AcceptInvitationCommandValidatorTests
     public async Task Validate_WithExpiredInvitation_ShouldFailWithExpirationMessage(
         [Frozen] IFamilyMemberInvitationRepository invitationRepository,
         [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUserContext userContext)
+        [Frozen] IUserContext userContext,
+        [Frozen] IValidationCache validationCache)
     {
         // Arrange
         var familyId = FamilyId.New();
@@ -180,7 +225,7 @@ public sealed class AcceptInvitationCommandValidatorTests
             .Returns(invitation);
 
         var validator = new AcceptInvitationCommandValidator(
-            invitationRepository, familyRepository, userContext, timeProvider);
+            invitationRepository, familyRepository, userContext, timeProvider, validationCache);
         var command = new AcceptInvitationCommand(invitation.Token);
 
         // Act
@@ -200,7 +245,8 @@ public sealed class AcceptInvitationCommandValidatorTests
     public async Task Validate_WithEmailMismatch_ShouldFailWithEmailMismatchMessage(
         [Frozen] IFamilyMemberInvitationRepository invitationRepository,
         [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUserContext userContext)
+        [Frozen] IUserContext userContext,
+        [Frozen] IValidationCache validationCache)
     {
         // Arrange
         var familyId = FamilyId.New();
@@ -220,7 +266,7 @@ public sealed class AcceptInvitationCommandValidatorTests
             .Returns(invitation);
 
         var validator = new AcceptInvitationCommandValidator(
-            invitationRepository, familyRepository, userContext, timeProvider);
+            invitationRepository, familyRepository, userContext, timeProvider, validationCache);
         var command = new AcceptInvitationCommand(invitation.Token);
 
         // Act
@@ -240,7 +286,8 @@ public sealed class AcceptInvitationCommandValidatorTests
     public async Task Validate_WithNonExistentFamily_ShouldFailWithFamilyNotFoundMessage(
         [Frozen] IFamilyMemberInvitationRepository invitationRepository,
         [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUserContext userContext)
+        [Frozen] IUserContext userContext,
+        [Frozen] IValidationCache validationCache)
     {
         // Arrange
         var familyId = FamilyId.New();
@@ -261,7 +308,7 @@ public sealed class AcceptInvitationCommandValidatorTests
             .Returns((Family?)null);
 
         var validator = new AcceptInvitationCommandValidator(
-            invitationRepository, familyRepository, userContext, timeProvider);
+            invitationRepository, familyRepository, userContext, timeProvider, validationCache);
         var command = new AcceptInvitationCommand(invitation.Token);
 
         // Act

@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain;
 using MediatR;
@@ -12,12 +13,13 @@ namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 /// Accepts the invitation and updates user's family membership.
 /// Validation is handled by AcceptInvitationCommandValidator.
 /// User context is automatically provided by UserContextEnrichmentBehavior.
+/// Entities are retrieved from IValidationCache (populated by validator).
 /// SPECIAL CASE: User may not have a family yet (joining via invitation).
 /// </summary>
 public sealed partial class AcceptInvitationCommandHandler(
     IUserContext userContext,
     IFamilyMemberInvitationRepository invitationRepository,
-    IFamilyRepository familyRepository,
+    IValidationCache validationCache,
     IUnitOfWork unitOfWork,
     ILogger<AcceptInvitationCommandHandler> logger)
     : IRequestHandler<AcceptInvitationCommand, FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>
@@ -29,9 +31,9 @@ public sealed partial class AcceptInvitationCommandHandler(
         LogAcceptingInvitation(request.Token.Value);
 
         // Validation is handled by AcceptInvitationCommandValidator
-        // 1. Fetch invitation (validator already checked it exists)
-        var invitation = await invitationRepository.GetByTokenAsync(request.Token, cancellationToken)
-            ?? throw new InvalidOperationException("Invitation not found. Validator should have caught this.");
+        // 1. Retrieve invitation from cache (validator already fetched and validated)
+        var invitation = validationCache.Get<FamilyMemberInvitation>($"FamilyMemberInvitation:{request.Token.Value}")
+            ?? throw new InvalidOperationException("Invitation not found in cache. Validator should have cached it.");
 
         // 2. Get current user (loaded by UserContextEnrichmentBehavior)
         var currentUserId = userContext.UserId;
@@ -40,9 +42,9 @@ public sealed partial class AcceptInvitationCommandHandler(
         // 3. Accept invitation (validator checked all prerequisites)
         invitation.Accept(currentUserId);
 
-        // 4. Fetch family (validator already checked it exists)
-        var family = await familyRepository.GetByIdAsync(invitation.FamilyId, cancellationToken)
-            ?? throw new InvalidOperationException("Family not found. Validator should have caught this.");
+        // 4. Retrieve family from cache (validator already fetched and validated)
+        var family = validationCache.Get<Family>($"Family:{invitation.FamilyId.Value}")
+            ?? throw new InvalidOperationException("Family not found in cache. Validator should have cached it.");
 
         // 5. Update user's family and role
         currentUser.UpdateFamily(invitation.FamilyId);
