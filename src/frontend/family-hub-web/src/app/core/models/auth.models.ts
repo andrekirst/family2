@@ -37,32 +37,32 @@ interface CompleteZitadelLoginUserGQL {
 /**
  * Error types from Hot Chocolate Mutation Conventions (discriminated union)
  */
-type ValidationError = {
+interface ValidationError {
   __typename: 'ValidationError';
   message: string;
   field: string;
-};
+}
 
-type BusinessError = {
+interface BusinessError {
   __typename: 'BusinessError';
   message: string;
   code: string;
-};
+}
 
-type ValueObjectError = {
+interface ValueObjectError {
   __typename: 'ValueObjectError';
   message: string;
-};
+}
 
-type UnauthorizedError = {
+interface UnauthorizedError {
   __typename: 'UnauthorizedError';
   message: string;
-};
+}
 
-type InternalServerError = {
+interface InternalServerError {
   __typename: 'InternalServerError';
   message: string;
-};
+}
 
 type MutationError =
   | ValidationError
