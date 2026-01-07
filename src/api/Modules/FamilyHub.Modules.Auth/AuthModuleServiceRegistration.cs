@@ -2,6 +2,8 @@ using FamilyHub.Infrastructure.GraphQL.Extensions;
 using FamilyHub.Infrastructure.Persistence.Extensions;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
+using FamilyHub.Modules.Auth.Application.Constants;
+using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.SharedKernel.Application.Behaviors;
 using FamilyHub.Modules.Auth.Infrastructure.BackgroundServices;
@@ -78,6 +80,9 @@ public static class AuthModuleServiceRegistration
         // Infrastructure Services
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        // User Context - Scoped service holding authenticated user context for current request
+        services.AddScoped<IUserContext, UserContextService>();
+
         // GraphQL Mutation Handler & Payload Factories
         services.AddScoped<IMutationHandler, MutationHandler>();
         services.AddPayloadFactoriesFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
@@ -88,21 +93,31 @@ public static class AuthModuleServiceRegistration
         // HTTP Context Accessor for accessing HTTP context in services
         services.AddHttpContextAccessor();
 
-        // Authorization: Custom requirement and handler for Owner/Admin role check
-        // Role is stored in database, not in JWT claims
+        // Authorization: Custom requirements and handlers for role-based authorization
+        // Roles are checked from IUserContext (populated by UserContextEnrichmentBehavior)
+        services.AddScoped<IAuthorizationHandler, Infrastructure.Authorization.RequireOwnerHandler>();
+        services.AddScoped<IAuthorizationHandler, Infrastructure.Authorization.RequireAdminHandler>();
         services.AddScoped<IAuthorizationHandler, Infrastructure.Authorization.RequireOwnerOrAdminHandler>();
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("RequireOwnerOrAdmin", policy =>
+        services.AddAuthorizationBuilder()
+            .AddPolicy(AuthorizationPolicyConstants.RequireOwner, policy =>
+                policy.Requirements.Add(new Infrastructure.Authorization.RequireOwnerRequirement()))
+            .AddPolicy(AuthorizationPolicyConstants.RequireAdmin, policy =>
+                policy.Requirements.Add(new Infrastructure.Authorization.RequireAdminRequirement()))
+            .AddPolicy(AuthorizationPolicyConstants.RequireOwnerOrAdmin, policy =>
                 policy.Requirements.Add(new Infrastructure.Authorization.RequireOwnerOrAdminRequirement()));
-        });
 
         // MediatR - Command/Query handlers
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
-            // Add pipeline behaviors (order matters: Logging → Validation)
+            // Add pipeline behaviors (order matters: Logging → UserContext → Authorization → Validation)
+            // 1. LoggingBehavior - Log all requests/responses
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            // 2. UserContextEnrichmentBehavior - Load User aggregate from database
+            cfg.AddOpenBehavior(typeof(UserContextEnrichmentBehavior<,>));
+            // 3. AuthorizationBehavior - Check family context and role-based policies
+            cfg.AddOpenBehavior(typeof(AuthorizationBehavior<,>));
+            // 4. ValidationBehavior - Validate input using FluentValidation
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 

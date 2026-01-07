@@ -50,9 +50,6 @@ public sealed class FamilyTypeExtensions
     {
         var owner = await userRepository.GetByIdAsync(family.OwnerId, cancellationToken);
 
-        if (owner == null)
-            return null;
-
-        return UserAuthenticationAdapter.ToGraphQLType(owner);
+        return owner == null ? null : UserAuthenticationAdapter.ToGraphQLType(owner);
     }
 }

@@ -1,4 +1,4 @@
-using FamilyHub.Modules.Auth.Application.Queries.GetZitadelAuthUrl;
+using FamilyHub.Modules.Auth.Application.Queries.GetAuthUrl;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 using MediatR;
 
@@ -25,7 +25,7 @@ public sealed class AuthTypeExtensions
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetZitadelAuthUrlQuery(loginHint), cancellationToken);
+        var result = await mediator.Send(new GetAuthUrlQuery(loginHint), cancellationToken);
 
         return new AuthUrlPayload
         {

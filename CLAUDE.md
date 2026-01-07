@@ -39,10 +39,11 @@ Read: [implementation-roadmap.md](docs/product-strategy/implementation-roadmap.m
 
 ## DOCUMENTATION
 
-**51 documents** in 9 folders. Complete map: [docs/INDEX.md](docs/INDEX.md)
+**53 documents** in 10 folders. Complete map: [docs/INDEX.md](docs/INDEX.md)
 
 **Development Patterns:**
 
+- [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md) - Comprehensive coding standards (C#, TypeScript, DDD, Testing)
 - [WORKFLOWS.md](docs/development/WORKFLOWS.md) - EF Core, Vogen, Testing, GraphQL, Playwright
 - [PATTERNS.md](docs/development/PATTERNS.md) - DDD, Value Objects, Aggregates, Events
 - [IMPLEMENTATION_WORKFLOW.md](docs/development/IMPLEMENTATION_WORKFLOW.md) - Standard feature workflow
@@ -207,5 +208,5 @@ Types: feat, fix, docs, style, refactor, test, chore
 
 ---
 
-**Last updated:** 2026-01-06
-**Version:** 4.0.0 (Optimized for token efficiency and code quality)
+**Last updated:** 2026-01-07
+**Version:** 4.1.0 (Added comprehensive coding standards)

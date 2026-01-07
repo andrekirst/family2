@@ -1,8 +1,8 @@
 # Family Hub - Documentation Index
 
-**Last Updated:** 2026-01-04
-**Total Documents:** 52 markdown files organized in 9 thematic folders
-**Total Content:** 280,000+ words
+**Last Updated:** 2026-01-07
+**Total Documents:** 53 markdown files organized in 9 thematic folders
+**Total Content:** 300,000+ words
 
 ---
 
@@ -12,6 +12,7 @@
 Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 **Developers:**
+→ [Coding Standards](development/CODING_STANDARDS.md)
 → [Architecture Overview](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
 → [Domain Model](architecture/domain-model-microservices-map.md)
 → [Implementation Roadmap](product-strategy/implementation-roadmap.md)
@@ -34,6 +35,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 /docs/
 ├── /architecture/          # Technical architecture & ADRs (6 docs)
 ├── /authentication/        # OAuth 2.0 & Zitadel guides (4 docs)
+├── /development/           # Coding standards & workflows (5 docs)
 ├── /infrastructure/        # Cloud, K8s, CI/CD (6 docs)
 ├── /legal/                 # GDPR, COPPA, compliance (8 docs)
 ├── /market-business/       # Market research, GTM (5 docs)
@@ -77,7 +79,22 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-### 3. Infrastructure (`/infrastructure/` - 6 documents)
+### 3. Development (`/development/` - 5 documents)
+
+**Coding Standards & Patterns:**
+
+- [Coding Standards](development/CODING_STANDARDS.md) - Comprehensive coding standards (C#, TypeScript, DDD, GraphQL, Testing)
+- [DDD Patterns](development/PATTERNS.md) - Domain-Driven Design patterns and examples
+- [Development Workflows](development/WORKFLOWS.md) - Database migrations, value objects, testing, GraphQL
+
+**Implementation Process:**
+
+- [Implementation Workflow](development/IMPLEMENTATION_WORKFLOW.md) - Standard feature implementation process
+- [Post-Tool-Use Hooks](development/HOOKS.md) - Automatic code formatting and quality checks
+
+---
+
+### 4. Infrastructure (`/infrastructure/` - 6 documents)
 
 **Cloud & Kubernetes (Phase 5+):**
 
@@ -93,7 +110,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-### 4. Legal (`/legal/` - 8 documents)
+### 5. Legal (`/legal/` - 8 documents)
 
 **Compliance:**
 
@@ -114,7 +131,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-### 5. Market & Business (`/market-business/` - 5 documents)
+### 6. Market & Business (`/market-business/` - 5 documents)
 
 **Market Research:**
 
@@ -129,7 +146,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-### 6. Product Strategy (`/product-strategy/` - 5 documents)
+### 7. Product Strategy (`/product-strategy/` - 5 documents)
 
 **Vision & Strategy:**
 
@@ -147,7 +164,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-### 7. Security (`/security/` - 4 documents)
+### 8. Security (`/security/` - 4 documents)
 
 **Threat Modeling:**
 
@@ -164,7 +181,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-### 8. UX & Design (`/ux-design/` - 9 documents)
+### 9. UX & Design (`/ux-design/` - 9 documents)
 
 **Research:**
 
@@ -192,7 +209,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-### 9. Root Navigation (`/` - 3 documents)
+### 10. Root Navigation (`/` - 3 documents)
 
 - [Executive Summary](executive-summary.md) - 15-minute overview (START HERE!)
 - [INDEX.md](INDEX.md) - This file
@@ -216,6 +233,8 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ### Development & Deployment
 
+- Coding Standards: [Coding Standards](development/CODING_STANDARDS.md)
+- Workflows: [Development Workflows](development/WORKFLOWS.md), [DDD Patterns](development/PATTERNS.md)
 - Roadmap: [Implementation Roadmap](product-strategy/implementation-roadmap.md)
 - Features: [Feature Backlog](product-strategy/FEATURE_BACKLOG.md)
 - Infrastructure: [Cloud Architecture](infrastructure/cloud-architecture.md), [K8s Deployment](infrastructure/kubernetes-deployment-guide.md)
@@ -272,7 +291,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ## 📊 Documentation Statistics
 
-- **Total Documents:** 51 markdown files
+- **Total Documents:** 53 markdown files
 - **Total Words:** 280,000+
 - **Total Lines:** ~15,000+
 - **Folders:** 9 thematic categories
@@ -285,6 +304,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 - Legal: 8 docs
 - Architecture: 6 docs
 - Infrastructure: 6 docs
+- Development: 5 docs
 - Product Strategy: 5 docs
 - Market & Business: 5 docs
 - Authentication: 4 docs

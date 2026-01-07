@@ -9,14 +9,16 @@ namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 
 /// <summary>
 /// Handler for AcceptInvitationCommand.
-/// Validates the invitation token, checks email match, and accepts the invitation.
+/// Accepts the invitation and updates user's family membership.
+/// Validation is handled by AcceptInvitationCommandValidator.
+/// User context is automatically provided by UserContextEnrichmentBehavior.
+/// SPECIAL CASE: User may not have a family yet (joining via invitation).
 /// </summary>
 public sealed partial class AcceptInvitationCommandHandler(
+    IUserContext userContext,
     IFamilyMemberInvitationRepository invitationRepository,
-    IUserRepository userRepository,
     IFamilyRepository familyRepository,
     IUnitOfWork unitOfWork,
-    ICurrentUserService currentUserService,
     ILogger<AcceptInvitationCommandHandler> logger)
     : IRequestHandler<AcceptInvitationCommand, FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>
 {
@@ -26,65 +28,35 @@ public sealed partial class AcceptInvitationCommandHandler(
     {
         LogAcceptingInvitation(request.Token.Value);
 
-        // 1. Fetch invitation
-        var invitation = await invitationRepository.GetByTokenAsync(request.Token, cancellationToken);
-        if (invitation == null)
-        {
-            LogInvitationNotFound(request.Token.Value);
-            return DomainResult.Failure<AcceptInvitationResult>("Invalid or expired invitation token.");
-        }
+        // Validation is handled by AcceptInvitationCommandValidator
+        // 1. Fetch invitation (validator already checked it exists)
+        var invitation = await invitationRepository.GetByTokenAsync(request.Token, cancellationToken)
+            ?? throw new InvalidOperationException("Invitation not found. Validator should have caught this.");
 
-        // 2. Get current user
-        var currentUserId = await currentUserService.GetUserIdAsync(cancellationToken);
-        var currentUser = await userRepository.GetByIdAsync(currentUserId, cancellationToken);
-        if (currentUser == null)
-        {
-            LogUserNotFound(currentUserId.Value);
-            return DomainResult.Failure<AcceptInvitationResult>("Current user not found.");
-        }
+        // 2. Get current user (loaded by UserContextEnrichmentBehavior)
+        var currentUserId = userContext.UserId;
+        var currentUser = userContext.User;
 
-        // 3. Validate user email matches invitation email
-        if (invitation.Email != currentUser.Email)
-        {
-            LogEmailMismatch(currentUser.Email.Value, invitation.Email.Value);
-            return DomainResult.Failure<AcceptInvitationResult>("Invitation email does not match authenticated user.");
-        }
+        // 3. Accept invitation (validator checked all prerequisites)
+        invitation.Accept(currentUserId);
 
-        // 4. Accept invitation (domain method handles expiration check)
-        try
-        {
-            invitation.Accept(currentUserId);
-        }
-        catch (InvalidOperationException ex)
-        {
-            LogAcceptFailed(ex.Message);
-            return DomainResult.Failure<AcceptInvitationResult>(ex.Message);
-        }
+        // 4. Fetch family (validator already checked it exists)
+        var family = await familyRepository.GetByIdAsync(invitation.FamilyId, cancellationToken)
+            ?? throw new InvalidOperationException("Family not found. Validator should have caught this.");
 
-        // 5. Fetch family to get family name
-        var family = await familyRepository.GetByIdAsync(invitation.FamilyId, cancellationToken);
-        if (family == null)
-        {
-            LogFamilyNotFound(invitation.FamilyId.Value);
-            return DomainResult.Failure<AcceptInvitationResult>("Family not found.");
-        }
-
-        // 6. Update user's family and role
+        // 5. Update user's family and role
         currentUser.UpdateFamily(invitation.FamilyId);
         currentUser.UpdateRole(invitation.Role);
 
-        // 7. Update invitation status
+        // 6. Update invitation status
         await invitationRepository.UpdateAsync(invitation, cancellationToken);
 
-        // 8. Update user
-        userRepository.Update(currentUser);
-
-        // 9. Commit changes
+        // 7. Commit changes (User already tracked by EF Core from UserContextEnrichmentBehavior)
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         LogInvitationAccepted(currentUserId.Value, family.Id.Value, invitation.Role.Value);
 
-        // 10. Return result
+        // 8. Return result
         return Result.Success(new AcceptInvitationResult
         {
             FamilyId = invitation.FamilyId,
@@ -95,21 +67,6 @@ public sealed partial class AcceptInvitationCommandHandler(
 
     [LoggerMessage(LogLevel.Information, "Accepting invitation with token {token}")]
     partial void LogAcceptingInvitation(string token);
-
-    [LoggerMessage(LogLevel.Warning, "Invitation not found for token {token}")]
-    partial void LogInvitationNotFound(string token);
-
-    [LoggerMessage(LogLevel.Warning, "User {userId} not found")]
-    partial void LogUserNotFound(Guid userId);
-
-    [LoggerMessage(LogLevel.Warning, "Email mismatch: user email {userEmail} does not match invitation email {invitationEmail}")]
-    partial void LogEmailMismatch(string userEmail, string invitationEmail);
-
-    [LoggerMessage(LogLevel.Warning, "Failed to accept invitation: {message}")]
-    partial void LogAcceptFailed(string message);
-
-    [LoggerMessage(LogLevel.Warning, "Family {familyId} not found")]
-    partial void LogFamilyNotFound(Guid familyId);
 
     [LoggerMessage(LogLevel.Information, "User {userId} accepted invitation and joined family {familyId} with role {role}")]
     partial void LogInvitationAccepted(Guid userId, Guid familyId, string role);

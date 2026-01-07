@@ -10,19 +10,17 @@ namespace FamilyHub.Modules.Auth.Persistence.Repositories;
 /// </summary>
 public sealed class UserRepository(AuthDbContext context) : IUserRepository
 {
-    private readonly AuthDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
-
     /// <inheritdoc />
     public async Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
     {
-        return await _context.Users
+        return await context.Users
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
-        return await _context.Users
+        return await context.Users
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
@@ -42,7 +40,7 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
             throw new ArgumentException("External user ID cannot be null or whitespace.", nameof(externalUserId));
         }
 
-        return await _context.Users
+        return await context.Users
             .FirstOrDefaultAsync(
                 u => u.ExternalProvider == externalProvider && u.ExternalUserId == externalUserId,
                 cancellationToken);
@@ -61,7 +59,7 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     /// <inheritdoc />
     public async Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
-        return await _context.Users
+        return await context.Users
             .AnyAsync(u => u.Email == email, cancellationToken);
     }
 
@@ -70,7 +68,7 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        await _context.Users.AddAsync(user, cancellationToken);
+        await context.Users.AddAsync(user, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -81,7 +79,7 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
         // In EF Core with change tracking, this is often not necessary
         // EF tracks changes automatically when entities are loaded from the context
         // However, we include it for explicit updates from detached entities
-        _context.Users.Update(user);
+        context.Users.Update(user);
     }
 
     /// <inheritdoc />
@@ -89,13 +87,13 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        _context.Users.Remove(user);
+        context.Users.Remove(user);
     }
 
     /// <inheritdoc />
     public async Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
-        return await _context.Users
+        return await context.Users
             .Where(u => u.FamilyId == familyId)
             .ToListAsync(cancellationToken);
     }

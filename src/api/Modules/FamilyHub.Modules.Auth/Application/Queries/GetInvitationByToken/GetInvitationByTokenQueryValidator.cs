@@ -1,0 +1,34 @@
+using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FluentValidation;
+
+namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
+
+/// <summary>
+/// Validator for GetInvitationByTokenQuery.
+/// Validates that the invitation token corresponds to a valid, pending invitation.
+/// </summary>
+public sealed class GetInvitationByTokenQueryValidator : AbstractValidator<GetInvitationByTokenQuery>
+{
+    private readonly IFamilyMemberInvitationRepository _invitationRepository;
+
+    public GetInvitationByTokenQueryValidator(IFamilyMemberInvitationRepository invitationRepository)
+    {
+        _invitationRepository = invitationRepository;
+
+        RuleFor(x => x.Token)
+            .NotNull()
+            .WithMessage("Invitation token is required")
+            .MustAsync(BeValidPendingInvitation)
+            .WithMessage("Invitation not found or not pending");
+    }
+
+    private async Task<bool> BeValidPendingInvitation(InvitationToken token, CancellationToken cancellationToken)
+    {
+        var invitation = await _invitationRepository.GetByTokenAsync(token, cancellationToken);
+
+        // Not found or not pending
+        return invitation != null && invitation.Status == InvitationStatus.Pending;
+    }
+}

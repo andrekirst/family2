@@ -1,8 +1,9 @@
-using FamilyHub.Modules.Auth.Application.Abstractions;
-using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
+using FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using HotChocolate.Authorization;
+using MediatR;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
@@ -14,46 +15,37 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 public sealed class InvitationsTypeExtensions
 {
     /// <summary>
-    /// Gets all pending invitations for a family.
+    /// Gets all pending invitations for the authenticated user's family.
     /// Requires OWNER or ADMIN role.
+    /// User context and authorization are handled by MediatR pipeline behaviors.
     /// </summary>
-    [Authorize(Policy = "RequireOwnerOrAdmin")]
+    [Authorize(Policy = "RequireOwnerOrAdmin")] // Keep for GraphQL layer defense-in-depth
     [GraphQLDescription("Get all pending invitations for the authenticated user's family")]
     public async Task<List<PendingInvitationType>> Pending(
-        [Service] ICurrentUserService currentUserService,
-        [Service] IUserRepository userRepository,
-        [Service] IFamilyMemberInvitationRepository invitationRepository,
+        [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        // 1. Get authenticated user's ID from JWT token
-        var userId = await currentUserService.GetUserIdAsync(cancellationToken);
+        // 1. Create query (no parameters - FamilyId from IUserContext)
+        var query = new GetPendingInvitationsQuery();
 
-        // 2. Fetch user entity to get their FamilyId
-        var user = await userRepository.GetByIdAsync(userId, cancellationToken);
-        if (user == null)
-        {
-            throw new InvalidOperationException(
-                $"Authenticated user with ID {userId.Value} not found in database");
-        }
+        // 2. Execute query via MediatR (user context and authorization handled by behaviors)
+        var result = await mediator.Send(query, cancellationToken);
 
-        // 3. Get invitations for USER'S family (not client-provided)
-        var invitations = await invitationRepository.GetPendingByFamilyIdAsync(
-            user.FamilyId,
-            cancellationToken);
-
-        // 4. Map and return
-        return invitations.Select(i => new PendingInvitationType
-        {
-            Id = i.Id.Value,
-            Email = i.Email.Value,
-            Role = MapToGraphQLRole(i.Role),
-            Status = MapToGraphQLStatus(i.Status),
-            InvitedById = i.InvitedByUserId.Value,
-            InvitedAt = i.CreatedAt,
-            ExpiresAt = i.ExpiresAt,
-            Message = i.Message,
-            DisplayCode = i.DisplayCode.Value
-        }).ToList();
+        // 3. Map application DTOs → GraphQL types
+        return result.Invitations
+            .Select(dto => new PendingInvitationType
+            {
+                Id = dto.Id,
+                Email = dto.Email,
+                Role = MapToGraphQLRole(dto.Role),
+                Status = MapToGraphQLStatus(dto.Status),
+                InvitedById = dto.InvitedByUserId,
+                InvitedAt = dto.InvitedAt,
+                ExpiresAt = dto.ExpiresAt,
+                Message = dto.Message,
+                DisplayCode = dto.DisplayCode
+            })
+            .ToList();
     }
 
     /// <summary>
@@ -61,30 +53,34 @@ public sealed class InvitationsTypeExtensions
     /// No authentication required (public endpoint for invitees).
     /// Returns limited info (no token, no display code for security).
     /// </summary>
-    [GraphQLDescription("Get an invitation by token (public endpoint for accepting invitations)")]
+    [GraphQLDescription("Get invitation details by token (for invitees to view before accepting)")]
     public async Task<PendingInvitationType?> ByToken(
         string token,
-        [Service] IFamilyMemberInvitationRepository invitationRepository,
+        [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var invitation = await invitationRepository.GetByTokenAsync(
-            InvitationToken.From(token),
-            cancellationToken);
+        // 1. Create query (convert primitive → Vogen)
+        var query = new GetInvitationByTokenQuery(InvitationToken.From(token));
 
-        if (invitation == null)
-            return null;
+        // 2. Execute query via MediatR
+        var result = await mediator.Send(query, cancellationToken);
 
-        // Return limited info for public query (no display code for security)
+        // 3. Map application DTO → GraphQL type
+        if (result == null)
+        {
+            return null; // Not found or expired
+        }
         return new PendingInvitationType
         {
-            Id = invitation.Id.Value,
-            Email = invitation.Email.Value,
-            Role = MapToGraphQLRole(invitation.Role),
-            Status = MapToGraphQLStatus(invitation.Status),
-            ExpiresAt = invitation.ExpiresAt,
-            InvitedAt = invitation.CreatedAt,
-            Message = invitation.Message
-            // DisplayCode intentionally excluded for security
+            Id = result.Id,
+            Email = result.Email,
+            Role = MapToGraphQLRole(result.Role),
+            Status = MapToGraphQLStatus(result.Status),
+            InvitedById = result.InvitedByUserId,
+            InvitedAt = result.InvitedAt,
+            ExpiresAt = result.ExpiresAt,
+            Message = result.Message,
+            DisplayCode = result.DisplayCode
         };
     }
 
