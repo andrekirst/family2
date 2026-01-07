@@ -53,10 +53,12 @@ interface CancelInvitationResponse {
 /**
  * GraphQL response for UpdateInvitationRole mutation.
  * Updated for Hot Chocolate v14 Mutation Conventions.
+ * Note: Field is 'updatedInvitation' (not 'updatedInvitationDto') because Hot Chocolate
+ * removes 'Dto' suffix and converts to camelCase.
  */
 interface UpdateInvitationRoleResponse {
   updateInvitationRole: {
-    updatedInvitationDto: { invitationId: string; role: UserRole } | null;
+    updatedInvitation: { invitationId: string; role: UserRole } | null;
     errors: InvitationMutationError[];
   };
 }
@@ -296,7 +298,7 @@ export class InvitationService {
       const mutation = `
         mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
           updateInvitationRole(input: $input) {
-            updatedInvitationDto {
+            updatedInvitation {
               invitationId
               role
             }
@@ -328,11 +330,11 @@ export class InvitationService {
       }
 
       // Update local state
-      if (response.updateInvitationRole.updatedInvitationDto) {
+      if (response.updateInvitationRole.updatedInvitation) {
         this.pendingInvitations.update((invitations) =>
           invitations.map((inv) =>
             inv.id === invitationId
-              ? { ...inv, role: response.updateInvitationRole.updatedInvitationDto!.role }
+              ? { ...inv, role: response.updateInvitationRole.updatedInvitation!.role }
               : inv
           )
         );
