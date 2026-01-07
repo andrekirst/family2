@@ -6,7 +6,9 @@ import { PendingInvitation, UserRole } from '../models/family.models';
  * GraphQL response for GetPendingInvitations query.
  */
 interface GetPendingInvitationsResponse {
-  pendingInvitations: PendingInvitation[];
+  invitations: {
+    pending: PendingInvitation[];
+  };
 }
 
 /**
@@ -103,30 +105,30 @@ export class InvitationService {
    * @param familyId - UUID of the family
    * @returns Promise that resolves when load completes
    */
-  async loadPendingInvitations(familyId: string): Promise<void> {
+  async loadPendingInvitations(): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
 
     try {
       const query = `
-        query GetPendingInvitations($familyId: UUID!) {
-          pendingInvitations(familyId: $familyId) {
-            id
-            email
-            role
-            status
-            invitedAt
-            expiresAt
-            displayCode
+        query GetPendingInvitations {
+          invitations {
+            pending {
+              id
+              email
+              role
+              status
+              invitedAt
+              expiresAt
+              displayCode
+            }
           }
         }
       `;
 
-      const response = await this.graphqlService.query<GetPendingInvitationsResponse>(query, {
-        familyId,
-      });
+      const response = await this.graphqlService.query<GetPendingInvitationsResponse>(query);
 
-      this.pendingInvitations.set(response.pendingInvitations);
+      this.pendingInvitations.set(response.invitations.pending);
     } catch (err) {
       this.handleError(err, 'Failed to load pending invitations');
     } finally {

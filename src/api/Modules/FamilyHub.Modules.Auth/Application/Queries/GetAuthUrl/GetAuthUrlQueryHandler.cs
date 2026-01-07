@@ -1,29 +1,28 @@
+using System.Security.Cryptography;
+using System.Text;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Infrastructure.OAuth;
 using IdentityModel;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Security.Cryptography;
-using System.Text;
 
-namespace FamilyHub.Modules.Auth.Application.Queries.GetZitadelAuthUrl;
+namespace FamilyHub.Modules.Auth.Application.Queries.GetAuthUrl;
 
 /// <summary>
 /// Handler for GetZitadelAuthUrlQuery.
 /// Generates OAuth authorization URL with PKCE (Proof Key for Code Exchange) parameters.
 /// </summary>
-public sealed class GetZitadelAuthUrlQueryHandler(
+public sealed partial class GetAuthUrlQueryHandler(
     IOptions<ZitadelSettings> settings,
-    ILogger<GetZitadelAuthUrlQueryHandler> logger)
-    : IRequestHandler<GetZitadelAuthUrlQuery, GetZitadelAuthUrlResult>
+    ILogger<GetAuthUrlQueryHandler> logger)
+    : IRequestHandler<GetAuthUrlQuery, GetAuthUrlResult>
 {
-    private readonly ZitadelSettings _settings = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
-    private readonly ILogger<GetZitadelAuthUrlQueryHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ZitadelSettings _settings = settings.Value;
 
-    public Task<GetZitadelAuthUrlResult> Handle(GetZitadelAuthUrlQuery request, CancellationToken cancellationToken)
+    public Task<GetAuthUrlResult> Handle(GetAuthUrlQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Generating Zitadel OAuth authorization URL with PKCE");
+        LogGeneratingOauthAuthorizationUrlWithPkce(logger);
 
         // 1. Generate PKCE code verifier (256-bit random string, base64url-encoded)
         var codeVerifier = CryptoRandom.CreateUniqueId(); // 32 bytes = 256 bits
@@ -50,12 +49,9 @@ public sealed class GetZitadelAuthUrlQueryHandler(
             .WithLoginHint(request.LoginHint) // Phase 5: Pre-fill login form with email/username
             .Build();
 
-        _logger.LogInformation(
-            "Generated Zitadel authorization URL: {Authority}, Scopes: {Scopes}",
-            _settings.Authority,
-            _settings.Scopes);
+        LogGeneratedZitadelAuthorizationUrlAuthorityScopesScopes(logger, _settings.Authority, _settings.Scopes);
 
-        return Task.FromResult(new GetZitadelAuthUrlResult
+        return Task.FromResult(new GetAuthUrlResult
         {
             AuthorizationUrl = authorizationUrl,
             CodeVerifier = codeVerifier,
@@ -68,8 +64,13 @@ public sealed class GetZitadelAuthUrlQueryHandler(
     /// </summary>
     private static string GenerateCodeChallenge(string codeVerifier)
     {
-        using var sha256 = SHA256.Create();
-        var challengeBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(codeVerifier));
+        var challengeBytes = SHA256.HashData(Encoding.UTF8.GetBytes(codeVerifier));
         return Base64Url.Encode(challengeBytes);
     }
+
+    [LoggerMessage(LogLevel.Information, "Generating OAuth authorization URL with PKCE")]
+    static partial void LogGeneratingOauthAuthorizationUrlWithPkce(ILogger<GetAuthUrlQueryHandler> logger);
+
+    [LoggerMessage(LogLevel.Information, "Generated Zitadel authorization URL: {authority}, Scopes: {scopes}")]
+    static partial void LogGeneratedZitadelAuthorizationUrlAuthorityScopesScopes(ILogger<GetAuthUrlQueryHandler> logger, string authority, string scopes);
 }

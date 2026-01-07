@@ -31,7 +31,8 @@ public sealed class TestServiceResolver
 
     private TestServiceResolver(IServiceScope scope)
     {
-        _scope = scope ?? throw new ArgumentNullException(nameof(scope));
+        ArgumentNullException.ThrowIfNull(scope);
+        _scope = scope;
     }
 
     /// <summary>

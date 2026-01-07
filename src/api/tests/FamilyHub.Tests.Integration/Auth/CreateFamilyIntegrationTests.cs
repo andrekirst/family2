@@ -157,8 +157,10 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
         var act = async () => await mediator.Send(command);
 
         // Assert
-        await act.Should().ThrowAsync<BusinessException>()
-            .WithMessage($"*User with ID {nonExistentUserId.Value} not found*");
+        // With the new pipeline architecture, UserContextEnrichmentBehavior throws UnauthorizedAccessException
+        // when the authenticated user is not found in the database (stale JWT or deleted user scenario)
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+            .WithMessage($"*User with ID '{nonExistentUserId.Value}' not found in database*");
     }
 
     [Fact]

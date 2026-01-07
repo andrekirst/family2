@@ -123,19 +123,19 @@ public class FamilyMemberInvitation : AggregateRoot<InvitationId>
 
     /// <summary>
     /// Accepts the invitation.
+    /// IMPORTANT: Validation (status, expiration, email match) is handled by AcceptInvitationCommandValidator.
+    /// This method should only be called after validation passes.
     /// </summary>
-    /// <exception cref="InvalidOperationException">If invitation is not in pending status or has expired.</exception>
+    /// <param name="userId">The user accepting the invitation.</param>
+    /// <exception cref="InvalidOperationException">If called in invalid state (defensive check).</exception>
     public void Accept(UserId userId)
     {
+        // Defensive check - validator should prevent this
         if (Status != InvitationStatus.Pending)
         {
-            throw new InvalidOperationException($"Cannot accept invitation in {Status.Value} status. Only pending invitations can be accepted.");
-        }
-
-        if (DateTime.UtcNow > ExpiresAt)
-        {
-            Status = InvitationStatus.Expired;
-            throw new InvalidOperationException("Invitation has expired and cannot be accepted.");
+            throw new InvalidOperationException(
+                $"Cannot accept invitation in {Status.Value} status. " +
+                "This should have been prevented by validator.");
         }
 
         Status = InvitationStatus.Accepted;

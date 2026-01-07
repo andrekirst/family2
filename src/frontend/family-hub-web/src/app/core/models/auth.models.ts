@@ -13,10 +13,12 @@ export interface AuthState {
 }
 
 export interface GetZitadelAuthUrlResponse {
-  zitadelAuthUrl: {
-    authorizationUrl: string;
-    codeVerifier: string;
-    state: string;
+  auth: {
+    url: {
+      authorizationUrl: string;
+      codeVerifier: string;
+      state: string;
+    };
   };
 }
 

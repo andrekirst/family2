@@ -1,3 +1,4 @@
+using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using MediatR;
 
@@ -5,8 +6,9 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 
 /// <summary>
 /// Command to create a new family with the authenticated user as owner.
-/// Authentication is extracted by the handler via ICurrentUserService.
+/// User context is automatically provided by UserContextEnrichmentBehavior.
 /// </summary>
 public sealed record CreateFamilyCommand(
     FamilyName Name
-) : IRequest<CreateFamilyResult>;
+) : IRequest<CreateFamilyResult>,
+    IRequireAuthentication;

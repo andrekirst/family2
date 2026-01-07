@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using MediatR;
 
@@ -6,9 +7,13 @@ namespace FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 
 /// <summary>
 /// Command to update the role of a pending invitation.
-/// Only OWNER and ADMIN can execute this command.
+/// Requires Owner or Admin role.
+/// User context and authorization are handled by pipeline behaviors.
 /// </summary>
 public record UpdateInvitationRoleCommand(
     InvitationId InvitationId,
     UserRole NewRole
-) : IRequest<FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>>;
+) : IRequest<FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>>,
+    IRequireAuthentication,
+    IRequireFamilyContext,
+    IRequireOwnerOrAdminRole;

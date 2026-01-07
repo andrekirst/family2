@@ -1,5 +1,7 @@
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Persistence;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Adapters;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,5 +32,24 @@ public sealed class FamilyTypeExtensions
             .ToListAsync(cancellationToken);
 
         return members.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Resolves the owner of the family.
+    /// Replaces the scalar ownerId field with a nested UserType for richer owner information.
+    /// </summary>
+    /// <param name="family">The parent family entity.</param>
+    /// <param name="userRepository">User repository service.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The owner as UserType, or null if not found.</returns>
+    [GraphQLDescription("The owner of this family")]
+    public async Task<UserType?> GetOwner(
+        [Parent] Family family,
+        [Service] IUserRepository userRepository,
+        CancellationToken cancellationToken)
+    {
+        var owner = await userRepository.GetByIdAsync(family.OwnerId, cancellationToken);
+
+        return owner == null ? null : UserAuthenticationAdapter.ToGraphQLType(owner);
     }
 }
