@@ -83,7 +83,7 @@ export class FamilyManagementComponent implements OnInit {
       await this.familyService.loadFamilyMembers(family.id);
 
       // Load pending invitations
-      await this.invitationService.loadPendingInvitations(family.id);
+      await this.invitationService.loadPendingInvitations();
 
       // TODO: Load current user's role from auth context
       // For now, assume OWNER for development

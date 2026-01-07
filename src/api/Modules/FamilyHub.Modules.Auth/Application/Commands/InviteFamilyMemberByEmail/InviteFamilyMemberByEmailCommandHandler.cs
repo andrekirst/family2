@@ -11,13 +11,13 @@ namespace FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 /// <summary>
 /// Handler for InviteFamilyMemberByEmailCommand.
 /// Validates business rules and creates an email-based invitation.
+/// User context and authorization are handled by pipeline behaviors.
 /// </summary>
 public sealed partial class InviteFamilyMemberByEmailCommandHandler(
+    IUserContext userContext,
     IFamilyRepository familyRepository,
-    IUserRepository userRepository,
     IFamilyMemberInvitationRepository invitationRepository,
     IUnitOfWork unitOfWork,
-    ICurrentUserService currentUserService,
     ILogger<InviteFamilyMemberByEmailCommandHandler> logger)
     : IRequestHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
 {
@@ -25,11 +25,11 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
         InviteFamilyMemberByEmailCommand request,
         CancellationToken cancellationToken)
     {
-        // 1. Get authenticated user
-        var currentUserId = await currentUserService.GetUserIdAsync(cancellationToken);
+        // Get user context (already loaded and validated by behaviors)
+        var currentUserId = userContext.UserId;
         LogInvitingMemberToFamily(request.Email.Value, request.FamilyId.Value, currentUserId.Value);
 
-        // 2. Validate family exists
+        // 1. Validate family exists
         var family = await familyRepository.GetByIdAsync(request.FamilyId, cancellationToken);
         if (family == null)
         {
@@ -37,21 +37,7 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
             return Result.Failure<InviteFamilyMemberByEmailResult>("Family not found.");
         }
 
-        // 3. Validate user is owner or admin (authorization check)
-        var currentUser = await userRepository.GetByIdAsync(currentUserId, cancellationToken);
-        if (currentUser == null)
-        {
-            LogUserNotFound(currentUserId.Value);
-            return Result.Failure<InviteFamilyMemberByEmailResult>("Current user not found.");
-        }
-
-        if (currentUser.Role != UserRole.Owner && currentUser.Role != UserRole.Admin)
-        {
-            LogUnauthorized(currentUserId.Value, currentUser.Role.Value);
-            return Result.Failure<InviteFamilyMemberByEmailResult>("Only OWNER or ADMIN can invite family members.");
-        }
-
-        // 4. Check if email is already a family member
+        // 2. Check if email is already a family member
         var isExistingMember = await invitationRepository.IsUserMemberOfFamilyAsync(request.FamilyId, request.Email, cancellationToken);
         if (isExistingMember)
         {
@@ -59,7 +45,7 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
             return Result.Failure<InviteFamilyMemberByEmailResult>($"Email '{request.Email.Value}' is already a member of this family.");
         }
 
-        // 5. Check for duplicate pending invitation
+        // 3. Check for duplicate pending invitation
         var existingInvitation = await invitationRepository.GetPendingByEmailAsync(request.FamilyId, request.Email, cancellationToken);
         if (existingInvitation != null)
         {
@@ -67,14 +53,14 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
             return Result.Failure<InviteFamilyMemberByEmailResult>($"Email '{request.Email.Value}' already has a pending invitation.");
         }
 
-        // 6. Validate role (cannot invite as OWNER)
+        // 4. Validate role (cannot invite as OWNER)
         if (request.Role == UserRole.Owner)
         {
             LogInvalidRole("OWNER");
             return Result.Failure<InviteFamilyMemberByEmailResult>("Cannot invite a member as OWNER. Each family can have only one owner.");
         }
 
-        // 7. Create invitation using domain factory method
+        // 5. Create invitation using domain factory method
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             familyId: request.FamilyId,
             email: request.Email,
@@ -83,13 +69,13 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
             message: request.Message
         );
 
-        // 8. Persist to database
+        // 6. Persist to database
         await invitationRepository.AddAsync(invitation, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         LogInvitationCreated(invitation.Id.Value, request.Email.Value);
 
-        // 9. Return result
+        // 7. Return result
         return Result.Success(new InviteFamilyMemberByEmailResult
         {
             InvitationId = invitation.Id,
@@ -107,12 +93,6 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
 
     [LoggerMessage(LogLevel.Warning, "Family {familyId} not found")]
     partial void LogFamilyNotFound(Guid familyId);
-
-    [LoggerMessage(LogLevel.Warning, "User {userId} not found")]
-    partial void LogUserNotFound(Guid userId);
-
-    [LoggerMessage(LogLevel.Warning, "User {userId} with role {role} is not authorized to invite members")]
-    partial void LogUnauthorized(Guid userId, string role);
 
     [LoggerMessage(LogLevel.Warning, "Email '{email}' is already a member of the family")]
     partial void LogEmailAlreadyMember(string email);

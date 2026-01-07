@@ -69,7 +69,9 @@ async function setupAuthenticatedSession(page: Page): Promise<void> {
         contentType: 'application/json',
         body: JSON.stringify({
           data: {
-            pendingInvitations: []
+            invitations: {
+              pending: []
+            }
           }
         })
       });

@@ -165,26 +165,9 @@ public class FamilyMemberInvitationTests
             .WithMessage("*Cannot accept invitation in canceled status*");
     }
 
-    [Fact]
-    public void Accept_WithExpiredInvitation_ShouldThrow()
-    {
-        // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
-
-        // Use reflection to set ExpiresAt in the past (simulating expired invitation)
-        var expiresAtProperty = typeof(FamilyMemberInvitation)
-            .GetProperty("ExpiresAt");
-        expiresAtProperty!.SetValue(invitation, DateTime.UtcNow.AddDays(-1));
-
-        // Act
-        var act = () => invitation.Accept(UserId.New());
-
-        // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Invitation has expired*");
-        invitation.Status.Should().Be(InvitationStatus.Expired);
-    }
+    // NOTE: Expiration validation moved to AcceptInvitationCommandValidator
+    // The domain Accept() method now only checks status (defensive programming)
+    // See AcceptInvitationCommandValidatorTests.Validate_WithExpiredInvitation_ShouldFailWithExpirationMessage
 
     #endregion
 

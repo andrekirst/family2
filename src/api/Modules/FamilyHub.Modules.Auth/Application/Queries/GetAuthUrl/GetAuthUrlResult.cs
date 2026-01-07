@@ -1,12 +1,12 @@
-namespace FamilyHub.Modules.Auth.Application.Queries.GetZitadelAuthUrl;
+namespace FamilyHub.Modules.Auth.Application.Queries.GetAuthUrl;
 
 /// <summary>
-/// Result containing the Zitadel authorization URL and PKCE code verifier.
+/// Result containing the authorization URL and PKCE code verifier.
 /// </summary>
-public sealed record GetZitadelAuthUrlResult
+public sealed record GetAuthUrlResult
 {
     /// <summary>
-    /// Complete Zitadel OAuth authorization URL with PKCE parameters.
+    /// Complete OAuth authorization URL with PKCE parameters.
     /// Frontend should redirect user to this URL.
     /// </summary>
     public required string AuthorizationUrl { get; init; }

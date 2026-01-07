@@ -63,11 +63,13 @@ export class AuthService {
       const loginHint = identifier?.trim() || undefined;
 
       const query = `
-        query GetZitadelAuthUrl($loginHint: String) {
-          zitadelAuthUrl(loginHint: $loginHint) {
-            authorizationUrl
-            codeVerifier
-            state
+        query GetAuthUrl($loginHint: String) {
+          auth {
+            url(loginHint: $loginHint) {
+              authorizationUrl
+              codeVerifier
+              state
+            }
           }
         }
       `;
@@ -76,7 +78,7 @@ export class AuthService {
         query,
         { loginHint }
       );
-      const { authorizationUrl, codeVerifier, state } = response.zitadelAuthUrl;
+      const { authorizationUrl, codeVerifier, state } = response.auth.url;
 
       // Store PKCE verifier and state in sessionStorage (temporary)
       sessionStorage.setItem('pkce_code_verifier', codeVerifier);

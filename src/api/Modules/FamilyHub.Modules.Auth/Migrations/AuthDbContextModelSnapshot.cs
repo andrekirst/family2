@@ -151,10 +151,7 @@ namespace FamilyHub.Modules.Auth.Migrations
                     b.HasIndex("FamilyId", "Status")
                         .HasDatabaseName("ix_family_member_invitations_family_id_status");
 
-                    b.ToTable("family_member_invitations", "auth", t =>
-                        {
-                            t.HasCheckConstraint("ck_family_member_invitations_email_xor_username", "(email IS NOT NULL AND username IS NULL) OR (email IS NULL AND username IS NOT NULL)");
-                        });
+                    b.ToTable("family_member_invitations", "auth");
                 });
 
             modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.OutboxEvent", b =>

@@ -11,26 +11,24 @@ namespace FamilyHub.Modules.Auth.Persistence.Repositories;
 /// </summary>
 public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IFamilyMemberInvitationRepository
 {
-    private readonly AuthDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
-
     /// <inheritdoc />
     public async Task<FamilyMemberInvitation?> GetByIdAsync(InvitationId id, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<FamilyMemberInvitation?> GetByTokenAsync(InvitationToken token, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .FirstOrDefaultAsync(i => i.Token == token, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<List<FamilyMemberInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .Where(i => i.FamilyId == familyId && i.Status == InvitationStatus.Pending)
             .ToListAsync(cancellationToken);
     }
@@ -38,7 +36,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     /// <inheritdoc />
     public async Task<FamilyMemberInvitation?> GetPendingByEmailAsync(FamilyId familyId, Email email, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .FirstOrDefaultAsync(
                 i => i.FamilyId == familyId
                     && i.Email == email
@@ -49,7 +47,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     /// <inheritdoc />
     public async Task<List<FamilyMemberInvitation>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .Where(i => i.FamilyId == familyId)
             .ToListAsync(cancellationToken);
     }
@@ -59,7 +57,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     {
         ArgumentNullException.ThrowIfNull(invitation);
 
-        await _context.FamilyMemberInvitations.AddAsync(invitation, cancellationToken);
+        await context.FamilyMemberInvitations.AddAsync(invitation, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -68,14 +66,14 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
         ArgumentNullException.ThrowIfNull(invitation);
 
         // EF Core tracks changes automatically when entities are loaded from the context
-        _context.FamilyMemberInvitations.Update(invitation);
+        context.FamilyMemberInvitations.Update(invitation);
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
     public async Task<bool> IsUserMemberOfFamilyAsync(FamilyId familyId, Email email, CancellationToken cancellationToken = default)
     {
-        return await _context.Users
+        return await context.Users
             .AnyAsync(
                 u => u.FamilyId == familyId && u.Email == email,
                 cancellationToken);
@@ -84,7 +82,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     /// <inheritdoc />
     public async Task<List<FamilyMemberInvitation>> GetExpiredInvitationsForCleanupAsync(DateTime expirationThreshold, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .Where(i => i.ExpiresAt < expirationThreshold && i.Status == InvitationStatus.Expired)
             .ToListAsync(cancellationToken);
     }
@@ -93,6 +91,6 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     public void RemoveInvitations(List<FamilyMemberInvitation> invitations)
     {
         ArgumentNullException.ThrowIfNull(invitations);
-        _context.FamilyMemberInvitations.RemoveRange(invitations);
+        context.FamilyMemberInvitations.RemoveRange(invitations);
     }
 }

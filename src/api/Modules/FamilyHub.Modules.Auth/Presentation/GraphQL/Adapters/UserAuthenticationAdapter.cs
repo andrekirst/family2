@@ -27,7 +27,6 @@ public static class UserAuthenticationAdapter
             Id = user.Id.Value,
             Email = user.Email.Value,
             EmailVerified = user.EmailVerified,
-            FamilyId = user.FamilyId.Value,
             AuditInfo = new AuditInfoType
             {
                 CreatedAt = user.CreatedAt,

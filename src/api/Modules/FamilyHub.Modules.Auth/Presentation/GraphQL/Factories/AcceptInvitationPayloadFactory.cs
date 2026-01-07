@@ -14,14 +14,12 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Factories;
 public class AcceptInvitationPayloadFactory(IFamilyRepository familyRepository)
     : IPayloadFactory<AcceptInvitationResult, AcceptInvitationPayload>
 {
-    private readonly IFamilyRepository _familyRepository = familyRepository ?? throw new ArgumentNullException(nameof(familyRepository));
-
     public AcceptInvitationPayload Success(AcceptInvitationResult result)
     {
         // Fetch the family entity to return in the payload
         // Note: This is a synchronous call in the factory, which is not ideal
         // but follows the current factory pattern for consistency
-        var family = _familyRepository.GetByIdAsync(result.FamilyId).GetAwaiter().GetResult();
+        var family = familyRepository.GetByIdAsync(result.FamilyId).GetAwaiter().GetResult();
 
         if (family == null)
         {

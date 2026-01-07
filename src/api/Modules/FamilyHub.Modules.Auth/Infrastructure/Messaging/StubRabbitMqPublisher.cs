@@ -13,8 +13,6 @@ namespace FamilyHub.Modules.Auth.Infrastructure.Messaging;
 /// </remarks>
 public sealed partial class StubRabbitMqPublisher(ILogger<StubRabbitMqPublisher> logger) : IRabbitMqPublisher
 {
-    private readonly ILogger<StubRabbitMqPublisher> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
     public Task PublishAsync(string exchange, string routingKey, string message, CancellationToken cancellationToken = default)
     {
         LogStubPublishedEventToExchangeRoutingkeyMessage(exchange, routingKey, message);

@@ -49,10 +49,12 @@ describe('AuthService - Email OAuth', () => {
       // Arrange
       const email = 'user@example.com';
       const mockResponse = {
-        zitadelAuthUrl: {
-          authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
-          codeVerifier: 'mock-verifier',
-          state: 'mock-state'
+        auth: {
+          url: {
+            authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
+            codeVerifier: 'mock-verifier',
+            state: 'mock-state'
+          }
         }
       };
 
@@ -74,10 +76,12 @@ describe('AuthService - Email OAuth', () => {
       // Arrange
       const email = 'user@example.com';
       const mockResponse = {
-        zitadelAuthUrl: {
-          authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
-          codeVerifier: 'mock-code-verifier',
-          state: 'mock-state-value'
+        auth: {
+          url: {
+            authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
+            codeVerifier: 'mock-code-verifier',
+            state: 'mock-state-value'
+          }
         }
       };
 
@@ -96,10 +100,12 @@ describe('AuthService - Email OAuth', () => {
       const email = 'user@example.com';
       const authUrl = 'https://zitadel.example.com/oauth/authorize?client_id=123';
       const mockResponse = {
-        zitadelAuthUrl: {
-          authorizationUrl: authUrl,
-          codeVerifier: 'mock-verifier',
-          state: 'mock-state'
+        auth: {
+          url: {
+            authorizationUrl: authUrl,
+            codeVerifier: 'mock-verifier',
+            state: 'mock-state'
+          }
         }
       };
 
@@ -115,10 +121,12 @@ describe('AuthService - Email OAuth', () => {
     it('should omit loginHint when identifier is not provided', async () => {
       // Arrange
       const mockResponse = {
-        zitadelAuthUrl: {
-          authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
-          codeVerifier: 'mock-verifier',
-          state: 'mock-state'
+        auth: {
+          url: {
+            authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
+            codeVerifier: 'mock-verifier',
+            state: 'mock-state'
+          }
         }
       };
 
@@ -140,10 +148,12 @@ describe('AuthService - Email OAuth', () => {
       // Arrange
       const email = '  user@example.com  ';
       const mockResponse = {
-        zitadelAuthUrl: {
-          authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
-          codeVerifier: 'mock-verifier',
-          state: 'mock-state'
+        auth: {
+          url: {
+            authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
+            codeVerifier: 'mock-verifier',
+            state: 'mock-state'
+          }
         }
       };
 

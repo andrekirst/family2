@@ -10,12 +10,10 @@ namespace FamilyHub.Modules.Auth.Persistence.Repositories;
 /// </summary>
 public sealed class FamilyRepository(AuthDbContext context) : IFamilyRepository
 {
-    private readonly AuthDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
-
     /// <inheritdoc />
     public async Task<Family?> GetByIdAsync(FamilyId id, CancellationToken cancellationToken = default)
     {
-        return await _context.Families
+        return await context.Families
             .Include(f => f.Members)
             .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
     }
@@ -23,7 +21,7 @@ public sealed class FamilyRepository(AuthDbContext context) : IFamilyRepository
     /// <inheritdoc />
     public async Task<Family?> GetFamilyByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
     {
-        return await _context.Families
+        return await context.Families
             .Include(f => f.Members)
             .FirstOrDefaultAsync(f => f.Members.Any(u => u.Id == userId), cancellationToken);
     }
@@ -33,6 +31,6 @@ public sealed class FamilyRepository(AuthDbContext context) : IFamilyRepository
     {
         ArgumentNullException.ThrowIfNull(family);
 
-        await _context.Families.AddAsync(family, cancellationToken);
+        await context.Families.AddAsync(family, cancellationToken);
     }
 }
