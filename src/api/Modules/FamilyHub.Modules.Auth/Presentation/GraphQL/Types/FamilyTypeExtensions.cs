@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Persistence;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Adapters;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,6 +50,6 @@ public sealed class FamilyTypeExtensions
     {
         var owner = await userRepository.GetByIdAsync(family.OwnerId, cancellationToken);
 
-        return owner == null ? null : UserAuthenticationAdapter.ToGraphQLType(owner);
+        return owner == null ? null : UserMapper.AsGraphQLType(owner);
     }
 }
