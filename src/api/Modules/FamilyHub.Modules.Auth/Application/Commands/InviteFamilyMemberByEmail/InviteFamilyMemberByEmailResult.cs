@@ -6,6 +6,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 
 /// <summary>
 /// Result of inviting a family member by email.
+/// Contains invitation information returned from the command handler.
 /// </summary>
 public record InviteFamilyMemberByEmailResult
 {

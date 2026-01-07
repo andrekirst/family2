@@ -26,8 +26,8 @@ import { CommonModule } from '@angular/common';
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => InputComponent),
-      multi: true
-    }
+      multi: true,
+    },
   ],
   template: `
     <div class="relative">
@@ -36,7 +36,6 @@ import { CommonModule } from '@angular/common';
         [value]="value"
         [placeholder]="placeholder"
         [disabled]="disabled"
-        [attr.maxlength]="maxLength"
         [attr.aria-label]="ariaLabel"
         [attr.aria-required]="ariaRequired ? 'true' : null"
         [attr.aria-invalid]="error ? 'true' : 'false'"
@@ -48,9 +47,7 @@ import { CommonModule } from '@angular/common';
 
       <!-- Character Counter -->
       @if (maxLength) {
-        <div [class]="counterClasses">
-          {{ value?.length || 0 }}/{{ maxLength }}
-        </div>
+        <div [class]="counterClasses">{{ value?.length || 0 }}/{{ maxLength }}</div>
       }
 
       <!-- Error Message -->
@@ -66,16 +63,18 @@ import { CommonModule } from '@angular/common';
       }
     </div>
   `,
-  styles: [`
-    .character-counter {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.875rem;
-      pointer-events: none;
-    }
-  `]
+  styles: [
+    `
+      .character-counter {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.875rem;
+        pointer-events: none;
+      }
+    `,
+  ],
 })
 export class InputComponent implements ControlValueAccessor {
   /**

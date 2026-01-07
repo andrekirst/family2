@@ -1,11 +1,13 @@
+using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 
 /// <summary>
 /// Result of completing Zitadel OAuth login.
+/// Contains user information and authentication tokens.
 /// </summary>
-public sealed record CompleteZitadelLoginResult
+public sealed record CompleteZitadelLoginResult : ITimestampable
 {
     /// <summary>
     /// Internal user ID (our system's ID)
@@ -40,10 +42,10 @@ public sealed record CompleteZitadelLoginResult
     /// <summary>
     /// User account creation timestamp
     /// </summary>
-    public required DateTime CreatedAt { get; init; }
+    public required DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// User account last update timestamp
     /// </summary>
-    public required DateTime UpdatedAt { get; init; }
+    public required DateTime UpdatedAt { get; set; }
 }

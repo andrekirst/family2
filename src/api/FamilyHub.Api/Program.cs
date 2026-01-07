@@ -88,6 +88,7 @@ try
         .AddGraphQLServer()
         .AddQueryType(d => d.Name("Query"))
         .AddMutationType(d => d.Name("Mutation"))
+        .AddMutationConventions() // Enable mutation conventions for declarative error handling
         .AddAuthorization() // Enable authorization for GraphQL (requires HotChocolate.AspNetCore.Authorization)
         .AddFiltering()
         .AddSorting()

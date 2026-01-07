@@ -72,16 +72,25 @@ public sealed class CreateFamilyMutationTests : IDisposable
         var mutation = $$"""
         mutation {
           createFamily(input: { name: "{{familyName}}" }) {
-            family {
+            createdFamilyDto {
               id
               name
               ownerId
               createdAt
             }
             errors {
-              message
-              code
-              field
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
             }
           }
         }
@@ -97,16 +106,16 @@ public sealed class CreateFamilyMutationTests : IDisposable
 
         var createFamily = await ParseCreateFamilyResponse(response);
 
-        // Check for errors - should be null on success
+        // Check for errors - should be null/empty on success
         var errors = createFamily.GetProperty("errors");
-        errors.ValueKind.Should().Be(JsonValueKind.Null);
+        (errors.ValueKind == JsonValueKind.Null || errors.GetArrayLength() == 0).Should().BeTrue();
 
         // Check family data
-        var family = createFamily.GetProperty("family");
-        family.GetProperty("name").GetString().Should().Be(familyName);
-        family.GetProperty("ownerId").GetGuid().Should().Be(user.Id.Value);
+        var familyDto = createFamily.GetProperty("createdFamilyDto");
+        familyDto.GetProperty("name").GetString().Should().Be(familyName);
+        familyDto.GetProperty("ownerId").GetGuid().Should().Be(user.Id.Value);
 
-        var familyId = family.GetProperty("id").GetGuid();
+        var familyId = familyDto.GetProperty("id").GetGuid();
         familyId.Should().NotBe(Guid.Empty);
     }
 
@@ -123,14 +132,23 @@ public sealed class CreateFamilyMutationTests : IDisposable
         var mutation = """
         mutation {
           createFamily(input: { name: "" }) {
-            family {
+            createdFamilyDto {
               id
               name
             }
             errors {
-              message
-              code
-              field
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
             }
           }
         }
@@ -146,17 +164,18 @@ public sealed class CreateFamilyMutationTests : IDisposable
 
         var createFamily = await ParseCreateFamilyResponse(response);
 
-        // Check for errors
+        // Check for errors array
         var errors = createFamily.GetProperty("errors");
         errors.GetArrayLength().Should().BeGreaterThan(0);
 
         var firstError = errors[0];
+        // Empty string fails at ValueObject level (Vogen FamilyName validation), not FluentValidation
+        firstError.GetProperty("__typename").GetString().Should().Be("ValueObjectError");
         firstError.GetProperty("message").GetString().Should().Contain("Family name");
-        firstError.GetProperty("code").GetString().Should().Be("VALIDATION_ERROR");
 
-        // Family should be null
-        var familyProperty = createFamily.GetProperty("family");
-        familyProperty.ValueKind.Should().Be(JsonValueKind.Null);
+        // createdFamilyDto should be null
+        var familyDto = createFamily.GetProperty("createdFamilyDto");
+        familyDto.ValueKind.Should().Be(JsonValueKind.Null);
     }
 
     [Fact]
@@ -173,14 +192,23 @@ public sealed class CreateFamilyMutationTests : IDisposable
         var mutation = $$"""
         mutation {
           createFamily(input: { name: "{{longName}}" }) {
-            family {
+            createdFamilyDto {
               id
               name
             }
             errors {
-              message
-              code
-              field
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
             }
           }
         }
@@ -196,17 +224,18 @@ public sealed class CreateFamilyMutationTests : IDisposable
 
         var createFamily = await ParseCreateFamilyResponse(response);
 
-        // Check for errors
+        // Check for errors array
         var errors = createFamily.GetProperty("errors");
         errors.GetArrayLength().Should().BeGreaterThan(0);
 
         var firstError = errors[0];
+        // Too long name fails at ValueObject level (Vogen FamilyName validation), not FluentValidation
+        firstError.GetProperty("__typename").GetString().Should().Be("ValueObjectError");
         firstError.GetProperty("message").GetString().Should().Contain("100 characters");
-        firstError.GetProperty("code").GetString().Should().Be("VALIDATION_ERROR");
 
-        // Family should be null
-        var familyProperty = createFamily.GetProperty("family");
-        familyProperty.ValueKind.Should().Be(JsonValueKind.Null);
+        // createdFamilyDto should be null
+        var familyDto = createFamily.GetProperty("createdFamilyDto");
+        familyDto.ValueKind.Should().Be(JsonValueKind.Null);
     }
 
     [Fact(Skip = "Authentication scoping issue with TestCurrentUserService in GraphQL tests - needs investigation")]
@@ -235,14 +264,23 @@ public sealed class CreateFamilyMutationTests : IDisposable
         var mutation = """
         mutation {
           createFamily(input: { name: "Second Family" }) {
-            family {
+            createdFamilyDto {
               id
               name
             }
             errors {
-              message
-              code
-              field
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
             }
           }
         }
@@ -258,17 +296,18 @@ public sealed class CreateFamilyMutationTests : IDisposable
 
         var createFamily = await ParseCreateFamilyResponse(response);
 
-        // Verify GraphQL error response format
+        // Check for errors array
         var errors = createFamily.GetProperty("errors");
         errors.GetArrayLength().Should().BeGreaterThan(0);
 
-        var error = errors[0];
-        error.GetProperty("code").GetString().Should().Be("FAMILY_ALREADY_EXISTS");
-        error.GetProperty("message").GetString().Should().Contain("already");
+        var firstError = errors[0];
+        firstError.GetProperty("__typename").GetString().Should().Be("BusinessError");
+        firstError.GetProperty("code").GetString().Should().Be("FAMILY_ALREADY_EXISTS");
+        firstError.GetProperty("message").GetString().Should().Contain("already");
 
-        // Family should be null
-        var familyProperty = createFamily.GetProperty("family");
-        familyProperty.ValueKind.Should().Be(JsonValueKind.Null);
+        // createdFamilyDto should be null
+        var familyDto = createFamily.GetProperty("createdFamilyDto");
+        familyDto.ValueKind.Should().Be(JsonValueKind.Null);
 
         // Note: Business rule enforcement itself is tested in CreateFamilyIntegrationTests
     }
@@ -283,13 +322,23 @@ public sealed class CreateFamilyMutationTests : IDisposable
         var mutation = """
         mutation {
           createFamily(input: { name: "Test Family" }) {
-            family {
+            createdFamilyDto {
               id
               name
             }
             errors {
-              message
-              code
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on UnauthorizedError {
+                message
+              }
             }
           }
         }
@@ -303,19 +352,15 @@ public sealed class CreateFamilyMutationTests : IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseContent = await response.Content.ReadAsStringAsync();
-        var jsonDocument = JsonDocument.Parse(responseContent);
+        var createFamily = await ParseCreateFamilyResponse(response);
 
-        // GraphQL returns the response in errors when unauthenticated
-        var data = jsonDocument.RootElement.GetProperty("data");
-        var createFamily = data.GetProperty("createFamily");
-
+        // Check for errors array
         var errors = createFamily.GetProperty("errors");
         errors.GetArrayLength().Should().BeGreaterThan(0);
 
         var firstError = errors[0];
+        firstError.GetProperty("__typename").GetString().Should().Be("UnauthorizedError");
         firstError.GetProperty("message").GetString().Should().Contain("authenticated");
-        firstError.GetProperty("code").GetString().Should().Be("UNAUTHENTICATED");
     }
 
     [Fact]
@@ -364,13 +409,16 @@ public sealed class CreateFamilyMutationTests : IDisposable
         var mutation = """
         mutation {
           createFamily(input: { name: null }) {
-            family {
+            createdFamilyDto {
               id
               name
             }
             errors {
-              message
-              code
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
             }
           }
         }

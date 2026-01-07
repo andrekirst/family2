@@ -10,7 +10,7 @@ import {
   ComponentRef,
   AfterViewInit,
   inject,
-  ChangeDetectorRef
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -106,23 +106,19 @@ import { ButtonComponent } from '../../atoms/button/button.component';
  */
 @Component({
   selector: 'app-wizard',
-  imports: [
-    CommonModule,
-    ProgressBarComponent,
-    ButtonComponent
-  ],
+  imports: [CommonModule, ProgressBarComponent, ButtonComponent],
   providers: [WizardService], // Component-scoped service for isolated state
   animations: [
     trigger('fadeTransition', [
       transition(':enter', [
         style({ opacity: 0 }),
-        animate('200ms ease-in', style({ opacity: 1 }))
+        animate('200ms ease-in', style({ opacity: 1 })),
       ]),
       transition(':leave', [
         style({ opacity: 1 }),
-        animate('200ms ease-out', style({ opacity: 0 }))
-      ])
-    ])
+        animate('200ms ease-out', style({ opacity: 0 })),
+      ]),
+    ]),
   ],
   template: `
     <div class="min-h-screen bg-gray-50 flex flex-col">
@@ -156,11 +152,7 @@ import { ButtonComponent } from '../../atoms/button/button.component';
             Back
           </app-button>
 
-          <app-button
-            variant="primary"
-            [disabled]="!canProceed()"
-            (clicked)="onNext()"
-          >
+          <app-button variant="primary" [disabled]="!canProceed()" (clicked)="onNext()">
             {{ wizardService.isLastStep() ? submitButtonText : 'Next' }}
           </app-button>
         </div>
@@ -173,32 +165,34 @@ import { ButtonComponent } from '../../atoms/button/button.component';
       </div>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-
-    /* Tailwind's sr-only utility */
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border-width: 0;
-    }
-
-    /* Respect prefers-reduced-motion */
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
+  styles: [
+    `
+      :host {
+        display: block;
       }
-    }
-  `]
+
+      /* Tailwind's sr-only utility */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+
+      /* Respect prefers-reduced-motion */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    `,
+  ],
 })
 export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   // ===== Inputs =====
@@ -221,6 +215,13 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
    * @default 'Complete'
    */
   @Input() submitButtonText = 'Complete';
+
+  /**
+   * Loading state for submit button.
+   * When true, submit button is disabled to prevent duplicate submissions.
+   * @default false
+   */
+  @Input() isSubmitting = false;
 
   // ===== Outputs =====
 
@@ -346,13 +347,18 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Determines if user can proceed to next step.
-   * Checks validation state and last-step logic.
+   * Checks validation state, last-step logic, and submission state.
    *
    * @returns True if Next/Submit button should be enabled
    */
   canProceed(): boolean {
     const config = this.wizardService.currentStepConfig();
     if (!config) {
+      return false;
+    }
+
+    // Disable button during submission
+    if (this.isSubmitting) {
       return false;
     }
 
@@ -381,9 +387,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Create component dynamically
-    this.currentStepComponentRef = this.stepContainer.createComponent(
-      config.componentType
-    );
+    this.currentStepComponentRef = this.stepContainer.createComponent(config.componentType);
 
     const instance = this.currentStepComponentRef.instance as Record<string, unknown>;
 
@@ -396,7 +400,10 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
     // Listen for dataChange events from step component
     if ('dataChange' in instance) {
       const dataChangeEmitter = instance['dataChange'];
-      if (dataChangeEmitter && typeof (dataChangeEmitter as EventEmitter<unknown>).subscribe === 'function') {
+      if (
+        dataChangeEmitter &&
+        typeof (dataChangeEmitter as EventEmitter<unknown>).subscribe === 'function'
+      ) {
         (dataChangeEmitter as EventEmitter<unknown>).subscribe((data: unknown) => {
           this.wizardService.setStepData(config.id, data);
         });
@@ -440,7 +447,9 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       // Get native element from component
-      const componentElement = (this.currentStepComponentRef.location as { nativeElement?: HTMLElement })?.nativeElement;
+      const componentElement = (
+        this.currentStepComponentRef.location as { nativeElement?: HTMLElement }
+      )?.nativeElement;
 
       if (!componentElement) {
         return;

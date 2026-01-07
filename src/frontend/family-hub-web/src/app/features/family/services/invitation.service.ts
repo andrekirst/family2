@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { GraphQLService, GraphQLError } from '../../../core/services/graphql.service';
-import { PendingInvitation } from '../models/family.models';
+import { PendingInvitation, UserRole } from '../models/family.models';
 
 /**
  * GraphQL response for GetPendingInvitations query.
@@ -10,12 +10,21 @@ interface GetPendingInvitationsResponse {
 }
 
 /**
+ * Error types from Hot Chocolate Mutation Conventions (discriminated union)
+ */
+type InvitationMutationError =
+  | { __typename: 'ValidationError'; message: string; field: string }
+  | { __typename: 'BusinessError'; message: string; code: string }
+  | { __typename: 'ValueObjectError'; message: string };
+
+/**
  * GraphQL response for InviteFamilyMemberByEmail mutation.
+ * Updated for Hot Chocolate v14 Mutation Conventions.
  */
 interface InviteFamilyMemberByEmailResponse {
   inviteFamilyMemberByEmail: {
-    invitation: PendingInvitation | null;
-    errors: { message: string; code?: string }[] | null;
+    pendingInvitationType: PendingInvitation | null;
+    errors: InvitationMutationError[];
   };
 }
 
@@ -29,21 +38,24 @@ interface InviteEmailResult {
 
 /**
  * GraphQL response for CancelInvitation mutation.
+ * Updated for Hot Chocolate v14 Mutation Conventions.
  */
 interface CancelInvitationResponse {
   cancelInvitation: {
-    success: boolean;
-    errors: { message: string; code?: string }[] | null;
+    // CancelInvitation returns bool directly (not in DTO wrapper)
+    // Hot Chocolate wraps it in errors array
+    errors: InvitationMutationError[];
   };
 }
 
 /**
  * GraphQL response for UpdateInvitationRole mutation.
+ * Updated for Hot Chocolate v14 Mutation Conventions.
  */
 interface UpdateInvitationRoleResponse {
   updateInvitationRole: {
-    invitation: PendingInvitation | null;
-    errors: { message: string; code?: string }[] | null;
+    updatedInvitationDto: { invitationId: string; role: UserRole } | null;
+    errors: InvitationMutationError[];
   };
 }
 
@@ -63,7 +75,7 @@ interface UpdateInvitationRoleResponse {
  * ```
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class InvitationService {
   private graphqlService = inject(GraphQLService);
@@ -110,10 +122,9 @@ export class InvitationService {
         }
       `;
 
-      const response = await this.graphqlService.query<GetPendingInvitationsResponse>(
-        query,
-        { familyId }
-      );
+      const response = await this.graphqlService.query<GetPendingInvitationsResponse>(query, {
+        familyId,
+      });
 
       this.pendingInvitations.set(response.pendingInvitations);
     } catch (err) {
@@ -139,7 +150,7 @@ export class InvitationService {
 
     const result: InviteEmailResult = {
       successCount: 0,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -149,7 +160,7 @@ export class InvitationService {
           const mutation = `
             mutation InviteFamilyMemberByEmail($input: InviteFamilyMemberByEmailInput!) {
               inviteFamilyMemberByEmail(input: $input) {
-                invitation {
+                pendingInvitationType {
                   id
                   email
                   role
@@ -159,8 +170,18 @@ export class InvitationService {
                   displayCode
                 }
                 errors {
-                  message
-                  code
+                  __typename
+                  ... on ValidationError {
+                    message
+                    field
+                  }
+                  ... on BusinessError {
+                    message
+                    code
+                  }
+                  ... on ValueObjectError {
+                    message
+                  }
                 }
               }
             }
@@ -172,20 +193,26 @@ export class InvitationService {
           );
 
           // Check for business logic errors
-          if (response.inviteFamilyMemberByEmail.errors &&
-              response.inviteFamilyMemberByEmail.errors.length > 0) {
+          if (
+            response.inviteFamilyMemberByEmail.errors &&
+            response.inviteFamilyMemberByEmail.errors.length > 0
+          ) {
+            const error = response.inviteFamilyMemberByEmail.errors[0];
             result.errors.push({
-              message: response.inviteFamilyMemberByEmail.errors[0].message,
-              code: response.inviteFamilyMemberByEmail.errors[0].code,
-              field: email
+              message: error.message,
+              code:
+                '__typename' in error && error.__typename === 'BusinessError'
+                  ? error.code
+                  : undefined,
+              field: email,
             });
-          } else if (response.inviteFamilyMemberByEmail.invitation) {
+          } else if (response.inviteFamilyMemberByEmail.pendingInvitationType) {
             result.successCount++;
           }
         } catch (err) {
           result.errors.push({
             message: err instanceof Error ? err.message : 'Failed to send invitation',
-            field: email
+            field: email,
           });
         }
       }
@@ -213,29 +240,36 @@ export class InvitationService {
       const mutation = `
         mutation CancelInvitation($input: CancelInvitationInput!) {
           cancelInvitation(input: $input) {
-            success
             errors {
-              message
-              code
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
             }
           }
         }
       `;
 
-      const response = await this.graphqlService.mutate<CancelInvitationResponse>(
-        mutation,
-        { input: { invitationId } }
-      );
+      const response = await this.graphqlService.mutate<CancelInvitationResponse>(mutation, {
+        input: { invitationId },
+      });
 
       // Check for business logic errors
-      if (response.cancelInvitation.errors &&
-          response.cancelInvitation.errors.length > 0) {
+      if (response.cancelInvitation.errors && response.cancelInvitation.errors.length > 0) {
         throw new Error(response.cancelInvitation.errors[0].message);
       }
 
-      // Remove from local state
-      this.pendingInvitations.update(invitations =>
-        invitations.filter(inv => inv.id !== invitationId)
+      // Remove from local state (success if no errors)
+      this.pendingInvitations.update((invitations) =>
+        invitations.filter((inv) => inv.id !== invitationId)
       );
     } catch (err) {
       this.handleError(err, 'Failed to cancel invitation');
@@ -260,35 +294,43 @@ export class InvitationService {
       const mutation = `
         mutation UpdateInvitationRole($input: UpdateInvitationRoleInput!) {
           updateInvitationRole(input: $input) {
-            invitation {
-              id
+            updatedInvitationDto {
+              invitationId
               role
             }
             errors {
-              message
-              code
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
             }
           }
         }
       `;
 
-      const response = await this.graphqlService.mutate<UpdateInvitationRoleResponse>(
-        mutation,
-        { input: { invitationId, newRole } }
-      );
+      const response = await this.graphqlService.mutate<UpdateInvitationRoleResponse>(mutation, {
+        input: { invitationId, newRole },
+      });
 
       // Check for business logic errors
-      if (response.updateInvitationRole.errors &&
-          response.updateInvitationRole.errors.length > 0) {
+      if (response.updateInvitationRole.errors && response.updateInvitationRole.errors.length > 0) {
         throw new Error(response.updateInvitationRole.errors[0].message);
       }
 
       // Update local state
-      if (response.updateInvitationRole.invitation) {
-        this.pendingInvitations.update(invitations =>
-          invitations.map(inv =>
+      if (response.updateInvitationRole.updatedInvitationDto) {
+        this.pendingInvitations.update((invitations) =>
+          invitations.map((inv) =>
             inv.id === invitationId
-              ? { ...inv, role: response.updateInvitationRole.invitation!.role }
+              ? { ...inv, role: response.updateInvitationRole.updatedInvitationDto!.role }
               : inv
           )
         );

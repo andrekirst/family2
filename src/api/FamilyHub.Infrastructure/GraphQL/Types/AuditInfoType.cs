@@ -1,3 +1,5 @@
+using FamilyHub.SharedKernel.Domain;
+
 namespace FamilyHub.Infrastructure.GraphQL.Types;
 
 /// <summary>
@@ -9,17 +11,17 @@ namespace FamilyHub.Infrastructure.GraphQL.Types;
 /// providing a clean separation between domain entities and their audit trail.
 /// All timestamps are in UTC.
 /// </remarks>
-public sealed record AuditInfoType
+public sealed record AuditInfoType : ITimestampable
 {
     /// <summary>
     /// When the entity was created (UTC).
     /// Set automatically by TimestampInterceptor on first save.
     /// </summary>
-    public required DateTime CreatedAt { get; init; }
+    public required DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// When the entity was last updated (UTC).
     /// Set automatically by TimestampInterceptor on every save.
     /// </summary>
-    public required DateTime UpdatedAt { get; init; }
+    public required DateTime UpdatedAt { get; set; }
 }

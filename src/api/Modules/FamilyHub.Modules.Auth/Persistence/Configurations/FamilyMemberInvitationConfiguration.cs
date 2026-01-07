@@ -13,13 +13,7 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
 {
     public void Configure(EntityTypeBuilder<FamilyMemberInvitation> builder)
     {
-        builder.ToTable("family_member_invitations", "auth", t =>
-        {
-            // Check constraint: Email XOR Username (exactly one must be non-null)
-            t.HasCheckConstraint(
-                "ck_family_member_invitations_email_xor_username",
-                "(email IS NOT NULL AND username IS NULL) OR (email IS NULL AND username IS NOT NULL)");
-        });
+        builder.ToTable("family_member_invitations", "auth");
 
         // Primary key with Vogen value converter
         builder.HasKey(i => i.Id);

@@ -4,6 +4,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 
 /// <summary>
 /// Result of creating a new family.
+/// Contains the created family information.
 /// </summary>
 public sealed record CreateFamilyResult
 {

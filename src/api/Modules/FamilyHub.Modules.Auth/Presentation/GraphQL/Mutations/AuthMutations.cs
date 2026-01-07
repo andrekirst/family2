@@ -1,7 +1,10 @@
+using FamilyHub.Infrastructure.GraphQL;
+using FamilyHub.Infrastructure.GraphQL.Types;
 using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
-using FamilyHub.SharedKernel.Presentation.GraphQL;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -29,32 +32,47 @@ public sealed class AuthMutations
             new EventId(3101, nameof(LogUserLoggedIn)),
             "User logged in successfully via Zitadel OAuth: {UserId}");
 
-    public async Task<CompleteZitadelLoginPayload> CompleteZitadelLogin(
+    [UseMutationConvention]
+    [Error(typeof(BusinessError))]
+    [Error(typeof(ValidationError))]
+    [Error(typeof(ValueObjectError))]
+    [Error(typeof(UnauthorizedError))]
+    [Error(typeof(InternalServerError))]
+    public async Task<AuthenticationResult> CompleteZitadelLogin(
         CompleteZitadelLoginInput input,
-        [Service] IMutationHandler mutationHandler,
         [Service] IMediator mediator,
         [Service] ILogger<AuthMutations> logger,
         CancellationToken cancellationToken)
     {
         LogCompleteZitadelLoginMutationCalled(logger, null);
 
-        var payload = await mutationHandler.Handle<CompleteZitadelLoginResult, CompleteZitadelLoginPayload>(async () =>
+        // Map input to command
+        var command = new CompleteZitadelLoginCommand(
+            AuthorizationCode: input.AuthorizationCode,
+            CodeVerifier: input.CodeVerifier);
+
+        // Send command via MediatR (automatic validation via ValidationBehavior)
+        var result = await mediator.Send(command, cancellationToken);
+
+        // Map result → return data directly
+        var authResult = new AuthenticationResult
         {
-            // Map input to command
-            var command = new CompleteZitadelLoginCommand(
-                AuthorizationCode: input.AuthorizationCode,
-                CodeVerifier: input.CodeVerifier);
+            User = new UserType
+            {
+                Id = result.UserId.Value,
+                Email = result.Email.Value,
+                EmailVerified = result.EmailVerified,
+                FamilyId = result.FamilyId.Value,
+                AuditInfo = result.AsAuditInfo()
+            },
+            AccessToken = result.AccessToken,
+            RefreshToken = null, // OAuth providers like Zitadel don't use refresh tokens
+            ExpiresAt = result.ExpiresAt
+        };
 
-            // Send command via MediatR (automatic validation via ValidationBehavior)
-            return await mediator.Send(command, cancellationToken);
-        });
+        // Log successful login
+        LogUserLoggedIn(logger, authResult.User.Id, null);
 
-        // Log successful login if no errors
-        if (payload.Success && payload.AuthenticationResult != null)
-        {
-            LogUserLoggedIn(logger, payload.AuthenticationResult.User.Id, null);
-        }
-
-        return payload;
+        return authResult;
     }
 }

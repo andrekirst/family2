@@ -147,6 +147,446 @@ public async Task<CreateFamilyPayload> CreateFamilyAsync(
 
 ---
 
+## GraphQL Mapper Pattern
+
+**CRITICAL:** Use convention-based mapper pattern for converting command results to GraphQL payload types (replaces old factory DI pattern).
+
+### Why
+
+The mapper pattern provides:
+
+- **70% reduction in boilerplate** - No factory classes or DI registration
+- **Zero code duplication** - Centralized mappers reused across mutations
+- **Auto-mapping for simple cases** - Property name matching with intelligent type conversion
+- **Manual override when needed** - ToGraphQLType() extensions for complex mappings
+- **Better architecture** - Eliminates post-command repository calls in presentation layer
+
+### Two Approaches
+
+#### Auto-Mapping Convention (Default)
+
+MutationHandler automatically maps command result properties to payload constructor parameters:
+
+**Features:**
+
+- Case-insensitive property name matching
+- Automatic Vogen `.Value` unwrapping
+- Automatic enum helper detection (e.g., `Role.AsRoleType()`)
+- Supports parameterless, single-param, and multi-param (tuple) constructors
+
+**When to use:**
+
+- Simple property mappings
+- Basic type conversions (Guid, string, DateTime, bool, int)
+- Vogen value objects that need unwrapping
+- Enum conversions with `.AsXxxType()` helper methods
+
+**Example (no code needed):**
+
+```csharp
+// Command result
+public record AcceptInvitationResult(FamilyId FamilyId, FamilyName FamilyName, UserRole Role);
+
+// Payload constructor (auto-mapping matches properties by name)
+public AcceptInvitationPayload(Guid familyId, string familyName, UserRoleType role)
+{
+    FamilyId = familyId;
+    FamilyName = familyName;
+    Role = role;
+}
+
+// No ToGraphQLType() needed! MutationHandler:
+// 1. Matches FamilyId → familyId (case-insensitive)
+// 2. Unwraps FamilyId.Value (Vogen)
+// 3. Auto-detects Role.AsRoleType() extension for enum conversion
+```
+
+**Error Handling:**
+
+If auto-mapping fails, you get a descriptive `AutoMappingException`:
+
+```
+Failed to auto-map AcceptInvitationResult to AcceptInvitationPayload:
+Property 'InvalidField' not found in result type.
+Consider adding a ToGraphQLType() extension method.
+```
+
+#### Manual Override (Complex Cases)
+
+Add a `ToGraphQLType()` extension method when auto-mapping can't handle:
+
+**When to use:**
+
+- Nested object creation
+- Calculated fields
+- Multiple enum conversions with different helpers
+- Complex transformations
+
+**Example:**
+
+```csharp
+// Extension method in AuthResultExtensions.cs
+public static class AuthResultExtensions
+{
+    // Complex nested object - requires manual mapping
+    public static AuthenticationResult ToGraphQLType(this CompleteZitadelLoginResult result)
+    {
+        return new AuthenticationResult
+        {
+            User = new UserType  // Nested object creation
+            {
+                Id = result.UserId.Value,
+                Email = result.Email.Value,
+                EmailVerified = result.EmailVerified,
+                FamilyId = result.FamilyId.Value,
+                AuditInfo = result.AsAuditInfo()  // Custom mapping
+            },
+            AccessToken = result.AccessToken,
+            RefreshToken = null,
+            ExpiresAt = result.ExpiresAt
+        };
+    }
+
+    // Calculated field - requires manual mapping
+    public static CreatedFamilyDto ToGraphQLType(this CreateFamilyResult result)
+    {
+        return new CreatedFamilyDto
+        {
+            Id = result.FamilyId.Value,
+            Name = result.Name.Value,
+            OwnerId = result.OwnerId.Value,
+            CreatedAt = result.CreatedAt,
+            UpdatedAt = result.CreatedAt  // Calculated: same as CreatedAt for new families
+        };
+    }
+}
+```
+
+**Precedence:** If both exist, manual ToGraphQLType() takes precedence over auto-mapping.
+
+### Pattern
+
+```csharp
+// 1. MAPPERS - Centralized mapping logic (Presentation/GraphQL/Mappers/)
+public static class UserMapper
+{
+    // Maps domain entity to GraphQL type
+    public static UserType AsGraphQLType(User user)
+    {
+        return new UserType
+        {
+            Id = user.Id.Value,
+            Email = user.Email.Value,
+            EmailVerified = user.EmailVerified,
+            FamilyId = user.FamilyId.Value,
+            AuditInfo = MapperBase.AsAuditInfo(user.CreatedAt, user.UpdatedAt)
+        };
+    }
+}
+
+public static class InvitationMapper
+{
+    // Maps value object enums to GraphQL enums
+    public static UserRoleType AsRoleType(UserRole role)
+    {
+        return role.Value.ToLowerInvariant() switch
+        {
+            "owner" => UserRoleType.OWNER,
+            "admin" => UserRoleType.ADMIN,
+            "member" => UserRoleType.MEMBER,
+            _ => throw new InvalidOperationException($"Unknown role: {role.Value}")
+        };
+    }
+}
+
+// 2. EXTENSIONS - ToGraphQLType() for each command result (Presentation/GraphQL/Extensions/)
+public static class AuthResultExtensions
+{
+    // Single object return (most common)
+    public static AuthenticationResult ToGraphQLType(this CompleteZitadelLoginResult result)
+    {
+        return new AuthenticationResult
+        {
+            User = UserMapper.AsUserType(
+                result.UserId,
+                result.Email,
+                result.EmailVerified,
+                result.FamilyId,
+                result.CreatedAt,
+                result.UpdatedAt),
+            AccessToken = result.AccessToken,
+            ExpiresAt = result.ExpiresAt
+        };
+    }
+
+    // Tuple return (multiple constructor parameters)
+    public static (Guid FamilyId, string FamilyName, UserRoleType Role) ToGraphQLType(
+        this AcceptInvitationResult result)
+    {
+        return (
+            result.FamilyId.Value,
+            result.FamilyName.Value,
+            InvitationMapper.AsRoleType(result.Role)
+        );
+    }
+
+    // Null return (parameterless constructor)
+    public static object? ToGraphQLType(this Result result)
+    {
+        return null; // Signals MutationHandler to use parameterless constructor
+    }
+}
+
+// 3. USAGE - MutationHandler automatically discovers and invokes extensions
+public async Task<CompleteZitadelLoginPayload> CompleteZitadelLoginAsync(
+    CompleteZitadelLoginInput input,
+    [Service] IMutationHandler mutationHandler,
+    [Service] IMediator mediator)
+{
+    return await mutationHandler.Handle<CompleteZitadelLoginResult, CompleteZitadelLoginPayload>(
+        async () =>
+        {
+            var command = new CompleteZitadelLoginCommand(
+                AuthorizationCode.From(input.Code),
+                ZitadelCallbackUri.From(input.RedirectUri));
+
+            var result = await mediator.Send(command);
+            return result; // MutationHandler calls result.ToGraphQLType() via reflection
+        });
+}
+```
+
+### Three ToGraphQLType() Patterns
+
+The MutationHandler supports three constructor patterns:
+
+#### 1. Single Object Return (Most Common)
+
+```csharp
+// Extension returns single object
+public static CreatedFamilyDto ToGraphQLType(this CreateFamilyResult result)
+{
+    return new CreatedFamilyDto
+    {
+        Id = result.FamilyId.Value,
+        Name = result.Name.Value,
+        OwnerId = result.OwnerId.Value,
+        CreatedAt = result.CreatedAt,
+        UpdatedAt = result.CreatedAt
+    };
+}
+
+// Payload constructor (single parameter)
+public CreateFamilyPayload(CreatedFamilyDto family)
+{
+    Family = family;
+}
+```
+
+#### 2. Tuple Return (Multiple Parameters)
+
+```csharp
+// Extension returns tuple
+public static (Guid InvitationId, UserRoleType Role) ToGraphQLType(
+    this UpdateInvitationRoleResult result)
+{
+    return (
+        result.InvitationId.Value,
+        InvitationMapper.AsRoleType(result.Role)
+    );
+}
+
+// Payload constructor (multiple parameters matching tuple)
+public UpdateInvitationRolePayload(Guid invitationId, UserRoleType role)
+{
+    InvitationId = invitationId;
+    Role = role;
+}
+```
+
+#### 3. Null Return (Parameterless Constructor)
+
+```csharp
+// Extension returns null
+public static object? ToGraphQLType(this Result result)
+{
+    return null; // Signals parameterless constructor
+}
+
+// Payload constructor (parameterless)
+public CancelInvitationPayload()
+{
+    IsSuccess = true;
+}
+```
+
+### Auto-Mapping Algorithm
+
+MutationHandler follows this decision tree:
+
+1. **Check for manual ToGraphQLType()** - If found, use it (manual override takes precedence)
+2. **Analyze payload constructor:**
+   - **Parameterless** → Return null (signals parameterless constructor)
+   - **Single parameter** → Find matching result property, extract value
+   - **Multiple parameters** → Build tuple from matched properties
+3. **Property matching:** Case-insensitive name match (e.g., `FamilyId` → `familyId`)
+4. **Value extraction:**
+   - Direct match (primitives: Guid, string, DateTime, bool, int)
+   - Vogen unwrapping (detect `.Value` property)
+   - Enum helper detection (auto-find `.AsXxxType()` extension methods)
+5. **Error handling:** Throw `AutoMappingException` with descriptive message if any step fails
+
+**Performance:** Reflection results cached in `ConcurrentDictionary` (<5ms overhead per mutation)
+
+**Limitations:**
+
+- Supports up to 5 constructor parameters (C# tuple limitation)
+- Cannot auto-map nested object creation
+- Cannot handle calculated fields or complex transformations
+
+### Directory Structure
+
+```
+Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/
+├── Mappers/
+│   ├── UserMapper.cs          # Domain entity → GraphQL type
+│   ├── InvitationMapper.cs    # Enum mappings, shared logic
+│   └── FamilyMapper.cs        # Family-specific mappings
+├── Extensions/
+│   └── AuthResultExtensions.cs # ToGraphQLType() for all Auth command results
+├── Payloads/
+│   ├── CompleteZitadelLoginPayload.cs
+│   ├── CreateFamilyPayload.cs
+│   └── AcceptInvitationPayload.cs
+└── Mutations/
+    └── AuthMutations.cs       # GraphQL mutation methods
+```
+
+### Naming Conventions
+
+- **Mappers**: `AsGraphQLType()` or `As{TargetType}()` (e.g., `AsRoleType()`)
+- **Extensions**: `ToGraphQLType()` (MUST be this exact name for source generator)
+- **Location**: `{Module}.Presentation.GraphQL.Mappers` and `.Extensions` namespaces
+
+### Error Handling
+
+MutationHandler ONLY handles errors - mappers handle success cases:
+
+```csharp
+// GOOD - Mapper only handles success case
+public static UserType AsGraphQLType(User user)
+{
+    return new UserType { /* ... */ };
+}
+
+// BAD - Don't handle errors in mappers
+public static UserType? AsGraphQLType(User? user)
+{
+    if (user == null)
+        return null; // MutationHandler already handles this
+    // ...
+}
+```
+
+### Migration from Old Pattern
+
+Old pattern (deprecated):
+
+```csharp
+// Factory class with DI (DELETED)
+public class CreateFamilyPayloadFactory(IFamilyRepository repository)
+    : IPayloadFactory<CreateFamilyResult, CreateFamilyPayload>
+{
+    public CreateFamilyPayload Success(CreateFamilyResult result)
+    {
+        // Anti-pattern: Repository call in presentation layer
+        var family = repository.GetByIdAsync(result.FamilyId).GetAwaiter().GetResult();
+        return new CreateFamilyPayload(family);
+    }
+}
+
+// DI registration (DELETED)
+services.AddScoped<IPayloadFactory<CreateFamilyResult, CreateFamilyPayload>,
+    CreateFamilyPayloadFactory>();
+```
+
+New pattern:
+
+```csharp
+// Static extension (NO DI)
+public static CreatedFamilyDto ToGraphQLType(this CreateFamilyResult result)
+{
+    return new CreatedFamilyDto
+    {
+        Id = result.FamilyId.Value,
+        Name = result.Name.Value,
+        OwnerId = result.OwnerId.Value,
+        CreatedAt = result.CreatedAt,
+        UpdatedAt = result.CreatedAt // Use data already in result
+    };
+}
+
+// NO DI registration needed - convention-based discovery
+```
+
+### Common Utilities
+
+`MapperBase` provides shared mapping logic:
+
+```csharp
+public static class MapperBase
+{
+    public static AuditInfoType AsAuditInfo(DateTime createdAt, DateTime updatedAt)
+    {
+        return new AuditInfoType
+        {
+            CreatedAt = createdAt,
+            UpdatedAt = updatedAt
+        };
+    }
+}
+```
+
+Location: `FamilyHub.Infrastructure/GraphQL/MapperBase.cs`
+
+### Testing
+
+Mappers are pure functions - easy to unit test:
+
+```csharp
+[Fact]
+public void AsGraphQLType_ValidUser_MapsCorrectly()
+{
+    // Arrange
+    var user = new User
+    {
+        Id = UserId.New(),
+        Email = Email.From("test@example.com"),
+        EmailVerified = true,
+        FamilyId = FamilyId.New(),
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    // Act
+    var result = UserMapper.AsGraphQLType(user);
+
+    // Assert
+    result.Id.Should().Be(user.Id.Value);
+    result.Email.Should().Be(user.Email.Value);
+    result.EmailVerified.Should().BeTrue();
+}
+```
+
+### Reference
+
+- MutationHandler: `src/api/FamilyHub.SharedKernel/Presentation/GraphQL/MutationHandler.cs`
+- AutoMappingException: `src/api/FamilyHub.SharedKernel/Presentation/GraphQL/AutoMappingException.cs`
+- Example implementation: `src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/`
+- Auth migrations: 3/6 Auth mutations use auto-mapping, 3/6 use manual override
+
+---
+
 ## Testing Patterns
 
 ### FluentAssertions
@@ -401,5 +841,5 @@ If hooks fail (rare):
 
 ---
 
-**Last updated:** 2026-01-06
-**Version:** 1.0.0
+**Last updated:** 2026-01-07
+**Version:** 2.0.0
