@@ -249,4 +249,4 @@ public class PasswordEncryptionService(IDataProtectionProvider provider)
 
 ---
 
-**Documentation:** See `/PHASE_2D_QUARTZ_IMPLEMENTATION_SUMMARY.md` for complete implementation details.
+**Documentation:** See `/docs/development/implementation-summaries/PHASE_2D_QUARTZ_IMPLEMENTATION_SUMMARY.md` for complete implementation details.
