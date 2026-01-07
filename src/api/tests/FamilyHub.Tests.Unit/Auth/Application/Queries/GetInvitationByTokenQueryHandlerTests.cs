@@ -21,8 +21,7 @@ public class GetInvitationByTokenQueryHandlerTests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_ShouldReturnInvitation_WhenTokenValid(
-        IFamilyMemberInvitationRepository repository,
-        ILogger<GetInvitationByTokenQueryHandler> logger)
+        IFamilyMemberInvitationRepository repository)
     {
         // Arrange
         var familyId = FamilyId.New();
@@ -57,8 +56,7 @@ public class GetInvitationByTokenQueryHandlerTests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_ShouldReturnNull_WhenTokenNotFound(
-        IFamilyMemberInvitationRepository repository,
-        ILogger<GetInvitationByTokenQueryHandler> logger)
+        IFamilyMemberInvitationRepository repository)
     {
         // Arrange
         var token = InvitationToken.Generate();
@@ -82,8 +80,7 @@ public class GetInvitationByTokenQueryHandlerTests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_ShouldMapDomainEntity_ToApplicationDTO(
-        IFamilyMemberInvitationRepository repository,
-        ILogger<GetInvitationByTokenQueryHandler> logger)
+        IFamilyMemberInvitationRepository repository)
     {
         // Arrange
         var familyId = FamilyId.New();
@@ -124,8 +121,7 @@ public class GetInvitationByTokenQueryHandlerTests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_ShouldCallRepository_WithCorrectToken(
-        IFamilyMemberInvitationRepository repository,
-        ILogger<GetInvitationByTokenQueryHandler> logger)
+        IFamilyMemberInvitationRepository repository)
     {
         // Arrange
         var token = InvitationToken.Generate();
@@ -147,8 +143,7 @@ public class GetInvitationByTokenQueryHandlerTests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_WithCancellationToken_ShouldPassTokenToRepository(
-        IFamilyMemberInvitationRepository repository,
-        ILogger<GetInvitationByTokenQueryHandler> logger)
+        IFamilyMemberInvitationRepository repository)
     {
         // Arrange
         var token = InvitationToken.Generate();
