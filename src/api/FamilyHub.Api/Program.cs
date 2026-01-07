@@ -108,12 +108,18 @@ try
         .AddTypeExtension<FamilyMutations>()
         .AddTypeExtension<FamilyQueries>()
         .AddTypeExtension<AuthMutations>()
-        .AddTypeExtension<AuthQueries>()
         .AddTypeExtension<HealthQueries>()
         .AddTypeExtension<UserQueries>()
         .AddTypeExtension<InvitationQueries>()
         .AddTypeExtension<InvitationMutations>()
-        .AddTypeExtension<ReferenceDataTypeExtension>();
+        // New namespace types (schema restructuring)
+        .AddType<AuthType>()
+        .AddType<AuthTypeExtensions>()
+        .AddTypeExtension<AuthQueryExtension>()
+        .AddType<InvitationsType>()
+        .AddType<InvitationsTypeExtensions>()
+        .AddTypeExtension<InvitationsQueryExtension>()
+        .AddTypeExtension<RolesQueries>();
 
     // Future modules can be registered here:
     // graphqlBuilder.AddCalendarModuleGraphQLTypes();

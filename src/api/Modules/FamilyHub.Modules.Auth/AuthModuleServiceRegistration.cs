@@ -145,6 +145,9 @@ public static class AuthModuleServiceRegistration
         return builder
             .RegisterDbContextFactory<AuthDbContext>()
             .AddType<Presentation.GraphQL.Types.FamilyType>()
+            .AddType<Presentation.GraphQL.Types.UserType>() // Register UserType so extensions can be applied
+            .AddTypeExtension<Presentation.GraphQL.Types.UserTypeExtensions>() // Explicitly register UserTypeExtensions
+            .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>() // Explicitly register FamilyTypeExtensions
             .AddTypeExtensionsFromAssemblies(
                 [typeof(AuthModuleServiceRegistration).Assembly],
                 loggerFactory);

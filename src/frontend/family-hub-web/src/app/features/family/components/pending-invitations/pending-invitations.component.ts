@@ -80,7 +80,7 @@ export class PendingInvitationsComponent implements OnInit {
     }
 
     try {
-      await this.invitationService.loadPendingInvitations(family.id);
+      await this.invitationService.loadPendingInvitations();
     } catch (err) {
       console.error('Failed to load invitations:', err);
     }

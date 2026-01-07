@@ -22,14 +22,12 @@ interface CachedRoles {
  */
 const GET_AVAILABLE_ROLES = `
   query GetAvailableRoles {
-    references {
-      roles {
-        all {
-          value
-          label
-          description
-          badgeColorClass
-        }
+    roles {
+      all {
+        value
+        label
+        description
+        badgeColorClass
       }
     }
   }
@@ -111,15 +109,13 @@ export class RoleService {
 
       // Fetch from API
       const result = await this.graphql.query<{
-        references: {
-          roles: {
-            all: RoleMetadata[]
-          }
+        roles: {
+          all: RoleMetadata[]
         }
       }>(GET_AVAILABLE_ROLES);
 
-      if (result?.references?.roles?.all) {
-        const roles = result.references.roles.all;
+      if (result?.roles?.all) {
+        const roles = result.roles.all;
         this.allRoles.set(roles);
         this.setCachedRoles(CACHE_KEY_ALL_ROLES, roles);
       } else {

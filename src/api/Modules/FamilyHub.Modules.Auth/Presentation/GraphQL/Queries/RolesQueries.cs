@@ -1,34 +1,31 @@
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using HotChocolate.Authorization;
 
-namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 
 /// <summary>
-/// HotChocolate type extension for reference data.
-/// Adds the 'references' field to the root Query type.
+/// GraphQL queries for user role reference data.
+/// Moved from references.roles to root level for better discoverability.
 /// </summary>
 [ExtendObjectType("Query")]
-public sealed class ReferenceDataTypeExtension
+public sealed class RolesQueries
 {
     /// <summary>
-    /// Accesses reference data (roles, statuses, etc.).
-    /// Resolver method that constructs the nested object.
+    /// Gets user roles with metadata (labels, descriptions, UI styling).
     /// </summary>
     [Authorize]
-    [GraphQLDescription("Reference data including roles, enums, and constants")]
-    public ReferenceDataType References()
+    [GraphQLDescription("User roles with metadata")]
+    public RolesType Roles()
     {
         var allRoles = GetAllRoles();
 
-        return new ReferenceDataType
+        return new RolesType
         {
-            Roles = new RolesType
-            {
-                All = allRoles,
-                Invitable = allRoles
-                    .Where(r => r.Value != UserRoleType.OWNER)
-                    .ToList()
-                    .AsReadOnly()
-            }
+            All = allRoles,
+            Invitable = allRoles
+                .Where(r => r.Value != UserRoleType.OWNER)
+                .ToList()
+                .AsReadOnly()
         };
     }
 

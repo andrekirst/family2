@@ -32,13 +32,6 @@ public class FamilyType : ObjectType<Family>
             .Resolve(ctx => ctx.Parent<Family>().Name.Value);
 
         descriptor
-            .Field(f => f.OwnerId)
-            .Name("ownerId")
-            .Type<NonNullType<UuidType>>()
-            .Description("User ID of the family owner")
-            .Resolve(ctx => ctx.Parent<Family>().OwnerId.Value);
-
-        descriptor
             .Field("auditInfo")
             .Type<NonNullType<ObjectType<AuditInfoType>>>()
             .Description("Audit metadata (creation and last update timestamps)")
@@ -77,17 +70,6 @@ public class FamilyType : ObjectType<Family>
                         }
                     })
                     .ToList();
-            });
-
-        descriptor
-            .Field("pendingInvitations")
-            .Type<NonNullType<ListType<NonNullType<ObjectType<PendingInvitationType>>>>>()
-            .Description("Pending invitations to join this family (Phase 1+, currently returns empty list)")
-            .Resolve(ctx =>
-            {
-                // Phase 0: Return empty list (invitation system not yet implemented)
-                // Phase 1+: Query InvitationRepository for pending invitations
-                return new List<PendingInvitationType>();
             });
     }
 
