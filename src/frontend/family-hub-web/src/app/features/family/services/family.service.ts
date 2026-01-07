@@ -34,12 +34,12 @@ interface GetFamilyMembersResponse {
  */
 interface CreateFamilyResponse {
   createFamily: {
-    createdFamilyDto: Family | null;
-    errors: Array<
+    createdFamily: Family | null;
+    errors: (
       | { __typename: 'ValidationError'; message: string; field: string }
       | { __typename: 'BusinessError'; message: string; code: string }
       | { __typename: 'ValueObjectError'; message: string }
-    >;
+    )[];
   };
 }
 
@@ -144,7 +144,7 @@ export class FamilyService {
       const mutation = `
         mutation CreateFamily($input: CreateFamilyInput!) {
           createFamily(input: $input) {
-            createdFamilyDto {
+            createdFamily {
               id
               name
               createdAt
@@ -178,8 +178,8 @@ export class FamilyService {
       }
 
       // Set currentFamily to newly created family
-      if (response.createFamily.createdFamilyDto) {
-        this.currentFamily.set(response.createFamily.createdFamilyDto);
+      if (response.createFamily.createdFamily) {
+        this.currentFamily.set(response.createFamily.createdFamily);
       }
     } catch (err) {
       this.handleError(err, 'Failed to create family');
