@@ -1,4 +1,3 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
@@ -129,7 +128,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
         var familyName = FamilyName.From($"{displayName} Family");
 
         // Create personal family first (need ID for user)
-        var personalFamily = FamilyDomain.Family.Create(familyName, UserId.New()); // Temporary owner
+        var personalFamily = Family.Domain.Family.Create(familyName, UserId.New()); // Temporary owner
         await familyRepository.AddAsync(personalFamily, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

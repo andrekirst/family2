@@ -1,4 +1,4 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
+
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -23,7 +23,7 @@ public class GetInvitationByTokenQueryValidatorTests
         var familyId = FamilyId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
-        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email,
             FamilyRole.Member,
@@ -51,7 +51,7 @@ public class GetInvitationByTokenQueryValidatorTests
         var token = InvitationToken.Generate();
 
         repository.GetByTokenAsync(token, Arg.Any<CancellationToken>())
-            .Returns((FamilyDomain.FamilyMemberInvitation?)null);
+            .Returns((FamilyHub.Modules.Family.Domain.FamilyMemberInvitation?)null);
 
         var validator = new GetInvitationByTokenQueryValidator(repository);
         var query = new GetInvitationByTokenQuery(token);
@@ -74,7 +74,7 @@ public class GetInvitationByTokenQueryValidatorTests
         var familyId = FamilyId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
-        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email,
             FamilyRole.Member,

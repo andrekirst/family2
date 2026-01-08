@@ -1,4 +1,3 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -28,7 +27,7 @@ public sealed partial class CreateFamilyCommandHandler(
         LogCreatingFamilyFamilynameForUserUserid(request.Name, userId.Value);
 
         // 1. Create new family using domain factory method
-        var family = FamilyDomain.Family.Create(request.Name, userId);
+        var family = Family.Domain.Family.Create(request.Name, userId);
 
         // 2. Update user's FamilyId to point to new family
         user.UpdateFamily(family.Id);

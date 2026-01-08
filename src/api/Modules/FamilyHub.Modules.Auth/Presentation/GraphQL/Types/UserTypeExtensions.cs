@@ -1,4 +1,3 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -22,7 +21,7 @@ public sealed class UserTypeExtensions
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The user's family, or null if not found.</returns>
     [GraphQLDescription("The family this user belongs to")]
-    public async Task<FamilyDomain.Family?> GetFamily(
+    public async Task<FamilyHub.Modules.Family.Domain.Family?> GetFamily(
         [Parent] UserType user,
         [Service] IUserRepository userRepository,
         [Service] IFamilyRepository familyRepository,

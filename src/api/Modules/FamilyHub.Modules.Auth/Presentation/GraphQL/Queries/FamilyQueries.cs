@@ -1,4 +1,3 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Persistence;
 using Microsoft.AspNetCore.Authorization;
@@ -24,7 +23,7 @@ public sealed class FamilyQueries
     [Authorize]
     [GraphQLDescription("Get the current user's family")]
     [UseProjection]
-    public async Task<FamilyDomain.Family?> Family(
+    public async Task<FamilyHub.Modules.Family.Domain.Family?> Family(
         [Service] AuthDbContext dbContext,
         [Service] ICurrentUserService currentUserService,
         CancellationToken cancellationToken)

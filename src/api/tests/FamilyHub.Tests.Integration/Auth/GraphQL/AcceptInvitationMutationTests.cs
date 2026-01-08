@@ -1,4 +1,4 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
+
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using System.Net.Http.Headers;
@@ -45,7 +45,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         // Create invitation
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
-        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
             FamilyRole.Member,
@@ -56,7 +56,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Create invitee user (with temporary family, AcceptInvitation will update)
-        var tempFamily = FamilyDomain.Family.Create(FamilyName.From("Temp Family"), UserId.New());
+        var tempFamily = Modules.Family.Domain.Family.Create(FamilyName.From("Temp Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -105,7 +105,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
 
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
-        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
             FamilyRole.Admin,
@@ -114,7 +114,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        var tempFamily = FamilyDomain.Family.Create(FamilyName.From("Temp Family"), UserId.New());
+        var tempFamily = Modules.Family.Domain.Family.Create(FamilyName.From("Temp Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -214,20 +214,20 @@ public sealed class AcceptInvitationMutationTests : IDisposable
 
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
-        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
             FamilyRole.Member,
             owner.Id);
 
         // Use reflection to set expiration date in the past
-        var expiresAtProperty = typeof(FamilyDomain.FamilyMemberInvitation).GetProperty("ExpiresAt")!;
+        var expiresAtProperty = typeof(Modules.Family.Domain.FamilyMemberInvitation).GetProperty("ExpiresAt")!;
         expiresAtProperty.SetValue(invitation, DateTime.UtcNow.AddDays(-1));
 
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        var tempFamily = FamilyDomain.Family.Create(FamilyName.From("Temp Family"), UserId.New());
+        var tempFamily = Modules.Family.Domain.Family.Create(FamilyName.From("Temp Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -278,7 +278,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
 
         // Create invitation for different email
         var invitationEmail = Email.From("invited@example.com");
-        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             invitationEmail,
             FamilyRole.Member,
@@ -289,7 +289,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
 
         // Authenticate as user with different email
         var differentEmail = Email.From("different@example.com");
-        var tempFamily = FamilyDomain.Family.Create(FamilyName.From("Wrong User Family"), UserId.New());
+        var tempFamily = Modules.Family.Domain.Family.Create(FamilyName.From("Wrong User Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -340,7 +340,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
 
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
-        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
             FamilyRole.Member,
@@ -393,7 +393,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
 
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
-        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
             FamilyRole.Member,
@@ -405,7 +405,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        var tempFamily = FamilyDomain.Family.Create(FamilyName.From("Temp Family"), UserId.New());
+        var tempFamily = Modules.Family.Domain.Family.Create(FamilyName.From("Temp Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 

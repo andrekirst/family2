@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
+
 
 namespace FamilyHub.Tests.Unit.Auth.Application.Services;
 
@@ -20,12 +20,12 @@ public sealed class ValidationCacheTests
         var cache = new ValidationCache();
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), userId);
+        var family = Modules.Family.Domain.Family.Create(FamilyName.From("Test Family"), userId);
         var key = $"Family:{familyId.Value}";
 
         // Act
         cache.Set(key, family);
-        var result = cache.Get<FamilyDomain.Family>(key);
+        var result = cache.Get<FamilyHub.Modules.Family.Domain.Family>(key);
 
         // Assert
         result.Should().NotBeNull();
@@ -40,7 +40,7 @@ public sealed class ValidationCacheTests
         var key = "NonExistent:123";
 
         // Act
-        var result = cache.Get<FamilyDomain.Family>(key);
+        var result = cache.Get<FamilyHub.Modules.Family.Domain.Family>(key);
 
         // Assert
         result.Should().BeNull();
@@ -53,7 +53,7 @@ public sealed class ValidationCacheTests
         var cache = new ValidationCache();
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), userId);
+        var family = Modules.Family.Domain.Family.Create(FamilyName.From("Test Family"), userId);
         var key = $"Family:{familyId.Value}";
 
         // Act
@@ -71,7 +71,7 @@ public sealed class ValidationCacheTests
         var cache = new ValidationCache();
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), userId);
+        var family = Modules.Family.Domain.Family.Create(FamilyName.From("Test Family"), userId);
 
         // Act
         var act = () => cache.Set(null!, family);
@@ -89,7 +89,7 @@ public sealed class ValidationCacheTests
         var key = "Family:123";
 
         // Act
-        var act = () => cache.Set(key, (FamilyDomain.Family)null!);
+        var act = () => cache.Set(key, (FamilyHub.Modules.Family.Domain.Family)null!);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -103,7 +103,7 @@ public sealed class ValidationCacheTests
         var cache = new ValidationCache();
 
         // Act
-        var act = () => cache.Get<FamilyDomain.Family>(null!);
+        var act = () => cache.Get<FamilyHub.Modules.Family.Domain.Family>(null!);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -121,13 +121,13 @@ public sealed class ValidationCacheTests
         var cache = new ValidationCache();
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), userId);
+        var family = Modules.Family.Domain.Family.Create(FamilyName.From("Test Family"), userId);
         var key = $"Family:{familyId.Value}";
 
         cache.Set(key, family);
 
         // Act
-        var success = cache.TryGet<FamilyDomain.Family>(key, out var result);
+        var success = cache.TryGet<FamilyHub.Modules.Family.Domain.Family>(key, out var result);
 
         // Assert
         success.Should().BeTrue();
@@ -143,7 +143,7 @@ public sealed class ValidationCacheTests
         var key = "NonExistent:123";
 
         // Act
-        var success = cache.TryGet<FamilyDomain.Family>(key, out var result);
+        var success = cache.TryGet<FamilyHub.Modules.Family.Domain.Family>(key, out var result);
 
         // Assert
         success.Should().BeFalse();
@@ -157,7 +157,7 @@ public sealed class ValidationCacheTests
         var cache = new ValidationCache();
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), userId);
+        var family = Modules.Family.Domain.Family.Create(FamilyName.From("Test Family"), userId);
         var key = $"Family:{familyId.Value}";
 
         cache.Set(key, family);
@@ -177,7 +177,7 @@ public sealed class ValidationCacheTests
         var cache = new ValidationCache();
 
         // Act
-        var act = () => cache.TryGet<FamilyDomain.Family>(null!, out _);
+        var act = () => cache.TryGet<FamilyHub.Modules.Family.Domain.Family>(null!, out _);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -195,7 +195,7 @@ public sealed class ValidationCacheTests
         var cache = new ValidationCache();
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), userId);
+        var family = Modules.Family.Domain.Family.Create(FamilyName.From("Test Family"), userId);
         var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext-123", "zitadel", familyId);
 
         cache.Set($"Family:{familyId.Value}", family);
@@ -205,7 +205,7 @@ public sealed class ValidationCacheTests
         cache.Clear();
 
         // Assert
-        cache.Get<FamilyDomain.Family>($"Family:{familyId.Value}").Should().BeNull();
+        cache.Get<FamilyHub.Modules.Family.Domain.Family>($"Family:{familyId.Value}").Should().BeNull();
         cache.Get<User>($"User:{userId.Value}").Should().BeNull();
     }
 
@@ -236,9 +236,9 @@ public sealed class ValidationCacheTests
         var invitedByUserId = UserId.New();
         var email = Email.From("test@example.com");
 
-        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), userId);
+        var family = Modules.Family.Domain.Family.Create(FamilyName.From("Test Family"), userId);
         var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
-        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId, email, FamilyRole.Member, invitedByUserId);
 
         // Act
@@ -247,9 +247,9 @@ public sealed class ValidationCacheTests
         cache.Set($"FamilyMemberInvitation:{invitation.Token.Value}", invitation);
 
         // Assert
-        cache.Get<FamilyDomain.Family>($"Family:{familyId.Value}").Should().BeSameAs(family);
+        cache.Get<FamilyHub.Modules.Family.Domain.Family>($"Family:{familyId.Value}").Should().BeSameAs(family);
         cache.Get<User>($"User:{userId.Value}").Should().BeSameAs(user);
-        cache.Get<FamilyDomain.FamilyMemberInvitation>($"FamilyMemberInvitation:{invitation.Token.Value}")
+        cache.Get<FamilyHub.Modules.Family.Domain.FamilyMemberInvitation>($"FamilyMemberInvitation:{invitation.Token.Value}")
             .Should().BeSameAs(invitation);
     }
 
@@ -262,15 +262,15 @@ public sealed class ValidationCacheTests
         var userId1 = UserId.New();
         var userId2 = UserId.New();
 
-        var family1 = FamilyDomain.Family.Create(FamilyName.From("First Family"), userId1);
-        var family2 = FamilyDomain.Family.Create(FamilyName.From("Second Family"), userId2);
+        var family1 = Modules.Family.Domain.Family.Create(FamilyName.From("First Family"), userId1);
+        var family2 = Modules.Family.Domain.Family.Create(FamilyName.From("Second Family"), userId2);
         var key = $"Family:{familyId.Value}";
 
         // Act
         cache.Set(key, family1);
         cache.Set(key, family2); // Overwrite
 
-        var result = cache.Get<FamilyDomain.Family>(key);
+        var result = cache.Get<FamilyHub.Modules.Family.Domain.Family>(key);
 
         // Assert
         result.Should().BeSameAs(family2);
@@ -288,14 +288,14 @@ public sealed class ValidationCacheTests
         var cache = new ValidationCache();
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), userId);
+        var family = Modules.Family.Domain.Family.Create(FamilyName.From("Test Family"), userId);
         var key = "SharedKey:123";
 
         // Act
         cache.Set(key, family);
 
         // Assert
-        cache.Get<FamilyDomain.Family>(key).Should().BeSameAs(family); // Correct type
+        cache.Get<FamilyHub.Modules.Family.Domain.Family>(key).Should().BeSameAs(family); // Correct type
         cache.Get<User>(key).Should().BeNull(); // Wrong type returns null
         cache.TryGet<User>(key, out var userResult).Should().BeFalse();
         userResult.Should().BeNull();

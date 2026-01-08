@@ -1,6 +1,5 @@
 using FamilyHub.Modules.Auth.Domain;
 using Microsoft.EntityFrameworkCore;
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 
 namespace FamilyHub.Modules.Auth.Persistence;
 
@@ -10,8 +9,8 @@ namespace FamilyHub.Modules.Auth.Persistence;
 public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
-    public DbSet<FamilyDomain.Family> Families => Set<FamilyDomain.Family>();
-    public DbSet<FamilyDomain.FamilyMemberInvitation> FamilyMemberInvitations => Set<FamilyDomain.FamilyMemberInvitation>();
+    public DbSet<FamilyHub.Modules.Family.Domain.Family> Families => Set<FamilyHub.Modules.Family.Domain.Family>();
+    public DbSet<FamilyHub.Modules.Family.Domain.FamilyMemberInvitation> FamilyMemberInvitations => Set<FamilyHub.Modules.Family.Domain.FamilyMemberInvitation>();
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

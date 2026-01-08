@@ -1,4 +1,3 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -8,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace FamilyHub.Modules.Auth.Persistence.Configurations;
 
 /// <summary>
-/// Entity Framework Core configuration for the FamilyDomain.FamilyMemberInvitation entity.
+/// Entity Framework Core configuration for the FamilyMemberInvitation entity.
 /// </summary>
-public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyDomain.FamilyMemberInvitation>
+public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyHub.Modules.Family.Domain.FamilyMemberInvitation>
 {
-    public void Configure(EntityTypeBuilder<FamilyDomain.FamilyMemberInvitation> builder)
+    public void Configure(EntityTypeBuilder<FamilyHub.Modules.Family.Domain.FamilyMemberInvitation> builder)
     {
         builder.ToTable("family_member_invitations", "auth");
 
@@ -39,7 +38,7 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
         builder.HasIndex(i => i.FamilyId)
             .HasDatabaseName("ix_family_member_invitations_family_id");
 
-        builder.HasOne<FamilyDomain.Family>()
+        builder.HasOne<FamilyHub.Modules.Family.Domain.Family>()
             .WithMany()
             .HasForeignKey(i => i.FamilyId)
             .OnDelete(DeleteBehavior.Restrict);

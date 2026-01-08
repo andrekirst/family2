@@ -1,4 +1,3 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
@@ -124,7 +123,7 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     /// Gets the user's role in the given family.
     /// Returns Owner if the user owns the family, otherwise Member.
     /// </summary>
-    public FamilyRole GetRoleInFamily(FamilyDomain.Family family)
+    public FamilyRole GetRoleInFamily(FamilyHub.Modules.Family.Domain.Family family)
     {
         return family.OwnerId == Id ? FamilyRole.Owner : FamilyRole.Member;
     }

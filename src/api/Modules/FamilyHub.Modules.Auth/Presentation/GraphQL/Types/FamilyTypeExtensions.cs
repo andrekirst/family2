@@ -1,4 +1,3 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Persistence;
@@ -11,7 +10,7 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 /// HotChocolate type extensions for Family entity.
 /// Adds resolver-based fields to the Family GraphQL type.
 /// </summary>
-[ExtendObjectType(typeof(FamilyDomain.Family))]
+[ExtendObjectType(typeof(FamilyHub.Modules.Family.Domain.Family))]
 public sealed class FamilyTypeExtensions
 {
     /// <summary>
@@ -23,7 +22,7 @@ public sealed class FamilyTypeExtensions
     /// <returns>List of users belonging to the family.</returns>
     [GraphQLDescription("All members belonging to this family")]
     public async Task<IReadOnlyList<User>> GetMembers(
-        [Parent] FamilyDomain.Family family,
+        [Parent] FamilyHub.Modules.Family.Domain.Family family,
         [Service] AuthDbContext dbContext,
         CancellationToken cancellationToken)
     {
@@ -44,7 +43,7 @@ public sealed class FamilyTypeExtensions
     /// <returns>The owner as UserType, or null if not found.</returns>
     [GraphQLDescription("The owner of this family")]
     public async Task<UserType?> GetOwner(
-        [Parent] FamilyDomain.Family family,
+        [Parent] FamilyHub.Modules.Family.Domain.Family family,
         [Service] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {

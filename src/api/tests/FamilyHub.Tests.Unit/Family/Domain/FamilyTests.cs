@@ -1,4 +1,4 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
+
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
 namespace FamilyHub.Tests.Unit.Family.Domain;
@@ -17,7 +17,7 @@ public class FamilyTests
         var ownerId = UserId.From(Guid.NewGuid());
 
         // Act
-        var family = FamilyDomain.Family.Create(familyName, ownerId);
+        var family = Modules.Family.Domain.Family.Create(familyName, ownerId);
 
         // Assert
         family.Should().NotBeNull();
@@ -31,7 +31,7 @@ public class FamilyTests
     public void UpdateName_WithNewName_ShouldUpdateFamilyName()
     {
         // Arrange
-        var family = FamilyDomain.Family.Create(
+        var family = Modules.Family.Domain.Family.Create(
             FamilyName.From("Old Name"),
             UserId.From(Guid.NewGuid()));
         var newName = FamilyName.From("New Name");
@@ -49,7 +49,7 @@ public class FamilyTests
         // Arrange
         var originalOwnerId = UserId.From(Guid.NewGuid());
         var newOwnerId = UserId.From(Guid.NewGuid());
-        var family = FamilyDomain.Family.Create(
+        var family = Modules.Family.Domain.Family.Create(
             FamilyName.From("Smith Family"),
             originalOwnerId);
 
@@ -65,7 +65,7 @@ public class FamilyTests
     {
         // Arrange
         var ownerId = UserId.From(Guid.NewGuid());
-        var family = FamilyDomain.Family.Create(
+        var family = Modules.Family.Domain.Family.Create(
             FamilyName.From("Smith Family"),
             ownerId);
 
@@ -80,7 +80,7 @@ public class FamilyTests
     public void Delete_ShouldSetDeletedAt()
     {
         // Arrange
-        var family = FamilyDomain.Family.Create(
+        var family = Modules.Family.Domain.Family.Create(
             FamilyName.From("Smith Family"),
             UserId.From(Guid.NewGuid()));
         var beforeDelete = DateTime.UtcNow;
@@ -98,7 +98,7 @@ public class FamilyTests
     public void GetMemberCount_NewFamily_ShouldReturnZero()
     {
         // Arrange
-        var family = FamilyDomain.Family.Create(
+        var family = Modules.Family.Domain.Family.Create(
             FamilyName.From("Smith Family"),
             UserId.From(Guid.NewGuid()));
 

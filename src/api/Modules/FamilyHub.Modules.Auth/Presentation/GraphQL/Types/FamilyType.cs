@@ -1,4 +1,3 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Infrastructure.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
@@ -8,9 +7,9 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 /// GraphQL object type for Family entity.
 /// Uses HotChocolate ObjectType pattern to configure domain entity mapping.
 /// </summary>
-public class FamilyType : ObjectType<FamilyDomain.Family>
+public class FamilyType : ObjectType<FamilyHub.Modules.Family.Domain.Family>
 {
-    protected override void Configure(IObjectTypeDescriptor<FamilyDomain.Family> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<FamilyHub.Modules.Family.Domain.Family> descriptor)
     {
         descriptor.Name("Family");
         descriptor.Description("Represents a family in the system");
@@ -22,14 +21,14 @@ public class FamilyType : ObjectType<FamilyDomain.Family>
             .Name("id")
             .Type<NonNullType<UuidType>>()
             .Description("Unique family identifier")
-            .Resolve(ctx => ctx.Parent<FamilyDomain.Family>().Id.Value);
+            .Resolve(ctx => ctx.Parent<FamilyHub.Modules.Family.Domain.Family>().Id.Value);
 
         descriptor
             .Field(f => f.Name)
             .Name("name")
             .Type<NonNullType<StringType>>()
             .Description("Family name")
-            .Resolve(ctx => ctx.Parent<FamilyDomain.Family>().Name.Value);
+            .Resolve(ctx => ctx.Parent<FamilyHub.Modules.Family.Domain.Family>().Name.Value);
 
         descriptor
             .Field("auditInfo")
@@ -37,7 +36,7 @@ public class FamilyType : ObjectType<FamilyDomain.Family>
             .Description("Audit metadata (creation and last update timestamps)")
             .Resolve(ctx =>
             {
-                var family = ctx.Parent<FamilyDomain.Family>();
+                var family = ctx.Parent<FamilyHub.Modules.Family.Domain.Family>();
                 return new AuditInfoType
                 {
                     CreatedAt = family.CreatedAt,
