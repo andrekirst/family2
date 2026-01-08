@@ -33,7 +33,7 @@ public sealed partial class AcceptInvitationCommandHandler(
 
         // Validation is handled by AcceptInvitationCommandValidator
         // 1. Retrieve invitation from cache (validator already fetched and validated)
-        var invitation = validationCache.Get<FamilyMemberInvitationAggregate>($"FamilyMemberInvitationAggregate:{request.Token.Value}")
+        var invitation = validationCache.Get<FamilyMemberInvitationAggregate>($"FamilyMemberInvitation:{request.Token.Value}")
             ?? throw new InvalidOperationException("Invitation not found in cache. Validator should have cached it.");
 
         // 2. Get current user (loaded by UserContextEnrichmentBehavior)

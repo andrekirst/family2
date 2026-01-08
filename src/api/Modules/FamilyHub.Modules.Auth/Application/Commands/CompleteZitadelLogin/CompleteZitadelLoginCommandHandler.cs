@@ -3,8 +3,8 @@ using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Infrastructure.Extensions;
-using FamilyHub.Modules.Family.Domain.Aggregates;
-using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Application.Abstractions;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using IdentityModel.Client;
@@ -22,7 +22,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 public sealed partial class CompleteZitadelLoginCommandHandler(
     IOptions<ZitadelSettings> settings,
     IUserRepository userRepository,
-    IFamilyRepository familyRepository,
+    IFamilyService familyService,
     IUnitOfWork unitOfWork,
     IHttpClientFactory httpClientFactory,
     ILogger<CompleteZitadelLoginCommandHandler> logger)
@@ -131,22 +131,30 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
 
         var familyName = FamilyName.From($"{displayName} Family");
 
-        // Create personal family first (need ID for user)
-        var personalFamily = FamilyAggregate.Create(familyName, UserId.New()); // Temporary owner
-        await familyRepository.AddAsync(personalFamily, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        // Create personal family first via service (need ID for user)
+        var familyResult = await familyService.CreateFamilyAsync(familyName, UserId.New(), cancellationToken);
+        if (familyResult.IsFailure)
+        {
+            throw new InvalidOperationException($"Failed to create family: {familyResult.Error}");
+        }
+
+        var familyDto = familyResult.Value;
 
         // Create user with family ID
-        user = User.CreateFromOAuth(email, zitadelUserId, "zitadel", personalFamily.Id);
+        user = User.CreateFromOAuth(email, zitadelUserId, "zitadel", familyDto.Id);
 
-        // Transfer ownership to user (now that user has ID)
-        personalFamily.TransferOwnership(user.Id);
+        // Transfer ownership to user (now that user has ID) via service
+        var transferResult = await familyService.TransferOwnershipAsync(familyDto.Id, user.Id, cancellationToken);
+        if (transferResult.IsFailure)
+        {
+            throw new InvalidOperationException($"Failed to transfer ownership: {transferResult.Error}");
+        }
 
         await userRepository.AddAsync(user, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         LogCreatedNewUserFromZitadelOauthUseridUseridEmailEmail(logger, user.Id.Value, email.Value);
-        LogCreatedPersonalFamilyFamilyidFamilynameForUserUserid(logger, personalFamily.Id.Value, familyName.Value, user.Id.Value);
+        LogCreatedPersonalFamilyFamilyidFamilynameForUserUserid(logger, familyDto.Id.Value, familyName.Value, user.Id.Value);
 
         return user;
     }

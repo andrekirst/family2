@@ -54,6 +54,30 @@ public class Family : AggregateRoot<FamilyId>, ISoftDeletable
     }
 
     /// <summary>
+    /// Reconstitutes a Family aggregate from persisted data (e.g., from database or DTO).
+    /// Used when rebuilding domain objects without re-applying business rules.
+    /// </summary>
+    /// <summary>
+    /// Reconstitutes a Family aggregate from persisted data (e.g., from database or DTO).
+    /// Used when rebuilding domain objects without re-applying business rules.
+    /// </summary>
+    public static Family Reconstitute(
+        FamilyId id,
+        FamilyName name,
+        UserId ownerId,
+        DateTime createdAt,
+        DateTime updatedAt)
+    {
+        var family = new Family(id, name, ownerId)
+        {
+            CreatedAt = createdAt,
+            UpdatedAt = updatedAt
+        };
+        
+        return family;
+    }
+
+    /// <summary>
     /// Updates the family name.
     /// </summary>
     public void UpdateName(FamilyName newName)

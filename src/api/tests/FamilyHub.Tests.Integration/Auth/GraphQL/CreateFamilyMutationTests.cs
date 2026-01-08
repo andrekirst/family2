@@ -5,6 +5,7 @@ using System.Text.Json;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -61,9 +62,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "valid");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "valid");
         var testId = TestDataFactory.GenerateTestId();
         var familyName = $"GraphQL Test Family {testId}";
 
@@ -124,9 +125,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "empty");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "empty");
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
         var mutation = """
@@ -183,9 +184,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "long");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "long");
         var longName = new string('A', 101); // Exceeds 100 character limit
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
@@ -243,11 +244,13 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        // Need repository access for direct aggregate assertion
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
 
         // Create user and family using direct command (no GraphQL)
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "existing");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "existing");
 
         // Set authentication and create family via command handler
         TestCurrentUserService.SetUserId(user.Id);
@@ -368,9 +371,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "malformed");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "malformed");
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
         // Malformed GraphQL query (missing closing brace)
@@ -401,9 +404,9 @@ public sealed class CreateFamilyMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "null");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "null");
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
         var mutation = """

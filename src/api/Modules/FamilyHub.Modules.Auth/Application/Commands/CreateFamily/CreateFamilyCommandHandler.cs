@@ -1,6 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Application.Abstractions;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
@@ -15,7 +16,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 /// </summary>
 public sealed partial class CreateFamilyCommandHandler(
     IUserContext userContext,
-    IFamilyRepository familyRepository,
+    IFamilyService familyService,
     IUnitOfWork unitOfWork,
     ILogger<CreateFamilyCommandHandler> logger)
     : IRequestHandler<CreateFamilyCommand, CreateFamilyResult>
@@ -30,25 +31,31 @@ public sealed partial class CreateFamilyCommandHandler(
 
         LogCreatingFamilyFamilynameForUserUserid(request.Name, userId.Value);
 
-        // 1. Create new family using domain factory method
-        var family = FamilyAggregate.Create(request.Name, userId);
+        // 1. Create new family via service
+        var familyResult = await familyService.CreateFamilyAsync(request.Name, userId, cancellationToken);
+        if (familyResult.IsFailure)
+        {
+            throw new InvalidOperationException($"Failed to create family: {familyResult.Error}");
+        }
+
+        var familyDto = familyResult.Value;
 
         // 2. Update user's FamilyId to point to new family
-        user.UpdateFamily(family.Id);
+        user.UpdateFamily(familyDto.Id);
 
-        // 3. Persist to database
-        await familyRepository.AddAsync(family, cancellationToken);
+        // 3. Persist user changes (family already persisted by service)
+        // Shared AuthDbContext in Phase 3 - user changes saved atomically with family
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        LogSuccessfullyCreatedFamilyFamilyidFamilynameWithOwnerUserid(family.Id.Value, family.Name, userId.Value);
+        LogSuccessfullyCreatedFamilyFamilyidFamilynameWithOwnerUserid(familyDto.Id.Value, familyDto.Name, userId.Value);
 
         // 4. Return result
         return new CreateFamilyResult
         {
-            FamilyId = family.Id,
-            Name = family.Name,
-            OwnerId = family.OwnerId,
-            CreatedAt = family.CreatedAt
+            FamilyId = familyDto.Id,
+            Name = familyDto.Name,
+            OwnerId = familyDto.OwnerId,
+            CreatedAt = familyDto.CreatedAt
         };
     }
 

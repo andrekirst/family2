@@ -1,5 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
-using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.Exceptions;
@@ -37,19 +37,18 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
     /// Verifies family entity properties and user's family relationship.
     /// </summary>
     private static async Task AssertFamilyCreatedCorrectlyAsync(
-        IFamilyRepository familyRepository,
+        IFamilyService familyService,
         IUserRepository userRepository,
         FamilyId familyId,
         string expectedName,
         UserId expectedOwnerId)
     {
-        var createdFamily = await familyRepository.GetByIdAsync(familyId);
+        var familyDto = await familyService.GetFamilyByIdAsync(familyId, CancellationToken.None);
 
         // Family assertions
-        createdFamily.Should().NotBeNull();
-        createdFamily.Name.Value.Should().Be(expectedName);
-        createdFamily.OwnerId.Should().Be(expectedOwnerId);
-        createdFamily.DeletedAt.Should().BeNull();
+        familyDto.Should().NotBeNull();
+        familyDto!.Name.Value.Should().Be(expectedName);
+        familyDto.OwnerId.Should().Be(expectedOwnerId);
 
         // Membership assertions - user's FamilyId should match
         var user = await userRepository.GetByIdAsync(expectedOwnerId);
@@ -64,9 +63,9 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (mediator, userRepo, familyRepo, unitOfWork) = TestServices.ResolveCommandServices(scope);
+        var (mediator, userRepo, familyService, unitOfWork) = TestServices.ResolveCommandServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork);
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork);
         TestCurrentUserService.SetUserId(user.Id);
 
         var testId = TestDataFactory.GenerateTestId();
@@ -83,7 +82,7 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
         result.OwnerId.Should().Be(user.Id);
         result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
 
-        await AssertFamilyCreatedCorrectlyAsync(familyRepo, userRepo, result.FamilyId, familyName, user.Id);
+        await AssertFamilyCreatedCorrectlyAsync(familyService, userRepo, result.FamilyId, familyName, user.Id);
     }
 
     [Fact]
@@ -91,9 +90,11 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (mediator, userRepo, familyRepo, unitOfWork) = TestServices.ResolveCommandServices(scope);
+        var (mediator, userRepo, familyService, unitOfWork) = TestServices.ResolveCommandServices(scope);
+        // Note: This test needs direct repository access to manipulate aggregate (soft delete)
+        var familyRepo = scope.ServiceProvider.GetRequiredService<FamilyHub.Modules.Family.Domain.Repositories.IFamilyRepository>();
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "softdelete");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "softdelete");
         TestCurrentUserService.SetUserId(user.Id);
         var testId = TestDataFactory.GenerateTestId();
 
@@ -102,7 +103,7 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
         var firstCommand = new CreateFamilyCommand(FamilyName.From(firstFamilyName));
         var firstResult = await mediator.Send(firstCommand);
 
-        // Soft delete the first family
+        // Soft delete the first family (requires direct repository access for test manipulation)
         var firstFamily = await familyRepo.GetByIdAsync(firstResult.FamilyId);
         firstFamily.Should().NotBeNull();
         firstFamily.Delete();
@@ -118,11 +119,10 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
         newResult.FamilyId.Should().NotBe(firstResult.FamilyId);
         newResult.Name.Value.Should().Be(newFamilyName);
 
-        // Verify new family exists
-        var newFamily = await familyRepo.GetByIdAsync(newResult.FamilyId);
-        newFamily.Should().NotBeNull();
-        newFamily.Name.Value.Should().Be(newFamilyName);
-        newFamily.DeletedAt.Should().BeNull();
+        // Verify new family exists (using service for assertion)
+        var newFamilyDto = await familyService.GetFamilyByIdAsync(newResult.FamilyId, CancellationToken.None);
+        newFamilyDto.Should().NotBeNull();
+        newFamilyDto!.Name.Value.Should().Be(newFamilyName);
     }
 
     [Fact(Skip = "Concurrent requests test requires real PostgreSQL database. In-memory DB has EF Core navigation property issues with Vogen value objects.")]
@@ -169,9 +169,9 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (_, userRepo, familyRepo, unitOfWork) = TestServices.ResolveCommandServices(scope);
+        var (_, userRepo, familyService, unitOfWork) = TestServices.ResolveCommandServices(scope);
 
-        await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "emptyname");
+        await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "emptyname");
 
         // Act - FamilyName.From() validates at value object level (before reaching MediatR)
         var act = () => FamilyName.From(string.Empty);
@@ -186,9 +186,9 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (_, userRepo, familyRepo, unitOfWork) = TestServices.ResolveCommandServices(scope);
+        var (_, userRepo, familyService, unitOfWork) = TestServices.ResolveCommandServices(scope);
 
-        await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "longname");
+        await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "longname");
         var longName = new string('A', 101); // Exceeds 100 character limit
 
         // Act - FamilyName.From() validates at value object level (before reaching MediatR)
@@ -204,9 +204,9 @@ public sealed class CreateFamilyIntegrationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (mediator, userRepo, familyRepo, unitOfWork) = TestServices.ResolveCommandServices(scope);
+        var (mediator, userRepo, familyService, unitOfWork) = TestServices.ResolveCommandServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "hasfamily");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "hasfamily");
         TestCurrentUserService.SetUserId(user.Id);
         var testId = TestDataFactory.GenerateTestId();
 

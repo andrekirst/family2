@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
@@ -43,11 +44,12 @@ public sealed class AcceptInvitationMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
 
         // Create family owner
-        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "owner");
+        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
         // Create invitation
         var testId = TestDataFactory.GenerateTestId();
@@ -76,9 +78,25 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var mutation = $$"""
         mutation {
           acceptInvitation(input: { token: "{{invitation.Token.Value}}" }) {
-            family { id name }
-            role
-            errors { message code }
+            acceptedInvitationDto {
+              familyId
+              familyName
+              role
+            }
+            errors {
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
+            }
           }
         }
         """;
@@ -93,10 +111,10 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var errors = result.GetProperty("errors");
         errors.ValueKind.Should().Be(JsonValueKind.Null);
 
-        var family = result.GetProperty("family");
-        family.GetProperty("id").GetGuid().Should().Be(owner.FamilyId!.Value);
+        var dto = result.GetProperty("acceptedInvitationDto");
+        dto.GetProperty("familyId").GetGuid().Should().Be(owner.FamilyId!.Value);
 
-        var role = result.GetProperty("role").GetString();
+        var role = dto.GetProperty("role").GetString();
         role.Should().Be("MEMBER");
     }
 
@@ -105,10 +123,11 @@ public sealed class AcceptInvitationMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
 
-        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "owner");
+        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
@@ -134,9 +153,25 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var mutation = $$"""
         mutation {
           acceptInvitation(input: { token: "{{invitation.Token.Value}}" }) {
-            family { id }
-            role
-            errors { message }
+            acceptedInvitationDto {
+              familyId
+              familyName
+              role
+            }
+            errors {
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
+            }
           }
         }
         """;
@@ -173,18 +208,34 @@ public sealed class AcceptInvitationMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
 
-        var user = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "user");
+        var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "user");
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
         var invalidToken = InvitationToken.Generate();
         var mutation = $$"""
         mutation {
           acceptInvitation(input: { token: "{{invalidToken.Value}}" }) {
-            family { id }
-            role
-            errors { message code }
+            acceptedInvitationDto {
+              familyId
+              familyName
+              role
+            }
+            errors {
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
+            }
           }
         }
         """;
@@ -214,10 +265,11 @@ public sealed class AcceptInvitationMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
 
-        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "owner");
+        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
@@ -247,9 +299,25 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var mutation = $$"""
         mutation {
           acceptInvitation(input: { token: "{{invitation.Token.Value}}" }) {
-            family { id }
-            role
-            errors { message code }
+            acceptedInvitationDto {
+              familyId
+              familyName
+              role
+            }
+            errors {
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
+            }
           }
         }
         """;
@@ -278,10 +346,11 @@ public sealed class AcceptInvitationMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
 
-        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "owner");
+        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
         // Create invitation for different email
         var invitationEmail = Email.From("invited@example.com");
@@ -309,9 +378,25 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var mutation = $$"""
         mutation {
           acceptInvitation(input: { token: "{{invitation.Token.Value}}" }) {
-            family { id }
-            role
-            errors { message code }
+            acceptedInvitationDto {
+              familyId
+              familyName
+              role
+            }
+            errors {
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
+            }
           }
         }
         """;
@@ -340,10 +425,10 @@ public sealed class AcceptInvitationMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
 
-        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "owner");
+        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
@@ -366,9 +451,25 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var mutation = $$"""
         mutation {
           acceptInvitation(input: { token: "{{invitation.Token.Value}}" }) {
-            family { id }
-            role
-            errors { message code }
+            acceptedInvitationDto {
+              familyId
+              familyName
+              role
+            }
+            errors {
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
+            }
           }
         }
         """;
@@ -393,10 +494,11 @@ public sealed class AcceptInvitationMutationTests : IDisposable
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
-        var (userRepo, familyRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
 
-        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyRepo, unitOfWork, "owner");
+        var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
@@ -425,9 +527,25 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var mutation = $$"""
         mutation {
           acceptInvitation(input: { token: "{{invitation.Token.Value}}" }) {
-            family { id }
-            role
-            errors { message code }
+            acceptedInvitationDto {
+              familyId
+              familyName
+              role
+            }
+            errors {
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
+            }
           }
         }
         """;

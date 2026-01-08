@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.SharedKernel.Interfaces;
@@ -15,36 +15,36 @@ public static class TestServices
 {
     /// <summary>
     /// Resolves the most common service set for command/query integration tests:
-    /// IMediator, IUserRepository, IFamilyRepository, IUnitOfWork
+    /// IMediator, IUserRepository, IFamilyService, IUnitOfWork
     /// </summary>
     /// <example>
-    /// var (mediator, userRepo, familyRepo, unitOfWork) = TestServices.ResolveCommandServices(scope);
+    /// var (mediator, userRepo, familyService, unitOfWork) = TestServices.ResolveCommandServices(scope);
     /// </example>
     public static (IMediator mediator, IUserRepository userRepo,
-                   IFamilyRepository familyRepo, IUnitOfWork unitOfWork)
+                   IFamilyService familyService, IUnitOfWork unitOfWork)
         ResolveCommandServices(IServiceScope scope)
     {
         return (
             scope.ServiceProvider.GetRequiredService<IMediator>(),
             scope.ServiceProvider.GetRequiredService<IUserRepository>(),
-            scope.ServiceProvider.GetRequiredService<IFamilyRepository>(),
+            scope.ServiceProvider.GetRequiredService<IFamilyService>(),
             scope.ServiceProvider.GetRequiredService<IUnitOfWork>()
         );
     }
 
     /// <summary>
     /// Resolves common repository services for GraphQL mutation tests:
-    /// IUserRepository, IUnitOfWork
+    /// IUserRepository, IFamilyService, IUnitOfWork
     /// </summary>
     /// <example>
-    /// var (userRepo, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
+    /// var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
     /// </example>
-    public static (IUserRepository userRepo, IFamilyRepository familyRepo, IUnitOfWork unitOfWork)
+    public static (IUserRepository userRepo, IFamilyService familyService, IUnitOfWork unitOfWork)
         ResolveRepositoryServices(IServiceScope scope)
     {
         return (
             scope.ServiceProvider.GetRequiredService<IUserRepository>(),
-            scope.ServiceProvider.GetRequiredService<IFamilyRepository>(),
+            scope.ServiceProvider.GetRequiredService<IFamilyService>(),
             scope.ServiceProvider.GetRequiredService<IUnitOfWork>()
         );
     }

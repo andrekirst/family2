@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain;
@@ -16,7 +17,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 /// </summary>
 public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IUserContext userContext,
-    IFamilyRepository familyRepository,
+    IFamilyService familyService,
     IFamilyMemberInvitationRepository invitationRepository,
     IUnitOfWork unitOfWork,
     ILogger<InviteFamilyMemberByEmailCommandHandler> logger)
@@ -30,9 +31,9 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
         var currentUserId = userContext.UserId;
         LogInvitingMemberToFamily(request.Email.Value, request.FamilyId.Value, currentUserId.Value);
 
-        // 1. Validate family exists
-        var family = await familyRepository.GetByIdAsync(request.FamilyId, cancellationToken);
-        if (family == null)
+        // 1. Validate family exists via service
+        var familyExists = await familyService.FamilyExistsAsync(request.FamilyId, cancellationToken);
+        if (!familyExists)
         {
             LogFamilyNotFound(request.FamilyId.Value);
             return Result.Failure<InviteFamilyMemberByEmailResult>("Family not found.");
