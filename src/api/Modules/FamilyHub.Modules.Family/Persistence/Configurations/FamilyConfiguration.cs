@@ -1,3 +1,4 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -7,9 +8,9 @@ namespace FamilyHub.Modules.Family.Persistence.Configurations;
 /// <summary>
 /// Entity Framework Core configuration for the Family entity.
 /// </summary>
-public class FamilyConfiguration : IEntityTypeConfiguration<global::FamilyHub.Modules.Family.Domain.Family>
+public class FamilyConfiguration : IEntityTypeConfiguration<FamilyDomain.Family>
 {
-    public void Configure(EntityTypeBuilder<global::FamilyHub.Modules.Family.Domain.Family> builder)
+    public void Configure(EntityTypeBuilder<FamilyDomain.Family> builder)
     {
         builder.ToTable("families", "auth");
 

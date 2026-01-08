@@ -43,7 +43,7 @@ public sealed class FamilyQueries
 
         // Return the user's family using the one-to-many relationship
         return await dbContext.Families
-            
+
             .FirstOrDefaultAsync(f => f.Id == user.FamilyId, cancellationToken);
     }
 }

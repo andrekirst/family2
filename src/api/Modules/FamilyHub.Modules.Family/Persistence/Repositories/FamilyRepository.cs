@@ -1,3 +1,4 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -10,14 +11,14 @@ namespace FamilyHub.Modules.Family.Persistence.Repositories;
 public sealed class FamilyRepository(FamilyDbContext context) : IFamilyRepository
 {
     /// <inheritdoc />
-    public async Task<global::FamilyHub.Modules.Family.Domain.Family?> GetByIdAsync(FamilyId id, CancellationToken cancellationToken = default)
+    public async Task<FamilyDomain.Family?> GetByIdAsync(FamilyId id, CancellationToken cancellationToken = default)
     {
         return await context.Families
             .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<global::FamilyHub.Modules.Family.Domain.Family?> GetFamilyByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
+    public async Task<FamilyDomain.Family?> GetFamilyByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         // NOTE: In the Family module, we don't have access to User navigation property
         // This query relies on the existing auth.users table structure
@@ -28,7 +29,7 @@ public sealed class FamilyRepository(FamilyDbContext context) : IFamilyRepositor
     }
 
     /// <inheritdoc />
-    public async Task AddAsync(global::FamilyHub.Modules.Family.Domain.Family family, CancellationToken cancellationToken = default)
+    public async Task AddAsync(FamilyDomain.Family family, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(family);
 

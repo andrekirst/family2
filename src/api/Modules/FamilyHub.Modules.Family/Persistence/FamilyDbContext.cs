@@ -1,3 +1,4 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Modules.Family.Persistence;
@@ -9,8 +10,8 @@ namespace FamilyHub.Modules.Family.Persistence;
 /// </summary>
 public class FamilyDbContext(DbContextOptions<FamilyDbContext> options) : DbContext(options)
 {
-    public DbSet<global::FamilyHub.Modules.Family.Domain.Family> Families => Set<global::FamilyHub.Modules.Family.Domain.Family>();
-    public DbSet<global::FamilyHub.Modules.Family.Domain.FamilyMemberInvitation> FamilyMemberInvitations => Set<global::FamilyHub.Modules.Family.Domain.FamilyMemberInvitation>();
+    public DbSet<FamilyDomain.Family> Families => Set<FamilyDomain.Family>();
+    public DbSet<FamilyDomain.FamilyMemberInvitation> FamilyMemberInvitations => Set<FamilyDomain.FamilyMemberInvitation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

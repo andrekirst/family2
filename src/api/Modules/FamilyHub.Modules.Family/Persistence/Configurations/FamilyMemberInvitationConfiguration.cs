@@ -1,3 +1,4 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -8,9 +9,9 @@ namespace FamilyHub.Modules.Family.Persistence.Configurations;
 /// <summary>
 /// Entity Framework Core configuration for the FamilyMemberInvitation entity.
 /// </summary>
-public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<global::FamilyHub.Modules.Family.Domain.FamilyMemberInvitation>
+public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyDomain.FamilyMemberInvitation>
 {
-    public void Configure(EntityTypeBuilder<global::FamilyHub.Modules.Family.Domain.FamilyMemberInvitation> builder)
+    public void Configure(EntityTypeBuilder<FamilyDomain.FamilyMemberInvitation> builder)
     {
         builder.ToTable("family_member_invitations", "auth");
 
@@ -38,7 +39,7 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<glob
             .HasDatabaseName("ix_family_member_invitations_family_id");
 
         // Foreign key to Family aggregate (within same module)
-        builder.HasOne<global::FamilyHub.Modules.Family.Domain.Family>()
+        builder.HasOne<FamilyDomain.Family>()
             .WithMany()
             .HasForeignKey(i => i.FamilyId)
             .OnDelete(DeleteBehavior.Restrict);

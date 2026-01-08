@@ -1,3 +1,4 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
 namespace FamilyHub.Tests.Unit.Builders;
@@ -41,9 +42,9 @@ public sealed class FamilyBuilder
         return this;
     }
 
-    public global::FamilyHub.Modules.Family.Domain.Family Build()
+    public FamilyDomain.Family Build()
     {
-        var family = global::FamilyHub.Modules.Family.Domain.Family.Create(_name, _ownerId);
+        var family = FamilyDomain.Family.Create(_name, _ownerId);
 
         // Set timestamps directly (public setters)
         if (_createdAt.HasValue)
