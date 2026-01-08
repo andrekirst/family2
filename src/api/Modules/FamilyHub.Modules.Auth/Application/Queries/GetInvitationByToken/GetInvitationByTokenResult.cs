@@ -1,6 +1,4 @@
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 
@@ -22,7 +20,7 @@ public sealed record GetInvitationByTokenResult
     /// <summary>
     /// Maps a domain FamilyMemberInvitation to a result DTO.
     /// </summary>
-    public static GetInvitationByTokenResult FromDomain(FamilyMemberInvitation invitation)
+    public static GetInvitationByTokenResult FromDomain(FamilyMemberInvitationAggregate invitation)
     {
         return new GetInvitationByTokenResult
         {

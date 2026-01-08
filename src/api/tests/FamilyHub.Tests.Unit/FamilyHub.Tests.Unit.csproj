@@ -28,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Modules\FamilyHub.Modules.Auth\FamilyHub.Modules.Auth.csproj" />
     <ProjectReference Include="..\..\FamilyHub.SharedKernel\FamilyHub.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Modules\FamilyHub.Modules.Family\FamilyHub.Modules.Family.csproj" />
   </ItemGroup>
 
 </Project>

@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\FamilyHub.SharedKernel\FamilyHub.SharedKernel.csproj" />
     <ProjectReference Include="..\..\FamilyHub.Infrastructure\FamilyHub.Infrastructure.csproj" />
+    <ProjectReference Include="..\FamilyHub.Modules.Family\FamilyHub.Modules.Family.csproj" />
     <ProjectReference Include="..\..\FamilyHub.SourceGenerators\FamilyHub.SourceGenerators.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />

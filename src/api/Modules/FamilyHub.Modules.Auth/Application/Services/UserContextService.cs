@@ -25,6 +25,12 @@ public sealed class UserContextService : IUserContext
             "Ensure the request implements IRequireAuthentication and UserContextEnrichmentBehavior has executed.");
     }
 
+    // Explicit implementation of SharedKernel.IUserContext properties
+    public UserId UserId => User.Id;
+    public FamilyId FamilyId => User.FamilyId;
+    public FamilyRole Role => User.Role;
+    public Email Email => User.Email;
+
     /// <summary>
     /// Sets the current user context. Called internally by UserContextEnrichmentBehavior.
     /// </summary>

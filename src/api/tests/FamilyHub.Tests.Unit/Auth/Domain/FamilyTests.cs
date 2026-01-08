@@ -2,11 +2,12 @@ using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
+using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 
 namespace FamilyHub.Tests.Unit.Auth.Domain;
 
 /// <summary>
-/// Unit tests for the Family domain entity.
+/// Unit tests for the FamilyAggregate domain entity.
 /// Tests domain logic, validation rules, and business invariants.
 /// Uses FluentAssertions for readable, expressive test assertions.
 /// </summary>
@@ -22,7 +23,7 @@ public class FamilyTests
         var ownerId = UserId.New();
 
         // Act
-        var family = Family.Create(name, ownerId);
+        var family = FamilyAggregate.Create(name, ownerId);
 
         // Assert
         family.Should().NotBeNull();
@@ -41,7 +42,7 @@ public class FamilyTests
         var ownerId = UserId.New();
 
         // Act
-        var family = Family.Create(FamilyName.From(nameWithWhitespace), ownerId);
+        var family = FamilyAggregate.Create(FamilyName.From(nameWithWhitespace), ownerId);
 
         // Assert
         family.Name.Should().Be(expectedName);
@@ -99,7 +100,7 @@ public class FamilyTests
         var ownerId = UserId.New();
 
         // Act
-        var family = Family.Create(FamilyName.From(maxLengthName), ownerId);
+        var family = FamilyAggregate.Create(FamilyName.From(maxLengthName), ownerId);
 
         // Assert
         family.Should().NotBeNull();
@@ -114,7 +115,7 @@ public class FamilyTests
     public void UpdateName_WithValidName_ShouldUpdateName()
     {
         // Arrange
-        var family = Family.Create(FamilyName.From("Original Name"), UserId.New());
+        var family = FamilyAggregate.Create(FamilyName.From("Original Name"), UserId.New());
         var newName = FamilyName.From("Updated Name");
 
         // Act
@@ -128,7 +129,7 @@ public class FamilyTests
     public void UpdateName_WithNameContainingWhitespace_ShouldTrimWhitespace()
     {
         // Arrange
-        var family = Family.Create(FamilyName.From("Original Name"), UserId.New());
+        var family = FamilyAggregate.Create(FamilyName.From("Original Name"), UserId.New());
         var nameWithWhitespace = "  Updated Name  ";
         var expectedName = FamilyName.From("Updated Name");
 
@@ -143,7 +144,7 @@ public class FamilyTests
     public void UpdateName_WithNullName_ShouldThrowValueObjectValidationException()
     {
         // Arrange
-        var family = Family.Create(FamilyName.From("Original Name"), UserId.New());
+        var family = FamilyAggregate.Create(FamilyName.From("Original Name"), UserId.New());
         string? nullName = null;
 
         // Act - Vogen throws exception when creating the value object
@@ -190,7 +191,7 @@ public class FamilyTests
     {
         // Arrange
         var originalOwnerId = UserId.New();
-        var family = Family.Create(FamilyName.From("Smith Family"), originalOwnerId);
+        var family = FamilyAggregate.Create(FamilyName.From("Smith Family"), originalOwnerId);
         var newOwnerId = UserId.New();
 
         // Act
@@ -205,7 +206,7 @@ public class FamilyTests
     {
         // Arrange
         var ownerId = UserId.New();
-        var family = Family.Create(FamilyName.From("Smith Family"), ownerId);
+        var family = FamilyAggregate.Create(FamilyName.From("Smith Family"), ownerId);
 
         // Act
         family.TransferOwnership(ownerId);
@@ -222,7 +223,7 @@ public class FamilyTests
     public void Delete_ShouldSetDeletedAt()
     {
         // Arrange
-        var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
+        var family = FamilyAggregate.Create(FamilyName.From("Smith Family"), UserId.New());
 
         // Act
         family.Delete();
@@ -234,40 +235,9 @@ public class FamilyTests
 
     #endregion
 
-    #region Members Collection Tests
-
-    [Fact]
-    public void Members_ShouldBeReadOnly()
-    {
-        // Arrange
-        var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
-
-        // Assert
-        family.Members.Should().BeAssignableTo<IReadOnlyCollection<User>>();
-    }
-
-    [Fact]
-    public void Members_InitiallyEmpty()
-    {
-        // Arrange & Act
-        var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
-
-        // Assert
-        family.Members.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void GetMemberCount_WhenNoMembers_ShouldReturnZero()
-    {
-        // Arrange
-        var family = Family.Create(FamilyName.From("Smith Family"), UserId.New());
-
-        // Act
-        var count = family.GetMemberCount();
-
-        // Assert
-        count.Should().Be(0);
-    }
-
-    #endregion
+    // NOTE: Members Collection Tests removed
+    // The Family aggregate no longer has a Members collection or GetMemberCount method.
+    // Member relationships are now managed by the Auth module through User.FamilyId foreign key.
+    // This maintains proper bounded context separation between the Family module (aggregate ownership)
+    // and the Auth module (user management).
 }

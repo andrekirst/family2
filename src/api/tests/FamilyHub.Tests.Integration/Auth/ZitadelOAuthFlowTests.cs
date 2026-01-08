@@ -1,10 +1,11 @@
+using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
@@ -127,14 +128,14 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
         using var scope = _factory.Services.CreateScope();
         var (mediator, userRepository) = TestServices.ResolveOAuthServices(scope);
         var familyRepository = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredService<FamilyHub.Modules.Auth.Application.Abstractions.IUnitOfWork>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<FamilyHub.SharedKernel.Interfaces.IUnitOfWork>();
 
         var testId = TestDataFactory.GenerateTestId();
         var zitadelUserId = $"zitadel-user-existing-{testId}";
         var email = $"existing-{testId}@example.com";
 
         // Create family first (required by foreign key constraint)
-        var family = Family.Create(FamilyName.From($"Existing Family {testId}"), UserId.New());
+        var family = FamilyAggregate.Create(FamilyName.From($"Existing Family {testId}"), UserId.New());
         await familyRepository.AddAsync(family);
         await unitOfWork.SaveChangesAsync();
 

@@ -1,7 +1,8 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -30,7 +31,7 @@ public sealed partial class CreateFamilyCommandHandler(
         LogCreatingFamilyFamilynameForUserUserid(request.Name, userId.Value);
 
         // 1. Create new family using domain factory method
-        var family = Family.Create(request.Name, userId);
+        var family = FamilyAggregate.Create(request.Name, userId);
 
         // 2. Update user's FamilyId to point to new family
         user.UpdateFamily(family.Id);

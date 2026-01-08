@@ -1,9 +1,9 @@
-using FamilyHub.Modules.Auth.Domain.Events;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain.Events;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
-namespace FamilyHub.Modules.Auth.Domain;
+namespace FamilyHub.Modules.Family.Domain.Aggregates;
 
 /// <summary>
 /// Aggregate root representing a family member invitation.

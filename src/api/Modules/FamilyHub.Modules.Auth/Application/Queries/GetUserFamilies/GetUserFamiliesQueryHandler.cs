@@ -27,17 +27,20 @@ public sealed class GetUserFamiliesQueryHandler(
             };
         }
 
-        // 2. Map to DTO
+        // 2. Get member count from repository
+        var memberCount = await familyRepository.GetMemberCountAsync(family.Id, cancellationToken);
+
+        // 3. Map to DTO
         var familyDto = new FamilyDto
         {
             FamilyId = family.Id,
             Name = family.Name.Value,
             OwnerId = family.OwnerId,
             CreatedAt = family.CreatedAt,
-            MemberCount = family.GetMemberCount()
+            MemberCount = memberCount
         };
 
-        // 3. Return result (single family in list for backwards compatibility)
+        // 4. Return result (single family in list for backwards compatibility)
         return new GetUserFamiliesResult
         {
             Families = [familyDto]

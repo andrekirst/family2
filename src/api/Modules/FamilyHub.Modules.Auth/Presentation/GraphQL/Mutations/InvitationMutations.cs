@@ -1,14 +1,9 @@
-using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 using FamilyHub.Modules.Auth.Application.Commands.CancelInvitation;
-using FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 using FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
-// using FamilyHub.Modules.Auth.Application.Commands.ResendInvitation; // TODO: Implement ResendInvitation command
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -20,54 +15,18 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
 
 /// <summary>
 /// GraphQL mutations for family member invitation operations.
+///
+/// PHASE 4 UPDATE: InviteFamilyMemberByEmail mutation moved to Family.Presentation.GraphQL.Mutations.
+/// This class now contains only mutations that modify User aggregate:
+/// - CancelInvitation (temporarily, until Phase 5+)
+/// - UpdateInvitationRole (temporarily, until Phase 5+)
+/// - AcceptInvitation (modifies User to add family membership)
 /// </summary>
 [ExtendObjectType("Mutation")]
 public sealed class InvitationMutations
 {
-    /// <summary>
-    /// Invites a family member via email with token-based invitation.
-    /// Requires OWNER or ADMIN role.
-    /// </summary>
-    [Authorize(Policy = "RequireOwnerOrAdmin")]
-    [UseMutationConvention]
-    [Error(typeof(BusinessError))]
-    [Error(typeof(ValidationError))]
-    [Error(typeof(ValueObjectError))]
-    [Error(typeof(UnauthorizedError))]
-    [Error(typeof(InternalServerError))]
-    public async Task<PendingInvitationType> InviteFamilyMemberByEmail(
-        InviteFamilyMemberByEmailInput input,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        // Map input → command (primitives → value objects)
-        var command = new InviteFamilyMemberByEmailCommand(
-            FamilyId: FamilyId.From(input.FamilyId),
-            Email: Email.From(input.Email),
-            Role: FamilyRole.From(input.Role),
-            Message: input.Message
-        );
-
-        var result = await mediator.Send(command, cancellationToken);
-
-        if (!result.IsSuccess)
-        {
-            // FIXED: Throw BusinessException with proper error code instead of generic Exception
-            throw new BusinessException("INVITATION_FAILED", result.Error);
-        }
-
-        // Map result → return DTO directly
-        return new PendingInvitationType
-        {
-            Id = result.Value.InvitationId.Value,
-            Email = result.Value.Email.Value,
-            Role = result.Value.Role.AsRoleType(),
-            Status = result.Value.Status.AsStatusType(),
-            InvitedAt = result.Value.ExpiresAt.AddDays(-14), // Calculate from ExpiresAt (invitations expire after 14 days)
-            ExpiresAt = result.Value.ExpiresAt,
-            DisplayCode = result.Value.DisplayCode.Value
-        };
-    }
+    // NOTE: InviteFamilyMemberByEmail moved to Family.Presentation.GraphQL.Mutations.InvitationMutations
+    // It uses Family.Application.Commands.InviteFamilyMemberByEmailCommand
 
 
     /// <summary>

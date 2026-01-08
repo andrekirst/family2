@@ -1,6 +1,7 @@
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 
-namespace FamilyHub.Modules.Auth.Domain.Repositories;
+namespace FamilyHub.Modules.Family.Domain.Repositories;
 
 /// <summary>
 /// Repository interface for Family aggregate root.
@@ -14,7 +15,7 @@ public interface IFamilyRepository
     /// <param name="id">The family ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The family if found; otherwise, null.</returns>
-    Task<Family?> GetByIdAsync(FamilyId id, CancellationToken cancellationToken = default);
+    Task<FamilyAggregate?> GetByIdAsync(FamilyId id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the family that a user belongs to.
@@ -22,12 +23,20 @@ public interface IFamilyRepository
     /// <param name="userId">The user ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The family if found; otherwise, null.</returns>
-    Task<Family?> GetFamilyByUserIdAsync(UserId userId, CancellationToken cancellationToken = default);
+    Task<FamilyAggregate?> GetFamilyByUserIdAsync(UserId userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the member count for a family.
+    /// </summary>
+    /// <param name="familyId">The family ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The number of members in the family.</returns>
+    Task<int> GetMemberCountAsync(FamilyId familyId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new family to the repository.
     /// </summary>
     /// <param name="family">The family to add.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    Task AddAsync(Family family, CancellationToken cancellationToken = default);
+    Task AddAsync(FamilyAggregate family, CancellationToken cancellationToken = default);
 }

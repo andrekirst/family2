@@ -1,6 +1,4 @@
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 
@@ -30,7 +28,7 @@ public sealed record PendingInvitationDto
     /// <summary>
     /// Maps a domain FamilyMemberInvitation to a DTO.
     /// </summary>
-    public static PendingInvitationDto FromDomain(FamilyMemberInvitation invitation)
+    public static PendingInvitationDto FromDomain(FamilyMemberInvitationAggregate invitation)
     {
         return new PendingInvitationDto
         {

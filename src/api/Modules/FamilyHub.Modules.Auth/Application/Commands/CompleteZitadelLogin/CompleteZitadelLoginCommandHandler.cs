@@ -2,13 +2,16 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
+using FamilyHub.Modules.Auth.Infrastructure.Extensions;
+using FamilyHub.Modules.Family.Domain.Aggregates;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyHub.SharedKernel.Interfaces;
 using IdentityModel.Client;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
-using FamilyHub.Modules.Auth.Infrastructure.Extensions;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 
@@ -129,7 +132,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
         var familyName = FamilyName.From($"{displayName} Family");
 
         // Create personal family first (need ID for user)
-        var personalFamily = Family.Create(familyName, UserId.New()); // Temporary owner
+        var personalFamily = FamilyAggregate.Create(familyName, UserId.New()); // Temporary owner
         await familyRepository.AddAsync(personalFamily, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
