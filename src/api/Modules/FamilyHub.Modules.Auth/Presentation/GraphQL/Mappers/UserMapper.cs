@@ -24,7 +24,6 @@ public static class UserMapper
             Id = user.Id.Value,
             Email = user.Email.Value,
             EmailVerified = user.EmailVerified,
-            FamilyId = user.FamilyId.Value,
             AuditInfo = user.AsAuditInfo()
         };
     }

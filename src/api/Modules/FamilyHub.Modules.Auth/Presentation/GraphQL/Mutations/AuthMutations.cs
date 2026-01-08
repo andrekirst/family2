@@ -62,7 +62,6 @@ public sealed class AuthMutations
                 Id = result.UserId.Value,
                 Email = result.Email.Value,
                 EmailVerified = result.EmailVerified,
-                FamilyId = result.FamilyId.Value,
                 AuditInfo = result.AsAuditInfo()
             },
             AccessToken = result.AccessToken,
