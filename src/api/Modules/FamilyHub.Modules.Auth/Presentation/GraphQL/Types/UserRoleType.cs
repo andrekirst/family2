@@ -1,7 +1,7 @@
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
 /// <summary>
-/// GraphQL enum type for UserRole.
+/// GraphQL enum type for FamilyRole.
 /// Represents a user's role within a family.
 /// </summary>
 public enum UserRoleType
@@ -22,5 +22,11 @@ public enum UserRoleType
     /// Member role - standard family member permissions.
     /// Can view family data, manage personal tasks and calendars.
     /// </summary>
-    MEMBER
+    MEMBER,
+
+    /// <summary>
+    /// Child role - limited family member permissions.
+    /// Age-appropriate access to family features with parental oversight.
+    /// </summary>
+    CHILD
 }

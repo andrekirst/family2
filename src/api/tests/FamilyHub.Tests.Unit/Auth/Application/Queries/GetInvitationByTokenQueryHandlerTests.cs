@@ -30,7 +30,7 @@ public class GetInvitationByTokenQueryHandlerTests
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email,
-            UserRole.Member,
+            FamilyRole.Member,
             invitedByUserId,
             "Welcome!");
 
@@ -47,7 +47,7 @@ public class GetInvitationByTokenQueryHandlerTests
         result.Should().NotBeNull();
         result!.Id.Should().Be(invitation.Id.Value);
         result.Email.Should().Be(email.Value);
-        result.Role.Should().Be(UserRole.Member);
+        result.Role.Should().Be(FamilyRole.Member);
         result.Status.Should().Be(InvitationStatus.Pending);
         result.InvitedByUserId.Should().Be(invitedByUserId.Value);
         result.Message.Should().Be("Welcome!");
@@ -89,7 +89,7 @@ public class GetInvitationByTokenQueryHandlerTests
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email,
-            UserRole.Admin,
+            FamilyRole.Admin,
             invitedByUserId,
             "Important message");
 
@@ -106,7 +106,7 @@ public class GetInvitationByTokenQueryHandlerTests
         result.Should().NotBeNull();
         result!.Id.Should().Be(invitation.Id.Value);
         result.Email.Should().Be(email.Value);
-        result.Role.Should().Be(UserRole.Admin);
+        result.Role.Should().Be(FamilyRole.Admin);
         result.Status.Should().Be(InvitationStatus.Pending);
         result.InvitedByUserId.Should().Be(invitedByUserId.Value);
         result.InvitedAt.Should().Be(invitation.CreatedAt);

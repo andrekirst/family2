@@ -46,7 +46,7 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     /// <summary>
     /// User's role in the family.
     /// </summary>
-    public UserRole Role { get; private set; }
+    public FamilyRole Role { get; private set; }
 
     /// <summary>
     /// Soft delete timestamp
@@ -58,14 +58,14 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     {
         Email = Email.From("temp@temp.com"); // EF Core will set the actual value
         FamilyId = FamilyId.From(Guid.Empty); // EF Core will set the actual value
-        Role = UserRole.Member; // Default role
+        Role = FamilyRole.Member; // Default role
     }
 
-    private User(UserId id, Email email, FamilyId familyId, UserRole? role = null) : base(id)
+    private User(UserId id, Email email, FamilyId familyId, FamilyRole? role = null) : base(id)
     {
         Email = email;
         FamilyId = familyId;
-        Role = role ?? UserRole.Member;
+        Role = role ?? FamilyRole.Member;
         EmailVerified = false;
     }
 
@@ -75,7 +75,7 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     /// </summary>
     public static User CreateFromOAuth(Email email, string externalUserId, string externalProvider, FamilyId familyId)
     {
-        return new User(UserId.New(), email, familyId, UserRole.Owner)
+        return new User(UserId.New(), email, familyId, FamilyRole.Owner)
         {
             ExternalUserId = externalUserId,
             ExternalProvider = externalProvider,
@@ -125,16 +125,16 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     /// Gets the user's role in the given family.
     /// Returns Owner if the user owns the family, otherwise Member.
     /// </summary>
-    public UserRole GetRoleInFamily(Family family)
+    public FamilyRole GetRoleInFamily(Family family)
     {
-        return family.OwnerId == Id ? UserRole.Owner : UserRole.Member;
+        return family.OwnerId == Id ? FamilyRole.Owner : FamilyRole.Member;
     }
 
     /// <summary>
     /// Updates the user's role in their family.
     /// Used when accepting invitations or role changes.
     /// </summary>
-    public void UpdateRole(UserRole newRole)
+    public void UpdateRole(FamilyRole newRole)
     {
         Role = newRole;
     }

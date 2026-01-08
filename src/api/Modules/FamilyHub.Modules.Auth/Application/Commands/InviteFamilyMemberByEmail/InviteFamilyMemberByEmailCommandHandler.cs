@@ -3,6 +3,7 @@ using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain;
+using FamilyHub.SharedKernel.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -54,7 +55,7 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
         }
 
         // 4. Validate role (cannot invite as OWNER)
-        if (request.Role == UserRole.Owner)
+        if (request.Role == FamilyRole.Owner)
         {
             LogInvalidRole("OWNER");
             return Result.Failure<InviteFamilyMemberByEmailResult>("Cannot invite a member as OWNER. Each family can have only one owner.");

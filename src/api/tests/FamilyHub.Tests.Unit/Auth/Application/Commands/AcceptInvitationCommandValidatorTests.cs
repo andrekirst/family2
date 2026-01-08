@@ -31,7 +31,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            familyId, email, UserRole.Member, invitedByUserId);
+            familyId, email, FamilyRole.Member, invitedByUserId);
 
         var family = Family.Create(FamilyName.From("Test Family"), invitedByUserId);
         var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
@@ -68,7 +68,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            familyId, email, UserRole.Member, invitedByUserId);
+            familyId, email, FamilyRole.Member, invitedByUserId);
 
         var family = Family.Create(FamilyName.From("Test Family"), invitedByUserId);
         var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
@@ -143,7 +143,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            familyId, email, UserRole.Member, invitedByUserId);
+            familyId, email, FamilyRole.Member, invitedByUserId);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
         // Accept the invitation to change status
@@ -177,7 +177,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            familyId, email, UserRole.Member, invitedByUserId);
+            familyId, email, FamilyRole.Member, invitedByUserId);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
         // Cancel the invitation
@@ -215,7 +215,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            familyId, email, UserRole.Member, invitedByUserId);
+            familyId, email, FamilyRole.Member, invitedByUserId);
 
         // Set time provider to time AFTER expiration
         var expiredTime = invitation.ExpiresAt.AddDays(1);
@@ -255,7 +255,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var invitedByUserId = UserId.New();
 
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            familyId, invitationEmail, UserRole.Member, invitedByUserId);
+            familyId, invitationEmail, FamilyRole.Member, invitedByUserId);
 
         var user = User.CreateFromOAuth(userEmail, "ext-123", "zitadel", familyId);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
@@ -295,7 +295,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var invitedByUserId = UserId.New();
 
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            familyId, email, UserRole.Member, invitedByUserId);
+            familyId, email, FamilyRole.Member, invitedByUserId);
 
         var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);

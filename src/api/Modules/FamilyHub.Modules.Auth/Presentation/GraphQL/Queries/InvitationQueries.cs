@@ -34,7 +34,7 @@ public sealed class InvitationQueries
                 EmailVerified = u.EmailVerified,
                 Role = MapToGraphQLRole(u.Role),
                 JoinedAt = u.CreatedAt,
-                IsOwner = u.Role == UserRole.Owner,
+                IsOwner = u.Role == FamilyRole.Owner,
                 AuditInfo = new FamilyHub.Infrastructure.GraphQL.Types.AuditInfoType
                 {
                     CreatedAt = u.CreatedAt,
@@ -48,9 +48,9 @@ public sealed class InvitationQueries
     // InvitationsTypeExtensions as part of the schema restructuring (invitations.pending, invitations.byToken)
 
     /// <summary>
-    /// Maps domain UserRole to GraphQL UserRoleType.
+    /// Maps domain FamilyRole to GraphQL UserRoleType.
     /// </summary>
-    private static UserRoleType MapToGraphQLRole(UserRole domainRole)
+    private static UserRoleType MapToGraphQLRole(FamilyRole domainRole)
     {
         var roleValue = domainRole.Value.ToLowerInvariant();
         return roleValue switch

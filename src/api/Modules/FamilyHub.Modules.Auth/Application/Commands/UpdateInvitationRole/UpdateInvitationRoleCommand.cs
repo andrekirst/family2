@@ -12,7 +12,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 /// </summary>
 public record UpdateInvitationRoleCommand(
     InvitationId InvitationId,
-    UserRole NewRole
+    FamilyRole NewRole
 ) : IRequest<FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>>,
     IRequireAuthentication,
     IRequireFamilyContext,

@@ -50,11 +50,11 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
             .HasMaxLength(255)
             .IsRequired();
 
-        // Role (stored as varchar, not using Vogen for UserRole enum)
+        // Role (stored as varchar, not using Vogen for FamilyRole enum)
         builder.Property(i => i.Role)
             .HasConversion(
                 role => role.Value,
-                value => UserRole.From(value))
+                value => FamilyRole.From(value))
             .HasColumnName("role")
             .HasMaxLength(20)
             .IsRequired();

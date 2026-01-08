@@ -20,7 +20,7 @@ public class FamilyMemberInvitationTests
         // Arrange
         var familyId = FamilyId.New();
         var email = Email.From("john@example.com");
-        var role = UserRole.Member;
+        var role = FamilyRole.Member;
         var invitedBy = UserId.New();
 
         // Act
@@ -47,7 +47,7 @@ public class FamilyMemberInvitationTests
         // Arrange
         var familyId = FamilyId.New();
         var email = Email.From("john@example.com");
-        var role = UserRole.Member;
+        var role = FamilyRole.Member;
         var invitedBy = UserId.New();
         var message = "Welcome to the family!";
 
@@ -65,7 +65,7 @@ public class FamilyMemberInvitationTests
         // Arrange
         var familyId = FamilyId.New();
         var email = Email.From("john@example.com");
-        var role = UserRole.Member;
+        var role = FamilyRole.Member;
         var invitedBy = UserId.New();
 
         // Act
@@ -97,7 +97,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var userId = UserId.New();
         invitation.ClearDomainEvents(); // Clear creation event
 
@@ -115,7 +115,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var userId = UserId.New();
         invitation.ClearDomainEvents();
 
@@ -138,7 +138,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Accept(UserId.New());
 
         // Act
@@ -154,7 +154,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Cancel(UserId.New());
 
         // Act
@@ -178,7 +178,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var canceledBy = UserId.New();
         invitation.ClearDomainEvents();
 
@@ -194,7 +194,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var canceledBy = UserId.New();
         invitation.ClearDomainEvents();
 
@@ -217,7 +217,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Accept(UserId.New());
 
         // Act
@@ -233,7 +233,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Cancel(UserId.New());
 
         // Act
@@ -253,7 +253,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var originalToken = invitation.Token;
         var originalExpiresAt = invitation.ExpiresAt;
         invitation.ClearDomainEvents();
@@ -273,7 +273,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
 
         // Use reflection to set status and expiration
         var statusProperty = typeof(FamilyMemberInvitation).GetProperty("Status");
@@ -293,7 +293,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var resentBy = UserId.New();
         invitation.ClearDomainEvents();
 
@@ -314,7 +314,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Accept(UserId.New());
 
         // Act
@@ -330,7 +330,7 @@ public class FamilyMemberInvitationTests
     {
         // Arrange
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            FamilyId.New(), Email.From("test@example.com"), UserRole.Member, UserId.New());
+            FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Cancel(UserId.New());
 
         // Act

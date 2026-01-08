@@ -85,9 +85,9 @@ public sealed class InvitationsTypeExtensions
     }
 
     /// <summary>
-    /// Maps domain UserRole to GraphQL UserRoleType.
+    /// Maps domain FamilyRole to GraphQL UserRoleType.
     /// </summary>
-    private static UserRoleType MapToGraphQLRole(UserRole domainRole)
+    private static UserRoleType MapToGraphQLRole(FamilyRole domainRole)
     {
         var roleValue = domainRole.Value.ToLowerInvariant();
         return roleValue switch

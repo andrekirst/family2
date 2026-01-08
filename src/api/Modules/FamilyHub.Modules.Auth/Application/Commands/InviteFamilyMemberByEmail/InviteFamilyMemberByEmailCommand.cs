@@ -18,7 +18,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 public record InviteFamilyMemberByEmailCommand(
     FamilyId FamilyId,
     Email Email,
-    UserRole Role,
+    FamilyRole Role,
     string? Message = null
 ) : IRequest<FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>,
     IRequireAuthentication,

@@ -12,7 +12,7 @@ public record InviteFamilyMemberByEmailResult
 {
     public required InvitationId InvitationId { get; init; }
     public required Email Email { get; init; }
-    public required UserRole Role { get; init; }
+    public required FamilyRole Role { get; init; }
     public required InvitationToken Token { get; init; }
     public required InvitationDisplayCode DisplayCode { get; init; }
     public required DateTime ExpiresAt { get; init; }

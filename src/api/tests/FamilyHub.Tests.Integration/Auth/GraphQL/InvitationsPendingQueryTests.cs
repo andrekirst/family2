@@ -85,13 +85,13 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         var invitationA = FamilyMemberInvitation.CreateEmailInvitation(
             familyA.Id,
             Email.From("member-a@test.com"),
-            UserRole.Member,
+            FamilyRole.Member,
             userA.Id);
 
         var invitationB = FamilyMemberInvitation.CreateEmailInvitation(
             familyB.Id,
             Email.From("member-b@test.com"),
-            UserRole.Member,
+            FamilyRole.Member,
             userB.Id);
 
         await invitationRepo.AddAsync(invitationA);
@@ -153,7 +153,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         var invitationB = FamilyMemberInvitation.CreateEmailInvitation(
             familyB.Id,
             Email.From("secret@test.com"),
-            UserRole.Admin,
+            FamilyRole.Admin,
             userB.Id);
 
         await invitationRepo.AddAsync(invitationB);
@@ -210,19 +210,19 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         var invitation1 = FamilyMemberInvitation.CreateEmailInvitation(
             family.Id,
             Email.From("member1@test.com"),
-            UserRole.Member,
+            FamilyRole.Member,
             user.Id);
 
         var invitation2 = FamilyMemberInvitation.CreateEmailInvitation(
             family.Id,
             Email.From("member2@test.com"),
-            UserRole.Admin,
+            FamilyRole.Admin,
             user.Id);
 
         var invitation3 = FamilyMemberInvitation.CreateEmailInvitation(
             family.Id,
             Email.From("member3@test.com"),
-            UserRole.Member,
+            FamilyRole.Member,
             user.Id);
 
         await invitationRepo.AddAsync(invitation1);
@@ -353,7 +353,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             family.Id,
             Email.From("test@example.com"),
-            UserRole.Admin,
+            FamilyRole.Admin,
             user.Id,
             "Welcome to our family!");
 
@@ -423,10 +423,10 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         var family3 = await familyRepo.GetByIdAsync(user3.FamilyId);
 
         // Create invitations for each family
-        var inv1 = FamilyMemberInvitation.CreateEmailInvitation(family1!.Id, Email.From("f1@test.com"), UserRole.Member, user1.Id);
-        var inv2A = FamilyMemberInvitation.CreateEmailInvitation(family2!.Id, Email.From("f2a@test.com"), UserRole.Member, user2.Id);
-        var inv2B = FamilyMemberInvitation.CreateEmailInvitation(family2.Id, Email.From("f2b@test.com"), UserRole.Admin, user2.Id);
-        var inv3 = FamilyMemberInvitation.CreateEmailInvitation(family3!.Id, Email.From("f3@test.com"), UserRole.Member, user3.Id);
+        var inv1 = FamilyMemberInvitation.CreateEmailInvitation(family1!.Id, Email.From("f1@test.com"), FamilyRole.Member, user1.Id);
+        var inv2A = FamilyMemberInvitation.CreateEmailInvitation(family2!.Id, Email.From("f2a@test.com"), FamilyRole.Member, user2.Id);
+        var inv2B = FamilyMemberInvitation.CreateEmailInvitation(family2.Id, Email.From("f2b@test.com"), FamilyRole.Admin, user2.Id);
+        var inv3 = FamilyMemberInvitation.CreateEmailInvitation(family3!.Id, Email.From("f3@test.com"), FamilyRole.Member, user3.Id);
 
         await invitationRepo.AddAsync(inv1);
         await invitationRepo.AddAsync(inv2A);

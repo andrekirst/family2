@@ -1,3 +1,4 @@
+using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Domain.Constants;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
@@ -11,15 +12,16 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 public static class InvitationMapper
 {
     /// <summary>
-    /// Maps UserRole value object to UserRoleType GraphQL enum.
+    /// Maps FamilyRole value object to UserRoleType GraphQL enum.
     /// Throws InvalidOperationException for unknown roles (fail-fast approach).
     /// </summary>
-    public static UserRoleType AsRoleType(this UserRole role) =>
+    public static UserRoleType AsRoleType(this FamilyRole role) =>
         role.Value.ToLowerInvariant() switch
         {
-            UserRoleConstants.OwnerValue => UserRoleType.OWNER,
-            UserRoleConstants.AdminValue => UserRoleType.ADMIN,
-            UserRoleConstants.MemberValue => UserRoleType.MEMBER,
+            "owner" => UserRoleType.OWNER,
+            "admin" => UserRoleType.ADMIN,
+            "member" => UserRoleType.MEMBER,
+            "child" => UserRoleType.CHILD,
             _ => throw new InvalidOperationException($"Unknown role: {role.Value}")
         };
 
