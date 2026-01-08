@@ -1,6 +1,6 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
-using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FluentValidation;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;

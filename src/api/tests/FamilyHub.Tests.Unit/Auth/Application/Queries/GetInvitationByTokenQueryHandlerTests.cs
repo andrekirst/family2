@@ -1,6 +1,8 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
@@ -27,7 +29,7 @@ public class GetInvitationByTokenQueryHandlerTests
         var familyId = FamilyId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email,
             FamilyRole.Member,
@@ -62,7 +64,7 @@ public class GetInvitationByTokenQueryHandlerTests
         var token = InvitationToken.Generate();
 
         repository.GetByTokenAsync(token, Arg.Any<CancellationToken>())
-            .Returns((FamilyMemberInvitation?)null);
+            .Returns((FamilyDomain.FamilyMemberInvitation?)null);
 
         var query = new GetInvitationByTokenQuery(token);
         var handler = new GetInvitationByTokenQueryHandler(repository);
@@ -86,7 +88,7 @@ public class GetInvitationByTokenQueryHandlerTests
         var familyId = FamilyId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email,
             FamilyRole.Admin,
@@ -127,7 +129,7 @@ public class GetInvitationByTokenQueryHandlerTests
         var token = InvitationToken.Generate();
 
         repository.GetByTokenAsync(token, Arg.Any<CancellationToken>())
-            .Returns((FamilyMemberInvitation?)null);
+            .Returns((FamilyDomain.FamilyMemberInvitation?)null);
 
         var query = new GetInvitationByTokenQuery(token);
         var handler = new GetInvitationByTokenQueryHandler(repository);
@@ -151,7 +153,7 @@ public class GetInvitationByTokenQueryHandlerTests
         var cancellationToken = cts.Token;
 
         repository.GetByTokenAsync(token, cancellationToken)
-            .Returns((FamilyMemberInvitation?)null);
+            .Returns((FamilyDomain.FamilyMemberInvitation?)null);
 
         var query = new GetInvitationByTokenQuery(token);
         var handler = new GetInvitationByTokenQueryHandler(repository);

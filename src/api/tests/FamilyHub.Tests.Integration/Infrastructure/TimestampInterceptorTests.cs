@@ -1,3 +1,6 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
+using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.Infrastructure.Persistence.Interceptors;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
@@ -49,7 +52,7 @@ public class TimestampInterceptorTests : IAsyncLifetime
     {
         // Arrange
         var expectedTime = _timeProvider.GetUtcNow().UtcDateTime;
-        var family = Family.Create(FamilyName.From("Test Family"), UserId.New());
+        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), UserId.New());
 
         // Act
         _context.Families.Add(family);
@@ -64,7 +67,7 @@ public class TimestampInterceptorTests : IAsyncLifetime
     public async Task SaveChanges_ModifiedFamily_ShouldUpdateOnlyUpdatedAt()
     {
         // Arrange
-        var family = Family.Create(FamilyName.From("Original"), UserId.New());
+        var family = FamilyDomain.Family.Create(FamilyName.From("Original"), UserId.New());
         _context.Families.Add(family);
         await _context.SaveChangesAsync();
 
@@ -90,7 +93,7 @@ public class TimestampInterceptorTests : IAsyncLifetime
         var expectedTime = _timeProvider.GetUtcNow().UtcDateTime;
 
         // Create family first (required by foreign key constraint)
-        var family = Family.Create(FamilyName.From("Test Family"), UserId.New());
+        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), UserId.New());
         _context.Families.Add(family);
         await _context.SaveChangesAsync();
 
@@ -112,13 +115,13 @@ public class TimestampInterceptorTests : IAsyncLifetime
         var expectedTime = _timeProvider.GetUtcNow().UtcDateTime;
 
         // Create user's family first (required by foreign key constraint)
-        var userFamily = Family.Create(FamilyName.From("User Family"), UserId.New());
+        var userFamily = FamilyDomain.Family.Create(FamilyName.From("User Family"), UserId.New());
         _context.Families.Add(userFamily);
         await _context.SaveChangesAsync();
 
         var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel", userFamily.Id);
-        var family1 = Family.Create(FamilyName.From("Family 1"), user.Id);
-        var family2 = Family.Create(FamilyName.From("Family 2"), user.Id);
+        var family1 = FamilyDomain.Family.Create(FamilyName.From("Family 1"), user.Id);
+        var family2 = FamilyDomain.Family.Create(FamilyName.From("Family 2"), user.Id);
 
         // Act
         _context.Users.Add(user);

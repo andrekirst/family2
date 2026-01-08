@@ -1,3 +1,4 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Persistence;
@@ -24,7 +25,7 @@ public sealed class FamilyQueries
     [Authorize]
     [GraphQLDescription("Get the current user's family")]
     [UseProjection]
-    public async Task<Family?> Family(
+    public async Task<FamilyDomain.Family?> Family(
         [Service] AuthDbContext dbContext,
         [Service] ICurrentUserService currentUserService,
         CancellationToken cancellationToken)
@@ -42,7 +43,7 @@ public sealed class FamilyQueries
 
         // Return the user's family using the one-to-many relationship
         return await dbContext.Families
-            .Include(f => f.Members)
+            
             .FirstOrDefaultAsync(f => f.Id == user.FamilyId, cancellationToken);
     }
 }

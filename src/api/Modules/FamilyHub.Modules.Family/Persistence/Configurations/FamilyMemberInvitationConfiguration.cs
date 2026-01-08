@@ -1,18 +1,16 @@
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FamilyHub.Modules.Auth.Persistence.Configurations;
+namespace FamilyHub.Modules.Family.Persistence.Configurations;
 
 /// <summary>
-/// Entity Framework Core configuration for the FamilyDomain.FamilyMemberInvitation entity.
+/// Entity Framework Core configuration for the FamilyMemberInvitation entity.
 /// </summary>
-public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyDomain.FamilyMemberInvitation>
+public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<global::FamilyHub.Modules.Family.Domain.FamilyMemberInvitation>
 {
-    public void Configure(EntityTypeBuilder<FamilyDomain.FamilyMemberInvitation> builder)
+    public void Configure(EntityTypeBuilder<global::FamilyHub.Modules.Family.Domain.FamilyMemberInvitation> builder)
     {
         builder.ToTable("family_member_invitations", "auth");
 
@@ -39,7 +37,8 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
         builder.HasIndex(i => i.FamilyId)
             .HasDatabaseName("ix_family_member_invitations_family_id");
 
-        builder.HasOne<FamilyDomain.Family>()
+        // Foreign key to Family aggregate (within same module)
+        builder.HasOne<global::FamilyHub.Modules.Family.Domain.Family>()
             .WithMany()
             .HasForeignKey(i => i.FamilyId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -89,10 +88,8 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
         builder.HasIndex(i => i.InvitedByUserId)
             .HasDatabaseName("ix_family_member_invitations_invited_by_user_id");
 
-        builder.HasOne<User>()
-            .WithMany()
-            .HasForeignKey(i => i.InvitedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // NOTE: No foreign key to User (cross-module boundary)
+        // User aggregate is in Auth module, Family module should not have direct FK
 
         // Status with Vogen value converter
         builder.Property(i => i.Status)

@@ -1,3 +1,4 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -84,8 +85,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.FamilyId)
             .HasDatabaseName("ix_users_family_id");
 
-        builder.HasOne<Family>()
-            .WithMany(f => f.Members)
+        builder.HasOne<FamilyDomain.Family>()
+            .WithMany()
             .HasForeignKey(u => u.FamilyId)
             .OnDelete(DeleteBehavior.Restrict);
 

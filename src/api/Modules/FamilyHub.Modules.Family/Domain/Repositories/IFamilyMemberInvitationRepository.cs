@@ -1,7 +1,7 @@
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
-namespace FamilyHub.Modules.Auth.Domain.Repositories;
+namespace FamilyHub.Modules.Family.Domain.Repositories;
 
 /// <summary>
 /// Repository for family member invitations.

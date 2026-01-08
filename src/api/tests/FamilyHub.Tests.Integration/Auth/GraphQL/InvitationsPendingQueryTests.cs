@@ -1,3 +1,6 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
+using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -82,13 +85,13 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         familyB.Should().NotBeNull();
 
         // Create invitations for both families
-        var invitationA = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitationA = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyA.Id,
             Email.From("member-a@test.com"),
             FamilyRole.Member,
             userA.Id);
 
-        var invitationB = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitationB = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyB.Id,
             Email.From("member-b@test.com"),
             FamilyRole.Member,
@@ -150,7 +153,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         familyB.Should().NotBeNull();
 
         // Create invitation ONLY for Family B
-        var invitationB = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitationB = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyB.Id,
             Email.From("secret@test.com"),
             FamilyRole.Admin,
@@ -207,19 +210,19 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         family.Should().NotBeNull();
 
         // Create multiple invitations for the same family
-        var invitation1 = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation1 = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             family.Id,
             Email.From("member1@test.com"),
             FamilyRole.Member,
             user.Id);
 
-        var invitation2 = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation2 = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             family.Id,
             Email.From("member2@test.com"),
             FamilyRole.Admin,
             user.Id);
 
-        var invitation3 = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation3 = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             family.Id,
             Email.From("member3@test.com"),
             FamilyRole.Member,
@@ -350,7 +353,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         var family = await familyRepo.GetByIdAsync(user.FamilyId);
         family.Should().NotBeNull();
 
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             family.Id,
             Email.From("test@example.com"),
             FamilyRole.Admin,
@@ -423,10 +426,10 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         var family3 = await familyRepo.GetByIdAsync(user3.FamilyId);
 
         // Create invitations for each family
-        var inv1 = FamilyMemberInvitation.CreateEmailInvitation(family1!.Id, Email.From("f1@test.com"), FamilyRole.Member, user1.Id);
-        var inv2A = FamilyMemberInvitation.CreateEmailInvitation(family2!.Id, Email.From("f2a@test.com"), FamilyRole.Member, user2.Id);
-        var inv2B = FamilyMemberInvitation.CreateEmailInvitation(family2.Id, Email.From("f2b@test.com"), FamilyRole.Admin, user2.Id);
-        var inv3 = FamilyMemberInvitation.CreateEmailInvitation(family3!.Id, Email.From("f3@test.com"), FamilyRole.Member, user3.Id);
+        var inv1 = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(family1!.Id, Email.From("f1@test.com"), FamilyRole.Member, user1.Id);
+        var inv2A = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(family2!.Id, Email.From("f2a@test.com"), FamilyRole.Member, user2.Id);
+        var inv2B = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(family2.Id, Email.From("f2b@test.com"), FamilyRole.Admin, user2.Id);
+        var inv3 = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(family3!.Id, Email.From("f3@test.com"), FamilyRole.Member, user3.Id);
 
         await invitationRepo.AddAsync(inv1);
         await invitationRepo.AddAsync(inv2A);

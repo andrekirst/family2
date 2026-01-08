@@ -69,9 +69,8 @@ public static class AuthModuleServiceRegistration
 
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IFamilyRepository, FamilyRepository>();
-        services.AddScoped<IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
         services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
+        // NOTE: IFamilyRepository and IFamilyMemberInvitationRepository are registered in Family module
 
         // Zitadel OAuth Configuration
         services.Configure<ZitadelSettings>(configuration.GetSection(ZitadelSettings.SectionName));

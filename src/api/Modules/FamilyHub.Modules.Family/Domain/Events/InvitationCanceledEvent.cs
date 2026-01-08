@@ -1,18 +1,18 @@
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
-namespace FamilyHub.Modules.Auth.Domain.Events;
+namespace FamilyHub.Modules.Family.Domain.Events;
 
 /// <summary>
-/// Domain event raised when an invitation is accepted.
-/// Published when a user accepts an email-based invitation.
+/// Domain event raised when an invitation is canceled.
+/// Published when a family admin cancels a pending invitation.
 /// </summary>
-public sealed class InvitationAcceptedEvent(
+public sealed class InvitationCanceledEvent(
     int eventVersion,
     InvitationId invitationId,
     FamilyId familyId,
-    UserId userId,
-    DateTime acceptedAt)
+    UserId canceledByUserId,
+    DateTime canceledAt)
     : DomainEvent
 {
     /// <summary>
@@ -21,7 +21,7 @@ public sealed class InvitationAcceptedEvent(
     public int EventVersion { get; } = eventVersion;
 
     /// <summary>
-    /// Invitation that was accepted.
+    /// Invitation that was canceled.
     /// </summary>
     public InvitationId InvitationId { get; } = invitationId;
 
@@ -31,12 +31,12 @@ public sealed class InvitationAcceptedEvent(
     public FamilyId FamilyId { get; } = familyId;
 
     /// <summary>
-    /// User who accepted the invitation.
+    /// User who canceled the invitation.
     /// </summary>
-    public UserId UserId { get; } = userId;
+    public UserId CanceledByUserId { get; } = canceledByUserId;
 
     /// <summary>
-    /// When the invitation was accepted.
+    /// When the invitation was canceled.
     /// </summary>
-    public DateTime AcceptedAt { get; } = acceptedAt;
+    public DateTime CanceledAt { get; } = canceledAt;
 }

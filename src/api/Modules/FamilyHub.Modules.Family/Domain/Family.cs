@@ -1,14 +1,14 @@
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
-namespace FamilyHub.Modules.Auth.Domain;
+namespace FamilyHub.Modules.Family.Domain;
 
 /// <summary>
 /// Family aggregate root representing a family group.
 /// </summary>
 public class Family : AggregateRoot<FamilyId>, ISoftDeletable
 {
-    private readonly List<User> _members = [];
+    private readonly List<UserId> _memberIds = [];
 
     /// <summary>
     /// Family name (e.g., "Smith Family").
@@ -26,9 +26,9 @@ public class Family : AggregateRoot<FamilyId>, ISoftDeletable
     public DateTime? DeletedAt { get; set; }
 
     /// <summary>
-    /// Family members (navigation property for EF Core).
+    /// Family member IDs (for tracking relationships without circular dependencies).
     /// </summary>
-    public IReadOnlyCollection<User> Members => _members.AsReadOnly();
+    public IReadOnlyCollection<UserId> MemberIds => _memberIds.AsReadOnly();
 
     // Private constructor for EF Core
     private Family() : base(FamilyId.From(Guid.Empty))
@@ -95,5 +95,5 @@ public class Family : AggregateRoot<FamilyId>, ISoftDeletable
     /// <summary>
     /// Gets the number of members in this family.
     /// </summary>
-    public int GetMemberCount() => _members.Count;
+    public int GetMemberCount() => _memberIds.Count;
 }

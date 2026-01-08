@@ -1,3 +1,6 @@
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
+using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Json;
@@ -134,7 +137,7 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
         var email = $"existing-{testId}@example.com";
 
         // Create family first (required by foreign key constraint)
-        var family = Family.Create(FamilyName.From($"Existing Family {testId}"), UserId.New());
+        var family = FamilyDomain.Family.Create(FamilyName.From($"Existing Family {testId}"), UserId.New());
         await familyRepository.AddAsync(family);
         await unitOfWork.SaveChangesAsync();
 

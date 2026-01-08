@@ -1,5 +1,8 @@
 using FamilyHub.Infrastructure.GraphQL.Extensions;
 using FamilyHub.Infrastructure.Persistence.Extensions;
+using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Persistence;
+using FamilyHub.Modules.Family.Persistence.Repositories;
 using FamilyHub.SharedKernel.Application.Behaviors;
 using HotChocolate.Execution.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -27,25 +30,28 @@ public static class FamilyModuleServiceRegistration
         // Register TimeProvider for timestamp management
         services.AddSingleton(TimeProvider.System);
 
-        // TODO: Register DbContext when Persistence layer is implemented
-        // services.AddPooledDbContextFactory<FamilyDbContext>((sp, options) =>
-        // {
-        //     var connectionString = configuration.GetConnectionString("FamilyHubDb");
-        //     options.UseNpgsql(connectionString, npgsqlOptions =>
-        //         {
-        //             npgsqlOptions.MigrationsAssembly(typeof(FamilyDbContext).Assembly.GetName().Name);
-        //         })
-        //         .UseSnakeCaseNamingConvention()
-        //         .AddTimestampInterceptor(sp);
-        // });
+        // Register DbContext (using "auth" schema for Phase 0 safety strategy)
+        services.AddPooledDbContextFactory<FamilyDbContext>((sp, options) =>
+        {
+            var connectionString = configuration.GetConnectionString("FamilyHubDb");
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    // CRITICAL: Specify migrations assembly explicitly for integration tests
+                    npgsqlOptions.MigrationsAssembly(typeof(FamilyDbContext).Assembly.GetName().Name);
+                })
+                .UseSnakeCaseNamingConvention()
+                .AddTimestampInterceptor(sp);
+        });
 
-        // services.AddScoped(sp =>
-        // {
-        //     var factory = sp.GetRequiredService<IDbContextFactory<FamilyDbContext>>();
-        //     return factory.CreateDbContext();
-        // });
+        services.AddScoped(sp =>
+        {
+            var factory = sp.GetRequiredService<IDbContextFactory<FamilyDbContext>>();
+            return factory.CreateDbContext();
+        });
 
-        // TODO: Register repositories when Domain layer is implemented
+        // Repositories
+        services.AddScoped<IFamilyRepository, FamilyRepository>();
+        services.AddScoped<IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
 
         // MediatR - Command/Query handlers
         services.AddMediatR(cfg =>
@@ -85,14 +91,8 @@ public static class FamilyModuleServiceRegistration
         this IRequestExecutorBuilder builder,
         ILoggerFactory? loggerFactory = null)
     {
-        // TODO: Register DbContext factory when Persistence layer is implemented
-        // return builder
-        //     .RegisterDbContextFactory<FamilyDbContext>()
-        //     .AddTypeExtensionsFromAssemblies(
-        //         [typeof(FamilyModuleServiceRegistration).Assembly],
-        //         loggerFactory);
-
         return builder
+            .RegisterDbContextFactory<FamilyDbContext>()
             .AddTypeExtensionsFromAssemblies(
                 [typeof(FamilyModuleServiceRegistration).Assembly],
                 loggerFactory);

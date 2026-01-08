@@ -1,3 +1,4 @@
+using FamilyHub.Modules.Family.Domain.Repositories;
 using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
@@ -8,6 +9,7 @@ using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
 
 namespace FamilyHub.Tests.Unit.Auth.Application;
 
@@ -69,7 +71,7 @@ public class CreateFamilyCommandHandlerTests
         userContext.UserId.Returns(user.Id);
 
         familyRepository
-            .When(x => x.AddAsync(Arg.Any<Family>(), Arg.Any<CancellationToken>()))
+            .When(x => x.AddAsync(Arg.Any<FamilyDomain.Family>(), Arg.Any<CancellationToken>()))
             .Do(_ => callOrder.Add("AddFamily"));
 
         unitOfWork
@@ -109,7 +111,7 @@ public class CreateFamilyCommandHandlerTests
 
         // Assert
         await familyRepository.Received(1).AddAsync(
-            Arg.Is<Family>(f =>
+            Arg.Is<FamilyDomain.Family>(f =>
                 f.Name == familyName &&
                 f.OwnerId == user.Id),
             Arg.Any<CancellationToken>());
@@ -153,7 +155,7 @@ public class CreateFamilyCommandHandlerTests
 
         // Verify family was added
         await familyRepository.Received(1).AddAsync(
-            Arg.Is<Family>(f => f.Name.Value == "New Family" && f.OwnerId == user.Id),
+            Arg.Is<FamilyDomain.Family>(f => f.Name.Value == "New Family" && f.OwnerId == user.Id),
             Arg.Any<CancellationToken>());
 
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -216,7 +218,7 @@ public class CreateFamilyCommandHandlerTests
         await sut.Handle(command, cancellationToken);
 
         // Assert
-        await familyRepository.Received(1).AddAsync(Arg.Any<Family>(), cancellationToken);
+        await familyRepository.Received(1).AddAsync(Arg.Any<FamilyDomain.Family>(), cancellationToken);
         await unitOfWork.Received(1).SaveChangesAsync(cancellationToken);
     }
 
@@ -247,7 +249,7 @@ public class CreateFamilyCommandHandlerTests
         result.Name.Value.Should().Be(expectedTrimmedName);
 
         await familyRepository.Received(1).AddAsync(
-            Arg.Is<Family>(f => f.Name == expectedTrimmedName),
+            Arg.Is<FamilyDomain.Family>(f => f.Name == expectedTrimmedName),
             Arg.Any<CancellationToken>());
     }
 

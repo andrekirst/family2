@@ -1,4 +1,4 @@
-using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetUserFamilies;

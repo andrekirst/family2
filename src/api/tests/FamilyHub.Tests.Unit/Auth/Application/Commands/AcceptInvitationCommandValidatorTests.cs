@@ -1,13 +1,14 @@
+using FamilyHub.Modules.Family.Domain.Repositories;
 using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Unit.Fixtures;
 using FluentAssertions;
 using NSubstitute;
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
 
 namespace FamilyHub.Tests.Unit.Auth.Application.Commands;
 
@@ -30,10 +31,10 @@ public sealed class AcceptInvitationCommandValidatorTests
         var familyId = FamilyId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId, email, FamilyRole.Member, invitedByUserId);
 
-        var family = Family.Create(FamilyName.From("Test Family"), invitedByUserId);
+        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), invitedByUserId);
         var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
@@ -67,10 +68,10 @@ public sealed class AcceptInvitationCommandValidatorTests
         var familyId = FamilyId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId, email, FamilyRole.Member, invitedByUserId);
 
-        var family = Family.Create(FamilyName.From("Test Family"), invitedByUserId);
+        var family = FamilyDomain.Family.Create(FamilyName.From("Test Family"), invitedByUserId);
         var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
@@ -112,7 +113,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
         invitationRepository.GetByTokenAsync(token, Arg.Any<CancellationToken>())
-            .Returns((FamilyMemberInvitation?)null);
+            .Returns((FamilyDomain.FamilyMemberInvitation?)null);
 
         var validator = new AcceptInvitationCommandValidator(
             invitationRepository, familyRepository, userContext, timeProvider, validationCache);
@@ -142,7 +143,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var familyId = FamilyId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId, email, FamilyRole.Member, invitedByUserId);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
@@ -176,7 +177,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var familyId = FamilyId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId, email, FamilyRole.Member, invitedByUserId);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
@@ -214,7 +215,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var familyId = FamilyId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId, email, FamilyRole.Member, invitedByUserId);
 
         // Set time provider to time AFTER expiration
@@ -254,7 +255,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var userEmail = Email.From("different@example.com");
         var invitedByUserId = UserId.New();
 
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId, invitationEmail, FamilyRole.Member, invitedByUserId);
 
         var user = User.CreateFromOAuth(userEmail, "ext-123", "zitadel", familyId);
@@ -294,7 +295,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
 
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyDomain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId, email, FamilyRole.Member, invitedByUserId);
 
         var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
@@ -305,7 +306,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         invitationRepository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
             .Returns(invitation);
         familyRepository.GetByIdAsync(familyId, Arg.Any<CancellationToken>())
-            .Returns((Family?)null);
+            .Returns((FamilyDomain.Family?)null);
 
         var validator = new AcceptInvitationCommandValidator(
             invitationRepository, familyRepository, userContext, timeProvider, validationCache);

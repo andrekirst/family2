@@ -1,17 +1,15 @@
-using FamilyHub.Modules.Auth.Domain;
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FamilyHub.Modules.Auth.Persistence.Configurations;
+namespace FamilyHub.Modules.Family.Persistence.Configurations;
 
 /// <summary>
 /// Entity Framework Core configuration for the Family entity.
 /// </summary>
-public class FamilyConfiguration : IEntityTypeConfiguration<FamilyDomain.Family>
+public class FamilyConfiguration : IEntityTypeConfiguration<global::FamilyHub.Modules.Family.Domain.Family>
 {
-    public void Configure(EntityTypeBuilder<FamilyDomain.Family> builder)
+    public void Configure(EntityTypeBuilder<global::FamilyHub.Modules.Family.Domain.Family> builder)
     {
         builder.ToTable("families", "auth");
 
@@ -58,5 +56,8 @@ public class FamilyConfiguration : IEntityTypeConfiguration<FamilyDomain.Family>
 
         // Ignore domain events collection
         builder.Ignore(f => f.DomainEvents);
+
+        // Ignore MemberIds collection (no navigation property to User in Family module)
+        builder.Ignore(f => f.MemberIds);
     }
 }

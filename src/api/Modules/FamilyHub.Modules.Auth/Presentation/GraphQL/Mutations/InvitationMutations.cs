@@ -5,7 +5,7 @@ using FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 using FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 // using FamilyHub.Modules.Auth.Application.Commands.ResendInvitation; // TODO: Implement ResendInvitation command
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;

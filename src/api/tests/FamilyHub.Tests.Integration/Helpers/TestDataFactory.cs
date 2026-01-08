@@ -1,5 +1,7 @@
-using FamilyHub.Modules.Auth.Domain;
+using FamilyDomain = FamilyHub.Modules.Family.Domain;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -36,7 +38,7 @@ public static class TestDataFactory
         var familyName = $"{emailPrefix} Family {testId}";
 
         // Create family first (required by foreign key constraint)
-        var family = Family.Create(FamilyName.From(familyName), UserId.New()); // Temp owner
+        var family = FamilyDomain.Family.Create(FamilyName.From(familyName), UserId.New()); // Temp owner
         await familyRepository.AddAsync(family);
         await unitOfWork.SaveChangesAsync();
 
@@ -70,7 +72,7 @@ public static class TestDataFactory
     /// var family = await TestDataFactory.CreateFamilyAsync(mediator, familyRepo, user.Id);
     /// // family.Name => "Test Family a1b2c3d4"
     /// </example>
-    public static async Task<Family> CreateFamilyAsync(
+    public static async Task<FamilyDomain.Family> CreateFamilyAsync(
         IMediator mediator,
         IFamilyRepository familyRepository,
         UserId ownerId,
@@ -102,7 +104,7 @@ public static class TestDataFactory
     /// var (user, family) = await TestDataFactory.CreateUserWithFamilyAsync(
     ///     mediator, userRepo, familyRepo, unitOfWork, emailPrefix: "owner");
     /// </example>
-    public static async Task<(User user, Family family)> CreateUserWithFamilyAsync(
+    public static async Task<(User user, FamilyDomain.Family family)> CreateUserWithFamilyAsync(
         IMediator mediator,
         IUserRepository userRepository,
         IFamilyRepository familyRepository,

@@ -1,7 +1,7 @@
-namespace FamilyHub.Modules.Auth.Domain.Constants;
+namespace FamilyHub.Modules.Family.Domain.Constants;
 
 /// <summary>
-/// Invitation status constants for the Auth module.
+/// Invitation status constants for the Family module.
 /// Centralizes status names to prevent string typos and ensure consistency.
 /// </summary>
 public static class InvitationStatusConstants

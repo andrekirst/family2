@@ -1,15 +1,15 @@
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain;
+using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
-namespace FamilyHub.Modules.Auth.Persistence.Repositories;
+namespace FamilyHub.Modules.Family.Persistence.Repositories;
 
 /// <summary>
 /// EF Core implementation of the FamilyMemberInvitation repository.
 /// </summary>
-public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IFamilyMemberInvitationRepository
+public sealed class FamilyMemberInvitationRepository(FamilyDbContext context) : IFamilyMemberInvitationRepository
 {
     /// <inheritdoc />
     public async Task<FamilyMemberInvitation?> GetByIdAsync(InvitationId id, CancellationToken cancellationToken = default)
@@ -73,10 +73,17 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     /// <inheritdoc />
     public async Task<bool> IsUserMemberOfFamilyAsync(FamilyId familyId, Email email, CancellationToken cancellationToken = default)
     {
-        return await context.Users
-            .AnyAsync(
-                u => u.FamilyId == familyId && u.Email == email,
-                cancellationToken);
+        // NOTE: This query needs to check the auth.users table
+        // Since we don't have User entity in Family module, we use raw SQL with FormattableString
+        FormattableString sql = $@"
+            SELECT EXISTS(
+                SELECT 1 FROM auth.users
+                WHERE family_id = {familyId.Value} AND email = {email.Value}
+            )";
+
+        return await context.Database
+            .SqlQuery<bool>(sql)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     /// <inheritdoc />
