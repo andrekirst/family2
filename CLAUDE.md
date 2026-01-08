@@ -117,6 +117,8 @@ PostToolUse hooks run Prettier+ESLint (TypeScript) and dotnet format (C#) automa
 
 **Labels:** 60+ labels across Type, Phase, Service, Status, Priority, Domain, Effort, Special categories
 
+**Issue Management:** See [CONTRIBUTING.md](CONTRIBUTING.md) for comprehensive guide on issue creation, dependencies, lifecycle, and best practices
+
 **Guide:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
@@ -208,5 +210,5 @@ Types: feat, fix, docs, style, refactor, test, chore
 
 ---
 
-**Last updated:** 2026-01-07
-**Version:** 4.1.0 (Added comprehensive coding standards)
+**Last updated:** 2026-01-08
+**Version:** 4.3.0 (Moved issue handling to CONTRIBUTING.md, cleaned up CLAUDE.md)

@@ -32,6 +32,145 @@ Create an issue when you want to:
 3. **Review the Implementation Roadmap** (`/docs/implementation-roadmap.md`) - understand which phase it fits
 4. **Read relevant documentation** in `/docs/` folder
 
+### Issue Dependencies & Blocking Relationships
+
+When creating issues that depend on other issues, use dependency syntax in the issue description:
+
+**Syntax:**
+
+- `**Depends on:** #X` - GitHub automatically creates "blocked by" relationships
+- `**Blocks:** #Y` - Explicitly mark what this issue blocks
+- Multiple dependencies: `**Depends on:** #32, #33, #34`
+
+**Benefits:**
+
+- Visual dependency graph in GitHub UI sidebar (⛔ blocked by, 🔒 blocking)
+- Prevents premature work on blocked issues
+- Clear implementation order for issue chains
+- Automatic relationship creation via GitHub API
+
+**Example:**
+
+```markdown
+## Description
+Extract the Family domain from Auth module to a dedicated module.
+
+**Depends on:** #32
+
+## Tasks
+- [ ] Create Family module structure
+- [ ] Move domain entities
+- [ ] Update tests
+```
+
+**Result:** GitHub automatically creates the blocking relationship:
+
+- Issue #32: 🔒 **Blocking** Issue #33
+- Issue #33: ⛔ **Blocked by** Issue #32
+
+**Use cases:**
+
+- Sequential refactoring tasks (Issue #32-#37 Family domain extraction)
+- Feature prerequisites (auth before user features)
+- Infrastructure before application code
+- Test setup before test implementation
+
+### Issue Lifecycle
+
+All issues follow this lifecycle:
+
+1. **Triage** (`status-triage`) - Newly created, needs review
+   - Team reviews for validity, priority, and scope
+   - Labels assigned (type, phase, service, priority)
+
+2. **Planning** (`status-planning`) - Approved, needs detailed planning
+   - Technical design and approach defined
+   - Dependencies identified
+   - Subtasks created for epics
+
+3. **Ready** (`status-ready`) - Ready for development
+   - All blockers resolved
+   - Clear acceptance criteria
+   - Assigned to developer
+
+4. **In Progress** (`status-in-progress`) - Active development
+   - Work has started
+   - PR linked when created
+
+5. **Review** - PR submitted, awaiting approval
+   - CI checks passing
+   - Code review in progress
+
+6. **Done** (`status-done`) - Merged and closed
+   - PR merged to main
+   - Acceptance criteria met
+
+### Best Practices for Issue Descriptions
+
+**DO:**
+
+- ✅ Use the appropriate issue template
+- ✅ Provide clear, specific titles (e.g., "Add medication reminder notifications" not "Fix stuff")
+- ✅ Include acceptance criteria with checkboxes
+- ✅ Link to related issues, PRs, or documentation
+- ✅ Add relevant labels (type, phase, service, priority)
+- ✅ Specify dependencies with `**Depends on:**` syntax
+- ✅ Keep scope focused (break large issues into smaller ones)
+
+**DON'T:**
+
+- ❌ Create vague titles ("Improve calendar" - improve how?)
+- ❌ Mix multiple unrelated changes in one issue
+- ❌ Skip the issue template without good reason
+- ❌ Forget to tag the appropriate service/domain
+- ❌ Leave dependencies implicit (use `**Depends on:**`)
+
+### Using Labels Effectively
+
+**Required labels for every issue:**
+
+1. **Type** - `type-feature`, `type-bug`, `type-tech-debt`, etc.
+2. **Phase** - `phase-0` through `phase-6` (align with roadmap)
+3. **Service** - `service-auth`, `service-calendar`, etc. (bounded context)
+
+**Optional but recommended:**
+
+4. **Priority** - `priority-p0` (critical) through `priority-p3` (low)
+5. **Effort** - `effort-s`, `effort-m`, `effort-l`, `effort-xl`
+6. **Domain** - `domain-event-chain`, `domain-security`, etc.
+
+**See full label reference below.**
+
+### Issue Assignment & Tracking
+
+**Single developer project:**
+
+- Assign issues to yourself when starting work
+- Update status labels as you progress
+- Link PRs to issues (use "Closes #X" in PR description)
+
+**Multi-developer teams:**
+
+- Coordinate on who takes what
+- Use GitHub Projects board for tracking
+- Comment on blockers promptly
+
+### Issue Updates & Communication
+
+**When to comment:**
+
+- Progress updates on long-running issues
+- Discovered blockers or changed scope
+- Questions for maintainers or stakeholders
+- Linking related work
+
+**When to close:**
+
+- ✅ Acceptance criteria met
+- ✅ PR merged
+- ✅ Tests passing in production
+- ✅ Documentation updated
+
 ---
 
 ## Issue Templates
