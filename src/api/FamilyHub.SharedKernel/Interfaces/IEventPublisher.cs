@@ -1,5 +1,3 @@
-using FamilyHub.SharedKernel.Domain;
-
 namespace FamilyHub.SharedKernel.Interfaces;
 
 /// <summary>

@@ -1,5 +1,4 @@
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetUserFamilies;
 

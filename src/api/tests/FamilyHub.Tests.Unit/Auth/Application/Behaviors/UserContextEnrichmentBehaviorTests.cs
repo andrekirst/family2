@@ -1,4 +1,3 @@
-using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
 using FamilyHub.Modules.Auth.Application.Services;
@@ -6,10 +5,8 @@ using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using NSubstitute;
 
 namespace FamilyHub.Tests.Unit.Auth.Application.Behaviors;
 

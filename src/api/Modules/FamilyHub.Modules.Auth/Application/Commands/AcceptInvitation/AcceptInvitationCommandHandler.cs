@@ -1,11 +1,7 @@
 using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Auth.Application.Abstractions;
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain;
-using MediatR;
-using Microsoft.Extensions.Logging;
-using DomainResult = FamilyHub.SharedKernel.Domain.Result;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 

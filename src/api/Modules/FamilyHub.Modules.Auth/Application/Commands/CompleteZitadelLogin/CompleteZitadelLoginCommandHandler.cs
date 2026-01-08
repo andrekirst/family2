@@ -6,8 +6,6 @@ using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using IdentityModel.Client;
-using MediatR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using FamilyHub.Modules.Auth.Infrastructure.Extensions;

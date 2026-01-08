@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace FamilyHub.Modules.Auth.Infrastructure.Messaging;
 
 /// <summary>

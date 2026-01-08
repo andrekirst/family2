@@ -1,7 +1,6 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Quartz;
 
 namespace FamilyHub.Modules.Auth.Infrastructure.BackgroundJobs;

@@ -1,14 +1,8 @@
 using FamilyHub.Modules.Family.Domain.Repositories;
-using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.SharedKernel.Domain.Exceptions;
-using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
 using FamilyDomain = FamilyHub.Modules.Family.Domain;
 
 namespace FamilyHub.Tests.Unit.Auth.Application;

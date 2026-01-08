@@ -2,8 +2,6 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
-using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Auth.Application.Behaviors;
 

@@ -3,7 +3,6 @@ using FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using HotChocolate.Authorization;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 

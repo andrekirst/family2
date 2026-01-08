@@ -3,8 +3,6 @@ using System.Text;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Infrastructure.OAuth;
 using IdentityModel;
-using MediatR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetAuthUrl;

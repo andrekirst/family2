@@ -1,4 +1,3 @@
-using FamilyHub.Modules.Auth.Domain;
 using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;

@@ -1,5 +1,4 @@
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 

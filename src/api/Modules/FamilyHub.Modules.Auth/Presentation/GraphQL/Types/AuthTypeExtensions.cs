@@ -1,6 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Queries.GetAuthUrl;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 

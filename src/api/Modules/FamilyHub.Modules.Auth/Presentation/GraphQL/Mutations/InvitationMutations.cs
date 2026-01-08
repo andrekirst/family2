@@ -1,20 +1,15 @@
-using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 using FamilyHub.Modules.Auth.Application.Commands.CancelInvitation;
 using FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 using FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 // using FamilyHub.Modules.Auth.Application.Commands.ResendInvitation; // TODO: Implement ResendInvitation command
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 using HotChocolate.Authorization;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
 

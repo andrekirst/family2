@@ -1,19 +1,12 @@
 using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
-using System.Net;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
-using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
 using FamilyHub.Tests.Integration.Infrastructure;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace FamilyHub.Tests.Integration.Auth.GraphQL;
 

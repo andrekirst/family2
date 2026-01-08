@@ -1,6 +1,4 @@
 using FamilyDomain = FamilyHub.Modules.Family.Domain;
-using HotChocolate.Types;
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Infrastructure.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 

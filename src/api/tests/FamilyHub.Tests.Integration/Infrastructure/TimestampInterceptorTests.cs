@@ -1,15 +1,10 @@
 using FamilyDomain = FamilyHub.Modules.Family.Domain;
-using FamilyHub.Modules.Family.Domain.Repositories;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.Infrastructure.Persistence.Interceptors;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Unit.Fixtures;
-using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
 

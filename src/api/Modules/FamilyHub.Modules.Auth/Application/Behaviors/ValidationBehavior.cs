@@ -1,6 +1,3 @@
-using FluentValidation;
-using MediatR;
-
 namespace FamilyHub.Modules.Auth.Application.Behaviors;
 
 /// <summary>

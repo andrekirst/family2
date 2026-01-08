@@ -1,5 +1,4 @@
 using FamilyDomain = FamilyHub.Modules.Family.Domain;
-using FamilyHub.Modules.Family.Domain.Events;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 

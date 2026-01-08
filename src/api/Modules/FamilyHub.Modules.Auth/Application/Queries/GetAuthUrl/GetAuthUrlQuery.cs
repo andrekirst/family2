@@ -1,5 +1,3 @@
-using MediatR;
-
 namespace FamilyHub.Modules.Auth.Application.Queries.GetAuthUrl;
 
 /// <summary>

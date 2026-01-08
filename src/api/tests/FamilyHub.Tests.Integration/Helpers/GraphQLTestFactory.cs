@@ -9,11 +9,7 @@ using FamilyHub.Tests.Integration.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using NSubstitute;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace FamilyHub.Tests.Integration.Helpers;
 

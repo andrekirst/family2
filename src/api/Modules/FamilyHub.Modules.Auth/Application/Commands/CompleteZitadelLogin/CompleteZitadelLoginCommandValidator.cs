@@ -1,5 +1,3 @@
-using FluentValidation;
-
 namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 
 /// <summary>

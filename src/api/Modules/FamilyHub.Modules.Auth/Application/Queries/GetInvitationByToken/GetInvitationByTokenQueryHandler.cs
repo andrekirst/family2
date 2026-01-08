@@ -1,5 +1,4 @@
 using FamilyHub.Modules.Family.Domain.Repositories;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 

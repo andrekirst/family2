@@ -1,6 +1,4 @@
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types;
-using Microsoft.Extensions.Logging;
 using System.Reflection;
 
 namespace FamilyHub.Infrastructure.GraphQL.Extensions;

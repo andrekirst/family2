@@ -1,6 +1,5 @@
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 
 namespace FamilyHub.Tests.Unit;
 

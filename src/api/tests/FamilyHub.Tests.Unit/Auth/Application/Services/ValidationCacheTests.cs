@@ -1,8 +1,6 @@
-using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FluentAssertions;
 using FamilyDomain = FamilyHub.Modules.Family.Domain;
 
 namespace FamilyHub.Tests.Unit.Auth.Application.Services;

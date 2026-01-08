@@ -1,7 +1,5 @@
 using FamilyHub.Modules.Family.Domain.Constants;
-using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.Modules.Auth.Domain.Constants;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 

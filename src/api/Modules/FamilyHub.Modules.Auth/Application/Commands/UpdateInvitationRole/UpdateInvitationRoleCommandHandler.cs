@@ -1,10 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 

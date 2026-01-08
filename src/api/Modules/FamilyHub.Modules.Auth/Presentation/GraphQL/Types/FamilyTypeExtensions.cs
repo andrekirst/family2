@@ -3,7 +3,6 @@ using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
-using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;

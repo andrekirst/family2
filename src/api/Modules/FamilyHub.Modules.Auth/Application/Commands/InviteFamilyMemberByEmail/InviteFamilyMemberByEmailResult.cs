@@ -1,4 +1,3 @@
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 

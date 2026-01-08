@@ -13,13 +13,11 @@ using FamilyHub.Modules.Auth.Infrastructure.Persistence;
 using FamilyHub.Modules.Auth.Infrastructure.Services;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Auth.Persistence.Repositories;
-using FluentValidation;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Auth;
 

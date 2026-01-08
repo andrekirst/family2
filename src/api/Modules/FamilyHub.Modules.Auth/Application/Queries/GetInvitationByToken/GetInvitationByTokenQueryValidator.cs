@@ -1,7 +1,6 @@
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FluentValidation;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 

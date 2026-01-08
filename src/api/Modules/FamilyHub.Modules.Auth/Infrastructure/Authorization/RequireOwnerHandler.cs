@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace FamilyHub.Modules.Auth.Infrastructure.Authorization;

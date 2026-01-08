@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace FamilyHub.Infrastructure.GraphQL.Interceptors;

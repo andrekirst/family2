@@ -1,5 +1,4 @@
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FluentAssertions;
 
 namespace FamilyHub.Tests.Unit.Auth.Domain.ValueObjects;
 

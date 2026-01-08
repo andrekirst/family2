@@ -1,21 +1,15 @@
 using FamilyDomain = FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Family.Domain.Repositories;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
-using System.Net.Http.Json;
 using System.Security.Claims;
 using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
 using FamilyHub.Tests.Integration.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using NSubstitute;
 
 namespace FamilyHub.Tests.Integration.Auth;
 
