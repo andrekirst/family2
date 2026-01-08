@@ -7,6 +7,7 @@ using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.Modules.Family;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
@@ -39,8 +40,9 @@ try
         });
     });
 
-    // Auth Module registration
+    // Module registrations
     builder.Services.AddAuthModule(builder.Configuration);
+    builder.Services.AddFamilyModule(builder.Configuration);
 
     // Quartz.NET Background Jobs Configuration
     builder.Services.AddQuartz(q =>
@@ -103,6 +105,8 @@ try
     // Module-based GraphQL type extension registration
     // Register Auth module GraphQL types (DbContext, type extensions, custom types)
     graphqlBuilder.AddAuthModuleGraphQlTypes();
+    // Register Family module GraphQL types
+    graphqlBuilder.AddFamilyModuleGraphQlTypes();
 
     // Explicitly register type extensions from Auth module
     graphqlBuilder
@@ -126,6 +130,10 @@ try
     // graphqlBuilder.AddCalendarModuleGraphQLTypes();
     // graphqlBuilder.AddTaskModuleGraphQLTypes();
     // graphqlBuilder.AddShoppingModuleGraphQLTypes();
+    // graphqlBuilder.AddMealPlanningModuleGraphQLTypes();
+    // graphqlBuilder.AddHealthModuleGraphQLTypes();
+    // graphqlBuilder.AddFinanceModuleGraphQLTypes();
+    // graphqlBuilder.AddCommunicationModuleGraphQLTypes();
 
     // JWT Authentication configuration (Zitadel OAuth)
     var zitadelSettings = builder.Configuration.GetSection(ZitadelSettings.SectionName).Get<ZitadelSettings>()
