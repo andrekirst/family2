@@ -1,6 +1,7 @@
 using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
+using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
@@ -94,8 +95,8 @@ public sealed class AcceptInvitationCommandValidatorTests
         result.IsValid.Should().BeTrue();
 
         // Verify cache was populated
-        validationCache.Received(1).Set($"FamilyMemberInvitation:{invitation.Token.Value}", invitation);
-        validationCache.Received(1).Set($"Family:{familyId.Value}", family);
+        validationCache.Received(1).Set(CacheKeyBuilder.FamilyMemberInvitation(invitation.Token.Value), invitation);
+        validationCache.Received(1).Set(CacheKeyBuilder.Family(familyId.Value), family);
     }
 
     #endregion
