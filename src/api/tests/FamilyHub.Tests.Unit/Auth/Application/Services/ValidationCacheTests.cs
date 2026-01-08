@@ -240,7 +240,7 @@ public sealed class ValidationCacheTests
         var family = Family.Create(FamilyName.From("Test Family"), userId);
         var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
-            familyId, email, UserRole.Member, invitedByUserId);
+            familyId, email, FamilyRole.Member, invitedByUserId);
 
         // Act
         cache.Set($"Family:{familyId.Value}", family);

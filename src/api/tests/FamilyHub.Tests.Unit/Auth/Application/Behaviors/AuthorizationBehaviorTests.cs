@@ -155,7 +155,7 @@ public sealed partial class AuthorizationBehaviorTests
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
         userContext.FamilyId.Returns(familyId);
-        userContext.Role.Returns(UserRole.Owner);
+        userContext.Role.Returns(FamilyRole.Owner);
         userContext.Email.Returns(email);
 
         var successResult = AuthorizationResult.Success();
@@ -182,7 +182,7 @@ public sealed partial class AuthorizationBehaviorTests
             Arg.Is<ClaimsPrincipal>(p =>
                 p.FindFirst(ClaimTypes.NameIdentifier)!.Value == userId.Value.ToString() &&
                 p.FindFirst(ClaimTypes.Email)!.Value == email.Value &&
-                p.FindFirst(ClaimTypes.Role)!.Value == UserRole.Owner.Value),
+                p.FindFirst(ClaimTypes.Role)!.Value == FamilyRole.Owner.Value),
             Arg.Any<object?>(),
             "RequireOwner");
         await next.Received(1)();
@@ -201,12 +201,12 @@ public sealed partial class AuthorizationBehaviorTests
         var familyId = FamilyId.From(Guid.NewGuid());
 
         var user = User.CreateFromOAuth(email, "ext-456", "zitadel", familyId);
-        user.UpdateRole(UserRole.Member);
+        user.UpdateRole(FamilyRole.Member);
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
         userContext.FamilyId.Returns(familyId);
-        userContext.Role.Returns(UserRole.Member);
+        userContext.Role.Returns(FamilyRole.Member);
         userContext.Email.Returns(email);
 
         var failureResult = AuthorizationResult.Failed();
@@ -255,12 +255,12 @@ public sealed partial class AuthorizationBehaviorTests
         var familyId = FamilyId.From(Guid.NewGuid());
 
         var user = User.CreateFromOAuth(email, "ext-789", "zitadel", familyId);
-        user.UpdateRole(UserRole.Admin);
+        user.UpdateRole(FamilyRole.Admin);
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
         userContext.FamilyId.Returns(familyId);
-        userContext.Role.Returns(UserRole.Admin);
+        userContext.Role.Returns(FamilyRole.Admin);
         userContext.Email.Returns(email);
 
         var successResult = AuthorizationResult.Success();
@@ -284,7 +284,7 @@ public sealed partial class AuthorizationBehaviorTests
         // Assert
         result.Should().Be(expectedResult);
         await authorizationService.Received(1).AuthorizeAsync(
-            Arg.Is<ClaimsPrincipal>(p => p.FindFirst(ClaimTypes.Role)!.Value == UserRole.Admin.Value),
+            Arg.Is<ClaimsPrincipal>(p => p.FindFirst(ClaimTypes.Role)!.Value == FamilyRole.Admin.Value),
             Arg.Any<object?>(),
             "RequireAdmin");
         await next.Received(1)();
@@ -303,12 +303,12 @@ public sealed partial class AuthorizationBehaviorTests
         var familyId = FamilyId.From(Guid.NewGuid());
 
         var user = User.CreateFromOAuth(email, "ext-999", "zitadel", familyId);
-        user.UpdateRole(UserRole.Member);
+        user.UpdateRole(FamilyRole.Member);
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
         userContext.FamilyId.Returns(familyId);
-        userContext.Role.Returns(UserRole.Member);
+        userContext.Role.Returns(FamilyRole.Member);
         userContext.Email.Returns(email);
 
         var failureResult = AuthorizationResult.Failed();
@@ -357,7 +357,7 @@ public sealed partial class AuthorizationBehaviorTests
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
         userContext.FamilyId.Returns(familyId);
-        userContext.Role.Returns(UserRole.Owner);
+        userContext.Role.Returns(FamilyRole.Owner);
         userContext.Email.Returns(email);
 
         var successResult = AuthorizationResult.Success();
@@ -381,7 +381,7 @@ public sealed partial class AuthorizationBehaviorTests
         // Assert
         result.Should().Be(expectedResult);
         await authorizationService.Received(1).AuthorizeAsync(
-            Arg.Is<ClaimsPrincipal>(p => p.FindFirst(ClaimTypes.Role)!.Value == UserRole.Owner.Value),
+            Arg.Is<ClaimsPrincipal>(p => p.FindFirst(ClaimTypes.Role)!.Value == FamilyRole.Owner.Value),
             Arg.Any<object?>(),
             "RequireOwnerOrAdmin");
         await next.Received(1)();
@@ -401,12 +401,12 @@ public sealed partial class AuthorizationBehaviorTests
         var familyId = FamilyId.From(Guid.NewGuid());
 
         var user = User.CreateFromOAuth(email, "ext-222", "zitadel", familyId);
-        user.UpdateRole(UserRole.Admin);
+        user.UpdateRole(FamilyRole.Admin);
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
         userContext.FamilyId.Returns(familyId);
-        userContext.Role.Returns(UserRole.Admin);
+        userContext.Role.Returns(FamilyRole.Admin);
         userContext.Email.Returns(email);
 
         var successResult = AuthorizationResult.Success();
@@ -430,7 +430,7 @@ public sealed partial class AuthorizationBehaviorTests
         // Assert
         result.Should().Be(expectedResult);
         await authorizationService.Received(1).AuthorizeAsync(
-            Arg.Is<ClaimsPrincipal>(p => p.FindFirst(ClaimTypes.Role)!.Value == UserRole.Admin.Value),
+            Arg.Is<ClaimsPrincipal>(p => p.FindFirst(ClaimTypes.Role)!.Value == FamilyRole.Admin.Value),
             Arg.Any<object?>(),
             "RequireOwnerOrAdmin");
         await next.Received(1)();
@@ -449,12 +449,12 @@ public sealed partial class AuthorizationBehaviorTests
         var familyId = FamilyId.From(Guid.NewGuid());
 
         var user = User.CreateFromOAuth(email, "ext-333", "zitadel", familyId);
-        user.UpdateRole(UserRole.Member);
+        user.UpdateRole(FamilyRole.Member);
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
         userContext.FamilyId.Returns(familyId);
-        userContext.Role.Returns(UserRole.Member);
+        userContext.Role.Returns(FamilyRole.Member);
         userContext.Email.Returns(email);
 
         var failureResult = AuthorizationResult.Failed();
@@ -536,7 +536,7 @@ public sealed partial class AuthorizationBehaviorTests
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
         userContext.FamilyId.Returns(familyId);
-        userContext.Role.Returns(UserRole.Owner);
+        userContext.Role.Returns(FamilyRole.Owner);
         userContext.Email.Returns(email);
 
         ClaimsPrincipal? capturedPrincipal = null;
@@ -562,7 +562,7 @@ public sealed partial class AuthorizationBehaviorTests
         capturedPrincipal.Should().NotBeNull();
         capturedPrincipal!.FindFirst(ClaimTypes.NameIdentifier)!.Value.Should().Be(userId.Value.ToString());
         capturedPrincipal!.FindFirst(ClaimTypes.Email)!.Value.Should().Be(email.Value);
-        capturedPrincipal!.FindFirst(ClaimTypes.Role)!.Value.Should().Be(UserRole.Owner.Value);
+        capturedPrincipal!.FindFirst(ClaimTypes.Role)!.Value.Should().Be(FamilyRole.Owner.Value);
     }
 
     #endregion

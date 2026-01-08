@@ -1,6 +1,7 @@
 using HotChocolate.Types;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Infrastructure.GraphQL.Types;
+using FamilyHub.SharedKernel.Domain.ValueObjects;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
@@ -74,9 +75,9 @@ public class FamilyType : ObjectType<Family>
     }
 
     /// <summary>
-    /// Maps domain UserRole to GraphQL UserRoleType.
+    /// Maps domain FamilyRole to GraphQL UserRoleType.
     /// </summary>
-    private static UserRoleType MapToGraphQLRole(Domain.ValueObjects.UserRole domainRole)
+    private static UserRoleType MapToGraphQLRole(FamilyRole domainRole)
     {
         var roleValue = domainRole.Value.ToLowerInvariant();
         return roleValue switch

@@ -2,6 +2,7 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.SharedKernel.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -36,7 +37,7 @@ public sealed partial class UpdateInvitationRoleCommandHandler(
         }
 
         // 2. Validate new role (cannot update to OWNER)
-        if (request.NewRole == UserRole.Owner)
+        if (request.NewRole == FamilyRole.Owner)
         {
             LogInvalidRole("OWNER");
             return SharedKernel.Domain.Result.Failure<UpdateInvitationRoleResult>("Cannot update invitation role to OWNER.");

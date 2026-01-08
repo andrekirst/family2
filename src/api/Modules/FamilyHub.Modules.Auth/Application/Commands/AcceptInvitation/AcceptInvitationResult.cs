@@ -22,5 +22,5 @@ public record AcceptInvitationResult
     /// <summary>
     /// The role assigned to the user.
     /// </summary>
-    public required UserRole Role { get; init; }
+    public required FamilyRole Role { get; init; }
 }

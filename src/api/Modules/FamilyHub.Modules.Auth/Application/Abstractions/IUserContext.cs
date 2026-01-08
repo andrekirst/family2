@@ -21,11 +21,11 @@ public interface IUserContext
     // Convenience properties for common access patterns
     UserId UserId => User.Id;
     FamilyId FamilyId => User.FamilyId;
-    UserRole Role => User.Role;
+    FamilyRole Role => User.Role;
     Email Email => User.Email;
 
     // Role helper methods
-    bool IsOwner => User.Role == UserRole.Owner;
-    bool IsAdmin => User.Role == UserRole.Admin;
+    bool IsOwner => User.Role == FamilyRole.Owner;
+    bool IsAdmin => User.Role == FamilyRole.Admin;
     bool IsOwnerOrAdmin => IsOwner || IsAdmin;
 }

@@ -44,7 +44,7 @@ public sealed class InvitationMutations
         var command = new InviteFamilyMemberByEmailCommand(
             FamilyId: FamilyId.From(input.FamilyId),
             Email: Email.From(input.Email),
-            Role: UserRole.From(input.Role),
+            Role: FamilyRole.From(input.Role),
             Message: input.Message
         );
 
@@ -124,7 +124,7 @@ public sealed class InvitationMutations
     {
         var command = new UpdateInvitationRoleCommand(
             InvitationId: InvitationId.From(input.InvitationId),
-            NewRole: UserRole.From(input.NewRole)
+            NewRole: FamilyRole.From(input.NewRole)
         );
 
         var result = await mediator.Send(command, cancellationToken);

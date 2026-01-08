@@ -25,7 +25,7 @@ public class FamilyMemberInvitation : AggregateRoot<InvitationId>
     /// <summary>
     /// Role to be assigned when the invitation is accepted.
     /// </summary>
-    public UserRole Role { get; private set; }
+    public FamilyRole Role { get; private set; }
 
     /// <summary>
     /// Secure token for accepting the invitation.
@@ -69,7 +69,7 @@ public class FamilyMemberInvitation : AggregateRoot<InvitationId>
         Email = Email.From("placeholder@example.com"); // EF Core will set actual value
         Token = InvitationToken.Generate(); // Placeholder
         DisplayCode = InvitationDisplayCode.Generate(); // Placeholder
-        Role = UserRole.Member;
+        Role = FamilyRole.Member;
         Status = InvitationStatus.Pending;
     }
 
@@ -78,7 +78,7 @@ public class FamilyMemberInvitation : AggregateRoot<InvitationId>
         FamilyId = FamilyId.From(Guid.Empty);
         Token = InvitationToken.Generate();
         DisplayCode = InvitationDisplayCode.Generate();
-        Role = UserRole.Member;
+        Role = FamilyRole.Member;
         Status = InvitationStatus.Pending;
     }
 
@@ -88,7 +88,7 @@ public class FamilyMemberInvitation : AggregateRoot<InvitationId>
     public static FamilyMemberInvitation CreateEmailInvitation(
         FamilyId familyId,
         Email email,
-        UserRole role,
+        FamilyRole role,
         UserId invitedByUserId,
         string? message = null)
     {
@@ -223,14 +223,14 @@ public class FamilyMemberInvitation : AggregateRoot<InvitationId>
     /// Updates the role of a pending invitation.
     /// </summary>
     /// <exception cref="InvalidOperationException">If invitation is not pending or role is OWNER.</exception>
-    public void UpdateRole(UserRole newRole)
+    public void UpdateRole(FamilyRole newRole)
     {
         if (Status != InvitationStatus.Pending)
         {
             throw new InvalidOperationException("Can only update role of pending invitations.");
         }
 
-        if (newRole == UserRole.Owner)
+        if (newRole == FamilyRole.Owner)
         {
             throw new InvalidOperationException("Cannot update role to OWNER.");
         }

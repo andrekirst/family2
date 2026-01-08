@@ -13,7 +13,7 @@ public sealed class FamilyMemberInvitedEvent(
     InvitationId invitationId,
     FamilyId familyId,
     Email email,
-    UserRole role,
+    FamilyRole role,
     InvitationToken token,
     DateTime expiresAt,
     UserId invitedByUserId,
@@ -43,7 +43,7 @@ public sealed class FamilyMemberInvitedEvent(
     /// <summary>
     /// Role to be assigned when the invitation is accepted.
     /// </summary>
-    public UserRole Role { get; } = role;
+    public FamilyRole Role { get; } = role;
 
     /// <summary>
     /// Secure token for accepting the invitation.

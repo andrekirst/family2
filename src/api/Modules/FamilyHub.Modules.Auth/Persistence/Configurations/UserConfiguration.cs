@@ -91,7 +91,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         // Role with Vogen value converter
         builder.Property(u => u.Role)
-            .HasConversion(new Domain.ValueObjects.UserRole.EfCoreValueConverter())
+            .HasConversion(new FamilyRole.EfCoreValueConverter())
             .HasColumnName("role")
             .HasMaxLength(50)
             .IsRequired();

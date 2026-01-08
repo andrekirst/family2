@@ -36,13 +36,13 @@ public class GetPendingInvitationsQueryHandlerTests
         var invitation1 = FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email1,
-            UserRole.Member,
+            FamilyRole.Member,
             invitedByUserId);
 
         var invitation2 = FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email2,
-            UserRole.Admin,
+            FamilyRole.Admin,
             invitedByUserId,
             "Welcome to the family!");
 
@@ -62,13 +62,13 @@ public class GetPendingInvitationsQueryHandlerTests
 
         // Verify first invitation mapping
         result.Invitations[0].Email.Should().Be("test1@example.com");
-        result.Invitations[0].Role.Should().Be(UserRole.Member);
+        result.Invitations[0].Role.Should().Be(FamilyRole.Member);
         result.Invitations[0].InvitedByUserId.Should().Be(invitedByUserId.Value);
         result.Invitations[0].Message.Should().BeNull();
 
         // Verify second invitation mapping
         result.Invitations[1].Email.Should().Be("test2@example.com");
-        result.Invitations[1].Role.Should().Be(UserRole.Admin);
+        result.Invitations[1].Role.Should().Be(FamilyRole.Admin);
         result.Invitations[1].Message.Should().Be("Welcome to the family!");
     }
 
@@ -110,7 +110,7 @@ public class GetPendingInvitationsQueryHandlerTests
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email,
-            UserRole.Member,
+            FamilyRole.Member,
             invitedByUserId,
             "Test message");
 
@@ -131,7 +131,7 @@ public class GetPendingInvitationsQueryHandlerTests
         var dto = result.Invitations[0];
         dto.Id.Should().Be(invitation.Id.Value);
         dto.Email.Should().Be(email.Value);
-        dto.Role.Should().Be(UserRole.Member);
+        dto.Role.Should().Be(FamilyRole.Member);
         dto.Status.Should().Be(InvitationStatus.Pending);
         dto.InvitedByUserId.Should().Be(invitedByUserId.Value);
         dto.InvitedAt.Should().Be(invitation.CreatedAt);

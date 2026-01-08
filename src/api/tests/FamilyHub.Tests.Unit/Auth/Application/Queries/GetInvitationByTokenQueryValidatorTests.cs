@@ -29,7 +29,7 @@ public class GetInvitationByTokenQueryValidatorTests
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email,
-            UserRole.Member,
+            FamilyRole.Member,
             invitedByUserId);
 
         repository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
@@ -80,7 +80,7 @@ public class GetInvitationByTokenQueryValidatorTests
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             familyId,
             email,
-            UserRole.Member,
+            FamilyRole.Member,
             invitedByUserId);
 
         // Mark invitation as accepted (not pending)

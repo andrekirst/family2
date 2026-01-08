@@ -10,5 +10,5 @@ namespace FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 public record UpdateInvitationRoleResult
 {
     public required InvitationId InvitationId { get; init; }
-    public required UserRole Role { get; init; }
+    public required FamilyRole Role { get; init; }
 }

@@ -52,7 +52,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
-            UserRole.Member,
+            FamilyRole.Member,
             owner.Id,
             "Welcome to the family!");
 
@@ -112,7 +112,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
-            UserRole.Admin,
+            FamilyRole.Admin,
             owner.Id);
 
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
@@ -158,7 +158,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var updatedUser = await verifyUserRepo.GetByIdAsync(invitee.Id, CancellationToken.None);
         updatedUser.Should().NotBeNull();
         updatedUser!.FamilyId.Should().Be(owner.FamilyId);
-        updatedUser.Role.Should().Be(UserRole.Admin);
+        updatedUser.Role.Should().Be(FamilyRole.Admin);
     }
 
     #endregion
@@ -221,7 +221,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
-            UserRole.Member,
+            FamilyRole.Member,
             owner.Id);
 
         // Use reflection to set expiration date in the past
@@ -285,7 +285,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             invitationEmail,
-            UserRole.Member,
+            FamilyRole.Member,
             owner.Id);
 
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
@@ -347,7 +347,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
-            UserRole.Member,
+            FamilyRole.Member,
             owner.Id);
 
         // Accept invitation first
@@ -400,7 +400,7 @@ public sealed class AcceptInvitationMutationTests : IDisposable
         var invitation = FamilyMemberInvitation.CreateEmailInvitation(
             owner.FamilyId!,
             inviteeEmail,
-            UserRole.Member,
+            FamilyRole.Member,
             owner.Id);
 
         // Cancel invitation
