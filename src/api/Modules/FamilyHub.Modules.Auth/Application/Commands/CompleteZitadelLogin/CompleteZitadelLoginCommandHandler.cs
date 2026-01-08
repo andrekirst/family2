@@ -128,7 +128,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
         var familyName = FamilyName.From($"{displayName} Family");
 
         // Create personal family first (need ID for user)
-        var personalFamily = Family.Domain.Family.Create(familyName, UserId.New()); // Temporary owner
+        var personalFamily = FamilyHub.Modules.Family.Domain.Family.Create(familyName, UserId.New()); // Temporary owner
         await familyRepository.AddAsync(personalFamily, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

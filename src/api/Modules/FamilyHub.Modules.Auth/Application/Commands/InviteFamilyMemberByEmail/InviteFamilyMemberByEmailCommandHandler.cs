@@ -58,7 +58,7 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
         }
 
         // 5. Create invitation using domain factory method
-        var invitation = Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyHub.Modules.Family.Domain.FamilyMemberInvitation.CreateEmailInvitation(
             familyId: request.FamilyId,
             email: request.Email,
             role: request.Role,

@@ -27,7 +27,7 @@ public sealed partial class CreateFamilyCommandHandler(
         LogCreatingFamilyFamilynameForUserUserid(request.Name, userId.Value);
 
         // 1. Create new family using domain factory method
-        var family = Family.Domain.Family.Create(request.Name, userId);
+        var family = FamilyHub.Modules.Family.Domain.Family.Create(request.Name, userId);
 
         // 2. Update user's FamilyId to point to new family
         user.UpdateFamily(family.Id);
