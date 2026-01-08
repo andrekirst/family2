@@ -58,5 +58,8 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.0" />
     <!-- Value Objects -->
     <PackageVersion Include="Vogen" Version="8.0.4" />
+    <!-- Source Generators -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
   </ItemGroup>
 </Project>

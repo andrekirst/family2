@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Validators;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Adapters;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using Microsoft.AspNetCore.Authorization;
 
@@ -38,7 +38,7 @@ public sealed class UserQueries
             throw new InvalidOperationException($"User with ID {authenticatedUserId.Value} not found.");
         }
 
-        // Map to GraphQL type using adapter (now with full entity data)
-        return UserAuthenticationAdapter.ToGraphQLType(user);
+        // Map to GraphQL type using mapper
+        return UserMapper.AsGraphQLType(user);
     }
 }

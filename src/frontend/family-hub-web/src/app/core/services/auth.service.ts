@@ -5,11 +5,11 @@ import { WindowRef } from './window-ref.service';
 import {
   AuthState,
   GetZitadelAuthUrlResponse,
-  CompleteZitadelLoginResponse
+  CompleteZitadelLoginResponse,
 } from '../models/auth.models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private readonly TOKEN_KEY = 'family_hub_access_token';
@@ -74,10 +74,7 @@ export class AuthService {
         }
       `;
 
-      const response = await this.graphql.query<GetZitadelAuthUrlResponse>(
-        query,
-        { loginHint }
-      );
+      const response = await this.graphql.query<GetZitadelAuthUrlResponse>(query, { loginHint });
       const { authorizationUrl, codeVerifier, state } = response.auth.url;
 
       // Store PKCE verifier and state in sessionStorage (temporary)
@@ -123,22 +120,35 @@ export class AuthService {
               expiresAt
             }
             errors {
-              message
-              code
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
+              ... on UnauthorizedError {
+                message
+              }
+              ... on InternalServerError {
+                message
+              }
             }
           }
         }
       `;
 
-      const response = await this.graphql.mutate<CompleteZitadelLoginResponse>(
-        mutation,
-        {
-          input: {
-            authorizationCode: code,
-            codeVerifier: codeVerifier,
-          },
-        }
-      );
+      const response = await this.graphql.mutate<CompleteZitadelLoginResponse>(mutation, {
+        input: {
+          authorizationCode: code,
+          codeVerifier: codeVerifier,
+        },
+      });
 
       const result = response.completeZitadelLogin;
 
@@ -173,7 +183,6 @@ export class AuthService {
         accessToken: accessToken,
         expiresAt: new Date(expiresAt),
       });
-
     } catch (error) {
       // Clean up on error
       sessionStorage.clear();

@@ -13,7 +13,6 @@ using FamilyHub.Modules.Auth.Infrastructure.Persistence;
 using FamilyHub.Modules.Auth.Infrastructure.Services;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Auth.Persistence.Repositories;
-using FamilyHub.SharedKernel.Presentation.GraphQL;
 using FluentValidation;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Authorization;
@@ -87,9 +86,8 @@ public static class AuthModuleServiceRegistration
         // between validators and handlers
         services.AddScoped<IValidationCache, ValidationCache>();
 
-        // GraphQL Mutation Handler & Payload Factories
-        services.AddScoped<IMutationHandler, MutationHandler>();
-        services.AddPayloadFactoriesFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
+        // GraphQL Mutation Conventions (Hot Chocolate v14 native pattern)
+        // No manual registration needed - mutations use [UseMutationConvention] attribute
 
         // HTTP Client for OAuth token exchange
         services.AddHttpClient();

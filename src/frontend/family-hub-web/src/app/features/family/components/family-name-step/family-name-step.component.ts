@@ -54,12 +54,7 @@ export interface FamilyNameStepData {
 @Component({
   selector: 'app-family-name-step',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    InputComponent,
-    IconComponent
-  ],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, IconComponent],
   template: `
     <div class="space-y-6">
       <!-- Header Section -->
@@ -76,12 +71,9 @@ export interface FamilyNameStepData {
       </div>
 
       <!-- Form Section -->
-      <form [formGroup]="familyForm" class="space-y-4">
+      <form [formGroup]="familyForm" (ngSubmit)="onSubmit()" class="space-y-4">
         <div>
-          <label
-            for="family-name-input"
-            class="block text-sm font-medium text-gray-700 mb-2"
-          >
+          <label for="family-name-input" class="block text-sm font-medium text-gray-700 mb-2">
             Family Name <span class="text-red-600" aria-label="required">*</span>
           </label>
 
@@ -103,10 +95,12 @@ export interface FamilyNameStepData {
             </p>
           }
         </div>
+        <!-- Hidden submit button for Enter key handling -->
+        <button type="submit" class="sr-only" aria-hidden="true" tabindex="-1"></button>
       </form>
     </div>
   `,
-  styles: []
+  styles: [],
 })
 export class FamilyNameStepComponent implements OnInit {
   /**
@@ -132,11 +126,8 @@ export class FamilyNameStepComponent implements OnInit {
   familyForm = new FormGroup({
     name: new FormControl('', {
       nonNullable: true,
-      validators: [
-        Validators.required,
-        Validators.maxLength(50)
-      ]
-    })
+      validators: [Validators.required, Validators.maxLength(50)],
+    }),
   });
 
   /**
@@ -187,5 +178,25 @@ export class FamilyNameStepComponent implements OnInit {
     }
 
     return undefined;
+  }
+
+  /**
+   * Handles form submission (Enter key press).
+   * Triggers the wizard's Next/Submit button programmatically.
+   */
+  onSubmit(): void {
+    // Mark field as touched to trigger validation
+    this.familyForm.controls.name.markAsTouched();
+
+    // Find and click the wizard's Next/Submit button in the footer
+    // The button is the second button in the footer (first is Back, second is Next/Submit)
+    const buttons = document.querySelectorAll<HTMLButtonElement>(
+      'app-wizard footer app-button button'
+    );
+
+    if (buttons.length >= 2) {
+      // Click the second button (Next/Submit)
+      buttons[1].click();
+    }
   }
 }

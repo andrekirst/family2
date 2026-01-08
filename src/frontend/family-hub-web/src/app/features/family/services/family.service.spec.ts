@@ -11,10 +11,7 @@ describe('FamilyService', () => {
     const graphqlSpy = jasmine.createSpyObj('GraphQLService', ['query', 'mutate']);
 
     TestBed.configureTestingModule({
-      providers: [
-        FamilyService,
-        { provide: GraphQLService, useValue: graphqlSpy }
-      ]
+      providers: [FamilyService, { provide: GraphQLService, useValue: graphqlSpy }],
     });
 
     service = TestBed.inject(FamilyService);
@@ -63,13 +60,15 @@ describe('FamilyService', () => {
         name: 'Smith Family',
         auditInfo: {
           createdAt: '2025-12-30T00:00:00Z',
-          updatedAt: '2025-12-30T00:00:00Z'
-        }
+          updatedAt: '2025-12-30T00:00:00Z',
+        },
       };
 
-      graphqlService.query.and.returnValue(Promise.resolve({
-        family: mockFamily
-      }));
+      graphqlService.query.and.returnValue(
+        Promise.resolve({
+          family: mockFamily,
+        })
+      );
 
       await service.loadCurrentFamily();
 
@@ -80,9 +79,11 @@ describe('FamilyService', () => {
     });
 
     it('should handle null family (user has no family)', async () => {
-      graphqlService.query.and.returnValue(Promise.resolve({
-        family: null
-      }));
+      graphqlService.query.and.returnValue(
+        Promise.resolve({
+          family: null,
+        })
+      );
 
       await service.loadCurrentFamily();
 
@@ -138,16 +139,18 @@ describe('FamilyService', () => {
         name: 'New Family',
         auditInfo: {
           createdAt: '2025-12-30T00:00:00Z',
-          updatedAt: '2025-12-30T00:00:00Z'
-        }
+          updatedAt: '2025-12-30T00:00:00Z',
+        },
       };
 
-      graphqlService.mutate.and.returnValue(Promise.resolve({
-        createFamily: {
-          family: mockFamily,
-          errors: null
-        }
-      }));
+      graphqlService.mutate.and.returnValue(
+        Promise.resolve({
+          createFamily: {
+            createdFamily: mockFamily,
+            errors: null,
+          },
+        })
+      );
 
       await service.createFamily('New Family');
 
@@ -158,14 +161,14 @@ describe('FamilyService', () => {
     });
 
     it('should handle business logic errors', async () => {
-      graphqlService.mutate.and.returnValue(Promise.resolve({
-        createFamily: {
-          family: null,
-          errors: [
-            { message: 'User already has a family', code: 'FAMILY_ALREADY_EXISTS' }
-          ]
-        }
-      }));
+      graphqlService.mutate.and.returnValue(
+        Promise.resolve({
+          createFamily: {
+            family: null,
+            errors: [{ message: 'User already has a family', code: 'FAMILY_ALREADY_EXISTS' }],
+          },
+        })
+      );
 
       await service.createFamily('New Family');
 
@@ -186,14 +189,14 @@ describe('FamilyService', () => {
     });
 
     it('should handle empty family name validation', async () => {
-      graphqlService.mutate.and.returnValue(Promise.resolve({
-        createFamily: {
-          family: null,
-          errors: [
-            { message: 'Family name is required', code: 'VALIDATION_ERROR' }
-          ]
-        }
-      }));
+      graphqlService.mutate.and.returnValue(
+        Promise.resolve({
+          createFamily: {
+            family: null,
+            errors: [{ message: 'Family name is required', code: 'VALIDATION_ERROR' }],
+          },
+        })
+      );
 
       await service.createFamily('');
 
@@ -222,8 +225,8 @@ describe('FamilyService', () => {
           emailVerified: true,
           auditInfo: {
             createdAt: '2025-12-30T00:00:00Z',
-            updatedAt: '2025-12-30T00:00:00Z'
-          }
+            updatedAt: '2025-12-30T00:00:00Z',
+          },
         },
         {
           id: 'user-2',
@@ -232,14 +235,16 @@ describe('FamilyService', () => {
           emailVerified: true,
           auditInfo: {
             createdAt: '2025-12-30T00:00:00Z',
-            updatedAt: '2025-12-30T00:00:00Z'
-          }
-        }
+            updatedAt: '2025-12-30T00:00:00Z',
+          },
+        },
       ];
 
-      graphqlService.query.and.returnValue(Promise.resolve({
-        familyMembers: mockMembers
-      }));
+      graphqlService.query.and.returnValue(
+        Promise.resolve({
+          familyMembers: mockMembers,
+        })
+      );
 
       await service.loadFamilyMembers(mockFamilyId);
 
@@ -249,9 +254,11 @@ describe('FamilyService', () => {
     });
 
     it('should handle empty family members', async () => {
-      graphqlService.query.and.returnValue(Promise.resolve({
-        familyMembers: []
-      }));
+      graphqlService.query.and.returnValue(
+        Promise.resolve({
+          familyMembers: [],
+        })
+      );
 
       await service.loadFamilyMembers(mockFamilyId);
 
@@ -271,9 +278,11 @@ describe('FamilyService', () => {
     });
 
     it('should handle invalid family ID', async () => {
-      graphqlService.query.and.returnValue(Promise.resolve({
-        familyMembers: []
-      }));
+      graphqlService.query.and.returnValue(
+        Promise.resolve({
+          familyMembers: [],
+        })
+      );
 
       await service.loadFamilyMembers('invalid-id');
 
@@ -288,13 +297,15 @@ describe('FamilyService', () => {
         name: 'Test Family',
         auditInfo: {
           createdAt: '2025-12-30T00:00:00Z',
-          updatedAt: '2025-12-30T00:00:00Z'
-        }
+          updatedAt: '2025-12-30T00:00:00Z',
+        },
       };
 
-      graphqlService.query.and.returnValue(Promise.resolve({
-        family: mockFamily
-      }));
+      graphqlService.query.and.returnValue(
+        Promise.resolve({
+          family: mockFamily,
+        })
+      );
 
       await service.loadCurrentFamily();
 
@@ -302,9 +313,11 @@ describe('FamilyService', () => {
     });
 
     it('hasFamily should be false when currentFamily is null', async () => {
-      graphqlService.query.and.returnValue(Promise.resolve({
-        family: null
-      }));
+      graphqlService.query.and.returnValue(
+        Promise.resolve({
+          family: null,
+        })
+      );
 
       await service.loadCurrentFamily();
 
@@ -325,12 +338,14 @@ describe('FamilyService', () => {
         name: 'Success Family',
         auditInfo: {
           createdAt: '2025-12-30T00:00:00Z',
-          updatedAt: '2025-12-30T00:00:00Z'
-        }
+          updatedAt: '2025-12-30T00:00:00Z',
+        },
       };
-      graphqlService.query.and.returnValue(Promise.resolve({
-        family: mockFamily
-      }));
+      graphqlService.query.and.returnValue(
+        Promise.resolve({
+          family: mockFamily,
+        })
+      );
       await service.loadCurrentFamily();
 
       expect(service.error()).toBeNull();

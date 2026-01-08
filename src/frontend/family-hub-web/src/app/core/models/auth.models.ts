@@ -34,13 +34,50 @@ interface CompleteZitadelLoginUserGQL {
   };
 }
 
+/**
+ * Error types from Hot Chocolate Mutation Conventions (discriminated union)
+ */
+interface ValidationError {
+  __typename: 'ValidationError';
+  message: string;
+  field: string;
+}
+
+interface BusinessError {
+  __typename: 'BusinessError';
+  message: string;
+  code: string;
+}
+
+interface ValueObjectError {
+  __typename: 'ValueObjectError';
+  message: string;
+}
+
+interface UnauthorizedError {
+  __typename: 'UnauthorizedError';
+  message: string;
+}
+
+interface InternalServerError {
+  __typename: 'InternalServerError';
+  message: string;
+}
+
+type MutationError =
+  | ValidationError
+  | BusinessError
+  | ValueObjectError
+  | UnauthorizedError
+  | InternalServerError;
+
 export interface CompleteZitadelLoginResponse {
   completeZitadelLogin: {
-    authenticationResult?: {
+    authenticationResult: {
       user: CompleteZitadelLoginUserGQL;
       accessToken: string;
       expiresAt: string;
-    };
-    errors?: { message: string; code: string }[];
+    } | null;
+    errors: MutationError[];
   };
 }

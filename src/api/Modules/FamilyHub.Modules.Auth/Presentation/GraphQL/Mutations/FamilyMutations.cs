@@ -1,8 +1,9 @@
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.SharedKernel.Presentation.GraphQL;
+using FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 using MediatR;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
@@ -18,16 +19,28 @@ public sealed class FamilyMutations
     /// Authentication is validated in the handler via ICurrentUserService.
     /// Uses MediatR for command validation and execution.
     /// </summary>
-    public async Task<CreateFamilyPayload> CreateFamily(
+    [UseMutationConvention]
+    [Error(typeof(BusinessError))]
+    [Error(typeof(ValidationError))]
+    [Error(typeof(ValueObjectError))]
+    [Error(typeof(UnauthorizedError))]
+    [Error(typeof(InternalServerError))]
+    public async Task<CreatedFamilyDto> CreateFamily(
         CreateFamilyInput input,
-        [Service] IMutationHandler mutationHandler,
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        return await mutationHandler.Handle<CreateFamilyResult, CreateFamilyPayload>(async () =>
+        var command = new CreateFamilyCommand(FamilyName.From(input.Name));
+        var result = await mediator.Send(command, cancellationToken);
+
+        // Map result → return DTO directly
+        return new CreatedFamilyDto
         {
-            var command = new CreateFamilyCommand(FamilyName.From(input.Name));
-            return await mediator.Send(command, cancellationToken);
-        });
+            Id = result.FamilyId.Value,
+            Name = result.Name.Value,
+            OwnerId = result.OwnerId.Value,
+            CreatedAt = result.CreatedAt,
+            UpdatedAt = result.CreatedAt // New family, same as CreatedAt
+        };
     }
 }

@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore.Design;
 namespace FamilyHub.Modules.Auth.Persistence;
 
 /// <summary>
-/// Factory for creating AuthDbContext at design-time (used by EF Core migrations).
+/// Design-time factory for creating AuthDbContext instances.
+/// Required for EF Core tooling (migrations, database commands) to work correctly.
 /// </summary>
 public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
 {
@@ -12,10 +13,14 @@ public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
     {
         var optionsBuilder = new DbContextOptionsBuilder<AuthDbContext>();
 
-        // Use a connection string for design-time operations
-        // This will be replaced with the actual connection string from appsettings.json at runtime
-        // NOTE: No MigrationsAssembly needed - EF Core auto-discovers in same assembly
-        optionsBuilder.UseNpgsql("Host=localhost;Database=familyhub;Username=familyhub;Password=Dev123!")
+        // Use a dummy connection string for design-time operations
+        // The actual connection string comes from configuration at runtime
+        optionsBuilder.UseNpgsql("Host=localhost;Database=familyhub;Username=postgres;Password=postgres",
+            npgsqlOptions =>
+            {
+                // Specify migrations assembly explicitly
+                npgsqlOptions.MigrationsAssembly(typeof(AuthDbContext).Assembly.GetName().Name);
+            })
             .UseSnakeCaseNamingConvention();
 
         return new AuthDbContext(optionsBuilder.Options);

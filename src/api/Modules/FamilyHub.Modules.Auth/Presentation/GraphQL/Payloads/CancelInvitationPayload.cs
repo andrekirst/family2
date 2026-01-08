@@ -1,11 +1,10 @@
-using FamilyHub.SharedKernel.Presentation.GraphQL;
-
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 
 /// <summary>
 /// GraphQL payload for canceling an invitation.
 /// </summary>
-public sealed record CancelInvitationPayload : PayloadBase
+[Obsolete("Replaced by Hot Chocolate v14 Mutation Conventions. Remove after frontend migration.")]
+public sealed record CancelInvitationPayload
 {
     /// <summary>
     /// Indicates whether the cancellation was successful.
@@ -25,8 +24,15 @@ public sealed record CancelInvitationPayload : PayloadBase
     /// Constructor for error payload (called by factory).
     /// </summary>
     /// <param name="errors">List of errors that occurred</param>
-    public CancelInvitationPayload(IReadOnlyList<UserError> errors) : base(errors)
+    public CancelInvitationPayload(IReadOnlyList<UserError> errors)
     {
         IsSuccess = false;
+        Errors = errors;
     }
+
+    /// <summary>
+    /// List of errors that occurred during mutation execution.
+    /// Null or empty when the mutation succeeded.
+    /// </summary>
+    public IReadOnlyList<UserError>? Errors { get; init; }
 }

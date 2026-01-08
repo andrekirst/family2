@@ -30,11 +30,16 @@ interface GetFamilyMembersResponse {
 
 /**
  * GraphQL response type for createFamily mutation.
+ * Updated for Hot Chocolate v14 Mutation Conventions.
  */
 interface CreateFamilyResponse {
   createFamily: {
-    family: Family | null;
-    errors: { message: string; code?: string }[] | null;
+    createdFamily: Family | null;
+    errors: (
+      | { __typename: 'ValidationError'; message: string; field: string }
+      | { __typename: 'BusinessError'; message: string; code: string }
+      | { __typename: 'ValueObjectError'; message: string }
+    )[];
   };
 }
 
@@ -54,7 +59,7 @@ interface CreateFamilyResponse {
  * ```
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FamilyService {
   private graphqlService = inject(GraphQLService);
@@ -139,23 +144,32 @@ export class FamilyService {
       const mutation = `
         mutation CreateFamily($input: CreateFamilyInput!) {
           createFamily(input: $input) {
-            family {
+            createdFamily {
               id
               name
               createdAt
             }
             errors {
-              message
-              code
+              __typename
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValueObjectError {
+                message
+              }
             }
           }
         }
       `;
 
-      const response = await this.graphqlService.mutate<CreateFamilyResponse>(
-        mutation,
-        { input: { name } }
-      );
+      const response = await this.graphqlService.mutate<CreateFamilyResponse>(mutation, {
+        input: { name },
+      });
 
       // Check for business logic errors (e.g., user already has family)
       if (response.createFamily.errors && response.createFamily.errors.length > 0) {
@@ -164,8 +178,8 @@ export class FamilyService {
       }
 
       // Set currentFamily to newly created family
-      if (response.createFamily.family) {
-        this.currentFamily.set(response.createFamily.family);
+      if (response.createFamily.createdFamily) {
+        this.currentFamily.set(response.createFamily.createdFamily);
       }
     } catch (err) {
       this.handleError(err, 'Failed to create family');
@@ -200,10 +214,9 @@ export class FamilyService {
         }
       `;
 
-      const response = await this.graphqlService.query<GetFamilyMembersResponse>(
-        query,
-        { familyId }
-      );
+      const response = await this.graphqlService.query<GetFamilyMembersResponse>(query, {
+        familyId,
+      });
 
       this.familyMembers.set(response.familyMembers);
     } catch (err) {

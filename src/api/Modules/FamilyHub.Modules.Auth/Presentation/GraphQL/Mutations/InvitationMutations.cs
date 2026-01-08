@@ -7,9 +7,12 @@ using FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.SharedKernel.Presentation.GraphQL;
+using FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 using HotChocolate.Authorization;
 using MediatR;
 
@@ -26,24 +29,44 @@ public sealed class InvitationMutations
     /// Requires OWNER or ADMIN role.
     /// </summary>
     [Authorize(Policy = "RequireOwnerOrAdmin")]
-    public async Task<InviteFamilyMemberByEmailPayload> InviteFamilyMemberByEmail(
+    [UseMutationConvention]
+    [Error(typeof(BusinessError))]
+    [Error(typeof(ValidationError))]
+    [Error(typeof(ValueObjectError))]
+    [Error(typeof(UnauthorizedError))]
+    [Error(typeof(InternalServerError))]
+    public async Task<PendingInvitationType> InviteFamilyMemberByEmail(
         InviteFamilyMemberByEmailInput input,
-        [Service] IMutationHandler mutationHandler,
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        return await mutationHandler.Handle<InviteFamilyMemberByEmailResult, InviteFamilyMemberByEmailPayload>(async () =>
-        {
-            // Map input → command (primitives → value objects)
-            var command = new InviteFamilyMemberByEmailCommand(
-                FamilyId: FamilyId.From(input.FamilyId),
-                Email: Email.From(input.Email),
-                Role: UserRole.From(input.Role),
-                Message: input.Message
-            );
+        // Map input → command (primitives → value objects)
+        var command = new InviteFamilyMemberByEmailCommand(
+            FamilyId: FamilyId.From(input.FamilyId),
+            Email: Email.From(input.Email),
+            Role: UserRole.From(input.Role),
+            Message: input.Message
+        );
 
-            return await mediator.Send(command, cancellationToken);
-        });
+        var result = await mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            // FIXED: Throw BusinessException with proper error code instead of generic Exception
+            throw new BusinessException("INVITATION_FAILED", result.Error);
+        }
+
+        // Map result → return DTO directly
+        return new PendingInvitationType
+        {
+            Id = result.Value.InvitationId.Value,
+            Email = result.Value.Email.Value,
+            Role = result.Value.Role.AsRoleType(),
+            Status = result.Value.Status.AsStatusType(),
+            InvitedAt = result.Value.ExpiresAt.AddDays(-14), // Calculate from ExpiresAt (invitations expire after 14 days)
+            ExpiresAt = result.Value.ExpiresAt,
+            DisplayCode = result.Value.DisplayCode.Value
+        };
     }
 
 
@@ -52,20 +75,31 @@ public sealed class InvitationMutations
     /// Requires OWNER or ADMIN role.
     /// </summary>
     [Authorize(Policy = "RequireOwnerOrAdmin")]
-    public async Task<CancelInvitationPayload> CancelInvitation(
+    [UseMutationConvention]
+    [Error(typeof(BusinessError))]
+    [Error(typeof(ValidationError))]
+    [Error(typeof(ValueObjectError))]
+    [Error(typeof(UnauthorizedError))]
+    [Error(typeof(InternalServerError))]
+    public async Task<bool> CancelInvitation(
         CancelInvitationInput input,
-        [Service] IMutationHandler mutationHandler,
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        return await mutationHandler.Handle<FamilyHub.SharedKernel.Domain.Result, CancelInvitationPayload>(async () =>
-        {
-            var command = new CancelInvitationCommand(
-                InvitationId: InvitationId.From(input.InvitationId)
-            );
+        var command = new CancelInvitationCommand(
+            InvitationId: InvitationId.From(input.InvitationId)
+        );
 
-            return await mediator.Send(command, cancellationToken);
-        });
+        var result = await mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            // FIXED: Throw BusinessException with proper error code instead of generic Exception
+            throw new BusinessException("CANCELLATION_FAILED", result.Error);
+        }
+
+        // Return success indicator
+        return true;
     }
 
     // TODO: Implement ResendInvitation mutation after creating command
@@ -77,21 +111,36 @@ public sealed class InvitationMutations
     /// Requires OWNER or ADMIN role.
     /// </summary>
     [Authorize(Policy = "RequireOwnerOrAdmin")]
-    public async Task<UpdateInvitationRolePayload> UpdateInvitationRole(
+    [UseMutationConvention]
+    [Error(typeof(BusinessError))]
+    [Error(typeof(ValidationError))]
+    [Error(typeof(ValueObjectError))]
+    [Error(typeof(UnauthorizedError))]
+    [Error(typeof(InternalServerError))]
+    public async Task<UpdatedInvitationDto> UpdateInvitationRole(
         UpdateInvitationRoleInput input,
-        [Service] IMutationHandler mutationHandler,
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        return await mutationHandler.Handle<UpdateInvitationRoleResult, UpdateInvitationRolePayload>(async () =>
-        {
-            var command = new UpdateInvitationRoleCommand(
-                InvitationId: InvitationId.From(input.InvitationId),
-                NewRole: UserRole.From(input.NewRole)
-            );
+        var command = new UpdateInvitationRoleCommand(
+            InvitationId: InvitationId.From(input.InvitationId),
+            NewRole: UserRole.From(input.NewRole)
+        );
 
-            return await mediator.Send(command, cancellationToken);
-        });
+        var result = await mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            // FIXED: Throw BusinessException with proper error code instead of generic Exception
+            throw new BusinessException("UPDATE_ROLE_FAILED", result.Error);
+        }
+
+        // Map result → return DTO directly
+        return new UpdatedInvitationDto
+        {
+            InvitationId = result.Value.InvitationId.Value,
+            Role = result.Value.Role.AsRoleType()
+        };
     }
 
     /// <summary>
@@ -99,20 +148,54 @@ public sealed class InvitationMutations
     /// No authorization required - allows invitees to join without being authenticated members yet.
     /// </summary>
     [Authorize] // User must be authenticated (but doesn't need to be a family member yet)
-    public async Task<AcceptInvitationPayload> AcceptInvitation(
+    [UseMutationConvention]
+    [Error(typeof(BusinessError))]
+    [Error(typeof(ValidationError))]
+    [Error(typeof(ValueObjectError))]
+    [Error(typeof(UnauthorizedError))]
+    [Error(typeof(InternalServerError))]
+    public async Task<AcceptedInvitationDto> AcceptInvitation(
         AcceptInvitationInput input,
-        [Service] IMutationHandler mutationHandler,
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        return await mutationHandler.Handle<AcceptInvitationResult, AcceptInvitationPayload>(async () =>
+        var command = new AcceptInvitationCommand(
+            Token: InvitationToken.From(input.Token)
+        );
+
+        var result = await mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
         {
-            var command = new AcceptInvitationCommand(
-                Token: InvitationToken.From(input.Token)
-            );
+            // FIXED: Throw BusinessException with proper error code instead of generic Exception
+            throw new BusinessException("ACCEPT_INVITATION_FAILED", result.Error);
+        }
 
-            return await mediator.Send(command, cancellationToken);
-        });
+        // Map result → return DTO directly
+        return new AcceptedInvitationDto
+        {
+            FamilyId = result.Value.FamilyId.Value,
+            FamilyName = result.Value.FamilyName.Value,
+            Role = result.Value.Role.AsRoleType()
+        };
     }
+}
 
+/// <summary>
+/// DTO for updated invitation information.
+/// </summary>
+public sealed record UpdatedInvitationDto
+{
+    public required Guid InvitationId { get; init; }
+    public required UserRoleType Role { get; init; }
+}
+
+/// <summary>
+/// DTO for accepted invitation information.
+/// </summary>
+public sealed record AcceptedInvitationDto
+{
+    public required Guid FamilyId { get; init; }
+    public required string FamilyName { get; init; }
+    public required UserRoleType Role { get; init; }
 }

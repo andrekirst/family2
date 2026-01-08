@@ -1,33 +1,49 @@
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
-using FamilyHub.SharedKernel.Presentation.GraphQL;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 
 /// <summary>
 /// GraphQL payload for updating an invitation's role.
+/// Returns the updated invitation ID and new role.
 /// </summary>
-public sealed record UpdateInvitationRolePayload : PayloadBase
+[Obsolete("Replaced by Hot Chocolate v14 Mutation Conventions. Remove after frontend migration.")]
+public sealed record UpdateInvitationRolePayload
 {
     /// <summary>
-    /// The updated invitation with new role (null if errors occurred).
+    /// The invitation ID that was updated (null if errors occurred).
     /// </summary>
-    public PendingInvitationType? Invitation { get; init; }
+    public Guid? InvitationId { get; init; }
 
     /// <summary>
-    /// Constructor for successful payload (called by factory).
+    /// The new role assigned to the invitation.
     /// </summary>
-    /// <param name="invitation">The updated invitation</param>
-    public UpdateInvitationRolePayload(PendingInvitationType invitation)
+    public UserRoleType? Role { get; init; }
+
+    /// <summary>
+    /// Constructor for successful payload (uses data from UpdateInvitationRoleResult).
+    /// </summary>
+    /// <param name="invitationId">The invitation ID that was updated</param>
+    /// <param name="role">The new role</param>
+    public UpdateInvitationRolePayload(Guid invitationId, UserRoleType role)
     {
-        Invitation = invitation;
+        InvitationId = invitationId;
+        Role = role;
     }
 
     /// <summary>
-    /// Constructor for error payload (called by factory).
+    /// Constructor for error payload.
     /// </summary>
     /// <param name="errors">List of errors that occurred</param>
-    public UpdateInvitationRolePayload(IReadOnlyList<UserError> errors) : base(errors)
+    public UpdateInvitationRolePayload(IReadOnlyList<UserError> errors)
     {
-        Invitation = null;
+        InvitationId = null;
+        Role = null;
+        Errors = errors;
     }
+
+    /// <summary>
+    /// List of errors that occurred during mutation execution.
+    /// Null or empty when the mutation succeeded.
+    /// </summary>
+    public IReadOnlyList<UserError>? Errors { get; init; }
 }

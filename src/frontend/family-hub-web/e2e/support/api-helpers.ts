@@ -75,14 +75,24 @@ export async function createFamilyViaAPI(
   const mutation = `
     mutation CreateFamily($input: CreateFamilyInput!) {
       createFamily(input: $input) {
-        family {
+        createdFamilyDto {
           id
           name
           createdAt
         }
         errors {
-          message
-          code
+          __typename
+          ... on ValidationError {
+            message
+            field
+          }
+          ... on BusinessError {
+            message
+            code
+          }
+          ... on ValueObjectError {
+            message
+          }
         }
       }
     }
@@ -96,7 +106,7 @@ export async function createFamilyViaAPI(
     throw new Error(result.createFamily.errors[0].message);
   }
 
-  return result.createFamily.family;
+  return result.createFamily.createdFamilyDto;
 }
 
 /**
@@ -158,14 +168,24 @@ export const GraphQLQueries = {
   CREATE_FAMILY: `
     mutation CreateFamily($input: CreateFamilyInput!) {
       createFamily(input: $input) {
-        family {
+        createdFamilyDto {
           id
           name
           createdAt
         }
         errors {
-          message
-          code
+          __typename
+          ... on ValidationError {
+            message
+            field
+          }
+          ... on BusinessError {
+            message
+            code
+          }
+          ... on ValueObjectError {
+            message
+          }
         }
       }
     }
