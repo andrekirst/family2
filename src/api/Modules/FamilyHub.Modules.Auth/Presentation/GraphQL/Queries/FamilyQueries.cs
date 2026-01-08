@@ -1,13 +1,15 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using FamilyHub.Modules.Auth.Persistence;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 
 /// <summary>
 /// GraphQL queries for family operations.
+/// PHASE 4: Remains in Auth module temporarily because it requires ICurrentUserService (Auth context).
+/// Uses Family domain aggregate from Family module.
+/// TODO Phase 5+: Move to Family module when proper context abstraction is implemented.
 /// </summary>
 [ExtendObjectType("Query")]
 public sealed class FamilyQueries
@@ -17,14 +19,10 @@ public sealed class FamilyQueries
     /// Returns null if the user is not found.
     /// Uses HotChocolate projections for automatic field selection optimization.
     /// </summary>
-    /// <param name="dbContext">Auth module database context.</param>
-    /// <param name="currentUserService">Service to access current user info.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The user's family, or null if the user is not found.</returns>
     [Authorize]
     [GraphQLDescription("Get the current user's family")]
     [UseProjection]
-    public async Task<Family?> Family(
+    public async Task<FamilyAggregate?> Family(
         [Service] AuthDbContext dbContext,
         [Service] ICurrentUserService currentUserService,
         CancellationToken cancellationToken)
@@ -40,9 +38,8 @@ public sealed class FamilyQueries
             return null;
         }
 
-        // Return the user's family using the one-to-many relationship
+        // Return the user's family (FamilyAggregate from Family module via global using)
         return await dbContext.Families
-            .Include(f => f.Members)
             .FirstOrDefaultAsync(f => f.Id == user.FamilyId, cancellationToken);
     }
 }

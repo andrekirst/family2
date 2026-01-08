@@ -1,6 +1,6 @@
-using FamilyHub.Modules.Auth.Domain.Constants;
+using FamilyHub.Modules.Family.Domain.Constants;
 
-namespace FamilyHub.Modules.Auth.Domain.ValueObjects;
+namespace FamilyHub.Modules.Family.Domain.ValueObjects;
 
 /// <summary>
 /// Represents the status of a family member invitation.

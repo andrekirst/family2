@@ -1,13 +1,15 @@
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Events;
+using FamilyHub.Modules.Family.Domain.Events;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyMemberInvitationAggregate = FamilyHub.Modules.Family.Domain.Aggregates.FamilyMemberInvitation;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 
 namespace FamilyHub.Tests.Unit.Auth.Domain;
 
 /// <summary>
-/// Unit tests for FamilyMemberInvitation aggregate.
+/// Unit tests for FamilyMemberInvitationAggregate aggregate.
 /// Tests domain logic, validation rules, and business invariants.
 /// </summary>
 public class FamilyMemberInvitationTests
@@ -24,7 +26,7 @@ public class FamilyMemberInvitationTests
         var invitedBy = UserId.New();
 
         // Act
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId, email, role, invitedBy);
 
         // Assert
@@ -52,7 +54,7 @@ public class FamilyMemberInvitationTests
         var message = "Welcome to the family!";
 
         // Act
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId, email, role, invitedBy, message);
 
         // Assert
@@ -69,7 +71,7 @@ public class FamilyMemberInvitationTests
         var invitedBy = UserId.New();
 
         // Act
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId, email, role, invitedBy);
 
         // Assert
@@ -96,7 +98,7 @@ public class FamilyMemberInvitationTests
     public void Accept_WithPendingInvitation_ShouldMarkAsAccepted()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var userId = UserId.New();
         invitation.ClearDomainEvents(); // Clear creation event
@@ -114,7 +116,7 @@ public class FamilyMemberInvitationTests
     public void Accept_WithPendingInvitation_ShouldPublishInvitationAcceptedEvent()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var userId = UserId.New();
         invitation.ClearDomainEvents();
@@ -137,7 +139,7 @@ public class FamilyMemberInvitationTests
     public void Accept_WithAlreadyAcceptedInvitation_ShouldThrow()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Accept(UserId.New());
 
@@ -153,7 +155,7 @@ public class FamilyMemberInvitationTests
     public void Accept_WithCanceledInvitation_ShouldThrow()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Cancel(UserId.New());
 
@@ -177,7 +179,7 @@ public class FamilyMemberInvitationTests
     public void Cancel_WithPendingInvitation_ShouldMarkAsCanceled()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var canceledBy = UserId.New();
         invitation.ClearDomainEvents();
@@ -193,7 +195,7 @@ public class FamilyMemberInvitationTests
     public void Cancel_WithPendingInvitation_ShouldPublishInvitationCanceledEvent()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var canceledBy = UserId.New();
         invitation.ClearDomainEvents();
@@ -216,7 +218,7 @@ public class FamilyMemberInvitationTests
     public void Cancel_WithAcceptedInvitation_ShouldThrow()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Accept(UserId.New());
 
@@ -232,7 +234,7 @@ public class FamilyMemberInvitationTests
     public void Cancel_WithAlreadyCanceledInvitation_ShouldThrow()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Cancel(UserId.New());
 
@@ -252,7 +254,7 @@ public class FamilyMemberInvitationTests
     public void Resend_WithPendingEmailInvitation_ShouldGenerateNewTokenAndExtendExpiration()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var originalToken = invitation.Token;
         var originalExpiresAt = invitation.ExpiresAt;
@@ -272,11 +274,11 @@ public class FamilyMemberInvitationTests
     public void Resend_WithExpiredEmailInvitation_ShouldResetToPending()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
 
         // Use reflection to set status and expiration
-        var statusProperty = typeof(FamilyMemberInvitation).GetProperty("Status");
+        var statusProperty = typeof(FamilyMemberInvitationAggregate).GetProperty("Status");
         statusProperty!.SetValue(invitation, InvitationStatus.Expired);
 
         invitation.ClearDomainEvents();
@@ -292,7 +294,7 @@ public class FamilyMemberInvitationTests
     public void Resend_WithEmailInvitation_ShouldPublishFamilyMemberInvitedEventWithResendFlag()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         var resentBy = UserId.New();
         invitation.ClearDomainEvents();
@@ -313,7 +315,7 @@ public class FamilyMemberInvitationTests
     public void Resend_WithAcceptedInvitation_ShouldThrow()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Accept(UserId.New());
 
@@ -329,7 +331,7 @@ public class FamilyMemberInvitationTests
     public void Resend_WithCanceledInvitation_ShouldThrow()
     {
         // Arrange
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             FamilyId.New(), Email.From("test@example.com"), FamilyRole.Member, UserId.New());
         invitation.Cancel(UserId.New());
 

@@ -2,12 +2,14 @@ using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using FamilyMemberInvitationAggregate = FamilyHub.Modules.Family.Domain.Aggregates.FamilyMemberInvitation;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 
 namespace FamilyHub.Tests.Unit.Auth.Application.Queries;
 
@@ -33,13 +35,13 @@ public class GetPendingInvitationsQueryHandlerTests
         var email2 = Email.From("test2@example.com");
         var invitedByUserId = UserId.New();
 
-        var invitation1 = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation1 = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId,
             email1,
             FamilyRole.Member,
             invitedByUserId);
 
-        var invitation2 = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation2 = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId,
             email2,
             FamilyRole.Admin,
@@ -107,7 +109,7 @@ public class GetPendingInvitationsQueryHandlerTests
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
 
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId,
             email,
             FamilyRole.Member,

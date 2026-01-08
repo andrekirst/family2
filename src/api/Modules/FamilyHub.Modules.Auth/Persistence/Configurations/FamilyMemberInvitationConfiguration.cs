@@ -1,5 +1,4 @@
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -8,11 +7,19 @@ namespace FamilyHub.Modules.Auth.Persistence.Configurations;
 
 /// <summary>
 /// Entity Framework Core configuration for the FamilyMemberInvitation entity.
+///
+/// PHASE 3 NOTE: This configuration currently specifies schema "auth" and references
+/// User entity from Auth module for backward compatibility. The table remains in the
+/// auth schema to avoid database migration complexity during the logical extraction phase.
+/// In Phase 5+, when we introduce a separate FamilyDbContext, we will migrate this table
+/// to the "family" schema and refactor the foreign key relationships.
 /// </summary>
-public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyMemberInvitation>
+public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyMemberInvitationAggregate>
 {
-    public void Configure(EntityTypeBuilder<FamilyMemberInvitation> builder)
+    public void Configure(EntityTypeBuilder<FamilyMemberInvitationAggregate> builder)
     {
+        // PHASE 3 COUPLING: Table remains in "auth" schema for now
+        // TODO Phase 5+: Migrate to "family" schema when introducing FamilyDbContext
         builder.ToTable("family_member_invitations", "auth");
 
         // Primary key with Vogen value converter
@@ -38,7 +45,9 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
         builder.HasIndex(i => i.FamilyId)
             .HasDatabaseName("ix_family_member_invitations_family_id");
 
-        builder.HasOne<Family>()
+        // PHASE 3 COUPLING: Foreign key relationship to Family aggregate
+        // This is in the same module now, which is correct
+        builder.HasOne<FamilyAggregate>()
             .WithMany()
             .HasForeignKey(i => i.FamilyId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -88,6 +97,9 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
         builder.HasIndex(i => i.InvitedByUserId)
             .HasDatabaseName("ix_family_member_invitations_invited_by_user_id");
 
+        // PHASE 3 COUPLING: Foreign key relationship to User entity from Auth module
+        // This cross-module relationship is acceptable for now as both use the same database.
+        // TODO Phase 5+: Refactor to remove this direct entity reference when introducing FamilyDbContext
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(i => i.InvitedByUserId)

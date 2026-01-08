@@ -22,7 +22,7 @@ public sealed class UserTypeExtensions
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The user's family, or null if not found.</returns>
     [GraphQLDescription("The family this user belongs to")]
-    public async Task<Family?> GetFamily(
+    public async Task<FamilyAggregate?> GetFamily(
         [Parent] UserType user,
         [Service] IUserRepository userRepository,
         [Service] IFamilyRepository familyRepository,

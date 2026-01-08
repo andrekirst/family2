@@ -1,4 +1,3 @@
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -7,11 +6,18 @@ namespace FamilyHub.Modules.Auth.Persistence.Configurations;
 
 /// <summary>
 /// Entity Framework Core configuration for the Family entity.
+///
+/// PHASE 3 NOTE: This configuration currently specifies schema "auth" for backward compatibility.
+/// The Family table remains in the auth schema to avoid database migration complexity during
+/// the logical extraction phase. In Phase 5+, when we introduce a separate FamilyDbContext,
+/// we will migrate this table to the "family" schema.
 /// </summary>
-public class FamilyConfiguration : IEntityTypeConfiguration<Family>
+public class FamilyConfiguration : IEntityTypeConfiguration<FamilyAggregate>
 {
-    public void Configure(EntityTypeBuilder<Family> builder)
+    public void Configure(EntityTypeBuilder<FamilyAggregate> builder)
     {
+        // PHASE 3 COUPLING: Table remains in "auth" schema for now
+        // TODO Phase 5+: Migrate to "family" schema when introducing FamilyDbContext
         builder.ToTable("families", "auth");
 
         // Primary key with Vogen value converter

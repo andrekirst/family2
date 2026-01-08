@@ -1,8 +1,8 @@
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
-namespace FamilyHub.Modules.Auth.Domain.Events;
+namespace FamilyHub.Modules.Family.Domain.Events;
 
 /// <summary>
 /// Domain event raised when a family member is invited via email.

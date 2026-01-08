@@ -1,5 +1,3 @@
-using FamilyHub.Modules.Auth.Domain.Events;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
@@ -40,6 +38,9 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
 
     /// <summary>
     /// The family this user belongs to.
+    /// NOTE: Cross-module coupling - FamilyId references the Family bounded context.
+    /// This is acceptable in a modular monolith architecture. Users belong to families,
+    /// but Family aggregate root now resides in FamilyHub.Modules.Family.Domain.
     /// </summary>
     public FamilyId FamilyId { get; private set; }
 
@@ -124,8 +125,9 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     /// <summary>
     /// Gets the user's role in the given family.
     /// Returns Owner if the user owns the family, otherwise Member.
+    /// NOTE: This method references Family from FamilyHub.Modules.Family.Domain (cross-module).
     /// </summary>
-    public FamilyRole GetRoleInFamily(Family family)
+    public FamilyRole GetRoleInFamily(FamilyAggregate family)
     {
         return family.OwnerId == Id ? FamilyRole.Owner : FamilyRole.Member;
     }

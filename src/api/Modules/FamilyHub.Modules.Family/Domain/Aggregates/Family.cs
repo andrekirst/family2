@@ -1,15 +1,17 @@
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
-namespace FamilyHub.Modules.Auth.Domain;
+namespace FamilyHub.Modules.Family.Domain.Aggregates;
 
 /// <summary>
 /// Family aggregate root representing a family group.
+/// NOTE: This is a pure domain aggregate. Member relationships are managed by the Auth module
+/// through the User.FamilyId foreign key. The bidirectional navigation (Family.Members) is
+/// handled at the persistence layer in the Auth module via EF Core shadow properties.
+/// This maintains proper bounded context separation in the domain layer.
 /// </summary>
 public class Family : AggregateRoot<FamilyId>, ISoftDeletable
 {
-    private readonly List<User> _members = [];
-
     /// <summary>
     /// Family name (e.g., "Smith Family").
     /// </summary>
@@ -24,11 +26,6 @@ public class Family : AggregateRoot<FamilyId>, ISoftDeletable
     /// Soft delete timestamp (null if not deleted).
     /// </summary>
     public DateTime? DeletedAt { get; set; }
-
-    /// <summary>
-    /// Family members (navigation property for EF Core).
-    /// </summary>
-    public IReadOnlyCollection<User> Members => _members.AsReadOnly();
 
     // Private constructor for EF Core
     private Family() : base(FamilyId.From(Guid.Empty))
@@ -91,9 +88,4 @@ public class Family : AggregateRoot<FamilyId>, ISoftDeletable
         // Domain event
         // AddDomainEvent(new FamilyDeletedEvent(Id));
     }
-
-    /// <summary>
-    /// Gets the number of members in this family.
-    /// </summary>
-    public int GetMemberCount() => _members.Count;
 }

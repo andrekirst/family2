@@ -84,8 +84,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.FamilyId)
             .HasDatabaseName("ix_users_family_id");
 
-        builder.HasOne<Family>()
-            .WithMany(f => f.Members)
+        // Family relationship - User belongs to one Family
+        // NOTE: The Family aggregate no longer has a Members collection in the domain model.
+        // The relationship is established via foreign key only (unidirectional from User to Family).
+        // If bidirectional navigation is needed in queries, use explicit Include/Join in repositories.
+        builder.HasOne<FamilyAggregate>()
+            .WithMany() // No navigation property on Family side
             .HasForeignKey(u => u.FamilyId)
             .OnDelete(DeleteBehavior.Restrict);
 

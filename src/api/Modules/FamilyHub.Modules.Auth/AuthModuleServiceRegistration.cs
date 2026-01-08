@@ -6,6 +6,7 @@ using FamilyHub.Modules.Auth.Application.Constants;
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.SharedKernel.Application.Behaviors;
+using FamilyHub.SharedKernel.Interfaces;
 using FamilyHub.Modules.Auth.Infrastructure.BackgroundServices;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Infrastructure.Messaging;
@@ -67,11 +68,15 @@ public static class AuthModuleServiceRegistration
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        // Repositories
+        // Repositories (Auth module)
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IFamilyRepository, FamilyRepository>();
-        services.AddScoped<IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
         services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
+
+        // PHASE 3: Family repositories (implementation in Auth module, interface in Family module)
+        // These implement Family module interfaces but remain in Auth module to avoid circular dependency.
+        // They use AuthDbContext (shared database) and will be moved in Phase 5+.
+        services.AddScoped<Family.Domain.Repositories.IFamilyRepository, FamilyRepository>();
+        services.AddScoped<Family.Domain.Repositories.IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
 
         // Zitadel OAuth Configuration
         services.Configure<ZitadelSettings>(configuration.GetSection(ZitadelSettings.SectionName));
@@ -149,6 +154,15 @@ public static class AuthModuleServiceRegistration
     /// - Queries (classes decorated with [ExtendObjectType("Query")])
     /// - Mutations (classes decorated with [ExtendObjectType("Mutation")])
     ///
+    /// PHASE 4 UPDATE: Family GraphQL types moved to Family module.
+    /// - FamilyType, FamilyTypeExtensions → Family.Presentation
+    /// - InviteFamilyMemberByEmail mutation → Family.Presentation
+    /// - Family queries → Family.Presentation
+    /// Auth module retains:
+    /// - UserType, UserTypeExtensions
+    /// - CreateFamily, AcceptInvitation mutations (they modify User aggregate)
+    /// - CancelInvitation, UpdateInvitationRole mutations (temporarily, until Phase 5+)
+    ///
     /// Example usage in Program.cs:
     /// <code>
     /// var loggerFactory = builder.Services.BuildServiceProvider().GetService&lt;ILoggerFactory&gt;();
@@ -161,10 +175,9 @@ public static class AuthModuleServiceRegistration
     {
         return builder
             .RegisterDbContextFactory<AuthDbContext>()
-            .AddType<Presentation.GraphQL.Types.FamilyType>()
             .AddType<Presentation.GraphQL.Types.UserType>() // Register UserType so extensions can be applied
             .AddTypeExtension<Presentation.GraphQL.Types.UserTypeExtensions>() // Explicitly register UserTypeExtensions
-            .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>() // Explicitly register FamilyTypeExtensions
+            .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>() // Extends Family.Domain.Aggregates.FamilyAggregate (from Family module)
             .AddTypeExtensionsFromAssemblies(
                 [typeof(AuthModuleServiceRegistration).Assembly],
                 loggerFactory);

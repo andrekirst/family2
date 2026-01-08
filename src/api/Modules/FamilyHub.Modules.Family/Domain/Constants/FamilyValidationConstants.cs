@@ -1,7 +1,7 @@
-namespace FamilyHub.Modules.Auth.Domain.Constants;
+namespace FamilyHub.Modules.Family.Domain.Constants;
 
 /// <summary>
-/// Domain validation constants for the Auth module.
+/// Domain validation constants for the Family module.
 /// Centralized to ensure consistency across domain entities, input DTOs, and tests.
 /// </summary>
 public static class FamilyValidationConstants

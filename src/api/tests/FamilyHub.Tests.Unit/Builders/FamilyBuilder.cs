@@ -1,5 +1,6 @@
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 
 namespace FamilyHub.Tests.Unit.Builders;
 
@@ -42,9 +43,9 @@ public sealed class FamilyBuilder
         return this;
     }
 
-    public Family Build()
+    public FamilyAggregate Build()
     {
-        var family = Family.Create(_name, _ownerId);
+        var family = FamilyAggregate.Create(_name, _ownerId);
 
         // Set timestamps directly (public setters)
         if (_createdAt.HasValue)

@@ -1,9 +1,9 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain.Aggregates;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -62,7 +62,7 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
         }
 
         // 5. Create invitation using domain factory method
-        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+        var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId: request.FamilyId,
             email: request.Email,
             role: request.Role,

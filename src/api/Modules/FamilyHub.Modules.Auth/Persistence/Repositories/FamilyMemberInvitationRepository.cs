@@ -1,6 +1,3 @@
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,25 +5,35 @@ namespace FamilyHub.Modules.Auth.Persistence.Repositories;
 
 /// <summary>
 /// EF Core implementation of the FamilyMemberInvitation repository.
+///
+/// PHASE 3 STATE: This repository implements IFamilyMemberInvitationRepository from Family module
+/// but remains in Auth module's Persistence layer for pragmatic reasons:
+/// - Avoids circular dependency (Auth -> Family -> Auth)
+/// - Shares AuthDbContext with other Auth repositories
+/// - All entities remain in same "auth" schema
+/// - Can query User table for membership checks
+///
+/// FUTURE: In Phase 5+, this will be moved to Family module when we introduce
+/// a separate FamilyDbContext and resolve the cross-module database coupling.
 /// </summary>
 public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IFamilyMemberInvitationRepository
 {
     /// <inheritdoc />
-    public async Task<FamilyMemberInvitation?> GetByIdAsync(InvitationId id, CancellationToken cancellationToken = default)
+    public async Task<FamilyMemberInvitationAggregate?> GetByIdAsync(InvitationId id, CancellationToken cancellationToken = default)
     {
         return await context.FamilyMemberInvitations
             .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<FamilyMemberInvitation?> GetByTokenAsync(InvitationToken token, CancellationToken cancellationToken = default)
+    public async Task<FamilyMemberInvitationAggregate?> GetByTokenAsync(InvitationToken token, CancellationToken cancellationToken = default)
     {
         return await context.FamilyMemberInvitations
             .FirstOrDefaultAsync(i => i.Token == token, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<List<FamilyMemberInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
+    public async Task<List<FamilyMemberInvitationAggregate>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
         return await context.FamilyMemberInvitations
             .Where(i => i.FamilyId == familyId && i.Status == InvitationStatus.Pending)
@@ -34,7 +41,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     }
 
     /// <inheritdoc />
-    public async Task<FamilyMemberInvitation?> GetPendingByEmailAsync(FamilyId familyId, Email email, CancellationToken cancellationToken = default)
+    public async Task<FamilyMemberInvitationAggregate?> GetPendingByEmailAsync(FamilyId familyId, Email email, CancellationToken cancellationToken = default)
     {
         return await context.FamilyMemberInvitations
             .FirstOrDefaultAsync(
@@ -45,7 +52,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     }
 
     /// <inheritdoc />
-    public async Task<List<FamilyMemberInvitation>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
+    public async Task<List<FamilyMemberInvitationAggregate>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
         return await context.FamilyMemberInvitations
             .Where(i => i.FamilyId == familyId)
@@ -53,7 +60,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     }
 
     /// <inheritdoc />
-    public async Task AddAsync(FamilyMemberInvitation invitation, CancellationToken cancellationToken = default)
+    public async Task AddAsync(FamilyMemberInvitationAggregate invitation, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(invitation);
 
@@ -61,7 +68,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     }
 
     /// <inheritdoc />
-    public Task UpdateAsync(FamilyMemberInvitation invitation, CancellationToken cancellationToken = default)
+    public Task UpdateAsync(FamilyMemberInvitationAggregate invitation, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(invitation);
 
@@ -80,7 +87,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     }
 
     /// <inheritdoc />
-    public async Task<List<FamilyMemberInvitation>> GetExpiredInvitationsForCleanupAsync(DateTime expirationThreshold, CancellationToken cancellationToken = default)
+    public async Task<List<FamilyMemberInvitationAggregate>> GetExpiredInvitationsForCleanupAsync(DateTime expirationThreshold, CancellationToken cancellationToken = default)
     {
         return await context.FamilyMemberInvitations
             .Where(i => i.ExpiresAt < expirationThreshold && i.Status == InvitationStatus.Expired)
@@ -88,7 +95,7 @@ public sealed class FamilyMemberInvitationRepository(AuthDbContext context) : IF
     }
 
     /// <inheritdoc />
-    public void RemoveInvitations(List<FamilyMemberInvitation> invitations)
+    public void RemoveInvitations(List<FamilyMemberInvitationAggregate> invitations)
     {
         ArgumentNullException.ThrowIfNull(invitations);
         context.FamilyMemberInvitations.RemoveRange(invitations);

@@ -27,27 +27,16 @@ public static class FamilyModuleServiceRegistration
         // Register TimeProvider for timestamp management
         services.AddSingleton(TimeProvider.System);
 
-        // TODO: Register DbContext when Persistence layer is implemented
-        // services.AddPooledDbContextFactory<FamilyDbContext>((sp, options) =>
-        // {
-        //     var connectionString = configuration.GetConnectionString("FamilyHubDb");
-        //     options.UseNpgsql(connectionString, npgsqlOptions =>
-        //         {
-        //             npgsqlOptions.MigrationsAssembly(typeof(FamilyDbContext).Assembly.GetName().Name);
-        //         })
-        //         .UseSnakeCaseNamingConvention()
-        //         .AddTimestampInterceptor(sp);
-        // });
+        // PHASE 3: Persistence Layer
+        // Repository implementations remain in Auth module to avoid circular dependency.
+        // Repository interfaces (IFamilyRepository, IFamilyMemberInvitationRepository) are defined
+        // in this module's Domain layer, but implementations are registered by Auth module.
+        // This maintains logical separation while using shared AuthDbContext pragmatically.
+        // TODO Phase 5+: Move repository implementations here when FamilyDbContext is introduced.
 
-        // services.AddScoped(sp =>
-        // {
-        //     var factory = sp.GetRequiredService<IDbContextFactory<FamilyDbContext>>();
-        //     return factory.CreateDbContext();
-        // });
+        // TODO: Register Application Services when implemented
 
-        // TODO: Register repositories when Domain layer is implemented
-
-        // MediatR - Command/Query handlers
+        // MediatR - Command/Query handlers (placeholder - will be populated when handlers are moved)
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(FamilyModuleServiceRegistration).Assembly);
@@ -55,7 +44,7 @@ public static class FamilyModuleServiceRegistration
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
 
-        // FluentValidation - Validators
+        // FluentValidation - Validators (placeholder - will be populated when validators are moved)
         // services.AddValidatorsFromAssembly(typeof(FamilyModuleServiceRegistration).Assembly);
 
         return services;
@@ -75,6 +64,16 @@ public static class FamilyModuleServiceRegistration
     /// - Queries (classes decorated with [ExtendObjectType("Query")])
     /// - Mutations (classes decorated with [ExtendObjectType("Mutation")])
     ///
+    /// PHASE 4: Presentation Layer extraction (partial due to circular dependency constraints).
+    /// Moved to Family module:
+    /// - FamilyType (core GraphQL type)
+    /// - InviteFamilyMemberByEmail mutation
+    /// Remaining in Auth module (requires Auth context):
+    /// - FamilyQueries (requires ICurrentUserService)
+    /// - FamilyTypeExtensions (requires AuthDbContext, UserRepository)
+    /// - Other invitation mutations that modify User aggregate
+    /// TODO Phase 5+: Complete extraction with proper bounded context separation
+    ///
     /// Example usage in Program.cs:
     /// <code>
     /// var loggerFactory = builder.Services.BuildServiceProvider().GetService&lt;ILoggerFactory&gt;();
@@ -85,14 +84,8 @@ public static class FamilyModuleServiceRegistration
         this IRequestExecutorBuilder builder,
         ILoggerFactory? loggerFactory = null)
     {
-        // TODO: Register DbContext factory when Persistence layer is implemented
-        // return builder
-        //     .RegisterDbContextFactory<FamilyDbContext>()
-        //     .AddTypeExtensionsFromAssemblies(
-        //         [typeof(FamilyModuleServiceRegistration).Assembly],
-        //         loggerFactory);
-
         return builder
+            .AddType<Presentation.GraphQL.Types.FamilyType>() // Register FamilyType explicitly
             .AddTypeExtensionsFromAssemblies(
                 [typeof(FamilyModuleServiceRegistration).Assembly],
                 loggerFactory);
