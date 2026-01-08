@@ -389,6 +389,123 @@ _logger.LogInformation("Creating family {familyName} for user {userId}", request
 
 ---
 
+### 5. Global Usings Strategy
+
+**Decision:** Make architecture global, keep domain explicit.
+
+**Rationale:** Global usings reduce boilerplate by 40-75% for architectural patterns (MediatR, FluentValidation) while maintaining clarity for domain boundaries and layer separation.
+
+#### Production Code
+
+**Global in DDD Modules** (Auth, Family, Calendar, Task, Shopping, Health, MealPlanning, Finance, Communication):
+```csharp
+global using Vogen;                          // Value object generation
+global using MediatR;                        // CQRS architecture
+global using FluentValidation;               // Validation pattern
+global using Microsoft.Extensions.Logging;   // Cross-cutting concern
+```
+
+**Always Explicit:**
+- Domain namespaces (shows module boundaries: `FamilyHub.Modules.Auth.Domain`)
+- Entity Framework Core (Persistence layer only - would pollute Domain/Application)
+- Module-specific types (code review needs to see dependencies)
+- HotChocolate in modules (Presentation layer only - global in Infrastructure)
+
+**SharedKernel:**
+```csharp
+global using Vogen;
+global using System.Diagnostics.CodeAnalysis;
+global using FamilyHub.SharedKernel.Domain;
+global using FamilyHub.SharedKernel.Domain.ValueObjects;
+```
+
+**Infrastructure:**
+```csharp
+global using HotChocolate;
+global using HotChocolate.Types;
+global using Microsoft.Extensions.Logging;
+global using FluentValidation;
+```
+
+**API (Minimal - composition roots stay explicit):**
+```csharp
+global using Serilog;
+```
+
+#### Test Code
+
+**Unit Tests:**
+```csharp
+// Test Framework & Assertions
+global using Xunit;
+global using FluentAssertions;
+
+// Test Data & Mocking
+global using NSubstitute;
+global using AutoFixture.Xunit2;
+```
+
+**Integration Tests:**
+```csharp
+// Test Framework & Assertions
+global using Xunit;
+global using FluentAssertions;
+
+// HTTP Testing
+global using System.Net;
+global using System.Net.Http.Json;
+
+// Dependency Injection
+global using Microsoft.Extensions.DependencyInjection;
+
+// Test Data & Mocking
+global using NSubstitute;
+```
+
+**Always Explicit in Tests:**
+- Domain namespaces (shows DDD module boundaries)
+- Application namespaces (shows Clean Architecture layers: Commands, Queries)
+- `MediatR` (shows CQRS pattern usage)
+- Security namespaces (`System.Security.Claims`, `Microsoft.AspNetCore.Authorization`)
+- `System.Net.Http.Headers` (shows auth intent when setting Authorization header)
+- `System.Text.Json` (data transformation is business logic, not infrastructure)
+
+#### Philosophy
+
+**Production Code:**
+- **Global:** Architectural patterns, cross-cutting concerns
+- **Explicit:** Domain boundaries, business logic, layer-specific dependencies
+
+**Test Code:**
+- **Global:** Test infrastructure (assertions, mocking, test data generation)
+- **Explicit:** Test intent (what's being tested, architectural boundaries)
+
+#### Benefits
+
+**Quantitative:**
+- 40-60% reduction in Application layer usings (6-8 → 2-4)
+- 60-75% reduction in test usings (5-12 → 1-6)
+- ~300-500 lines removed across current codebase
+- Scales linearly to 8 modules
+
+**Qualitative:**
+- Focuses code reviews on business logic, not infrastructure imports
+- Enforces architectural consistency (MediatR/FluentValidation are "the way")
+- Reduces cognitive load and merge conflicts
+- Accelerates new module creation (4-line template per module)
+- Maintains clarity for domain boundaries and architectural layers
+
+#### .NET Core 10 Best Practices Alignment
+
+✅ Make architectural patterns global (MediatR, FluentValidation)
+✅ Make cross-cutting concerns global (Logging)
+✅ Keep composition roots explicit (Program.cs minimal globals)
+✅ Limit globals to 50%+ usage patterns
+✅ Don't make domain logic global
+✅ Don't pollute unrelated layers (EF Core stays in Persistence)
+
+---
+
 ## DDD & Architecture Patterns
 
 ### 5. Aggregate Design
