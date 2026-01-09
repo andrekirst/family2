@@ -73,7 +73,7 @@ public class Family : AggregateRoot<FamilyId>, ISoftDeletable
             CreatedAt = createdAt,
             UpdatedAt = updatedAt
         };
-        
+
         return family;
     }
 
