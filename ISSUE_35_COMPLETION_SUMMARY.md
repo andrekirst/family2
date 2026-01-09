@@ -1,12 +1,15 @@
 # Issue #35 Completion Summary: Extract Family Bounded Context
 
 ## Overview
+
 Successfully completed the extraction of the Family bounded context from the Auth module across 4 phases, establishing proper DDD boundaries while maintaining a pragmatic modular monolith architecture.
 
 ## Phases Completed
 
 ### Phase 1: Domain Layer ✅ (100% Complete)
+
 **Moved to Family Module:**
+
 - Family aggregate root
 - FamilyMemberInvitation aggregate root  
 - InvitationStatus value object
@@ -15,6 +18,7 @@ Successfully completed the extraction of the Family bounded context from the Aut
 - 2 constant classes
 
 **Key Changes:**
+
 - Removed bidirectional navigation (`Family.Members` collection)
 - Added `GetMemberCountAsync()` to repository for querying member count
 - Created type aliases to avoid naming conflicts
@@ -24,15 +28,19 @@ Successfully completed the extraction of the Family bounded context from the Aut
 ---
 
 ### Phase 2: Application Layer ✅ (Partial - Pragmatic)
+
 **Moved to Family Module:**
+
 - `InviteFamilyMemberByEmailCommand` + Handler + Result
 - `GetUserFamiliesQuery` + Handler + Result + DTOs
 
 **Kept in Auth Module:**
+
 - `CreateFamilyCommand` + Handler (modifies User aggregate)
 - `AcceptInvitationCommand` + Handler + Validator (modifies User aggregate)
 
 **SharedKernel Abstractions Created:**
+
 - `IUserContext` interface (UserId, FamilyId, Role, Email)
 - `IUnitOfWork` interface moved to SharedKernel
 
@@ -43,11 +51,14 @@ Successfully completed the extraction of the Family bounded context from the Aut
 ---
 
 ### Phase 3: Persistence Layer ✅ (Logical Separation)
+
 **Logical Ownership:**
+
 - Repository interfaces owned by Family.Domain.Repositories ✅
 - EF Core configurations reference Family aggregates ✅
 
 **Physical Location (Pragmatic):**
+
 - Repository implementations remain in Auth.Persistence.Repositories (temporary)
 - Tables remain in `auth` schema (no migration needed)
 - AuthDbContext hosts both Auth and Family entities
@@ -59,11 +70,14 @@ Successfully completed the extraction of the Family bounded context from the Aut
 ---
 
 ### Phase 4: Presentation Layer ✅ (Partial - Pragmatic)
+
 **Moved to Family Module:**
+
 - `FamilyType` GraphQL type
 - `InviteFamilyMemberByEmail` mutation
 
 **Kept in Auth Module:**
+
 - `FamilyQueries` (requires ICurrentUserService from Auth)
 - `FamilyTypeExtensions` (requires AuthDbContext and Auth repositories)
 - Other invitation mutations (modify User aggregate)
@@ -104,11 +118,13 @@ Successfully completed the extraction of the Family bounded context from the Aut
 ## Architectural Achievements
 
 ### 1. Clean Domain Boundaries ✅
+
 - Family domain entities owned by Family module
 - Clear aggregate ownership (User in Auth, Family in Family)
 - Proper value object separation
 
 ### 2. No Circular Dependencies ✅
+
 ```
 Family Module → SharedKernel ← Auth Module
                      ↑
@@ -116,11 +132,13 @@ Family Module → SharedKernel ← Auth Module
 ```
 
 ### 3. Pragmatic Modular Monolith ✅
+
 - Logical separation achieved (clear domain boundaries)
 - Physical pragmatism maintained (shared infrastructure)
 - Clear migration path documented
 
 ### 4. DDD Principles Respected ✅
+
 - Aggregate ownership rules followed
 - Commands stay with aggregates they modify
 - Repository interfaces owned by domain
@@ -129,21 +147,25 @@ Family Module → SharedKernel ← Auth Module
 ## Known Coupling Points (Documented for Phase 5+)
 
 ### 1. Repository Implementations in Auth Module
+
 **Location:** `Auth.Persistence.Repositories`
 **Coupling:** Family repository interfaces implemented in Auth
 **TODO:** Create FamilyDbContext, move implementations to Family.Persistence
 
 ### 2. Family Tables in Auth Schema
+
 **Location:** Database `auth` schema
 **Coupling:** Family tables (`families`, `family_member_invitations`) in auth schema
 **TODO:** Migrate to `family` schema with new FamilyDbContext
 
 ### 3. Commands Modifying User in Auth Module
+
 **Location:** `Auth.Application.Commands`
 **Coupling:** CreateFamily and AcceptInvitation modify User aggregate
 **TODO:** Implement domain events to eliminate direct User modification
 
 ### 4. GraphQL Components in Auth Module
+
 **Location:** `Auth.Presentation.GraphQL`
 **Coupling:** FamilyQueries and some mutations in Auth
 **TODO:** Extract with proper user context abstraction
@@ -161,6 +183,7 @@ Family Module → SharedKernel ← Auth Module
 ## Files Summary
 
 **Total Files Modified:** ~100 files
+
 - Domain files moved: 11
 - Application files moved: 6
 - Persistence files updated: 7
@@ -170,13 +193,15 @@ Family Module → SharedKernel ← Auth Module
 
 ## Migration Path Forward (Phase 5+)
 
-### When to Complete Physical Separation:
+### When to Complete Physical Separation
+
 1. Preparing for microservices migration
 2. Module independence becomes critical
 3. Multiple teams working on different modules
 4. Database separation provides clear value
 
-### Steps for Complete Separation:
+### Steps for Complete Separation
+
 1. Create `FamilyDbContext` in Family.Persistence
 2. Create database migration to move tables to `family` schema
 3. Move repository implementations to Family.Persistence
@@ -187,18 +212,23 @@ Family Module → SharedKernel ← Auth Module
 ## Key Learnings
 
 ### 1. Logical vs Physical Separation
+
 **Insight:** In modular monoliths, logical boundaries matter more than physical location. We achieved clean domain separation while keeping infrastructure pragmatic.
 
 ### 2. Aggregate Ownership is Sacred
+
 **Insight:** Commands that modify an aggregate MUST stay with the module owning that aggregate. CreateFamily and AcceptInvitation modify User, so they stay in Auth.
 
 ### 3. SharedKernel for Cross-Cutting Concerns
+
 **Insight:** Abstractions like IUserContext and IUnitOfWork belong in SharedKernel, enabling cross-module communication without circular dependencies.
 
 ### 4. Incremental Refactoring Works
+
 **Insight:** Each phase built on the previous, maintaining a working, testable system throughout. All 165 tests passing after each phase proves safety.
 
 ### 5. Document Coupling Explicitly
+
 **Insight:** Every coupling point is documented with PHASE 3/4 COUPLING tags and TODO notes for future resolution. This makes technical debt visible and manageable.
 
 ## Success Metrics
@@ -219,6 +249,7 @@ Family Module → SharedKernel ← Auth Module
 **Status:** ✅ **COMPLETE** (with documented Phase 5+ work)
 
 All acceptance criteria met:
+
 - ✅ Family domain entities in Family module
 - ✅ Family application logic separated (partial, documented)
 - ✅ Module boundaries properly enforced

@@ -17,6 +17,7 @@
 The Family-related code is currently organized as follows:
 
 #### Auth Module (`FamilyHub.Modules.Auth`)
+
 - **Domain Layer**:
   - `Family` aggregate root
   - `FamilyMemberInvitation` aggregate root
@@ -43,6 +44,7 @@ The Family-related code is currently organized as follows:
   - GraphQL inputs and payloads
 
 #### Family Module (`FamilyHub.Modules.Family`)
+
 - **Current Status**: Placeholder module (created in issue #33)
 - **Contents**: Service registration infrastructure only
 
@@ -59,6 +61,7 @@ Auth Module ──references──> Family Module
 ```
 
 **Why this happens:**
+
 1. Family module commands need `IFamilyRepository`, `IUserContext`, `User` entity (from Auth)
 2. Family module needs Auth.Domain entities (`Family`, `FamilyMemberInvitation`)
 3. Auth module GraphQL layer needs Family module commands
@@ -72,6 +75,7 @@ Auth Module ──references──> Family Module
 In Domain-Driven Design, the layers of a bounded context should be **cohesive and move together**:
 
 ### Correct Layer Organization
+
 ```
 Bounded Context: Family
 ├── Domain (aggregate roots, entities, value objects)
@@ -81,6 +85,7 @@ Bounded Context: Family
 ```
 
 ### Anti-Pattern (Current Situation)
+
 ```
 Bounded Context: Auth
 ├── Domain: User + Family + FamilyMemberInvitation  ← MIXED
@@ -95,9 +100,11 @@ Bounded Context: Auth
 ## Recommended Refactoring Strategy
 
 ### Phase 1: Extract Family Domain Layer (NEW ISSUE REQUIRED)
+
 **Objective**: Move domain entities to establish clear bounded context.
 
 **Tasks**:
+
 1. Create `Family` module Domain layer structure
 2. Move `Family` aggregate root to `FamilyHub.Modules.Family.Domain`
 3. Move `FamilyMemberInvitation` aggregate root
@@ -109,6 +116,7 @@ Bounded Context: Auth
    - **Option C**: Extract to SharedKernel if truly shared
 
 **Challenges**:
+
 - `User` entity has `FamilyId` property (navigation to Family)
 - Need to decide on relationship handling
 - May require database schema changes
@@ -116,9 +124,11 @@ Bounded Context: Auth
 ---
 
 ### Phase 2: Extract Family Application Layer (ORIGINAL ISSUE #35)
+
 **Objective**: Move commands, queries, handlers once domain is separated.
 
 **Tasks**:
+
 1. Move `CreateFamilyCommand` + Handler
 2. Move `InviteFamilyMemberByEmailCommand` + Handler
 3. Move `AcceptInvitationCommand` + Handler + Validator
@@ -127,15 +137,18 @@ Bounded Context: Auth
 6. Update GraphQL mutations to reference Family module
 
 **Dependencies**:
+
 - Requires Phase 1 completion
 - Requires `IUserContext` to be accessible (possibly via SharedKernel or interface in Family module)
 
 ---
 
 ### Phase 3: Extract Family Persistence Layer
+
 **Objective**: Move repositories and database configurations.
 
 **Tasks**:
+
 1. Move `IFamilyRepository` + `FamilyRepository`
 2. Move `IFamilyMemberInvitationRepository` + `FamilyMemberInvitationRepository`
 3. Create `FamilyDbContext` (decision: separate DbContext vs shared)
@@ -143,6 +156,7 @@ Bounded Context: Auth
 5. Handle database migrations
 
 **Challenges**:
+
 - Decide on database strategy:
   - **Option A**: Separate databases (true microservices)
   - **Option B**: Same database, separate schemas (modular monolith)
@@ -152,9 +166,11 @@ Bounded Context: Auth
 ---
 
 ### Phase 4: Extract Family Presentation Layer
+
 **Objective**: Move GraphQL types and mutations.
 
 **Tasks**:
+
 1. Move `FamilyMutations` to Family module
 2. Move `InvitationMutations` to Family module
 3. Move GraphQL inputs and payloads
@@ -168,6 +184,7 @@ Bounded Context: Auth
 If full extraction is too complex, consider a **Facade pattern**:
 
 ### IFamilyService Interface (in Family Module)
+
 ```csharp
 public interface IFamilyService
 {
@@ -179,6 +196,7 @@ public interface IFamilyService
 ```
 
 ### Implementation (in Auth Module - temporarily)
+
 ```csharp
 public class FamilyService : IFamilyService
 {
@@ -195,11 +213,13 @@ public class FamilyService : IFamilyService
 ```
 
 **Benefits**:
+
 - Provides cross-module interface
 - Allows gradual migration
 - No circular dependencies
 
 **Drawbacks**:
+
 - Adds extra layer of indirection
 - Implementation still in wrong module
 - Not a true bounded context separation
@@ -224,17 +244,20 @@ public class FamilyService : IFamilyService
 ## Recommendations for Project
 
 ### Short Term
+
 1. **Close issue #35** with status: "Deferred - requires domain extraction first"
 2. **Create new issue**: "Extract Family Domain Layer to Family Module"
 3. **Update issue #35** to depend on the new domain extraction issue
 
 ### Medium Term
+
 1. Complete domain extraction (Phase 1)
 2. Reopen issue #35 and complete application layer extraction (Phase 2)
 3. Extract persistence layer (Phase 3)
 4. Extract presentation layer (Phase 4)
 
 ### Long Term
+
 1. Apply same pattern to other modules (Calendar, Task, Shopping, etc.)
 2. Establish clear bounded context boundaries
 3. Consider event-driven communication between modules
@@ -245,11 +268,13 @@ public class FamilyService : IFamilyService
 ## Files Modified
 
 ### Modified Files
+
 - `/src/api/Modules/FamilyHub.Modules.Family/FamilyModuleServiceRegistration.cs`
   - Updated comments to reflect placeholder status
   - Removed invalid service registrations
 
 ### Created Files
+
 - `/src/api/Modules/FamilyHub.Modules.Family/README.md`
   - Documentation of current state and future plan
 
@@ -257,6 +282,7 @@ public class FamilyService : IFamilyService
   - Comprehensive analysis and recommendations
 
 ### No Files Deleted
+
 All existing Auth module code remains unchanged.
 
 ---

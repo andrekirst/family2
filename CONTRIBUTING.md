@@ -135,9 +135,9 @@ All issues follow this lifecycle:
 
 **Optional but recommended:**
 
-4. **Priority** - `priority-p0` (critical) through `priority-p3` (low)
-5. **Effort** - `effort-s`, `effort-m`, `effort-l`, `effort-xl`
-6. **Domain** - `domain-event-chain`, `domain-security`, etc.
+1. **Priority** - `priority-p0` (critical) through `priority-p3` (low)
+2. **Effort** - `effort-s`, `effort-m`, `effort-l`, `effort-xl`
+3. **Domain** - `domain-event-chain`, `domain-security`, etc.
 
 **See full label reference below.**
 

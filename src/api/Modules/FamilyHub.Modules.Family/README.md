@@ -15,6 +15,7 @@ The Family module structure was created in issue #33, but the actual Family-rela
 ### Why Not Moved Yet?
 
 Moving the Application layer without the Domain layer would create:
+
 - **Circular dependencies**: Auth → Family → Auth
 - **Architectural inconsistency**: Application layer separated from its Domain entities
 - **Increased complexity**: Commands operating on entities in a different module
@@ -55,6 +56,7 @@ A future issue should move the entire Family bounded context together:
 ---
 
 **Related Issues:**
+
 - Issue #33: Created module structure
 - Issue #35: Attempted application layer extraction (deferred due to architectural constraints)
 - Future issue: Complete Family bounded context extraction
