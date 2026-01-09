@@ -29,7 +29,7 @@
 
 ### Architecture Questions
 
-Read: [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md), [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md), [ADR-004](docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md), [ADR-006](docs/architecture/ADR-006-EMAIL-ONLY-AUTHENTICATION.md), [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md)
+Read: [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-002](docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md), [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md), [ADR-004](docs/architecture/ADR-004-PLAYWRIGHT-MIGRATION.md), [ADR-005](docs/architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md), [ADR-006](docs/architecture/ADR-006-EMAIL-ONLY-AUTHENTICATION.md), [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md)
 
 ### Planning & Roadmap
 
@@ -160,6 +160,8 @@ PostToolUse hooks run Prettier+ESLint (TypeScript) and dotnet format (C#) automa
 **Goal:** 80-90% code correctness (vs 40-60% baseline)
 
 **See:** [IMPLEMENTATION_WORKFLOW.md](docs/development/IMPLEMENTATION_WORKFLOW.md)
+
+**Module Extraction:** When extracting bounded contexts from Auth module, follow the pattern in [ADR-005](docs/architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md)
 
 ### Subagent Decision Tree
 

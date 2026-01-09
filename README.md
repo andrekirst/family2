@@ -125,10 +125,11 @@ All of this happens automatically. You only schedule the appointment.
 
 ### Architecture
 
-- **Microservices:** 8 bounded contexts (DDD)
-- **Event-Driven:** Redis Pub/Sub (Phase 1-4), RabbitMQ (Phase 5+)
+- **Modular Monolith (Phase 0-4):** 8 DDD bounded contexts in single deployment ([ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md))
+- **Microservices (Phase 5+):** Extract modules using Strangler Fig pattern
+- **Event-Driven:** In-process RabbitMQ (Phase 1-4), Network-based (Phase 5+)
 - **CQRS Pattern:** For complex queries
-- **API Gateway:** YARP or Ocelot for routing
+- **Module Extraction Pattern:** Follow [ADR-005](docs/architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md) for extracting bounded contexts
 
 ---
 
