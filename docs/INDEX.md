@@ -1,8 +1,8 @@
 # Family Hub - Documentation Index
 
 **Last Updated:** 2026-01-09
-**Total Documents:** 54 markdown files organized in 9 thematic folders
-**Total Content:** 310,000+ words
+**Total Documents:** 59 markdown files organized in 9 thematic folders (5 new docs + 10 CLAUDE.md guides added)
+**Total Content:** 320,000+ words
 
 ---
 
@@ -82,7 +82,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-### 3. Development (`/development/` - 5 documents)
+### 3. Development (`/development/` - 10 documents)
 
 **Coding Standards & Patterns:**
 
@@ -94,6 +94,17 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 - [Implementation Workflow](development/IMPLEMENTATION_WORKFLOW.md) - Standard feature implementation process
 - [Post-Tool-Use Hooks](development/HOOKS.md) - Automatic code formatting and quality checks
+
+**Setup & Testing:**
+
+- [Local Development Setup](development/LOCAL_DEVELOPMENT_SETUP.md) - Complete local dev environment setup guide
+- [Testing with Playwright](development/TESTING_WITH_PLAYWRIGHT.md) - E2E testing guide with API-first approach
+
+**Guides:**
+
+- [Debugging Guide](development/DEBUGGING_GUIDE.md) - Comprehensive troubleshooting reference
+- [Module Extraction Quickstart](development/MODULE_EXTRACTION_QUICKSTART.md) - Bounded context extraction guide
+- [Claude Code Guide](development/CLAUDE_CODE_GUIDE.md) - AI-assisted development workflow
 
 ---
 
