@@ -7,10 +7,11 @@ namespace FamilyHub.Modules.Auth.Application.Abstractions;
 /// </summary>
 /// <remarks>
 /// Cache keys should follow the pattern: "{EntityType}:{EntityId}"
+/// Use <see cref="Services.CacheKeyBuilder"/> to construct consistent cache keys.
+///
 /// Examples:
-/// - "FamilyMemberInvitation:{token-value}"
-/// - "Family:{familyId-guid}"
-/// - "User:{userId-guid}"
+/// - CacheKeyBuilder.FamilyMemberInvitation(token)
+/// - CacheKeyBuilder.Family(familyId)
 /// </remarks>
 public interface IValidationCache
 {

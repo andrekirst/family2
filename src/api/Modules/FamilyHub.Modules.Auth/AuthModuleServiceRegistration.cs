@@ -72,9 +72,10 @@ public static class AuthModuleServiceRegistration
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
 
-        // PHASE 3: Family repositories (implementation in Auth module, interface in Family module)
-        // These implement Family module interfaces but remain in Auth module to avoid circular dependency.
-        // They use AuthDbContext (shared database) and will be moved in Phase 5+.
+        // PHASE 4: Family repository registrations (implementation in Auth module, interface in Family module)
+        // These implement Family module interfaces but remain in Auth module to avoid circular dependency
+        // They use AuthDbContext (shared database) and will be moved in Phase 5+
+        // Auth module registers them because they depend on AuthDbContext
         services.AddScoped<Family.Domain.Repositories.IFamilyRepository, FamilyRepository>();
         services.AddScoped<Family.Domain.Repositories.IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
 
@@ -85,7 +86,11 @@ public static class AuthModuleServiceRegistration
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         // User Context - Scoped service holding authenticated user context for current request
+        // Register both Auth-specific and SharedKernel IUserContext interfaces
+        // Auth.IUserContext extends SharedKernel.IUserContext, so UserContextService implements both
         services.AddScoped<IUserContext, UserContextService>();
+        services.AddScoped<SharedKernel.Application.Abstractions.IUserContext>(sp =>
+            sp.GetRequiredService<IUserContext>());
 
         // Validation Cache - Scoped per HTTP request to eliminate duplicate database queries
         // between validators and handlers
@@ -154,14 +159,17 @@ public static class AuthModuleServiceRegistration
     /// - Queries (classes decorated with [ExtendObjectType("Query")])
     /// - Mutations (classes decorated with [ExtendObjectType("Mutation")])
     ///
-    /// PHASE 4 UPDATE: Family GraphQL types moved to Family module.
-    /// - FamilyType, FamilyTypeExtensions → Family.Presentation
-    /// - InviteFamilyMemberByEmail mutation → Family.Presentation
-    /// - Family queries → Family.Presentation
+    /// PHASE 4 UPDATE: Family GraphQL schema extracted to Family module.
+    /// Moved to Family module:
+    /// - FamilyType (core GraphQL type)
+    /// - FamilyQueries (using SharedKernel.IUserContext)
+    /// - FamilyMutations (CreateFamily - invokes Auth command)
+    /// - InviteFamilyMemberByEmail mutation
     /// Auth module retains:
     /// - UserType, UserTypeExtensions
-    /// - CreateFamily, AcceptInvitation mutations (they modify User aggregate)
-    /// - CancelInvitation, UpdateInvitationRole mutations (temporarily, until Phase 5+)
+    /// - FamilyTypeExtensions (requires User data for Members/Owner - temporary)
+    /// - AcceptInvitation, CancelInvitation mutations (modify User aggregate)
+    /// TODO Phase 5+: Create IUserLookupService for proper abstraction
     ///
     /// Example usage in Program.cs:
     /// <code>

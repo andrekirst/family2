@@ -605,6 +605,93 @@ Is it an authorization check?
 
 ---
 
+### 6.1. Validation Cache Key Management
+
+**Pattern:** Centralized cache key construction for `IValidationCache`.
+
+**Problem:** Validators cache entities to eliminate duplicate database queries in handlers. String literal cache keys scattered across validators and handlers create risk of typos, copy-paste errors, and cache mismatches.
+
+**Solution:** Use `CacheKeyBuilder` static helper for type-safe, consistent cache keys.
+
+#### ✅ Correct Pattern: CacheKeyBuilder
+
+```csharp
+// In Validator: Store entities in cache
+public class AcceptInvitationCommandValidator : AbstractValidator<AcceptInvitationCommand>
+{
+    public AcceptInvitationCommandValidator(
+        IFamilyMemberInvitationRepository invitationRepository,
+        IFamilyRepository familyRepository,
+        IValidationCache validationCache)
+    {
+        RuleFor(x => x.Token)
+            .CustomAsync(async (token, context, cancellationToken) =>
+            {
+                var invitation = await invitationRepository.GetByTokenAsync(token, cancellationToken);
+                var family = await familyRepository.GetByIdAsync(invitation.FamilyId, cancellationToken);
+
+                // ✅ Use CacheKeyBuilder for consistent keys
+                validationCache.Set(CacheKeyBuilder.FamilyMemberInvitation(token.Value), invitation);
+                validationCache.Set(CacheKeyBuilder.Family(invitation.FamilyId.Value), family);
+            });
+    }
+}
+
+// In Handler: Retrieve entities from cache
+public class AcceptInvitationCommandHandler
+{
+    public async Task<Result> Handle(AcceptInvitationCommand request)
+    {
+        // ✅ Use same CacheKeyBuilder methods - guaranteed match
+        var invitation = validationCache.Get<FamilyMemberInvitationAggregate>(
+            CacheKeyBuilder.FamilyMemberInvitation(request.Token.Value));
+
+        var family = validationCache.Get<FamilyAggregate>(
+            CacheKeyBuilder.Family(invitation.FamilyId.Value));
+    }
+}
+```
+
+#### ❌ Anti-Pattern: String Literal Cache Keys
+
+```csharp
+// DON'T: String literals with typo risk
+validationCache.Set($"FamilyMemberInvitationAggregate:{token}", invitation); // ❌ Typo in prefix
+var invitation = validationCache.Get<T>($"FamilyMemberInvitation:{token}");  // ❌ Mismatch!
+
+// DON'T: Manual string interpolation
+validationCache.Set($"Family:{familyId.Value}", family);  // ❌ Duplication
+validationCache.Get<Family>($"Family:{familyId.Value}"); // ❌ No type safety
+```
+
+**Benefits:**
+
+1. **Compile-Time Safety:** Method names verified by compiler, prevents typos
+2. **Single Source of Truth:** One place to define/change key format per entity
+3. **Refactoring Safe:** Change entity name in one place, everywhere updates
+4. **Self-Documenting:** Method signature shows required parameter types
+5. **Guard Clauses:** Builder validates inputs (null/empty checks)
+
+**When to Add New Entity Types:**
+
+```csharp
+// In CacheKeyBuilder.cs:
+public static class CacheKeyBuilder
+{
+    // Add new method when caching a new entity type
+    public static string User(Guid userId)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("User ID cannot be empty.", nameof(userId));
+        return $"User:{userId}";
+    }
+}
+```
+
+**Pattern Origin:** Prevents cache key mismatches like the AcceptInvitation bug where validator used `FamilyMemberInvitation:{token}` but handler looked for `FamilyMemberInvitationAggregate:{token}`, causing cache miss.
+
+---
+
 ### 7. Domain Events vs Integration Events
 
 **Pattern:** Domain events (in-memory) → Integration events (RabbitMQ).

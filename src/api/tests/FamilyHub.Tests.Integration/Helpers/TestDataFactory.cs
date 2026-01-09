@@ -1,7 +1,9 @@
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
+using FamilyHub.Modules.Family.Domain.Aggregates;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
@@ -29,7 +31,7 @@ public static class TestDataFactory
     /// </example>
     public static async Task<User> CreateUserAsync(
         IUserRepository userRepository,
-        IFamilyRepository familyRepository,
+        IFamilyService familyService,
         IUnitOfWork unitOfWork,
         string emailPrefix = "test")
     {
@@ -37,23 +39,48 @@ public static class TestDataFactory
         var email = $"{emailPrefix}-{testId}@example.com";
         var familyName = $"{emailPrefix} Family {testId}";
 
-        // Create family first (required by foreign key constraint)
-        var family = FamilyAggregate.Create(FamilyName.From(familyName), UserId.New()); // Temp owner
-        await familyRepository.AddAsync(family);
-        await unitOfWork.SaveChangesAsync();
+        // WORKAROUND for foreign key constraint:
+        // Create temporary dummy family first, then user, then actual family
+        // This satisfies the FK constraint users.family_id -> families.id
+        var tempFamilyResult = await familyService.CreateFamilyAsync(
+            FamilyName.From($"Temp Family {testId}"),
+            UserId.New(), // Temp owner that doesn't exist
+            CancellationToken.None);
 
-        // Create user with family ID
+        if (tempFamilyResult.IsFailure)
+        {
+            throw new InvalidOperationException($"Failed to create temp family: {tempFamilyResult.Error}");
+        }
+
+        var tempFamilyDto = tempFamilyResult.Value;
+
+        // Create user with temp family ID
         var user = User.CreateFromOAuth(
             Email.From(email),
             $"zitadel-{emailPrefix}-{testId}",
             "zitadel",
-            family.Id
+            tempFamilyDto.Id
         );
 
-        // Transfer ownership to user
-        family.TransferOwnership(user.Id);
-
+        // Persist user
         await userRepository.AddAsync(user);
+        await unitOfWork.SaveChangesAsync();
+
+        // Now create actual family with user as owner
+        var createResult = await familyService.CreateFamilyAsync(
+            FamilyName.From(familyName),
+            user.Id,
+            CancellationToken.None);
+
+        if (createResult.IsFailure)
+        {
+            throw new InvalidOperationException($"Failed to create family: {createResult.Error}");
+        }
+
+        var familyDto = createResult.Value;
+
+        // Update user's family ID to actual family
+        user.UpdateFamily(familyDto.Id);
         await unitOfWork.SaveChangesAsync();
 
         return user;
@@ -74,7 +101,7 @@ public static class TestDataFactory
     /// </example>
     public static async Task<FamilyAggregate> CreateFamilyAsync(
         IMediator mediator,
-        IFamilyRepository familyRepository,
+        IFamilyService familyService,
         UserId ownerId,
         string? familyName = null)
     {
@@ -87,14 +114,20 @@ public static class TestDataFactory
         var command = new CreateFamilyCommand(FamilyName.From(familyName));
         var result = await mediator.Send(command);
 
-        // Retrieve the created family from repository
-        var family = await familyRepository.GetByIdAsync(result.FamilyId);
-        if (family == null)
+        // Retrieve the created family from service
+        var familyDto = await familyService.GetFamilyByIdAsync(result.FamilyId, CancellationToken.None);
+        if (familyDto == null)
         {
             throw new InvalidOperationException($"Family {result.FamilyId.Value} was created but could not be retrieved.");
         }
 
-        return family;
+        // Reconstitute aggregate for test usage
+        return FamilyAggregate.Reconstitute(
+            familyDto.Id,
+            familyDto.Name,
+            familyDto.OwnerId,
+            familyDto.CreatedAt,
+            familyDto.UpdatedAt);
     }
 
     /// <summary>
@@ -107,13 +140,13 @@ public static class TestDataFactory
     public static async Task<(User user, FamilyAggregate family)> CreateUserWithFamilyAsync(
         IMediator mediator,
         IUserRepository userRepository,
-        IFamilyRepository familyRepository,
+        IFamilyService familyService,
         IUnitOfWork unitOfWork,
         string emailPrefix = "test",
         string? familyName = null)
     {
-        var user = await CreateUserAsync(userRepository, familyRepository, unitOfWork, emailPrefix);
-        var family = await CreateFamilyAsync(mediator, familyRepository, user.Id, familyName);
+        var user = await CreateUserAsync(userRepository, familyService, unitOfWork, emailPrefix);
+        var family = await CreateFamilyAsync(mediator, familyService, user.Id, familyName);
         return (user, family);
     }
 

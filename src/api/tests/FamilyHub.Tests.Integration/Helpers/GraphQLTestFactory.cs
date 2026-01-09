@@ -80,8 +80,12 @@ public sealed class GraphQlTestFactory(PostgreSqlContainerFixture containerFixtu
 
             // Add AuthDbContext with test container connection string
             // Use AddPooledDbContextFactory to match production setup (singleton-safe)
+            // CRITICAL: Must specify MigrationsAssembly or EF Core won't find migration files
             services.AddPooledDbContextFactory<AuthDbContext>((_, options) =>
-                options.UseNpgsql(containerFixture.ConnectionString)
+                options.UseNpgsql(containerFixture.ConnectionString, npgsqlOptions =>
+                    {
+                        npgsqlOptions.MigrationsAssembly(typeof(AuthDbContext).Assembly.GetName().Name);
+                    })
                     .UseSnakeCaseNamingConvention());
 
             // Also register scoped DbContext for UnitOfWork pattern (same as production)

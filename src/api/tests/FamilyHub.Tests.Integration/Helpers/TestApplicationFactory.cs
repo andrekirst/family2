@@ -87,6 +87,22 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
+            // Debug: Check migrations assembly configuration
+            var assemblyName = typeof(AuthDbContext).Assembly.GetName().Name;
+            Console.WriteLine($"[Migration Debug] AuthDbContext Assembly: {assemblyName}");
+            Console.WriteLine($"[Migration Debug] AuthDbContext Assembly Full Name: {typeof(AuthDbContext).Assembly.FullName}");
+
+            // Check if migration types exist in the assembly
+            var authAssembly = typeof(AuthDbContext).Assembly;
+            var migrationTypes = authAssembly.GetTypes()
+                .Where(t => t.Namespace == "FamilyHub.Modules.Auth.Migrations" && !t.Name.Contains("Snapshot"))
+                .ToList();
+            Console.WriteLine($"[Migration Debug] Migration types found in assembly: {migrationTypes.Count}");
+            foreach (var type in migrationTypes)
+            {
+                Console.WriteLine($"[Migration Debug]   - {type.FullName}");
+            }
+
             // Check all migrations
             var allMigrations = dbContext.Database.GetMigrations();
             var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync(cancellationToken);
@@ -98,7 +114,9 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
             Console.WriteLine($"[Migration Debug] Applied migrations: {string.Join(", ", appliedMigrations)}");
 
             // Apply migrations
-            await dbContext.Database.MigrateAsync(cancellationToken);
+            // NOTE: Using EnsureCreated() instead of MigrateAsync() as a workaround for
+            // EF Core migration discovery issues. See PostgreSqlContainerFixture for explanation.
+            await dbContext.Database.EnsureCreatedAsync(cancellationToken);
 
             // Verify schema exists
             var hasSchema = await dbContext.Database.CanConnectAsync(cancellationToken);

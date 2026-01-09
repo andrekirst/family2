@@ -1,38 +1,37 @@
-using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.SharedKernel.Domain.Exceptions;
-using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Application.Abstractions;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
+using Xunit;
+using Result = FamilyHub.SharedKernel.Domain.Result;
 
 namespace FamilyHub.Tests.Unit.Auth.Application;
 
-/// <summary>
-/// Unit tests for CreateFamilyCommandHandler.
-/// Tests command handling logic, repository interactions, and business rule enforcement.
-/// Uses NSubstitute for mocking with AutoFixture attribute-based dependency injection.
-/// Uses FluentAssertions for readable, expressive test assertions.
-/// </summary>
-public class CreateFamilyCommandHandlerTests
+public sealed class CreateFamilyCommandHandlerTests
 {
-    #region Happy Path Tests
+    #region Test Helpers
 
-    [Theory, AutoNSubstituteData]
-    public async Task Handle_WithValidCommand_ShouldCreateFamilySuccessfully(
-        [Frozen] IUserContext userContext,
-        [Frozen] IUnitOfWork unitOfWork,
-        CreateFamilyCommandHandler sut,
-        User user)
+    /// <summary>
+    /// Creates all necessary mocks for CreateFamilyCommandHandler tests.
+    /// </summary>
+    private (IUserContext userContext, IFamilyService familyService, IUnitOfWork unitOfWork, ILogger<CreateFamilyCommandHandler> logger, User user) CreateMocks()
     {
-        // Arrange
-        var familyName = "Smith Family";
-        var command = new CreateFamilyCommand(FamilyName.From(familyName));
+        var userContext = Substitute.For<IUserContext>();
+        var familyService = Substitute.For<IFamilyService>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        var logger = Substitute.For<ILogger<CreateFamilyCommandHandler>>();
+
+        var user = User.CreateFromOAuth(
+            Email.From("test@example.com"),
+            "zitadel-123",
+            "zitadel",
+            FamilyId.New());
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(user.Id);
@@ -40,9 +39,84 @@ public class CreateFamilyCommandHandlerTests
         userContext.Role.Returns(user.Role);
         userContext.Email.Returns(user.Email);
 
-        unitOfWork
-            .SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(1);
+        return (userContext, familyService, unitOfWork, logger, user);
+    }
+
+    #endregion
+
+    #region Happy Path Tests
+
+    [Fact]
+    public async Task Handle_WithValidCommand_ManualMock_ShouldWork()
+    {
+        // Arrange - Manual mocking without AutoFixture
+        var userContext = Substitute.For<IUserContext>();
+        var familyService = Substitute.For<IFamilyService>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        var logger = Substitute.For<ILogger<CreateFamilyCommandHandler>>();
+
+        var user = User.CreateFromOAuth(
+            Email.From("test@example.com"),
+            "zitadel-123",
+            "zitadel",
+            FamilyId.New());
+
+        var familyName = "Smith Family";
+        var command = new CreateFamilyCommand(FamilyName.From(familyName));
+
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From(familyName),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        userContext.User.Returns(user);
+        userContext.UserId.Returns(user.Id);
+
+        // Configure familyService mock without Arg.Any
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)));
+
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
+
+        // Act
+        var result = await sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Name.Value.Should().Be(familyName);
+        result.OwnerId.Should().Be(user.Id);
+    }
+
+    [Fact]
+    public async Task Handle_WithValidCommand_ShouldCreateFamilySuccessfully()
+    {
+        // Arrange
+        var (userContext, familyService, unitOfWork, logger, user) = CreateMocks();
+
+        var familyName = "Smith Family";
+        var command = new CreateFamilyCommand(FamilyName.From(familyName));
+
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From(familyName),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)));
+
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
 
         // Act
         var result = await sut.Handle(command, CancellationToken.None);
@@ -55,65 +129,74 @@ public class CreateFamilyCommandHandlerTests
         result.CreatedAt.Should().BeOnOrBefore(DateTime.UtcNow);
     }
 
-    [Theory, AutoNSubstituteData]
-    public async Task Handle_WithValidCommand_ShouldCallRepositoriesInCorrectOrder(
-        [Frozen] IUserContext userContext,
-        [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUnitOfWork unitOfWork,
-        CreateFamilyCommandHandler sut,
-        User user)
+    [Fact]
+    public async Task Handle_WithValidCommand_ShouldCallServiceAndUnitOfWorkInCorrectOrder()
     {
         // Arrange
+        var (userContext, familyService, unitOfWork, logger, user) = CreateMocks();
+
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
         var callOrder = new List<string>();
 
-        userContext.User.Returns(user);
-        userContext.UserId.Returns(user.Id);
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From("Smith Family"),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        familyRepository
-            .When(x => x.AddAsync(Arg.Any<FamilyAggregate>(), Arg.Any<CancellationToken>()))
-            .Do(_ => callOrder.Add("AddFamily"));
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)))
+            .AndDoes(_ => callOrder.Add("CreateFamily"));
 
-        unitOfWork
-            .SaveChangesAsync(Arg.Any<CancellationToken>())
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
             .Returns(1)
             .AndDoes(_ => callOrder.Add("SaveChanges"));
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
 
         // Act
         await sut.Handle(command, CancellationToken.None);
 
         // Assert
         callOrder.Should().HaveCount(2)
-            .And.ContainInOrder("AddFamily", "SaveChanges");
+            .And.ContainInOrder("CreateFamily", "SaveChanges");
     }
 
-    [Theory, AutoNSubstituteData]
-    public async Task Handle_WithValidCommand_ShouldVerifyAllRepositoryInteractions(
-        [Frozen] IUserContext userContext,
-        [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUnitOfWork unitOfWork,
-        CreateFamilyCommandHandler sut,
-        User user)
+    [Fact]
+    public async Task Handle_WithValidCommand_ShouldVerifyAllServiceInteractions()
     {
         // Arrange
+        var (userContext, familyService, unitOfWork, logger, user) = CreateMocks();
+
         var familyName = "Smith Family";
         var command = new CreateFamilyCommand(FamilyName.From(familyName));
 
-        userContext.User.Returns(user);
-        userContext.UserId.Returns(user.Id);
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From(familyName),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        unitOfWork
-            .SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(1);
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)));
+
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
 
         // Act
         await sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await familyRepository.Received(1).AddAsync(
-            Arg.Is<FamilyAggregate>(f =>
-                f.Name == familyName &&
-                f.OwnerId == user.Id),
+        await familyService.Received(1).CreateFamilyAsync(
+            command.Name,
+            user.Id,
             Arg.Any<CancellationToken>());
 
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -127,23 +210,29 @@ public class CreateFamilyCommandHandlerTests
     // These checks are now handled by UserContextEnrichmentBehavior in the MediatR pipeline,
     // so they are no longer the responsibility of the handler itself.
 
-    [Theory, AutoNSubstituteData]
-    public async Task Handle_WhenUserAlreadyBelongsToFamily_ShouldReplaceFamily(
-        [Frozen] IUserContext userContext,
-        [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUnitOfWork unitOfWork,
-        CreateFamilyCommandHandler sut,
-        User user)
+    [Fact]
+    public async Task Handle_WhenUserAlreadyBelongsToFamily_ShouldReplaceFamily()
     {
         // Arrange
+        var (userContext, familyService, unitOfWork, logger, user) = CreateMocks();
+
         var command = new CreateFamilyCommand(FamilyName.From("New Family"));
 
-        userContext.User.Returns(user);
-        userContext.UserId.Returns(user.Id);
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From("New Family"),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        unitOfWork
-            .SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(1);
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)));
+
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
 
         // Act
         var result = await sut.Handle(command, CancellationToken.None);
@@ -153,32 +242,41 @@ public class CreateFamilyCommandHandlerTests
         result.Name.Value.Should().Be("New Family");
         result.OwnerId.Should().Be(user.Id);
 
-        // Verify family was added
-        await familyRepository.Received(1).AddAsync(
-            Arg.Is<FamilyAggregate>(f => f.Name.Value == "New Family" && f.OwnerId == user.Id),
+        // Verify service was called to create family
+        await familyService.Received(1).CreateFamilyAsync(
+            command.Name,
+            user.Id,
             Arg.Any<CancellationToken>());
 
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    [Theory, AutoNSubstituteData]
-    public async Task Handle_WhenUserHasExistingFamily_ShouldReplaceWithNewFamily(
-        [Frozen] IUserContext userContext,
-        [Frozen] IUnitOfWork unitOfWork,
-        CreateFamilyCommandHandler sut,
-        User user)
+    [Fact]
+    public async Task Handle_WhenUserHasExistingFamily_ShouldReplaceWithNewFamily()
     {
         // Arrange
+        var (userContext, familyService, unitOfWork, logger, user) = CreateMocks();
+
         var command = new CreateFamilyCommand(FamilyName.From("Replacement Family"));
         var existingFamilyId = user.FamilyId;
 
-        userContext.User.Returns(user);
-        userContext.UserId.Returns(user.Id);
         userContext.FamilyId.Returns(existingFamilyId);
 
-        unitOfWork
-            .SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(1);
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From("Replacement Family"),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)));
+
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
 
         // Act
         var result = await sut.Handle(command, CancellationToken.None);
@@ -194,53 +292,65 @@ public class CreateFamilyCommandHandlerTests
 
     #region Edge Cases
 
-    [Theory, AutoNSubstituteData]
-    public async Task Handle_WithCancellationToken_ShouldPassTokenToRepositories(
-        [Frozen] IUserContext userContext,
-        [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUnitOfWork unitOfWork,
-        CreateFamilyCommandHandler sut,
-        User user)
+    [Fact]
+    public async Task Handle_WithCancellationToken_ShouldPassTokenToServiceAndUnitOfWork()
     {
         // Arrange
+        var (userContext, familyService, unitOfWork, logger, user) = CreateMocks();
+
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"));
         var cts = new CancellationTokenSource();
         var cancellationToken = cts.Token;
 
-        userContext.User.Returns(user);
-        userContext.UserId.Returns(user.Id);
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From("Smith Family"),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        unitOfWork
-            .SaveChangesAsync(cancellationToken)
-            .Returns(1);
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Is(cancellationToken))
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)));
+
+        unitOfWork.SaveChangesAsync(Arg.Is(cancellationToken)).Returns(1);
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
 
         // Act
         await sut.Handle(command, cancellationToken);
 
         // Assert
-        await familyRepository.Received(1).AddAsync(Arg.Any<FamilyAggregate>(), cancellationToken);
-        await unitOfWork.Received(1).SaveChangesAsync(cancellationToken);
+        await familyService.Received(1).CreateFamilyAsync(command.Name, user.Id, Arg.Is(cancellationToken));
+        await unitOfWork.Received(1).SaveChangesAsync(Arg.Is(cancellationToken));
     }
 
-    [Theory, AutoNSubstituteData]
-    public async Task Handle_WithWhitespaceInName_ShouldTrimNameViaFactoryMethod(
-        [Frozen] IUserContext userContext,
-        [Frozen] IFamilyRepository familyRepository,
-        [Frozen] IUnitOfWork unitOfWork,
-        CreateFamilyCommandHandler sut,
-        User user)
+    [Fact]
+    public async Task Handle_WithWhitespaceInName_ShouldTrimNameViaFactoryMethod()
     {
         // Arrange
+        var (userContext, familyService, unitOfWork, logger, user) = CreateMocks();
+
         var nameWithWhitespace = "  Smith Family  ";
         var expectedTrimmedName = "Smith Family";
         var command = new CreateFamilyCommand(FamilyName.From(nameWithWhitespace));
 
-        userContext.User.Returns(user);
-        userContext.UserId.Returns(user.Id);
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From(expectedTrimmedName),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        unitOfWork
-            .SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(1);
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)));
+
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
 
         // Act
         var result = await sut.Handle(command, CancellationToken.None);
@@ -248,8 +358,9 @@ public class CreateFamilyCommandHandlerTests
         // Assert
         result.Name.Value.Should().Be(expectedTrimmedName);
 
-        await familyRepository.Received(1).AddAsync(
-            Arg.Is<FamilyAggregate>(f => f.Name == expectedTrimmedName),
+        await familyService.Received(1).CreateFamilyAsync(
+            command.Name,
+            user.Id,
             Arg.Any<CancellationToken>());
     }
 
@@ -261,22 +372,29 @@ public class CreateFamilyCommandHandlerTests
     // User existence is now validated by UserContextEnrichmentBehavior,
     // so this scenario is no longer testable at the handler level.
 
-    [Theory, AutoNSubstituteData]
-    public async Task Handle_WhenReplacingFamily_ShouldSucceed(
-        [Frozen] IUserContext userContext,
-        [Frozen] IUnitOfWork unitOfWork,
-        CreateFamilyCommandHandler sut,
-        User user)
+    [Fact]
+    public async Task Handle_WhenReplacingFamily_ShouldSucceed()
     {
         // Arrange
+        var (userContext, familyService, unitOfWork, logger, user) = CreateMocks();
+
         var command = new CreateFamilyCommand(FamilyName.From("New Family"));
 
-        userContext.User.Returns(user);
-        userContext.UserId.Returns(user.Id);
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From("New Family"),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        unitOfWork
-            .SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(1);
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)));
+
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
 
         // Act
         var result = await sut.Handle(command, CancellationToken.None);
@@ -290,23 +408,30 @@ public class CreateFamilyCommandHandlerTests
         // Logging is verified in integration tests
     }
 
-    [Theory, AutoNSubstituteData]
-    public async Task Handle_WithSuccessfulCreation_ShouldLogInformationTwice(
-        [Frozen] IUserContext userContext,
-        [Frozen] IUnitOfWork unitOfWork,
-        CreateFamilyCommandHandler sut,
-        User user)
+    [Fact]
+    public async Task Handle_WithSuccessfulCreation_ShouldLogInformationTwice()
     {
         // Arrange
+        var (userContext, familyService, unitOfWork, logger, user) = CreateMocks();
+
         var familyName = "Smith Family";
         var command = new CreateFamilyCommand(FamilyName.From(familyName));
 
-        userContext.User.Returns(user);
-        userContext.UserId.Returns(user.Id);
+        var testFamilyDto = new FamilyDto
+        {
+            Id = FamilyId.New(),
+            Name = FamilyName.From(familyName),
+            OwnerId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        unitOfWork
-            .SaveChangesAsync(Arg.Any<CancellationToken>())
-            .Returns(1);
+        familyService.CreateFamilyAsync(command.Name, user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success(testFamilyDto)));
+
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = new CreateFamilyCommandHandler(userContext, familyService, unitOfWork, logger);
 
         // Act
         var result = await sut.Handle(command, CancellationToken.None);

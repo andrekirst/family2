@@ -27,14 +27,13 @@ public static class FamilyModuleServiceRegistration
         // Register TimeProvider for timestamp management
         services.AddSingleton(TimeProvider.System);
 
-        // PHASE 3: Persistence Layer
-        // Repository implementations remain in Auth module to avoid circular dependency.
-        // Repository interfaces (IFamilyRepository, IFamilyMemberInvitationRepository) are defined
-        // in this module's Domain layer, but implementations are registered by Auth module.
-        // This maintains logical separation while using shared AuthDbContext pragmatically.
-        // TODO Phase 5+: Move repository implementations here when FamilyDbContext is introduced.
+        // PHASE 4: Persistence Layer (Repository Registration)
+        // Repository implementations remain in Auth.Persistence/ and are registered by Auth module
+        // This is Phase 3 pragmatism to avoid circular dependencies while sharing AuthDbContext
+        // TODO Phase 5+: Move repository implementations here when FamilyDbContext is introduced
 
-        // TODO: Register Application Services when implemented
+        // Application Services (Phase 4: Anti-corruption layer for cross-module interactions)
+        services.AddScoped<Application.Abstractions.IFamilyService, Application.Services.FamilyService>();
 
         // MediatR - Command/Query handlers (placeholder - will be populated when handlers are moved)
         services.AddMediatR(cfg =>
@@ -73,6 +72,37 @@ public static class FamilyModuleServiceRegistration
     /// - FamilyTypeExtensions (requires AuthDbContext, UserRepository)
     /// - Other invitation mutations that modify User aggregate
     /// TODO Phase 5+: Complete extraction with proper bounded context separation
+    ///
+    /// Example usage in Program.cs:
+    /// <code>
+    /// var loggerFactory = builder.Services.BuildServiceProvider().GetService&lt;ILoggerFactory&gt;();
+    /// graphqlBuilder.AddFamilyModuleGraphQLTypes(loggerFactory);
+    /// </code>
+    /// </remarks>
+    /// <summary>
+    /// Registers Family module GraphQL type extensions (Queries and Mutations).
+    /// Automatically discovers and registers all classes with [ExtendObjectType] attribute
+    /// in the Family module assembly.
+    /// </summary>
+    /// <param name="builder">The GraphQL request executor builder.</param>
+    /// <param name="loggerFactory">Optional logger factory for diagnostics.</param>
+    /// <returns>The builder for chaining.</returns>
+    /// <remarks>
+    /// This method scans the Family module assembly for GraphQL type extensions and automatically
+    /// registers them with Hot Chocolate. Type extensions include:
+    /// - Queries (classes decorated with [ExtendObjectType("Query")])
+    /// - Mutations (classes decorated with [ExtendObjectType("Mutation")])
+    ///
+    /// PHASE 4 UPDATE: Family GraphQL schema extracted from Auth module.
+    /// Moved to Family module:
+    /// - FamilyType (core GraphQL type)
+    /// - FamilyQueries (using SharedKernel.IUserContext)
+    /// - FamilyMutations (CreateFamily - invokes Auth command)
+    /// - InviteFamilyMemberByEmail mutation
+    /// Remaining in Auth module (modifies User aggregate):
+    /// - FamilyTypeExtensions (requires User data for Members/Owner fields)
+    /// - Other invitation mutations (AcceptInvitation, CancelInvitation)
+    /// TODO Phase 5+: Create IUserLookupService for proper abstraction
     ///
     /// Example usage in Program.cs:
     /// <code>

@@ -109,9 +109,10 @@ try
     graphqlBuilder.AddFamilyModuleGraphQlTypes();
 
     // Explicitly register type extensions from Auth module
+    // Note: FamilyQueries moved to Family module (Sprint 3, Issue #36)
+    // FamilyMutations stays in Auth (CreateFamily modifies User aggregate)
     graphqlBuilder
         .AddTypeExtension<FamilyMutations>()
-        .AddTypeExtension<FamilyQueries>()
         .AddTypeExtension<AuthMutations>()
         .AddTypeExtension<HealthQueries>()
         .AddTypeExtension<UserQueries>()

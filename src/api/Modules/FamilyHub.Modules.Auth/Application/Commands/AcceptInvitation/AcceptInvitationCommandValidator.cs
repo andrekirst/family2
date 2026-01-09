@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FluentValidation;
@@ -61,8 +62,8 @@ public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptI
                 }
 
                 // Cache entities for handler (eliminates duplicate database queries)
-                validationCache.Set($"FamilyMemberInvitation:{token.Value}", invitation);
-                validationCache.Set($"Family:{invitation.FamilyId.Value}", family);
+                validationCache.Set(CacheKeyBuilder.FamilyMemberInvitation(token.Value), invitation);
+                validationCache.Set(CacheKeyBuilder.Family(invitation.FamilyId.Value), family);
             });
     }
 }
