@@ -48,7 +48,6 @@ try
     // Quartz.NET Background Jobs Configuration
     builder.Services.AddQuartz(q =>
     {
-        q.UseMicrosoftDependencyInjectionJobFactory();
         q.UseSimpleTypeLoader();
         q.UseInMemoryStore();
         q.UseDefaultThreadPool(tp => { tp.MaxConcurrency = 10; });
