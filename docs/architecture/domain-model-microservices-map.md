@@ -2,10 +2,11 @@
 
 ## Family Hub - Domain-Driven Design Analysis
 
-**Document Version:** 1.0
-**Date:** 2025-12-19
-**Status:** Draft for Review
+**Document Version:** 1.1
+**Date:** 2026-01-09 (Updated)
+**Status:** Living Document
 **Author:** Business Analyst (Claude Code)
+**Related ADRs:** [ADR-001 (Modular Monolith First)](ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-005 (Family Module Extraction Pattern)](ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md)
 
 ---
 
@@ -14,6 +15,12 @@
 This document defines the Domain-Driven Design (DDD) bounded contexts, domain models, and microservices architecture for the Family Hub application. The architecture is designed for incremental implementation by a single developer with AI assistance, emphasizing event-driven automation and clear service boundaries.
 
 **Key Differentiator:** Event chains enable automated cross-domain workflows (e.g., doctor appointment → calendar → shopping list → task reminder).
+
+**Current Implementation Status (Phase 0-1):**
+
+- **Architecture:** Modular Monolith (see [ADR-001](ADR-001-MODULAR-MONOLITH-FIRST.md))
+- **Family Module:** Extracted as separate bounded context (see [ADR-005](ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md))
+- **Microservices Migration:** Planned for Phase 5+ using Strangler Fig pattern
 
 ---
 
