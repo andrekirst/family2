@@ -1,9 +1,9 @@
-using Microsoft.Extensions.DependencyInjection;
-using FamilyHub.Modules.Family.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FamilyHub.Tests.Integration.Helpers;
 

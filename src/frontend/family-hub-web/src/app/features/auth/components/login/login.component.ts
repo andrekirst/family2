@@ -6,24 +6,18 @@ import { ButtonComponent } from '../../../../shared/components/atoms/button/butt
 import { InputComponent } from '../../../../shared/components/atoms/input/input.component';
 
 @Component({
-    selector: 'app-login',
-    imports: [FormsModule, ButtonComponent, InputComponent],
-    template: `
+  selector: 'app-login',
+  imports: [FormsModule, ButtonComponent, InputComponent],
+  template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div class="max-w-md w-full space-y-8">
         <div class="text-center">
-          <h1 class="text-4xl font-bold text-gray-900 mb-2">
-            Family Hub
-          </h1>
-          <p class="text-gray-600">
-            Organize your family life with ease
-          </p>
+          <h1 class="text-4xl font-bold text-gray-900 mb-2">Family Hub</h1>
+          <p class="text-gray-600">Organize your family life with ease</p>
         </div>
 
         <div class="bg-white shadow-lg rounded-lg p-8">
-          <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">
-            Welcome Back
-          </h2>
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Welcome Back</h2>
 
           <form (ngSubmit)="login()" class="space-y-6">
             <div>
@@ -67,7 +61,7 @@ import { InputComponent } from '../../../../shared/components/atoms/input/input.
         </p>
       </div>
     </div>
-  `
+  `,
 })
 export class LoginComponent {
   private readonly authService = inject(AuthService);

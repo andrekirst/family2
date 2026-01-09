@@ -1,7 +1,7 @@
+using System.Reflection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace FamilyHub.Infrastructure.GraphQL.Extensions;
 
@@ -51,7 +51,10 @@ public static class GraphQlTypeExtensions
                                    type.GetCustomAttribute<ExtendObjectTypeAttribute>() != null)
                     .ToList();
 
-                if (types.Count == 0) continue;
+                if (types.Count == 0)
+                {
+                    continue;
+                }
 
                 typeExtensions.AddRange(types);
                 logger?.LogDebug(

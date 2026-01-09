@@ -1,8 +1,8 @@
+using System.Text.Json;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Text.Json;
 
 namespace FamilyHub.Modules.Auth.Infrastructure.Persistence;
 

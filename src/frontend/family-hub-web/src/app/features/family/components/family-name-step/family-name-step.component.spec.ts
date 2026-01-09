@@ -11,12 +11,7 @@ describe('FamilyNameStepComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        FamilyNameStepComponent,
-        ReactiveFormsModule,
-        InputComponent,
-        IconComponent
-      ]
+      imports: [FamilyNameStepComponent, ReactiveFormsModule, InputComponent, IconComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(FamilyNameStepComponent);
@@ -125,7 +120,9 @@ describe('FamilyNameStepComponent', () => {
 
     it('should render description text', () => {
       const description = fixture.debugElement.query(By.css('p.text-gray-600'));
-      expect(description.nativeElement.textContent).toContain('Give your family a name to get started');
+      expect(description.nativeElement.textContent).toContain(
+        'Give your family a name to get started'
+      );
     });
 
     it('should render users icon', () => {
@@ -149,7 +146,9 @@ describe('FamilyNameStepComponent', () => {
     it('should show helper text when no errors', () => {
       const helperText = fixture.debugElement.query(By.css('p.text-gray-500'));
       expect(helperText).toBeTruthy();
-      expect(helperText.nativeElement.textContent).toContain('Choose a name that represents your family');
+      expect(helperText.nativeElement.textContent).toContain(
+        'Choose a name that represents your family'
+      );
     });
 
     it('should hide helper text when there are errors', () => {
@@ -189,11 +188,11 @@ describe('FamilyNameStepComponent', () => {
         'Smith Family',
         'The Johnsons',
         'García Family',
-        'O\'Brien Household',
-        'Family 123'
+        "O'Brien Household",
+        'Family 123',
       ];
 
-      validNames.forEach(name => {
+      validNames.forEach((name) => {
         component.familyForm.patchValue({ name });
         expect(component.familyForm.valid).toBe(true);
       });

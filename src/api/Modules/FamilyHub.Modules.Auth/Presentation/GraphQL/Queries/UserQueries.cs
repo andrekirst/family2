@@ -32,11 +32,7 @@ public sealed class UserQueries
         var authenticatedUserId = AuthenticationValidator.RequireAuthentication(userId, "access user information");
 
         // Retrieve full User entity from repository
-        var user = await userRepository.GetByIdAsync(authenticatedUserId, cancellationToken);
-        if (user == null)
-        {
-            throw new InvalidOperationException($"User with ID {authenticatedUserId.Value} not found.");
-        }
+        var user = await userRepository.GetByIdAsync(authenticatedUserId, cancellationToken) ?? throw new InvalidOperationException($"User with ID {authenticatedUserId.Value} not found.");
 
         // Map to GraphQL type using mapper
         return UserMapper.AsGraphQLType(user);

@@ -4,14 +4,11 @@
 <section class="mb-8">
   <h2 class="text-lg font-semibold text-gray-900 mb-4">Wizard Progress (Responsive)</h2>
   <div class="bg-white border border-gray-200 rounded-lg p-6">
-    <app-progress-bar
-      [currentStep]="2"
-      [totalSteps]="4"
-    ></app-progress-bar>
+    <app-progress-bar [currentStep]="2" [totalSteps]="4"></app-progress-bar>
 
     <div class="mt-6 text-center">
       <p class="text-sm text-gray-600">
-        Desktop (≥768px): Shows linear bar with "Step 2 of 4"<br>
+        Desktop (≥768px): Shows linear bar with "Step 2 of 4"<br />
         Mobile (<768px): Shows 4 dots (2 blue, 2 gray)
       </p>
     </div>
@@ -22,16 +19,10 @@
 <section class="mb-8">
   <h2 class="text-lg font-semibold text-gray-900 mb-4">Linear Progress Bar</h2>
   <div class="bg-white border border-gray-200 rounded-lg p-6">
-    <app-progress-bar
-      [currentStep]="3"
-      [totalSteps]="5"
-      variant="linear"
-    ></app-progress-bar>
+    <app-progress-bar [currentStep]="3" [totalSteps]="5" variant="linear"></app-progress-bar>
 
     <div class="mt-6 text-center">
-      <p class="text-sm text-gray-600">
-        Always shows linear bar (desktop only contexts)
-      </p>
+      <p class="text-sm text-gray-600">Always shows linear bar (desktop only contexts)</p>
     </div>
   </div>
 </section>
@@ -40,16 +31,10 @@
 <section class="mb-8">
   <h2 class="text-lg font-semibold text-gray-900 mb-4">Dot Stepper</h2>
   <div class="bg-white border border-gray-200 rounded-lg p-6">
-    <app-progress-bar
-      [currentStep]="2"
-      [totalSteps]="3"
-      variant="dots"
-    ></app-progress-bar>
+    <app-progress-bar [currentStep]="2" [totalSteps]="3" variant="dots"></app-progress-bar>
 
     <div class="mt-6 text-center">
-      <p class="text-sm text-gray-600">
-        Compact dot stepper (mobile-only contexts)
-      </p>
+      <p class="text-sm text-gray-600">Compact dot stepper (mobile-only contexts)</p>
     </div>
   </div>
 </section>
@@ -59,36 +44,30 @@
   <h2 class="text-lg font-semibold text-gray-900 mb-4">Complete Wizard Example</h2>
   <div class="bg-white border border-gray-200 rounded-lg p-6">
     <!-- Progress Bar -->
-    <app-progress-bar
-      [currentStep]="wizardStep"
-      [totalSteps]="4"
-    ></app-progress-bar>
+    <app-progress-bar [currentStep]="wizardStep" [totalSteps]="4"></app-progress-bar>
 
     <!-- Wizard Content -->
     <div class="mt-8 min-h-[200px]">
       @if (wizardStep === 1) {
-        <div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 1: Family Details</h3>
-          <p class="text-gray-600">Enter your family name and description...</p>
-        </div>
-      }
-      @if (wizardStep === 2) {
-        <div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 2: Add Members</h3>
-          <p class="text-gray-600">Invite family members to join...</p>
-        </div>
-      }
-      @if (wizardStep === 3) {
-        <div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 3: Setup Preferences</h3>
-          <p class="text-gray-600">Configure your family settings...</p>
-        </div>
-      }
-      @if (wizardStep === 4) {
-        <div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 4: Review & Create</h3>
-          <p class="text-gray-600">Review your family information...</p>
-        </div>
+      <div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 1: Family Details</h3>
+        <p class="text-gray-600">Enter your family name and description...</p>
+      </div>
+      } @if (wizardStep === 2) {
+      <div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 2: Add Members</h3>
+        <p class="text-gray-600">Invite family members to join...</p>
+      </div>
+      } @if (wizardStep === 3) {
+      <div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 3: Setup Preferences</h3>
+        <p class="text-gray-600">Configure your family settings...</p>
+      </div>
+      } @if (wizardStep === 4) {
+      <div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Step 4: Review & Create</h3>
+        <p class="text-gray-600">Review your family information...</p>
+      </div>
       }
     </div>
 
@@ -137,30 +116,30 @@
 
 <!-- TypeScript Component Code -->
 <script>
-// Example wizard component TypeScript:
+  // Example wizard component TypeScript:
 
-export class WizardExampleComponent {
-  wizardStep = 1;
-  totalSteps = 4;
+  export class WizardExampleComponent {
+    wizardStep = 1;
+    totalSteps = 4;
 
-  nextStep(): void {
-    if (this.wizardStep < this.totalSteps) {
-      this.wizardStep++;
+    nextStep(): void {
+      if (this.wizardStep < this.totalSteps) {
+        this.wizardStep++;
+      }
+    }
+
+    previousStep(): void {
+      if (this.wizardStep > 1) {
+        this.wizardStep--;
+      }
+    }
+
+    isFirstStep(): boolean {
+      return this.wizardStep === 1;
+    }
+
+    isLastStep(): boolean {
+      return this.wizardStep === this.totalSteps;
     }
   }
-
-  previousStep(): void {
-    if (this.wizardStep > 1) {
-      this.wizardStep--;
-    }
-  }
-
-  isFirstStep(): boolean {
-    return this.wizardStep === 1;
-  }
-
-  isLastStep(): boolean {
-    return this.wizardStep === this.totalSteps;
-  }
-}
 </script>

@@ -1,7 +1,7 @@
+using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Family.Application.Abstractions;
-using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -115,11 +115,7 @@ public static class TestDataFactory
         var result = await mediator.Send(command);
 
         // Retrieve the created family from service
-        var familyDto = await familyService.GetFamilyByIdAsync(result.FamilyId, CancellationToken.None);
-        if (familyDto == null)
-        {
-            throw new InvalidOperationException($"Family {result.FamilyId.Value} was created but could not be retrieved.");
-        }
+        var familyDto = await familyService.GetFamilyByIdAsync(result.FamilyId, CancellationToken.None) ?? throw new InvalidOperationException($"Family {result.FamilyId.Value} was created but could not be retrieved.");
 
         // Reconstitute aggregate for test usage
         return FamilyAggregate.Reconstitute(

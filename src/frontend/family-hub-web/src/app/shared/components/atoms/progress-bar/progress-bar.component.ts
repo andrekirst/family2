@@ -8,7 +8,14 @@ import { CommonModule } from '@angular/common';
     <!-- Responsive variant: Linear on desktop (md+), Dots on mobile -->
     @if (variant === 'responsive') {
       <!-- Desktop: Linear progress bar (hidden on mobile) -->
-      <div class="hidden md:block" role="progressbar" [attr.aria-valuenow]="currentStep" [attr.aria-valuemin]="1" [attr.aria-valuemax]="totalSteps" [attr.aria-label]="ariaLabel">
+      <div
+        class="hidden md:block"
+        role="progressbar"
+        [attr.aria-valuenow]="currentStep"
+        [attr.aria-valuemin]="1"
+        [attr.aria-valuemax]="totalSteps"
+        [attr.aria-label]="ariaLabel"
+      >
         <div class="text-center mb-2">
           <span class="text-sm text-gray-600">{{ stepText }}</span>
         </div>
@@ -21,7 +28,14 @@ import { CommonModule } from '@angular/common';
       </div>
 
       <!-- Mobile: Dot stepper (hidden on desktop) -->
-      <div class="flex md:hidden justify-center items-center space-x-2" role="progressbar" [attr.aria-valuenow]="currentStep" [attr.aria-valuemin]="1" [attr.aria-valuemax]="totalSteps" [attr.aria-label]="ariaLabel">
+      <div
+        class="flex md:hidden justify-center items-center space-x-2"
+        role="progressbar"
+        [attr.aria-valuenow]="currentStep"
+        [attr.aria-valuemin]="1"
+        [attr.aria-valuemax]="totalSteps"
+        [attr.aria-label]="ariaLabel"
+      >
         @for (step of steps; track step) {
           <div
             [class]="getDotClasses(step)"
@@ -34,7 +48,13 @@ import { CommonModule } from '@angular/common';
 
     <!-- Linear variant only -->
     @if (variant === 'linear') {
-      <div role="progressbar" [attr.aria-valuenow]="currentStep" [attr.aria-valuemin]="1" [attr.aria-valuemax]="totalSteps" [attr.aria-label]="ariaLabel">
+      <div
+        role="progressbar"
+        [attr.aria-valuenow]="currentStep"
+        [attr.aria-valuemin]="1"
+        [attr.aria-valuemax]="totalSteps"
+        [attr.aria-label]="ariaLabel"
+      >
         <div class="text-center mb-2">
           <span class="text-sm text-gray-600">{{ stepText }}</span>
         </div>
@@ -49,7 +69,14 @@ import { CommonModule } from '@angular/common';
 
     <!-- Dots variant only -->
     @if (variant === 'dots') {
-      <div class="flex justify-center items-center space-x-2" role="progressbar" [attr.aria-valuenow]="currentStep" [attr.aria-valuemin]="1" [attr.aria-valuemax]="totalSteps" [attr.aria-label]="ariaLabel">
+      <div
+        class="flex justify-center items-center space-x-2"
+        role="progressbar"
+        [attr.aria-valuenow]="currentStep"
+        [attr.aria-valuemin]="1"
+        [attr.aria-valuemax]="totalSteps"
+        [attr.aria-label]="ariaLabel"
+      >
         @for (step of steps; track step) {
           <div
             [class]="getDotClasses(step)"
@@ -60,18 +87,20 @@ import { CommonModule } from '@angular/common';
       </div>
     }
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-
-    /* Respect prefers-reduced-motion */
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        transition-duration: 0.01ms !important;
+  styles: [
+    `
+      :host {
+        display: block;
       }
-    }
-  `]
+
+      /* Respect prefers-reduced-motion */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition-duration: 0.01ms !important;
+        }
+      }
+    `,
+  ],
 })
 export class ProgressBarComponent {
   @Input() currentStep = 1;
@@ -118,7 +147,8 @@ export class ProgressBarComponent {
    * Inactive: gray-300 (upcoming step)
    */
   getDotClasses(step: number): string {
-    const baseClasses = 'w-2 h-2 rounded-full transition-colors duration-200 ease-out motion-reduce:transition-none';
+    const baseClasses =
+      'w-2 h-2 rounded-full transition-colors duration-200 ease-out motion-reduce:transition-none';
     const stateClass = step <= this.currentStep ? 'bg-blue-600' : 'bg-gray-300';
     return `${baseClasses} ${stateClass}`;
   }

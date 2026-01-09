@@ -8,7 +8,7 @@ describe('InputComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InputComponent, ReactiveFormsModule]
+      imports: [InputComponent, ReactiveFormsModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(InputComponent);

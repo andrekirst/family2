@@ -6,21 +6,21 @@ import { WizardService, WizardStepConfig } from './wizard.service';
 @Component({
   selector: 'app-test-step-1',
   template: '<div>Step 1</div>',
-  standalone: true
+  standalone: true,
 })
 class TestStep1Component {}
 
 @Component({
   selector: 'app-test-step-2',
   template: '<div>Step 2</div>',
-  standalone: true
+  standalone: true,
 })
 class TestStep2Component {}
 
 @Component({
   selector: 'app-test-step-3',
   template: '<div>Step 3</div>',
-  standalone: true
+  standalone: true,
 })
 class TestStep3Component {}
 
@@ -35,24 +35,24 @@ describe('WizardService', () => {
       validateOnNext: (data) => {
         const stepData = data.get('step1') as { name?: string } | undefined;
         return stepData?.name ? null : ['Name is required'];
-      }
+      },
     },
     {
       id: 'step2',
       componentType: TestStep2Component,
       title: 'Second Step',
-      canSkip: true
+      canSkip: true,
     },
     {
       id: 'step3',
       componentType: TestStep3Component,
-      title: 'Third Step'
-    }
+      title: 'Third Step',
+    },
   ];
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [WizardService]
+      providers: [WizardService],
     });
 
     service = TestBed.inject(WizardService);
@@ -145,16 +145,20 @@ describe('WizardService', () => {
 
     it('should throw error if steps array is null', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(() => service.initialize(null as any)).toThrowError('Wizard must have at least one step');
+      expect(() => service.initialize(null as any)).toThrowError(
+        'Wizard must have at least one step'
+      );
     });
 
     it('should throw error if step IDs are not unique', () => {
       const duplicateSteps: WizardStepConfig[] = [
         { id: 'step1', componentType: TestStep1Component, title: 'Step 1' },
-        { id: 'step1', componentType: TestStep2Component, title: 'Step 2' }
+        { id: 'step1', componentType: TestStep2Component, title: 'Step 2' },
       ];
 
-      expect(() => service.initialize(duplicateSteps)).toThrowError('Wizard step IDs must be unique');
+      expect(() => service.initialize(duplicateSteps)).toThrowError(
+        'Wizard step IDs must be unique'
+      );
     });
   });
 
@@ -424,8 +428,8 @@ describe('WizardService', () => {
             id: 'custom',
             componentType: TestStep1Component,
             title: 'Custom',
-            validateOnNext: validationSpy
-          }
+            validateOnNext: validationSpy,
+          },
         ];
 
         service.initialize(customSteps);
@@ -620,7 +624,7 @@ describe('WizardService', () => {
   describe('Edge Cases', () => {
     it('should handle single-step wizard', () => {
       const singleStep: WizardStepConfig[] = [
-        { id: 'only', componentType: TestStep1Component, title: 'Only Step' }
+        { id: 'only', componentType: TestStep1Component, title: 'Only Step' },
       ];
 
       service.initialize(singleStep);
@@ -649,10 +653,10 @@ describe('WizardService', () => {
           name: 'John',
           address: {
             street: '123 Main St',
-            city: 'Springfield'
+            city: 'Springfield',
           },
-          hobbies: ['reading', 'coding']
-        }
+          hobbies: ['reading', 'coding'],
+        },
       };
 
       service.setStepData('step1', complexData);

@@ -16,7 +16,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initializeFamily,
-      multi: true
-    }
-  ]
+      multi: true,
+    },
+  ],
 };

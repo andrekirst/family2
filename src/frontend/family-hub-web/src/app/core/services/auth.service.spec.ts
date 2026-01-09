@@ -25,8 +25,8 @@ describe('AuthService - Email OAuth', () => {
     // Create mock window object with settable location.href
     mockWindow = {
       location: {
-        href: ''
-      }
+        href: '',
+      },
     };
 
     // Clear sessionStorage before each test
@@ -37,8 +37,8 @@ describe('AuthService - Email OAuth', () => {
         AuthService,
         { provide: GraphQLService, useValue: graphqlServiceMock },
         { provide: Router, useValue: routerMock },
-        { provide: WindowRef, useValue: { nativeWindow: mockWindow } }
-      ]
+        { provide: WindowRef, useValue: { nativeWindow: mockWindow } },
+      ],
     });
 
     service = TestBed.inject(AuthService);
@@ -53,9 +53,9 @@ describe('AuthService - Email OAuth', () => {
           url: {
             authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
             codeVerifier: 'mock-verifier',
-            state: 'mock-state'
-          }
-        }
+            state: 'mock-state',
+          },
+        },
       };
 
       graphqlServiceMock.query.and.returnValue(Promise.resolve(mockResponse));
@@ -67,7 +67,7 @@ describe('AuthService - Email OAuth', () => {
       expect(graphqlServiceMock.query).toHaveBeenCalledWith(
         jasmine.any(String),
         jasmine.objectContaining({
-          loginHint: email
+          loginHint: email,
         })
       );
     });
@@ -80,9 +80,9 @@ describe('AuthService - Email OAuth', () => {
           url: {
             authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
             codeVerifier: 'mock-code-verifier',
-            state: 'mock-state-value'
-          }
-        }
+            state: 'mock-state-value',
+          },
+        },
       };
 
       graphqlServiceMock.query.and.returnValue(Promise.resolve(mockResponse));
@@ -104,9 +104,9 @@ describe('AuthService - Email OAuth', () => {
           url: {
             authorizationUrl: authUrl,
             codeVerifier: 'mock-verifier',
-            state: 'mock-state'
-          }
-        }
+            state: 'mock-state',
+          },
+        },
       };
 
       graphqlServiceMock.query.and.returnValue(Promise.resolve(mockResponse));
@@ -125,9 +125,9 @@ describe('AuthService - Email OAuth', () => {
           url: {
             authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
             codeVerifier: 'mock-verifier',
-            state: 'mock-state'
-          }
-        }
+            state: 'mock-state',
+          },
+        },
       };
 
       graphqlServiceMock.query.and.returnValue(Promise.resolve(mockResponse));
@@ -139,7 +139,7 @@ describe('AuthService - Email OAuth', () => {
       expect(graphqlServiceMock.query).toHaveBeenCalledWith(
         jasmine.any(String),
         jasmine.objectContaining({
-          loginHint: undefined
+          loginHint: undefined,
         })
       );
     });
@@ -152,9 +152,9 @@ describe('AuthService - Email OAuth', () => {
           url: {
             authorizationUrl: 'https://zitadel.example.com/oauth/authorize',
             codeVerifier: 'mock-verifier',
-            state: 'mock-state'
-          }
-        }
+            state: 'mock-state',
+          },
+        },
       };
 
       graphqlServiceMock.query.and.returnValue(Promise.resolve(mockResponse));
@@ -166,7 +166,7 @@ describe('AuthService - Email OAuth', () => {
       expect(graphqlServiceMock.query).toHaveBeenCalledWith(
         jasmine.any(String),
         jasmine.objectContaining({
-          loginHint: 'user@example.com'
+          loginHint: 'user@example.com',
         })
       );
     });

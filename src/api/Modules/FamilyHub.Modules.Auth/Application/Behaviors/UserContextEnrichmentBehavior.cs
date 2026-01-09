@@ -45,15 +45,9 @@ public sealed partial class UserContextEnrichmentBehavior<TRequest, TResponse>(
         var userId = await currentUserService.GetUserIdAsync(cancellationToken);
 
         // 2. Load full User aggregate from database
-        var user = await userRepository.GetByIdAsync(userId, cancellationToken);
-
-        // 3. Throw if user not found (authentication succeeded but user deleted from DB)
-        if (user == null)
-        {
-            throw new UnauthorizedAccessException(
+        var user = await userRepository.GetByIdAsync(userId, cancellationToken) ?? throw new UnauthorizedAccessException(
                 $"User with ID '{userId.Value}' not found in database. " +
                 "The user may have been deleted or the JWT token is stale.");
-        }
 
         // 4. Populate scoped IUserContext service
         ((UserContextService)userContext).SetUser(user);

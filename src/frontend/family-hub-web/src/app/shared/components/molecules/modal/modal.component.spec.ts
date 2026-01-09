@@ -6,15 +6,10 @@ import { ModalComponent } from './modal.component';
   standalone: true,
   imports: [ModalComponent],
   template: `
-    <app-modal
-      [isOpen]="isOpen"
-      [title]="title"
-      [closeable]="closeable"
-      (closeModal)="onClose()"
-    >
+    <app-modal [isOpen]="isOpen" [title]="title" [closeable]="closeable" (closeModal)="onClose()">
       <div class="modal-content">Test Content</div>
     </app-modal>
-  `
+  `,
 })
 class TestHostComponent {
   isOpen = false;
@@ -34,7 +29,7 @@ describe('ModalComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestHostComponent]
+      imports: [TestHostComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);

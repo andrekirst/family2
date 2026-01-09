@@ -11,106 +11,97 @@ import { MainLayoutComponent } from '../../shared/layout/main-layout/main-layout
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [
-    CommonModule,
-    MainLayoutComponent,
-  ],
+  imports: [CommonModule, MainLayoutComponent],
   template: `
     <!-- Authenticated Dashboard -->
     @if (familyService.currentFamily()) {
-    <app-main-layout>
-      <div class="max-w-5xl">
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            Welcome to your Family Hub! 👋
-          </h2>
+      <app-main-layout>
+        <div class="max-w-5xl">
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Welcome to your Family Hub! 👋</h2>
 
-          <div class="space-y-4">
-            <!-- Family Info Card -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 class="font-medium text-blue-900 mb-2">Your Family</h3>
-              <dl class="space-y-1 text-sm">
-                <div class="flex">
-                  <dt class="font-medium text-blue-900 w-32">Family Name:</dt>
-                  <dd class="text-blue-700">
-                    {{ familyService.currentFamily()?.name }}
-                  </dd>
-                </div>
-                <div class="flex">
-                  <dt class="font-medium text-blue-900 w-32">Created:</dt>
-                  <dd class="text-blue-700">
-                    {{
-                      familyService.currentFamily()?.auditInfo?.createdAt | date : 'medium'
-                    }}
-                  </dd>
-                </div>
-              </dl>
-            </div>
+            <div class="space-y-4">
+              <!-- Family Info Card -->
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="font-medium text-blue-900 mb-2">Your Family</h3>
+                <dl class="space-y-1 text-sm">
+                  <div class="flex">
+                    <dt class="font-medium text-blue-900 w-32">Family Name:</dt>
+                    <dd class="text-blue-700">
+                      {{ familyService.currentFamily()?.name }}
+                    </dd>
+                  </div>
+                  <div class="flex">
+                    <dt class="font-medium text-blue-900 w-32">Created:</dt>
+                    <dd class="text-blue-700">
+                      {{ familyService.currentFamily()?.auditInfo?.createdAt | date: 'medium' }}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
 
-            <!-- User Account Card -->
-            @if (user()) {
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 class="font-medium text-green-900 mb-2">Your Account</h3>
-              <dl class="space-y-1 text-sm">
-                <div class="flex">
-                  <dt class="font-medium text-green-900 w-32">Email:</dt>
-                  <dd class="text-green-700">{{ user()?.email }}</dd>
+              <!-- User Account Card -->
+              @if (user()) {
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h3 class="font-medium text-green-900 mb-2">Your Account</h3>
+                  <dl class="space-y-1 text-sm">
+                    <div class="flex">
+                      <dt class="font-medium text-green-900 w-32">Email:</dt>
+                      <dd class="text-green-700">{{ user()?.email }}</dd>
+                    </div>
+                    <div class="flex">
+                      <dt class="font-medium text-green-900 w-32">Verified:</dt>
+                      <dd class="text-green-700">
+                        {{ user()?.emailVerified ? 'Yes ✓' : 'No ✗' }}
+                      </dd>
+                    </div>
+                  </dl>
                 </div>
-                <div class="flex">
-                  <dt class="font-medium text-green-900 w-32">Verified:</dt>
-                  <dd class="text-green-700">
-                    {{ user()?.emailVerified ? 'Yes ✓' : 'No ✗' }}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-            }
+              }
 
-            <!-- Next Steps -->
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h3 class="font-medium text-gray-900 mb-2">Coming Soon</h3>
-              <ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
-                <li>Family member invitations</li>
-                <li>Calendar module integration</li>
-                <li>Task management features</li>
-                <li>Event chain automation</li>
-              </ul>
+              <!-- Next Steps -->
+              <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 class="font-medium text-gray-900 mb-2">Coming Soon</h3>
+                <ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
+                  <li>Family member invitations</li>
+                  <li>Calendar module integration</li>
+                  <li>Task management features</li>
+                  <li>Event chain automation</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </app-main-layout>
+      </app-main-layout>
     }
 
     <!-- Loading Overlay -->
     @if (familyService.isLoading()) {
-    <div
-      class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-40"
-    >
-      <div class="bg-white rounded-lg p-6 shadow-xl">
-        <svg
-          class="animate-spin h-8 w-8 text-blue-600 mx-auto"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        <p class="mt-2 text-gray-600">Loading...</p>
+      <div class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-40">
+        <div class="bg-white rounded-lg p-6 shadow-xl">
+          <svg
+            class="animate-spin h-8 w-8 text-blue-600 mx-auto"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <p class="mt-2 text-gray-600">Loading...</p>
+        </div>
       </div>
-    </div>
     }
   `,
 })

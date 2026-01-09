@@ -23,9 +23,7 @@ import { WizardStepConfig } from '../../../services/wizard.service';
   template: `
     <div class="space-y-4">
       <h2 class="text-xl font-semibold text-gray-900">Enter Family Name</h2>
-      <p class="text-sm text-gray-600">
-        Choose a name for your family group.
-      </p>
+      <p class="text-sm text-gray-600">Choose a name for your family group.</p>
 
       <div>
         <label for="familyName" class="block text-sm font-medium text-gray-700 mb-1">
@@ -49,7 +47,7 @@ import { WizardStepConfig } from '../../../services/wizard.service';
         </div>
       }
     </div>
-  `
+  `,
 })
 export class FamilyNameStepComponent implements OnInit {
   @Input() data: { familyName?: string } = {};
@@ -76,9 +74,7 @@ export class FamilyNameStepComponent implements OnInit {
   template: `
     <div class="space-y-4">
       <h2 class="text-xl font-semibold text-gray-900">Add Family Members</h2>
-      <p class="text-sm text-gray-600">
-        Add the members of your family (you can add more later).
-      </p>
+      <p class="text-sm text-gray-600">Add the members of your family (you can add more later).</p>
 
       <div class="space-y-2">
         @for (member of localData.members; track member; let i = $index) {
@@ -109,7 +105,7 @@ export class FamilyNameStepComponent implements OnInit {
         + Add Member
       </button>
     </div>
-  `
+  `,
 })
 export class FamilyMembersStepComponent implements OnInit {
   @Input() data: { members?: string[] } = {};
@@ -119,9 +115,7 @@ export class FamilyMembersStepComponent implements OnInit {
 
   ngOnInit() {
     this.localData = {
-      members: this.data.members && this.data.members.length > 0
-        ? [...this.data.members]
-        : ['']
+      members: this.data.members && this.data.members.length > 0 ? [...this.data.members] : [''],
     };
   }
 
@@ -151,9 +145,7 @@ export class FamilyMembersStepComponent implements OnInit {
   template: `
     <div class="space-y-4">
       <h2 class="text-xl font-semibold text-gray-900">Review & Confirm</h2>
-      <p class="text-sm text-gray-600">
-        Please review your family details before creating.
-      </p>
+      <p class="text-sm text-gray-600">Please review your family details before creating.</p>
 
       <div class="bg-gray-50 rounded-lg p-4 space-y-3">
         <div>
@@ -177,7 +169,7 @@ export class FamilyMembersStepComponent implements OnInit {
         </div>
       </div>
     </div>
-  `
+  `,
 })
 export class FamilyReviewStepComponent implements OnInit {
   @Input() data: { allData?: Map<string, unknown> } = {};
@@ -192,7 +184,7 @@ export class FamilyReviewStepComponent implements OnInit {
       const membersData = allData.get('family-members') as { members?: string[] };
 
       this.familyName = nameData?.familyName || '';
-      this.members = (membersData?.members || []).filter(m => m.trim());
+      this.members = (membersData?.members || []).filter((m) => m.trim());
     }
   }
 }
@@ -217,7 +209,7 @@ export class FamilyReviewStepComponent implements OnInit {
       submitButtonText="Create Family"
       (complete)="onWizardComplete($event)"
     ></app-wizard>
-  `
+  `,
 })
 export class CreateFamilyWizardComponent {
   /**
@@ -243,7 +235,7 @@ export class CreateFamilyWizardComponent {
         }
 
         return errors.length > 0 ? errors : null;
-      }
+      },
     },
     {
       id: 'family-members',
@@ -256,21 +248,21 @@ export class CreateFamilyWizardComponent {
         if (!stepData?.members || stepData.members.length === 0) {
           errors.push('At least one family member is required');
         } else {
-          const validMembers = stepData.members.filter(m => m.trim());
+          const validMembers = stepData.members.filter((m) => m.trim());
           if (validMembers.length === 0) {
             errors.push('At least one family member must have a name');
           }
         }
 
         return errors.length > 0 ? errors : null;
-      }
+      },
     },
     {
       id: 'review',
       componentType: FamilyReviewStepComponent,
-      title: 'Review & Confirm'
+      title: 'Review & Confirm',
       // No validation on review step
-    }
+    },
   ];
 
   /**
@@ -284,11 +276,11 @@ export class CreateFamilyWizardComponent {
     const membersData = allData.get('family-members') as { members: string[] };
 
     const familyName = familyNameData.familyName;
-    const members = membersData.members.filter(m => m.trim());
+    const members = membersData.members.filter((m) => m.trim());
 
     console.log('Creating family:', {
       name: familyName,
-      members: members
+      members: members,
     });
 
     // In real application, call API service:

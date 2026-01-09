@@ -5,7 +5,7 @@ import {
   EventEmitter,
   AfterViewInit,
   ViewChild,
-  ElementRef
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '../../atoms/icon/icon.component';
@@ -47,45 +47,45 @@ import { IconComponent } from '../../atoms/icon/icon.component';
           (keydown.space)="onBackdropClick()"
         ></div>
 
-      <!-- Modal Container -->
-      <div
-        #modalDialog
-        role="dialog"
-        aria-modal="true"
-        [attr.aria-labelledby]="titleId"
-        tabindex="0"
-        (keydown)="onKeydown($event)"
-        class="modal-container relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transition-transform duration-200 focus:outline-none"
-        (click)="onContainerClick($event)"
-      >
-        <!-- Header -->
-        <div class="modal-header flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 [id]="titleId" class="modal-title text-xl font-semibold text-gray-900">
-            {{ title }}
-          </h2>
+        <!-- Modal Container -->
+        <div
+          #modalDialog
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-labelledby]="titleId"
+          tabindex="0"
+          (keydown)="onKeydown($event)"
+          class="modal-container relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transition-transform duration-200 focus:outline-none"
+          (click)="onContainerClick($event)"
+        >
+          <!-- Header -->
+          <div class="modal-header flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 [id]="titleId" class="modal-title text-xl font-semibold text-gray-900">
+              {{ title }}
+            </h2>
 
-          <!-- Close Button (only if closeable) -->
-          @if (closeable) {
-            <button
-              type="button"
-              class="modal-close-button text-gray-400 hover:text-gray-600 transition-colors"
-              (click)="close()"
-              aria-label="Close modal"
-            >
-              <app-icon name="x-mark" size="md"></app-icon>
-            </button>
-          }
-        </div>
+            <!-- Close Button (only if closeable) -->
+            @if (closeable) {
+              <button
+                type="button"
+                class="modal-close-button text-gray-400 hover:text-gray-600 transition-colors"
+                (click)="close()"
+                aria-label="Close modal"
+              >
+                <app-icon name="x-mark" size="md"></app-icon>
+              </button>
+            }
+          </div>
 
-        <!-- Body -->
-        <div class="modal-body p-6">
-          <ng-content></ng-content>
+          <!-- Body -->
+          <div class="modal-body p-6">
+            <ng-content></ng-content>
+          </div>
         </div>
-      </div>
       </div>
     }
   `,
-  styles: []
+  styles: [],
 })
 export class ModalComponent implements AfterViewInit {
   /**

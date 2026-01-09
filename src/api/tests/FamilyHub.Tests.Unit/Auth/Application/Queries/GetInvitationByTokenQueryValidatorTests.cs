@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using NSubstitute;

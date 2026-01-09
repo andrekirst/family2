@@ -55,7 +55,7 @@ const GET_AVAILABLE_ROLES = `
  * ```
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RoleService {
   /**
@@ -78,11 +78,7 @@ export class RoleService {
    * Computed signal: Invitable roles (ADMIN, MEMBER only).
    * Excludes OWNER.
    */
-  readonly invitableRoles = computed(() =>
-    this.allRoles().filter(
-      r => r.value !== 'OWNER'
-    )
-  );
+  readonly invitableRoles = computed(() => this.allRoles().filter((r) => r.value !== 'OWNER'));
 
   private graphql = inject(GraphQLService);
 
@@ -110,8 +106,8 @@ export class RoleService {
       // Fetch from API
       const result = await this.graphql.query<{
         roles: {
-          all: RoleMetadata[]
-        }
+          all: RoleMetadata[];
+        };
       }>(GET_AVAILABLE_ROLES);
 
       if (result?.roles?.all) {
@@ -140,7 +136,7 @@ export class RoleService {
    * @returns RoleMetadata object or undefined if not found
    */
   getRoleMetadata(role: UserRole): RoleMetadata | undefined {
-    return this.allRoles().find(r => r.value === role);
+    return this.allRoles().find((r) => r.value === role);
   }
 
   /**
@@ -191,7 +187,7 @@ export class RoleService {
     try {
       const cached: CachedRoles = {
         data: roles,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
       localStorage.setItem(key, JSON.stringify(cached));
     } catch (err) {

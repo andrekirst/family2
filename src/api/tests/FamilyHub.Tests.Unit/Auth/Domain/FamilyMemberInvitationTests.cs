@@ -1,10 +1,10 @@
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Family.Domain.Events;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
-using FamilyMemberInvitationAggregate = FamilyHub.Modules.Family.Domain.Aggregates.FamilyMemberInvitation;
+using FamilyHub.Modules.Family.Domain.Events;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
+using FamilyMemberInvitationAggregate = FamilyHub.Modules.Family.Domain.Aggregates.FamilyMemberInvitation;
 
 namespace FamilyHub.Tests.Unit.Auth.Domain;
 

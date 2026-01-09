@@ -12,13 +12,11 @@
       </div>
       <div class="flex items-center space-x-4">
         @if (user()) {
-        <span class="text-gray-700">
-          {{ user()?.email }}
-        </span>
+          <span class="text-gray-700">
+            {{ user()?.email }}
+          </span>
         }
-        <app-button variant="tertiary" size="sm" (clicked)="logout()">
-          Sign Out
-        </app-button>
+        <app-button variant="tertiary" size="sm" (clicked)="logout()"> Sign Out </app-button>
       </div>
     </div>
   </header>
@@ -29,15 +27,17 @@
     <aside class="w-64 bg-white shadow-sm min-h-[calc(100vh-73px)]">
       <nav class="p-4 space-y-2">
         @for (item of navItems; track item.route) {
-        <a [routerLink]="item.route"
-           [class.bg-purple-50]="isActive(item.route)"
-           [class.text-purple-700]="isActive(item.route)"
-           [class.text-gray-700]="!isActive(item.route)"
-           [class.hover:bg-gray-50]="!isActive(item.route)"
-           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium">
-          <app-icon [name]="item.icon" size="md"></app-icon>
-          <span>{{ item.label }}</span>
-        </a>
+          <a
+            [routerLink]="item.route"
+            [class.bg-purple-50]="isActive(item.route)"
+            [class.text-purple-700]="isActive(item.route)"
+            [class.text-gray-700]="!isActive(item.route)"
+            [class.hover:bg-gray-50]="!isActive(item.route)"
+            class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium"
+          >
+            <app-icon [name]="item.icon" size="md"></app-icon>
+            <span>{{ item.label }}</span>
+          </a>
         }
       </nav>
     </aside>

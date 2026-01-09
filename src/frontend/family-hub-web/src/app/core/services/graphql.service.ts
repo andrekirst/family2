@@ -25,19 +25,22 @@ export interface GraphQLErrorResponse {
  */
 export class GraphQLError extends Error {
   constructor(public errors: GraphQLErrorResponse['errors']) {
-    const messages = errors?.map(e => e.message).join(', ') || 'Unknown GraphQL error';
+    const messages = errors?.map((e) => e.message).join(', ') || 'Unknown GraphQL error';
     super(`GraphQL errors occurred: ${messages}`);
     this.name = 'GraphQLError';
 
     // Maintain proper stack trace for where our error was thrown (only available on V8)
     if ('captureStackTrace' in Error) {
-      (Error.captureStackTrace as (target: object, constructor: unknown) => void)(this, GraphQLError);
+      (Error.captureStackTrace as (target: object, constructor: unknown) => void)(
+        this,
+        GraphQLError
+      );
     }
   }
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class GraphQLService {
   private readonly http = inject(HttpClient);
@@ -54,10 +57,7 @@ export class GraphQLService {
    */
   async query<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
     const response = await firstValueFrom(
-      this.http.post<{ data: T } & GraphQLErrorResponse>(
-        this.endpoint,
-        { query, variables }
-      )
+      this.http.post<{ data: T } & GraphQLErrorResponse>(this.endpoint, { query, variables })
     );
 
     // Check for GraphQL errors first (highest priority)
@@ -84,13 +84,10 @@ export class GraphQLService {
    */
   async mutate<T>(mutation: string, variables?: Record<string, unknown>): Promise<T> {
     const response = await firstValueFrom(
-      this.http.post<{ data: T } & GraphQLErrorResponse>(
-        this.endpoint,
-        {
-          query: mutation,
-          variables
-        }
-      )
+      this.http.post<{ data: T } & GraphQLErrorResponse>(this.endpoint, {
+        query: mutation,
+        variables,
+      })
     );
 
     // Check for GraphQL errors first (highest priority)

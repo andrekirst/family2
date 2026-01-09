@@ -17,7 +17,7 @@ import { UserRole, ROLE_LABELS, ROLE_COLORS } from '../../models/family.models';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './role-badge.component.html',
-  styleUrl: './role-badge.component.scss'
+  styleUrl: './role-badge.component.scss',
 })
 export class RoleBadgeComponent {
   /**

@@ -7,7 +7,7 @@ describe('IconComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [IconComponent]
+      imports: [IconComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(IconComponent);

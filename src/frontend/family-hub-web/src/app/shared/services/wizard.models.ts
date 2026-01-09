@@ -60,7 +60,7 @@ export interface WizardStepConfig {
 export enum WizardNavigationDirection {
   Next = 'next',
   Previous = 'previous',
-  Jump = 'jump'
+  Jump = 'jump',
 }
 
 /**
@@ -80,7 +80,7 @@ export enum WizardState {
   NotStarted = 'not-started',
   InProgress = 'in-progress',
   Completed = 'completed',
-  Cancelled = 'cancelled'
+  Cancelled = 'cancelled',
 }
 
 /**

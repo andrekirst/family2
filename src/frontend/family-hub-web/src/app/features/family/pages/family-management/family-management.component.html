@@ -3,21 +3,25 @@
   <div class="mb-8">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">
-          Family Management
-        </h1>
+        <h1 class="text-3xl font-bold text-gray-900">Family Management</h1>
         @if (currentFamily()) {
           <p class="mt-1 text-sm text-gray-500">
             {{ currentFamily()?.name }}
           </p>
         }
       </div>
-      <button (click)="openInviteModal()"
-              type="button"
-              class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2 shadow-md">
+      <button
+        (click)="openInviteModal()"
+        type="button"
+        class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2 shadow-md"
+      >
         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+          />
         </svg>
         Invite Member
       </button>
@@ -39,9 +43,11 @@
     <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
       <div class="flex items-center gap-2">
         <svg class="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clip-rule="evenodd" />
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clip-rule="evenodd"
+          />
         </svg>
         <p class="text-sm text-red-800">{{ error() }}</p>
       </div>
@@ -51,14 +57,11 @@
   <!-- Main content (only show when not loading) -->
   @if (!isLoading()) {
     <div class="space-y-8 max-w-5xl">
-
       <!-- Family Members Section -->
       <section>
         <div class="bg-white rounded-lg shadow">
           <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">
-              Family Members
-            </h2>
+            <h2 class="text-xl font-semibold text-gray-900">Family Members</h2>
             <p class="mt-1 text-sm text-gray-500">
               {{ familyMembers().length }} member{{ familyMembers().length !== 1 ? 's' : '' }}
             </p>
@@ -66,7 +69,8 @@
           <div class="px-6 py-4">
             <app-family-members-list
               [members]="familyMembers()"
-              [currentUserRole]="currentUserRole()" />
+              [currentUserRole]="currentUserRole()"
+            />
           </div>
         </div>
       </section>
@@ -75,9 +79,7 @@
       <section>
         <div class="bg-white rounded-lg shadow">
           <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">
-              Pending Invitations
-            </h2>
+            <h2 class="text-xl font-semibold text-gray-900">Pending Invitations</h2>
             <p class="mt-1 text-sm text-gray-500">
               Manage sent invitations that haven't been accepted yet
             </p>
@@ -87,12 +89,9 @@
           </div>
         </div>
       </section>
-
     </div>
   }
 </app-main-layout>
 
 <!-- Modals -->
-<app-invite-member-modal
-  [isOpen]="showInviteModal()"
-  (closed)="closeInviteModal()" />
+<app-invite-member-modal [isOpen]="showInviteModal()" (closed)="closeInviteModal()" />

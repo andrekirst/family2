@@ -1,8 +1,8 @@
+using System.Security.Claims;
 using FamilyHub.Modules.Auth.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using System.Security.Claims;
 
 namespace FamilyHub.Api.Middleware;
 

@@ -1,0 +1,61 @@
+# Family Hub - Root EditorConfig
+# https://editorconfig.org
+# Version: 1.0.0
+
+root = true
+
+###############################
+# All Files - Universal Rules
+###############################
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+###############################
+# Configuration Files
+###############################
+
+# JSON, YAML, XML - 2 spaces
+[*.{json,yml,yaml,xml,csproj,props,targets}]
+indent_size = 2
+
+# Docker, CI/CD
+[{Dockerfile,docker-compose*.yml,.dockerignore}]
+indent_size = 2
+
+[*.{sh,bash}]
+indent_size = 2
+
+###############################
+# Markdown Files
+###############################
+[*.md]
+indent_size = 4
+max_line_length = off
+trim_trailing_whitespace = false
+
+###############################
+# GraphQL Schema Files
+###############################
+[*.graphql]
+indent_size = 2
+max_line_length = 120
+trim_trailing_whitespace = true
+
+###############################
+# Exclusions - Generated Files
+###############################
+
+[*.{Designer,designer}.cs]
+generated_code = true
+
+[*.g.cs]
+generated_code = true
+
+[*.AssemblyInfo.cs]
+generated_code = true
+
+[*.GlobalUsings.g.cs]
+generated_code = true

@@ -86,7 +86,10 @@ public sealed class TimestampInterceptor : SaveChangesInterceptor
     /// <param name="context">The DbContext being saved.</param>
     private void UpdateTimestamps(DbContext? context)
     {
-        if (context == null) return;
+        if (context == null)
+        {
+            return;
+        }
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
 

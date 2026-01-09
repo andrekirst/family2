@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
@@ -10,7 +11,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using System.Security.Claims;
 
 namespace FamilyHub.Tests.Unit.Auth.Application.Behaviors;
 

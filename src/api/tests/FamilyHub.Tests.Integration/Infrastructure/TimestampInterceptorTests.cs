@@ -1,4 +1,3 @@
-using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 using FamilyHub.Infrastructure.Persistence.Interceptors;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
@@ -8,6 +7,7 @@ using FamilyHub.Tests.Unit.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
 

@@ -10,7 +10,7 @@ describe('GraphQLService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [GraphQLService]
+      providers: [GraphQLService],
     });
     service = TestBed.inject(GraphQLService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -59,9 +59,9 @@ describe('GraphQLService', () => {
           message: 'Field "invalidQuery" doesn\'t exist on type "Query"',
           extensions: {
             code: 'GRAPHQL_VALIDATION_FAILED',
-            field: 'invalidQuery'
-          }
-        }
+            field: 'invalidQuery',
+          },
+        },
       ];
 
       const queryPromise = service.query(query);
@@ -111,7 +111,7 @@ describe('GraphQLService', () => {
       const req = httpMock.expectOne(environment.graphqlEndpoint);
       req.error(new ProgressEvent('Network error'), {
         status: 0,
-        statusText: 'Unknown Error'
+        statusText: 'Unknown Error',
       });
 
       await expectAsync(queryPromise).toBeRejected();
@@ -125,7 +125,7 @@ describe('GraphQLService', () => {
       const req = httpMock.expectOne(environment.graphqlEndpoint);
       req.flush('Internal Server Error', {
         status: 500,
-        statusText: 'Internal Server Error'
+        statusText: 'Internal Server Error',
       });
 
       await expectAsync(queryPromise).toBeRejected();
@@ -151,7 +151,8 @@ describe('GraphQLService', () => {
 
     it('should pass variables to mutation', async () => {
       const mockData = { createFamily: { familyId: '1', name: 'Smith Family' } };
-      const mutation = 'mutation CreateFamily($input: CreateFamilyInput!) { createFamily(input: $input) { familyId name } }';
+      const mutation =
+        'mutation CreateFamily($input: CreateFamilyInput!) { createFamily(input: $input) { familyId name } }';
       const variables = { input: { name: 'Smith Family' } };
 
       const mutatePromise = service.mutate<typeof mockData>(mutation, variables);
@@ -170,9 +171,9 @@ describe('GraphQLService', () => {
         {
           message: 'User already has a family',
           extensions: {
-            code: 'BUSINESS_RULE_VIOLATION'
-          }
-        }
+            code: 'BUSINESS_RULE_VIOLATION',
+          },
+        },
       ];
 
       const mutatePromise = service.mutate(mutation);
@@ -208,8 +209,8 @@ describe('GraphQLService', () => {
       const mockErrors = [
         {
           message: 'Some items failed to create',
-          extensions: { code: 'PARTIAL_FAILURE' }
-        }
+          extensions: { code: 'PARTIAL_FAILURE' },
+        },
       ];
 
       const mutatePromise = service.mutate(mutation);
@@ -226,7 +227,7 @@ describe('GraphQLService', () => {
     it('should create error with proper message and errors array', () => {
       const errors = [
         { message: 'Error 1', extensions: { code: 'CODE_1' } },
-        { message: 'Error 2', extensions: { code: 'CODE_2' } }
+        { message: 'Error 2', extensions: { code: 'CODE_2' } },
       ];
 
       const graphqlError = new GraphQLError(errors);

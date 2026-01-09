@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Infrastructure.Authorization;
 using FamilyHub.Modules.Auth.Persistence;
@@ -12,8 +14,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NSubstitute;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace FamilyHub.Tests.Integration.Helpers;
 

@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
@@ -11,7 +12,6 @@ using IdentityModel.Client;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 

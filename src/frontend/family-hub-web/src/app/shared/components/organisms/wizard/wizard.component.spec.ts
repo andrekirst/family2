@@ -22,7 +22,7 @@ import { ButtonComponent } from '../../atoms/button/button.component';
         data-testid="step-input"
       />
     </div>
-  `
+  `,
 })
 class TestStepComponent implements OnInit {
   @Input() data?: { value: string };
@@ -46,7 +46,7 @@ class TestStepComponent implements OnInit {
  */
 @Component({
   selector: 'app-test-step-two',
-  template: `<div class="test-step-two">Step 2 Content</div>`
+  template: `<div class="test-step-two">Step 2 Content</div>`,
 })
 class TestStepTwoComponent {
   @Input() data: { name?: string } = {};
@@ -60,12 +60,10 @@ describe('WizardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        WizardComponent
-      ],
+      imports: [WizardComponent],
       providers: [
-        provideNoopAnimations() // Required for testing components with animations
-      ]
+        provideNoopAnimations(), // Required for testing components with animations
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(WizardComponent);
@@ -113,7 +111,7 @@ describe('WizardComponent', () => {
     it('should initialize wizard service with provided steps', () => {
       const steps: WizardStepConfig[] = [
         { id: 'step1', componentType: TestStepComponent, title: 'Step 1' },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
 
       component.steps = steps;
@@ -125,9 +123,7 @@ describe('WizardComponent', () => {
     });
 
     it('should render first step after view initialization', fakeAsync(() => {
-      component.steps = [
-        { id: 'step1', componentType: TestStepComponent, title: 'Step 1' }
-      ];
+      component.steps = [{ id: 'step1', componentType: TestStepComponent, title: 'Step 1' }];
 
       component.ngOnInit();
       fixture.detectChanges();
@@ -145,7 +141,7 @@ describe('WizardComponent', () => {
     beforeEach(() => {
       component.steps = [
         { id: 'step1', componentType: TestStepComponent, title: 'Step 1' },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
       component.title = 'Test Wizard';
       component.ngOnInit();
@@ -208,7 +204,7 @@ describe('WizardComponent', () => {
     beforeEach(() => {
       component.steps = [
         { id: 'step1', componentType: TestStepComponent, title: 'Step 1' },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
       component.ngOnInit();
       fixture.detectChanges();
@@ -298,9 +294,9 @@ describe('WizardComponent', () => {
           validateOnNext: (data) => {
             const stepData = data.get('step1') as { value?: string } | undefined;
             return stepData?.value ? null : ['Value is required'];
-          }
+          },
         },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
 
       component.ngOnInit();
@@ -325,9 +321,9 @@ describe('WizardComponent', () => {
           validateOnNext: (data) => {
             const stepData = data.get('step1') as { value?: string } | undefined;
             return stepData?.value ? null : ['Value is required'];
-          }
+          },
         },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
 
       component.ngOnInit();
@@ -350,13 +346,13 @@ describe('WizardComponent', () => {
           id: 'step1',
           componentType: TestStepComponent,
           title: 'Step 1',
-          validateOnNext: () => ['Error']
+          validateOnNext: () => ['Error'],
         },
         {
           id: 'step2',
           componentType: TestStepTwoComponent,
-          title: 'Step 2'
-        }
+          title: 'Step 2',
+        },
       ];
 
       component.ngOnInit();
@@ -376,9 +372,9 @@ describe('WizardComponent', () => {
           id: 'step1',
           componentType: TestStepComponent,
           title: 'Step 1',
-          validateOnNext: () => null
+          validateOnNext: () => null,
         },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
 
       component.ngOnInit();
@@ -393,8 +389,8 @@ describe('WizardComponent', () => {
           id: 'step1',
           componentType: TestStepComponent,
           title: 'Step 1',
-          validateOnNext: () => ['Error'] // Validation that would fail
-        }
+          validateOnNext: () => ['Error'], // Validation that would fail
+        },
       ];
 
       component.ngOnInit();
@@ -412,7 +408,7 @@ describe('WizardComponent', () => {
     beforeEach(() => {
       component.steps = [
         { id: 'step1', componentType: TestStepComponent, title: 'Step 1' },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
       component.ngOnInit();
       fixture.detectChanges();
@@ -487,7 +483,7 @@ describe('WizardComponent', () => {
     beforeEach(() => {
       component.steps = [
         { id: 'step1', componentType: TestStepComponent, title: 'Step 1' },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
       component.ngOnInit();
       fixture.detectChanges();
@@ -526,9 +522,7 @@ describe('WizardComponent', () => {
 
   describe('Cleanup', () => {
     beforeEach(() => {
-      component.steps = [
-        { id: 'step1', componentType: TestStepComponent, title: 'Step 1' }
-      ];
+      component.steps = [{ id: 'step1', componentType: TestStepComponent, title: 'Step 1' }];
       component.ngOnInit();
       fixture.detectChanges();
     });
@@ -562,7 +556,7 @@ describe('WizardComponent', () => {
     beforeEach(() => {
       component.steps = [
         { id: 'step1', componentType: TestStepComponent, title: 'Step 1' },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
       component.ngOnInit();
       fixture.detectChanges();
@@ -600,9 +594,7 @@ describe('WizardComponent', () => {
 
   describe('Edge Cases', () => {
     it('should handle single step wizard', () => {
-      component.steps = [
-        { id: 'step1', componentType: TestStepComponent, title: 'Only Step' }
-      ];
+      component.steps = [{ id: 'step1', componentType: TestStepComponent, title: 'Only Step' }];
       component.ngOnInit();
       fixture.detectChanges();
 
@@ -621,7 +613,7 @@ describe('WizardComponent', () => {
     it('should handle wizard with no validation', () => {
       component.steps = [
         { id: 'step1', componentType: TestStepComponent, title: 'Step 1' },
-        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' }
+        { id: 'step2', componentType: TestStepTwoComponent, title: 'Step 2' },
       ];
       component.ngOnInit();
       fixture.detectChanges();

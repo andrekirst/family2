@@ -34,7 +34,9 @@ public sealed class UserTypeExtensions
             cancellationToken);
 
         if (domainUser == null)
+        {
             return null;
+        }
 
         // Now fetch the family using the domain user's FamilyId
         return await familyRepository.GetByIdAsync(domainUser.FamilyId, cancellationToken);

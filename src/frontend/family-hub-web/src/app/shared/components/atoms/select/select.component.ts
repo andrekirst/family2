@@ -25,8 +25,8 @@ import { CommonModule } from '@angular/common';
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => SelectComponent),
-      multi: true
-    }
+      multi: true,
+    },
   ],
   template: `
     <div class="relative">
@@ -62,7 +62,7 @@ import { CommonModule } from '@angular/common';
       }
     </div>
   `,
-  styles: []
+  styles: [],
 })
 export class SelectComponent implements ControlValueAccessor {
   /**
@@ -125,9 +125,11 @@ export class SelectComponent implements ControlValueAccessor {
    * Applies different styles based on error and disabled states.
    */
   get selectClasses(): string {
-    const baseClasses = 'w-full px-4 py-2 rounded-md transition-colors outline-none appearance-none bg-no-repeat bg-right';
+    const baseClasses =
+      'w-full px-4 py-2 rounded-md transition-colors outline-none appearance-none bg-no-repeat bg-right';
     const focusClasses = 'focus:border-blue-500 focus:ring-2 focus:ring-blue-200';
-    const bgImage = 'bg-[url(\'data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22%3e%3cpath d=%22M7 7l3-3 3 3m0 6l-3 3-3-3%22 stroke=%22%239ca3af%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3e%3c/svg%3e\')]';
+    const bgImage =
+      "bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22%3e%3cpath d=%22M7 7l3-3 3 3m0 6l-3 3-3-3%22 stroke=%22%239ca3af%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3e%3c/svg%3e')]";
     const bgSize = 'pr-10';
 
     let stateClasses: string;

@@ -4,11 +4,10 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { FamilyService } from '../../../family/services/family.service';
 import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/spinner.component';
 
-
 @Component({
-    selector: 'app-callback',
-    imports: [SpinnerComponent],
-    template: `
+  selector: 'app-callback',
+  imports: [SpinnerComponent],
+  template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-50">
       <div class="text-center">
         @if (!error) {
@@ -17,21 +16,15 @@ import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/sp
 
         @if (!error) {
           <div>
-            <h2 class="mt-4 text-xl font-semibold text-gray-900">
-              Completing sign in...
-            </h2>
-            <p class="mt-2 text-gray-600">
-              Please wait while we verify your credentials
-            </p>
+            <h2 class="mt-4 text-xl font-semibold text-gray-900">Completing sign in...</h2>
+            <p class="mt-2 text-gray-600">Please wait while we verify your credentials</p>
           </div>
         }
 
         @if (error) {
           <div class="max-w-md mx-auto">
             <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-              <h2 class="text-xl font-semibold text-red-900 mb-2">
-                Authentication Failed
-              </h2>
+              <h2 class="text-xl font-semibold text-red-900 mb-2">Authentication Failed</h2>
               <p class="text-red-700 mb-4">{{ error }}</p>
               <button
                 (click)="retry()"
@@ -44,7 +37,7 @@ import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/sp
         }
       </div>
     </div>
-    `
+  `,
 })
 export class CallbackComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -86,7 +79,6 @@ export class CallbackComponent implements OnInit {
 
       // Redirect
       this.router.navigate([redirectUrl]);
-
     } catch (error: unknown) {
       console.error('OAuth callback error:', error);
       this.error = error instanceof Error ? error.message : 'An unexpected error occurred';

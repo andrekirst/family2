@@ -1,6 +1,6 @@
+using FamilyHub.Infrastructure.GraphQL.Types;
 using HotChocolate.Types;
 using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
-using FamilyHub.Infrastructure.GraphQL.Types;
 
 namespace FamilyHub.Modules.Family.Presentation.GraphQL.Types;
 

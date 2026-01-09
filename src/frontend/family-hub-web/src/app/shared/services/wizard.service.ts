@@ -237,7 +237,7 @@ export class WizardService {
     }
 
     // Validate unique step IDs
-    const stepIds = steps.map(s => s.id);
+    const stepIds = steps.map((s) => s.id);
     const uniqueIds = new Set(stepIds);
     if (stepIds.length !== uniqueIds.size) {
       throw new Error('Wizard step IDs must be unique');
@@ -274,7 +274,7 @@ export class WizardService {
       return;
     }
 
-    this._currentStepIndex.update(index => index + 1);
+    this._currentStepIndex.update((index) => index + 1);
   }
 
   /**
@@ -291,7 +291,7 @@ export class WizardService {
       return;
     }
 
-    this._currentStepIndex.update(index => index - 1);
+    this._currentStepIndex.update((index) => index - 1);
   }
 
   /**
@@ -327,7 +327,7 @@ export class WizardService {
    * ```
    */
   public setStepData<T>(stepId: string, data: T): void {
-    this._stepData.update(currentMap => {
+    this._stepData.update((currentMap) => {
       const newMap = new Map(currentMap);
       newMap.set(stepId, data);
       return newMap;
@@ -382,7 +382,7 @@ export class WizardService {
    * ```
    */
   public validateStep(stepId: string): boolean {
-    const config = this._stepsConfig().find(s => s.id === stepId);
+    const config = this._stepsConfig().find((s) => s.id === stepId);
     if (!config) {
       return true; // No config = no validation = valid
     }
@@ -421,7 +421,7 @@ export class WizardService {
    * ```
    */
   public setStepErrors(stepId: string, errors: string[]): void {
-    this._stepErrors.update(currentMap => {
+    this._stepErrors.update((currentMap) => {
       const newMap = new Map(currentMap);
       newMap.set(stepId, errors);
       return newMap;
@@ -440,7 +440,7 @@ export class WizardService {
    * ```
    */
   public clearStepErrors(stepId: string): void {
-    this._stepErrors.update(currentMap => {
+    this._stepErrors.update((currentMap) => {
       const newMap = new Map(currentMap);
       newMap.delete(stepId);
       return newMap;

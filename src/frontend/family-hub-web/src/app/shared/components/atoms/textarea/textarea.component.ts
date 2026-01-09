@@ -25,8 +25,8 @@ import { CommonModule } from '@angular/common';
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => TextareaComponent),
-      multi: true
-    }
+      multi: true,
+    },
   ],
   template: `
     <div class="relative">
@@ -65,7 +65,7 @@ import { CommonModule } from '@angular/common';
       }
     </div>
   `,
-  styles: []
+  styles: [],
 })
 export class TextareaComponent implements ControlValueAccessor {
   /**

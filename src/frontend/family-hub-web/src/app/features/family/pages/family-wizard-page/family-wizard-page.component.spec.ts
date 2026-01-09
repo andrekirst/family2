@@ -28,7 +28,7 @@ describe('FamilyWizardPageComponent', () => {
       hasFamily: hasFamilySignal,
       error: errorSignal,
       isLoading: isLoadingSignal,
-      currentFamily: signal(null)
+      currentFamily: signal(null),
     });
 
     // Create mock Router
@@ -39,8 +39,8 @@ describe('FamilyWizardPageComponent', () => {
       providers: [
         { provide: FamilyService, useValue: mockFamilyService },
         { provide: Router, useValue: mockRouter },
-        provideNoopAnimations() // Required for testing components with animations
-      ]
+        provideNoopAnimations(), // Required for testing components with animations
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(FamilyWizardPageComponent);

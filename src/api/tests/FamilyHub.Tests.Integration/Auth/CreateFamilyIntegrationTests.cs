@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
-using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;

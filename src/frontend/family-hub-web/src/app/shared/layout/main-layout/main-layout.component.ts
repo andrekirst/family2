@@ -15,7 +15,7 @@ import { IconComponent } from '../../components/atoms/icon/icon.component';
   standalone: true,
   imports: [CommonModule, RouterModule, ButtonComponent, IconComponent],
   templateUrl: './main-layout.component.html',
-  styleUrl: './main-layout.component.scss'
+  styleUrl: './main-layout.component.scss',
 })
 export class MainLayoutComponent {
   private readonly authService = inject(AuthService);
@@ -32,14 +32,14 @@ export class MainLayoutComponent {
       label: 'Dashboard',
       icon: 'home',
       route: '/dashboard',
-      active: false
+      active: false,
     },
     {
       label: 'Family',
       icon: 'users',
       route: '/family/manage',
-      active: false
-    }
+      active: false,
+    },
   ];
 
   /**

@@ -23,7 +23,9 @@ public sealed class AuthorizationUrlBuilder
     public AuthorizationUrlBuilder WithAuthorizationEndpoint(string authorizationEndpoint)
     {
         if (string.IsNullOrWhiteSpace(authorizationEndpoint))
+        {
             throw new ArgumentException("Authorization endpoint cannot be null or empty.", nameof(authorizationEndpoint));
+        }
 
         _authorizationEndpoint = authorizationEndpoint;
         return this;
@@ -35,7 +37,9 @@ public sealed class AuthorizationUrlBuilder
     public AuthorizationUrlBuilder WithClientId(string clientId)
     {
         if (string.IsNullOrWhiteSpace(clientId))
+        {
             throw new ArgumentException("Client ID cannot be null or empty.", nameof(clientId));
+        }
 
         _clientId = clientId;
         return this;
@@ -47,7 +51,9 @@ public sealed class AuthorizationUrlBuilder
     public AuthorizationUrlBuilder WithRedirectUri(string redirectUri)
     {
         if (string.IsNullOrWhiteSpace(redirectUri))
+        {
             throw new ArgumentException("Redirect URI cannot be null or empty.", nameof(redirectUri));
+        }
 
         _redirectUri = redirectUri;
         return this;
@@ -59,7 +65,9 @@ public sealed class AuthorizationUrlBuilder
     public AuthorizationUrlBuilder WithResponseType(string responseType)
     {
         if (string.IsNullOrWhiteSpace(responseType))
+        {
             throw new ArgumentException("Response type cannot be null or empty.", nameof(responseType));
+        }
 
         _responseType = responseType;
         return this;
@@ -71,7 +79,9 @@ public sealed class AuthorizationUrlBuilder
     public AuthorizationUrlBuilder WithScope(string scope)
     {
         if (string.IsNullOrWhiteSpace(scope))
+        {
             throw new ArgumentException("Scope cannot be null or empty.", nameof(scope));
+        }
 
         _scope = scope;
         return this;
@@ -83,7 +93,9 @@ public sealed class AuthorizationUrlBuilder
     public AuthorizationUrlBuilder WithCodeChallenge(string codeChallenge)
     {
         if (string.IsNullOrWhiteSpace(codeChallenge))
+        {
             throw new ArgumentException("Code challenge cannot be null or empty.", nameof(codeChallenge));
+        }
 
         _codeChallenge = codeChallenge;
         return this;
@@ -95,7 +107,9 @@ public sealed class AuthorizationUrlBuilder
     public AuthorizationUrlBuilder WithCodeChallengeMethod(string codeChallengeMethod)
     {
         if (string.IsNullOrWhiteSpace(codeChallengeMethod))
+        {
             throw new ArgumentException("Code challenge method cannot be null or empty.", nameof(codeChallengeMethod));
+        }
 
         _codeChallengeMethod = codeChallengeMethod;
         return this;
@@ -107,7 +121,9 @@ public sealed class AuthorizationUrlBuilder
     public AuthorizationUrlBuilder WithState(string state)
     {
         if (string.IsNullOrWhiteSpace(state))
+        {
             throw new ArgumentException("State cannot be null or empty.", nameof(state));
+        }
 
         _state = state;
         return this;
@@ -119,7 +135,9 @@ public sealed class AuthorizationUrlBuilder
     public AuthorizationUrlBuilder WithNonce(string nonce)
     {
         if (string.IsNullOrWhiteSpace(nonce))
+        {
             throw new ArgumentException("Nonce cannot be null or empty.", nameof(nonce));
+        }
 
         _nonce = nonce;
         return this;
@@ -145,16 +163,24 @@ public sealed class AuthorizationUrlBuilder
     {
         // Validate required parameters
         if (string.IsNullOrWhiteSpace(_authorizationEndpoint))
+        {
             throw new InvalidOperationException("Authorization endpoint is required.");
+        }
 
         if (string.IsNullOrWhiteSpace(_clientId))
+        {
             throw new InvalidOperationException("Client ID is required.");
+        }
 
         if (string.IsNullOrWhiteSpace(_redirectUri))
+        {
             throw new InvalidOperationException("Redirect URI is required.");
+        }
 
         if (string.IsNullOrWhiteSpace(_scope))
+        {
             throw new InvalidOperationException("Scope is required.");
+        }
 
         // Build query parameters with proper URL encoding
         var queryParams = new List<string>

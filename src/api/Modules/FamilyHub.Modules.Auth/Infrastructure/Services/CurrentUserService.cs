@@ -34,12 +34,7 @@ public sealed class CurrentUserService(
         var user = userRepository
             .GetByExternalUserIdAsync(zitadelUserId, "zitadel", CancellationToken.None)
             .GetAwaiter()
-            .GetResult();
-
-        if (user == null)
-        {
-            throw new UnauthorizedAccessException($"User with external ID '{zitadelUserId}' not found in database. User may need to complete OAuth registration.");
-        }
+            .GetResult() ?? throw new UnauthorizedAccessException($"User with external ID '{zitadelUserId}' not found in database. User may need to complete OAuth registration.");
 
         return user.Id;
     }
@@ -62,14 +57,9 @@ public sealed class CurrentUserService(
         var user = await userRepository.GetByExternalUserIdAsync(
             zitadelUserId,
             "zitadel",
-            cancellationToken);
-
-        if (user == null)
-        {
-            throw new UnauthorizedAccessException(
+            cancellationToken) ?? throw new UnauthorizedAccessException(
                 $"User with external ID '{zitadelUserId}' not found in database. " +
                 $"User may need to complete OAuth registration.");
-        }
 
         return user.Id;
     }

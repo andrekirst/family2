@@ -18,10 +18,14 @@ public readonly partial struct FamilyName
     private static Validation Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return Validation.Invalid("Family name cannot be empty.");
+        }
 
         if (value.Length > MaxLength)
+        {
             return Validation.Invalid($"Family name cannot exceed {MaxLength} characters.");
+        }
 
         return Validation.Ok;
     }

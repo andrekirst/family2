@@ -1,6 +1,13 @@
 import { Component, Input, Output, EventEmitter, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormGroup,
+  FormArray,
+  FormControl,
+  Validators,
+} from '@angular/forms';
 import { InvitationService } from '../../services/invitation.service';
 import { FamilyService } from '../../services/family.service';
 import { RoleService } from '../../../../core/services/role.service';
@@ -49,7 +56,7 @@ export class InviteMemberModalComponent implements OnInit {
    * Each invitation has email and role fields.
    */
   emailForm = new FormGroup({
-    emails: new FormArray<FormGroup>([])
+    emails: new FormArray<FormGroup>([]),
   });
 
   /**
@@ -113,9 +120,9 @@ export class InviteMemberModalComponent implements OnInit {
       email: new FormControl('', {
         nonNullable: true,
         updateOn: 'blur',
-        validators: [Validators.pattern(this.EMAIL_REGEX)]
+        validators: [Validators.pattern(this.EMAIL_REGEX)],
       }),
-      role: new FormControl<'ADMIN' | 'MEMBER'>('MEMBER', { nonNullable: true })
+      role: new FormControl<'ADMIN' | 'MEMBER'>('MEMBER', { nonNullable: true }),
     });
   }
 
@@ -207,15 +214,15 @@ export class InviteMemberModalComponent implements OnInit {
 
     // Extract emails from FormGroups
     const emails = this.emailInvitationControls.controls
-      .map(group => group.get('email')?.value?.trim() || '')
-      .filter(email => email !== '');
+      .map((group) => group.get('email')?.value?.trim() || '')
+      .filter((email) => email !== '');
 
     if (emails.length === 0) {
       errors.push('Please enter at least one email address');
     }
 
     // Check for invalid emails
-    const hasInvalidEmails = this.emailInvitationControls.controls.some(group => {
+    const hasInvalidEmails = this.emailInvitationControls.controls.some((group) => {
       const emailControl = group.get('email');
       const emailValue = emailControl?.value?.trim() || '';
       return emailControl?.invalid && emailValue !== '';
@@ -234,11 +241,11 @@ export class InviteMemberModalComponent implements OnInit {
    */
   private parseEmailInvitations(): { email: string; role: 'ADMIN' | 'MEMBER' }[] {
     return this.emailInvitationControls.controls
-      .map(group => ({
+      .map((group) => ({
         email: group.get('email')?.value?.trim() || '',
-        role: (group.get('role')?.value as 'ADMIN' | 'MEMBER') || 'MEMBER'
+        role: (group.get('role')?.value as 'ADMIN' | 'MEMBER') || 'MEMBER',
       }))
-      .filter(invitation => invitation.email !== '' && this.EMAIL_REGEX.test(invitation.email));
+      .filter((invitation) => invitation.email !== '' && this.EMAIL_REGEX.test(invitation.email));
   }
 
   /**
@@ -255,10 +262,7 @@ export class InviteMemberModalComponent implements OnInit {
     // Get email-role pairs from FormArray
     const invitations = this.parseEmailInvitations();
 
-    const result = await this.invitationService.inviteFamilyMembersByEmail(
-      family.id,
-      invitations
-    );
+    const result = await this.invitationService.inviteFamilyMembersByEmail(family.id, invitations);
 
     // Process results
     this.successCount.set(result.successCount || 0);

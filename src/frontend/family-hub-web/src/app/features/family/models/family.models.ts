@@ -58,12 +58,12 @@ export interface FamilyMember {
  */
 export interface PendingInvitation {
   id: string;
-  email: string;          // Email address of invitee (required)
+  email: string; // Email address of invitee (required)
   role: UserRole;
   status: InvitationStatus;
   invitedAt: string;
   expiresAt: string;
-  displayCode?: string;   // User-friendly code for debugging/support
+  displayCode?: string; // User-friendly code for debugging/support
 }
 
 /**
@@ -84,7 +84,7 @@ export interface CreatedUser {
  */
 export interface EmailInvitationInput {
   email: string;
-  role: 'ADMIN' | 'MEMBER';  // Cannot invite as OWNER
+  role: 'ADMIN' | 'MEMBER'; // Cannot invite as OWNER
   message?: string;
 }
 
@@ -95,7 +95,7 @@ export interface EmailInvitationInput {
 export const ROLE_LABELS: Record<UserRole, string> = {
   OWNER: 'Owner',
   ADMIN: 'Admin',
-  MEMBER: 'Member'
+  MEMBER: 'Member',
 };
 
 /**
@@ -105,7 +105,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 export const ROLE_COLORS: Record<UserRole, string> = {
   OWNER: 'bg-purple-100 text-purple-800',
   ADMIN: 'bg-blue-100 text-blue-800',
-  MEMBER: 'bg-green-100 text-green-800'
+  MEMBER: 'bg-green-100 text-green-800',
 };
 
 /**
@@ -116,5 +116,5 @@ export const STATUS_COLORS: Record<InvitationStatus, string> = {
   ACCEPTED: 'bg-green-100 text-green-800',
   REJECTED: 'bg-red-100 text-red-800',
   CANCELLED: 'bg-gray-100 text-gray-800',
-  EXPIRED: 'bg-orange-100 text-orange-800'
+  EXPIRED: 'bg-orange-100 text-orange-800',
 };

@@ -63,10 +63,7 @@ export class PendingInvitationsComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     // Load both roles and invitations in parallel
-    await Promise.all([
-      this.roleService.loadRoles(),
-      this.loadInvitations()
-    ]);
+    await Promise.all([this.roleService.loadRoles(), this.loadInvitations()]);
   }
 
   /**
