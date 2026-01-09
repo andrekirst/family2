@@ -1,0 +1,125 @@
+using FamilyHub.Modules.Auth.Persistence;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using System.Security.Claims;
+
+namespace FamilyHub.Api.Middleware;
+
+/// <summary>
+/// Middleware that sets the PostgreSQL session variable 'app.current_user_id'
+/// for Row-Level Security (RLS) policies.
+///
+/// EXECUTION ORDER:
+/// 1. Authentication middleware populates User (ClaimsPrincipal)
+/// 2. This middleware extracts user ID from JWT claims
+/// 3. Sets PostgreSQL session variable for RLS policies
+/// 4. GraphQL/MediatR request processing occurs
+/// 5. PostgreSQL enforces RLS based on session variable
+///
+/// ARCHITECTURE DECISION:
+/// - Uses 'sub' claim from JWT (Zitadel's standard user identifier claim)
+/// - Session variable is transaction-scoped (true parameter in set_config)
+/// - Automatically cleared after each request (no cleanup needed)
+/// - Runs on every request, even unauthenticated (RLS handles NULL user_id gracefully)
+///
+/// SECURITY:
+/// - RLS policies will deny access if current_user_id() returns NULL (unauthenticated)
+/// - SQL injection prevented by parameterized queries
+/// - Transaction-scoped variables prevent cross-request leakage
+///
+/// PERFORMANCE:
+/// - One additional SQL command per request (~1ms overhead)
+/// - Eliminates need for family_id filters in application code
+/// - RLS policies use indexed columns (family_id, user_id)
+/// </summary>
+public class PostgresContextMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly ILogger<PostgresContextMiddleware> _logger;
+
+    public PostgresContextMiddleware(
+        RequestDelegate next,
+        ILogger<PostgresContextMiddleware> logger)
+    {
+        _next = next;
+        _logger = logger;
+    }
+
+    public async Task InvokeAsync(HttpContext context, AuthDbContext dbContext)
+    {
+        // Extract user ID from JWT claims (if authenticated)
+        var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? context.User?.FindFirst("sub")?.Value; // Zitadel uses 'sub' claim
+
+        if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
+        {
+            try
+            {
+                // Get the underlying PostgreSQL connection
+                var connection = dbContext.Database.GetDbConnection();
+
+                // Ensure connection is open
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    await connection.OpenAsync();
+                }
+
+                // Set the session variable for RLS policies
+                // The 'true' parameter makes it transaction-scoped (cleared after transaction)
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = "SELECT set_config('app.current_user_id', @userId, true)";
+
+                var parameter = new NpgsqlParameter("@userId", System.Data.DbType.String)
+                {
+                    Value = userId.ToString()
+                };
+                cmd.Parameters.Add(parameter);
+
+                await cmd.ExecuteNonQueryAsync();
+
+                _logger.LogDebug(
+                    "PostgreSQL RLS context set for user {UserId} (Request: {RequestPath})",
+                    userId,
+                    context.Request.Path);
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the request
+                // RLS will deny access if context not set (fail-secure)
+                _logger.LogError(
+                    ex,
+                    "Failed to set PostgreSQL RLS context for user {UserId}. " +
+                    "Request will proceed but RLS policies will deny unauthorized access.",
+                    userId);
+            }
+        }
+        else
+        {
+            // No user ID found - unauthenticated request
+            // RLS policies will handle this by returning empty results for protected tables
+            _logger.LogDebug(
+                "No user ID found in claims (unauthenticated request: {RequestPath}). " +
+                "RLS policies will enforce access control.",
+                context.Request.Path);
+        }
+
+        // Continue to next middleware (GraphQL, MediatR, etc.)
+        await _next(context);
+    }
+}
+
+/// <summary>
+/// Extension methods for registering PostgresContextMiddleware.
+/// </summary>
+public static class PostgresContextMiddlewareExtensions
+{
+    /// <summary>
+    /// Registers PostgresContextMiddleware in the ASP.NET Core pipeline.
+    /// MUST be called AFTER UseAuthentication() and BEFORE UseEndpoints().
+    /// </summary>
+    public static IApplicationBuilder UsePostgresContext(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<PostgresContextMiddleware>();
+    }
+}
