@@ -14,6 +14,13 @@ public sealed partial class LoggingBehavior<TRequest, TResponse>(ILogger<Logging
     where TRequest : IRequest<TResponse>
 {
 
+    /// <summary>
+    /// Handles the request by logging its execution, timing, and any errors.
+    /// </summary>
+    /// <param name="request">The MediatR request being processed.</param>
+    /// <param name="next">The next handler in the pipeline.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The response from the handler.</returns>
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,

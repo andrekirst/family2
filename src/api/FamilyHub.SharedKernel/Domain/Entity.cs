@@ -44,11 +44,19 @@ public abstract class Entity<TId>(TId id) : IEquatable<Entity<TId>>, ITimestampa
     /// </remarks>
     public DateTime UpdatedAt { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor required for EF Core entity materialization.
+    /// </summary>
     protected Entity() : this(default!)
     {
         // Required for EF Core
     }
 
+    /// <summary>
+    /// Determines whether the specified object is equal to the current entity.
+    /// </summary>
+    /// <param name="obj">The object to compare with the current entity.</param>
+    /// <returns>true if the specified object is equal to the current entity; otherwise, false.</returns>
     public override bool Equals(object? obj)
     {
         if (obj is null)
@@ -69,6 +77,11 @@ public abstract class Entity<TId>(TId id) : IEquatable<Entity<TId>>, ITimestampa
         return Equals((Entity<TId>)obj);
     }
 
+    /// <summary>
+    /// Determines whether the specified entity is equal to the current entity by comparing identifiers.
+    /// </summary>
+    /// <param name="other">The entity to compare with the current entity.</param>
+    /// <returns>true if the specified entity has the same identifier; otherwise, false.</returns>
     public bool Equals(Entity<TId>? other)
     {
         if (other is null)
@@ -84,11 +97,21 @@ public abstract class Entity<TId>(TId id) : IEquatable<Entity<TId>>, ITimestampa
         return EqualityComparer<TId>.Default.Equals(Id, other.Id);
     }
 
+    /// <summary>
+    /// Returns the hash code for this entity based on its identifier.
+    /// </summary>
+    /// <returns>A hash code for the current entity.</returns>
     public override int GetHashCode()
     {
         return Id.GetHashCode();
     }
 
+    /// <summary>
+    /// Determines whether two entities are equal by comparing their identifiers.
+    /// </summary>
+    /// <param name="left">The first entity to compare.</param>
+    /// <param name="right">The second entity to compare.</param>
+    /// <returns>true if the entities have the same identifier; otherwise, false.</returns>
     public static bool operator ==(Entity<TId>? left, Entity<TId>? right)
     {
         if (left is null && right is null)
@@ -104,6 +127,12 @@ public abstract class Entity<TId>(TId id) : IEquatable<Entity<TId>>, ITimestampa
         return left.Equals(right);
     }
 
+    /// <summary>
+    /// Determines whether two entities are not equal by comparing their identifiers.
+    /// </summary>
+    /// <param name="left">The first entity to compare.</param>
+    /// <param name="right">The second entity to compare.</param>
+    /// <returns>true if the entities have different identifiers; otherwise, false.</returns>
     public static bool operator !=(Entity<TId>? left, Entity<TId>? right)
     {
         return !(left == right);

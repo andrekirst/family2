@@ -11,6 +11,12 @@ public sealed class GetUserFamiliesQueryHandler(
     IFamilyRepository familyRepository)
     : IRequestHandler<GetUserFamiliesQuery, GetUserFamiliesResult>
 {
+    /// <summary>
+    /// Handles the GetUserFamiliesQuery by retrieving all families for the specified user.
+    /// </summary>
+    /// <param name="request">The query containing the user ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A result containing the list of families the user belongs to.</returns>
     public async Task<GetUserFamiliesResult> Handle(
         GetUserFamiliesQuery request,
         CancellationToken cancellationToken)

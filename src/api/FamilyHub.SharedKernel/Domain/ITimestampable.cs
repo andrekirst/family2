@@ -31,5 +31,9 @@ public interface ITimestampable
     /// When the entity was last updated. Automatically set by TimestampInterceptor.
     /// </summary>
     DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// When the entity was created. Automatically set by TimestampInterceptor on first save.
+    /// </summary>
     DateTime CreatedAt { get; set; }
 }

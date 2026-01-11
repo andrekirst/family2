@@ -26,7 +26,18 @@ public sealed class HealthQueries
 /// </summary>
 public sealed record HealthStatus
 {
+    /// <summary>
+    /// Gets the current status of the service.
+    /// </summary>
     public required string Status { get; init; }
+
+    /// <summary>
+    /// Gets the timestamp when the health check was performed.
+    /// </summary>
     public required DateTime Timestamp { get; init; }
+
+    /// <summary>
+    /// Gets the name of the service.
+    /// </summary>
     public required string Service { get; init; }
 }

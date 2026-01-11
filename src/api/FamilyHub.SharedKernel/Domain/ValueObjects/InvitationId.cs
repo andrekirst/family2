@@ -8,5 +8,9 @@ namespace FamilyHub.SharedKernel.Domain.ValueObjects;
 [ValueObject<Guid>(conversions: Conversions.Default | Conversions.EfCoreValueConverter)]
 public readonly partial struct InvitationId
 {
+    /// <summary>
+    /// Creates a new InvitationId with a newly generated GUID.
+    /// </summary>
+    /// <returns>A new InvitationId instance.</returns>
     public static InvitationId New() => From(Guid.NewGuid());
 }

@@ -19,10 +19,17 @@ public abstract class AggregateRoot<TId> : Entity<TId>
     /// </summary>
     public IReadOnlyCollection<DomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
+    /// <summary>
+    /// Initializes a new instance of the aggregate root with the specified identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier for this aggregate root.</param>
     protected AggregateRoot(TId id) : base(id)
     {
     }
 
+    /// <summary>
+    /// Parameterless constructor required for EF Core entity materialization.
+    /// </summary>
     protected AggregateRoot()
     {
     }
