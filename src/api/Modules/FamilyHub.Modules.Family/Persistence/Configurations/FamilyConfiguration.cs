@@ -1,24 +1,26 @@
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 
-namespace FamilyHub.Modules.Auth.Persistence.Configurations;
+namespace FamilyHub.Modules.Family.Persistence.Configurations;
 
 /// <summary>
-/// Entity Framework Core configuration for the Family entity.
+/// Entity Framework Core configuration for the Family aggregate.
 ///
-/// PHASE 3 NOTE: This configuration currently specifies schema "auth" for backward compatibility.
-/// The Family table remains in the auth schema to avoid database migration complexity during
-/// the logical extraction phase. In Phase 5+, when we introduce a separate FamilyDbContext,
-/// we will migrate this table to the "family" schema.
+/// PHASE 5 STATE: Table resides in "family" schema after migration from "auth" schema.
+///
+/// CROSS-SCHEMA REFERENCES:
+/// - OwnerId references auth.users.id but without FK constraint
+/// - Consistency maintained via application-level validation (IUserLookupService)
+/// - This approach enables proper bounded context separation
 /// </summary>
 public class FamilyConfiguration : IEntityTypeConfiguration<FamilyAggregate>
 {
     public void Configure(EntityTypeBuilder<FamilyAggregate> builder)
     {
-        // PHASE 3 COUPLING: Table remains in "auth" schema for now
-        // TODO Phase 5+: Migrate to "family" schema when introducing FamilyDbContext
-        builder.ToTable("families", "auth");
+        // Table in "family" schema
+        builder.ToTable("families", "family");
 
         // Primary key with Vogen value converter
         builder.HasKey(f => f.Id);
@@ -35,6 +37,8 @@ public class FamilyConfiguration : IEntityTypeConfiguration<FamilyAggregate>
             .IsRequired();
 
         // Owner ID with Vogen value converter
+        // NOTE: No FK constraint - cross-schema reference to auth.users
+        // Consistency maintained via IUserLookupService
         builder.Property(f => f.OwnerId)
             .HasConversion(new UserId.EfCoreValueConverter())
             .HasColumnName("owner_id")

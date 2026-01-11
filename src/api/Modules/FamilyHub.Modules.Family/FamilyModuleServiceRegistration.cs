@@ -1,5 +1,9 @@
 using FamilyHub.Infrastructure.GraphQL.Extensions;
 using FamilyHub.Infrastructure.Persistence.Extensions;
+using FamilyHub.Modules.Family.Domain.Abstractions;
+using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Persistence;
+using FamilyHub.Modules.Family.Persistence.Repositories;
 using FamilyHub.SharedKernel.Application.Behaviors;
 using HotChocolate.Execution.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +15,11 @@ namespace FamilyHub.Modules.Family;
 
 /// <summary>
 /// Dependency injection configuration for the Family module.
+///
+/// PHASE 5 STATE: Family module now owns its own persistence layer:
+/// - FamilyDbContext with "family" PostgreSQL schema
+/// - Repository implementations in Family.Persistence
+/// - IUserLookupService for cross-module queries to Auth
 /// </summary>
 public static class FamilyModuleServiceRegistration
 {
@@ -27,15 +36,39 @@ public static class FamilyModuleServiceRegistration
         // Register TimeProvider for timestamp management
         services.AddSingleton(TimeProvider.System);
 
-        // PHASE 4: Persistence Layer (Repository Registration)
-        // Repository implementations remain in Auth.Persistence/ and are registered by Auth module
-        // This is Phase 3 pragmatism to avoid circular dependencies while sharing AuthDbContext
-        // TODO Phase 5+: Move repository implementations here when FamilyDbContext is introduced
+        // PHASE 5: FamilyDbContext with pooled factory (performance optimization)
+        // Uses same connection string as Auth but targets "family" schema
+        services.AddPooledDbContextFactory<FamilyDbContext>((sp, options) =>
+        {
+            var connectionString = configuration.GetConnectionString("FamilyHubDb");
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    // Specify migrations assembly for EF Core tooling
+                    npgsqlOptions.MigrationsAssembly(typeof(FamilyDbContext).Assembly.GetName().Name);
+                })
+                .UseSnakeCaseNamingConvention()
+                .AddTimestampInterceptor(sp);
+        });
 
-        // Application Services (Phase 4: Anti-corruption layer for cross-module interactions)
+        // Scoped DbContext from factory
+        services.AddScoped(sp =>
+        {
+            var factory = sp.GetRequiredService<IDbContextFactory<FamilyDbContext>>();
+            return factory.CreateDbContext();
+        });
+
+        // Unit of Work for Family module
+        services.AddScoped<IFamilyUnitOfWork, FamilyUnitOfWork>();
+
+        // PHASE 5: Repository implementations now in Family module
+        // These use FamilyDbContext and IUserLookupService for cross-module queries
+        services.AddScoped<IFamilyRepository, FamilyRepository>();
+        services.AddScoped<IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
+
+        // Application Services (Anti-corruption layer for cross-module interactions)
         services.AddScoped<Application.Abstractions.IFamilyService, Application.Services.FamilyService>();
 
-        // MediatR - Command/Query handlers (placeholder - will be populated when handlers are moved)
+        // MediatR - Command/Query handlers
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(FamilyModuleServiceRegistration).Assembly);
@@ -102,7 +135,7 @@ public static class FamilyModuleServiceRegistration
     /// Remaining in Auth module (modifies User aggregate):
     /// - FamilyTypeExtensions (requires User data for Members/Owner fields)
     /// - Other invitation mutations (AcceptInvitation, CancelInvitation)
-    /// TODO Phase 5+: Create IUserLookupService for proper abstraction
+    /// PHASE 5: IUserLookupService implemented for proper cross-module abstraction
     ///
     /// Example usage in Program.cs:
     /// <code>

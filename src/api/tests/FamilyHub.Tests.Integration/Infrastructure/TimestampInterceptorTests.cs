@@ -2,6 +2,7 @@ using FamilyHub.Infrastructure.Persistence.Interceptors;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Persistence;
+using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Unit.Fixtures;
 using FluentAssertions;
@@ -15,11 +16,16 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// Integration tests for TimestampInterceptor.
 /// These tests verify that the interceptor correctly sets CreatedAt and UpdatedAt timestamps
 /// when entities are saved to the database.
+///
+/// PHASE 5 STATE: Family entities are now in FamilyDbContext (family schema),
+/// while User entities remain in AuthDbContext (auth schema).
+/// Tests use the appropriate DbContext for each entity type.
 /// </summary>
 [Collection("Database")]
 public class TimestampInterceptorTests : IAsyncLifetime
 {
-    private AuthDbContext _context = null!;
+    private AuthDbContext _authContext = null!;
+    private FamilyDbContext _familyContext = null!;
     private FakeTimeProvider _timeProvider = null!;
 
     public async Task InitializeAsync()
@@ -30,19 +36,31 @@ public class TimestampInterceptorTests : IAsyncLifetime
         services.AddSingleton<TimeProvider>(_timeProvider);
         var serviceProvider = services.BuildServiceProvider();
 
-        var options = new DbContextOptionsBuilder<AuthDbContext>()
-            .UseNpgsql("Host=localhost;Database=familyhub_test;Username=familyhub;Password=Dev123!")
+        var connectionString = "Host=localhost;Database=familyhub_test;Username=familyhub;Password=Dev123!";
+
+        var authOptions = new DbContextOptionsBuilder<AuthDbContext>()
+            .UseNpgsql(connectionString)
             .AddInterceptors(new TimestampInterceptor(_timeProvider))
             .Options;
 
-        _context = new AuthDbContext(options);
-        await _context.Database.EnsureCreatedAsync();
+        var familyOptions = new DbContextOptionsBuilder<FamilyDbContext>()
+            .UseNpgsql(connectionString)
+            .AddInterceptors(new TimestampInterceptor(_timeProvider))
+            .Options;
+
+        _authContext = new AuthDbContext(authOptions);
+        _familyContext = new FamilyDbContext(familyOptions);
+
+        await _authContext.Database.EnsureCreatedAsync();
+        await _familyContext.Database.EnsureCreatedAsync();
     }
 
     public async Task DisposeAsync()
     {
-        await _context.Database.EnsureDeletedAsync();
-        await _context.DisposeAsync();
+        await _familyContext.Database.EnsureDeletedAsync();
+        await _authContext.Database.EnsureDeletedAsync();
+        await _familyContext.DisposeAsync();
+        await _authContext.DisposeAsync();
     }
 
     [Fact]
@@ -52,9 +70,9 @@ public class TimestampInterceptorTests : IAsyncLifetime
         var expectedTime = _timeProvider.GetUtcNow().UtcDateTime;
         var family = FamilyAggregate.Create(FamilyName.From("Test Family"), UserId.New());
 
-        // Act
-        _context.Families.Add(family);
-        await _context.SaveChangesAsync();
+        // Act - Family is now in FamilyDbContext
+        _familyContext.Families.Add(family);
+        await _familyContext.SaveChangesAsync();
 
         // Assert
         family.CreatedAt.Should().Be(expectedTime);
@@ -66,8 +84,8 @@ public class TimestampInterceptorTests : IAsyncLifetime
     {
         // Arrange
         var family = FamilyAggregate.Create(FamilyName.From("Original"), UserId.New());
-        _context.Families.Add(family);
-        await _context.SaveChangesAsync();
+        _familyContext.Families.Add(family);
+        await _familyContext.SaveChangesAsync();
 
         var createdAt = family.CreatedAt;
 
@@ -77,7 +95,7 @@ public class TimestampInterceptorTests : IAsyncLifetime
 
         // Act
         family.UpdateName(FamilyName.From("Updated"));
-        await _context.SaveChangesAsync();
+        await _familyContext.SaveChangesAsync();
 
         // Assert
         family.CreatedAt.Should().Be(createdAt); // Unchanged
@@ -90,16 +108,16 @@ public class TimestampInterceptorTests : IAsyncLifetime
         // Arrange
         var expectedTime = _timeProvider.GetUtcNow().UtcDateTime;
 
-        // Create family first (required by foreign key constraint)
+        // Create family first in FamilyDbContext (no FK constraint in Phase 5 architecture)
         var family = FamilyAggregate.Create(FamilyName.From("Test Family"), UserId.New());
-        _context.Families.Add(family);
-        await _context.SaveChangesAsync();
+        _familyContext.Families.Add(family);
+        await _familyContext.SaveChangesAsync();
 
         var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel", family.Id);
 
-        // Act
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        // Act - User is in AuthDbContext
+        _authContext.Users.Add(user);
+        await _authContext.SaveChangesAsync();
 
         // Assert
         user.CreatedAt.Should().Be(expectedTime);
@@ -111,21 +129,25 @@ public class TimestampInterceptorTests : IAsyncLifetime
     {
         // Arrange
         var expectedTime = _timeProvider.GetUtcNow().UtcDateTime;
+        var userId = UserId.New();
 
-        // Create user's family first (required by foreign key constraint)
-        var userFamily = FamilyAggregate.Create(FamilyName.From("User Family"), UserId.New());
-        _context.Families.Add(userFamily);
-        await _context.SaveChangesAsync();
+        // Create user's family first in FamilyDbContext
+        var userFamily = FamilyAggregate.Create(FamilyName.From("User Family"), userId);
+        _familyContext.Families.Add(userFamily);
+        await _familyContext.SaveChangesAsync();
 
         var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel", userFamily.Id);
         var family1 = FamilyAggregate.Create(FamilyName.From("Family 1"), user.Id);
         var family2 = FamilyAggregate.Create(FamilyName.From("Family 2"), user.Id);
 
-        // Act
-        _context.Users.Add(user);
-        _context.Families.Add(family1);
-        _context.Families.Add(family2);
-        await _context.SaveChangesAsync();
+        // Act - Add families to FamilyDbContext
+        _familyContext.Families.Add(family1);
+        _familyContext.Families.Add(family2);
+        await _familyContext.SaveChangesAsync();
+
+        // Add user to AuthDbContext
+        _authContext.Users.Add(user);
+        await _authContext.SaveChangesAsync();
 
         // Assert
         user.CreatedAt.Should().Be(expectedTime);

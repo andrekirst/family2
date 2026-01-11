@@ -72,12 +72,13 @@ public static class AuthModuleServiceRegistration
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
 
-        // PHASE 4: Family repository registrations (implementation in Auth module, interface in Family module)
-        // These implement Family module interfaces but remain in Auth module to avoid circular dependency
-        // They use AuthDbContext (shared database) and will be moved in Phase 5+
-        // Auth module registers them because they depend on AuthDbContext
-        services.AddScoped<Family.Domain.Repositories.IFamilyRepository, FamilyRepository>();
-        services.AddScoped<Family.Domain.Repositories.IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
+        // PHASE 5: IUserLookupService for cross-module queries
+        // Family module uses this to query User data without direct DbContext access
+        services.AddScoped<SharedKernel.Application.Abstractions.IUserLookupService, UserLookupService>();
+
+        // PHASE 5: Family repository registrations REMOVED
+        // Repository implementations moved to Family module with FamilyDbContext
+        // See FamilyModuleServiceRegistration for new registrations
 
         // Zitadel OAuth Configuration
         services.Configure<ZitadelSettings>(configuration.GetSection(ZitadelSettings.SectionName));
@@ -169,7 +170,7 @@ public static class AuthModuleServiceRegistration
     /// - UserType, UserTypeExtensions
     /// - FamilyTypeExtensions (requires User data for Members/Owner - temporary)
     /// - AcceptInvitation, CancelInvitation mutations (modify User aggregate)
-    /// TODO Phase 5+: Create IUserLookupService for proper abstraction
+    /// PHASE 5: IUserLookupService implemented for proper cross-module abstraction
     ///
     /// Example usage in Program.cs:
     /// <code>

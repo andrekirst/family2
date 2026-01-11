@@ -1,26 +1,28 @@
-using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Family.Domain.Aggregates;
+using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 
-namespace FamilyHub.Modules.Auth.Persistence.Configurations;
+namespace FamilyHub.Modules.Family.Persistence.Configurations;
 
 /// <summary>
-/// Entity Framework Core configuration for the FamilyMemberInvitation entity.
+/// Entity Framework Core configuration for the FamilyMemberInvitation aggregate.
 ///
-/// PHASE 3 NOTE: This configuration currently specifies schema "auth" and references
-/// User entity from Auth module for backward compatibility. The table remains in the
-/// auth schema to avoid database migration complexity during the logical extraction phase.
-/// In Phase 5+, when we introduce a separate FamilyDbContext, we will migrate this table
-/// to the "family" schema and refactor the foreign key relationships.
+/// PHASE 5 STATE: Table resides in "family" schema after migration from "auth" schema.
+///
+/// CROSS-SCHEMA REFERENCES:
+/// - InvitedByUserId references auth.users.id but without FK constraint
+/// - Consistency maintained via application-level validation (IUserLookupService)
+/// - FamilyId has FK constraint (same schema)
 /// </summary>
-public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyMemberInvitationAggregate>
+public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyMemberInvitation>
 {
-    public void Configure(EntityTypeBuilder<FamilyMemberInvitationAggregate> builder)
+    public void Configure(EntityTypeBuilder<FamilyMemberInvitation> builder)
     {
-        // PHASE 3 COUPLING: Table remains in "auth" schema for now
-        // TODO Phase 5+: Migrate to "family" schema when introducing FamilyDbContext
-        builder.ToTable("family_member_invitations", "auth");
+        // Table in "family" schema
+        builder.ToTable("family_member_invitations", "family");
 
         // Primary key with Vogen value converter
         builder.HasKey(i => i.Id);
@@ -45,21 +47,20 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
         builder.HasIndex(i => i.FamilyId)
             .HasDatabaseName("ix_family_member_invitations_family_id");
 
-        // PHASE 3 COUPLING: Foreign key relationship to Family aggregate
-        // This is in the same module now, which is correct
+        // Foreign key relationship to Family aggregate (same schema - FK constraint maintained)
         builder.HasOne<FamilyAggregate>()
             .WithMany()
             .HasForeignKey(i => i.FamilyId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Email with Vogen value converter (required - email-only invitations)
+        // Email with Vogen value converter
         builder.Property(i => i.Email)
             .HasConversion(new Email.EfCoreValueConverter())
             .HasColumnName("email")
             .HasMaxLength(255)
             .IsRequired();
 
-        // Role (stored as varchar, not using Vogen for FamilyRole enum)
+        // Role (stored as varchar)
         builder.Property(i => i.Role)
             .HasConversion(
                 role => role.Value,
@@ -89,6 +90,8 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
             .HasDatabaseName("ix_family_member_invitations_expires_at");
 
         // Invited by user ID with Vogen value converter
+        // NOTE: No FK constraint - cross-schema reference to auth.users
+        // Consistency maintained via IUserLookupService
         builder.Property(i => i.InvitedByUserId)
             .HasConversion(new UserId.EfCoreValueConverter())
             .HasColumnName("invited_by_user_id")
@@ -96,14 +99,6 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
 
         builder.HasIndex(i => i.InvitedByUserId)
             .HasDatabaseName("ix_family_member_invitations_invited_by_user_id");
-
-        // PHASE 3 COUPLING: Foreign key relationship to User entity from Auth module
-        // This cross-module relationship is acceptable for now as both use the same database.
-        // TODO Phase 5+: Refactor to remove this direct entity reference when introducing FamilyDbContext
-        builder.HasOne<User>()
-            .WithMany()
-            .HasForeignKey(i => i.InvitedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         // Status with Vogen value converter
         builder.Property(i => i.Status)
@@ -138,7 +133,7 @@ public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<Fami
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        // Ignore domain events collection (handled by base class)
+        // Ignore domain events collection
         builder.Ignore(i => i.DomainEvents);
     }
 }
