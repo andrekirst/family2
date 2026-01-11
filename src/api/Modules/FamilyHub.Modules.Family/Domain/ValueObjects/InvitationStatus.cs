@@ -16,9 +16,24 @@ public readonly partial struct InvitationStatus
         InvitationStatusConstants.CanceledValue
     ];
 
+    /// <summary>
+    /// Invitation is pending acceptance.
+    /// </summary>
     public static readonly InvitationStatus Pending = From(InvitationStatusConstants.PendingValue);
+
+    /// <summary>
+    /// Invitation has been accepted.
+    /// </summary>
     public static readonly InvitationStatus Accepted = From(InvitationStatusConstants.AcceptedValue);
+
+    /// <summary>
+    /// Invitation has expired.
+    /// </summary>
     public static readonly InvitationStatus Expired = From(InvitationStatusConstants.ExpiredValue);
+
+    /// <summary>
+    /// Invitation has been canceled.
+    /// </summary>
     public static readonly InvitationStatus Canceled = From(InvitationStatusConstants.CanceledValue);
 
     private static Validation Validate(string value)

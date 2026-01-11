@@ -42,9 +42,28 @@ public sealed record CreateFamilyPayload
 /// </summary>
 public sealed record CreatedFamilyDto
 {
+    /// <summary>
+    /// Gets the unique identifier of the family.
+    /// </summary>
     public required Guid Id { get; init; }
+
+    /// <summary>
+    /// Gets the name of the family.
+    /// </summary>
     public required string Name { get; init; }
+
+    /// <summary>
+    /// Gets the unique identifier of the family owner.
+    /// </summary>
     public required Guid OwnerId { get; init; }
+
+    /// <summary>
+    /// Gets the date and time when the family was created.
+    /// </summary>
     public required DateTime CreatedAt { get; init; }
+
+    /// <summary>
+    /// Gets the date and time when the family was last updated.
+    /// </summary>
     public required DateTime UpdatedAt { get; init; }
 }

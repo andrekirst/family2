@@ -19,6 +19,13 @@ public sealed partial class FamilyService(
     IUnitOfWork unitOfWork,
     ILogger<FamilyService> logger) : IFamilyService
 {
+    /// <summary>
+    /// Creates a new family with the specified name and owner.
+    /// </summary>
+    /// <param name="name">The name of the family.</param>
+    /// <param name="ownerId">The ID of the family owner.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A result containing the created family DTO.</returns>
     public async Task<FamilyHub.SharedKernel.Domain.Result<FamilyDto>> CreateFamilyAsync(
         FamilyName name,
         UserId ownerId,
@@ -54,6 +61,13 @@ public sealed partial class FamilyService(
         }
     }
 
+    /// <summary>
+    /// Transfers ownership of a family to a new owner.
+    /// </summary>
+    /// <param name="familyId">The ID of the family.</param>
+    /// <param name="newOwnerId">The ID of the new owner.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<FamilyHub.SharedKernel.Domain.Result> TransferOwnershipAsync(
         FamilyId familyId,
         UserId newOwnerId,
@@ -86,6 +100,12 @@ public sealed partial class FamilyService(
         }
     }
 
+    /// <summary>
+    /// Retrieves a family by its ID.
+    /// </summary>
+    /// <param name="familyId">The ID of the family to retrieve.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The family DTO if found; otherwise, null.</returns>
     public async Task<FamilyDto?> GetFamilyByIdAsync(
         FamilyId familyId,
         CancellationToken cancellationToken = default)
@@ -111,6 +131,12 @@ public sealed partial class FamilyService(
         };
     }
 
+    /// <summary>
+    /// Retrieves a family by the user ID of one of its members.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The family DTO if the user is a member of a family; otherwise, null.</returns>
     public async Task<FamilyDto?> GetFamilyByUserIdAsync(
         UserId userId,
         CancellationToken cancellationToken = default)
@@ -136,6 +162,12 @@ public sealed partial class FamilyService(
         };
     }
 
+    /// <summary>
+    /// Gets the number of members in a family.
+    /// </summary>
+    /// <param name="familyId">The ID of the family.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The number of members in the family.</returns>
     public async Task<int> GetMemberCountAsync(
         FamilyId familyId,
         CancellationToken cancellationToken = default)
@@ -149,6 +181,12 @@ public sealed partial class FamilyService(
         return count;
     }
 
+    /// <summary>
+    /// Checks whether a family with the specified ID exists.
+    /// </summary>
+    /// <param name="familyId">The ID of the family to check.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>true if the family exists; otherwise, false.</returns>
     public async Task<bool> FamilyExistsAsync(
         FamilyId familyId,
         CancellationToken cancellationToken = default)

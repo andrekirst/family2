@@ -11,6 +11,10 @@ namespace FamilyHub.Modules.Family.Presentation.GraphQL.Types;
 /// </summary>
 public class FamilyType : ObjectType<FamilyAggregate>
 {
+    /// <summary>
+    /// Configures the GraphQL type descriptor for the Family entity.
+    /// </summary>
+    /// <param name="descriptor">The object type descriptor to configure.</param>
     protected override void Configure(IObjectTypeDescriptor<FamilyAggregate> descriptor)
     {
         descriptor.Name("Family");

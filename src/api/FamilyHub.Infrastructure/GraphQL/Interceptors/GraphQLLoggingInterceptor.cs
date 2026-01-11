@@ -31,6 +31,11 @@ public sealed class GraphQlLoggingInterceptor(ILogger<GraphQlLoggingInterceptor>
             new EventId(2002, nameof(LogOperationFailed)),
             "GraphQL: Failed {OperationType} operation '{OperationName}' after {ElapsedMilliseconds}ms");
 
+    /// <summary>
+    /// Logs the start and completion of a GraphQL request.
+    /// </summary>
+    /// <param name="context">The GraphQL request context.</param>
+    /// <returns>A disposable that logs completion when disposed.</returns>
     public override IDisposable ExecuteRequest(IRequestContext context)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -56,6 +61,11 @@ public sealed class GraphQlLoggingInterceptor(ILogger<GraphQlLoggingInterceptor>
         }
     }
 
+    /// <summary>
+    /// Logs errors that occur during GraphQL request execution.
+    /// </summary>
+    /// <param name="context">The GraphQL request context.</param>
+    /// <param name="exception">The exception that occurred.</param>
     public override void RequestError(IRequestContext context, Exception exception)
     {
         var operationType = context.Operation?.Type.ToString() ?? "Unknown";

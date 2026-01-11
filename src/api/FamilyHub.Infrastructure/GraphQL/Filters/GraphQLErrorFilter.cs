@@ -10,6 +10,11 @@ namespace FamilyHub.Infrastructure.GraphQL.Filters;
 /// </summary>
 public sealed class GraphQLErrorFilter : IErrorFilter
 {
+    /// <summary>
+    /// Processes and transforms GraphQL errors based on the exception type.
+    /// </summary>
+    /// <param name="error">The GraphQL error to process.</param>
+    /// <returns>A transformed error with appropriate error code and message.</returns>
     public IError OnError(IError error)
     {
         return error.Exception switch

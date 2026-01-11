@@ -23,6 +23,12 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     ILogger<InviteFamilyMemberByEmailCommandHandler> logger)
     : IRequestHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
 {
+    /// <summary>
+    /// Handles the InviteFamilyMemberByEmailCommand to invite a user to a family via email.
+    /// </summary>
+    /// <param name="request">The command containing the invitation details.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A result containing the invitation details if successful.</returns>
     public async Task<FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>> Handle(
         InviteFamilyMemberByEmailCommand request,
         CancellationToken cancellationToken)
