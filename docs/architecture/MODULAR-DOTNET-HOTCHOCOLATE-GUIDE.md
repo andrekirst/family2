@@ -3235,12 +3235,14 @@ Family Hub uses **Microsoft.Extensions.DependencyInjection** with a **module-bas
 Traditional DI registration (all services in `Program.cs`) leads to:
 
 ❌ **Problems:**
+
 - **God Object Antipattern**: `Program.cs` knows about every service in every module
 - **Poor Encapsulation**: Module internals exposed to host application
 - **Testing Difficulty**: Hard to test module configuration in isolation
 - **Merge Conflicts**: All developers edit the same `Program.cs` file
 
 ✅ **Module-Based Solution:**
+
 - **Encapsulation**: Each module owns its DI configuration
 - **Composability**: Modules can be enabled/disabled in `Program.cs`
 - **Testability**: Module configuration can be tested independently
@@ -3390,7 +3392,6 @@ public static class AuthModuleServiceRegistration
 }
 ```
 
-
 #### 4.1.2 Family Module Registration
 
 ```csharp
@@ -3446,11 +3447,13 @@ public static class FamilyModuleServiceRegistration
 **Family Module Registration Evolution:**
 
 **Phase 3 (Current):**
+
 - Family repositories registered by **Auth module** (use AuthDbContext)
 - Family module registers only **IFamilyService** (anti-corruption layer)
 - Minimal DI setup - most services in Auth module
 
 **Phase 5+ (Target):**
+
 ```csharp
 services.AddPooledDbContextFactory<FamilyDbContext>(...);
 services.AddScoped<IFamilyRepository, FamilyRepository>();
@@ -3575,6 +3578,7 @@ Notice `AddAuthModule()` registers services, then `AddAuthModuleGraphQlTypes()` 
 4. **HotChocolate Dependency**: Only `AddAuthModuleGraphQlTypes()` depends on `HotChocolate.AspNetCore`
 
 **Pattern:**
+
 - `AddXModule(IServiceCollection)` → Domain + Application + Infrastructure services
 - `AddXModuleGraphQlTypes(IRequestExecutorBuilder)` → GraphQL types, queries, mutations
 `─────────────────────────────────────────────────`
@@ -3588,6 +3592,7 @@ Family Hub uses three service lifetimes strategically:
 #### 4.3.1 Singleton (Application Lifetime)
 
 **Characteristics:**
+
 - Created once when application starts
 - Shared across all requests
 - Must be thread-safe
@@ -3611,6 +3616,7 @@ services.AddHttpContextAccessor();
 #### 4.3.2 Scoped (Request Lifetime)
 
 **Characteristics:**
+
 - Created once per HTTP request (or GraphQL operation)
 - Shared within the same request
 - Disposed at end of request
@@ -3648,6 +3654,7 @@ services.AddScoped<IFamilyService, FamilyService>();
 #### 4.3.3 Transient (Per-Resolution Lifetime)
 
 **Characteristics:**
+
 - Created every time requested
 - Not shared
 - Suitable for lightweight, stateless services
@@ -3683,6 +3690,7 @@ public class EmailSender : IEmailSender
 ```
 
 **Problem:**
+
 - `EmailSender` (Singleton) captures `IUserRepository` (Scoped) in constructor
 - Scoped service becomes effectively Singleton (lives for application lifetime)
 - DbContext is never disposed → connection leaks
@@ -3711,7 +3719,6 @@ public class EmailSender : IEmailSender
 
 **Family Hub's approach:** Use Scoped services for most components (repositories, services, handlers) to avoid captive dependency issues entirely.
 `─────────────────────────────────────────────────`
-
 
 ---
 
@@ -3761,6 +3768,7 @@ CreateDbContext_Pooled  | 165.7 μs  | 12 KB     |
 **Improvement:** 63% faster, 75% less memory
 
 **How pooling works:**
+
 1. EF Core maintains pool of pre-initialized DbContext instances
 2. On request, returns DbContext from pool (or creates new if pool empty)
 3. On dispose, resets DbContext state and returns to pool
@@ -3865,6 +3873,7 @@ public sealed partial class LoggingBehavior<TRequest, TResponse>(
 ```
 
 **Responsibilities:**
+
 - Log request start/completion/failure
 - Measure execution time
 - Use source-generated logging ([LoggerMessage]) for performance
@@ -3930,6 +3939,7 @@ public sealed partial class UserContextEnrichmentBehavior<TRequest, TResponse>(
 ```
 
 **Responsibilities:**
+
 - Load authenticated user from database (once per request)
 - Populate `IUserContext` (scoped service)
 - Skip for public queries (marker interface: `IPublicQuery`)
@@ -3952,6 +3962,7 @@ public sealed record HealthCheckQuery
 **Why load User aggregate in pipeline behavior instead of handler?**
 
 **Alternative (Handler-Based):**
+
 ```csharp
 public class CreateFamilyCommandHandler
 {
@@ -3965,11 +3976,13 @@ public class CreateFamilyCommandHandler
 ```
 
 **Problems:**
+
 - Every handler duplicates user loading logic (100+ lines of duplication)
 - Easy to forget (security risk)
 - Hard to unit test (must mock CurrentUserService + UserRepository)
 
 **Behavior-Based (Family Hub's Approach):**
+
 ```csharp
 public class CreateFamilyCommandHandler
 {
@@ -3984,6 +3997,7 @@ public class CreateFamilyCommandHandler
 ```
 
 **Benefits:**
+
 - User loaded once per request (not once per handler call)
 - Handlers are simpler (no auth logic)
 - Testable (mock IUserContext directly)
@@ -4037,6 +4051,7 @@ services.AddScoped<IUserRepository, UserRepository>();
 **Repository Registration Evolution:**
 
 **Phase 3 (Current):**
+
 ```csharp
 // Auth module registers Family repositories (uses AuthDbContext)
 services.AddScoped<Family.Domain.Repositories.IFamilyRepository, FamilyRepository>();
@@ -4046,6 +4061,7 @@ services.AddScoped<Family.Domain.Repositories.IFamilyMemberInvitationRepository,
 **Problem:** Cross-module coupling - Auth module knows about Family domain interfaces
 
 **Phase 5+ (Target):**
+
 ```csharp
 // Auth module - only Auth repositories
 services.AddScoped<IUserRepository, UserRepository>();
@@ -4058,7 +4074,6 @@ services.AddScoped<IFamilyMemberInvitationRepository, FamilyMemberInvitationRepo
 
 **Solution:** Separate DbContexts eliminate cross-module repository registration
 `─────────────────────────────────────────────────`
-
 
 ---
 
@@ -4156,6 +4171,7 @@ public sealed class CreateFamilyCommandHandler(
 **Anti-corruption layer prevents tight coupling:**
 
 **Without ACL (Direct Repository Access):**
+
 ```csharp
 // ❌ Auth module directly uses Family repository
 services.AddScoped<IFamilyRepository, FamilyRepository>();
@@ -4173,11 +4189,13 @@ public class CreateFamilyCommandHandler
 ```
 
 **Problems:**
+
 - Auth module depends on Family aggregate implementation
 - Can't extract Family module to separate service (microservices)
 - Hard to change Family internals (affects Auth module)
 
 **With ACL (Service Interface):**
+
 ```csharp
 // ✅ Auth module uses Family service interface
 services.AddScoped<IFamilyService, FamilyService>();
@@ -4195,6 +4213,7 @@ public class CreateFamilyCommandHandler
 ```
 
 **Benefits:**
+
 - Auth module depends on interface (in Family module)
 - Can swap implementation (in-process → HTTP client for microservices)
 - Family internals hidden (only DTOs cross boundary)
@@ -4270,7 +4289,6 @@ public sealed record TransferOwnershipCommand(FamilyId FamilyId, UserId NewOwner
 
 📖 **Next Section:** [Section 5: HotChocolate GraphQL Setup](#5-hotchocolate-graphql-setup) - Query extensions, mutation conventions, type definitions, and schema composition without conflicts.
 
-
 ---
 
 ## 5. HotChocolate GraphQL Setup
@@ -4282,6 +4300,7 @@ Family Hub uses **HotChocolate v14** for its GraphQL API layer. The setup follow
 **HotChocolate** is a .NET GraphQL server with advanced features:
 
 ✅ **Benefits:**
+
 - **Schema Stitching**: Modules extend shared Query/Mutation types
 - **Code-First API**: C# classes → GraphQL schema (no SDL files)
 - **Mutation Conventions**: Declarative error handling with `[Error<T>]`
@@ -4296,6 +4315,7 @@ Family Hub uses **HotChocolate v14** for its GraphQL API layer. The setup follow
 **HotChocolate v14 Mutation Conventions (Game Changer):**
 
 **Before v14 (Manual Error Handling):**
+
 ```csharp
 public async Task<CreateFamilyPayload> CreateFamily(...)
 {
@@ -4316,6 +4336,7 @@ public async Task<CreateFamilyPayload> CreateFamily(...)
 ```
 
 **After v14 (Declarative Error Handling):**
+
 ```csharp
 [UseMutationConvention]
 [Error(typeof(ValidationError))]
@@ -4469,18 +4490,20 @@ public sealed record UserType
 | **Record Type** | Returning DTOs with simple fields | `UserType`, `CreatedFamilyDto` |
 
 **Anti-pattern:**
+
 ```csharp
 // ❌ Bad - Exposing domain aggregate directly
 public Family GetFamily() => family; // Exposes ALL properties (DeletedAt, etc.)
 ```
 
 **Better:**
+
 ```csharp
 // ✅ Good - Map to DTO or use ObjectType<T> with BindFieldsExplicitly()
 public FamilyDto GetFamily() => mapper.ToDto(family);
 ```
-`─────────────────────────────────────────────────`
 
+`─────────────────────────────────────────────────`
 
 ---
 
@@ -4554,6 +4577,7 @@ type Query {
 **Why [ExtendObjectType] instead of separate Query classes per module?**
 
 **Alternative (Separate Query Types):**
+
 ```csharp
 // ❌ Problematic - Multiple root query types
 public class FamilyQuery { ... }
@@ -4576,6 +4600,7 @@ query {
 ```
 
 **Family Hub Approach ([ExtendObjectType]):**
+
 ```csharp
 // ✅ Good - All modules extend single Query type
 [ExtendObjectType("Query")]
@@ -4598,6 +4623,7 @@ query {
 ```
 
 **Benefits:**
+
 - Standard GraphQL convention (single Query root)
 - Simpler client queries (no multiple roots)
 - Modular registration (each module contributes fields)
@@ -4706,6 +4732,7 @@ mutation CreateFamily($input: CreateFamilyInput!) {
 **Mutation Conventions vs Manual Payloads:**
 
 **Before v14 (Manual Payloads):**
+
 ```csharp
 public sealed record CreateFamilyPayload
 {
@@ -4728,6 +4755,7 @@ catch (ValidationException ex)
 ```
 
 **After v14 (Conventions):**
+
 ```csharp
 [UseMutationConvention]
 [Error(typeof(ValidationError))]
@@ -4810,7 +4838,6 @@ var result = await mediator.Send(command, cancellationToken);
 
 **Full ADR:** [ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md](../architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md)
 `─────────────────────────────────────────────────`
-
 
 ---
 
@@ -4986,6 +5013,7 @@ graphqlBuilder.AddFamilyModuleGraphQlTypes();
 **Schema Conflicts:**
 
 **Problem: Duplicate field names**
+
 ```csharp
 // ❌ Conflict - Both modules add "get" query
 [ExtendObjectType("Query")]
@@ -5002,11 +5030,13 @@ public class UserQueries
 ```
 
 **Error:**
+
 ```
 HotChocolate.SchemaException: The field 'Query.get' already exists.
 ```
 
 **Solution: Unique field names per module**
+
 ```csharp
 // ✅ Good - Unique field names
 [ExtendObjectType("Query")]
@@ -5087,7 +5117,6 @@ Pass `ILoggerFactory` to see discovered types:
 - Register types manually when auto-discovery works
 
 📖 **Next Section:** [Section 6: CQRS with MediatR](#6-cqrs-with-mediatr) - Commands, queries, handlers, validation, and pipeline behaviors in detail.
-
 
 ---
 
@@ -5357,7 +5386,6 @@ public sealed record GetInvitationByTokenQuery(
 2. **IPublicQuery**: Bypasses authentication (invitation lookup before login)
 3. **Simple Parameters**: Only query criteria (no complex state changes)
 
-
 #### Query Handler
 
 ```csharp
@@ -5546,13 +5574,16 @@ return result.Value; // NullReferenceException if failure!
 ```
 
 ✅ **Right**:
+
 ```csharp
 var result = await service.CreateAsync(...);
 if (result.IsFailure)
     throw new InvalidOperationException(result.Error);
 return result.Value; // Safe
 ```
+
 ─────────────────────────────────────────────────
+
 ```
 
 ---
@@ -5708,7 +5739,6 @@ Don't check authorization in validators. Use marker interfaces (`IRequireAuthent
 ─────────────────────────────────────────────────
 ```
 
-
 ---
 
 ### 6.7 Pipeline Behaviors Deep Dive
@@ -5776,6 +5806,7 @@ public sealed partial class LoggingBehavior<TRequest, TResponse>(
 ```
 
 **Output Example:**
+
 ```
 [INFO] Executing CreateFamilyCommand
 [INFO] Completed CreateFamilyCommand in 87ms
@@ -6150,7 +6181,6 @@ public sealed class GetInvitationByTokenTests : IClassFixture<TestApplicationFac
 
 📖 **Next Section:** [Section 7: DataLoader for N+1 Prevention](#7-dataloader-for-n1-prevention) - Comprehensive DataLoader patterns for GraphQL performance.
 
-
 ---
 
 ## 7. DataLoader for N+1 Prevention
@@ -6162,6 +6192,7 @@ The **N+1 problem** occurs when GraphQL resolvers issue separate database querie
 #### Example: Current Family Hub N+1 Problem
 
 **GraphQL Query:**
+
 ```graphql
 query {
   users {
@@ -6203,12 +6234,14 @@ public sealed class UserTypeExtensions
 ```
 
 **Problem:** For 100 users, this executes:
+
 - **1 query** to fetch all users
 - **100 queries** to fetch User domain entities (one per user)
 - **100 queries** to fetch Family entities (one per user)
 - **Total: 201 queries** 🔴
 
 **Database Impact:**
+
 ```sql
 -- Query 1: Fetch all users
 SELECT * FROM users;
@@ -6399,7 +6432,6 @@ familyDataLoader.LoadAsync(familyId2) → returns family2
 ```
 
 **Result: 201 queries → 2 queries** (1 for users, 1 for families) 🟢
-
 
 ---
 
@@ -6698,7 +6730,6 @@ public sealed class UserTypeExtensions
 ─────────────────────────────────────────────────
 ```
 
-
 ---
 
 ### 7.6 DataLoader Registration
@@ -6754,6 +6785,7 @@ var graphqlBuilder = builder.Services
 ```
 
 ✅ **Correct Order**:
+
 ```csharp
 .RegisterDbContextFactory<AuthDbContext>() // Register factory first
 .AddDataLoader<FamilyBatchDataLoader>() // Then DataLoaders
@@ -6761,6 +6793,7 @@ var graphqlBuilder = builder.Services
 
 **Why**: DataLoaders need `IDbContextFactory<T>` injected via constructor. If the factory isn't registered first, DI resolution fails.
 ─────────────────────────────────────────────────
+
 ```
 
 ---
@@ -6862,12 +6895,15 @@ return result;
 **Problem**: Throws `ArgumentNullException` when dictionary contains null values.
 
 ✅ **Right**:
+
 ```csharp
 return await dbContext.Families
     .Where(f => keys.Contains(f.Id))
     .ToDictionaryAsync(f => f.Id); // Only found keys
 ```
+
 ─────────────────────────────────────────────────
+
 ```
 
 #### Optimizing Queries with Projections
@@ -7037,12 +7073,14 @@ public sealed class FamilyDataLoaderIntegrationTests : IClassFixture<TestApplica
 #### Pitfall 1: Forgetting to Register IDbContextFactory
 
 **Error:**
+
 ```
 InvalidOperationException: Unable to resolve service for type
 'Microsoft.EntityFrameworkCore.IDbContextFactory`1[FamilyHub.Modules.Auth.Persistence.AuthDbContext]'
 ```
 
 **Solution:**
+
 ```csharp
 // In Program.cs GraphQL configuration
 .RegisterDbContextFactory<AuthDbContext>() // ← Add this before DataLoaders
@@ -7051,6 +7089,7 @@ InvalidOperationException: Unable to resolve service for type
 #### Pitfall 2: Using Scoped DbContext Instead of Factory
 
 **Problem:**
+
 ```csharp
 public sealed class FamilyBatchDataLoader : BatchDataLoader<FamilyId, FamilyAggregate>
 {
@@ -7066,6 +7105,7 @@ public sealed class FamilyBatchDataLoader : BatchDataLoader<FamilyId, FamilyAggr
 **Why It Fails**: Scoped DbContext may already be in use by the main resolver. DataLoaders need independent DbContext instances.
 
 **Solution:**
+
 ```csharp
 public sealed class FamilyBatchDataLoader : BatchDataLoader<FamilyId, FamilyAggregate>
 {
@@ -7089,6 +7129,7 @@ public sealed class FamilyBatchDataLoader : BatchDataLoader<FamilyId, FamilyAggr
 **Problem**: Query with 10,000 users → DataLoader batches 10,000 family IDs → SQL query with `WHERE id IN (10,000 items)` → Database timeout or poor performance.
 
 **Solution**: Configure `MaxBatchSize`:
+
 ```csharp
 private static readonly DataLoaderOptions DefaultOptions = new()
 {
@@ -7101,6 +7142,7 @@ private static readonly DataLoaderOptions DefaultOptions = new()
 #### Pitfall 4: Not Handling Null Parent Values
 
 **Problem:**
+
 ```csharp
 public async Task<FamilyAggregate?> GetFamily(
     [Parent] UserType user,
@@ -7115,6 +7157,7 @@ public async Task<FamilyAggregate?> GetFamily(
 **Error**: `ArgumentNullException` when user has no family.
 
 **Solution:**
+
 ```csharp
 public async Task<FamilyAggregate?> GetFamily(
     [Parent] UserType user,
@@ -7127,7 +7170,6 @@ public async Task<FamilyAggregate?> GetFamily(
     return await familyDataLoader.LoadAsync(user.FamilyId, cancellationToken);
 }
 ```
-
 
 ---
 
@@ -7149,6 +7191,7 @@ public async Task<FamilyAggregate?> GetFamily(
 #### Benchmark: 100 Users with Families
 
 **Test Setup:**
+
 - 100 users across 10 families (10 users per family)
 - GraphQL query: `users { id, email, family { id, name } }`
 - PostgreSQL on localhost
@@ -7173,6 +7216,7 @@ dbContext.Users.Include(u => u.Family).ToList(); // 1 query, fast
 ```
 
 **But DataLoaders win for complex scenarios:**
+
 1. **Multiple resolvers**: Different resolvers loading same entity (cached)
 2. **Conditional loading**: Only load data if GraphQL query requests it
 3. **Cross-module boundaries**: Can't use `.Include()` across DbContexts
@@ -7180,6 +7224,7 @@ dbContext.Users.Include(u => u.Family).ToList(); // 1 query, fast
 
 **Recommendation**: Use eager loading for simple queries, DataLoaders for complex GraphQL schemas with nested resolvers.
 ─────────────────────────────────────────────────
+
 ```
 
 ---
@@ -7209,6 +7254,7 @@ query {
 ```
 
 **Without DataLoaders (N+1 Explosion):**
+
 ```
 1 query: Fetch all users
 100 queries: Fetch User domain entities (for FamilyId)
@@ -7220,6 +7266,7 @@ Total: 501 queries 🔴
 ```
 
 **With DataLoaders (Cached):**
+
 ```
 1 query: Fetch all users
 1 query: Fetch families (batched, 10 unique families)
@@ -7239,6 +7286,7 @@ await familyDataLoader.LoadAsync(family1); // Return from cache ✅
 ```
 
 **DataLoader Request Cache:**
+
 - Cache is scoped to current GraphQL request
 - Cleared after request completes
 - Automatic deduplication of keys
@@ -7296,7 +7344,6 @@ await familyDataLoader.LoadAsync(family1); // Return from cache ✅
 - **Section 8: Module Communication** - Domain events, integration events, Outbox pattern, RabbitMQ publisher, and event-driven architecture.
 
 📖 **Next Section:** [Section 8: Module Communication](#8-module-communication) - Events, Outbox pattern, and RabbitMQ for cross-module interactions.
-
 
 ---
 
@@ -7539,7 +7586,6 @@ public sealed partial class CreateFamilyCommandHandler(
 Migration impact: Change service call to event publication. Add compensation logic for failures. See Section 13.
 ─────────────────────────────────────────────────
 ```
-
 
 ---
 
@@ -7811,7 +7857,6 @@ The **Outbox pattern** ensures domain events are reliably published to RabbitMQ,
 Trade-off: Slight delay (5 seconds max), but guaranteed delivery. Perfect for event-driven architectures.
 ─────────────────────────────────────────────────
 ```
-
 
 #### OutboxEvent Entity
 
@@ -8151,6 +8196,7 @@ In AuthModuleServiceRegistration.cs:
 ❌ **Wrong Order**: Outbox first → Timestamps not set yet
 ✅ **Right Order**: Timestamps first → Outbox last (captures final state)
 ─────────────────────────────────────────────────
+
 ```
 
 
@@ -8405,6 +8451,7 @@ public sealed partial class StubRabbitMqPublisher(ILogger<StubRabbitMqPublisher>
 ```
 
 **Log Output Example:**
+
 ```
 [INFO] STUB: Published event to family-hub.events/FamilyHub.Modules.Family.Domain.Events.FamilyCreatedDomainEvent:
 {
@@ -8469,7 +8516,6 @@ public sealed class RabbitMqPublisher : IRabbitMqPublisher, IDisposable
 }
 ```
 
-
 ---
 
 ### 8.6 Complete Event Flow
@@ -8515,17 +8561,20 @@ sequenceDiagram
 #### Code Flow Summary
 
 **Step 1: Aggregate Raises Event**
+
 ```csharp
 var family = Family.Create(name, ownerId);
 // Internally: AddDomainEvent(new FamilyCreatedDomainEvent(...))
 ```
 
 **Step 2: Handler Saves Changes**
+
 ```csharp
 await unitOfWork.SaveChangesAsync(cancellationToken);
 ```
 
 **Step 3: Interceptor Converts to Outbox** (automatic, during SaveChanges)
+
 ```csharp
 // DomainEventOutboxInterceptor runs BEFORE commit
 // 1. Collects domain events from aggregates
@@ -8535,12 +8584,14 @@ await unitOfWork.SaveChangesAsync(cancellationToken);
 ```
 
 **Step 4: Transaction Commits** (atomic)
+
 ```
 ✓ Family inserted
 ✓ OutboxEvent inserted
 ```
 
 **Step 5: Background Publisher Polls** (every 5 seconds)
+
 ```csharp
 var pendingEvents = await repository.GetPendingEventsAsync(100, cancellationToken);
 foreach (var outboxEvent in pendingEvents)
@@ -8552,6 +8603,7 @@ await unitOfWork.SaveChangesAsync(cancellationToken);
 ```
 
 **Step 6: RabbitMQ Distributes** (fan-out to subscribers)
+
 ```
 Exchange: family-hub.events
 Routing Key: FamilyHub.Modules.Family.Domain.Events.FamilyCreatedDomainEvent
@@ -8705,6 +8757,7 @@ public async Task Consume(ConsumeContext<FamilyCreatedIntegrationEvent> context)
 ```
 
 **Processed Events Table:**
+
 ```sql
 CREATE TABLE processed_events (
     event_id UUID PRIMARY KEY,
@@ -8759,7 +8812,6 @@ CREATE INDEX idx_processed_events_event_id ON processed_events(event_id);
 
 📖 **Next Section:** [Section 9: Background Jobs with Quartz.NET](#9-background-jobs-with-quartznet) - Scheduling, retries, and job management patterns.
 
-
 ---
 
 ## 9. Background Jobs with Quartz.NET
@@ -8773,7 +8825,7 @@ CREATE INDEX idx_processed_events_event_id ON processed_events(event_id);
 | Concept | Description | Example |
 |---------|-------------|---------|
 | **Job** | Unit of work to execute | `ExpiredInvitationCleanupJob` |
-| **Trigger** | Defines when job runs | Cron: "0 0 3 * * ?" (daily 3 AM) |
+| **Trigger** | Defines when job runs | Cron: "0 0 3 ** ?" (daily 3 AM) |
 | **JobKey** | Unique identifier for job | `"ExpiredInvitationCleanupJob"` |
 | **Scheduler** | Manages jobs and triggers | Quartz scheduler instance |
 | **JobDetail** | Job configuration and metadata | Job type, data map, durability |
@@ -8998,6 +9050,7 @@ public ExpiredInvitationCleanupJob(
 ```
 
 ✅ **Right** (New scope per execution):
+
 ```csharp
 public ExpiredInvitationCleanupJob(IServiceProvider serviceProvider)
 {
@@ -9008,6 +9061,7 @@ public ExpiredInvitationCleanupJob(IServiceProvider serviceProvider)
 
 Pattern ensures fresh DbContext per job execution, preventing stale data and connection leaks.
 ─────────────────────────────────────────────────
+
 ```
 
 
@@ -9021,6 +9075,7 @@ Quartz.NET uses **cron expressions** for complex scheduling. Family Hub's cleanu
 
 **Cron Expression Format:**
 ```
+
 ┌─────────── second (0-59)
 │ ┌─────────── minute (0-59)
 │ │ ┌─────────── hour (0-23)
@@ -9029,6 +9084,7 @@ Quartz.NET uses **cron expressions** for complex scheduling. Family Hub's cleanu
 │ │ │ │ │ ┌─────────── day of week (0-7 or SUN-SAT)
 │ │ │ │ │ │
 * * * * * *
+
 ```
 
 **Common Patterns:**
@@ -9073,6 +9129,7 @@ Quartz.NET requires `?` (no specific value) for either day-of-month OR day-of-we
 ```
 
 ✅ **Right** (explicit):
+
 ```csharp
 "0 0 3 ? * MON"  // Day-of-month = ? (ignore), day-of-week = MON
 "0 0 3 1 * ?"    // Day-of-month = 1 (first day), day-of-week = ? (ignore)
@@ -9080,6 +9137,7 @@ Quartz.NET requires `?` (no specific value) for either day-of-month OR day-of-we
 
 Use `?` to explicitly ignore one of the day fields.
 ─────────────────────────────────────────────────
+
 ```
 
 #### SimpleSchedule Pattern
@@ -9324,6 +9382,7 @@ TimeSpan.FromSeconds(Math.Pow(2, attempt) + Random.Shared.Next(0, 1000) / 1000.0
 
 Prevents "thundering herd" when multiple jobs retry simultaneously.
 ─────────────────────────────────────────────────
+
 ```
 
 
@@ -9345,6 +9404,7 @@ static partial void LogJobFailed(Exception ex);
 ```
 
 **Structured Logging Output:**
+
 ```json
 {
   "timestamp": "2026-01-09T03:00:00Z",
@@ -9699,7 +9759,6 @@ public sealed class QuartzJobIntegrationTests : IClassFixture<TestApplicationFac
 - **Section 10: Architecture Tests with NetArchTest** - Production-ready test suite enforcing module boundaries, Clean Architecture layers, and DDD patterns.
 
 📖 **Next Section:** [Section 10: Architecture Tests with NetArchTest](#10-architecture-tests-with-netarchtest) - Copy-paste ready tests for enforcing architectural rules.
-
 
 ---
 
@@ -11188,7 +11247,6 @@ provides excellent ROI for architecture enforcement.
 
 📖 **Next Section:** [Section 11: E2E Testing with Playwright](#11-e2e-testing-with-playwright) - API-first testing for event chains and workflows.
 
-
 ---
 
 ## 11. E2E Testing with Playwright
@@ -12410,7 +12468,6 @@ Family Hub chose Playwright over Cypress for:
 
 📖 **Next Section:** [Section 12: Performance Optimization](#12-performance-optimization) - Caching, pooling, and monitoring strategies.
 
-
 ---
 
 ## 12. Performance Optimization
@@ -13272,6 +13329,7 @@ k6 run load-test.js
 | **IMemoryCache** | 5ms (DB) | 0.01ms (cache) | 500x faster |
 
 **Combined Impact** (all optimizations):
+
 - Simple query (GetFamily): **5ms → 0.5ms** (10x faster)
 - Complex query (GetFamilyWithMembers): **250ms → 15ms** (16.7x faster)
 - Throughput: **50 req/s → 500 req/s** (10x higher)
@@ -13295,7 +13353,6 @@ then apply targeted optimizations. Premature optimization wastes time.
 ```
 
 📖 **Next Section:** [Section 13: Migration Guide Phase 3 → Phase 5+](#13-migration-guide-phase-3--phase-5) - DbContext extraction and module independence.
-
 
 ---
 
@@ -14199,7 +14256,6 @@ extraction in Phase 7+ via Strangler Fig pattern.
 ```
 
 📖 **Next Section:** [Section 14: Complete Example - Family CRUD](#14-complete-example-family-crud) - End-to-end implementation with all layers and tests.
-
 
 ---
 
@@ -15625,4 +15681,3 @@ This guide is a living document. For updates, see [Family Hub GitHub Repository]
 **Sections:** 14
 **Code Examples:** 150+
 **Production-Ready:** ✅
-
