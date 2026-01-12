@@ -7,10 +7,10 @@ global using FamilyHub.Modules.Family.Domain.ValueObjects;
 global using Vogen;
 // Family Domain Types (from Family module)
 // Using type aliases to avoid namespace conflicts with FamilyHub.Modules.Family namespace
-// PHASE 5 STATE: Auth module still references Family domain for:
+// ANTI-CORRUPTION LAYER STATE: Auth module accesses Family module through:
+// - IFamilyService (Application Abstractions) for cross-module queries (ACL-compliant)
+// - IFamilyMemberInvitationRepository for invitation management (owned by Auth domain)
 // - GraphQL type extensions (FamilyTypeExtensions, UserTypeExtensions)
-// - Application commands/queries that query Family data (AcceptInvitation, GetPendingInvitations)
-// - Repository interfaces (IFamilyRepository, IFamilyMemberInvitationRepository) for cross-module queries
-// Repository implementations are in Family module; Auth injects them via DI
+// Note: Direct IFamilyRepository usage has been removed to enforce ACL boundaries
 global using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 global using FamilyMemberInvitationAggregate = FamilyHub.Modules.Family.Domain.Aggregates.FamilyMemberInvitation;

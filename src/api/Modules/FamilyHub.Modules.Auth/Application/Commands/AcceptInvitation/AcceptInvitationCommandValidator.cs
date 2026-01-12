@@ -2,6 +2,7 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Application.Abstractions;
 using FluentValidation;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
@@ -16,7 +17,7 @@ public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptI
 {
     public AcceptInvitationCommandValidator(
         IFamilyMemberInvitationRepository invitationRepository,
-        IFamilyRepository familyRepository,
+        IFamilyService familyService,
         IUserContext userContext,
         TimeProvider timeProvider,
         IValidationCache validationCache)
@@ -53,9 +54,9 @@ public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptI
                     return;
                 }
 
-                // 5. Family exists check
-                var family = await familyRepository.GetByIdAsync(invitation.FamilyId, cancellationToken);
-                if (family == null)
+                // 5. Family exists check (via Anti-Corruption Layer service)
+                var familyDto = await familyService.GetFamilyByIdAsync(invitation.FamilyId, cancellationToken);
+                if (familyDto == null)
                 {
                     context.AddFailure("Family not found.");
                     return;
@@ -63,7 +64,7 @@ public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptI
 
                 // Cache entities for handler (eliminates duplicate database queries)
                 validationCache.Set(CacheKeyBuilder.FamilyMemberInvitation(token.Value), invitation);
-                validationCache.Set(CacheKeyBuilder.Family(invitation.FamilyId.Value), family);
+                validationCache.Set(CacheKeyBuilder.Family(invitation.FamilyId.Value), familyDto);
             });
     }
 }

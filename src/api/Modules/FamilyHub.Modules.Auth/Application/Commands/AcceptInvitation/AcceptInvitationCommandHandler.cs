@@ -1,7 +1,6 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Services;
-using FamilyHub.Modules.Family.Domain.Aggregates;
-using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
@@ -45,8 +44,8 @@ public sealed partial class AcceptInvitationCommandHandler(
         // 3. Accept invitation (validator checked all prerequisites)
         invitation.Accept(currentUserId);
 
-        // 4. Retrieve family from cache (validator already fetched and validated)
-        var family = validationCache.Get<FamilyAggregate>(
+        // 4. Retrieve family DTO from cache (validator already fetched and validated via IFamilyService)
+        var family = validationCache.Get<FamilyDto>(
             CacheKeyBuilder.Family(invitation.FamilyId.Value))
             ?? throw new InvalidOperationException("Family not found in cache. Validator should have cached it.");
 
