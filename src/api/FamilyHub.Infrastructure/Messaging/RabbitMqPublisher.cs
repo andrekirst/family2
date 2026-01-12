@@ -29,7 +29,7 @@ namespace FamilyHub.Infrastructure.Messaging;
 /// Default: 3 retries with 1s base delay.
 /// </para>
 /// </remarks>
-public sealed partial class RabbitMqPublisher : IRabbitMqPublisher, IAsyncDisposable
+public sealed partial class RabbitMqPublisher : IMessageBrokerPublisher, IAsyncDisposable
 {
     private readonly ILogger<RabbitMqPublisher> _logger;
     private readonly RabbitMqSettings _settings;

@@ -20,7 +20,7 @@ public static class RabbitMqServiceExtensions
     /// <para>Registers the following services:</para>
     /// <list type="bullet">
     /// <item><see cref="RabbitMqSettings"/> - Configuration options from "RabbitMQ" section</item>
-    /// <item><see cref="IRabbitMqPublisher"/> - Singleton publisher (manages connection pooling)</item>
+    /// <item><see cref="IMessageBrokerPublisher"/> - Singleton publisher (manages connection pooling)</item>
     /// <item><see cref="RabbitMqHealthCheck"/> - Singleton health check for RabbitMQ connectivity</item>
     /// </list>
     /// <para>
@@ -46,7 +46,7 @@ public static class RabbitMqServiceExtensions
             configuration.GetSection(RabbitMqSettings.SectionName));
 
         // Register publisher as singleton (manages its own connection lifecycle)
-        services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
+        services.AddSingleton<IMessageBrokerPublisher, RabbitMqPublisher>();
 
         // Register health check as singleton
         services.AddSingleton<RabbitMqHealthCheck>();

@@ -66,7 +66,7 @@ public sealed partial class OutboxEventPublisher(
         // Create a scope for scoped dependencies
         using var scope = serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IOutboxEventRepository>();
-        var publisher = scope.ServiceProvider.GetRequiredService<IRabbitMqPublisher>();
+        var publisher = scope.ServiceProvider.GetRequiredService<IMessageBrokerPublisher>();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         // 1. Fetch pending events

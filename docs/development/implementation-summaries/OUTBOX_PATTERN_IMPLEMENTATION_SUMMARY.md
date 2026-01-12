@@ -165,7 +165,7 @@ Exponential backoff with max delay capped at 15 minutes. Retries **forever** (no
 
 ### 6. RabbitMQ Publisher (Stub)
 
-**Interface:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Messaging/IRabbitMqPublisher.cs`
+**Interface:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Messaging/IMessageBrokerPublisher.cs`
 **Stub Implementation:** `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Messaging/StubRabbitMqPublisher.cs`
 
 **Purpose:** Phase 2 stub that logs events instead of publishing. Replace with real RabbitMQ client in Phase 5+.
@@ -203,7 +203,7 @@ services.AddPooledDbContextFactory<AuthDbContext>((sp, options) =>
 services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
 
 // RabbitMQ Publisher (stub for Phase 2)
-services.AddSingleton<IRabbitMqPublisher, StubRabbitMqPublisher>();
+services.AddSingleton<IMessageBrokerPublisher, StubRabbitMqPublisher>();
 
 // Background worker
 services.AddHostedService<OutboxEventPublisher>();
@@ -368,7 +368,7 @@ services.AddHostedService<OutboxEventPublisher>();
 
 - `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Persistence/DomainEventOutboxInterceptor.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/BackgroundServices/OutboxEventPublisher.cs`
-- `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Messaging/IRabbitMqPublisher.cs`
+- `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Messaging/IMessageBrokerPublisher.cs`
 - `/src/api/Modules/FamilyHub.Modules.Auth/Infrastructure/Messaging/StubRabbitMqPublisher.cs`
 
 ### Configuration

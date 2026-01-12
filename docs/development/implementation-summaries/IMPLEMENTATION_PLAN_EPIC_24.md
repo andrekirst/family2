@@ -2530,7 +2530,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       {
           using var scope = _serviceProvider.CreateScope();
           var repository = scope.ServiceProvider.GetRequiredService<IOutboxEventRepository>();
-          var rabbitMqPublisher = scope.ServiceProvider.GetRequiredService<IRabbitMqPublisher>();
+          var rabbitMqPublisher = scope.ServiceProvider.GetRequiredService<IMessageBrokerPublisher>();
 
           // Fetch pending events (batch of 100)
           var pendingEvents = await repository.GetPendingEventsAsync(100, cancellationToken);
@@ -2562,7 +2562,7 @@ Implement command handlers, GraphQL mutations/queries, outbox pattern, and backg
       }
 
       private async Task PublishWithRetryAsync(
-          IRabbitMqPublisher publisher,
+          IMessageBrokerPublisher publisher,
           OutboxEvent outboxEvent,
           CancellationToken cancellationToken)
       {

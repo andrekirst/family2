@@ -260,7 +260,7 @@ public sealed class Family : AggregateRoot<FamilyId>
 public sealed class FamilyCreatedEventHandler
     : INotificationHandler<FamilyCreatedEvent>
 {
-    private readonly IRabbitMqPublisher _publisher;
+    private readonly IMessageBrokerPublisher _publisher;
 
     public async Task Handle(
         FamilyCreatedEvent notification,

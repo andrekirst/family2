@@ -1645,7 +1645,7 @@ namespace FamilyHub.Modules.Auth.Infrastructure.Messaging;
 /// RabbitMQ publisher for integration events.
 /// Currently a placeholder implementation (Phase 2 activation pending).
 /// </summary>
-public sealed class RabbitMqPublisher : IRabbitMqPublisher
+public sealed class RabbitMqPublisher : IMessageBrokerPublisher
 {
     private readonly IConnection? _connection;
     private readonly ILogger<RabbitMqPublisher> _logger;
@@ -3367,7 +3367,7 @@ public static class AuthModuleServiceRegistration
         services.AddValidatorsFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
 
         // 17. RabbitMQ Publisher (Singleton) - Event publishing (stub in Phase 3)
-        services.AddSingleton<IRabbitMqPublisher, StubRabbitMqPublisher>();
+        services.AddSingleton<IMessageBrokerPublisher, StubRabbitMqPublisher>();
 
         // 18. Background Services (Hosted Service) - Long-running tasks
         services.AddHostedService<OutboxEventPublisher>();
@@ -3607,7 +3607,7 @@ services.AddSingleton(TimeProvider.System);
 services.AddSingleton<DomainEventOutboxInterceptor>();
 
 // RabbitMQ Publisher - Thread-safe, stateless (connection pooling internal)
-services.AddSingleton<IRabbitMqPublisher, StubRabbitMqPublisher>();
+services.AddSingleton<IMessageBrokerPublisher, StubRabbitMqPublisher>();
 
 // HTTP Context Accessor - Thread-safe (uses AsyncLocal<T>)
 services.AddHttpContextAccessor();
@@ -8272,7 +8272,7 @@ public sealed partial class OutboxEventPublisher(
         // Create a scope for scoped dependencies
         using var scope = serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IOutboxEventRepository>();
-        var publisher = scope.ServiceProvider.GetRequiredService<IRabbitMqPublisher>();
+        var publisher = scope.ServiceProvider.GetRequiredService<IMessageBrokerPublisher>();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         // 1. Fetch pending events
@@ -8397,16 +8397,16 @@ public sealed partial class OutboxEventPublisher(
 
 Family Hub includes a **stub RabbitMQ publisher** for Phase 2 development. In Phase 5+, this will be replaced with actual RabbitMQ integration.
 
-#### IRabbitMqPublisher Interface
+#### IMessageBrokerPublisher Interface
 
 ```csharp
-// File: FamilyHub.Modules.Auth/Infrastructure/Messaging/IRabbitMqPublisher.cs
+// File: FamilyHub.Modules.Auth/Infrastructure/Messaging/IMessageBrokerPublisher.cs
 namespace FamilyHub.Modules.Auth.Infrastructure.Messaging;
 
 /// <summary>
 /// Interface for publishing integration events to RabbitMQ.
 /// </summary>
-public interface IRabbitMqPublisher
+public interface IMessageBrokerPublisher
 {
     /// <summary>
     /// Publishes a message to RabbitMQ.
@@ -8436,7 +8436,7 @@ namespace FamilyHub.Modules.Auth.Infrastructure.Messaging;
 /// without requiring real RabbitMQ infrastructure in Phase 2.
 /// Replace with actual RabbitMQ implementation in Phase 5+.
 /// </remarks>
-public sealed partial class StubRabbitMqPublisher(ILogger<StubRabbitMqPublisher> logger) : IRabbitMqPublisher
+public sealed partial class StubRabbitMqPublisher(ILogger<StubRabbitMqPublisher> logger) : IMessageBrokerPublisher
 {
     public Task PublishAsync(string exchange, string routingKey, string message, CancellationToken cancellationToken = default)
     {
@@ -8471,7 +8471,7 @@ public sealed partial class StubRabbitMqPublisher(ILogger<StubRabbitMqPublisher>
 using RabbitMQ.Client;
 using System.Text;
 
-public sealed class RabbitMqPublisher : IRabbitMqPublisher, IDisposable
+public sealed class RabbitMqPublisher : IMessageBrokerPublisher, IDisposable
 {
     private readonly IConnection _connection;
     private readonly IModel _channel;
