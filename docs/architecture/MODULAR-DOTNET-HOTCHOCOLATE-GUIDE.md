@@ -6433,16 +6433,39 @@ familyDataLoader.LoadAsync(familyId2) → returns family2
 
 **Result: 201 queries → 2 queries** (1 for users, 1 for families) 🟢
 
+#### Family Hub Implementation Files
+
+The DataLoader implementations shown above are based on actual Family Hub code:
+
+**BatchDataLoader Implementations:**
+
+| DataLoader | File Path | Purpose |
+|------------|-----------|---------|
+| `FamilyBatchDataLoader` | `src/api/Modules/FamilyHub.Modules.Family/Presentation/GraphQL/DataLoaders/FamilyBatchDataLoader.cs` | Load families by FamilyId (1:1) |
+| `UserBatchDataLoader` | `src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/DataLoaders/UserBatchDataLoader.cs` | Load users by UserId (1:1) |
+
+**GroupedDataLoader Implementations:**
+
+| DataLoader | File Path | Purpose |
+|------------|-----------|---------|
+| `UsersByFamilyGroupedDataLoader` | `src/api/Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/DataLoaders/UsersByFamilyGroupedDataLoader.cs` | Load family members (1:N) |
+| `InvitationsByFamilyGroupedDataLoader` | `src/api/Modules/FamilyHub.Modules.Family/Presentation/GraphQL/DataLoaders/InvitationsByFamilyGroupedDataLoader.cs` | Load pending invitations (1:N) |
+
+**Test Files:**
+
+- **Unit Tests:** `src/api/tests/FamilyHub.Tests.Unit/Family/Presentation/GraphQL/DataLoaders/FamilyBatchDataLoaderTests.cs`
+- **Integration Tests:** `src/api/tests/FamilyHub.Tests.Integration/DataLoaders/DataLoaderQueryCountTests.cs` (validates N+1 prevention with real PostgreSQL)
+
 ---
 
 ### 7.4 GroupedDataLoader Implementation
 
 **GroupedDataLoader** loads entities grouped by a foreign key. Perfect for one-to-many relationships (e.g., Family → Members).
 
-#### UsersByFamilyDataLoader - Load Users by FamilyId
+#### UsersByFamilyGroupedDataLoader - Load Users by FamilyId
 
 ```csharp
-// File: FamilyHub.Modules.Auth/Presentation/GraphQL/DataLoaders/UsersByFamilyDataLoader.cs
+// File: FamilyHub.Modules.Auth/Presentation/GraphQL/DataLoaders/UsersByFamilyGroupedDataLoader.cs
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Persistence;
@@ -6455,11 +6478,11 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders;
 /// Batches multiple user lookups by FamilyId into a single database query.
 /// Returns users grouped by their family.
 /// </summary>
-public sealed class UsersByFamilyDataLoader : GroupedDataLoader<FamilyId, User>
+public sealed class UsersByFamilyGroupedDataLoader : GroupedDataLoader<FamilyId, User>
 {
     private readonly IDbContextFactory<AuthDbContext> _dbContextFactory;
 
-    public UsersByFamilyDataLoader(
+    public UsersByFamilyGroupedDataLoader(
         IDbContextFactory<AuthDbContext> dbContextFactory,
         IBatchScheduler batchScheduler,
         DataLoaderOptions? options = null)
@@ -6494,16 +6517,16 @@ public sealed class FamilyTypeExtensions
 {
     /// <summary>
     /// Resolves all members belonging to a family.
-    /// Uses UsersByFamilyDataLoader to batch member lookups.
+    /// Uses UsersByFamilyGroupedDataLoader to batch member lookups.
     /// </summary>
     [GraphQLDescription("All members belonging to this family")]
     public async Task<IReadOnlyList<User>> GetMembers(
         [Parent] FamilyAggregate family,
-        UsersByFamilyDataLoader usersByFamilyDataLoader, // ← Injected DataLoader
+        UsersByFamilyGroupedDataLoader usersByFamilyGroupedDataLoader, // ← Injected DataLoader
         CancellationToken cancellationToken)
     {
         // Load users for this family (batched!)
-        var members = await usersByFamilyDataLoader.LoadAsync(family.Id, cancellationToken);
+        var members = await usersByFamilyGroupedDataLoader.LoadAsync(family.Id, cancellationToken);
         return members.ToList().AsReadOnly();
     }
 
@@ -9867,6 +9890,48 @@ Package references won't work because NetArchTest needs access to the compiled
 ─────────────────────────────────────────────────────────────────────────────────
 ```
 
+#### 10.2.3. Family Hub Implementation Reference
+
+Family Hub has a comprehensive architecture test suite that validates all patterns described in this section:
+
+**Test Files:**
+
+| Test Class | File Path | Validates |
+|------------|-----------|-----------|
+| `CleanArchitectureTests` | `src/api/tests/FamilyHub.Tests.Architecture/CleanArchitectureTests.cs` | Layer dependencies (Domain → Application → Persistence → Presentation) |
+| `ModuleBoundaryTests` | `src/api/tests/FamilyHub.Tests.Architecture/ModuleBoundaryTests.cs` | Auth ↔ Family module isolation |
+| `DddPatternTests` | `src/api/tests/FamilyHub.Tests.Architecture/DddPatternTests.cs` | Aggregate roots inherit `AggregateRoot<TId>` |
+| `CqrsPatternTests` | `src/api/tests/FamilyHub.Tests.Architecture/CqrsPatternTests.cs` | Commands/Queries implement `IRequest` |
+| `NamingConventionTests` | `src/api/tests/FamilyHub.Tests.Architecture/NamingConventionTests.cs` | Suffix conventions (Command, Query, Handler) |
+
+**ExceptionRegistry Pattern:**
+
+Family Hub uses an `ExceptionRegistry` pattern to track known architectural violations during phased migration:
+
+```csharp
+// File: src/api/tests/FamilyHub.Tests.Architecture/Helpers/ExceptionRegistry.cs
+public sealed record ExceptionReason(
+    string Phase,           // "Phase 3", "Phase 5"
+    string Reason,          // Why this violation exists
+    string Ticket,          // GitHub issue tracking resolution
+    string PlannedRemoval); // When to remove exception
+```
+
+This pattern enables:
+
+- **Documented Technical Debt**: Each violation has metadata explaining why it exists
+- **Phase Tracking**: Exceptions are tagged with migration phase for cleanup
+- **CI/CD Enforcement**: New violations fail tests; documented ones pass with warnings
+
+**Negative Test Fixtures:**
+
+Family Hub includes intentional violation fixtures to validate test correctness:
+
+- `src/api/tests/FamilyHub.Tests.Architecture.Fixtures/Violations/CleanArchitecture/`
+- `src/api/tests/FamilyHub.Tests.Architecture.Fixtures/Violations/ModuleBoundary/`
+
+See [ADR-012: Architecture Testing Strategy](ADR-012-ARCHITECTURE-TESTING-STRATEGY.md) for rationale.
+
 ---
 
 ### 10.3. Module Boundary Tests
@@ -9961,11 +10026,23 @@ public class ModuleBoundaryTests
 
 ```
 ★ Insight ─────────────────────────────────────────────────────────────────────
-The Auth.Persistence layer implements Family.Domain.Repositories interfaces 
-(IFamilyRepository, IFamilyMemberInvitationRepository) because both modules 
-currently share AuthDbContext (Phase 3 pragmatism). This is explicitly allowed 
-via the `.DoNotResideInNamespace()` exception. In Phase 5+, each module will 
+The Auth.Persistence layer implements Family.Domain.Repositories interfaces
+(IFamilyRepository, IFamilyMemberInvitationRepository) because both modules
+currently share AuthDbContext (Phase 3 pragmatism). This is explicitly allowed
+via the `.DoNotResideInNamespace()` exception. In Phase 5+, each module will
 have its own DbContext, and this exception will be removed.
+─────────────────────────────────────────────────────────────────────────────────
+```
+
+```
+📖 ADR ───────────────────────────────────────────────────────────────────────
+**Family Hub Implementation:** The module boundary tests shown above are based on
+the actual implementation at:
+
+`src/api/tests/FamilyHub.Tests.Architecture/ModuleBoundaryTests.cs`
+
+The implementation uses `ExceptionRegistry` to document 18 known Phase 3-5 violations
+with metadata tracking planned resolution. See ADR-012 for the exception tracking pattern.
 ─────────────────────────────────────────────────────────────────────────────────
 ```
 
@@ -13387,6 +13464,21 @@ extraction process used to separate Family bounded context from Auth module.
 - Complete module independence (no Auth dependency)
 
 **When to Migrate**: Phase 5+ (after MVP, before microservices extraction)
+─────────────────────────────────────────────────────────────────────────────────
+```
+
+```
+📖 ADR ───────────────────────────────────────────────────────────────────────
+**ADR-007: Family DbContext Separation Strategy** documents the implemented approach:
+
+- **One DbContext per Module**: `AuthDbContext` (auth schema) + `FamilyDbContext` (family schema)
+- **Cross-Module References**: ID references without FK constraints
+- **IUserLookupService**: Anti-corruption layer for cross-module queries
+- **Pooled DbContext Factories**: `IDbContextFactory<T>` for DataLoader performance
+
+This ADR was created during Phase 3 implementation and guides the migration steps below.
+
+See [ADR-007: Family DbContext Separation Strategy](ADR-007-FAMILY-DBCONTEXT-SEPARATION-STRATEGY.md)
 ─────────────────────────────────────────────────────────────────────────────────
 ```
 
