@@ -5,7 +5,6 @@ using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Infrastructure;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace FamilyHub.Tests.Integration.Family.Persistence;
 
@@ -256,6 +255,381 @@ public sealed class FamilyDbContextIntegrationTests : IAsyncLifetime
         // Assert
         family.CreatedAt.Should().BeOnOrAfter(beforeSave.AddSeconds(-1));
         family.CreatedAt.Should().BeOnOrBefore(DateTime.UtcNow.AddSeconds(1));
+    }
+
+    #endregion
+
+    #region Update Tests
+
+    [Fact]
+    public async Task UpdateFamily_ChangeName_PersistsNewValue()
+    {
+        // Arrange
+        var ownerId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("Original Name"),
+            ownerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act - Load and update
+        var loadedFamily = await _context.Families.FindAsync(family.Id);
+        loadedFamily!.UpdateName(FamilyName.From("Updated Name"));
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Assert
+        var verifyFamily = await _context.Families.FindAsync(family.Id);
+        verifyFamily.Should().NotBeNull();
+        verifyFamily!.Name.Should().Be(FamilyName.From("Updated Name"));
+    }
+
+    [Fact]
+    public async Task UpdateFamily_TransferOwnership_PersistsNewOwner()
+    {
+        // Arrange
+        var originalOwnerId = UserId.New();
+        var newOwnerId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("Ownership Transfer Test"),
+            originalOwnerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act
+        var loadedFamily = await _context.Families.FindAsync(family.Id);
+        loadedFamily!.TransferOwnership(newOwnerId);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Assert
+        var verifyFamily = await _context.Families.FindAsync(family.Id);
+        verifyFamily.Should().NotBeNull();
+        verifyFamily!.OwnerId.Should().Be(newOwnerId);
+    }
+
+    [Fact]
+    public async Task ConcurrentUpdates_DifferentFamilies_AllSucceed()
+    {
+        // Arrange - Create multiple families
+        var ownerId = UserId.New();
+        var families = Enumerable.Range(1, 5)
+            .Select(i => FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+                FamilyName.From($"Concurrent Update Family {i}"),
+                ownerId))
+            .ToList();
+
+        await _context.Families.AddRangeAsync(families);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act - Update all families concurrently
+        var updateTasks = families.Select(async (f, i) =>
+        {
+            var options = new DbContextOptionsBuilder<FamilyDbContext>()
+                .UseNpgsql(_fixture.ConnectionString)
+                .UseSnakeCaseNamingConvention()
+                .Options;
+
+            await using var localContext = new FamilyDbContext(options);
+            var family = await localContext.Families.FindAsync(f.Id);
+            family!.UpdateName(FamilyName.From($"Updated Concurrent Family {i}"));
+            await localContext.SaveChangesAsync();
+            return family.Id;
+        });
+
+        var updatedIds = await Task.WhenAll(updateTasks);
+
+        // Assert
+        updatedIds.Should().HaveCount(5);
+
+        foreach (var family in families)
+        {
+            var verifyFamily = await _context.Families.FindAsync(family.Id);
+            verifyFamily.Should().NotBeNull();
+            verifyFamily!.Name.Value.Should().StartWith("Updated Concurrent Family");
+        }
+    }
+
+    #endregion
+
+    #region Delete Tests
+
+    [Fact]
+    public async Task DeleteFamily_SoftDelete_SetsDeletedAt()
+    {
+        // Arrange
+        var ownerId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("Soft Delete Test Family"),
+            ownerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act
+        var loadedFamily = await _context.Families.FindAsync(family.Id);
+        loadedFamily!.Delete();
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Assert - Query with IgnoreQueryFilters to see deleted record
+        var deletedFamily = await _context.Families
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(f => f.Id == family.Id);
+
+        deletedFamily.Should().NotBeNull();
+        deletedFamily!.DeletedAt.Should().NotBeNull();
+        deletedFamily.DeletedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public async Task DeleteFamily_CanQueryWithIgnoreQueryFilters()
+    {
+        // Arrange
+        var ownerId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("IgnoreFilter Delete Test"),
+            ownerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+
+        family.Delete();
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act - Normal query should not find it
+        var normalQuery = await _context.Families.FindAsync(family.Id);
+
+        // Query with IgnoreQueryFilters should find it
+        var ignoredQuery = await _context.Families
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(f => f.Id == family.Id);
+
+        // Assert
+        normalQuery.Should().BeNull("soft deleted family should be filtered by default");
+        ignoredQuery.Should().NotBeNull("IgnoreQueryFilters should include soft deleted family");
+    }
+
+    #endregion
+
+    #region FamilyMemberInvitation Tests
+
+    [Fact]
+    public async Task CreateInvitation_WithForeignKey_PersistsCorrectly()
+    {
+        // Arrange
+        var ownerId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("Invitation FK Test Family"),
+            ownerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+
+        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+            family.Id,
+            Email.From($"invited-{Guid.NewGuid():N}@example.com"),
+            FamilyRole.Member,
+            ownerId,
+            "Welcome to the family!");
+
+        // Act
+        await _context.FamilyMemberInvitations.AddAsync(invitation);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Assert
+        var retrieved = await _context.FamilyMemberInvitations.FindAsync(invitation.Id);
+        retrieved.Should().NotBeNull();
+        retrieved!.FamilyId.Should().Be(family.Id);
+    }
+
+    [Fact]
+    public async Task GetInvitation_ByToken_ReturnsInvitation()
+    {
+        // Arrange
+        var ownerId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("Token Query Test Family"),
+            ownerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+
+        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+            family.Id,
+            Email.From($"token-test-{Guid.NewGuid():N}@example.com"),
+            FamilyRole.Member,
+            ownerId);
+
+        await _context.FamilyMemberInvitations.AddAsync(invitation);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act
+        var retrieved = await _context.FamilyMemberInvitations
+            .FirstOrDefaultAsync(i => i.Token == invitation.Token);
+
+        // Assert
+        retrieved.Should().NotBeNull();
+        retrieved!.Id.Should().Be(invitation.Id);
+    }
+
+    [Fact]
+    public async Task UpdateInvitation_AcceptStatus_UpdatesCorrectly()
+    {
+        // Arrange
+        var ownerId = UserId.New();
+        var acceptingUserId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("Accept Status Test Family"),
+            ownerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+
+        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+            family.Id,
+            Email.From($"accept-test-{Guid.NewGuid():N}@example.com"),
+            FamilyRole.Member,
+            ownerId);
+
+        await _context.FamilyMemberInvitations.AddAsync(invitation);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act
+        var loadedInvitation = await _context.FamilyMemberInvitations.FindAsync(invitation.Id);
+        loadedInvitation!.Accept(acceptingUserId);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Assert
+        var verifyInvitation = await _context.FamilyMemberInvitations.FindAsync(invitation.Id);
+        verifyInvitation.Should().NotBeNull();
+        verifyInvitation!.Status.Should().Be(InvitationStatus.Accepted);
+        verifyInvitation.AcceptedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task ExpiredInvitations_QueryByExpiresAt_Works()
+    {
+        // Arrange
+        var ownerId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("Expiration Query Test Family"),
+            ownerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+
+        // Create multiple invitations
+        var invitations = Enumerable.Range(1, 3)
+            .Select(i => FamilyMemberInvitation.CreateEmailInvitation(
+                family.Id,
+                Email.From($"expiry-test-{i}-{Guid.NewGuid():N}@example.com"),
+                FamilyRole.Member,
+                ownerId))
+            .ToList();
+
+        await _context.FamilyMemberInvitations.AddRangeAsync(invitations);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act - Query for invitations expiring in the future
+        var futureDate = DateTime.UtcNow.AddDays(7);
+        var pendingInvitations = await _context.FamilyMemberInvitations
+            .Where(i => i.FamilyId == family.Id)
+            .Where(i => i.ExpiresAt > DateTime.UtcNow)
+            .Where(i => i.ExpiresAt <= futureDate.AddDays(10))
+            .ToListAsync();
+
+        // Assert
+        pendingInvitations.Should().HaveCount(3);
+        pendingInvitations.Should().AllSatisfy(i => i.ExpiresAt.Should().BeAfter(DateTime.UtcNow));
+    }
+
+    [Fact]
+    public async Task InvitationVogenConverters_AllTypesPersistCorrectly()
+    {
+        // Arrange
+        var ownerId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("Vogen Invitation Test Family"),
+            ownerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+
+        var email = Email.From($"vogen-test-{Guid.NewGuid():N}@example.com");
+        var invitation = FamilyMemberInvitation.CreateEmailInvitation(
+            family.Id,
+            email,
+            FamilyRole.Member,
+            ownerId,
+            "Test message");
+
+        // Store original values for comparison
+        var originalToken = invitation.Token;
+        var originalDisplayCode = invitation.DisplayCode;
+
+        await _context.FamilyMemberInvitations.AddAsync(invitation);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Act
+        var retrieved = await _context.FamilyMemberInvitations.FindAsync(invitation.Id);
+
+        // Assert - All Vogen types should round-trip correctly
+        retrieved.Should().NotBeNull();
+        retrieved!.Email.Should().Be(email);
+        retrieved.Token.Should().Be(originalToken);
+        retrieved.DisplayCode.Should().Be(originalDisplayCode);
+        retrieved.FamilyId.Should().Be(family.Id);
+        retrieved.InvitedByUserId.Should().Be(ownerId);
+        retrieved.Role.Should().Be(FamilyRole.Member);
+    }
+
+    [Fact]
+    public async Task MultipleInvitations_SameFamily_PersistCorrectly()
+    {
+        // Arrange
+        var ownerId = UserId.New();
+        var family = FamilyHub.Modules.Family.Domain.Aggregates.Family.Create(
+            FamilyName.From("Multiple Invitations Test Family"),
+            ownerId);
+
+        await _context.Families.AddAsync(family);
+        await _context.SaveChangesAsync();
+
+        var invitations = Enumerable.Range(1, 5)
+            .Select(i => FamilyMemberInvitation.CreateEmailInvitation(
+                family.Id,
+                Email.From($"multi-invite-{i}-{Guid.NewGuid():N}@example.com"),
+                FamilyRole.Member,
+                ownerId))
+            .ToList();
+
+        // Act
+        await _context.FamilyMemberInvitations.AddRangeAsync(invitations);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        // Assert
+        var familyInvitations = await _context.FamilyMemberInvitations
+            .Where(i => i.FamilyId == family.Id)
+            .ToListAsync();
+
+        familyInvitations.Should().HaveCount(5);
+        familyInvitations.Select(i => i.Token).Distinct().Should().HaveCount(5,
+            "each invitation should have a unique token");
     }
 
     #endregion
