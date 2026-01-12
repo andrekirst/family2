@@ -137,9 +137,13 @@ try
         .AddTypeExtension<RolesQueries>();
 
     // Register DataLoaders for N+1 query prevention
+    // BatchDataLoaders: 1:1 mapping (e.g., UserId -> User)
+    // GroupedDataLoaders: 1:N mapping (e.g., FamilyId -> [User, User, ...])
     graphqlBuilder
         .AddDataLoader<FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders.UserBatchDataLoader>()
-        .AddDataLoader<FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders.FamilyBatchDataLoader>();
+        .AddDataLoader<FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders.UsersByFamilyGroupedDataLoader>()
+        .AddDataLoader<FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders.FamilyBatchDataLoader>()
+        .AddDataLoader<FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders.InvitationsByFamilyGroupedDataLoader>();
 
     // Future modules can be registered here:
     // graphqlBuilder.AddCalendarModuleGraphQLTypes();

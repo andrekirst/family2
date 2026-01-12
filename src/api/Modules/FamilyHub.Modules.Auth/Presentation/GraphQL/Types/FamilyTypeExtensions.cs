@@ -1,9 +1,9 @@
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
+using FamilyHub.Modules.Family.Domain.Aggregates;
+using FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders;
 using HotChocolate.Types;
-using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 
@@ -19,23 +19,21 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 public sealed class FamilyTypeExtensions
 {
     /// <summary>
-    /// Resolves all members belonging to a family.
+    /// Resolves all members belonging to a family using GroupedDataLoader for batching.
+    /// Batches multiple family member lookups into a single WHERE family_id IN (...) query.
     /// </summary>
     /// <param name="family">The parent family entity.</param>
-    /// <param name="dbContext">Auth database context service.</param>
+    /// <param name="dataLoader">Users by family grouped data loader for N+1 prevention.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of users belonging to the family.</returns>
     [GraphQLDescription("All members belonging to this family")]
-    public async Task<IReadOnlyList<User>> GetMembers(
+    public async Task<IEnumerable<User>> GetMembers(
         [Parent] FamilyAggregate family,
-        [Service] AuthDbContext dbContext,
+        UsersByFamilyGroupedDataLoader dataLoader,
         CancellationToken cancellationToken)
     {
-        var members = await dbContext.Users
-            .Where(u => u.FamilyId == family.Id)
-            .ToListAsync(cancellationToken);
-
-        return members.AsReadOnly();
+        var members = await dataLoader.LoadAsync(family.Id, cancellationToken);
+        return members ?? [];
     }
 
     /// <summary>
@@ -56,5 +54,43 @@ public sealed class FamilyTypeExtensions
         var owner = await userDataLoader.LoadAsync(family.OwnerId, cancellationToken);
 
         return owner == null ? null : UserMapper.AsGraphQLType(owner);
+    }
+
+    /// <summary>
+    /// Resolves all invitations for a family using GroupedDataLoader for batching.
+    /// Batches multiple family invitation lookups into a single WHERE family_id IN (...) query.
+    /// </summary>
+    /// <param name="family">The parent family entity.</param>
+    /// <param name="dataLoader">Invitations by family grouped data loader for N+1 prevention.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of invitations for the family.</returns>
+    [GraphQLDescription("All invitations for this family")]
+    public async Task<IEnumerable<PendingInvitationType>> GetInvitations(
+        [Parent] FamilyAggregate family,
+        InvitationsByFamilyGroupedDataLoader dataLoader,
+        CancellationToken cancellationToken)
+    {
+        var invitations = await dataLoader.LoadAsync(family.Id, cancellationToken);
+        return invitations?.Select(MapToPendingInvitationType) ?? [];
+    }
+
+    /// <summary>
+    /// Maps FamilyMemberInvitation domain entity to PendingInvitationType GraphQL type.
+    /// </summary>
+    private static PendingInvitationType MapToPendingInvitationType(FamilyMemberInvitation invitation)
+    {
+        return new PendingInvitationType
+        {
+            Id = invitation.Id.Value,
+            Email = invitation.Email.Value,
+            Role = invitation.Role.AsRoleType(),
+            Status = invitation.Status.AsStatusType(),
+            InvitedById = invitation.InvitedByUserId.Value,
+            // InvitedAt is calculated from ExpiresAt - 14 days (default invitation duration)
+            InvitedAt = invitation.ExpiresAt.AddDays(-14),
+            ExpiresAt = invitation.ExpiresAt,
+            Message = invitation.Message,
+            DisplayCode = invitation.DisplayCode.Value
+        };
     }
 }
