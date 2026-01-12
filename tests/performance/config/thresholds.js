@@ -83,3 +83,50 @@ export function withOperationThresholds(baseThresholds) {
     ...operationThresholds,
   };
 }
+
+/**
+ * DataLoader-specific thresholds for Family Hub
+ * Based on ADR-011 performance targets
+ *
+ * Expected improvements over N+1 queries:
+ * - Query count: 201 → ≤3 (67x reduction)
+ * - Latency: ~8.4s → ≤200ms (42x improvement)
+ */
+export const dataLoaderThresholds = {
+  // Overall HTTP request thresholds
+  http_req_duration: [
+    'p(50)<100', // 50% under 100ms
+    'p(95)<200', // 95% under 200ms (ADR-011 target)
+    'p(99)<500', // 99% under 500ms
+  ],
+  http_req_failed: ['rate<0.01'], // Less than 1% errors
+  checks: ['rate>0.99'], // 99% checks passing
+
+  // Query-specific thresholds
+  // Family with members (GroupedDataLoader - 1:N)
+  'http_req_duration{name:family_members}': ['p(95)<200'],
+
+  // Family with invitations (GroupedDataLoader - 1:N)
+  'http_req_duration{name:family_invitations}': ['p(95)<200'],
+
+  // Family with owner (BatchDataLoader - 1:1)
+  'http_req_duration{name:family_owner}': ['p(95)<150'],
+
+  // Nested query (multiple DataLoaders chained)
+  'http_req_duration{name:family_nested}': ['p(95)<300'],
+
+  // Complete query (all DataLoaders)
+  'http_req_duration{name:family_complete}': ['p(95)<300'],
+};
+
+/**
+ * Combine DataLoader thresholds with base thresholds
+ * @param {Object} baseThresholds - Base threshold configuration
+ * @returns {Object} Combined thresholds
+ */
+export function withDataLoaderThresholds(baseThresholds) {
+  return {
+    ...baseThresholds,
+    ...dataLoaderThresholds,
+  };
+}

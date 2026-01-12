@@ -115,6 +115,60 @@ Tests system limits and recovery under extreme load.
 k6 run scenarios/stress.js
 ```
 
+### 4. DataLoader Benchmark (`scenarios/dataloader.js`)
+
+Benchmarks DataLoader efficiency improvements for N+1 query prevention (ADR-011).
+
+- **Scenarios:**
+  - `dataloader_baseline`: 10 VUs constant, 1 minute (establish baseline)
+  - `dataloader_load`: 0→30 VUs ramping, 3 minutes (validate under load)
+- **Duration:** ~4 minutes total
+- **Purpose:** Validate DataLoader performance improvements
+- **Thresholds:** DataLoader-specific (p95 < 200ms, error < 1%)
+
+**Prerequisites:**
+
+1. API running with `ASPNETCORE_ENVIRONMENT=Test`
+2. Test data seeded (see below)
+
+**Expected Results (ADR-011):**
+
+| Metric | Without DataLoaders | With DataLoaders | Improvement |
+|--------|---------------------|------------------|-------------|
+| Query Count (100 users) | 201 | ≤3 | 67x reduction |
+| Latency (p95) | ~8.4s | <200ms | 42x improvement |
+
+**Queries Tested:**
+
+| Query | DataLoader | Purpose |
+|-------|------------|---------|
+| `familyWithMembers` | UsersByFamilyGroupedDataLoader | 1:N batching |
+| `familyWithInvitations` | InvitationsByFamilyGroupedDataLoader | 1:N batching |
+| `familyWithOwner` | UserBatchDataLoader | 1:1 batching |
+| `familyMembersWithFamilies` | Multiple DataLoaders | Deep nesting |
+| `familyComplete` | All DataLoaders | Worst-case N+1 |
+
+**Seeding Test Data:**
+
+```bash
+# Local development
+cd tests/performance
+npm run seed:dataloader
+
+# CI environment
+PGPASSWORD=Dev123! psql -h localhost -U postgres -d familyhub -f seed/dataloader-test-data.sql
+```
+
+**Running:**
+
+```bash
+# Local
+k6 run scenarios/dataloader.js
+
+# CI environment
+K6_ENV=ci k6 run scenarios/dataloader.js
+```
+
 ## Performance Targets
 
 Based on [Section 12.7](../../docs/architecture/MODULAR-DOTNET-HOTCHOCOLATE-GUIDE.md) of the architecture guide:
@@ -156,16 +210,20 @@ k6 run -e GRAPHQL_URL=http://custom:5002/graphql scenarios/baseline.js
 ```
 tests/performance/
 ├── README.md                 # This file
+├── package.json             # npm scripts for seeding and running tests
 ├── .gitignore               # Ignore results (except .gitkeep)
 ├── config/
-│   ├── thresholds.js        # Threshold configurations
-│   └── environments.js      # Environment-specific settings
+│   ├── thresholds.js        # Threshold configurations (includes DataLoader thresholds)
+│   └── environments.js      # Environment-specific settings and test users
 ├── helpers/
 │   └── graphql.js           # GraphQL request helpers
 ├── scenarios/
 │   ├── baseline.js          # Baseline test (10 VUs, 1 min)
 │   ├── load.js              # Load test (0→100 VUs, 10 min)
-│   └── stress.js            # Stress test (spike to 200 VUs)
+│   ├── stress.js            # Stress test (spike to 200 VUs)
+│   └── dataloader.js        # DataLoader benchmark (ADR-011 validation)
+├── seed/
+│   └── dataloader-test-data.sql  # Test data for DataLoader benchmarks
 └── results/                 # Test results (git-ignored)
     └── .gitkeep
 ```
@@ -201,8 +259,10 @@ Performance tests run in GitHub Actions:
 
 1. Go to Actions → "Performance Tests (k6)"
 2. Click "Run workflow"
-3. Select scenario: `baseline`, `load`, `stress`, or `all`
+3. Select scenario: `baseline`, `load`, `stress`, `dataloader`, or `all`
 4. Click "Run workflow"
+
+**Note:** The `dataloader` scenario automatically seeds test data before running.
 
 ### Results
 
@@ -216,6 +276,13 @@ Performance tests run in GitHub Actions:
 |-----------|------|---------------|---------|
 | Health | Query | No | Infrastructure baseline |
 | GetAuthUrl | Query | No | OAuth flow performance |
+| FamilyWithMembers | Query | Yes* | DataLoader benchmark (1:N) |
+| FamilyWithInvitations | Query | Yes* | DataLoader benchmark (1:N) |
+| FamilyWithOwner | Query | Yes* | DataLoader benchmark (1:1) |
+| FamilyMembersWithFamilies | Query | Yes* | DataLoader benchmark (nested) |
+| FamilyComplete | Query | Yes* | DataLoader benchmark (all) |
+
+\* Uses `X-Test-User-Id` header authentication in Test environment
 
 ### Example Health Query
 
@@ -305,10 +372,15 @@ TEST_AUTH_TOKEN=your-token k6 run scenarios/load.js
 ## Related Documentation
 
 - **Architecture Guide:** [Section 12.7 - Performance Testing](../../docs/architecture/MODULAR-DOTNET-HOTCHOCOLATE-GUIDE.md)
+- **ADR-011:** [DataLoader Performance Targets](../../docs/architecture/ADR-011-DATALOADER-PERFORMANCE.md)
 - **Workflows:** [WORKFLOWS.md](../../docs/development/WORKFLOWS.md)
 - **k6 Documentation:** https://k6.io/docs/
 
 ---
 
-**Issue:** #63 - Create k6 Performance Benchmarking Suite
+**Issues:**
+
+- #63 - Create k6 Performance Benchmarking Suite
+- #75 - Performance Tests - DataLoader Benchmarks (k6)
+
 **Last Updated:** 2026-01-12

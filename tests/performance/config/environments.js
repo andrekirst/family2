@@ -130,3 +130,49 @@ export function requiresAuthentication() {
 export function getEnvironmentName() {
   return __ENV.K6_ENV || 'local';
 }
+
+/**
+ * Test users for authenticated DataLoader benchmarks
+ *
+ * These users must exist in the database (created by seed script).
+ * Use these with X-Test-User-Id header in Test environment.
+ *
+ * Prerequisites:
+ *   - API running with ASPNETCORE_ENVIRONMENT=Test
+ *   - Test data seeded: npm run seed:dataloader
+ *
+ * Usage in k6:
+ *   const user = getTestUsers()[0];
+ *   const response = graphqlRequest(query, null, null, {
+ *     headers: { 'X-Test-User-Id': user.id }
+ *   });
+ */
+const testUsers = {
+  local: [
+    { id: '00000000-0000-0000-0000-000000000001', email: 'testuser1@test.local' },
+    { id: '00000000-0000-0000-0000-000000000002', email: 'testuser2@test.local' },
+    { id: '00000000-0000-0000-0000-000000000003', email: 'testuser3@test.local' },
+    { id: '00000000-0000-0000-0000-000000000004', email: 'testuser4@test.local' },
+    { id: '00000000-0000-0000-0000-000000000005', email: 'testuser5@test.local' },
+  ],
+  ci: [
+    { id: '00000000-0000-0000-0000-000000000001', email: 'testuser1@test.local' },
+    { id: '00000000-0000-0000-0000-000000000002', email: 'testuser2@test.local' },
+    { id: '00000000-0000-0000-0000-000000000003', email: 'testuser3@test.local' },
+    { id: '00000000-0000-0000-0000-000000000004', email: 'testuser4@test.local' },
+    { id: '00000000-0000-0000-0000-000000000005', email: 'testuser5@test.local' },
+  ],
+  // Staging and production don't have test users (require real authentication)
+  staging: [],
+  production: [],
+};
+
+/**
+ * Get test users for current environment
+ *
+ * @returns {Array<{id: string, email: string}>} Test users
+ */
+export function getTestUsers() {
+  const envName = __ENV.K6_ENV || 'local';
+  return testUsers[envName] || testUsers.local;
+}

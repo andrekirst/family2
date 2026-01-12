@@ -941,5 +941,142 @@ See [tests/performance/README.md](../../tests/performance/README.md) for complet
 
 ---
 
+## DataLoader Performance Benchmarks
+
+**CRITICAL:** Run DataLoader benchmarks to validate N+1 query prevention efficiency (ADR-011 targets).
+
+### Overview
+
+DataLoader benchmarks validate the efficiency of Hot Chocolate's GreenDonut DataLoaders for batching and caching GraphQL resolver queries. Without DataLoaders, nested queries cause N+1 performance problems.
+
+### Expected Performance (ADR-011)
+
+| Metric | Without DataLoaders | With DataLoaders | Improvement |
+|--------|---------------------|------------------|-------------|
+| Query Count (100 users) | 201 | ≤3 | 67x reduction |
+| Latency (p95) | ~8.4s | <200ms | 42x improvement |
+
+### DataLoaders Tested
+
+| DataLoader | Type | Purpose |
+|------------|------|---------|
+| `UserBatchDataLoader` | 1:1 | Load single user by ID |
+| `FamilyBatchDataLoader` | 1:1 | Load single family by ID |
+| `UsersByFamilyGroupedDataLoader` | 1:N | Load all members for families |
+| `InvitationsByFamilyGroupedDataLoader` | 1:N | Load all invitations for families |
+
+### Quick Start
+
+```bash
+# Prerequisites
+# 1. API running with Test environment
+ASPNETCORE_ENVIRONMENT=Test dotnet run --project src/api/FamilyHub.Api
+
+# 2. Seed test data
+cd tests/performance
+npm run seed:dataloader
+# Or: PGPASSWORD=Dev123! psql -h localhost -U postgres -d familyhub -f seed/dataloader-test-data.sql
+
+# 3. Run benchmark
+k6 run scenarios/dataloader.js
+```
+
+### Test Scenarios
+
+The DataLoader benchmark runs two phases:
+
+| Phase | VUs | Duration | Purpose |
+|-------|-----|----------|---------|
+| Baseline | 10 constant | 1 min | Establish baseline metrics |
+| Load | 0→30 ramping | 3 min | Validate under moderate load |
+
+### GraphQL Queries Benchmarked
+
+| Query | Description | Expected p95 |
+|-------|-------------|--------------|
+| `familyWithMembers` | Tests UsersByFamilyGroupedDataLoader | <200ms |
+| `familyWithInvitations` | Tests InvitationsByFamilyGroupedDataLoader | <200ms |
+| `familyWithOwner` | Tests UserBatchDataLoader | <150ms |
+| `familyMembersWithFamilies` | Tests nested DataLoader chains | <300ms |
+| `familyComplete` | Tests ALL DataLoaders together | <300ms |
+
+### Test Authentication
+
+DataLoader benchmarks require authenticated requests. In Test environment, authentication is bypassed via HTTP headers:
+
+```javascript
+// k6 sends X-Test-User-Id header
+const headers = { 'X-Test-User-Id': '00000000-0000-0000-0000-000000000001' };
+```
+
+**How it works:**
+
+1. `ASPNETCORE_ENVIRONMENT=Test` activates test auth bypass
+2. `TestAuthorizationHandler` succeeds all authorization checks
+3. `HeaderBasedCurrentUserService` reads user ID from header
+4. k6 sends deterministic test user IDs seeded in database
+
+### CI/CD Integration
+
+DataLoader benchmarks run automatically:
+
+- **Manual trigger:** Actions → "Performance Tests (k6)" → scenario: `dataloader`
+- **Nightly schedule:** Included in `all` scenario at 2 AM UTC
+- **Data seeding:** Automatic before DataLoader tests
+
+**Workflow:** `.github/workflows/performance.yml`
+
+### Interpreting Results
+
+**Passing thresholds:**
+
+```
+✓ http_req_duration{name:family_members}..............: avg=45ms p(95)=120ms
+✓ http_req_duration{name:family_complete}.............: avg=80ms p(95)=180ms
+✓ checks...............................................: 99.8% ✓ 4990 ✗ 10
+```
+
+**Failing thresholds (investigate):**
+
+```
+✗ http_req_duration{name:family_members}..............: avg=450ms p(95)=1200ms
+    ↳ p(95)<200 .......................... fail
+```
+
+**Common issues:**
+
+- **High latency:** DataLoader not registered, query not batching
+- **High error rate:** Test data not seeded, auth bypass not active
+- **Inconsistent results:** Cold start; run warmup iteration first
+
+### Custom Metrics
+
+The benchmark tracks additional metrics:
+
+- `dl_family_members_duration` - Trend for members query
+- `dl_family_invitations_duration` - Trend for invitations query
+- `dl_family_owner_duration` - Trend for owner query
+- `dl_nested_query_duration` - Trend for nested queries
+- `dl_complete_query_duration` - Trend for complete query
+- `dl_total_members_loaded` - Counter of total members loaded
+- `dl_total_invitations_loaded` - Counter of total invitations loaded
+
+### Full Documentation
+
+See [tests/performance/README.md](../../tests/performance/README.md) for complete documentation including:
+
+- Installation instructions
+- Test data seeding
+- Troubleshooting guide
+- All scenario details
+
+### Related
+
+- **Issue:** #75 - Performance Tests - DataLoader Benchmarks (k6)
+- **ADR-011:** [DataLoader Performance Targets](../architecture/ADR-011-DATALOADER-PERFORMANCE.md)
+- **Integration Tests:** `DataLoaderQueryCountTests.cs` (validates exact query counts)
+
+---
+
 **Last updated:** 2026-01-12
-**Version:** 2.1.0
+**Version:** 2.2.0

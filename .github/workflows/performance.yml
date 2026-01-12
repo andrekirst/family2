@@ -12,6 +12,7 @@ on:
           - baseline
           - load
           - stress
+          - dataloader
           - all
       environment:
         description: 'Target environment'
@@ -76,16 +77,23 @@ jobs:
           CI: 'true'
         run: |
           dotnet run --configuration Release --environment Test &
-          echo "Waiting for API to start..."
-          sleep 20
+          echo "API starting in background..."
 
-      - name: Verify API is running
+      - name: Wait for API Health
         run: |
-          echo "Checking GraphQL endpoint..."
-          curl -sf -X POST http://localhost:5002/graphql \
-            -H "Content-Type: application/json" \
-            -d '{"query":"{ __typename }"}' || exit 1
-          echo "API is ready!"
+          echo "Waiting for API to be healthy..."
+          for i in {1..30}; do
+            if curl -sf -X POST http://localhost:5002/graphql \
+               -H "Content-Type: application/json" \
+               -d '{"query":"{ __typename }"}' > /dev/null 2>&1; then
+              echo "API is healthy after $i attempts!"
+              exit 0
+            fi
+            echo "Attempt $i/30 - API not ready yet, waiting..."
+            sleep 2
+          done
+          echo "API failed to start within 60 seconds"
+          exit 1
 
       - name: Install k6
         run: |
@@ -100,6 +108,15 @@ jobs:
 
       - name: Create results directory
         run: mkdir -p tests/performance/results
+
+      - name: Seed DataLoader Test Data
+        if: contains(fromJSON('["dataloader", "all"]'), github.event.inputs.scenario) || github.event_name == 'schedule'
+        env:
+          PGPASSWORD: Dev123!
+        run: |
+          echo "Seeding DataLoader test data..."
+          psql -h localhost -U postgres -d familyhub -f tests/performance/seed/dataloader-test-data.sql
+          echo "DataLoader test data seeded successfully!"
 
       - name: Run Baseline Test
         if: github.event.inputs.scenario == 'baseline' || github.event.inputs.scenario == 'all' || github.event_name == 'schedule'
@@ -123,6 +140,19 @@ jobs:
         run: |
           echo "Running stress performance test..."
           k6 run scenarios/stress.js --summary-export=results/stress-summary.json
+        continue-on-error: true
+
+      - name: Run DataLoader Benchmark Test
+        if: github.event.inputs.scenario == 'dataloader' || github.event.inputs.scenario == 'all' || github.event_name == 'schedule'
+        working-directory: tests/performance
+        env:
+          K6_ENV: ci
+        run: |
+          echo "Running DataLoader benchmark test..."
+          echo "Expected improvements (ADR-011):"
+          echo "  - Query count: 201 → ≤3 (67x reduction)"
+          echo "  - Latency: p95 < 200ms"
+          k6 run scenarios/dataloader.js --summary-export=results/dataloader-summary.json
         continue-on-error: true
 
       - name: Upload Performance Results
@@ -175,5 +205,17 @@ jobs:
             echo "### Stress Test Results" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
             head -100 tests/performance/results/stress-summary.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f tests/performance/results/dataloader-summary.json ]; then
+            echo "### DataLoader Benchmark Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Expected Performance (ADR-011):**" >> $GITHUB_STEP_SUMMARY
+            echo "- Query count: ≤3 queries for 100 users with families (67x improvement)" >> $GITHUB_STEP_SUMMARY
+            echo "- Latency: p95 < 200ms (42x improvement)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            head -100 tests/performance/results/dataloader-summary.json >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           fi

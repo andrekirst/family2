@@ -3,11 +3,14 @@ using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Infrastructure.Messaging;
 using FamilyHub.Modules.Auth;
+using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Infrastructure.BackgroundJobs;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Family;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
@@ -202,6 +205,19 @@ try
 
     // Authorization policies
     builder.Services.AddAuthorization();
+
+    // Test environment authentication bypass for k6 performance tests
+    // Allows testing authenticated GraphQL endpoints using X-Test-User-Id header
+    if (builder.Environment.IsEnvironment("Test"))
+    {
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.RemoveAll<IAuthorizationHandler>();
+        builder.Services.AddScoped<IAuthorizationHandler, FamilyHub.Api.Infrastructure.TestAuthorizationHandler>();
+        builder.Services.RemoveAll<ICurrentUserService>();
+        builder.Services.AddScoped<ICurrentUserService, FamilyHub.Api.Infrastructure.HeaderBasedCurrentUserService>();
+
+        Log.Information("Test environment: Auth bypass enabled via X-Test-User-Id header");
+    }
 
     var app = builder.Build();
 
