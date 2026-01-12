@@ -136,6 +136,11 @@ try
         .AddTypeExtension<InvitationsQueryExtension>()
         .AddTypeExtension<RolesQueries>();
 
+    // Register DataLoaders for N+1 query prevention
+    graphqlBuilder
+        .AddDataLoader<FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders.UserBatchDataLoader>()
+        .AddDataLoader<FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders.FamilyBatchDataLoader>();
+
     // Future modules can be registered here:
     // graphqlBuilder.AddCalendarModuleGraphQLTypes();
     // graphqlBuilder.AddTaskModuleGraphQLTypes();

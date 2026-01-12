@@ -1,6 +1,6 @@
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Persistence;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -39,20 +39,21 @@ public sealed class FamilyTypeExtensions
     }
 
     /// <summary>
-    /// Resolves the owner of the family.
+    /// Resolves the owner of the family using DataLoader for batching.
     /// Replaces the scalar ownerId field with a nested UserType for richer owner information.
+    /// Uses UserBatchDataLoader to batch multiple owner lookups into a single query.
     /// </summary>
     /// <param name="family">The parent family entity.</param>
-    /// <param name="userRepository">User repository service.</param>
+    /// <param name="userDataLoader">User batch data loader for N+1 prevention.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The owner as UserType, or null if not found.</returns>
     [GraphQLDescription("The owner of this family")]
     public async Task<UserType?> GetOwner(
         [Parent] FamilyAggregate family,
-        [Service] IUserRepository userRepository,
+        UserBatchDataLoader userDataLoader,
         CancellationToken cancellationToken)
     {
-        var owner = await userRepository.GetByIdAsync(family.OwnerId, cancellationToken);
+        var owner = await userDataLoader.LoadAsync(family.OwnerId, cancellationToken);
 
         return owner == null ? null : UserMapper.AsGraphQLType(owner);
     }

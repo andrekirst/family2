@@ -149,6 +149,7 @@ public static class FamilyModuleServiceRegistration
         ILoggerFactory? loggerFactory = null)
     {
         return builder
+            .RegisterDbContextFactory<Persistence.FamilyDbContext>() // Required for DataLoaders
             .AddType<Presentation.GraphQL.Types.FamilyType>() // Register FamilyType explicitly
             .AddTypeExtensionsFromAssemblies(
                 [typeof(FamilyModuleServiceRegistration).Assembly],
