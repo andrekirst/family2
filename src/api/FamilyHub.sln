@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.Modules.Family", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.SourceGenerators", "FamilyHub.SourceGenerators\FamilyHub.SourceGenerators.csproj", "{4D6E8501-6A2B-4A92-B68E-D3D143D3B975}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.Tests.Architecture", "tests\FamilyHub.Tests.Architecture\FamilyHub.Tests.Architecture.csproj", "{CD462586-EAF3-472F-87B4-D36C4C0B3B91}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,18 @@ Global
 		{4D6E8501-6A2B-4A92-B68E-D3D143D3B975}.Release|x64.Build.0 = Release|Any CPU
 		{4D6E8501-6A2B-4A92-B68E-D3D143D3B975}.Release|x86.ActiveCfg = Release|Any CPU
 		{4D6E8501-6A2B-4A92-B68E-D3D143D3B975}.Release|x86.Build.0 = Release|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Debug|x64.Build.0 = Debug|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Debug|x86.Build.0 = Debug|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Release|x64.ActiveCfg = Release|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Release|x64.Build.0 = Release|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Release|x86.ActiveCfg = Release|Any CPU
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -138,5 +152,6 @@ Global
 		{183B5B88-C0E0-4F9B-99CA-B274C8CA3C6D} = {368D51E0-AB17-4140-9012-47ABACB3AE78}
 		{20188ED8-9EE8-40AA-9CAF-C5D1972E025E} = {368D51E0-AB17-4140-9012-47ABACB3AE78}
 		{F30A6BC7-F28E-4C81-9D2B-8EF37737F3A9} = {DF6C306F-9413-4407-83E5-76783FED2E7B}
+		{CD462586-EAF3-472F-87B4-D36C4C0B3B91} = {368D51E0-AB17-4140-9012-47ABACB3AE78}
 	EndGlobalSection
 EndGlobal
