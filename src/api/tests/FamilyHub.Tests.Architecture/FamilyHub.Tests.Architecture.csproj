@@ -27,6 +27,8 @@
     <ProjectReference Include="..\..\FamilyHub.SharedKernel\FamilyHub.SharedKernel.csproj" />
     <ProjectReference Include="..\..\FamilyHub.Infrastructure\FamilyHub.Infrastructure.csproj" />
     <ProjectReference Include="..\..\FamilyHub.Api\FamilyHub.Api.csproj" />
+    <!-- Violation fixtures for negative testing -->
+    <ProjectReference Include="..\FamilyHub.Tests.Architecture.Fixtures\FamilyHub.Tests.Architecture.Fixtures.csproj" />
   </ItemGroup>
 
 </Project>

@@ -7,6 +7,20 @@ architectural rules and coding conventions in the FamilyHub modular monolith.
 
 These tests run as part of CI/CD and **block PRs that violate architectural rules**.
 
+## Test Summary
+
+| Category | Positive Tests | Negative Tests | Total |
+|----------|----------------|----------------|-------|
+| Clean Architecture | 5 | 5 | 10 |
+| Module Boundary | 4 | 4 | 8 |
+| DDD Patterns | 4 | 4 | 8 |
+| CQRS Patterns | 4 | 4 | 8 |
+| Naming Conventions | 6 | 6 | 12 |
+| Exception Tests | - | 5 | 5 |
+| **Total** | **23** | **28** | **51** |
+
+> **Note:** Additional tests from parameterized tests (Theory) increase runtime count to ~57.
+
 ## Test Categories
 
 ### 1. Module Boundary Tests (`ModuleBoundaryTests.cs`)
@@ -109,24 +123,72 @@ dotnet test src/api/tests/FamilyHub.Tests.Architecture --filter "FullyQualifiedN
 4. Document rule in this README
 5. Run tests locally before committing
 
-## Documented Exceptions
+## Negative Tests (Violation Fixtures)
+
+Negative tests verify that architecture rules actually detect violations. They use a dedicated
+fixtures project (`FamilyHub.Tests.Architecture.Fixtures`) containing intentionally violating types.
+
+### Fixtures Project Structure
+
+```
+FamilyHub.Tests.Architecture.Fixtures/
+└── Violations/
+    ├── CleanArchitecture/     # Layer dependency violations
+    ├── ModuleBoundary/        # Cross-module dependency violations
+    ├── DddPatterns/           # DDD pattern violations
+    ├── CqrsPatterns/          # MediatR pattern violations
+    └── NamingConventions/     # Naming rule violations
+```
+
+### Negative Test Classes
+
+| Class | Purpose |
+|-------|---------|
+| `CleanArchitectureNegativeTests.cs` | Verifies layer dependency detection |
+| `ModuleBoundaryNegativeTests.cs` | Verifies cross-module detection |
+| `DddPatternNegativeTests.cs` | Verifies DDD pattern detection |
+| `CqrsPatternNegativeTests.cs` | Verifies CQRS pattern detection |
+| `NamingConventionNegativeTests.cs` | Verifies naming rule detection |
+
+## Documented Exceptions (Exception Registry)
+
+Cross-module dependencies are tracked in `Helpers/ExceptionRegistry.cs` with metadata:
+
+- **Phase**: When the exception was introduced
+- **Reason**: Why the dependency exists
+- **Ticket**: Reference to ADR or issue
+- **PlannedRemoval**: When to resolve
+
+### Current Phase 3 Exceptions (20 types)
+
+The Auth module temporarily hosts Family module functionality during Phase 3 extraction:
+
+| Layer | Count | Examples |
+|-------|-------|----------|
+| Domain | 1 | `User.GetRoleInFamily()` |
+| Application | 12 | Command handlers, query handlers |
+| Presentation | 6 | GraphQL type extensions, mappers |
+| Infrastructure | 1 | Background jobs |
+
+See `ExceptionRegistry.cs` for full details.
+
+### Exception Tests (`ModuleBoundaryExceptionTests.cs`)
+
+| Test | Purpose |
+|------|---------|
+| `DocumentedExceptions_ShouldStillViolate_OrBeRemoved` | Ensures exceptions are removed when fixed |
+| `NewViolations_ShouldBeDocumented_OrFail` | Detects undocumented violations |
+| `ExceptionRegistry_ShouldHaveCompleteMetadata` | Validates exception metadata |
+| `FamilyModule_ShouldNotHaveUndocumentedDependenciesOn_AuthModule` | Family → Auth check |
+| `SharedKernel_ShouldHaveNoUndocumentedModuleDependencies` | SharedKernel purity |
 
 ### Phase 4+ Features (Future)
 
-The following cross-module dependencies are planned for Phase 4+ and may require
-exception handling when implemented:
+The following cross-module dependencies are planned for Phase 4+:
 
 - Event chain orchestration between modules
 - Cross-module read models for reporting
 - Saga coordinators for distributed transactions
-
-### Current Known Dependencies
-
-None at this time. All modules properly communicate through:
-
-- SharedKernel abstractions (value objects, interfaces)
-- Domain events via RabbitMQ
-- Application-level service interfaces
 
 ## CI/CD Integration
 
