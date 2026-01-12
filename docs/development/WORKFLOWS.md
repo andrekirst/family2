@@ -841,5 +841,105 @@ If hooks fail (rare):
 
 ---
 
-**Last updated:** 2026-01-07
-**Version:** 2.0.0
+## Performance Testing with k6
+
+**CRITICAL:** Run performance tests before production deployments to verify API response time targets.
+
+### Overview
+
+Family Hub uses [k6](https://k6.io/) for load and stress testing the GraphQL API. Performance tests validate response time thresholds defined in [Section 12.7](../architecture/MODULAR-DOTNET-HOTCHOCOLATE-GUIDE.md).
+
+### Quick Start
+
+```bash
+# Install k6 (macOS)
+brew install k6
+
+# Install k6 (Linux/Debian)
+sudo apt-get install k6
+
+# Run baseline test
+cd tests/performance
+k6 run scenarios/baseline.js
+
+# Run load test
+k6 run scenarios/load.js
+
+# Run stress test
+k6 run scenarios/stress.js
+```
+
+### Performance Targets
+
+| Metric | Baseline | Load | Stress |
+|--------|----------|------|--------|
+| p50 | < 50ms | < 200ms | < 500ms |
+| p95 | < 150ms | < 500ms | < 1000ms |
+| p99 | < 300ms | < 1000ms | < 3000ms |
+| Error Rate | < 0.1% | < 1% | < 5% |
+
+### Test Scenarios
+
+| Scenario | VUs | Duration | Purpose |
+|----------|-----|----------|---------|
+| Baseline | 10 constant | 1 min | Quick validation, CI smoke test |
+| Load | 0→50→100→0 | 10 min | Capacity validation, find bottlenecks |
+| Stress | 10→200→10 | 3 min | Find breaking point, verify recovery |
+
+### CI/CD Integration
+
+Performance tests run via GitHub Actions:
+
+- **Manual trigger:** Actions → "Performance Tests (k6)" → Run workflow
+- **Nightly schedule:** Automatically at 2 AM UTC
+- **Scenarios:** baseline, load, stress, or all
+
+**Workflow:** `.github/workflows/performance.yml`
+
+### Environment Configuration
+
+```bash
+# Local development (default)
+k6 run scenarios/baseline.js
+
+# Specify environment
+k6 run -e K6_ENV=ci scenarios/load.js
+
+# Custom GraphQL URL
+k6 run -e GRAPHQL_URL=http://custom:5002/graphql scenarios/baseline.js
+```
+
+### Directory Structure
+
+```
+tests/performance/
+├── config/
+│   ├── thresholds.js      # Threshold configurations
+│   └── environments.js    # Environment settings
+├── helpers/
+│   └── graphql.js         # GraphQL request helpers
+├── scenarios/
+│   ├── baseline.js        # Baseline test
+│   ├── load.js            # Load test
+│   └── stress.js          # Stress test
+└── results/               # Test output (git-ignored)
+```
+
+### Full Documentation
+
+See [tests/performance/README.md](../../tests/performance/README.md) for complete k6 documentation including:
+
+- Installation instructions (all platforms)
+- Detailed test scenario descriptions
+- Writing new tests
+- Troubleshooting guide
+
+### Related
+
+- **Issue:** #63 - Create k6 Performance Benchmarking Suite
+- **Architecture:** [Section 12.7 - Performance Testing](../architecture/MODULAR-DOTNET-HOTCHOCOLATE-GUIDE.md)
+
+---
+
+**Last updated:** 2026-01-12
+**Version:** 2.1.0
