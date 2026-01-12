@@ -35,4 +35,32 @@ public interface IMessageBrokerPublisher
         string routingKey,
         string message,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Publishes a strongly-typed message to a specific exchange with routing key.
+    /// The message is automatically serialized to JSON.
+    /// </summary>
+    /// <typeparam name="TMessage">The type of the message to publish.</typeparam>
+    /// <param name="exchange">The exchange to publish to (e.g., "family-hub.events").</param>
+    /// <param name="routingKey">The routing key for message routing (e.g., event type name).</param>
+    /// <param name="message">The message object to serialize and publish.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that completes when the message is confirmed by the broker.</returns>
+    /// <exception cref="ArgumentException">Thrown when exchange or routingKey is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when message is null.</exception>
+    /// <remarks>
+    /// <para>
+    /// This method provides a type-safe alternative to the string-based PublishAsync method.
+    /// It handles JSON serialization internally using System.Text.Json with camelCase naming policy.
+    /// </para>
+    /// <para>
+    /// Throws BrokerUnreachableException when unable to connect to the message broker after all retry attempts.
+    /// </para>
+    /// </remarks>
+    Task PublishAsync<TMessage>(
+        string exchange,
+        string routingKey,
+        TMessage message,
+        CancellationToken cancellationToken = default)
+        where TMessage : class;
 }

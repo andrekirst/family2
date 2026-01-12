@@ -203,6 +203,99 @@ public sealed class RabbitMqPublisherUnitTests
 
     #endregion
 
+    #region Generic PublishAsync Parameter Validation Tests
+
+    [Fact]
+    public async Task PublishAsyncGeneric_WithNullExchange_ThrowsArgumentException()
+    {
+        // Arrange
+        await using var publisher = new RabbitMqPublisher(_logger, _settingsOptions);
+        var message = new TestMessage { Id = 1, Name = "Test" };
+
+        // Act
+        var act = () => publisher.PublishAsync(null!, "routing.key", message);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithParameterName("exchange");
+    }
+
+    [Fact]
+    public async Task PublishAsyncGeneric_WithEmptyExchange_ThrowsArgumentException()
+    {
+        // Arrange
+        await using var publisher = new RabbitMqPublisher(_logger, _settingsOptions);
+        var message = new TestMessage { Id = 1, Name = "Test" };
+
+        // Act
+        var act = () => publisher.PublishAsync(string.Empty, "routing.key", message);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithParameterName("exchange");
+    }
+
+    [Fact]
+    public async Task PublishAsyncGeneric_WithNullRoutingKey_ThrowsArgumentException()
+    {
+        // Arrange
+        await using var publisher = new RabbitMqPublisher(_logger, _settingsOptions);
+        var message = new TestMessage { Id = 1, Name = "Test" };
+
+        // Act
+        var act = () => publisher.PublishAsync("exchange", null!, message);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithParameterName("routingKey");
+    }
+
+    [Fact]
+    public async Task PublishAsyncGeneric_WithEmptyRoutingKey_ThrowsArgumentException()
+    {
+        // Arrange
+        await using var publisher = new RabbitMqPublisher(_logger, _settingsOptions);
+        var message = new TestMessage { Id = 1, Name = "Test" };
+
+        // Act
+        var act = () => publisher.PublishAsync("exchange", string.Empty, message);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithParameterName("routingKey");
+    }
+
+    [Fact]
+    public async Task PublishAsyncGeneric_WithNullMessage_ThrowsArgumentNullException()
+    {
+        // Arrange
+        await using var publisher = new RabbitMqPublisher(_logger, _settingsOptions);
+
+        // Act
+        var act = () => publisher.PublishAsync<TestMessage>("exchange", "routing.key", null!);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>()
+            .WithParameterName("message");
+    }
+
+    [Fact]
+    public async Task PublishAsyncGeneric_AfterDispose_ThrowsObjectDisposedException()
+    {
+        // Arrange
+        var publisher = new RabbitMqPublisher(_logger, _settingsOptions);
+        await publisher.DisposeAsync();
+        var message = new TestMessage { Id = 1, Name = "Test" };
+
+        // Act
+        var act = () => publisher.PublishAsync("exchange", "routing.key", message);
+
+        // Assert
+        await act.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
+    #endregion
+
     #region Dispose Pattern Tests
 
     [Fact]
@@ -260,4 +353,13 @@ public sealed class RabbitMqPublisherUnitTests
     }
 
     #endregion
+}
+
+/// <summary>
+/// Test message class for generic PublishAsync tests.
+/// </summary>
+internal sealed class TestMessage
+{
+    public int Id { get; init; }
+    public string Name { get; init; } = string.Empty;
 }

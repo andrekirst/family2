@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using FamilyHub.SharedKernel.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -35,6 +36,17 @@ public sealed partial class RabbitMqPublisher : IMessageBrokerPublisher, IAsyncD
     private readonly RabbitMqSettings _settings;
     private readonly ResiliencePipeline _retryPipeline;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
+
+    /// <summary>
+    /// JSON serialization options for message serialization.
+    /// Uses camelCase naming policy and ignores null values for compact payloads.
+    /// </summary>
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        WriteIndented = false
+    };
 
     private IConnection? _connection;
     private IChannel? _channel;
@@ -124,6 +136,23 @@ public sealed partial class RabbitMqPublisher : IMessageBrokerPublisher, IAsyncD
 
             LogMessagePublished(exchange, routingKey, messageId);
         }, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task PublishAsync<TMessage>(
+        string exchange,
+        string routingKey,
+        TMessage message,
+        CancellationToken cancellationToken = default)
+        where TMessage : class
+    {
+        ObjectDisposedException.ThrowIf(_disposed, nameof(RabbitMqPublisher));
+        ArgumentException.ThrowIfNullOrWhiteSpace(exchange);
+        ArgumentException.ThrowIfNullOrWhiteSpace(routingKey);
+        ArgumentNullException.ThrowIfNull(message);
+
+        var jsonMessage = JsonSerializer.Serialize(message, JsonOptions);
+        return PublishAsync(exchange, routingKey, jsonMessage, cancellationToken);
     }
 
     /// <summary>
