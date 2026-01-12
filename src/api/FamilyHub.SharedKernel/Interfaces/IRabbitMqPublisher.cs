@@ -1,0 +1,37 @@
+namespace FamilyHub.SharedKernel.Interfaces;
+
+/// <summary>
+/// Interface for publishing messages to RabbitMQ message broker.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This interface abstracts RabbitMQ publishing operations to enable:
+/// - Dependency injection and testability
+/// - Consistent retry and error handling
+/// - Cross-module event publishing
+/// </para>
+/// <para>
+/// Messages are published as JSON payloads to topic exchanges.
+/// Failed messages are routed to a dead letter queue after retry exhaustion.
+/// </para>
+/// </remarks>
+public interface IRabbitMqPublisher
+{
+    /// <summary>
+    /// Publishes a message to a specific exchange with routing key.
+    /// </summary>
+    /// <param name="exchange">The exchange to publish to (e.g., "family-hub.events").</param>
+    /// <param name="routingKey">The routing key for message routing (e.g., event type name).</param>
+    /// <param name="message">The message payload (JSON format).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that completes when the message is confirmed by RabbitMQ.</returns>
+    /// <exception cref="ArgumentException">Thrown when exchange, routingKey, or message is null or empty.</exception>
+    /// <remarks>
+    /// Throws BrokerUnreachableException when unable to connect to RabbitMQ after all retry attempts.
+    /// </remarks>
+    Task PublishAsync(
+        string exchange,
+        string routingKey,
+        string message,
+        CancellationToken cancellationToken = default);
+}

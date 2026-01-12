@@ -1,5 +1,4 @@
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Infrastructure.Messaging;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using Microsoft.Extensions.DependencyInjection;

@@ -19,6 +19,7 @@
     <PackageVersion Include="Quartz.Serialization.Json" Version="3.15.1" />
     <PackageVersion Include="Testcontainers" Version="4.9.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.9.0" />
+    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.9.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <!-- Entity Framework Core -->
@@ -50,6 +51,7 @@
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
     <!-- Infrastructure -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="9.0.0" />
     <!-- Resilience -->
     <PackageVersion Include="Polly.Core" Version="8.5.0" />
     <PackageVersion Include="Polly" Version="8.5.0" />

@@ -7,7 +7,6 @@ using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Infrastructure.BackgroundServices;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
-using FamilyHub.Modules.Auth.Infrastructure.Messaging;
 using FamilyHub.Modules.Auth.Infrastructure.Persistence;
 using FamilyHub.Modules.Auth.Infrastructure.Services;
 using FamilyHub.Modules.Auth.Persistence;
@@ -137,8 +136,8 @@ public static class AuthModuleServiceRegistration
         // FluentValidation - Validators
         services.AddValidatorsFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
 
-        // RabbitMQ Publisher (stub for Phase 2)
-        services.AddSingleton<IRabbitMqPublisher, StubRabbitMqPublisher>();
+        // Note: RabbitMQ publisher is now registered centrally in Program.cs via AddRabbitMq()
+        // This enables the real RabbitMQ implementation with retry policies and health checks
 
         // Background Services
         services.AddHostedService<OutboxEventPublisher>();

@@ -2,6 +2,7 @@ using AspNetCoreRateLimit;
 using FamilyHub.Api.Middleware;
 using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
+using FamilyHub.Infrastructure.Messaging;
 using FamilyHub.Modules.Auth;
 using FamilyHub.Modules.Auth.Infrastructure.BackgroundJobs;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
@@ -10,6 +11,8 @@ using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.Modules.Family;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Serilog;
@@ -44,6 +47,13 @@ try
     // Module registrations
     builder.Services.AddAuthModule(builder.Configuration);
     builder.Services.AddFamilyModule(builder.Configuration);
+
+    // RabbitMQ messaging infrastructure
+    builder.Services.AddRabbitMq(builder.Configuration);
+
+    // Health checks
+    builder.Services.AddHealthChecks()
+        .AddRabbitMqHealthCheck("rabbitmq", tags: ["ready", "infrastructure"]);
 
     // Quartz.NET Background Jobs Configuration
     builder.Services.AddQuartz(q =>
@@ -232,10 +242,19 @@ try
     // GraphQL endpoint
     app.MapGraphQL();
 
-    // Health check endpoint
-    app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
-       .WithName("HealthCheck");
+    // Health check endpoints
+    // Main health endpoint with full status
+    app.MapHealthChecks("/health", new HealthCheckOptions
+    {
+        ResponseWriter = WriteHealthCheckResponse
+    });
 
+    // RabbitMQ-specific health endpoint
+    app.MapHealthChecks("/health/rabbitmq", new HealthCheckOptions
+    {
+        Predicate = check => check.Name == "rabbitmq",
+        ResponseWriter = WriteHealthCheckResponse
+    });
 
     Log.Information("Family Hub API started successfully");
     app.Run();
@@ -248,6 +267,30 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+// Writes health check results as JSON response
+static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json";
+
+    var result = new
+    {
+        status = report.Status.ToString(),
+        timestamp = DateTime.UtcNow,
+        totalDuration = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            description = e.Value.Description,
+            duration = e.Value.Duration.TotalMilliseconds,
+            data = e.Value.Data,
+            exception = e.Value.Exception?.Message
+        })
+    };
+
+    return context.Response.WriteAsJsonAsync(result);
 }
 
 // Make Program class accessible for integration testing
