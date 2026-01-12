@@ -78,10 +78,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // Family relationship - User belongs to one Family
         // PHASE 5 STATE: FamilyId references family.families.id (cross-schema, no FK constraint)
         // Application-level validation via IUserLookupService maintains consistency
+        // NOTE: FamilyId uses Guid.Empty to represent "no family" rather than null
+        // (Vogen value types cannot be null; future refactoring could use FamilyId? for cleaner semantics)
         builder.Property(u => u.FamilyId)
             .HasConversion(new FamilyId.EfCoreValueConverter())
             .HasColumnName("family_id")
-            .IsRequired(false);  // Nullable - user may not belong to a family yet
+            .IsRequired();
 
         builder.HasIndex(u => u.FamilyId)
             .HasDatabaseName("ix_users_family_id");
