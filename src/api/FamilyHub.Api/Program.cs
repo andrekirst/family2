@@ -1,5 +1,4 @@
 using AspNetCoreRateLimit;
-using FamilyHub.Api.Middleware;
 using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Infrastructure.Messaging;
@@ -234,10 +233,10 @@ try
     // Authentication and Authorization middleware
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseAuthModule();
 
-    // PostgreSQL RLS context middleware - MUST run after UseAuthentication()
-    // Sets the current_user_id session variable for Row-Level Security policies
-    app.UsePostgresContext();
+    // Family module middleware - placeholder for future expansion
+    app.UseFamilyModule();
 
     // GraphQL endpoint
     app.MapGraphQL();

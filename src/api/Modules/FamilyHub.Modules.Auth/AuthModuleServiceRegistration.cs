@@ -16,6 +16,7 @@ using FamilyHub.SharedKernel.Interfaces;
 using FluentValidation;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -189,5 +190,25 @@ public static class AuthModuleServiceRegistration
             .AddTypeExtensionsFromAssemblies(
                 [typeof(AuthModuleServiceRegistration).Assembly],
                 loggerFactory);
+    }
+
+    /// <summary>
+    /// Registers Auth module middleware in the ASP.NET Core pipeline.
+    /// Currently includes:
+    /// - PostgreSQL RLS context middleware (sets current_user_id for Row-Level Security)
+    ///
+    /// EXECUTION ORDER:
+    /// This method MUST be called AFTER UseAuthentication() and UseAuthorization()
+    /// because it relies on the authenticated user claims to set the RLS context.
+    /// </summary>
+    /// <param name="app">The application builder.</param>
+    /// <returns>The application builder for chaining.</returns>
+    public static IApplicationBuilder UseAuthModule(this IApplicationBuilder app)
+    {
+        // PostgreSQL RLS context - sets session variable for Row-Level Security
+        // Relies on authenticated user claims from preceding auth middleware
+        app.UseMiddleware<Infrastructure.Middleware.PostgresRlsContextMiddleware>();
+
+        return app;
     }
 }

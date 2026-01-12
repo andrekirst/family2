@@ -2,9 +2,10 @@ using System.Security.Claims;
 using FamilyHub.Modules.Auth.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
-namespace FamilyHub.Api.Middleware;
+namespace FamilyHub.Modules.Auth.Infrastructure.Middleware;
 
 /// <summary>
 /// Middleware that sets the PostgreSQL session variable 'app.current_user_id'
@@ -33,14 +34,14 @@ namespace FamilyHub.Api.Middleware;
 /// - Eliminates need for family_id filters in application code
 /// - RLS policies use indexed columns (family_id, user_id)
 /// </summary>
-public class PostgresContextMiddleware
+public class PostgresRlsContextMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger<PostgresContextMiddleware> _logger;
+    private readonly ILogger<PostgresRlsContextMiddleware> _logger;
 
-    public PostgresContextMiddleware(
+    public PostgresRlsContextMiddleware(
         RequestDelegate next,
-        ILogger<PostgresContextMiddleware> logger)
+        ILogger<PostgresRlsContextMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -106,20 +107,5 @@ public class PostgresContextMiddleware
 
         // Continue to next middleware (GraphQL, MediatR, etc.)
         await _next(context);
-    }
-}
-
-/// <summary>
-/// Extension methods for registering PostgresContextMiddleware.
-/// </summary>
-public static class PostgresContextMiddlewareExtensions
-{
-    /// <summary>
-    /// Registers PostgresContextMiddleware in the ASP.NET Core pipeline.
-    /// MUST be called AFTER UseAuthentication() and BEFORE UseEndpoints().
-    /// </summary>
-    public static IApplicationBuilder UsePostgresContext(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<PostgresContextMiddleware>();
     }
 }

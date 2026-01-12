@@ -6,6 +6,7 @@ using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.Modules.Family.Persistence.Repositories;
 using FamilyHub.SharedKernel.Application.Behaviors;
 using HotChocolate.Execution.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -152,5 +153,31 @@ public static class FamilyModuleServiceRegistration
             .AddTypeExtensionsFromAssemblies(
                 [typeof(FamilyModuleServiceRegistration).Assembly],
                 loggerFactory);
+    }
+
+    /// <summary>
+    /// Registers Family module middleware in the ASP.NET Core pipeline.
+    /// Currently a placeholder for future Family-specific middleware.
+    ///
+    /// Future middleware candidates:
+    /// - Family context resolution (set current family from JWT or route)
+    /// - Family permission validation middleware
+    /// - Family-specific rate limiting
+    ///
+    /// EXECUTION ORDER:
+    /// This method MUST be called AFTER UseAuthModule() because Family operations
+    /// depend on authenticated user context being established.
+    /// </summary>
+    /// <param name="app">The application builder.</param>
+    /// <returns>The application builder for chaining.</returns>
+    public static IApplicationBuilder UseFamilyModule(this IApplicationBuilder app)
+    {
+        // Currently no Family-specific middleware
+        // This extension point exists for future extensibility
+        // Possible future additions:
+        // - app.UseMiddleware<FamilyContextMiddleware>();
+        // - app.UseMiddleware<FamilyPermissionMiddleware>();
+
+        return app;
     }
 }
