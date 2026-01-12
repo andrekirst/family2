@@ -1,7 +1,7 @@
 # Family Hub - Documentation Index
 
-**Last Updated:** 2026-01-09
-**Total Documents:** 59 markdown files organized in 9 thematic folders (5 new docs + 10 CLAUDE.md guides added)
+**Last Updated:** 2026-01-12
+**Total Documents:** 65 markdown files organized in 9 thematic folders (6 new ADRs added)
 **Total Content:** 320,000+ words
 
 ---
@@ -33,7 +33,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ```
 /docs/
-├── /architecture/          # Technical architecture & ADRs (7 docs)
+├── /architecture/          # Technical architecture & ADRs (13 docs)
 ├── /authentication/        # OAuth 2.0 & Zitadel guides (4 docs)
 ├── /development/           # Coding standards & workflows (5 docs)
 ├── /infrastructure/        # Cloud, K8s, CI/CD (6 docs)
@@ -51,15 +51,22 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ## 📚 Complete Documentation Map
 
-### 1. Architecture (`/architecture/` - 7 documents)
+### 1. Architecture (`/architecture/` - 13 documents)
 
-**Architecture Decisions:**
+**Architecture Decisions (ADRs):**
 
 - [ADR-001: Modular Monolith First](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Why not microservices from day one
 - [ADR-002: OAuth with Zitadel](architecture/ADR-002-OAUTH-WITH-ZITADEL.md) - Why Zitadel vs Auth0/Keycloak
 - [ADR-003: GraphQL Input/Command Pattern](architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md) - Separation of presentation and domain concerns
 - [ADR-004: Playwright Migration](architecture/ADR-004-PLAYWRIGHT-MIGRATION.md) - E2E testing framework choice
 - [ADR-005: Family Module Extraction Pattern](architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md) - Reusable bounded context extraction pattern
+- [ADR-006: Email-Only Authentication](architecture/ADR-006-EMAIL-ONLY-AUTHENTICATION.md) - Authentication strategy
+- [ADR-007: Family DbContext Separation Strategy](architecture/ADR-007-FAMILY-DBCONTEXT-SEPARATION-STRATEGY.md) - One DbContext per module with schema separation
+- [ADR-008: RabbitMQ Integration Strategy](architecture/ADR-008-RABBITMQ-INTEGRATION-STRATEGY.md) - Message broker with Polly resilience
+- [ADR-009: Modular Middleware Composition Pattern](architecture/ADR-009-MODULAR-MIDDLEWARE-COMPOSITION-PATTERN.md) - UseAuthModule/UseFamilyModule pattern
+- [ADR-010: Performance Testing Strategy](architecture/ADR-010-PERFORMANCE-TESTING-STRATEGY.md) - k6-based performance testing
+- [ADR-011: DataLoader Pattern](architecture/ADR-011-DATALOADER-PATTERN.md) - Hot Chocolate DataLoader for N+1 prevention
+- [ADR-012: Architecture Testing Strategy](architecture/ADR-012-ARCHITECTURE-TESTING-STRATEGY.md) - NetArchTest for architecture validation
 - [Architecture Review Report](architecture/ARCHITECTURE-REVIEW-REPORT.md) - Comprehensive architecture review
 
 **Domain-Driven Design:**
@@ -305,7 +312,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ## 📊 Documentation Statistics
 
-- **Total Documents:** 53 markdown files
+- **Total Documents:** 65 markdown files
 - **Total Words:** 280,000+
 - **Total Lines:** ~15,000+
 - **Folders:** 9 thematic categories
@@ -316,7 +323,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 - UX & Design: 9 docs
 - Legal: 8 docs
-- Architecture: 7 docs
+- Architecture: 13 docs
 - Infrastructure: 6 docs
 - Development: 5 docs
 - Product Strategy: 5 docs
@@ -347,6 +354,16 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 ---
 
 ## 📝 Recent Updates
+
+### 2026-01-12
+
+- **New ADRs:** Created 6 new Architecture Decision Records (Issue #76):
+  - [ADR-007: Family DbContext Separation Strategy](architecture/ADR-007-FAMILY-DBCONTEXT-SEPARATION-STRATEGY.md) - One DbContext per module with PostgreSQL schema separation
+  - [ADR-008: RabbitMQ Integration Strategy](architecture/ADR-008-RABBITMQ-INTEGRATION-STRATEGY.md) - IMessageBrokerPublisher with Polly v8 resilience
+  - [ADR-009: Modular Middleware Composition Pattern](architecture/ADR-009-MODULAR-MIDDLEWARE-COMPOSITION-PATTERN.md) - UseAuthModule/UseFamilyModule extension methods
+  - [ADR-010: Performance Testing Strategy](architecture/ADR-010-PERFORMANCE-TESTING-STRATEGY.md) - k6-based performance testing with DataLoader benchmarks
+  - [ADR-011: DataLoader Pattern](architecture/ADR-011-DATALOADER-PATTERN.md) - Hot Chocolate GreenDonut DataLoaders for N+1 prevention
+  - [ADR-012: Architecture Testing Strategy](architecture/ADR-012-ARCHITECTURE-TESTING-STRATEGY.md) - NetArchTest with ExceptionRegistry pattern
 
 ### 2026-01-09
 
@@ -383,5 +400,5 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-_Last updated: 2026-01-09_
-_Version: 2.2 (Added ADR-005: Family Module Extraction Pattern)_
+_Last updated: 2026-01-12_
+_Version: 2.3 (Added 6 new ADRs: ADR-007 through ADR-012)_
