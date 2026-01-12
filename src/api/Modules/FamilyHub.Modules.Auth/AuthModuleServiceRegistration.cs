@@ -184,9 +184,16 @@ public static class AuthModuleServiceRegistration
     {
         return builder
             .RegisterDbContextFactory<AuthDbContext>()
-            .AddType<Presentation.GraphQL.Types.UserType>() // Register UserType so extensions can be applied
-            .AddTypeExtension<Presentation.GraphQL.Types.UserTypeExtensions>() // Explicitly register UserTypeExtensions
-            .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>() // Extends Family.Domain.Aggregates.FamilyAggregate (from Family module)
+            // Core entity types (must be registered before their extensions)
+            .AddType<Presentation.GraphQL.Types.UserType>()
+            .AddTypeExtension<Presentation.GraphQL.Types.UserTypeExtensions>()
+            .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>()
+            // Namespace container types (no [ExtendObjectType] attribute - must be registered explicitly)
+            // These provide GraphQL schema organization: query { auth { ... } invitations { ... } }
+            .AddType<Presentation.GraphQL.Types.AuthType>()
+            .AddType<Presentation.GraphQL.Types.InvitationsType>()
+            // Auto-discover all type extensions with [ExtendObjectType] attribute
+            // This includes: Query/Mutation extensions, AuthTypeExtensions, InvitationsTypeExtensions
             .AddTypeExtensionsFromAssemblies(
                 [typeof(AuthModuleServiceRegistration).Assembly],
                 loggerFactory);

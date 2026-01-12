@@ -5,9 +5,6 @@ using FamilyHub.Infrastructure.Messaging;
 using FamilyHub.Modules.Auth;
 using FamilyHub.Modules.Auth.Infrastructure.BackgroundJobs;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.Modules.Family;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -111,30 +108,11 @@ try
             opt.IncludeExceptionDetails = builder.Environment.IsDevelopment();
         });
 
-    // Module-based GraphQL type extension registration
-    // Register Auth module GraphQL types (DbContext, type extensions, custom types)
+    // Module-based GraphQL type registration via auto-discovery
+    // All types with [ExtendObjectType] attribute are automatically discovered
+    // Only namespace container types (AuthType, InvitationsType) require explicit registration
     graphqlBuilder.AddAuthModuleGraphQlTypes();
-    // Register Family module GraphQL types
     graphqlBuilder.AddFamilyModuleGraphQlTypes();
-
-    // Explicitly register type extensions from Auth module
-    // Note: FamilyQueries moved to Family module (Sprint 3, Issue #36)
-    // FamilyMutations stays in Auth (CreateFamily modifies User aggregate)
-    graphqlBuilder
-        .AddTypeExtension<FamilyMutations>()
-        .AddTypeExtension<AuthMutations>()
-        .AddTypeExtension<HealthQueries>()
-        .AddTypeExtension<UserQueries>()
-        .AddTypeExtension<InvitationQueries>()
-        .AddTypeExtension<InvitationMutations>()
-        // New namespace types (schema restructuring)
-        .AddType<AuthType>()
-        .AddType<AuthTypeExtensions>()
-        .AddTypeExtension<AuthQueryExtension>()
-        .AddType<InvitationsType>()
-        .AddType<InvitationsTypeExtensions>()
-        .AddTypeExtension<InvitationsQueryExtension>()
-        .AddTypeExtension<RolesQueries>();
 
     // Register DataLoaders for N+1 query prevention
     // BatchDataLoaders: 1:1 mapping (e.g., UserId -> User)

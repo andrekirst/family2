@@ -3,9 +3,6 @@ using System.Security.Claims;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Infrastructure.Authorization;
 using FamilyHub.Modules.Auth.Persistence;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
@@ -95,21 +92,8 @@ public sealed class GraphQlTestFactory(PostgreSqlContainerFixture containerFixtu
                 return factory.CreateDbContext();
             });
 
-            // Explicitly ensure GraphQL types are registered
-            // This is a workaround for the type discovery not working in test environment
-            services.AddGraphQLServer()
-                .AddTypeExtension<FamilyMutations>()
-                .AddTypeExtension<AuthMutations>()
-                .AddTypeExtension<HealthQueries>()
-                .AddTypeExtension<UserQueries>()
-                // New namespace types (schema restructuring)
-                .AddType<AuthType>()
-                .AddType<AuthTypeExtensions>()
-                .AddTypeExtension<AuthQueryExtension>()
-                .AddType<InvitationsType>()
-                .AddType<InvitationsTypeExtensions>()
-                .AddTypeExtension<InvitationsQueryExtension>()
-                .AddTypeExtension<RolesQueries>();
+            // GraphQL types are auto-discovered via Program.cs → AddAuthModuleGraphQlTypes()
+            // No explicit type registration needed here - WebApplicationFactory<Program> inherits the full DI container
 
             // Replace ICurrentUserService with our mock
             var currentUserServiceDescriptor = services.FirstOrDefault(d =>
