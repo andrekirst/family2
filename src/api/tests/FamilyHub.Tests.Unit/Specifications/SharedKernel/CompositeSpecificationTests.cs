@@ -12,10 +12,10 @@ public class CompositeSpecificationTests
 {
     private record TestEntity(int Value, string Name, bool IsActive);
 
-    private class ValueGreaterThanSpec : Specification<TestEntity>
+    private class ValueGreaterThanSpec(int threshold) : Specification<TestEntity>
     {
-        private readonly int _threshold;
-        public ValueGreaterThanSpec(int threshold) => _threshold = threshold;
+        private readonly int _threshold = threshold;
+
         public override System.Linq.Expressions.Expression<Func<TestEntity, bool>> ToExpression()
             => e => e.Value > _threshold;
     }
@@ -26,10 +26,10 @@ public class CompositeSpecificationTests
             => e => e.IsActive;
     }
 
-    private class NameStartsWithSpec : Specification<TestEntity>
+    private class NameStartsWithSpec(string prefix) : Specification<TestEntity>
     {
-        private readonly string _prefix;
-        public NameStartsWithSpec(string prefix) => _prefix = prefix;
+        private readonly string _prefix = prefix;
+
         public override System.Linq.Expressions.Expression<Func<TestEntity, bool>> ToExpression()
             => e => e.Name.StartsWith(_prefix);
     }

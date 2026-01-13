@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using FamilyHub.Infrastructure.Messaging;
@@ -7,7 +8,6 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Net.Mime;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
 

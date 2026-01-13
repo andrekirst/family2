@@ -1,12 +1,12 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Specifications;
-using IUserLookupService = FamilyHub.SharedKernel.Application.Abstractions.IUserLookupService;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using IUserLookupService = FamilyHub.SharedKernel.Application.Abstractions.IUserLookupService;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 

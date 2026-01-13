@@ -7,28 +7,22 @@ namespace FamilyHub.SharedKernel.Domain.Specifications;
 /// Used by IOrderedSpecification to define sort order.
 /// </summary>
 /// <typeparam name="T">The entity type being ordered.</typeparam>
-public sealed class OrderExpression<T>
+/// <remarks>
+/// Initializes a new instance of the <see cref="OrderExpression{T}"/> class.
+/// </remarks>
+/// <param name="keySelector">The expression selecting the order key.</param>
+/// <param name="isDescending">True for descending order; false for ascending.</param>
+public sealed class OrderExpression<T>(Expression<Func<T, object>> keySelector, bool isDescending = false)
 {
     /// <summary>
     /// Gets the expression that selects the property to order by.
     /// </summary>
-    public Expression<Func<T, object>> KeySelector { get; }
+    public Expression<Func<T, object>> KeySelector { get; } = keySelector ?? throw new ArgumentNullException(nameof(keySelector));
 
     /// <summary>
     /// Gets a value indicating whether to order in descending direction.
     /// </summary>
-    public bool IsDescending { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OrderExpression{T}"/> class.
-    /// </summary>
-    /// <param name="keySelector">The expression selecting the order key.</param>
-    /// <param name="isDescending">True for descending order; false for ascending.</param>
-    public OrderExpression(Expression<Func<T, object>> keySelector, bool isDescending = false)
-    {
-        KeySelector = keySelector ?? throw new ArgumentNullException(nameof(keySelector));
-        IsDescending = isDescending;
-    }
+    public bool IsDescending { get; } = isDescending;
 
     /// <summary>
     /// Creates an ascending order expression.

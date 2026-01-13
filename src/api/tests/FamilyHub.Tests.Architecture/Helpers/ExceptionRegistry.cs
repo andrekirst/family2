@@ -50,11 +50,6 @@ public static class ExceptionRegistry
             Reason: "User type extensions include family membership information",
             Ticket: "ADR-005",
             PlannedRemoval: "Phase 5 - Use read models instead of direct references"),
-        ["FamilyHub.Modules.Auth.Presentation.GraphQL.Queries.InvitationQueries"] = new ExceptionReason(
-            Phase: "Phase 3",
-            Reason: "Invitation queries return Family aggregate information",
-            Ticket: "ADR-005",
-            PlannedRemoval: "Phase 5 - Move to Family module"),
         ["FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers.InvitationMapper"] = new ExceptionReason(
             Phase: "Phase 3",
             Reason: "Maps invitation entities including Family references",
