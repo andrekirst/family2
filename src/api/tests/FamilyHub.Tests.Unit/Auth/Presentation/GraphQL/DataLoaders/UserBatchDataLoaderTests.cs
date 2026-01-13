@@ -8,6 +8,7 @@ using GreenDonut;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using ManualBatchScheduler = FamilyHub.Tests.Unit.Fixtures.ManualBatchScheduler;
 
 namespace FamilyHub.Tests.Unit.Auth.Presentation.GraphQL.DataLoaders;
 
@@ -116,11 +117,18 @@ public sealed class UserBatchDataLoaderTests : IDisposable
         });
 
         var factory = _fixture.CreateMockFactoryWithCallTracking(out var callCount);
-        var sut = new UserBatchDataLoader(factory, _batchScheduler, _options);
 
-        // Act - Load multiple keys which should be batched
+        // Use ManualBatchScheduler for deterministic batching control
+        // AutoBatchScheduler timing is non-deterministic and causes flaky tests in CI
+        var manualScheduler = new ManualBatchScheduler();
+        var sut = new UserBatchDataLoader(factory, manualScheduler, _options);
+
+        // Act - Queue multiple keys for batching
         var task1 = sut.LoadAsync(user1.Id, CancellationToken.None);
         var task2 = sut.LoadAsync(user2.Id, CancellationToken.None);
+
+        // Explicitly dispatch the batch - this ensures all queued keys are processed together
+        await manualScheduler.DispatchAsync();
         await Task.WhenAll(task1, task2);
 
         // Assert - Should be batched into a single database call
@@ -146,11 +154,18 @@ public sealed class UserBatchDataLoaderTests : IDisposable
         });
 
         var factory = _fixture.CreateMockFactory();
-        var sut = new UserBatchDataLoader(factory, _batchScheduler, _options);
 
-        // Act - Get two tasks for the same key
+        // Use ManualBatchScheduler to ensure both requests are queued before dispatch
+        // AutoBatchScheduler timing can cause first request to complete before second is queued
+        var manualScheduler = new ManualBatchScheduler();
+        var sut = new UserBatchDataLoader(factory, manualScheduler, _options);
+
+        // Act - Queue both requests for the same key before dispatching
         var task1 = sut.LoadAsync(user.Id, CancellationToken.None);
         var task2 = sut.LoadAsync(user.Id, CancellationToken.None);
+
+        // Dispatch the batch - both requests will be resolved from the same Promise
+        await manualScheduler.DispatchAsync();
 
         var result1 = await task1;
         var result2 = await task2;
