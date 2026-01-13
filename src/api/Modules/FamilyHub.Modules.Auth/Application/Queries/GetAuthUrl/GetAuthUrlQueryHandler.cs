@@ -2,8 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Infrastructure.OAuth;
+using FamilyHub.SharedKernel.Application.CQRS;
 using IdentityModel;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -16,7 +16,7 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetAuthUrl;
 public sealed partial class GetAuthUrlQueryHandler(
     IOptions<ZitadelSettings> settings,
     ILogger<GetAuthUrlQueryHandler> logger)
-    : IRequestHandler<GetAuthUrlQuery, GetAuthUrlResult>
+    : IQueryHandler<GetAuthUrlQuery, GetAuthUrlResult>
 {
     private readonly ZitadelSettings _settings = settings.Value;
 

@@ -1,6 +1,6 @@
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 
@@ -12,5 +12,5 @@ namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 /// </summary>
 public record AcceptInvitationCommand(
     InvitationToken Token
-) : IRequest<FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>,
+) : ICommand<FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>,
     IRequireAuthentication;

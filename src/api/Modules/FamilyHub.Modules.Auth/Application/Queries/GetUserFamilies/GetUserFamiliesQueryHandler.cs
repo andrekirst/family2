@@ -1,5 +1,5 @@
 using FamilyHub.Modules.Family.Application.Abstractions;
-using MediatR;
+using FamilyHub.SharedKernel.Application.CQRS;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetUserFamilies;
 
@@ -10,7 +10,7 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetUserFamilies;
 /// <param name="familyService">Service for family operations via anti-corruption layer.</param>
 public sealed class GetUserFamiliesQueryHandler(
     IFamilyService familyService)
-    : IRequestHandler<GetUserFamiliesQuery, GetUserFamiliesResult>
+    : IQueryHandler<GetUserFamiliesQuery, GetUserFamiliesResult>
 {
     /// <inheritdoc />
     public async Task<GetUserFamiliesResult> Handle(

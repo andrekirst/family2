@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
@@ -20,7 +20,7 @@ public sealed partial class UpdateInvitationRoleCommandHandler(
     IFamilyMemberInvitationRepository invitationRepository,
     IUnitOfWork unitOfWork,
     ILogger<UpdateInvitationRoleCommandHandler> logger)
-    : IRequestHandler<UpdateInvitationRoleCommand, FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>>
+    : ICommandHandler<UpdateInvitationRoleCommand, FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>>
 {
     /// <inheritdoc />
     public async Task<FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>> Handle(

@@ -2,7 +2,7 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
-using MediatR;
+using FamilyHub.SharedKernel.Application.CQRS;
 using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
@@ -21,7 +21,7 @@ public sealed partial class CreateFamilyCommandHandler(
     IFamilyService familyService,
     IUnitOfWork unitOfWork,
     ILogger<CreateFamilyCommandHandler> logger)
-    : IRequestHandler<CreateFamilyCommand, CreateFamilyResult>
+    : ICommandHandler<CreateFamilyCommand, CreateFamilyResult>
 {
     /// <inheritdoc />
     public async Task<CreateFamilyResult> Handle(

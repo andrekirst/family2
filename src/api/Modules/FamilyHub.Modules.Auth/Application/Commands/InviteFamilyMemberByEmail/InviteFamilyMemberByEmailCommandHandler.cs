@@ -1,10 +1,10 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Specifications;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using IUserLookupService = FamilyHub.SharedKernel.Application.Abstractions.IUserLookupService;
 
@@ -28,7 +28,7 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IFamilyMemberInvitationRepository invitationRepository,
     IUnitOfWork unitOfWork,
     ILogger<InviteFamilyMemberByEmailCommandHandler> logger)
-    : IRequestHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
+    : ICommandHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
 {
     /// <inheritdoc />
     public async Task<FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>> Handle(

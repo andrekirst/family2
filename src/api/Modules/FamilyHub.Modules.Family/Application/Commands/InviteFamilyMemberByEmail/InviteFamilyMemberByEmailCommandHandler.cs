@@ -2,10 +2,10 @@ using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Application.Abstractions;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Family.Application.Commands.InviteFamilyMemberByEmail;
@@ -29,7 +29,7 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IUserLookupService userLookupService,
     IUnitOfWork unitOfWork,
     ILogger<InviteFamilyMemberByEmailCommandHandler> logger)
-    : IRequestHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
+    : ICommandHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
 {
     /// <summary>
     /// Handles the InviteFamilyMemberByEmailCommand to invite a user to a family via email.

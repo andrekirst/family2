@@ -4,7 +4,7 @@ namespace FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 /// Represents a validation error from FluentValidation.
 /// Maps from ValidationException.
 /// </summary>
-public sealed class ValidationError : BaseError
+public sealed class ValidationError : BaseError, IDefaultMutationError
 {
     /// <summary>
     /// Gets or initializes the field that failed validation.

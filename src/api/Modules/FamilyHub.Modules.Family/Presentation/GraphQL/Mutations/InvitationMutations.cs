@@ -1,8 +1,10 @@
+using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Modules.Family.Application.Commands.InviteFamilyMemberByEmail;
+using FamilyHub.Modules.Family.Application.Commands.InviteFamilyMembers;
+using FamilyHub.Modules.Family.Presentation.GraphQL.Inputs;
+using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
 using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
-using HotChocolate.Authorization;
 using MediatR;
 
 namespace FamilyHub.Modules.Family.Presentation.GraphQL.Mutations;
@@ -13,9 +15,12 @@ namespace FamilyHub.Modules.Family.Presentation.GraphQL.Mutations;
 ///
 /// NOTE: Input/output types are still defined in Auth module to avoid circular dependencies.
 /// Auth module (which already references Family module) will use these mutations.
+///
+/// Authorization is applied via <see cref="IRequireOwnerOrAdminRole"/> interface,
+/// which is enforced by <see cref="AuthorizationTypeInterceptor"/> at GraphQL level.
 /// </summary>
 [ExtendObjectType("Mutation")]
-public sealed class InvitationMutations
+public sealed class InvitationMutations : IRequireOwnerOrAdminRole
 {
     /// <summary>
     /// Invites a family member via email with token-based invitation.
@@ -24,13 +29,8 @@ public sealed class InvitationMutations
     /// Input/Output types: Defined in Auth.Presentation.GraphQL (temporarily) to avoid circular dependency.
     /// Auth module's GraphQL layer will map to/from these using Family domain commands.
     /// </summary>
-    [Authorize(Policy = "RequireOwnerOrAdmin")]
+    [DefaultMutationErrors]
     [UseMutationConvention]
-    [Error(typeof(BusinessError))]
-    [Error(typeof(ValidationError))]
-    [Error(typeof(ValueObjectError))]
-    [Error(typeof(UnauthorizedError))]
-    [Error(typeof(InternalServerError))]
     public async Task<InviteFamilyMemberByEmailResult> InviteFamilyMemberByEmail(
         Guid familyId,
         string email,
@@ -47,7 +47,8 @@ public sealed class InvitationMutations
             Message: message
         );
 
-        var result = await mediator.Send(command, cancellationToken);
+        // Explicit type parameter needed because C# can't infer TResponse through ICommand<T> : IRequest<T>
+        var result = await mediator.Send<SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>(command, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -56,5 +57,38 @@ public sealed class InvitationMutations
 
         // Return the result directly (contains value objects)
         return result.Value;
+    }
+
+    /// <summary>
+    /// Invites multiple family members via email in a single batch operation.
+    /// Supports partial success - valid invitations succeed, invalid ones return errors.
+    /// Maximum 20 invitations per batch.
+    /// Requires OWNER or ADMIN role.
+    /// </summary>
+    [DefaultMutationErrors]
+    [UseMutationConvention]
+    public async Task<InviteFamilyMembersResult> InviteFamilyMembers(
+        InviteFamilyMembersInput input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        // Map input DTOs → command with value objects
+        var invitations = input.Invitations
+            .Select(i => new InvitationRequest(
+                Email: Email.From(i.Email),
+                Role: FamilyRole.From(i.Role)
+            ))
+            .ToList();
+
+        var command = new InviteFamilyMembersCommand(
+            FamilyId: FamilyId.From(input.FamilyId),
+            Invitations: invitations,
+            Message: input.Message
+        );
+
+        // Explicit type parameter needed because C# can't infer TResponse through ICommand<T> : IRequest<T>
+        var result = await mediator.Send<InviteFamilyMembersResult>(command, cancellationToken);
+
+        return result;
     }
 }

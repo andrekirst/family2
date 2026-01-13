@@ -1,12 +1,13 @@
+using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 using FamilyHub.Modules.Auth.Application.Commands.CancelInvitation;
 using FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
 using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 using HotChocolate.Authorization;
 using MediatR;
 
@@ -20,9 +21,12 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
 /// - CancelInvitation (temporarily, until Phase 5+)
 /// - UpdateInvitationRole (temporarily, until Phase 5+)
 /// - AcceptInvitation (modifies User to add family membership)
+///
+/// Authorization is applied via <see cref="IRequireOwnerOrAdminRole"/> interface.
+/// Individual methods can override with explicit [Authorize] attribute (e.g., AcceptInvitation).
 /// </summary>
 [ExtendObjectType("Mutation")]
-public sealed class InvitationMutations
+public sealed class InvitationMutations : IRequireOwnerOrAdminRole
 {
     // NOTE: InviteFamilyMemberByEmail moved to Family.Presentation.GraphQL.Mutations.InvitationMutations
     // It uses Family.Application.Commands.InviteFamilyMemberByEmailCommand
@@ -30,15 +34,10 @@ public sealed class InvitationMutations
 
     /// <summary>
     /// Cancels a pending invitation.
-    /// Requires OWNER or ADMIN role.
+    /// Requires OWNER or ADMIN role (via class-level IRequireOwnerOrAdminRole).
     /// </summary>
-    [Authorize(Policy = "RequireOwnerOrAdmin")]
+    [DefaultMutationErrors]
     [UseMutationConvention]
-    [Error(typeof(BusinessError))]
-    [Error(typeof(ValidationError))]
-    [Error(typeof(ValueObjectError))]
-    [Error(typeof(UnauthorizedError))]
-    [Error(typeof(InternalServerError))]
     public async Task<bool> CancelInvitation(
         CancelInvitationInput input,
         [Service] IMediator mediator,
@@ -48,7 +47,8 @@ public sealed class InvitationMutations
             InvitationId: InvitationId.From(input.InvitationId)
         );
 
-        var result = await mediator.Send(command, cancellationToken);
+        // Explicit type parameter needed because C# can't infer TResponse through ICommand<T> : IRequest<T>
+        var result = await mediator.Send<FamilyHub.SharedKernel.Domain.Result>(command, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -66,15 +66,10 @@ public sealed class InvitationMutations
 
     /// <summary>
     /// Updates the role of a pending invitation.
-    /// Requires OWNER or ADMIN role.
+    /// Requires OWNER or ADMIN role (via class-level IRequireOwnerOrAdminRole).
     /// </summary>
-    [Authorize(Policy = "RequireOwnerOrAdmin")]
+    [DefaultMutationErrors]
     [UseMutationConvention]
-    [Error(typeof(BusinessError))]
-    [Error(typeof(ValidationError))]
-    [Error(typeof(ValueObjectError))]
-    [Error(typeof(UnauthorizedError))]
-    [Error(typeof(InternalServerError))]
     public async Task<UpdatedInvitationDto> UpdateInvitationRole(
         UpdateInvitationRoleInput input,
         [Service] IMediator mediator,
@@ -85,7 +80,8 @@ public sealed class InvitationMutations
             NewRole: FamilyRole.From(input.NewRole)
         );
 
-        var result = await mediator.Send(command, cancellationToken);
+        // Explicit type parameter needed because C# can't infer TResponse through ICommand<T> : IRequest<T>
+        var result = await mediator.Send<FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>>(command, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -103,15 +99,12 @@ public sealed class InvitationMutations
 
     /// <summary>
     /// Accepts a family invitation using a token.
-    /// No authorization required - allows invitees to join without being authenticated members yet.
+    /// Only requires authentication (not Owner/Admin) - allows invitees to join.
+    /// Explicit [Authorize] overrides class-level IRequireOwnerOrAdminRole.
     /// </summary>
-    [Authorize] // User must be authenticated (but doesn't need to be a family member yet)
+    [Authorize] // Override: User must be authenticated (but doesn't need Owner/Admin role)
+    [DefaultMutationErrors]
     [UseMutationConvention]
-    [Error(typeof(BusinessError))]
-    [Error(typeof(ValidationError))]
-    [Error(typeof(ValueObjectError))]
-    [Error(typeof(UnauthorizedError))]
-    [Error(typeof(InternalServerError))]
     public async Task<AcceptedInvitationDto> AcceptInvitation(
         AcceptInvitationInput input,
         [Service] IMediator mediator,
@@ -121,7 +114,8 @@ public sealed class InvitationMutations
             Token: InvitationToken.From(input.Token)
         );
 
-        var result = await mediator.Send(command, cancellationToken);
+        // Explicit type parameter needed because C# can't infer TResponse through ICommand<T> : IRequest<T>
+        var result = await mediator.Send<FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>(command, cancellationToken);
 
         if (!result.IsSuccess)
         {

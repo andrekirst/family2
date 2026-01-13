@@ -25,7 +25,8 @@ public sealed class AuthTypeExtensions
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetAuthUrlQuery(loginHint), cancellationToken);
+        // Explicit type parameter needed because C# can't infer TResponse through IQuery<T> : IRequest<T>
+        var result = await mediator.Send<GetAuthUrlResult>(new GetAuthUrlQuery(loginHint), cancellationToken);
 
         return new AuthUrlPayload
         {

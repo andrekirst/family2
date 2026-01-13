@@ -1,5 +1,5 @@
 using FamilyHub.Modules.Family.Domain.Specifications;
-using MediatR;
+using FamilyHub.SharedKernel.Application.CQRS;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 
@@ -10,7 +10,7 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 /// <param name="invitationRepository">Repository for invitation data access.</param>
 public sealed class GetInvitationByTokenQueryHandler(
     IFamilyMemberInvitationRepository invitationRepository)
-    : IRequestHandler<GetInvitationByTokenQuery, GetInvitationByTokenResult?>
+    : IQueryHandler<GetInvitationByTokenQuery, GetInvitationByTokenResult?>
 {
     /// <inheritdoc />
     public async Task<GetInvitationByTokenResult?> Handle(

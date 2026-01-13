@@ -1,5 +1,5 @@
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
-using MediatR;
+using FamilyHub.SharedKernel.Application.CQRS;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 
@@ -8,6 +8,6 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 /// Requires Owner or Admin role.
 /// FamilyId is automatically extracted from IUserContext by the handler.
 /// </summary>
-public sealed record GetPendingInvitationsQuery : IRequest<GetPendingInvitationsResult>,
+public sealed record GetPendingInvitationsQuery : IQuery<GetPendingInvitationsResult>,
       IRequireFamilyContext,
       IRequireOwnerOrAdminRole;

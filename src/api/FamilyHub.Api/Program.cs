@@ -102,6 +102,7 @@ try
         .AddMutationType(d => d.Name("Mutation"))
         .AddMutationConventions() // Enable mutation conventions for declarative error handling
         .AddAuthorization() // Enable authorization for GraphQL (requires HotChocolate.AspNetCore.Authorization)
+        .TryAddTypeInterceptor<FamilyHub.Infrastructure.GraphQL.Interceptors.AuthorizationTypeInterceptor>() // Apply authorization via IRequireXXX interfaces on mutation classes
         .AddFiltering()
         .AddSorting()
         .AddProjections() // Re-enabled - works correctly when FamilyType is properly registered

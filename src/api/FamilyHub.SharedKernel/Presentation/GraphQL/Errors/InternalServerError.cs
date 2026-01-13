@@ -4,7 +4,7 @@ namespace FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 /// Represents an unexpected internal error.
 /// Maps from Exception (catch-all).
 /// </summary>
-public sealed class InternalServerError : BaseError
+public sealed class InternalServerError : BaseError, IDefaultMutationError
 {
     /// <summary>
     /// Initializes a new instance of the InternalServerError class from an Exception.

@@ -3,7 +3,7 @@ using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Interfaces;
-using MediatR;
+using FamilyHub.SharedKernel.Application.CQRS;
 using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
@@ -27,7 +27,7 @@ public sealed partial class AcceptInvitationCommandHandler(
     IValidationCache validationCache,
     IUnitOfWork unitOfWork,
     ILogger<AcceptInvitationCommandHandler> logger)
-    : IRequestHandler<AcceptInvitationCommand, FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>
+    : ICommandHandler<AcceptInvitationCommand, FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>
 {
     /// <inheritdoc />
     public async Task<FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>> Handle(

@@ -1,6 +1,6 @@
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using MediatR;
 
 namespace FamilyHub.Modules.Family.Application.Commands.InviteFamilyMemberByEmail;
 
@@ -18,6 +18,6 @@ public record InviteFamilyMemberByEmailCommand(
     Email Email,
     FamilyRole Role,
     string? Message = null
-) : IRequest<FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>,
+) : ICommand<FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>,
     IRequireFamilyContext,
     IRequireOwnerOrAdminRole;

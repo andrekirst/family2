@@ -1,4 +1,4 @@
-using MediatR;
+using FamilyHub.SharedKernel.Application.CQRS;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 
@@ -8,4 +8,4 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 public sealed record CompleteZitadelLoginCommand(
     string AuthorizationCode,
     string CodeVerifier
-) : IRequest<CompleteZitadelLoginResult>;
+) : ICommand<CompleteZitadelLoginResult>;

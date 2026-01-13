@@ -4,7 +4,7 @@ namespace FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 /// Represents a Vogen value object validation error.
 /// Maps from ValueObjectValidationException.
 /// </summary>
-public sealed class ValueObjectError : BaseError
+public sealed class ValueObjectError : BaseError, IDefaultMutationError
 {
     /// <summary>
     /// Initializes a new instance of the ValueObjectError class from a ValueObjectValidationException.
