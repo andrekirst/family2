@@ -95,13 +95,24 @@ public sealed class ModuleBoundaryExceptionTests : ArchitectureTestBase
                 var issues = new List<string>();
 
                 if (string.IsNullOrWhiteSpace(reason.Phase))
+                {
                     issues.Add("missing Phase");
+                }
+
                 if (string.IsNullOrWhiteSpace(reason.Reason))
+                {
                     issues.Add("missing Reason");
+                }
+
                 if (string.IsNullOrWhiteSpace(reason.Ticket))
+                {
                     issues.Add("missing Ticket");
+                }
+
                 if (string.IsNullOrWhiteSpace(reason.PlannedRemoval))
+                {
                     issues.Add("missing PlannedRemoval");
+                }
 
                 if (issues.Count > 0)
                 {

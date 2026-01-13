@@ -1,6 +1,6 @@
+using FamilyHub.Tests.Architecture.Helpers;
 using FluentValidation;
 using MediatR;
-using FamilyHub.Tests.Architecture.Helpers;
 using NetArchTest.Rules;
 
 namespace FamilyHub.Tests.Architecture;

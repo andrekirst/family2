@@ -315,7 +315,7 @@ public sealed class PostgresRlsContextMiddlewareTests
         // Act - Simulate middleware's decision logic
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? user.FindFirst("sub")?.Value;
-        Guid parsedUserId = Guid.Empty;
+        var parsedUserId = Guid.Empty;
         var shouldSetRls = !string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out parsedUserId);
 
         // Assert

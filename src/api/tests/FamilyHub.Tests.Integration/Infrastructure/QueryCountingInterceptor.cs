@@ -92,7 +92,10 @@ public sealed class QueryCountingInterceptor : DbCommandInterceptor
     private static void IncrementIfSelect(DbCommand command)
     {
         var testId = CurrentTestId.Value;
-        if (testId == null) return;
+        if (testId == null)
+        {
+            return;
+        }
 
         var commandText = command.CommandText;
         // Only count SELECT queries (not INSERT, UPDATE, DELETE, or schema operations)

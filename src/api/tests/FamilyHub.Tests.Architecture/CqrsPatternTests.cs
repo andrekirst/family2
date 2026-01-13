@@ -1,8 +1,8 @@
 using System.Reflection;
-using FluentValidation;
-using MediatR;
 using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Family.Domain.Aggregates;
+using FluentValidation;
+using MediatR;
 
 namespace FamilyHub.Tests.Architecture;
 

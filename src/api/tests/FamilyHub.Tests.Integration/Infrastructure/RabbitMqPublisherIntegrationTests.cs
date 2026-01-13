@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using FamilyHub.Infrastructure.Messaging;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -5,8 +7,6 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Text;
-using System.Text.Json;
 using Xunit;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
