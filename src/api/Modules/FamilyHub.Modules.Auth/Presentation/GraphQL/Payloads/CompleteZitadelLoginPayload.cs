@@ -44,6 +44,13 @@ public sealed record CompleteZitadelLoginPayload
 /// </summary>
 public sealed record UserError
 {
+    /// <summary>
+    /// Gets the human-readable error message.
+    /// </summary>
     public required string Message { get; init; }
+
+    /// <summary>
+    /// Gets the optional error code for programmatic handling.
+    /// </summary>
     public string? Code { get; init; }
 }

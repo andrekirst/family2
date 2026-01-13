@@ -1,5 +1,4 @@
 using FamilyHub.Tests.Architecture.Helpers;
-using NetArchTest.Rules;
 
 namespace FamilyHub.Tests.Architecture;
 

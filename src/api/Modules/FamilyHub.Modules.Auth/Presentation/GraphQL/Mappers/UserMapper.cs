@@ -17,7 +17,7 @@ public static class UserMapper
     /// </summary>
     /// <param name="user">User domain entity</param>
     /// <returns>UserType for GraphQL response</returns>
-    public static UserType AsGraphQLType(User user)
+    public static UserType AsGraphQlType(User user)
     {
         return new UserType
         {

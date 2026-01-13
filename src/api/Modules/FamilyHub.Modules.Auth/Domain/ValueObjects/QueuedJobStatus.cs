@@ -16,9 +16,24 @@ public readonly partial struct QueuedJobStatus
         QueuedJobStatusConstants.FailedValue
     ];
 
+    /// <summary>
+    /// Job is waiting to be processed.
+    /// </summary>
     public static readonly QueuedJobStatus Pending = From(QueuedJobStatusConstants.PendingValue);
+
+    /// <summary>
+    /// Job is currently being processed.
+    /// </summary>
     public static readonly QueuedJobStatus Processing = From(QueuedJobStatusConstants.ProcessingValue);
+
+    /// <summary>
+    /// Job has completed successfully.
+    /// </summary>
     public static readonly QueuedJobStatus Completed = From(QueuedJobStatusConstants.CompletedValue);
+
+    /// <summary>
+    /// Job has failed during processing.
+    /// </summary>
     public static readonly QueuedJobStatus Failed = From(QueuedJobStatusConstants.FailedValue);
 
     private static Validation Validate(string value)

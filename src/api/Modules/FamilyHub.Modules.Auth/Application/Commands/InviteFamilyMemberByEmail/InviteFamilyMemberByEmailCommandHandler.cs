@@ -15,6 +15,11 @@ namespace FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 /// Validates business rules and creates an email-based invitation.
 /// User context and authorization are handled by pipeline behaviors.
 /// </summary>
+/// <param name="userContext">The current authenticated user context.</param>
+/// <param name="familyService">Service for family operations via anti-corruption layer.</param>
+/// <param name="invitationRepository">Repository for invitation data access.</param>
+/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IUserContext userContext,
     IFamilyService familyService,
@@ -23,6 +28,7 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     ILogger<InviteFamilyMemberByEmailCommandHandler> logger)
     : IRequestHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
 {
+    /// <inheritdoc />
     public async Task<FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>> Handle(
         InviteFamilyMemberByEmailCommand request,
         CancellationToken cancellationToken)

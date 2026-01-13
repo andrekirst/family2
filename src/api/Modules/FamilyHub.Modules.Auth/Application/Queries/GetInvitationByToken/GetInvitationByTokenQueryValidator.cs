@@ -13,6 +13,10 @@ public sealed class GetInvitationByTokenQueryValidator : AbstractValidator<GetIn
 {
     private readonly IFamilyMemberInvitationRepository _invitationRepository;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GetInvitationByTokenQueryValidator"/> class.
+    /// </summary>
+    /// <param name="invitationRepository">Repository for invitation data access.</param>
     public GetInvitationByTokenQueryValidator(IFamilyMemberInvitationRepository invitationRepository)
     {
         _invitationRepository = invitationRepository;

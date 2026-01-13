@@ -15,6 +15,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Serilog;
+using System.Net.Mime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,7 +105,7 @@ try
         .AddFiltering()
         .AddSorting()
         .AddProjections() // Re-enabled - works correctly when FamilyType is properly registered
-        .AddErrorFilter<GraphQLErrorFilter>() // Centralized exception → GraphQL error mapping
+        .AddErrorFilter<GraphQlErrorFilter>() // Centralized exception → GraphQL error mapping
         .AddDiagnosticEventListener<GraphQlLoggingInterceptor>() // GraphQL operation logging
         .ModifyRequestOptions(opt =>
         {
@@ -274,7 +275,7 @@ finally
 // Writes health check results as JSON response
 static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
 {
-    context.Response.ContentType = "application/json";
+    context.Response.ContentType = MediaTypeNames.Application.Json;
 
     var result = new
     {
@@ -295,5 +296,8 @@ static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
     return context.Response.WriteAsJsonAsync(result);
 }
 
-// Make Program class accessible for integration testing
+/// <summary>
+/// Main application entry point.
+/// Partial class declaration for WebApplicationFactory integration testing.
+/// </summary>
 public partial class Program { }

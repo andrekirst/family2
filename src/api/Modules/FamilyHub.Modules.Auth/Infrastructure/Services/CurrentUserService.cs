@@ -11,6 +11,8 @@ namespace FamilyHub.Modules.Auth.Infrastructure.Services;
 /// Implementation of current user service using HTTP context to access JWT claims.
 /// Works with Zitadel OAuth - maps Zitadel's 'sub' claim to internal UserId.
 /// </summary>
+/// <param name="httpContextAccessor">Accessor for the HTTP context containing JWT claims.</param>
+/// <param name="userRepository">Repository for user data access.</param>
 public sealed class CurrentUserService(
     IHttpContextAccessor httpContextAccessor,
     IUserRepository userRepository)

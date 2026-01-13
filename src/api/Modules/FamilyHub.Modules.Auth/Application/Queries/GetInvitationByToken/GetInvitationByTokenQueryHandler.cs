@@ -7,10 +7,12 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 /// Handles queries to retrieve invitation details by token.
 /// Validation (invitation exists and is pending) is handled by GetInvitationByTokenQueryValidator.
 /// </summary>
+/// <param name="invitationRepository">Repository for invitation data access.</param>
 public sealed class GetInvitationByTokenQueryHandler(
     IFamilyMemberInvitationRepository invitationRepository)
     : IRequestHandler<GetInvitationByTokenQuery, GetInvitationByTokenResult?>
 {
+    /// <inheritdoc />
     public async Task<GetInvitationByTokenResult?> Handle(
         GetInvitationByTokenQuery request,
         CancellationToken cancellationToken)

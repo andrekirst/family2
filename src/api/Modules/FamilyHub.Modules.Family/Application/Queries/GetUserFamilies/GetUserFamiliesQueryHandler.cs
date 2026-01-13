@@ -7,6 +7,7 @@ namespace FamilyHub.Modules.Family.Application.Queries.GetUserFamilies;
 /// Handler for GetUserFamiliesQuery.
 /// Retrieves all families that a user belongs to.
 /// </summary>
+/// <param name="familyRepository">Repository for family data access.</param>
 public sealed class GetUserFamiliesQueryHandler(
     IFamilyRepository familyRepository)
     : IRequestHandler<GetUserFamiliesQuery, GetUserFamiliesResult>

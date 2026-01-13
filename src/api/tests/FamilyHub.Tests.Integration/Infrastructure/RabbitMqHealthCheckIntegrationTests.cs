@@ -13,16 +13,9 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// Tests actual health check behavior with a running RabbitMQ instance.
 /// </summary>
 [Collection("RabbitMQ")]
-public sealed class RabbitMqHealthCheckIntegrationTests
+public sealed class RabbitMqHealthCheckIntegrationTests(RabbitMqContainerFixture fixture)
 {
-    private readonly RabbitMqContainerFixture _fixture;
-    private readonly ILogger<RabbitMqHealthCheck> _logger;
-
-    public RabbitMqHealthCheckIntegrationTests(RabbitMqContainerFixture fixture)
-    {
-        _fixture = fixture;
-        _logger = Substitute.For<ILogger<RabbitMqHealthCheck>>();
-    }
+    private readonly ILogger<RabbitMqHealthCheck> _logger = Substitute.For<ILogger<RabbitMqHealthCheck>>();
 
     [Fact]
     public async Task CheckHealthAsync_WithRunningRabbitMq_ReturnsHealthy()
@@ -30,10 +23,10 @@ public sealed class RabbitMqHealthCheckIntegrationTests
         // Arrange
         var settings = new RabbitMqSettings
         {
-            Host = _fixture.Host,
-            Port = _fixture.Port,
-            Username = _fixture.Username,
-            Password = _fixture.Password
+            Host = fixture.Host,
+            Port = fixture.Port,
+            Username = fixture.Username,
+            Password = fixture.Password
         };
         var healthCheck = new RabbitMqHealthCheck(_logger, Options.Create(settings));
         var context = new HealthCheckContext();
@@ -52,10 +45,10 @@ public sealed class RabbitMqHealthCheckIntegrationTests
         // Arrange
         var settings = new RabbitMqSettings
         {
-            Host = _fixture.Host,
-            Port = _fixture.Port,
-            Username = _fixture.Username,
-            Password = _fixture.Password
+            Host = fixture.Host,
+            Port = fixture.Port,
+            Username = fixture.Username,
+            Password = fixture.Password
         };
         var healthCheck = new RabbitMqHealthCheck(_logger, Options.Create(settings));
         var context = new HealthCheckContext();
@@ -98,8 +91,8 @@ public sealed class RabbitMqHealthCheckIntegrationTests
         // Arrange
         var settings = new RabbitMqSettings
         {
-            Host = _fixture.Host,
-            Port = _fixture.Port,
+            Host = fixture.Host,
+            Port = fixture.Port,
             Username = "wrong_user",
             Password = "wrong_password"
         };

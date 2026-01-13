@@ -16,6 +16,7 @@ public partial class ExpiredInvitationCleanupJob(
     ILogger<ExpiredInvitationCleanupJob> logger)
     : IJob
 {
+    /// <inheritdoc />
     public async Task Execute(IJobExecutionContext context)
     {
         logger.LogInformation("ExpiredInvitationCleanupJob starting execution");

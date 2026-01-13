@@ -17,35 +17,28 @@ namespace FamilyHub.Modules.Family.Persistence.Repositories;
 /// - This query is handled via IUserLookupService abstraction
 /// - This maintains bounded context separation while enabling necessary cross-module operations
 /// </summary>
-public sealed class FamilyMemberInvitationRepository : IFamilyMemberInvitationRepository
+/// <param name="context">The Family module database context.</param>
+/// <param name="userLookupService">Service for cross-module user lookups.</param>
+public sealed class FamilyMemberInvitationRepository(FamilyDbContext context, IUserLookupService userLookupService) : IFamilyMemberInvitationRepository
 {
-    private readonly FamilyDbContext _context;
-    private readonly IUserLookupService _userLookupService;
-
-    public FamilyMemberInvitationRepository(FamilyDbContext context, IUserLookupService userLookupService)
-    {
-        _context = context;
-        _userLookupService = userLookupService;
-    }
-
     /// <inheritdoc />
     public async Task<FamilyMemberInvitation?> GetByIdAsync(InvitationId id, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<FamilyMemberInvitation?> GetByTokenAsync(InvitationToken token, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .FirstOrDefaultAsync(i => i.Token == token, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<List<FamilyMemberInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .Where(i => i.FamilyId == familyId && i.Status == InvitationStatus.Pending)
             .ToListAsync(cancellationToken);
     }
@@ -53,7 +46,7 @@ public sealed class FamilyMemberInvitationRepository : IFamilyMemberInvitationRe
     /// <inheritdoc />
     public async Task<FamilyMemberInvitation?> GetPendingByEmailAsync(FamilyId familyId, Email email, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .FirstOrDefaultAsync(
                 i => i.FamilyId == familyId
                     && i.Email == email
@@ -64,7 +57,7 @@ public sealed class FamilyMemberInvitationRepository : IFamilyMemberInvitationRe
     /// <inheritdoc />
     public async Task<List<FamilyMemberInvitation>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .Where(i => i.FamilyId == familyId)
             .ToListAsync(cancellationToken);
     }
@@ -73,7 +66,7 @@ public sealed class FamilyMemberInvitationRepository : IFamilyMemberInvitationRe
     public async Task AddAsync(FamilyMemberInvitation invitation, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(invitation);
-        await _context.FamilyMemberInvitations.AddAsync(invitation, cancellationToken);
+        await context.FamilyMemberInvitations.AddAsync(invitation, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -81,7 +74,7 @@ public sealed class FamilyMemberInvitationRepository : IFamilyMemberInvitationRe
     {
         ArgumentNullException.ThrowIfNull(invitation);
         // EF Core tracks changes automatically when entities are loaded from the context
-        _context.FamilyMemberInvitations.Update(invitation);
+        context.FamilyMemberInvitations.Update(invitation);
         return Task.CompletedTask;
     }
 
@@ -89,13 +82,13 @@ public sealed class FamilyMemberInvitationRepository : IFamilyMemberInvitationRe
     public async Task<bool> IsUserMemberOfFamilyAsync(FamilyId familyId, Email email, CancellationToken cancellationToken = default)
     {
         // Use IUserLookupService for cross-module query to Auth module
-        return await _userLookupService.IsEmailMemberOfFamilyAsync(familyId, email, cancellationToken);
+        return await userLookupService.IsEmailMemberOfFamilyAsync(familyId, email, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<List<FamilyMemberInvitation>> GetExpiredInvitationsForCleanupAsync(DateTime expirationThreshold, CancellationToken cancellationToken = default)
     {
-        return await _context.FamilyMemberInvitations
+        return await context.FamilyMemberInvitations
             .Where(i => i.ExpiresAt < expirationThreshold && i.Status == InvitationStatus.Expired)
             .ToListAsync(cancellationToken);
     }
@@ -104,6 +97,6 @@ public sealed class FamilyMemberInvitationRepository : IFamilyMemberInvitationRe
     public void RemoveInvitations(List<FamilyMemberInvitation> invitations)
     {
         ArgumentNullException.ThrowIfNull(invitations);
-        _context.FamilyMemberInvitations.RemoveRange(invitations);
+        context.FamilyMemberInvitations.RemoveRange(invitations);
     }
 }

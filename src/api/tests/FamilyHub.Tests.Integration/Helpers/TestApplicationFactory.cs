@@ -16,15 +16,8 @@ namespace FamilyHub.Tests.Integration.Helpers;
 /// Custom WebApplicationFactory for integration tests that provides TestCurrentUserService.
 /// Zitadel mock configuration is set up by TestEnvironmentSetup module initializer.
 /// </summary>
-public sealed class TestApplicationFactory : WebApplicationFactory<Program>
+public sealed class TestApplicationFactory(PostgreSqlContainerFixture containerFixture) : WebApplicationFactory<Program>
 {
-    private readonly PostgreSqlContainerFixture _containerFixture;
-
-    public TestApplicationFactory(PostgreSqlContainerFixture containerFixture)
-    {
-        _containerFixture = containerFixture;
-    }
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
 
@@ -39,7 +32,7 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
             // Add AuthDbContext with test container connection string
             // Use AddPooledDbContextFactory to match production setup (singleton-safe)
             services.AddPooledDbContextFactory<AuthDbContext>((serviceProvider, options) =>
-                options.UseNpgsql(_containerFixture.ConnectionString, npgsqlOptions =>
+                options.UseNpgsql(containerFixture.ConnectionString, npgsqlOptions =>
                     {
                         // Specify migrations assembly explicitly
                         // Migrations are in FamilyHub.Modules.Auth assembly, not test assembly
@@ -73,18 +66,11 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
     /// Hosted service that applies EF Core migrations on startup.
     /// This runs after all services are registered and the host is built.
     /// </summary>
-    private class MigrationHostedService : IHostedService
+    private class MigrationHostedService(IServiceProvider serviceProvider) : IHostedService
     {
-        private readonly IServiceProvider _serviceProvider;
-
-        public MigrationHostedService(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
-
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            using var scope = _serviceProvider.CreateScope();
+            using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
             // Debug: Check migrations assembly configuration

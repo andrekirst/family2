@@ -155,29 +155,31 @@ public static class AuthModuleServiceRegistration
     /// <param name="loggerFactory">Optional logger factory for diagnostics.</param>
     /// <returns>The builder for chaining.</returns>
     /// <remarks>
+    /// <para>
     /// This method scans the Auth module assembly for GraphQL type extensions and automatically
     /// registers them with Hot Chocolate. Type extensions include:
-    /// - Queries (classes decorated with [ExtendObjectType("Query")])
-    /// - Mutations (classes decorated with [ExtendObjectType("Mutation")])
-    ///
-    /// PHASE 4 UPDATE: Family GraphQL schema extracted to Family module.
-    /// Moved to Family module:
-    /// - FamilyType (core GraphQL type)
-    /// - FamilyQueries (using SharedKernel.IUserContext)
-    /// - FamilyMutations (CreateFamily - invokes Auth command)
-    /// - InviteFamilyMemberByEmail mutation
-    /// Auth module retains:
-    /// - UserType, UserTypeExtensions
-    /// - FamilyTypeExtensions (requires User data for Members/Owner - temporary)
-    /// - AcceptInvitation, CancelInvitation mutations (modify User aggregate)
-    /// PHASE 5: IUserLookupService implemented for proper cross-module abstraction
-    ///
-    /// Example usage in Program.cs:
+    /// </para>
+    /// <list type="bullet">
+    /// <item><description>Queries (classes decorated with [ExtendObjectType("Query")])</description></item>
+    /// <item><description>Mutations (classes decorated with [ExtendObjectType("Mutation")])</description></item>
+    /// </list>
+    /// <para>
+    /// <strong>Auth module owns:</strong> UserType, UserTypeExtensions, FamilyTypeExtensions
+    /// (requires User data for Members/Owner), AcceptInvitation and CancelInvitation mutations
+    /// (modify User aggregate).
+    /// </para>
+    /// <para>
+    /// <strong>Family module owns:</strong> FamilyType, FamilyQueries, FamilyMutations,
+    /// InviteFamilyMemberByEmail mutation. Cross-module queries use IUserLookupService
+    /// for proper bounded context separation.
+    /// </para>
+    /// </remarks>
+    /// <example>
     /// <code>
     /// var loggerFactory = builder.Services.BuildServiceProvider().GetService&lt;ILoggerFactory&gt;();
-    /// graphqlBuilder.AddAuthModuleGraphQLTypes(loggerFactory);
+    /// graphqlBuilder.AddAuthModuleGraphQlTypes(loggerFactory);
     /// </code>
-    /// </remarks>
+    /// </example>
     public static IRequestExecutorBuilder AddAuthModuleGraphQlTypes(
         this IRequestExecutorBuilder builder,
         ILoggerFactory? loggerFactory = null)

@@ -34,7 +34,7 @@ public static class TestConstants
     public const string AbstractionsSuffix = ".Abstractions";
 
     // Presentation patterns
-    public const string GraphQLSuffix = ".GraphQL";
+    public const string GraphQlSuffix = ".GraphQL";
     public const string MutationsSuffix = ".Mutations";
     public const string InputsSuffix = ".Inputs";
     public const string PayloadsSuffix = ".Payloads";

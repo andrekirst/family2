@@ -13,6 +13,7 @@ namespace FamilyHub.Api.Infrastructure;
 /// </remarks>
 public sealed class TestAuthorizationHandler : IAuthorizationHandler
 {
+    /// <inheritdoc />
     public Task HandleAsync(AuthorizationHandlerContext context)
     {
         foreach (var requirement in context.PendingRequirements.ToList())

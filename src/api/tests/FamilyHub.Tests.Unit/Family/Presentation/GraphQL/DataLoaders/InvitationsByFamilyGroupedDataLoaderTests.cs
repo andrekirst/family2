@@ -17,16 +17,9 @@ namespace FamilyHub.Tests.Unit.Family.Presentation.GraphQL.DataLoaders;
 /// </summary>
 public sealed class InvitationsByFamilyGroupedDataLoaderTests : IDisposable
 {
-    private readonly DataLoaderTestFixture<FamilyDbContext> _fixture;
-    private readonly IBatchScheduler _batchScheduler;
-    private readonly DataLoaderOptions _options;
-
-    public InvitationsByFamilyGroupedDataLoaderTests()
-    {
-        _fixture = new DataLoaderTestFixture<FamilyDbContext>();
-        _batchScheduler = new AutoBatchScheduler();
-        _options = new DataLoaderOptions();
-    }
+    private readonly DataLoaderTestFixture<FamilyDbContext> _fixture = new();
+    private readonly IBatchScheduler _batchScheduler = new AutoBatchScheduler();
+    private readonly DataLoaderOptions _options = new();
 
     #region Happy Path Tests
 

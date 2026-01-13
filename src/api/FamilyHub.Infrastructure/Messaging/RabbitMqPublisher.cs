@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using FamilyHub.SharedKernel.Interfaces;
@@ -119,7 +120,7 @@ public sealed partial class RabbitMqPublisher : IMessageBrokerPublisher, IAsyncD
 
             var properties = new BasicProperties
             {
-                ContentType = "application/json",
+                ContentType = MediaTypeNames.Application.Json,
                 ContentEncoding = "utf-8",
                 DeliveryMode = DeliveryModes.Persistent,
                 Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),

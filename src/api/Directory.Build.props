@@ -14,6 +14,6 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Suppress CS1591 (missing XML comments) until documentation is completed -->
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- NoWarn disabled for audit -->
   </PropertyGroup>
 </Project>

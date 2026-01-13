@@ -17,6 +17,11 @@ namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 /// Entities are retrieved from IValidationCache (populated by validator).
 /// SPECIAL CASE: User may not have a family yet (joining via invitation).
 /// </summary>
+/// <param name="userContext">The current authenticated user context.</param>
+/// <param name="invitationRepository">Repository for invitation data access.</param>
+/// <param name="validationCache">Cache containing validated entities from validator.</param>
+/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class AcceptInvitationCommandHandler(
     IUserContext userContext,
     IFamilyMemberInvitationRepository invitationRepository,
@@ -25,6 +30,7 @@ public sealed partial class AcceptInvitationCommandHandler(
     ILogger<AcceptInvitationCommandHandler> logger)
     : IRequestHandler<AcceptInvitationCommand, FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>
 {
+    /// <inheritdoc />
     public async Task<FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>> Handle(
         AcceptInvitationCommand request,
         CancellationToken cancellationToken)

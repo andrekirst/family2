@@ -20,6 +20,7 @@ public sealed partial class GetAuthUrlQueryHandler(
 {
     private readonly ZitadelSettings _settings = settings.Value;
 
+    /// <inheritdoc />
     public Task<GetAuthUrlResult> Handle(GetAuthUrlQuery request, CancellationToken cancellationToken)
     {
         LogGeneratingOauthAuthorizationUrlWithPkce(logger);

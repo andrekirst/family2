@@ -12,24 +12,20 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders;
 /// Uses IDbContextFactory for proper DbContext pooling to avoid conflicts
 /// when DataLoader executes after the main request scope is disposed.
 /// </summary>
-public sealed class UsersByFamilyGroupedDataLoader : GroupedDataLoader<FamilyId, User>
+/// <param name="dbContextFactory">Factory for creating Auth DbContext instances.</param>
+/// <param name="batchScheduler">Scheduler for batching DataLoader requests.</param>
+/// <param name="options">Options for DataLoader configuration.</param>
+public sealed class UsersByFamilyGroupedDataLoader(
+    IDbContextFactory<AuthDbContext> dbContextFactory,
+    IBatchScheduler batchScheduler,
+    DataLoaderOptions options) : GroupedDataLoader<FamilyId, User>(batchScheduler, options)
 {
-    private readonly IDbContextFactory<AuthDbContext> _dbContextFactory;
-
-    public UsersByFamilyGroupedDataLoader(
-        IDbContextFactory<AuthDbContext> dbContextFactory,
-        IBatchScheduler batchScheduler,
-        DataLoaderOptions options)
-        : base(batchScheduler, options)
-    {
-        _dbContextFactory = dbContextFactory;
-    }
-
+    /// <inheritdoc />
     protected override async Task<ILookup<FamilyId, User>> LoadGroupedBatchAsync(
         IReadOnlyList<FamilyId> keys,
         CancellationToken cancellationToken)
     {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         // Single query with WHERE family_id IN (...) for all requested families
         // The Vogen EfCoreValueConverter handles FamilyId <-> Guid conversion

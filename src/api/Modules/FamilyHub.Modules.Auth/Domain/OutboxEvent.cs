@@ -81,7 +81,7 @@ public class OutboxEvent : Entity<OutboxEventId>
             AggregateType = aggregateType,
             AggregateId = aggregateId,
             Payload = payload,
-            Status = OutboxEventStatus.Pending,
+            Status = OutboxEventStatus.PENDING,
             RetryCount = 0
         };
     }
@@ -91,7 +91,7 @@ public class OutboxEvent : Entity<OutboxEventId>
     /// </summary>
     public void MarkAsProcessed()
     {
-        Status = OutboxEventStatus.Processed;
+        Status = OutboxEventStatus.PROCESSED;
         ProcessedAt = DateTime.UtcNow;
         ErrorMessage = null;
     }
@@ -116,7 +116,7 @@ public class OutboxEvent : Entity<OutboxEventId>
     /// </summary>
     public void MarkAsPermanentlyFailed(string errorMessage)
     {
-        Status = OutboxEventStatus.Failed;
+        Status = OutboxEventStatus.FAILED;
         ErrorMessage = errorMessage;
     }
 
@@ -125,7 +125,7 @@ public class OutboxEvent : Entity<OutboxEventId>
     /// </summary>
     public void ResetToPending()
     {
-        Status = OutboxEventStatus.Pending;
+        Status = OutboxEventStatus.PENDING;
         ProcessedAt = null;
     }
 
@@ -147,16 +147,16 @@ public enum OutboxEventStatus
     /// <summary>
     /// Event is waiting to be published.
     /// </summary>
-    Pending = 0,
+    PENDING = 0,
 
     /// <summary>
     /// Event has been successfully published to RabbitMQ.
     /// </summary>
-    Processed = 1,
+    PROCESSED = 1,
 
     /// <summary>
     /// Event publishing failed after maximum retry attempts.
     /// Requires manual intervention.
     /// </summary>
-    Failed = 2
+    FAILED = 2
 }

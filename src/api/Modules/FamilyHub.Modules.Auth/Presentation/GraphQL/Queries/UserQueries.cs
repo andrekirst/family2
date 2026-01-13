@@ -35,6 +35,6 @@ public sealed class UserQueries
         var user = await userRepository.GetByIdAsync(authenticatedUserId, cancellationToken) ?? throw new InvalidOperationException($"User with ID {authenticatedUserId.Value} not found.");
 
         // Map to GraphQL type using mapper
-        return UserMapper.AsGraphQLType(user);
+        return UserMapper.AsGraphQlType(user);
     }
 }

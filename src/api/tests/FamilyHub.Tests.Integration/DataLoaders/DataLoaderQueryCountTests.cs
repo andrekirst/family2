@@ -26,15 +26,9 @@ namespace FamilyHub.Tests.Integration.DataLoaders;
 /// - Family with N invitations: 1 query (vs N+1 without DataLoaders)
 /// </remarks>
 [Collection("DataLoaderQueryCount")]
-public sealed class DataLoaderQueryCountTests : IAsyncLifetime
+public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixture fixture) : IAsyncLifetime
 {
-    private readonly DualSchemaPostgreSqlContainerFixture _fixture;
     private string _testId = null!;
-
-    public DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
 
     public Task InitializeAsync()
     {
@@ -53,8 +47,8 @@ public sealed class DataLoaderQueryCountTests : IAsyncLifetime
 
     private async Task CleanupTestDataAsync()
     {
-        await using var authContext = _fixture.CreateAuthDbContext();
-        await using var familyContext = _fixture.CreateFamilyDbContext();
+        await using var authContext = fixture.CreateAuthDbContext();
+        await using var familyContext = fixture.CreateFamilyDbContext();
 
         // Delete in correct order to respect any implicit FK relationships
         await familyContext.Database.ExecuteSqlRawAsync(
@@ -80,8 +74,8 @@ public sealed class DataLoaderQueryCountTests : IAsyncLifetime
     public async Task Query100UsersWithFamilies_UsesMaxThreeQueries()
     {
         // Arrange - Create 100 users across 20 families (5 users each)
-        await using var seedAuthContext = _fixture.CreateAuthDbContext();
-        await using var seedFamilyContext = _fixture.CreateFamilyDbContext();
+        await using var seedAuthContext = fixture.CreateAuthDbContext();
+        await using var seedFamilyContext = fixture.CreateFamilyDbContext();
 
         var familyData = await BulkTestDataFactory.CreateFamiliesWithUsersAsync(
             seedAuthContext,
@@ -152,8 +146,8 @@ public sealed class DataLoaderQueryCountTests : IAsyncLifetime
     public async Task QueryFamilyWithMembers_UsesSingleBatchQuery()
     {
         // Arrange - Create 1 family with 50 members
-        await using var seedAuthContext = _fixture.CreateAuthDbContext();
-        await using var seedFamilyContext = _fixture.CreateFamilyDbContext();
+        await using var seedAuthContext = fixture.CreateAuthDbContext();
+        await using var seedFamilyContext = fixture.CreateFamilyDbContext();
 
         var (family, members) = await BulkTestDataFactory.CreateFamilyWithMembersAsync(
             seedAuthContext,
@@ -200,8 +194,8 @@ public sealed class DataLoaderQueryCountTests : IAsyncLifetime
     public async Task QueryFamilyWithInvitations_UsesSingleBatchQuery()
     {
         // Arrange - Create 1 family with owner and 20 invitations
-        await using var seedAuthContext = _fixture.CreateAuthDbContext();
-        await using var seedFamilyContext = _fixture.CreateFamilyDbContext();
+        await using var seedAuthContext = fixture.CreateAuthDbContext();
+        await using var seedFamilyContext = fixture.CreateFamilyDbContext();
 
         var (family, members) = await BulkTestDataFactory.CreateFamilyWithMembersAsync(
             seedAuthContext,
@@ -254,8 +248,8 @@ public sealed class DataLoaderQueryCountTests : IAsyncLifetime
     public async Task QueryMultipleFamiliesWithMembers_UsesSingleBatchQuery()
     {
         // Arrange - Create 10 families with 5 users each
-        await using var seedAuthContext = _fixture.CreateAuthDbContext();
-        await using var seedFamilyContext = _fixture.CreateFamilyDbContext();
+        await using var seedAuthContext = fixture.CreateAuthDbContext();
+        await using var seedFamilyContext = fixture.CreateFamilyDbContext();
 
         var familyData = await BulkTestDataFactory.CreateFamiliesWithUsersAsync(
             seedAuthContext,
@@ -311,8 +305,8 @@ public sealed class DataLoaderQueryCountTests : IAsyncLifetime
     public async Task QueryFamiliesForMultipleUsers_UsesBatchedQueries()
     {
         // Arrange - Create 50 users with unique families
-        await using var seedAuthContext = _fixture.CreateAuthDbContext();
-        await using var seedFamilyContext = _fixture.CreateFamilyDbContext();
+        await using var seedAuthContext = fixture.CreateAuthDbContext();
+        await using var seedFamilyContext = fixture.CreateFamilyDbContext();
 
         var usersWithFamilies = await BulkTestDataFactory.CreateUsersWithFamiliesAsync(
             seedAuthContext,
@@ -365,20 +359,13 @@ public sealed class DataLoaderQueryCountTests : IAsyncLifetime
     /// Factory that creates new DbContext instances with the query counting interceptor.
     /// Each context creation is tracked by the QueryCountingInterceptor.
     /// </summary>
-    private sealed class InterceptingContextFactory<TContext> : IDbContextFactory<TContext>
+    private sealed class InterceptingContextFactory<TContext>(Func<TContext> contextFactory) : IDbContextFactory<TContext>
         where TContext : DbContext
     {
-        private readonly Func<TContext> _contextFactory;
-
-        public InterceptingContextFactory(Func<TContext> contextFactory)
-        {
-            _contextFactory = contextFactory;
-        }
-
-        public TContext CreateDbContext() => _contextFactory();
+        public TContext CreateDbContext() => contextFactory();
 
         public Task<TContext> CreateDbContextAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(_contextFactory());
+            => Task.FromResult(contextFactory());
     }
 
     private InterceptingContextFactory<AuthDbContext> CreateAuthContextFactory()
@@ -386,7 +373,7 @@ public sealed class DataLoaderQueryCountTests : IAsyncLifetime
         return new InterceptingContextFactory<AuthDbContext>(() =>
         {
             var options = new DbContextOptionsBuilder<AuthDbContext>()
-                .UseNpgsql(_fixture.ConnectionString)
+                .UseNpgsql(fixture.ConnectionString)
                 .UseSnakeCaseNamingConvention()
                 .AddInterceptors(new QueryCountingInterceptor())
                 .Options;
@@ -399,7 +386,7 @@ public sealed class DataLoaderQueryCountTests : IAsyncLifetime
         return new InterceptingContextFactory<FamilyDbContext>(() =>
         {
             var options = new DbContextOptionsBuilder<FamilyDbContext>()
-                .UseNpgsql(_fixture.ConnectionString)
+                .UseNpgsql(fixture.ConnectionString)
                 .UseSnakeCaseNamingConvention()
                 .AddInterceptors(new QueryCountingInterceptor())
                 .Options;

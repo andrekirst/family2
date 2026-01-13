@@ -25,16 +25,9 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// RabbitMQ connections using Testcontainers.
 /// </remarks>
 [Collection("RabbitMQ")]
-public sealed class RabbitMqRetryPolicyTests : IAsyncLifetime
+public sealed class RabbitMqRetryPolicyTests(RabbitMqContainerFixture fixture) : IAsyncLifetime
 {
-    private readonly RabbitMqContainerFixture _fixture;
-    private readonly ILogger<RabbitMqPublisher> _logger;
-
-    public RabbitMqRetryPolicyTests(RabbitMqContainerFixture fixture)
-    {
-        _fixture = fixture;
-        _logger = Substitute.For<ILogger<RabbitMqPublisher>>();
-    }
+    private readonly ILogger<RabbitMqPublisher> _logger = Substitute.For<ILogger<RabbitMqPublisher>>();
 
     public Task InitializeAsync()
     {
@@ -179,10 +172,10 @@ public sealed class RabbitMqRetryPolicyTests : IAsyncLifetime
         // Set up consumer to verify message delivery
         var factory = new ConnectionFactory
         {
-            HostName = _fixture.Host,
-            Port = _fixture.Port,
-            UserName = _fixture.Username,
-            Password = _fixture.Password
+            HostName = fixture.Host,
+            Port = fixture.Port,
+            UserName = fixture.Username,
+            Password = fixture.Password
         };
 
         await using var connection = await factory.CreateConnectionAsync();
@@ -238,10 +231,10 @@ public sealed class RabbitMqRetryPolicyTests : IAsyncLifetime
         // Set up consumer
         var factory = new ConnectionFactory
         {
-            HostName = _fixture.Host,
-            Port = _fixture.Port,
-            UserName = _fixture.Username,
-            Password = _fixture.Password
+            HostName = fixture.Host,
+            Port = fixture.Port,
+            UserName = fixture.Username,
+            Password = fixture.Password
         };
 
         await using var connection = await factory.CreateConnectionAsync();
@@ -383,10 +376,10 @@ public sealed class RabbitMqRetryPolicyTests : IAsyncLifetime
 
     private RabbitMqSettings CreateTestSettings() => new()
     {
-        Host = _fixture.Host,
-        Port = _fixture.Port,
-        Username = _fixture.Username,
-        Password = _fixture.Password,
+        Host = fixture.Host,
+        Port = fixture.Port,
+        Username = fixture.Username,
+        Password = fixture.Password,
         MaxRetryAttempts = 3,
         RetryBaseDelay = TimeSpan.FromMilliseconds(100), // Short for tests
         RetryMaxDelay = TimeSpan.FromSeconds(2),

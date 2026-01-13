@@ -9,6 +9,9 @@ namespace FamilyHub.SharedKernel.Application.Behaviors;
 /// Automatically logs start, completion, and duration of all MediatR requests.
 /// Uses LoggerMessage.Define for high-performance logging (CA1873 compliant).
 /// </summary>
+/// <typeparam name="TRequest">The request type.</typeparam>
+/// <typeparam name="TResponse">The response type.</typeparam>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>

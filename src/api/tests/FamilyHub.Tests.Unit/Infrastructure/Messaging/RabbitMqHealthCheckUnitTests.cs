@@ -16,14 +16,8 @@ namespace FamilyHub.Tests.Unit.Infrastructure.Messaging;
 /// </summary>
 public sealed class RabbitMqHealthCheckUnitTests
 {
-    private readonly ILogger<RabbitMqHealthCheck> _logger;
-    private readonly IOptions<RabbitMqSettings> _settingsOptions;
-
-    public RabbitMqHealthCheckUnitTests()
-    {
-        _logger = Substitute.For<ILogger<RabbitMqHealthCheck>>();
-        _settingsOptions = Options.Create(new RabbitMqSettings());
-    }
+    private readonly ILogger<RabbitMqHealthCheck> _logger = Substitute.For<ILogger<RabbitMqHealthCheck>>();
+    private readonly IOptions<RabbitMqSettings> _settingsOptions = Options.Create(new RabbitMqSettings());
 
     #region Constructor Tests
 

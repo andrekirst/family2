@@ -9,21 +9,14 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// Tests that session variables are correctly set and used by RLS policies.
 /// </summary>
 [Collection("FamilyDatabase")]
-public sealed class PostgresRlsMiddlewareIntegrationTests
+public sealed class PostgresRlsMiddlewareIntegrationTests(FamilyPostgreSqlContainerFixture fixture)
 {
-    private readonly FamilyPostgreSqlContainerFixture _fixture;
-
-    public PostgresRlsMiddlewareIntegrationTests(FamilyPostgreSqlContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     /// <summary>
     /// Creates a new Npgsql connection to the test database.
     /// </summary>
     private NpgsqlConnection CreateConnection()
     {
-        return new NpgsqlConnection(_fixture.ConnectionString);
+        return new NpgsqlConnection(fixture.ConnectionString);
     }
 
     #region Session Variable Tests

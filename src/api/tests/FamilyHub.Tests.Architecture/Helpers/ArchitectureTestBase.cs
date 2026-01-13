@@ -3,7 +3,6 @@ using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.Tests.Architecture.Fixtures.Violations.CleanArchitecture.Domain;
-using NetArchTest.Rules;
 
 namespace FamilyHub.Tests.Architecture.Helpers;
 
@@ -61,12 +60,13 @@ public abstract class ArchitectureTestBase
     /// </summary>
     protected static string FormatFailingTypes(IEnumerable<string>? failingTypes)
     {
-        if (failingTypes == null || !failingTypes.Any())
+        if (failingTypes == null)
         {
             return "None";
         }
 
-        return string.Join(", ", failingTypes);
+        var failingTypeList = failingTypes.ToList();
+        return failingTypeList.Count == 0 ? "None" : string.Join(", ", failingTypeList);
     }
 
     /// <summary>

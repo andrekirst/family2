@@ -25,19 +25,12 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// - A queue reaches max length
 /// </remarks>
 [Collection("RabbitMQ")]
-public sealed class RabbitMqDeadLetterQueueTests : IAsyncLifetime
+public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixture) : IAsyncLifetime
 {
-    private readonly RabbitMqContainerFixture _fixture;
-    private readonly ILogger<RabbitMqPublisher> _logger;
+    private readonly ILogger<RabbitMqPublisher> _logger = Substitute.For<ILogger<RabbitMqPublisher>>();
     private RabbitMqPublisher _publisher = null!;
     private IConnection? _verificationConnection;
     private IChannel? _verificationChannel;
-
-    public RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixture)
-    {
-        _fixture = fixture;
-        _logger = Substitute.For<ILogger<RabbitMqPublisher>>();
-    }
 
     public async Task InitializeAsync()
     {
@@ -47,10 +40,10 @@ public sealed class RabbitMqDeadLetterQueueTests : IAsyncLifetime
         // Create verification connection/channel
         var factory = new ConnectionFactory
         {
-            HostName = _fixture.Host,
-            Port = _fixture.Port,
-            UserName = _fixture.Username,
-            Password = _fixture.Password
+            HostName = fixture.Host,
+            Port = fixture.Port,
+            UserName = fixture.Username,
+            Password = fixture.Password
         };
 
         _verificationConnection = await factory.CreateConnectionAsync();
@@ -553,10 +546,10 @@ public sealed class RabbitMqDeadLetterQueueTests : IAsyncLifetime
 
     private RabbitMqSettings CreateTestSettings() => new()
     {
-        Host = _fixture.Host,
-        Port = _fixture.Port,
-        Username = _fixture.Username,
-        Password = _fixture.Password,
+        Host = fixture.Host,
+        Port = fixture.Port,
+        Username = fixture.Username,
+        Password = fixture.Password,
         DefaultExchange = "family-hub.events",
         DeadLetterExchange = "family-hub.dlx",
         DeadLetterQueue = "family-hub.dlq",

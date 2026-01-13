@@ -10,6 +10,7 @@ namespace FamilyHub.Modules.Auth.Persistence.Configurations;
 /// </summary>
 public class OutboxEventConfiguration : IEntityTypeConfiguration<OutboxEvent>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<OutboxEvent> builder)
     {
         builder.ToTable("outbox_events", "auth");

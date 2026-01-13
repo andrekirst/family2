@@ -32,7 +32,7 @@ public sealed class InvitationQueries
                 Id = u.Id.Value,
                 Email = u.Email.Value,
                 EmailVerified = u.EmailVerified,
-                Role = MapToGraphQLRole(u.Role),
+                Role = MapToGraphQlRole(u.Role),
                 JoinedAt = u.CreatedAt,
                 IsOwner = u.Role == FamilyRole.Owner,
                 AuditInfo = new FamilyHub.Infrastructure.GraphQL.Types.AuditInfoType
@@ -50,7 +50,7 @@ public sealed class InvitationQueries
     /// <summary>
     /// Maps domain FamilyRole to GraphQL UserRoleType.
     /// </summary>
-    private static UserRoleType MapToGraphQLRole(FamilyRole domainRole)
+    private static UserRoleType MapToGraphQlRole(FamilyRole domainRole)
     {
         var roleValue = domainRole.Value.ToLowerInvariant();
         return roleValue switch
@@ -65,7 +65,7 @@ public sealed class InvitationQueries
     /// <summary>
     /// Maps domain InvitationStatus to GraphQL InvitationStatusType.
     /// </summary>
-    private static InvitationStatusType MapToGraphQLStatus(InvitationStatus domainStatus)
+    private static InvitationStatusType MapToGraphQlStatus(InvitationStatus domainStatus)
     {
         var statusValue = domainStatus.Value.ToLowerInvariant();
         return statusValue switch

@@ -13,20 +13,14 @@ namespace FamilyHub.Tests.Integration.Family.Persistence;
 /// Tests entity configuration, Vogen converters, and query filters work correctly.
 /// </summary>
 [Collection("FamilyDatabase")]
-public sealed class FamilyDbContextIntegrationTests : IAsyncLifetime
+public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFixture fixture) : IAsyncLifetime
 {
-    private readonly FamilyPostgreSqlContainerFixture _fixture;
     private FamilyDbContext _context = null!;
-
-    public FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
 
     public async Task InitializeAsync()
     {
         var options = new DbContextOptionsBuilder<FamilyDbContext>()
-            .UseNpgsql(_fixture.ConnectionString)
+            .UseNpgsql(fixture.ConnectionString)
             .UseSnakeCaseNamingConvention()
             .Options;
 
@@ -178,7 +172,7 @@ public sealed class FamilyDbContextIntegrationTests : IAsyncLifetime
         var tasks = Enumerable.Range(1, 5).Select(async i =>
         {
             var options = new DbContextOptionsBuilder<FamilyDbContext>()
-                .UseNpgsql(_fixture.ConnectionString)
+                .UseNpgsql(fixture.ConnectionString)
                 .UseSnakeCaseNamingConvention()
                 .Options;
 
@@ -331,7 +325,7 @@ public sealed class FamilyDbContextIntegrationTests : IAsyncLifetime
         var updateTasks = families.Select(async (f, i) =>
         {
             var options = new DbContextOptionsBuilder<FamilyDbContext>()
-                .UseNpgsql(_fixture.ConnectionString)
+                .UseNpgsql(fixture.ConnectionString)
                 .UseSnakeCaseNamingConvention()
                 .Options;
 

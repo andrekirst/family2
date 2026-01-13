@@ -12,20 +12,13 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// Tests verify health check behavior with real and unreachable RabbitMQ instances.
 /// </summary>
 [Collection("RabbitMQ")]
-public class RabbitMqHealthCheckTests
+public class RabbitMqHealthCheckTests(RabbitMqContainerFixture fixture)
 {
-    private readonly RabbitMqContainerFixture _fixture;
-
-    public RabbitMqHealthCheckTests(RabbitMqContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
     public async Task CheckHealthAsync_RabbitMqAvailable_ShouldReturnHealthy()
     {
         // Arrange
-        var settings = CreateSettings(_fixture.Host, _fixture.Port);
+        var settings = CreateSettings(fixture.Host, fixture.Port);
         var healthCheck = CreateHealthCheck(settings);
         var context = new HealthCheckContext
         {
@@ -44,15 +37,15 @@ public class RabbitMqHealthCheckTests
         result.Description.Should().Contain("RabbitMQ");
         result.Data.Should().ContainKey("host");
         result.Data.Should().ContainKey("port");
-        result.Data["host"].Should().Be(_fixture.Host);
-        result.Data["port"].Should().Be(_fixture.Port);
+        result.Data["host"].Should().Be(fixture.Host);
+        result.Data["port"].Should().Be(fixture.Port);
     }
 
     [Fact]
     public async Task CheckHealthAsync_RabbitMqAvailable_ShouldIncludeServerProperties()
     {
         // Arrange
-        var settings = CreateSettings(_fixture.Host, _fixture.Port);
+        var settings = CreateSettings(fixture.Host, fixture.Port);
         var healthCheck = CreateHealthCheck(settings);
         var context = new HealthCheckContext
         {
@@ -123,7 +116,7 @@ public class RabbitMqHealthCheckTests
     public async Task CheckHealthAsync_WithCancellation_ShouldReturnUnhealthy()
     {
         // Arrange
-        var settings = CreateSettings(_fixture.Host, _fixture.Port);
+        var settings = CreateSettings(fixture.Host, fixture.Port);
         var healthCheck = CreateHealthCheck(settings);
         var context = new HealthCheckContext
         {
@@ -149,7 +142,7 @@ public class RabbitMqHealthCheckTests
     public async Task CheckHealthAsync_MultipleCalls_ShouldAllReturnHealthy()
     {
         // Arrange
-        var settings = CreateSettings(_fixture.Host, _fixture.Port);
+        var settings = CreateSettings(fixture.Host, fixture.Port);
         var healthCheck = CreateHealthCheck(settings);
         var context = new HealthCheckContext
         {

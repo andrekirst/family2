@@ -15,6 +15,14 @@ namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 /// </summary>
 public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptInvitationCommand>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AcceptInvitationCommandValidator"/> class.
+    /// </summary>
+    /// <param name="invitationRepository">Repository for invitation data access.</param>
+    /// <param name="familyService">Service for family operations via anti-corruption layer.</param>
+    /// <param name="userContext">The current authenticated user context.</param>
+    /// <param name="timeProvider">Provider for current time (supports testing).</param>
+    /// <param name="validationCache">Cache for sharing validated entities with handler.</param>
     public AcceptInvitationCommandValidator(
         IFamilyMemberInvitationRepository invitationRepository,
         IFamilyService familyService,

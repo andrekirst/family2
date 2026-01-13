@@ -12,24 +12,20 @@ namespace FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders;
 /// Uses IDbContextFactory for proper DbContext pooling to avoid conflicts
 /// when DataLoader executes after the main request scope is disposed.
 /// </summary>
-public sealed class InvitationsByFamilyGroupedDataLoader : GroupedDataLoader<FamilyId, FamilyMemberInvitation>
+/// <param name="dbContextFactory">Factory for creating Family DbContext instances.</param>
+/// <param name="batchScheduler">Scheduler for batching DataLoader requests.</param>
+/// <param name="options">Options for DataLoader configuration.</param>
+public sealed class InvitationsByFamilyGroupedDataLoader(
+    IDbContextFactory<FamilyDbContext> dbContextFactory,
+    IBatchScheduler batchScheduler,
+    DataLoaderOptions options) : GroupedDataLoader<FamilyId, FamilyMemberInvitation>(batchScheduler, options)
 {
-    private readonly IDbContextFactory<FamilyDbContext> _dbContextFactory;
-
-    public InvitationsByFamilyGroupedDataLoader(
-        IDbContextFactory<FamilyDbContext> dbContextFactory,
-        IBatchScheduler batchScheduler,
-        DataLoaderOptions options)
-        : base(batchScheduler, options)
-    {
-        _dbContextFactory = dbContextFactory;
-    }
-
+    /// <inheritdoc />
     protected override async Task<ILookup<FamilyId, FamilyMemberInvitation>> LoadGroupedBatchAsync(
         IReadOnlyList<FamilyId> keys,
         CancellationToken cancellationToken)
     {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         // Single query with WHERE family_id IN (...) for all requested families
         // The Vogen EfCoreValueConverter handles FamilyId <-> Guid conversion

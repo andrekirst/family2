@@ -14,25 +14,19 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// and exchange/queue declarations using Testcontainers.
 /// </summary>
 [Collection("RabbitMQ")]
-public class RabbitMqPublisherTests : IAsyncLifetime
+public class RabbitMqPublisherTests(RabbitMqContainerFixture fixture) : IAsyncLifetime
 {
-    private readonly RabbitMqContainerFixture _fixture;
     private RabbitMqPublisher? _publisher;
     private IOptions<RabbitMqSettings>? _options;
-
-    public RabbitMqPublisherTests(RabbitMqContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
 
     public Task InitializeAsync()
     {
         var settings = new RabbitMqSettings
         {
-            Host = _fixture.Host,
-            Port = _fixture.Port,
-            Username = _fixture.Username,
-            Password = _fixture.Password,
+            Host = fixture.Host,
+            Port = fixture.Port,
+            Username = fixture.Username,
+            Password = fixture.Password,
             VirtualHost = "/",
             ClientProvidedName = "FamilyHub.Tests.Integration",
             DefaultExchange = "family-hub.test.events",
@@ -165,10 +159,10 @@ public class RabbitMqPublisherTests : IAsyncLifetime
         // Create a temporary consumer to verify message delivery
         var factory = new ConnectionFactory
         {
-            HostName = _fixture.Host,
-            Port = _fixture.Port,
-            UserName = _fixture.Username,
-            Password = _fixture.Password
+            HostName = fixture.Host,
+            Port = fixture.Port,
+            UserName = fixture.Username,
+            Password = fixture.Password
         };
 
         await using var connection = await factory.CreateConnectionAsync();
@@ -213,10 +207,10 @@ public class RabbitMqPublisherTests : IAsyncLifetime
         // Act - Verify DLX and DLQ exist by attempting to declare them passively
         var factory = new ConnectionFactory
         {
-            HostName = _fixture.Host,
-            Port = _fixture.Port,
-            UserName = _fixture.Username,
-            Password = _fixture.Password
+            HostName = fixture.Host,
+            Port = fixture.Port,
+            UserName = fixture.Username,
+            Password = fixture.Password
         };
 
         await using var connection = await factory.CreateConnectionAsync();

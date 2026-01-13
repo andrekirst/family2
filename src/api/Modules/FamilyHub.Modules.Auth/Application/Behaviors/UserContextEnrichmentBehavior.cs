@@ -15,6 +15,10 @@ namespace FamilyHub.Modules.Auth.Application.Behaviors;
 /// </summary>
 /// <typeparam name="TRequest">The request type.</typeparam>
 /// <typeparam name="TResponse">The response type.</typeparam>
+/// <param name="currentUserService">Service for extracting current user from HTTP context.</param>
+/// <param name="userRepository">Repository for user data access.</param>
+/// <param name="userContext">Scoped user context to populate.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class UserContextEnrichmentBehavior<TRequest, TResponse>(
     ICurrentUserService currentUserService,
     IUserRepository userRepository,
@@ -23,6 +27,7 @@ public sealed partial class UserContextEnrichmentBehavior<TRequest, TResponse>(
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
+    /// <inheritdoc />
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,

@@ -10,6 +10,7 @@ namespace FamilyHub.Infrastructure.GraphQL.Interceptors;
 /// Logs GraphQL operations (queries/mutations) and field resolutions.
 /// Uses LoggerMessage.Define for high-performance logging (CA1873 compliant).
 /// </summary>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed class GraphQlLoggingInterceptor(ILogger<GraphQlLoggingInterceptor> logger) : ExecutionDiagnosticEventListener
 {
     // High-performance logging delegates

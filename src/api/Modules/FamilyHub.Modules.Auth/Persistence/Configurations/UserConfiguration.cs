@@ -10,6 +10,7 @@ namespace FamilyHub.Modules.Auth.Persistence.Configurations;
 /// </summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable("users", "auth");

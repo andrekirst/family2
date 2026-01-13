@@ -8,6 +8,7 @@ namespace FamilyHub.Modules.Auth.Persistence.Repositories;
 /// <summary>
 /// EF Core implementation of the User repository.
 /// </summary>
+/// <param name="context">The Auth module database context.</param>
 public sealed class UserRepository(AuthDbContext context) : IUserRepository
 {
     /// <inheritdoc />

@@ -16,12 +16,17 @@ namespace FamilyHub.Modules.Family;
 
 /// <summary>
 /// Dependency injection configuration for the Family module.
-///
-/// PHASE 5 STATE: Family module now owns its own persistence layer:
-/// - FamilyDbContext with "family" PostgreSQL schema
-/// - Repository implementations in Family.Persistence
-/// - IUserLookupService for cross-module queries to Auth
 /// </summary>
+/// <remarks>
+/// <para>
+/// Family module owns its own persistence layer with FamilyDbContext targeting the "family"
+/// PostgreSQL schema. Repository implementations are in Family.Persistence.
+/// </para>
+/// <para>
+/// Cross-module queries to Auth use IUserLookupService abstraction for proper
+/// bounded context separation.
+/// </para>
+/// </remarks>
 public static class FamilyModuleServiceRegistration
 {
     /// <summary>
@@ -92,58 +97,30 @@ public static class FamilyModuleServiceRegistration
     /// <param name="loggerFactory">Optional logger factory for diagnostics.</param>
     /// <returns>The builder for chaining.</returns>
     /// <remarks>
+    /// <para>
     /// This method scans the Family module assembly for GraphQL type extensions and automatically
     /// registers them with Hot Chocolate. Type extensions include:
-    /// - Queries (classes decorated with [ExtendObjectType("Query")])
-    /// - Mutations (classes decorated with [ExtendObjectType("Mutation")])
-    ///
-    /// PHASE 4: Presentation Layer extraction (partial due to circular dependency constraints).
-    /// Moved to Family module:
-    /// - FamilyType (core GraphQL type)
-    /// - InviteFamilyMemberByEmail mutation
-    /// Remaining in Auth module (requires Auth context):
-    /// - FamilyQueries (requires ICurrentUserService)
-    /// - FamilyTypeExtensions (requires AuthDbContext, UserRepository)
-    /// - Other invitation mutations that modify User aggregate
-    /// TODO Phase 5+: Complete extraction with proper bounded context separation
-    ///
-    /// Example usage in Program.cs:
+    /// </para>
+    /// <list type="bullet">
+    /// <item><description>Queries (classes decorated with [ExtendObjectType("Query")])</description></item>
+    /// <item><description>Mutations (classes decorated with [ExtendObjectType("Mutation")])</description></item>
+    /// </list>
+    /// <para>
+    /// <strong>Family module owns:</strong> FamilyType, FamilyQueries (via SharedKernel.IUserContext),
+    /// FamilyMutations (CreateFamily), InviteFamilyMemberByEmail mutation.
+    /// </para>
+    /// <para>
+    /// <strong>Auth module retains:</strong> FamilyTypeExtensions (requires User data for Members/Owner fields),
+    /// AcceptInvitation and CancelInvitation mutations (modify User aggregate).
+    /// Cross-module queries use IUserLookupService for proper bounded context separation.
+    /// </para>
+    /// </remarks>
+    /// <example>
     /// <code>
     /// var loggerFactory = builder.Services.BuildServiceProvider().GetService&lt;ILoggerFactory&gt;();
-    /// graphqlBuilder.AddFamilyModuleGraphQLTypes(loggerFactory);
+    /// graphqlBuilder.AddFamilyModuleGraphQlTypes(loggerFactory);
     /// </code>
-    /// </remarks>
-    /// <summary>
-    /// Registers Family module GraphQL type extensions (Queries and Mutations).
-    /// Automatically discovers and registers all classes with [ExtendObjectType] attribute
-    /// in the Family module assembly.
-    /// </summary>
-    /// <param name="builder">The GraphQL request executor builder.</param>
-    /// <param name="loggerFactory">Optional logger factory for diagnostics.</param>
-    /// <returns>The builder for chaining.</returns>
-    /// <remarks>
-    /// This method scans the Family module assembly for GraphQL type extensions and automatically
-    /// registers them with Hot Chocolate. Type extensions include:
-    /// - Queries (classes decorated with [ExtendObjectType("Query")])
-    /// - Mutations (classes decorated with [ExtendObjectType("Mutation")])
-    ///
-    /// PHASE 4 UPDATE: Family GraphQL schema extracted from Auth module.
-    /// Moved to Family module:
-    /// - FamilyType (core GraphQL type)
-    /// - FamilyQueries (using SharedKernel.IUserContext)
-    /// - FamilyMutations (CreateFamily - invokes Auth command)
-    /// - InviteFamilyMemberByEmail mutation
-    /// Remaining in Auth module (modifies User aggregate):
-    /// - FamilyTypeExtensions (requires User data for Members/Owner fields)
-    /// - Other invitation mutations (AcceptInvitation, CancelInvitation)
-    /// PHASE 5: IUserLookupService implemented for proper cross-module abstraction
-    ///
-    /// Example usage in Program.cs:
-    /// <code>
-    /// var loggerFactory = builder.Services.BuildServiceProvider().GetService&lt;ILoggerFactory&gt;();
-    /// graphqlBuilder.AddFamilyModuleGraphQLTypes(loggerFactory);
-    /// </code>
-    /// </remarks>
+    /// </example>
     public static IRequestExecutorBuilder AddFamilyModuleGraphQlTypes(
         this IRequestExecutorBuilder builder,
         ILoggerFactory? loggerFactory = null)

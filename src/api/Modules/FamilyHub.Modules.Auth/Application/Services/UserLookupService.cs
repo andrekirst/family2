@@ -18,6 +18,7 @@ namespace FamilyHub.Modules.Auth.Application.Services;
 /// - Returns only value objects/primitives (no entity leakage)
 /// - All queries use AsNoTracking() for read-only performance
 /// </summary>
+/// <param name="context">The Auth module database context.</param>
 public sealed class UserLookupService(AuthDbContext context) : IUserLookupService
 {
     /// <inheritdoc />

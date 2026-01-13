@@ -17,6 +17,7 @@ namespace FamilyHub.Modules.Family.Persistence.Configurations;
 /// </summary>
 public class FamilyConfiguration : IEntityTypeConfiguration<FamilyAggregate>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<FamilyAggregate> builder)
     {
         // Table in "family" schema

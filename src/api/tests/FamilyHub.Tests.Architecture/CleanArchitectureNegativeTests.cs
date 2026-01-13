@@ -1,5 +1,4 @@
 using FamilyHub.Tests.Architecture.Helpers;
-using NetArchTest.Rules;
 
 namespace FamilyHub.Tests.Architecture;
 
@@ -144,8 +143,8 @@ public sealed class CleanArchitectureNegativeTests : ArchitectureTestBase
     public void ApplicationLayer_WhenDependingOnPersistence_ShouldBeDetected()
     {
         // Arrange
-        var applicationNamespace = $"{FixturesCleanArchNamespace}.Application";
-        var persistenceNamespace = $"{FixturesCleanArchNamespace}.Persistence";
+        const string applicationNamespace = $"{FixturesCleanArchNamespace}.Application";
+        const string persistenceNamespace = $"{FixturesCleanArchNamespace}.Persistence";
         var types = Types.InAssembly(ViolationFixturesAssembly);
 
         // Guard

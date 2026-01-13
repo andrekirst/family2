@@ -15,6 +15,11 @@ namespace FamilyHub.Modules.Family.Application.Commands.InviteFamilyMemberByEmai
 /// User context and authorization are handled by pipeline behaviors.
 /// NOTE: Cross-module dependency - uses IUserContext and IUnitOfWork from Auth module.
 /// </summary>
+/// <param name="userContext">The current authenticated user context.</param>
+/// <param name="familyRepository">Repository for family data access.</param>
+/// <param name="invitationRepository">Repository for invitation data access.</param>
+/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IUserContext userContext,
     IFamilyRepository familyRepository,

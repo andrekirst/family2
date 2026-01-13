@@ -10,11 +10,18 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 /// <summary>
 /// HotChocolate type extensions for Family entity.
 /// Adds resolver-based fields to the Family GraphQL type.
-///
-/// PHASE 4: Extends Family.Domain.Aggregates.Family (moved to Family module).
-/// Remains in Auth module temporarily because it accesses User aggregate and AuthDbContext.
-/// TODO Phase 5+: Move to Family module when proper bounded context separation is implemented.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Extends <see cref="FamilyAggregate"/> (owned by Family module) with User-related fields.
+/// </para>
+/// <para>
+/// Remains in Auth module because it requires access to User data via DataLoaders
+/// (UsersByFamilyGroupedDataLoader, UserBatchDataLoader). This is the proper bounded context
+/// separation - Auth owns User data, Family owns Family data, and cross-module queries use
+/// DataLoaders with IUserLookupService abstraction.
+/// </para>
+/// </remarks>
 [ExtendObjectType(typeof(FamilyAggregate))]
 public sealed class FamilyTypeExtensions
 {
@@ -53,7 +60,7 @@ public sealed class FamilyTypeExtensions
     {
         var owner = await userDataLoader.LoadAsync(family.OwnerId, cancellationToken);
 
-        return owner == null ? null : UserMapper.AsGraphQLType(owner);
+        return owner == null ? null : UserMapper.AsGraphQlType(owner);
     }
 
     /// <summary>

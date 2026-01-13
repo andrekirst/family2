@@ -59,22 +59,25 @@ public sealed partial class RabbitMqHealthCheck : IHealthCheck
                 "FamilyHub.HealthCheck",
                 cancellationToken);
 
-            var serverProperties = ExtractServerProperties(connection.ServerProperties);
-
-            var data = new Dictionary<string, object>
+            if (connection.ServerProperties != null)
             {
-                ["host"] = _settings.Host,
-                ["port"] = _settings.Port,
-                ["virtualHost"] = _settings.VirtualHost,
-                ["serverProduct"] = serverProperties.Product,
-                ["serverVersion"] = serverProperties.Version
-            };
+                var serverProperties = ExtractServerProperties(connection.ServerProperties);
 
-            LogHealthCheckPassed(_settings.Host, _settings.Port);
+                var data = new Dictionary<string, object>
+                {
+                    ["host"] = _settings.Host,
+                    ["port"] = _settings.Port,
+                    ["virtualHost"] = _settings.VirtualHost,
+                    ["serverProduct"] = serverProperties.Product,
+                    ["serverVersion"] = serverProperties.Version
+                };
 
-            return HealthCheckResult.Healthy(
-                "RabbitMQ connection successful",
-                data);
+                LogHealthCheckPassed(_settings.Host, _settings.Port);
+
+                return HealthCheckResult.Healthy(
+                    "RabbitMQ connection successful",
+                    data);
+            }
         }
         catch (Exception ex)
         {
@@ -90,6 +93,15 @@ public sealed partial class RabbitMqHealthCheck : IHealthCheck
                     ["error"] = ex.Message
                 });
         }
+
+        return HealthCheckResult.Unhealthy(
+            "RabbitMQ connection failed",
+            data: new Dictionary<string, object>
+            {
+                ["host"] = _settings.Host,
+                ["port"] = _settings.Port,
+                ["error"] = "Unknown error"
+            });
     }
 
     /// <summary>

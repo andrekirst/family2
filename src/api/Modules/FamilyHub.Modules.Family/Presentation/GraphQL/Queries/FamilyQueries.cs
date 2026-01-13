@@ -7,7 +7,7 @@ namespace FamilyHub.Modules.Family.Presentation.GraphQL.Queries;
 
 /// <summary>
 /// GraphQL queries for family operations.
-/// PHASE 4: Moved to Family module using SharedKernel.IUserContext abstraction.
+/// Uses SharedKernel.IUserContext abstraction for authenticated user context.
 /// </summary>
 [ExtendObjectType("Query")]
 public sealed class FamilyQueries
@@ -34,8 +34,8 @@ public sealed class FamilyQueries
             return null;
         }
 
-        // Reconstitute aggregate for GraphQL (Phase 3 - temporary)
-        // TODO Phase 5+: Return DTO directly or use proper GraphQL type mapping
+        // Reconstitute aggregate for GraphQL type resolution
+        // TODO: Consider returning DTO directly with dedicated GraphQL type mapping
         return Domain.Aggregates.Family.Reconstitute(
             familyDto.Id,
             familyDto.Name,

@@ -16,10 +16,17 @@ namespace FamilyHub.Modules.Auth.Persistence;
 /// </summary>
 public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(options)
 {
-    // Auth module entities
+    /// <summary>
+    /// Gets the users in the Auth module.
+    /// </summary>
     public DbSet<User> Users => Set<User>();
+
+    /// <summary>
+    /// Gets the outbox events for reliable domain event publishing.
+    /// </summary>
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
 
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Set PostgreSQL schema for this module

@@ -22,21 +22,15 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// These tests verify that application-level consistency is maintained.
 /// </remarks>
 [Collection("DualSchema")]
-public sealed class CrossDbContextConsistencyTests : IAsyncLifetime
+public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainerFixture fixture) : IAsyncLifetime
 {
-    private readonly DualSchemaPostgreSqlContainerFixture _fixture;
     private AuthDbContext _authContext = null!;
     private FamilyDbContext _familyContext = null!;
 
-    public CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainerFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     public Task InitializeAsync()
     {
-        _authContext = _fixture.CreateAuthDbContext();
-        _familyContext = _fixture.CreateFamilyDbContext();
+        _authContext = fixture.CreateAuthDbContext();
+        _familyContext = fixture.CreateFamilyDbContext();
         return Task.CompletedTask;
     }
 
@@ -132,7 +126,7 @@ public sealed class CrossDbContextConsistencyTests : IAsyncLifetime
         _authContext.ChangeTracker.Clear();
 
         // Assert - Verify new family reference
-        await using var verifyAuthContext = _fixture.CreateAuthDbContext();
+        await using var verifyAuthContext = fixture.CreateAuthDbContext();
         var retrievedUser = await verifyAuthContext.Users.FindAsync(user.Id);
 
         retrievedUser.Should().NotBeNull();
@@ -278,7 +272,7 @@ public sealed class CrossDbContextConsistencyTests : IAsyncLifetime
         _familyContext.ChangeTracker.Clear();
 
         // Assert - Verify new owner exists in auth schema
-        await using var verifyFamilyContext = _fixture.CreateFamilyDbContext();
+        await using var verifyFamilyContext = fixture.CreateFamilyDbContext();
         var retrievedFamily = await verifyFamilyContext.Families.FindAsync(family.Id);
 
         retrievedFamily.Should().NotBeNull();
@@ -309,8 +303,8 @@ public sealed class CrossDbContextConsistencyTests : IAsyncLifetime
         _familyContext.ChangeTracker.Clear();
 
         // Query from fresh contexts
-        await using var context1 = _fixture.CreateFamilyDbContext();
-        await using var context2 = _fixture.CreateFamilyDbContext();
+        await using var context1 = fixture.CreateFamilyDbContext();
+        await using var context2 = fixture.CreateFamilyDbContext();
 
         var familyFromContext1 = await context1.Families.FindAsync(family.Id);
         var familyFromContext2 = await context2.Families.FindAsync(family.Id);
@@ -346,7 +340,7 @@ public sealed class CrossDbContextConsistencyTests : IAsyncLifetime
         // Act - Create multiple families concurrently, all with same owner
         var familyTasks = Enumerable.Range(1, 5).Select(async i =>
         {
-            await using var localFamilyContext = _fixture.CreateFamilyDbContext();
+            await using var localFamilyContext = fixture.CreateFamilyDbContext();
             var family = FamilyAggregate.Create(FamilyName.From($"Concurrent Family {i}"), user.Id);
             await localFamilyContext.Families.AddAsync(family);
             await localFamilyContext.SaveChangesAsync();

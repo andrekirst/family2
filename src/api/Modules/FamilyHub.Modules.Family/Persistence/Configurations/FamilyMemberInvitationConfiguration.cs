@@ -19,6 +19,7 @@ namespace FamilyHub.Modules.Family.Persistence.Configurations;
 /// </summary>
 public class FamilyMemberInvitationConfiguration : IEntityTypeConfiguration<FamilyMemberInvitation>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<FamilyMemberInvitation> builder)
     {
         // Table in "family" schema

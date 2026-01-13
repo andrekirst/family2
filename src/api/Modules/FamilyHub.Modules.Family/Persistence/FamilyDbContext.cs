@@ -34,6 +34,7 @@ public class FamilyDbContext(DbContextOptions<FamilyDbContext> options) : DbCont
     /// </summary>
     public DbSet<FamilyMemberInvitation> FamilyMemberInvitations => Set<FamilyMemberInvitation>();
 
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Set PostgreSQL schema for this module

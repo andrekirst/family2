@@ -8,11 +8,14 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 /// Handles queries to retrieve pending invitations for the authenticated user's family.
 /// User context and authorization are handled by pipeline behaviors.
 /// </summary>
+/// <param name="userContext">The current authenticated user context.</param>
+/// <param name="invitationRepository">Repository for invitation data access.</param>
 public sealed partial class GetPendingInvitationsQueryHandler(
     IUserContext userContext,
     IFamilyMemberInvitationRepository invitationRepository)
     : IRequestHandler<GetPendingInvitationsQuery, GetPendingInvitationsResult>
 {
+    /// <inheritdoc />
     public async Task<GetPendingInvitationsResult> Handle(
         GetPendingInvitationsQuery request,
         CancellationToken cancellationToken)

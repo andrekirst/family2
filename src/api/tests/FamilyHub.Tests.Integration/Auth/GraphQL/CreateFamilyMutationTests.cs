@@ -24,14 +24,9 @@ namespace FamilyHub.Tests.Integration.Auth.GraphQL;
 /// Tests GraphQL API layer, authentication, validation, and error handling.
 /// </summary>
 [Collection("Database")]
-public sealed class CreateFamilyMutationTests : IDisposable
+public sealed class CreateFamilyMutationTests(PostgreSqlContainerFixture containerFixture) : IDisposable
 {
-    private readonly GraphQlTestFactory _factory;
-
-    public CreateFamilyMutationTests(PostgreSqlContainerFixture containerFixture)
-    {
-        _factory = new GraphQlTestFactory(containerFixture);
-    }
+    private readonly GraphQlTestFactory _factory = new(containerFixture);
 
     #region Helper Methods
 

@@ -22,6 +22,7 @@ namespace FamilyHub.Api.Infrastructure;
 /// });
 /// </code>
 /// </remarks>
+/// <param name="httpContextAccessor">Accessor for the HTTP context containing request headers.</param>
 public sealed class HeaderBasedCurrentUserService(IHttpContextAccessor httpContextAccessor)
     : ICurrentUserService
 {
@@ -43,13 +44,9 @@ public sealed class HeaderBasedCurrentUserService(IHttpContextAccessor httpConte
                 "Provide a valid GUID representing the test user's ID.");
         }
 
-        if (!Guid.TryParse(header, out var guid))
-        {
-            throw new UnauthorizedAccessException(
-                $"{TestUserIdHeader} header must be a valid GUID. Received: '{header}'");
-        }
-
-        return UserId.From(guid);
+        return !Guid.TryParse(header, out var guid)
+            ? throw new UnauthorizedAccessException($"{TestUserIdHeader} header must be a valid GUID. Received: '{header}'")
+            : UserId.From(guid);
     }
 
     /// <inheritdoc />
@@ -61,12 +58,7 @@ public sealed class HeaderBasedCurrentUserService(IHttpContextAccessor httpConte
     {
         var header = httpContextAccessor.HttpContext?.Request.Headers[TestUserEmailHeader].FirstOrDefault();
 
-        if (string.IsNullOrEmpty(header))
-        {
-            return null;
-        }
-
-        return Email.From(header);
+        return string.IsNullOrEmpty(header) ? null : Email.From(header);
     }
 
     private string? GetUserIdHeader()

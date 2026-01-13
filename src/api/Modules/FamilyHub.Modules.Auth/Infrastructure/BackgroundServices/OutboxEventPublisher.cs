@@ -40,6 +40,7 @@ public sealed partial class OutboxEventPublisher(
     // Exponential backoff delays (in seconds)
     private static readonly int[] RetryDelays = [1, 2, 5, 15, 60, 300, MaxRetryDelay];
 
+    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         LogOutboxEventPublisherStartedPollingEveryIntervalSeconds(logger, PollingIntervalSeconds);

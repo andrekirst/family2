@@ -16,21 +16,14 @@ namespace FamilyHub.Modules.Family.Persistence.Repositories;
 /// - These queries are handled via IUserLookupService abstraction
 /// - This maintains bounded context separation while enabling necessary cross-module operations
 /// </summary>
-public sealed class FamilyRepository : IFamilyRepository
+/// <param name="context">The Family module database context.</param>
+/// <param name="userLookupService">Service for cross-module user lookups.</param>
+public sealed class FamilyRepository(FamilyDbContext context, IUserLookupService userLookupService) : IFamilyRepository
 {
-    private readonly FamilyDbContext _context;
-    private readonly IUserLookupService _userLookupService;
-
-    public FamilyRepository(FamilyDbContext context, IUserLookupService userLookupService)
-    {
-        _context = context;
-        _userLookupService = userLookupService;
-    }
-
     /// <inheritdoc />
     public async Task<FamilyAggregate?> GetByIdAsync(FamilyId id, CancellationToken cancellationToken = default)
     {
-        return await _context.Families
+        return await context.Families
             .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
     }
 
@@ -38,7 +31,7 @@ public sealed class FamilyRepository : IFamilyRepository
     public async Task<FamilyAggregate?> GetFamilyByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         // Use IUserLookupService for cross-module query
-        var familyId = await _userLookupService.GetUserFamilyIdAsync(userId, cancellationToken);
+        var familyId = await userLookupService.GetUserFamilyIdAsync(userId, cancellationToken);
 
         if (familyId == null)
         {
@@ -52,13 +45,13 @@ public sealed class FamilyRepository : IFamilyRepository
     public async Task<int> GetMemberCountAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
         // Use IUserLookupService for cross-module query
-        return await _userLookupService.GetFamilyMemberCountAsync(familyId, cancellationToken);
+        return await userLookupService.GetFamilyMemberCountAsync(familyId, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task AddAsync(FamilyAggregate family, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(family);
-        await _context.Families.AddAsync(family, cancellationToken);
+        await context.Families.AddAsync(family, cancellationToken);
     }
 }

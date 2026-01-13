@@ -13,14 +13,8 @@ namespace FamilyHub.Tests.Unit.Infrastructure.Messaging;
 /// </summary>
 public sealed class RabbitMqPublisherUnitTests
 {
-    private readonly ILogger<RabbitMqPublisher> _logger;
-    private readonly IOptions<RabbitMqSettings> _settingsOptions;
-
-    public RabbitMqPublisherUnitTests()
-    {
-        _logger = Substitute.For<ILogger<RabbitMqPublisher>>();
-        _settingsOptions = Options.Create(new RabbitMqSettings());
-    }
+    private readonly ILogger<RabbitMqPublisher> _logger = Substitute.For<ILogger<RabbitMqPublisher>>();
+    private readonly IOptions<RabbitMqSettings> _settingsOptions = Options.Create(new RabbitMqSettings());
 
     #region Constructor Tests
 

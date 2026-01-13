@@ -19,6 +19,12 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 /// Handler for CompleteZitadelLoginCommand.
 /// Exchanges authorization code for tokens and creates/syncs user.
 /// </summary>
+/// <param name="settings">Zitadel OAuth configuration settings.</param>
+/// <param name="userRepository">Repository for user data access.</param>
+/// <param name="familyService">Service for family operations.</param>
+/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="httpClientFactory">Factory for creating HTTP clients.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class CompleteZitadelLoginCommandHandler(
     IOptions<ZitadelSettings> settings,
     IUserRepository userRepository,
@@ -31,6 +37,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
     private readonly ZitadelSettings _settings = settings.Value;
     private readonly JwtSecurityTokenHandler _jwtHandler = new();
 
+    /// <inheritdoc />
     public async Task<CompleteZitadelLoginResult> Handle(
         CompleteZitadelLoginCommand request,
         CancellationToken cancellationToken)

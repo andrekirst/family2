@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Net.Mime;
 using Xunit;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
@@ -16,28 +17,21 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// Tests actual message publishing, exchanges, and consumer behavior.
 /// </summary>
 [Collection("RabbitMQ")]
-public sealed class RabbitMqPublisherIntegrationTests : IAsyncLifetime
+public sealed class RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture fixture) : IAsyncLifetime
 {
-    private readonly RabbitMqContainerFixture _fixture;
-    private readonly ILogger<RabbitMqPublisher> _logger;
+    private readonly ILogger<RabbitMqPublisher> _logger = Substitute.For<ILogger<RabbitMqPublisher>>();
     private RabbitMqPublisher _publisher = null!;
     private IConnection? _consumerConnection;
     private IChannel? _consumerChannel;
-
-    public RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture fixture)
-    {
-        _fixture = fixture;
-        _logger = Substitute.For<ILogger<RabbitMqPublisher>>();
-    }
 
     public async Task InitializeAsync()
     {
         var settings = new RabbitMqSettings
         {
-            Host = _fixture.Host,
-            Port = _fixture.Port,
-            Username = _fixture.Username,
-            Password = _fixture.Password
+            Host = fixture.Host,
+            Port = fixture.Port,
+            Username = fixture.Username,
+            Password = fixture.Password
         };
 
         _publisher = new RabbitMqPublisher(_logger, Options.Create(settings));
@@ -45,10 +39,10 @@ public sealed class RabbitMqPublisherIntegrationTests : IAsyncLifetime
         // Create a consumer connection for verification
         var factory = new ConnectionFactory
         {
-            HostName = _fixture.Host,
-            Port = _fixture.Port,
-            UserName = _fixture.Username,
-            Password = _fixture.Password
+            HostName = fixture.Host,
+            Port = fixture.Port,
+            UserName = fixture.Username,
+            Password = fixture.Password
         };
         _consumerConnection = await factory.CreateConnectionAsync();
         _consumerChannel = await _consumerConnection.CreateChannelAsync();
@@ -137,7 +131,7 @@ public sealed class RabbitMqPublisherIntegrationTests : IAsyncLifetime
         // Assert
         var received = await Task.WhenAny(messageReceived.Task, Task.Delay(TimeSpan.FromSeconds(5)));
         received.Should().Be(messageReceived.Task);
-        receivedContentType.Should().Be("application/json");
+        receivedContentType.Should().Be(MediaTypeNames.Application.Json);
     }
 
     [Fact]

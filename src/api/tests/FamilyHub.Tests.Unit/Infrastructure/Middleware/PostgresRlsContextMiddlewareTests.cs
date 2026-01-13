@@ -14,12 +14,7 @@ namespace FamilyHub.Tests.Unit.Infrastructure.Middleware;
 /// </summary>
 public sealed class PostgresRlsContextMiddlewareTests
 {
-    private readonly ILogger<PostgresRlsContextMiddleware> _logger;
-
-    public PostgresRlsContextMiddlewareTests()
-    {
-        _logger = Substitute.For<ILogger<PostgresRlsContextMiddleware>>();
-    }
+    private readonly ILogger<PostgresRlsContextMiddleware> _logger = Substitute.For<ILogger<PostgresRlsContextMiddleware>>();
 
     private HttpContext CreateHttpContext(ClaimsPrincipal? user = null)
     {

@@ -16,6 +16,7 @@ public sealed partial class RequireOwnerOrAdminHandler(
     ILogger<RequireOwnerOrAdminHandler> logger)
     : AuthorizationHandler<RequireOwnerOrAdminRequirement>
 {
+    /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         RequireOwnerOrAdminRequirement requirement)

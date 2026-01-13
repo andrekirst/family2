@@ -12,6 +12,10 @@ namespace FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 /// Updates the role of a pending invitation.
 /// User context and authorization are handled by pipeline behaviors.
 /// </summary>
+/// <param name="userContext">The current authenticated user context.</param>
+/// <param name="invitationRepository">Repository for invitation data access.</param>
+/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class UpdateInvitationRoleCommandHandler(
     IUserContext userContext,
     IFamilyMemberInvitationRepository invitationRepository,
@@ -19,6 +23,7 @@ public sealed partial class UpdateInvitationRoleCommandHandler(
     ILogger<UpdateInvitationRoleCommandHandler> logger)
     : IRequestHandler<UpdateInvitationRoleCommand, FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>>
 {
+    /// <inheritdoc />
     public async Task<FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>> Handle(
         UpdateInvitationRoleCommand request,
         CancellationToken cancellationToken)

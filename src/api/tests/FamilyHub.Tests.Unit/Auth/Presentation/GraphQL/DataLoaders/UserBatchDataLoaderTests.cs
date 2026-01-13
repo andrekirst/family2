@@ -18,16 +18,9 @@ namespace FamilyHub.Tests.Unit.Auth.Presentation.GraphQL.DataLoaders;
 /// </summary>
 public sealed class UserBatchDataLoaderTests : IDisposable
 {
-    private readonly DataLoaderTestFixture<AuthDbContext> _fixture;
-    private readonly IBatchScheduler _batchScheduler;
-    private readonly DataLoaderOptions _options;
-
-    public UserBatchDataLoaderTests()
-    {
-        _fixture = new DataLoaderTestFixture<AuthDbContext>();
-        _batchScheduler = new AutoBatchScheduler();
-        _options = new DataLoaderOptions();
-    }
+    private readonly DataLoaderTestFixture<AuthDbContext> _fixture = new();
+    private readonly IBatchScheduler _batchScheduler = new AutoBatchScheduler();
+    private readonly DataLoaderOptions _options = new();
 
     #region Happy Path Tests
 

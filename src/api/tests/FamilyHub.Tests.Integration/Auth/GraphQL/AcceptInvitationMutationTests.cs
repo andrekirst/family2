@@ -23,14 +23,9 @@ namespace FamilyHub.Tests.Integration.Auth.GraphQL;
 /// Tests validation, authentication, and database state changes.
 /// </summary>
 [Collection("Database")]
-public sealed class AcceptInvitationMutationTests : IDisposable
+public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture containerFixture) : IDisposable
 {
-    private readonly GraphQlTestFactory _factory;
-
-    public AcceptInvitationMutationTests(PostgreSqlContainerFixture containerFixture)
-    {
-        _factory = new GraphQlTestFactory(containerFixture);
-    }
+    private readonly GraphQlTestFactory _factory = new(containerFixture);
 
     public void Dispose()
     {

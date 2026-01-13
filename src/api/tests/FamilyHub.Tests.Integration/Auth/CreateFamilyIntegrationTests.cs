@@ -17,14 +17,9 @@ namespace FamilyHub.Tests.Integration.Auth;
 /// Tests end-to-end database operations, transaction behavior, and concurrent operations.
 /// </summary>
 [Collection("Database")]
-public sealed class CreateFamilyIntegrationTests : IDisposable
+public sealed class CreateFamilyIntegrationTests(PostgreSqlContainerFixture containerFixture) : IDisposable
 {
-    private readonly TestApplicationFactory _factory;
-
-    public CreateFamilyIntegrationTests(PostgreSqlContainerFixture containerFixture)
-    {
-        _factory = new TestApplicationFactory(containerFixture);
-    }
+    private readonly TestApplicationFactory _factory = new(containerFixture);
 
     public void Dispose()
     {

@@ -37,8 +37,8 @@ public sealed class InvitationsTypeExtensions
             {
                 Id = dto.Id,
                 Email = dto.Email,
-                Role = MapToGraphQLRole(dto.Role),
-                Status = MapToGraphQLStatus(dto.Status),
+                Role = MapToGraphQlRole(dto.Role),
+                Status = MapToGraphQlStatus(dto.Status),
                 InvitedById = dto.InvitedByUserId,
                 InvitedAt = dto.InvitedAt,
                 ExpiresAt = dto.ExpiresAt,
@@ -74,8 +74,8 @@ public sealed class InvitationsTypeExtensions
         {
             Id = result.Id,
             Email = result.Email,
-            Role = MapToGraphQLRole(result.Role),
-            Status = MapToGraphQLStatus(result.Status),
+            Role = MapToGraphQlRole(result.Role),
+            Status = MapToGraphQlStatus(result.Status),
             InvitedById = result.InvitedByUserId,
             InvitedAt = result.InvitedAt,
             ExpiresAt = result.ExpiresAt,
@@ -87,7 +87,7 @@ public sealed class InvitationsTypeExtensions
     /// <summary>
     /// Maps domain FamilyRole to GraphQL UserRoleType.
     /// </summary>
-    private static UserRoleType MapToGraphQLRole(FamilyRole domainRole)
+    private static UserRoleType MapToGraphQlRole(FamilyRole domainRole)
     {
         var roleValue = domainRole.Value.ToLowerInvariant();
         return roleValue switch
@@ -102,7 +102,7 @@ public sealed class InvitationsTypeExtensions
     /// <summary>
     /// Maps domain InvitationStatus to GraphQL InvitationStatusType.
     /// </summary>
-    private static InvitationStatusType MapToGraphQLStatus(InvitationStatus domainStatus)
+    private static InvitationStatusType MapToGraphQlStatus(InvitationStatus domainStatus)
     {
         var statusValue = domainStatus.Value.ToLowerInvariant();
         return statusValue switch

@@ -34,19 +34,16 @@ namespace FamilyHub.Modules.Auth.Infrastructure.Middleware;
 /// - Eliminates need for family_id filters in application code
 /// - RLS policies use indexed columns (family_id, user_id)
 /// </summary>
-public class PostgresRlsContextMiddleware
+public class PostgresRlsContextMiddleware(
+    RequestDelegate next,
+    ILogger<PostgresRlsContextMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<PostgresRlsContextMiddleware> _logger;
-
-    public PostgresRlsContextMiddleware(
-        RequestDelegate next,
-        ILogger<PostgresRlsContextMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
+    /// <summary>
+    /// Processes the HTTP request, setting the PostgreSQL session variable for RLS.
+    /// </summary>
+    /// <param name="context">The HTTP context for the current request.</param>
+    /// <param name="dbContext">The Auth database context for PostgreSQL connection access.</param>
+    /// <returns>A task representing the asynchronous middleware operation.</returns>
     public async Task InvokeAsync(HttpContext context, AuthDbContext dbContext)
     {
         // Extract user ID from JWT claims (if authenticated)
@@ -79,7 +76,7 @@ public class PostgresRlsContextMiddleware
 
                 await cmd.ExecuteNonQueryAsync();
 
-                _logger.LogDebug(
+                logger.LogDebug(
                     "PostgreSQL RLS context set for user {UserId} (Request: {RequestPath})",
                     userId,
                     context.Request.Path);
@@ -88,7 +85,7 @@ public class PostgresRlsContextMiddleware
             {
                 // Log error but don't fail the request
                 // RLS will deny access if context not set (fail-secure)
-                _logger.LogError(
+                logger.LogError(
                     ex,
                     "Failed to set PostgreSQL RLS context for user {UserId}. " +
                     "Request will proceed but RLS policies will deny unauthorized access.",
@@ -99,13 +96,13 @@ public class PostgresRlsContextMiddleware
         {
             // No user ID found - unauthenticated request
             // RLS policies will handle this by returning empty results for protected tables
-            _logger.LogDebug(
+            logger.LogDebug(
                 "No user ID found in claims (unauthenticated request: {RequestPath}). " +
                 "RLS policies will enforce access control.",
                 context.Request.Path);
         }
 
         // Continue to next middleware (GraphQL, MediatR, etc.)
-        await _next(context);
+        await next(context);
     }
 }
