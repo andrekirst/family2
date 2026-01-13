@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using OutboxEventId = FamilyHub.Modules.Auth.Domain.ValueObjects.OutboxEventId;
 
 namespace FamilyHub.Modules.Auth.Persistence.Repositories;
 

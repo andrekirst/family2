@@ -34,7 +34,7 @@ namespace FamilyHub.Modules.Auth.Infrastructure.Middleware;
 /// - Eliminates need for family_id filters in application code
 /// - RLS policies use indexed columns (family_id, user_id)
 /// </summary>
-public class PostgresRlsContextMiddleware(
+public partial class PostgresRlsContextMiddleware(
     RequestDelegate next,
     ILogger<PostgresRlsContextMiddleware> logger)
 {
@@ -47,8 +47,8 @@ public class PostgresRlsContextMiddleware(
     public async Task InvokeAsync(HttpContext context, AuthDbContext dbContext)
     {
         // Extract user ID from JWT claims (if authenticated)
-        var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? context.User?.FindFirst("sub")?.Value; // Zitadel uses 'sub' claim
+        var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? context.User.FindFirst("sub")?.Value; // Zitadel uses 'sub' claim
 
         if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
         {
@@ -76,33 +76,32 @@ public class PostgresRlsContextMiddleware(
 
                 await cmd.ExecuteNonQueryAsync();
 
-                logger.LogDebug(
-                    "PostgreSQL RLS context set for user {UserId} (Request: {RequestPath})",
-                    userId,
-                    context.Request.Path);
+                LogRlsContextSet(userId, context.Request.Path);
             }
             catch (Exception ex)
             {
                 // Log error but don't fail the request
                 // RLS will deny access if context not set (fail-secure)
-                logger.LogError(
-                    ex,
-                    "Failed to set PostgreSQL RLS context for user {UserId}. " +
-                    "Request will proceed but RLS policies will deny unauthorized access.",
-                    userId);
+                LogRlsContextSetFailed(userId, ex);
             }
         }
         else
         {
             // No user ID found - unauthenticated request
             // RLS policies will handle this by returning empty results for protected tables
-            logger.LogDebug(
-                "No user ID found in claims (unauthenticated request: {RequestPath}). " +
-                "RLS policies will enforce access control.",
-                context.Request.Path);
+            LogNoUserIdInClaims(context.Request.Path);
         }
 
         // Continue to next middleware (GraphQL, MediatR, etc.)
         await next(context);
     }
+
+    [LoggerMessage(LogLevel.Debug, "PostgreSQL RLS context set for user {UserId} (Request: {RequestPath})")]
+    partial void LogRlsContextSet(Guid userId, PathString requestPath);
+
+    [LoggerMessage(LogLevel.Error, "Failed to set PostgreSQL RLS context for user {UserId}. Request will proceed but RLS policies will deny unauthorized access.")]
+    partial void LogRlsContextSetFailed(Guid userId, Exception exception);
+
+    [LoggerMessage(LogLevel.Debug, "No user ID found in claims (unauthenticated request: {RequestPath}). RLS policies will enforce access control.")]
+    partial void LogNoUserIdInClaims(PathString requestPath);
 }

@@ -19,7 +19,6 @@ public sealed class DddPatternNegativeTests : ArchitectureTestBase
     public void AggregateRoots_WhenNotInheritingBase_ShouldBeDetected()
     {
         // Arrange
-        var aggregatesNamespace = $"{FixturesDddNamespace}.Domain.Aggregates";
         var fixtureTypes = Types.InAssembly(ViolationFixturesAssembly).GetTypes();
 
         // Find types in Aggregates namespace
@@ -53,7 +52,6 @@ public sealed class DddPatternNegativeTests : ArchitectureTestBase
     public void DomainEvents_WhenNotInheritingBase_ShouldBeDetected()
     {
         // Arrange
-        var eventsNamespace = $"{FixturesDddNamespace}.Domain.Events";
         var fixtureTypes = Types.InAssembly(ViolationFixturesAssembly).GetTypes();
 
         // Find types in Events namespace that should be domain events
@@ -69,7 +67,7 @@ public sealed class DddPatternNegativeTests : ArchitectureTestBase
 
         // Act - Check if any don't inherit from DomainEvent
         var violatingTypes = eventTypes
-            .Where(t => !typeof(FamilyHub.SharedKernel.Domain.DomainEvent).IsAssignableFrom(t))
+            .Where(t => !typeof(SharedKernel.Domain.DomainEvent).IsAssignableFrom(t))
             .Select(t => t.FullName)
             .ToList();
 
@@ -156,7 +154,7 @@ public sealed class DddPatternNegativeTests : ArchitectureTestBase
         while (current != null)
         {
             if (current.IsGenericType &&
-                current.GetGenericTypeDefinition() == typeof(FamilyHub.SharedKernel.Domain.AggregateRoot<>))
+                current.GetGenericTypeDefinition() == typeof(SharedKernel.Domain.AggregateRoot<>))
             {
                 return true;
             }

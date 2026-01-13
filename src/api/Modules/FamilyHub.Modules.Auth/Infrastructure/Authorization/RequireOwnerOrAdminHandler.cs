@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Auth.Domain.Specifications;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 
@@ -33,9 +33,8 @@ public sealed partial class RequireOwnerOrAdminHandler(
         }
 
         // Look up user in database by external ID
-        var user = await userRepository.GetByExternalUserIdAsync(
-            zitadelUserId,
-            "zitadel",
+        var user = await userRepository.FindOneAsync(
+            new UserByExternalProviderSpecification("zitadel", zitadelUserId),
             CancellationToken.None);
 
         if (user == null)

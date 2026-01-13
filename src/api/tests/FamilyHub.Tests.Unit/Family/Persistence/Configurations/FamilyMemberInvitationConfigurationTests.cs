@@ -65,7 +65,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         primaryKey.Should().NotBeNull();
-        primaryKey!.Properties.Should().HaveCount(1);
+        primaryKey.Properties.Should().HaveCount(1);
         primaryKey.Properties[0].Name.Should().Be("Id");
     }
 
@@ -77,7 +77,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         idProperty.Should().NotBeNull();
-        idProperty!.GetValueConverter().Should().NotBeNull("Id should have a Vogen value converter");
+        idProperty.GetValueConverter().Should().NotBeNull("Id should have a Vogen value converter");
         idProperty.GetColumnName().Should().Be("invitation_id");
         idProperty.IsNullable.Should().BeFalse();
     }
@@ -94,7 +94,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         displayCodeProperty.Should().NotBeNull();
-        displayCodeProperty!.GetMaxLength().Should().Be(8);
+        displayCodeProperty.GetMaxLength().Should().Be(8);
         displayCodeProperty.GetColumnName().Should().Be("display_code");
         displayCodeProperty.IsNullable.Should().BeFalse();
         displayCodeProperty.GetValueConverter().Should().NotBeNull("DisplayCode should have a Vogen value converter");
@@ -109,14 +109,14 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         familyIdProperty.Should().NotBeNull();
-        familyIdProperty!.GetColumnName().Should().Be("family_id");
+        familyIdProperty.GetColumnName().Should().Be("family_id");
         familyIdProperty.IsNullable.Should().BeFalse();
         familyIdProperty.GetValueConverter().Should().NotBeNull("FamilyId should have a Vogen value converter");
 
         // Verify FK exists
         var familyFk = foreignKeys.FirstOrDefault(fk => fk.Properties.Any(p => p.Name == "FamilyId"));
         familyFk.Should().NotBeNull("Foreign key to Family should exist");
-        familyFk!.DeleteBehavior.Should().Be(DeleteBehavior.Restrict);
+        familyFk.DeleteBehavior.Should().Be(DeleteBehavior.Restrict);
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         emailProperty.Should().NotBeNull();
-        emailProperty!.GetMaxLength().Should().Be(255);
+        emailProperty.GetMaxLength().Should().Be(255);
         emailProperty.GetColumnName().Should().Be("email");
         emailProperty.IsNullable.Should().BeFalse();
         emailProperty.GetValueConverter().Should().NotBeNull("Email should have a Vogen value converter");
@@ -141,7 +141,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         roleProperty.Should().NotBeNull();
-        roleProperty!.GetMaxLength().Should().Be(20);
+        roleProperty.GetMaxLength().Should().Be(20);
         roleProperty.GetColumnName().Should().Be("role");
         roleProperty.IsNullable.Should().BeFalse();
         roleProperty.GetValueConverter().Should().NotBeNull("Role should have a custom value converter");
@@ -155,7 +155,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         tokenProperty.Should().NotBeNull();
-        tokenProperty!.GetMaxLength().Should().Be(64);
+        tokenProperty.GetMaxLength().Should().Be(64);
         tokenProperty.GetColumnName().Should().Be("token");
         tokenProperty.IsNullable.Should().BeFalse();
         tokenProperty.GetValueConverter().Should().NotBeNull("Token should have a Vogen value converter");
@@ -169,7 +169,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         statusProperty.Should().NotBeNull();
-        statusProperty!.GetMaxLength().Should().Be(20);
+        statusProperty.GetMaxLength().Should().Be(20);
         statusProperty.GetColumnName().Should().Be("status");
         statusProperty.IsNullable.Should().BeFalse();
         statusProperty.GetValueConverter().Should().NotBeNull("Status should have a Vogen value converter");
@@ -183,7 +183,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         invitedByProperty.Should().NotBeNull();
-        invitedByProperty!.GetColumnName().Should().Be("invited_by_user_id");
+        invitedByProperty.GetColumnName().Should().Be("invited_by_user_id");
         invitedByProperty.IsNullable.Should().BeFalse();
         invitedByProperty.GetValueConverter().Should().NotBeNull("InvitedByUserId should have a Vogen value converter");
     }
@@ -201,7 +201,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         tokenIndex.Should().NotBeNull("Index on Token should exist");
-        tokenIndex!.IsUnique.Should().BeTrue("Token index should be unique");
+        tokenIndex.IsUnique.Should().BeTrue("Token index should be unique");
         tokenIndex.GetDatabaseName().Should().Be("ix_family_member_invitations_token");
     }
 
@@ -217,7 +217,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         compositeIndex.Should().NotBeNull("Composite index on (FamilyId, Status) should exist");
-        compositeIndex!.GetDatabaseName().Should().Be("ix_family_member_invitations_family_id_status");
+        compositeIndex.GetDatabaseName().Should().Be("ix_family_member_invitations_family_id_status");
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         expiresAtIndex.Should().NotBeNull("Index on ExpiresAt should exist");
-        expiresAtIndex!.GetDatabaseName().Should().Be("ix_family_member_invitations_expires_at");
+        expiresAtIndex.GetDatabaseName().Should().Be("ix_family_member_invitations_expires_at");
     }
 
     [Fact]
@@ -245,7 +245,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         invitedByIndex.Should().NotBeNull("Index on InvitedByUserId should exist");
-        invitedByIndex!.GetDatabaseName().Should().Be("ix_family_member_invitations_invited_by_user_id");
+        invitedByIndex.GetDatabaseName().Should().Be("ix_family_member_invitations_invited_by_user_id");
     }
 
     [Fact]
@@ -259,7 +259,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         familyIdIndex.Should().NotBeNull("Index on FamilyId should exist");
-        familyIdIndex!.GetDatabaseName().Should().Be("ix_family_member_invitations_family_id");
+        familyIdIndex.GetDatabaseName().Should().Be("ix_family_member_invitations_family_id");
     }
 
     #endregion
@@ -274,7 +274,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         messageProperty.Should().NotBeNull();
-        messageProperty!.IsNullable.Should().BeTrue("Message should be optional");
+        messageProperty.IsNullable.Should().BeTrue("Message should be optional");
         messageProperty.GetColumnName().Should().Be("message");
         // Note: GetColumnType() doesn't work with InMemory database - verified via schema configuration
     }
@@ -287,7 +287,7 @@ public sealed class FamilyMemberInvitationConfigurationTests : IDisposable
 
         // Assert
         acceptedAtProperty.Should().NotBeNull();
-        acceptedAtProperty!.IsNullable.Should().BeTrue("AcceptedAt should be optional");
+        acceptedAtProperty.IsNullable.Should().BeTrue("AcceptedAt should be optional");
         acceptedAtProperty.GetColumnName().Should().Be("accepted_at");
     }
 

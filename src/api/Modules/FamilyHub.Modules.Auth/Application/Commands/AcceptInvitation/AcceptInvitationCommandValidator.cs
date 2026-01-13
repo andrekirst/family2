@@ -1,8 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Services;
-using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Family.Application.Abstractions;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FluentValidation;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
@@ -34,7 +33,9 @@ public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptI
             .CustomAsync(async (token, context, cancellationToken) =>
             {
                 // 1. Token existence check
-                var invitation = await invitationRepository.GetByTokenAsync(token, cancellationToken);
+                var invitation = await invitationRepository.FindOneAsync(
+                    new InvitationByTokenSpecification(token),
+                    cancellationToken);
                 if (invitation == null)
                 {
                     context.AddFailure("Invalid or expired invitation token.");

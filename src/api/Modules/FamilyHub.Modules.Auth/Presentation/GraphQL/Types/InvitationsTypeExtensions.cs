@@ -1,6 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 using FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using HotChocolate.Authorization;
 using MediatR;

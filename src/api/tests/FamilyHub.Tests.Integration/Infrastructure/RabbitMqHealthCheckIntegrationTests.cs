@@ -4,7 +4,6 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
-using Xunit;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
 

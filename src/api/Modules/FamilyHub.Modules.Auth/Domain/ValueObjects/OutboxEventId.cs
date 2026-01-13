@@ -1,6 +1,4 @@
-using Vogen;
-
-namespace FamilyHub.SharedKernel.Domain.ValueObjects;
+namespace FamilyHub.Modules.Auth.Domain.ValueObjects;
 
 /// <summary>
 /// Unique identifier for an outbox event.

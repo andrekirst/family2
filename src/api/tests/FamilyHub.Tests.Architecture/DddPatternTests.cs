@@ -13,7 +13,6 @@ public sealed class DddPatternTests
 {
     private static readonly Assembly AuthModuleAssembly = typeof(CompleteZitadelLoginCommand).Assembly;
     private static readonly Assembly FamilyModuleAssembly = typeof(Family).Assembly;
-    private static readonly Assembly SharedKernelAssembly = typeof(AggregateRoot<>).Assembly;
 
     private static readonly Assembly[] AllModuleAssemblies =
     [
@@ -37,8 +36,7 @@ public sealed class DddPatternTests
         var aggregateTypes = allTypes
             .Where(t => t.Namespace != null &&
                         t.Namespace.Contains(TestConstants.AggregatesSuffix.TrimStart('.')) &&
-                        t.IsClass &&
-                        !t.IsAbstract &&
+                        t is { IsClass: true, IsAbstract: false } &&
                         !t.Name.Contains("Designer") &&
                         !t.Name.Contains("Snapshot"))
             .ToList();
@@ -71,8 +69,7 @@ public sealed class DddPatternTests
         var eventTypes = allTypes
             .Where(t => t.Namespace != null &&
                         t.Namespace.Contains(TestConstants.EventsSuffix.TrimStart('.')) &&
-                        t.IsClass &&
-                        !t.IsAbstract &&
+                        t is { IsClass: true, IsAbstract: false } &&
                         t.Name.EndsWith("Event"))
             .ToList();
 

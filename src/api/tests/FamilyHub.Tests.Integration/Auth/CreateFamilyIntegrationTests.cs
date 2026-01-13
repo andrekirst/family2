@@ -1,13 +1,10 @@
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Family.Application.Abstractions;
-using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
 using FamilyHub.Tests.Integration.Infrastructure;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FamilyHub.Tests.Integration.Auth;
@@ -42,13 +39,13 @@ public sealed class CreateFamilyIntegrationTests(PostgreSqlContainerFixture cont
 
         // Family assertions
         familyDto.Should().NotBeNull();
-        familyDto!.Name.Value.Should().Be(expectedName);
+        familyDto.Name.Value.Should().Be(expectedName);
         familyDto.OwnerId.Should().Be(expectedOwnerId);
 
         // Membership assertions - user's FamilyId should match
         var user = await userRepository.GetByIdAsync(expectedOwnerId);
         user.Should().NotBeNull();
-        user!.FamilyId.Should().Be(familyId);
+        user.FamilyId.Should().Be(familyId);
     }
 
     #endregion
@@ -117,7 +114,7 @@ public sealed class CreateFamilyIntegrationTests(PostgreSqlContainerFixture cont
         // Verify new family exists (using service for assertion)
         var newFamilyDto = await familyService.GetFamilyByIdAsync(newResult.FamilyId, CancellationToken.None);
         newFamilyDto.Should().NotBeNull();
-        newFamilyDto!.Name.Value.Should().Be(newFamilyName);
+        newFamilyDto.Name.Value.Should().Be(newFamilyName);
     }
 
     [Fact(Skip = "Concurrent requests test requires real PostgreSQL database. In-memory DB has EF Core navigation property issues with Vogen value objects.")]
@@ -219,6 +216,6 @@ public sealed class CreateFamilyIntegrationTests(PostgreSqlContainerFixture cont
 
         var updatedUser = await userRepo.GetByIdAsync(user.Id);
         updatedUser.Should().NotBeNull();
-        updatedUser!.FamilyId.Should().Be(secondResult.FamilyId);
+        updatedUser.FamilyId.Should().Be(secondResult.FamilyId);
     }
 }

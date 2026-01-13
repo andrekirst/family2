@@ -6,14 +6,7 @@ namespace FamilyHub.Tests.Architecture.Fixtures.Violations.CleanArchitecture.Dom
 /// INTENTIONAL VIOLATION: Domain class depending on Application layer.
 /// Used for negative testing of CleanArchitectureTests.DomainLayer_ShouldNotDependOn_ApplicationLayer
 /// </summary>
-public sealed class DomainDependingOnApplication
+public sealed class DomainDependingOnApplication(ApplicationService service)
 {
-    private readonly ApplicationService _service;
-
-    public DomainDependingOnApplication(ApplicationService service)
-    {
-        _service = service;
-    }
-
-    public void DoWork() => _service.Execute();
+    public void DoWork() => service.Execute();
 }

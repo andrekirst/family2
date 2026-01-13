@@ -1,11 +1,8 @@
 using DotNet.Testcontainers.Builders;
-using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 using Testcontainers.PostgreSql;
 using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
@@ -133,7 +130,7 @@ public sealed class FamilyDbContextMigrationTests : IAsyncLifetime
         var retrieved = await verifyContext.Families.FindAsync(family.Id);
 
         retrieved.Should().NotBeNull();
-        retrieved!.Name.Should().Be(FamilyName.From("Migration Test Family"));
+        retrieved.Name.Should().Be(FamilyName.From("Migration Test Family"));
     }
 
     /// <summary>

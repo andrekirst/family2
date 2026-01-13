@@ -5,7 +5,6 @@ using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using DomainResult = FamilyHub.SharedKernel.Domain.Result;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 

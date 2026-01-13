@@ -2,7 +2,6 @@ using DotNet.Testcontainers.Builders;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Family.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;

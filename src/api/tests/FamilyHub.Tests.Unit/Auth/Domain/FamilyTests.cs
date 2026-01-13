@@ -1,5 +1,3 @@
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
@@ -52,7 +50,7 @@ public class FamilyTests
     public void Create_WithNullName_ShouldThrowValueObjectValidationException()
     {
         // Arrange
-        var ownerId = UserId.New();
+        UserId.New();
         string? nullName = null;
 
         // Act - Vogen throws exception when creating the value object
@@ -144,7 +142,7 @@ public class FamilyTests
     public void UpdateName_WithNullName_ShouldThrowValueObjectValidationException()
     {
         // Arrange
-        var family = FamilyAggregate.Create(FamilyName.From("Original Name"), UserId.New());
+        FamilyAggregate.Create(FamilyName.From("Original Name"), UserId.New());
         string? nullName = null;
 
         // Act - Vogen throws exception when creating the value object

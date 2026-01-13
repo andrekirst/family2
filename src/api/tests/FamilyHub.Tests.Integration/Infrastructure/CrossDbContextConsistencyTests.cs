@@ -91,7 +91,7 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         // Assert
         familyFromFamilyContext.Should().NotBeNull(
             "User.FamilyId should reference an existing family in family schema");
-        familyFromFamilyContext!.Id.Should().Be(family.Id);
+        familyFromFamilyContext.Id.Should().Be(family.Id);
         familyFromFamilyContext.Name.Should().Be(family.Name);
     }
 
@@ -130,12 +130,12 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         var retrievedUser = await verifyAuthContext.Users.FindAsync(user.Id);
 
         retrievedUser.Should().NotBeNull();
-        retrievedUser!.FamilyId.Should().Be(newFamily.Id);
+        retrievedUser.FamilyId.Should().Be(newFamily.Id);
 
         // Verify the referenced family exists
         var referencedFamily = await _familyContext.Families.FindAsync(retrievedUser.FamilyId);
         referencedFamily.Should().NotBeNull();
-        referencedFamily!.Name.Should().Be(FamilyName.From("New Family"));
+        referencedFamily.Name.Should().Be(FamilyName.From("New Family"));
     }
 
     #endregion
@@ -150,7 +150,7 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
     {
         // Arrange - Create user first (in auth schema)
         var inviterId = UserId.New();
-        var familyId = FamilyId.New();
+        FamilyId.New();
 
         // Create family
         var family = FamilyAggregate.Create(FamilyName.From("Invitation Test Family"), inviterId);
@@ -188,7 +188,7 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         // Assert
         userFromAuthContext.Should().NotBeNull(
             "Invitation.InvitedByUserId should reference an existing user in auth schema");
-        userFromAuthContext!.Id.Should().Be(inviter.Id);
+        userFromAuthContext.Id.Should().Be(inviter.Id);
     }
 
     #endregion
@@ -202,7 +202,7 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
     public async Task FamilyOwnerId_ReferencesExistingUser()
     {
         // Arrange - Create user first
-        var ownerId = UserId.New();
+        UserId.New();
         var tempFamilyId = FamilyId.New(); // Temp value for user creation
 
         var owner = User.CreateFromOAuth(
@@ -233,7 +233,7 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         // Assert
         ownerFromAuthContext.Should().NotBeNull(
             "Family.OwnerId should reference an existing user in auth schema");
-        ownerFromAuthContext!.Id.Should().Be(owner.Id);
+        ownerFromAuthContext.Id.Should().Be(owner.Id);
     }
 
     /// <summary>
@@ -276,11 +276,11 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         var retrievedFamily = await verifyFamilyContext.Families.FindAsync(family.Id);
 
         retrievedFamily.Should().NotBeNull();
-        retrievedFamily!.OwnerId.Should().Be(newOwner.Id);
+        retrievedFamily.OwnerId.Should().Be(newOwner.Id);
 
         var newOwnerFromAuth = await _authContext.Users.FindAsync(retrievedFamily.OwnerId);
         newOwnerFromAuth.Should().NotBeNull();
-        newOwnerFromAuth!.Email.Should().Be(newOwner.Email);
+        newOwnerFromAuth.Email.Should().Be(newOwner.Email);
     }
 
     #endregion
@@ -313,7 +313,7 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         familyFromContext1.Should().NotBeNull();
         familyFromContext2.Should().NotBeNull();
 
-        familyFromContext1!.Id.Should().Be(familyFromContext2!.Id);
+        familyFromContext1.Id.Should().Be(familyFromContext2.Id);
         familyFromContext1.Name.Should().Be(familyFromContext2.Name);
         familyFromContext1.OwnerId.Should().Be(familyFromContext2.OwnerId);
     }
@@ -325,7 +325,7 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
     public async Task ConcurrentWrites_BothContexts_DataIntegrity()
     {
         // Arrange - Create shared user
-        var ownerId = UserId.New();
+        UserId.New();
         var familyId = FamilyId.New();
 
         var user = User.CreateFromOAuth(
@@ -357,7 +357,7 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         {
             var family = await _familyContext.Families.FindAsync(familyId2);
             family.Should().NotBeNull();
-            family!.OwnerId.Should().Be(user.Id);
+            family.OwnerId.Should().Be(user.Id);
 
             // Verify owner exists in auth context
             var owner = await _authContext.Users.FindAsync(family.OwnerId);

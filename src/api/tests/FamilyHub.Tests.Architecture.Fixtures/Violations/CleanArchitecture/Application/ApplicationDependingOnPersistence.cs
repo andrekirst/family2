@@ -6,14 +6,7 @@ namespace FamilyHub.Tests.Architecture.Fixtures.Violations.CleanArchitecture.App
 /// INTENTIONAL VIOLATION: Application class depending directly on Persistence implementations.
 /// Used for negative testing of CleanArchitectureTests.ApplicationLayer_ShouldNotDependOn_PersistenceImplementations
 /// </summary>
-public sealed class ApplicationDependingOnPersistence
+public sealed class ApplicationDependingOnPersistence(PersistenceService service)
 {
-    private readonly PersistenceService _service;
-
-    public ApplicationDependingOnPersistence(PersistenceService service)
-    {
-        _service = service;
-    }
-
-    public void DoWork() => _service.SaveData();
+    public void DoWork() => service.SaveData();
 }

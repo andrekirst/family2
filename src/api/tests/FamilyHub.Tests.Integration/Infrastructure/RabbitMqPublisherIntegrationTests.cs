@@ -8,7 +8,6 @@ using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Net.Mime;
-using Xunit;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
 
@@ -83,7 +82,7 @@ public sealed class RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture f
         await _consumerChannel.QueueBindAsync(queueDeclare.QueueName, exchangeName, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
-        consumer.ReceivedAsync += (sender, args) =>
+        consumer.ReceivedAsync += (_, args) =>
         {
             receivedMessage = Encoding.UTF8.GetString(args.Body.ToArray());
             messageReceived.SetResult(true);
@@ -116,9 +115,9 @@ public sealed class RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture f
         await _consumerChannel.QueueBindAsync(queueDeclare.QueueName, exchangeName, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
-        consumer.ReceivedAsync += (sender, args) =>
+        consumer.ReceivedAsync += (_, args) =>
         {
-            receivedContentType = args.BasicProperties?.ContentType ?? "none";
+            receivedContentType = args.BasicProperties.ContentType ?? "none";
             messageReceived.SetResult(true);
             return Task.CompletedTask;
         };
@@ -149,7 +148,7 @@ public sealed class RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture f
         await _consumerChannel.QueueBindAsync(queueDeclare.QueueName, exchangeName, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
-        consumer.ReceivedAsync += (sender, args) =>
+        consumer.ReceivedAsync += (_, args) =>
         {
             deliveryMode = args.BasicProperties?.DeliveryMode ?? DeliveryModes.Transient;
             messageReceived.SetResult(true);
@@ -186,7 +185,7 @@ public sealed class RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture f
         await _consumerChannel.QueueBindAsync(queueDeclare.QueueName, exchangeName, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
-        consumer.ReceivedAsync += (sender, args) =>
+        consumer.ReceivedAsync += (_, args) =>
         {
             var message = Encoding.UTF8.GetString(args.Body.ToArray());
             lock (receivedMessages)
@@ -238,7 +237,7 @@ public sealed class RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture f
         await _consumerChannel.QueueBindAsync(queueDeclare.QueueName, exchangeName, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
-        consumer.ReceivedAsync += (sender, args) =>
+        consumer.ReceivedAsync += (_, args) =>
         {
             receivedMessage = Encoding.UTF8.GetString(args.Body.ToArray());
             messageReceived.SetResult(true);
@@ -260,7 +259,7 @@ public sealed class RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture f
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
         deserializedMessage.Should().NotBeNull();
-        deserializedMessage!.EventId.Should().Be(message.EventId);
+        deserializedMessage.EventId.Should().Be(message.EventId);
         deserializedMessage.EventType.Should().Be(message.EventType);
         deserializedMessage.Payload.Should().Be(message.Payload);
     }
@@ -285,7 +284,7 @@ public sealed class RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture f
         await _consumerChannel.QueueBindAsync(queueDeclare.QueueName, exchangeName, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
-        consumer.ReceivedAsync += (sender, args) =>
+        consumer.ReceivedAsync += (_, args) =>
         {
             receivedMessage = Encoding.UTF8.GetString(args.Body.ToArray());
             messageReceived.SetResult(true);
@@ -327,7 +326,7 @@ public sealed class RabbitMqPublisherIntegrationTests(RabbitMqContainerFixture f
 
         var receivedMessages = new List<string>();
         var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
-        consumer.ReceivedAsync += (sender, args) =>
+        consumer.ReceivedAsync += (_, args) =>
         {
             receivedMessages.Add(Encoding.UTF8.GetString(args.Body.ToArray()));
             return Task.CompletedTask;

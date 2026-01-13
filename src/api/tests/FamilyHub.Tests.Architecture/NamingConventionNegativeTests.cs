@@ -54,7 +54,6 @@ public sealed class NamingConventionNegativeTests : ArchitectureTestBase
         var fixtureTypes = Types.InAssembly(ViolationFixturesAssembly).GetTypes();
 
         // Find command-like types in fixtures (in Commands namespace, implementing IRequest)
-        var commandNamespace = $"{FixturesNamingNamespace}.Application.Commands";
         var potentialCommands = fixtureTypes
             .Where(t => t.Namespace != null &&
                         t.Namespace.Contains("Commands") &&

@@ -1,4 +1,7 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mime;
 using AspNetCoreRateLimit;
+using FamilyHub.Api.Infrastructure;
 using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Infrastructure.Messaging;
@@ -6,7 +9,9 @@ using FamilyHub.Modules.Auth;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Infrastructure.BackgroundJobs;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders;
 using FamilyHub.Modules.Family;
+using FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -15,7 +20,6 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Serilog;
-using System.Net.Mime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,7 +57,7 @@ try
 
     // Health checks
     builder.Services.AddHealthChecks()
-        .AddRabbitMqHealthCheck("rabbitmq", tags: ["ready", "infrastructure"]);
+        .AddRabbitMqHealthCheck(tags: ["ready", "infrastructure"]);
 
     // Quartz.NET Background Jobs Configuration
     builder.Services.AddQuartz(q =>
@@ -122,10 +126,10 @@ try
     // BatchDataLoaders: 1:1 mapping (e.g., UserId -> User)
     // GroupedDataLoaders: 1:N mapping (e.g., FamilyId -> [User, User, ...])
     graphqlBuilder
-        .AddDataLoader<FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders.UserBatchDataLoader>()
-        .AddDataLoader<FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders.UsersByFamilyGroupedDataLoader>()
-        .AddDataLoader<FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders.FamilyBatchDataLoader>()
-        .AddDataLoader<FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders.InvitationsByFamilyGroupedDataLoader>();
+        .AddDataLoader<UserBatchDataLoader>()
+        .AddDataLoader<UsersByFamilyGroupedDataLoader>()
+        .AddDataLoader<FamilyBatchDataLoader>()
+        .AddDataLoader<InvitationsByFamilyGroupedDataLoader>();
 
     // Future modules can be registered here:
     // graphqlBuilder.AddCalendarModuleGraphQLTypes();
@@ -147,7 +151,7 @@ try
     }
 
     // Clear default claim type mappings to use short claim names (sub, email, etc.)
-    System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+    JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -213,9 +217,9 @@ try
     {
         builder.Services.AddHttpContextAccessor();
         builder.Services.RemoveAll<IAuthorizationHandler>();
-        builder.Services.AddScoped<IAuthorizationHandler, FamilyHub.Api.Infrastructure.TestAuthorizationHandler>();
+        builder.Services.AddScoped<IAuthorizationHandler, TestAuthorizationHandler>();
         builder.Services.RemoveAll<ICurrentUserService>();
-        builder.Services.AddScoped<ICurrentUserService, FamilyHub.Api.Infrastructure.HeaderBasedCurrentUserService>();
+        builder.Services.AddScoped<ICurrentUserService, HeaderBasedCurrentUserService>();
 
         Log.Information("Test environment: Auth bypass enabled via X-Test-User-Id header");
     }
@@ -296,8 +300,11 @@ static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
     return context.Response.WriteAsJsonAsync(result);
 }
 
-/// <summary>
-/// Main application entry point.
-/// Partial class declaration for WebApplicationFactory integration testing.
-/// </summary>
-public partial class Program { }
+namespace FamilyHub.Api
+{
+    /// <summary>
+    /// Main application entry point.
+    /// Partial class declaration for WebApplicationFactory integration testing.
+    /// </summary>
+    public partial class Program { }
+}

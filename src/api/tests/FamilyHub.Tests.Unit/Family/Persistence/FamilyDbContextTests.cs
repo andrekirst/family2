@@ -91,8 +91,8 @@ public sealed class FamilyDbContextTests : IDisposable
         invitationEntityType.Should().NotBeNull("FamilyMemberInvitation entity should be configured");
 
         // Verify table names are set (proves configurations were applied)
-        familyEntityType!.GetTableName().Should().Be("families");
-        invitationEntityType!.GetTableName().Should().Be("family_member_invitations");
+        familyEntityType.GetTableName().Should().Be("families");
+        invitationEntityType.GetTableName().Should().Be("family_member_invitations");
     }
 
     #endregion

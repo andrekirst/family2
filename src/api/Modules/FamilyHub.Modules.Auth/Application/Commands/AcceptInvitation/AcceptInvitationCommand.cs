@@ -1,4 +1,3 @@
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using MediatR;

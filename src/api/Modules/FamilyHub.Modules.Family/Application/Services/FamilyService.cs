@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Family.Application.Abstractions;
-using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Domain.Repositories;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain.Specifications;
+using FamilyHub.SharedKernel.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -16,6 +16,7 @@ namespace FamilyHub.Modules.Family.Application.Services;
 /// </summary>
 public sealed partial class FamilyService(
     IFamilyRepository familyRepository,
+    IUserLookupService userLookupService,
     IUnitOfWork unitOfWork,
     ILogger<FamilyService> logger) : IFamilyService
 {
@@ -68,7 +69,7 @@ public sealed partial class FamilyService(
     /// <param name="newOwnerId">The ID of the new owner.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
-    public async Task<FamilyHub.SharedKernel.Domain.Result> TransferOwnershipAsync(
+    public async Task<Result> TransferOwnershipAsync(
         FamilyId familyId,
         UserId newOwnerId,
         CancellationToken cancellationToken = default)
@@ -143,7 +144,19 @@ public sealed partial class FamilyService(
     {
         LogGettingFamilyByUserId(userId.Value);
 
-        var family = await familyRepository.GetFamilyByUserIdAsync(userId, cancellationToken);
+        // Use cross-module service to get user's family ID
+        var familyId = await userLookupService.GetUserFamilyIdAsync(userId, cancellationToken);
+        if (familyId == null)
+        {
+            LogNoFamilyFoundForUser(userId.Value);
+            return null;
+        }
+
+        // Use Specification pattern to get family by ID
+        var family = await familyRepository.FindOneAsync(
+            new FamilyByIdSpecification(familyId.Value),
+            cancellationToken);
+
         if (family == null)
         {
             LogNoFamilyFoundForUser(userId.Value);
@@ -174,7 +187,8 @@ public sealed partial class FamilyService(
     {
         LogGettingMemberCount(familyId.Value);
 
-        var count = await familyRepository.GetMemberCountAsync(familyId, cancellationToken);
+        // Use cross-module service for member count (users are in Auth module)
+        var count = await userLookupService.GetFamilyMemberCountAsync(familyId, cancellationToken);
 
         LogMemberCountRetrieved(familyId.Value, count);
 

@@ -8,7 +8,6 @@ using GreenDonut;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 using ManualBatchScheduler = FamilyHub.Tests.Unit.Fixtures.ManualBatchScheduler;
 
 namespace FamilyHub.Tests.Unit.Family.Presentation.GraphQL.DataLoaders;
@@ -48,7 +47,7 @@ public sealed class FamilyBatchDataLoaderTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(family.Id);
+        result.Id.Should().Be(family.Id);
         result.Name.Should().Be(family.Name);
     }
 
@@ -184,7 +183,7 @@ public sealed class FamilyBatchDataLoaderTests : IDisposable
 
         // Assert
         result1.Should().NotBe(result2);
-        result1!.Name.Should().Be(FamilyName.From("Family One"));
+        result1.Name.Should().Be(FamilyName.From("Family One"));
         result2!.Name.Should().Be(FamilyName.From("Family Two"));
     }
 
@@ -214,7 +213,7 @@ public sealed class FamilyBatchDataLoaderTests : IDisposable
 
         // Assert
         existingResult.Should().NotBeNull();
-        existingResult!.Id.Should().Be(existingFamily.Id);
+        existingResult.Id.Should().Be(existingFamily.Id);
         nonExistentResult.Should().BeNull();
     }
 

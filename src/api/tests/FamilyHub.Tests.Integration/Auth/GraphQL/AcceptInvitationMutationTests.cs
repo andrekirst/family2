@@ -3,11 +3,9 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
-using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
-using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
 using FamilyHub.Tests.Integration.Infrastructure;
@@ -50,7 +48,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
-            owner.FamilyId!,
+            owner.FamilyId,
             inviteeEmail,
             FamilyRole.Member,
             owner.Id,
@@ -107,7 +105,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         errors.ValueKind.Should().Be(JsonValueKind.Null);
 
         var dto = result.GetProperty("acceptedInvitationDto");
-        dto.GetProperty("familyId").GetGuid().Should().Be(owner.FamilyId!.Value);
+        dto.GetProperty("familyId").GetGuid().Should().Be(owner.FamilyId.Value);
 
         var role = dto.GetProperty("role").GetString();
         role.Should().Be("MEMBER");
@@ -127,7 +125,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
-            owner.FamilyId!,
+            owner.FamilyId,
             inviteeEmail,
             FamilyRole.Admin,
             owner.Id);
@@ -179,18 +177,18 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
 
         // Assert - Database state (use new scope to avoid stale data)
         using var verifyScope = _factory.Services.CreateScope();
-        var (verifyUserRepo, _, verifyUnitOfWork) = TestServices.ResolveRepositoryServices(verifyScope);
+        var (verifyUserRepo, _, _) = TestServices.ResolveRepositoryServices(verifyScope);
         var verifyInvitationRepo = verifyScope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
 
-        var updatedInvitation = await verifyInvitationRepo.GetByTokenAsync(invitation.Token, CancellationToken.None);
+        var updatedInvitation = await verifyInvitationRepo.FindOneAsync(new InvitationByTokenSpecification(invitation.Token), CancellationToken.None);
         updatedInvitation.Should().NotBeNull();
-        updatedInvitation!.Status.Should().Be(InvitationStatus.Accepted);
+        updatedInvitation.Status.Should().Be(InvitationStatus.Accepted);
         updatedInvitation.AcceptedAt.Should().NotBeNull();
         updatedInvitation.AcceptedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
 
         var updatedUser = await verifyUserRepo.GetByIdAsync(invitee.Id, CancellationToken.None);
         updatedUser.Should().NotBeNull();
-        updatedUser!.FamilyId.Should().Be(owner.FamilyId);
+        updatedUser.FamilyId.Should().Be(owner.FamilyId);
         updatedUser.Role.Should().Be(FamilyRole.Admin);
     }
 
@@ -269,7 +267,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
-            owner.FamilyId!,
+            owner.FamilyId,
             inviteeEmail,
             FamilyRole.Member,
             owner.Id);
@@ -350,7 +348,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         // Create invitation for different email
         var invitationEmail = Email.From("invited@example.com");
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
-            owner.FamilyId!,
+            owner.FamilyId,
             invitationEmail,
             FamilyRole.Member,
             owner.Id);
@@ -428,13 +426,13 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
-            owner.FamilyId!,
+            owner.FamilyId,
             inviteeEmail,
             FamilyRole.Member,
             owner.Id);
 
         // Accept invitation first
-        var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", owner.FamilyId!);
+        var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", owner.FamilyId);
         await userRepo.AddAsync(invitee, CancellationToken.None);
         invitation.Accept(invitee.Id);
 
@@ -498,7 +496,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         var testId = TestDataFactory.GenerateTestId();
         var inviteeEmail = Email.From($"invitee-{testId}@example.com");
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
-            owner.FamilyId!,
+            owner.FamilyId,
             inviteeEmail,
             FamilyRole.Member,
             owner.Id);

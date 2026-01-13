@@ -3,9 +3,9 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Unit.Fixtures;
 using FluentAssertions;
@@ -43,7 +43,7 @@ public sealed class AcceptInvitationCommandValidatorTests
 
         // Mock
         userContext.User.Returns(user);
-        invitationRepository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
         familyService.GetFamilyByIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns(familyDto);
@@ -80,7 +80,7 @@ public sealed class AcceptInvitationCommandValidatorTests
 
         // Mock
         userContext.User.Returns(user);
-        invitationRepository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
         familyService.GetFamilyByIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns(familyDto);
@@ -115,7 +115,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var token = InvitationToken.Generate();
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
-        invitationRepository.GetByTokenAsync(token, Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns((FamilyMemberInvitationAggregate?)null);
 
         var validator = new AcceptInvitationCommandValidator(
@@ -153,7 +153,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         // Accept the invitation to change status
         invitation.Accept(UserId.New());
 
-        invitationRepository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
 
         var validator = new AcceptInvitationCommandValidator(
@@ -187,7 +187,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         // Cancel the invitation
         invitation.Cancel(invitedByUserId);
 
-        invitationRepository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
 
         var validator = new AcceptInvitationCommandValidator(
@@ -225,7 +225,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var expiredTime = invitation.ExpiresAt.AddDays(1);
         var timeProvider = new FakeTimeProvider(expiredTime);
 
-        invitationRepository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
 
         var validator = new AcceptInvitationCommandValidator(
@@ -266,7 +266,7 @@ public sealed class AcceptInvitationCommandValidatorTests
 
         // Mock
         userContext.User.Returns(user);
-        invitationRepository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
 
         var validator = new AcceptInvitationCommandValidator(
@@ -306,7 +306,7 @@ public sealed class AcceptInvitationCommandValidatorTests
 
         // Mock - family does not exist (IFamilyService returns null)
         userContext.User.Returns(user);
-        invitationRepository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
         familyService.GetFamilyByIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns((FamilyDto?)null);

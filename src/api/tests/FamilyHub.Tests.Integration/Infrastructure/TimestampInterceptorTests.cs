@@ -1,6 +1,5 @@
 using FamilyHub.Infrastructure.Persistence.Interceptors;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -34,7 +33,7 @@ public class TimestampInterceptorTests : IAsyncLifetime
 
         var services = new ServiceCollection();
         services.AddSingleton<TimeProvider>(_timeProvider);
-        var serviceProvider = services.BuildServiceProvider();
+        services.BuildServiceProvider();
 
         var connectionString = "Host=localhost;Database=familyhub_test;Username=familyhub;Password=Dev123!";
 

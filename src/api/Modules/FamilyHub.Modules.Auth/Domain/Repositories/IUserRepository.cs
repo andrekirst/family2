@@ -1,27 +1,22 @@
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyHub.SharedKernel.Interfaces;
 
 namespace FamilyHub.Modules.Auth.Domain.Repositories;
 
 /// <summary>
 /// Repository interface for User aggregate root.
 /// Follows DDD repository pattern - operates on aggregate roots only.
+/// Extends ISpecificationRepository to support specification-based queries.
 /// </summary>
-public interface IUserRepository
+public interface IUserRepository : ISpecificationRepository<User, UserId>
 {
-    /// <summary>
-    /// Gets a user by their unique identifier.
-    /// </summary>
-    /// <param name="id">The user ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The user if found; otherwise, null.</returns>
-    Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Gets a user by their email address.
     /// </summary>
     /// <param name="email">The email address.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The user if found; otherwise, null.</returns>
+    [Obsolete("Use FindOneAsync with UserByEmailSpecification.")]
     Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -31,6 +26,7 @@ public interface IUserRepository
     /// <param name="externalUserId">The user ID from the external provider.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The user if found; otherwise, null.</returns>
+    [Obsolete("Use FindOneAsync with UserByExternalProviderSpecification.")]
     Task<User?> GetByExternalProviderAsync(
         string externalProvider,
         string externalUserId,
@@ -43,6 +39,7 @@ public interface IUserRepository
     /// <param name="externalProvider">The OAuth provider name (e.g., "zitadel").</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The user if found; otherwise, null.</returns>
+    [Obsolete("Use FindOneAsync with UserByExternalProviderSpecification.")]
     Task<User?> GetByExternalUserIdAsync(
         string externalUserId,
         string externalProvider,
@@ -54,28 +51,8 @@ public interface IUserRepository
     /// <param name="email">The email address to check.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if a user with this email exists; otherwise, false.</returns>
+    [Obsolete("Use AnyAsync with UserByEmailSpecification.")]
     Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Adds a new user to the repository.
-    /// </summary>
-    /// <param name="user">The user to add.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    Task AddAsync(User user, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates an existing user in the repository.
-    /// Note: In EF Core with change tracking, explicit Update call may not be necessary.
-    /// </summary>
-    /// <param name="user">The user to update.</param>
-    void Update(User user);
-
-    /// <summary>
-    /// Removes a user from the repository (hard delete).
-    /// Note: Prefer using User.Delete() for soft deletes.
-    /// </summary>
-    /// <param name="user">The user to remove.</param>
-    void Remove(User user);
 
     /// <summary>
     /// Gets all users belonging to a specific family.
@@ -83,5 +60,6 @@ public interface IUserRepository
     /// <param name="familyId">The family ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of users in the family.</returns>
+    [Obsolete("Use FindAllAsync with UsersByFamilySpecification.")]
     Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
 }

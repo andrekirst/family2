@@ -1,5 +1,4 @@
 using FamilyHub.Modules.Family.Application.Abstractions;
-using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.SharedKernel.Application.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 

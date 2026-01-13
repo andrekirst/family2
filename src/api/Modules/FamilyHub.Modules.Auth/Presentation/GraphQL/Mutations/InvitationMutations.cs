@@ -1,7 +1,6 @@
 using FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 using FamilyHub.Modules.Auth.Application.Commands.CancelInvitation;
 using FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;

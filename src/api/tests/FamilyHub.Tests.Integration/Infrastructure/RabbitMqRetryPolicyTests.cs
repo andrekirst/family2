@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
 
@@ -186,7 +185,7 @@ public sealed class RabbitMqRetryPolicyTests(RabbitMqContainerFixture fixture) :
         await channel.QueueBindAsync(queueDeclare.QueueName, exchangeName, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(channel);
-        consumer.ReceivedAsync += (sender, args) =>
+        consumer.ReceivedAsync += (_, args) =>
         {
             receivedMessage.TrySetResult(Encoding.UTF8.GetString(args.Body.ToArray()));
             return Task.CompletedTask;
@@ -245,7 +244,7 @@ public sealed class RabbitMqRetryPolicyTests(RabbitMqContainerFixture fixture) :
         await channel.QueueBindAsync(queueDeclare.QueueName, exchangeName, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(channel);
-        consumer.ReceivedAsync += (sender, args) =>
+        consumer.ReceivedAsync += (_, args) =>
         {
             lock (receivedMessages)
             {

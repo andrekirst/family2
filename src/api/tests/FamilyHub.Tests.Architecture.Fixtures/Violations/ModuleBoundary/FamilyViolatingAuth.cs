@@ -6,14 +6,7 @@ namespace FamilyHub.Tests.Architecture.Fixtures.Violations.ModuleBoundary.Family
 /// INTENTIONAL VIOLATION: Family module type depending on Auth module.
 /// Used for negative testing of ModuleBoundaryTests.FamilyModule_ShouldNotHaveDirectDependencyOn_AuthModuleDomain
 /// </summary>
-public sealed class FamilyViolatingAuth
+public sealed class FamilyViolatingAuth(AuthModuleType authType)
 {
-    private readonly AuthModuleType _authType;
-
-    public FamilyViolatingAuth(AuthModuleType authType)
-    {
-        _authType = authType;
-    }
-
-    public void DoWork() => _authType.AuthOperation();
+    public void DoWork() => authType.AuthOperation();
 }

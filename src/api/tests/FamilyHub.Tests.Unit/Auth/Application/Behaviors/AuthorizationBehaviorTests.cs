@@ -3,7 +3,6 @@ using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
@@ -20,16 +19,16 @@ namespace FamilyHub.Tests.Unit.Auth.Application.Behaviors;
 /// Uses NSubstitute for mocking with AutoFixture attribute-based dependency injection.
 /// Uses FluentAssertions for readable, expressive test assertions.
 /// </summary>
-public sealed partial class AuthorizationBehaviorTests
+public sealed class AuthorizationBehaviorTests
 {
     #region Test Request Types
 
-    public record PublicTestQuery() : IRequest<string>, IPublicQuery;
-    public record AuthenticatedOnlyCommand() : IRequest<string>, IRequireAuthentication;
-    public record FamilyContextCommand() : IRequest<string>, IRequireAuthentication, IRequireFamilyContext;
-    public record OwnerOnlyCommand() : IRequest<string>, IRequireAuthentication, IRequireOwnerRole;
-    public record AdminOnlyCommand() : IRequest<string>, IRequireAuthentication, IRequireAdminRole;
-    public record OwnerOrAdminCommand() : IRequest<string>, IRequireAuthentication, IRequireOwnerOrAdminRole;
+    public record PublicTestQuery : IRequest<string>, IPublicQuery;
+    public record AuthenticatedOnlyCommand : IRequest<string>, IRequireAuthentication;
+    public record FamilyContextCommand : IRequest<string>, IRequireAuthentication, IRequireFamilyContext;
+    public record OwnerOnlyCommand : IRequest<string>, IRequireAuthentication, IRequireOwnerRole;
+    public record AdminOnlyCommand : IRequest<string>, IRequireAuthentication, IRequireAdminRole;
+    public record OwnerOrAdminCommand : IRequest<string>, IRequireAuthentication, IRequireOwnerOrAdminRole;
 
     #endregion
 

@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Npgsql;
-using Xunit;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
 
@@ -46,7 +45,7 @@ public sealed class PostgresRlsMiddlewareIntegrationTests(FamilyPostgreSqlContai
         var result = await getCmd.ExecuteScalarAsync();
 
         result.Should().NotBeNull();
-        result!.ToString().Should().Be(userId.ToString());
+        result.ToString().Should().Be(userId.ToString());
     }
 
     [Fact]

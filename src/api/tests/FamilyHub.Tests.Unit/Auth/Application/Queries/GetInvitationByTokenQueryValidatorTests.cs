@@ -1,7 +1,6 @@
 using FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using NSubstitute;
@@ -33,7 +32,7 @@ public class GetInvitationByTokenQueryValidatorTests
             FamilyRole.Member,
             invitedByUserId);
 
-        repository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
 
         var validator = new GetInvitationByTokenQueryValidator(repository);
@@ -54,7 +53,7 @@ public class GetInvitationByTokenQueryValidatorTests
         // Arrange
         var token = InvitationToken.Generate();
 
-        repository.GetByTokenAsync(token, Arg.Any<CancellationToken>())
+        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns((FamilyMemberInvitationAggregate?)null);
 
         var validator = new GetInvitationByTokenQueryValidator(repository);
@@ -87,7 +86,7 @@ public class GetInvitationByTokenQueryValidatorTests
         // Mark invitation as accepted (not pending)
         invitation.MarkAsAccepted(UserId.New());
 
-        repository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
 
         var validator = new GetInvitationByTokenQueryValidator(repository);

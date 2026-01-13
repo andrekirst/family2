@@ -1,4 +1,4 @@
-using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
@@ -18,8 +18,8 @@ public sealed class GetInvitationByTokenQueryHandler(
         CancellationToken cancellationToken)
     {
         // Fetch invitation by token (validator already confirmed it exists and is pending)
-        var invitation = await invitationRepository.GetByTokenAsync(
-            request.Token,
+        var invitation = await invitationRepository.FindOneAsync(
+            new InvitationByTokenSpecification(request.Token),
             cancellationToken);
 
         // Map domain entity to DTO

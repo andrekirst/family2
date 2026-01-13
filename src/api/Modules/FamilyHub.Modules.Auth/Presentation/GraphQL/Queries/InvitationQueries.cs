@@ -1,5 +1,5 @@
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Auth.Domain.Specifications;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using HotChocolate.Authorization;
@@ -23,10 +23,12 @@ public sealed class InvitationQueries
         [Service] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
-        var users = await userRepository.GetByFamilyIdAsync(FamilyId.From(familyId), cancellationToken);
+        // UsersByFamilySpecification already excludes soft-deleted users
+        var users = await userRepository.FindAllAsync(
+            new UsersByFamilySpecification(FamilyId.From(familyId)),
+            cancellationToken);
 
         return users
-            .Where(u => u.DeletedAt == null) // Exclude soft-deleted users
             .Select(u => new FamilyMemberType
             {
                 Id = u.Id.Value,
@@ -59,23 +61,6 @@ public sealed class InvitationQueries
             "admin" => UserRoleType.ADMIN,
             "member" => UserRoleType.MEMBER,
             _ => throw new InvalidOperationException($"Unknown role: {roleValue}")
-        };
-    }
-
-    /// <summary>
-    /// Maps domain InvitationStatus to GraphQL InvitationStatusType.
-    /// </summary>
-    private static InvitationStatusType MapToGraphQlStatus(InvitationStatus domainStatus)
-    {
-        var statusValue = domainStatus.Value.ToLowerInvariant();
-        return statusValue switch
-        {
-            "pending" => InvitationStatusType.PENDING,
-            "accepted" => InvitationStatusType.ACCEPTED,
-            "rejected" => InvitationStatusType.REJECTED,
-            "canceled" => InvitationStatusType.CANCELLED,
-            "expired" => InvitationStatusType.EXPIRED,
-            _ => throw new InvalidOperationException($"Unknown invitation status: {statusValue}")
         };
     }
 }

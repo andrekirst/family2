@@ -52,7 +52,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
         // Assert - Verify we can retrieve it back
         var retrieved = await _context.Families.FindAsync(family.Id);
         retrieved.Should().NotBeNull();
-        retrieved!.Id.Should().Be(family.Id);
+        retrieved.Id.Should().Be(family.Id);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
         // Assert
         var retrieved = await _context.Families.FindAsync(family.Id);
         retrieved.Should().NotBeNull();
-        retrieved!.Name.Should().Be(familyName);
+        retrieved.Name.Should().Be(familyName);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
         // Assert
         var retrieved = await _context.Families.FindAsync(family.Id);
         retrieved.Should().NotBeNull();
-        retrieved!.OwnerId.Should().Be(ownerId);
+        retrieved.OwnerId.Should().Be(ownerId);
     }
 
     #endregion
@@ -277,7 +277,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
         // Assert
         var verifyFamily = await _context.Families.FindAsync(family.Id);
         verifyFamily.Should().NotBeNull();
-        verifyFamily!.Name.Should().Be(FamilyName.From("Updated Name"));
+        verifyFamily.Name.Should().Be(FamilyName.From("Updated Name"));
     }
 
     [Fact]
@@ -303,7 +303,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
         // Assert
         var verifyFamily = await _context.Families.FindAsync(family.Id);
         verifyFamily.Should().NotBeNull();
-        verifyFamily!.OwnerId.Should().Be(newOwnerId);
+        verifyFamily.OwnerId.Should().Be(newOwnerId);
     }
 
     [Fact]
@@ -345,7 +345,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
         {
             var verifyFamily = await _context.Families.FindAsync(family.Id);
             verifyFamily.Should().NotBeNull();
-            verifyFamily!.Name.Value.Should().StartWith("Updated Concurrent Family");
+            verifyFamily.Name.Value.Should().StartWith("Updated Concurrent Family");
         }
     }
 
@@ -378,7 +378,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
             .FirstOrDefaultAsync(f => f.Id == family.Id);
 
         deletedFamily.Should().NotBeNull();
-        deletedFamily!.DeletedAt.Should().NotBeNull();
+        deletedFamily.DeletedAt.Should().NotBeNull();
         deletedFamily.DeletedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
@@ -442,7 +442,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
         // Assert
         var retrieved = await _context.FamilyMemberInvitations.FindAsync(invitation.Id);
         retrieved.Should().NotBeNull();
-        retrieved!.FamilyId.Should().Be(family.Id);
+        retrieved.FamilyId.Should().Be(family.Id);
     }
 
     [Fact]
@@ -473,7 +473,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
 
         // Assert
         retrieved.Should().NotBeNull();
-        retrieved!.Id.Should().Be(invitation.Id);
+        retrieved.Id.Should().Be(invitation.Id);
     }
 
     [Fact]
@@ -508,7 +508,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
         // Assert
         var verifyInvitation = await _context.FamilyMemberInvitations.FindAsync(invitation.Id);
         verifyInvitation.Should().NotBeNull();
-        verifyInvitation!.Status.Should().Be(InvitationStatus.Accepted);
+        verifyInvitation.Status.Should().Be(InvitationStatus.Accepted);
         verifyInvitation.AcceptedAt.Should().NotBeNull();
     }
 
@@ -583,7 +583,7 @@ public sealed class FamilyDbContextIntegrationTests(FamilyPostgreSqlContainerFix
 
         // Assert - All Vogen types should round-trip correctly
         retrieved.Should().NotBeNull();
-        retrieved!.Email.Should().Be(email);
+        retrieved.Email.Should().Be(email);
         retrieved.Token.Should().Be(originalToken);
         retrieved.DisplayCode.Should().Be(originalDisplayCode);
         retrieved.FamilyId.Should().Be(family.Id);

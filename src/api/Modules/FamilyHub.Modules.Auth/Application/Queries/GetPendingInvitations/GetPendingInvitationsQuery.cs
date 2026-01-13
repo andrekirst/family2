@@ -8,8 +8,6 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 /// Requires Owner or Admin role.
 /// FamilyId is automatically extracted from IUserContext by the handler.
 /// </summary>
-public sealed record GetPendingInvitationsQuery()
-    : IRequest<GetPendingInvitationsResult>,
-      IRequireAuthentication,
+public sealed record GetPendingInvitationsQuery : IRequest<GetPendingInvitationsResult>,
       IRequireFamilyContext,
       IRequireOwnerOrAdminRole;

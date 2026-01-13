@@ -207,7 +207,7 @@ public sealed class RabbitMqHealthCheckUnitTests
 
         method.Should().NotBeNull("ConvertToString method should exist");
 
-        return (string)method!.Invoke(null, [value])!;
+        return (string)method.Invoke(null, [value])!;
     }
 
     private static (string Product, string Version) InvokeExtractServerProperties(
@@ -219,7 +219,7 @@ public sealed class RabbitMqHealthCheckUnitTests
 
         method.Should().NotBeNull("ExtractServerProperties method should exist");
 
-        var result = method!.Invoke(null, [serverProperties]);
+        var result = method.Invoke(null, [serverProperties]);
         return ((string, string))result!;
     }
 

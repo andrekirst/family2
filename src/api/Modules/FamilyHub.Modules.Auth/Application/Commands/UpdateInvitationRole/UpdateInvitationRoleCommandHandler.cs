@@ -1,5 +1,4 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
-using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using MediatR;

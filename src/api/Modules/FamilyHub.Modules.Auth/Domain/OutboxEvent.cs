@@ -1,5 +1,5 @@
 using FamilyHub.SharedKernel.Domain;
-using FamilyHub.SharedKernel.Domain.ValueObjects;
+using OutboxEventId = FamilyHub.Modules.Auth.Domain.ValueObjects.OutboxEventId;
 
 namespace FamilyHub.Modules.Auth.Domain;
 
@@ -133,10 +133,7 @@ public class OutboxEvent : Entity<OutboxEventId>
     /// Increments the retry count without changing status.
     /// Used when retrying within the same processing cycle.
     /// </summary>
-    public void IncrementRetryCount()
-    {
-        RetryCount++;
-    }
+    public void IncrementRetryCount() => RetryCount++;
 }
 
 /// <summary>

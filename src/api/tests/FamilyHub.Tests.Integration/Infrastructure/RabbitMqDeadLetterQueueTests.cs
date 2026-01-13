@@ -173,7 +173,7 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
         var result = await _verificationChannel.BasicGetAsync("family-hub.dlq", autoAck: true);
         result.Should().NotBeNull("message published to DLX should appear in DLQ");
 
-        var receivedMessage = Encoding.UTF8.GetString(result!.Body.ToArray());
+        var receivedMessage = Encoding.UTF8.GetString(result.Body.ToArray());
         receivedMessage.Should().Contain("direct");
     }
 
@@ -218,7 +218,7 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
 
         // Set up consumer that rejects messages
         var consumer = new AsyncEventingBasicConsumer(_verificationChannel);
-        consumer.ReceivedAsync += async (sender, args) =>
+        consumer.ReceivedAsync += async (_, args) =>
         {
             // Reject without requeue -> routes to DLX
             await _verificationChannel.BasicNackAsync(
@@ -239,7 +239,7 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
         var dlqMessage = await _verificationChannel.BasicGetAsync("family-hub.dlq", autoAck: true);
         dlqMessage.Should().NotBeNull("rejected message should be routed to DLQ");
 
-        var receivedBody = Encoding.UTF8.GetString(dlqMessage!.Body.ToArray());
+        var receivedBody = Encoding.UTF8.GetString(dlqMessage.Body.ToArray());
         receivedBody.Should().Contain("reject_to_dlq");
     }
 
@@ -279,7 +279,7 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
 
         // Reject all messages
         var consumer = new AsyncEventingBasicConsumer(_verificationChannel);
-        consumer.ReceivedAsync += async (sender, args) =>
+        consumer.ReceivedAsync += async (_, args) =>
         {
             await _verificationChannel.BasicNackAsync(args.DeliveryTag, false, false);
         };
@@ -294,7 +294,7 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
         var dlqMessage = await _verificationChannel.BasicGetAsync("family-hub.dlq", autoAck: true);
         dlqMessage.Should().NotBeNull();
 
-        var receivedBody = Encoding.UTF8.GetString(dlqMessage!.Body.ToArray());
+        var receivedBody = Encoding.UTF8.GetString(dlqMessage.Body.ToArray());
         receivedBody.Should().Be(originalMessage, "DLQ should preserve exact message body");
     }
 
@@ -332,7 +332,7 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
         await _verificationChannel.QueueBindAsync(testQueue, testExchange, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(_verificationChannel);
-        consumer.ReceivedAsync += async (sender, args) =>
+        consumer.ReceivedAsync += async (_, args) =>
         {
             await _verificationChannel.BasicNackAsync(args.DeliveryTag, false, false);
         };
@@ -347,11 +347,11 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
         var dlqMessage = await _verificationChannel.BasicGetAsync("family-hub.dlq", autoAck: false);
         dlqMessage.Should().NotBeNull();
 
-        var headers = dlqMessage!.BasicProperties?.Headers;
+        var headers = dlqMessage.BasicProperties.Headers;
         headers.Should().NotBeNull("dead-lettered message should have headers");
 
         // x-death header contains routing information
-        headers!.ContainsKey("x-death").Should().BeTrue(
+        headers.ContainsKey("x-death").Should().BeTrue(
             "dead-lettered message should contain x-death header with routing info");
 
         // Acknowledge after inspection
@@ -397,7 +397,7 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
         await _verificationChannel.QueueBindAsync(testQueue, testExchange, routingKey);
 
         var consumer = new AsyncEventingBasicConsumer(_verificationChannel);
-        consumer.ReceivedAsync += async (sender, args) =>
+        consumer.ReceivedAsync += async (_, args) =>
         {
             await _verificationChannel.BasicNackAsync(args.DeliveryTag, false, false);
         };
@@ -469,7 +469,7 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
 
         // First consumer rejects
         var consumer = new AsyncEventingBasicConsumer(_verificationChannel);
-        consumer.ReceivedAsync += async (sender, args) =>
+        consumer.ReceivedAsync += async (_, args) =>
         {
             await _verificationChannel.BasicNackAsync(args.DeliveryTag, false, false);
         };
@@ -504,7 +504,7 @@ public sealed class RabbitMqDeadLetterQueueTests(RabbitMqContainerFixture fixtur
         var reprocessedMessage = await _verificationChannel.BasicGetAsync(reprocessQueue, autoAck: true);
         reprocessedMessage.Should().NotBeNull("republished message should be deliverable");
 
-        var body = Encoding.UTF8.GetString(reprocessedMessage!.Body.ToArray());
+        var body = Encoding.UTF8.GetString(reprocessedMessage.Body.ToArray());
         body.Should().Contain("republish");
     }
 

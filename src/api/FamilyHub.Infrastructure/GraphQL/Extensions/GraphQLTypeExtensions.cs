@@ -57,32 +57,23 @@ public static class GraphQlTypeExtensions
                 }
 
                 typeExtensions.AddRange(types);
-                logger?.LogDebug(
-                    "Found {Count} GraphQL type extension(s) in assembly {AssemblyName}",
-                    types.Count,
-                    assembly.GetName().Name);
+                logger?.LogFoundExtensions(types.Count, assembly.GetName().Name);
             }
             catch (ReflectionTypeLoadException ex)
             {
-                logger?.LogWarning(
-                    ex,
-                    "Failed to load types from assembly {AssemblyName}. Skipping...",
-                    assembly.GetName().Name);
+                logger?.LogFailedToLoadTypes(assembly.GetName().Name, ex);
             }
         }
 
         // If no type extensions found, log warning and return
         if (typeExtensions.Count == 0)
         {
-            logger?.LogWarning(
-                "No GraphQL type extensions found in assemblies: {Assemblies}",
-                string.Join(", ", assemblyList.Select(a => a.GetName().Name)));
+            logger?.LogNoExtensionsFound(string.Join(", ", assemblyList.Select(a => a.GetName().Name)));
             return builder;
         }
 
         // Log summary of discovered type extensions
-        logger?.LogInformation(
-            "Registering {Count} GraphQL type extension(s) from {AssemblyCount} assembl{ies}: {Assemblies}",
+        logger?.LogRegisteringExtensions(
             typeExtensions.Count,
             assemblyList.Count,
             assemblyList.Count == 1 ? "y" : "ies",
@@ -93,7 +84,7 @@ public static class GraphQlTypeExtensions
         {
             try
             {
-                logger?.LogDebug("Registering GraphQL type extension: {TypeName}", type.Name);
+                logger?.LogRegisteringType(type.Name);
 
                 // Find the AddTypeExtension<T>() extension method in Hot Chocolate assemblies
                 var method = typeof(IRequestExecutorBuilder).Assembly
@@ -105,8 +96,7 @@ public static class GraphQlTypeExtensions
 
                 if (method == null)
                 {
-                    logger?.LogError(
-                        "Could not find AddTypeExtension method in Hot Chocolate assembly. API may have changed.");
+                    logger?.LogAddTypeExtensionMethodNotFound();
                     continue;
                 }
 
@@ -116,18 +106,42 @@ public static class GraphQlTypeExtensions
                 // Invoke the method: builder.AddTypeExtension<T>()
                 genericMethod.Invoke(null, [builder]);
 
-                logger?.LogDebug("Successfully registered: {TypeName}", type.FullName);
+                logger?.LogRegistrationSuccess(type.FullName);
             }
             catch (Exception ex)
             {
-                logger?.LogError(
-                    ex,
-                    "Failed to register GraphQL type extension: {TypeName}",
-                    type.FullName);
+                logger?.LogRegistrationFailed(type.FullName, ex);
                 throw;
             }
         }
 
         return builder;
     }
+}
+
+internal static partial class GraphQlTypeExtensionsLog
+{
+    [LoggerMessage(LogLevel.Debug, "Found {Count} GraphQL type extension(s) in assembly {AssemblyName}")]
+    public static partial void LogFoundExtensions(this ILogger logger, int count, string? assemblyName);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to load types from assembly {AssemblyName}. Skipping...")]
+    public static partial void LogFailedToLoadTypes(this ILogger logger, string? assemblyName, Exception exception);
+
+    [LoggerMessage(LogLevel.Warning, "No GraphQL type extensions found in assemblies: {Assemblies}")]
+    public static partial void LogNoExtensionsFound(this ILogger logger, string assemblies);
+
+    [LoggerMessage(LogLevel.Information, "Registering {Count} GraphQL type extension(s) from {AssemblyCount} assembl{Suffix}: {Assemblies}")]
+    public static partial void LogRegisteringExtensions(this ILogger logger, int count, int assemblyCount, string suffix, string assemblies);
+
+    [LoggerMessage(LogLevel.Debug, "Registering GraphQL type extension: {TypeName}")]
+    public static partial void LogRegisteringType(this ILogger logger, string typeName);
+
+    [LoggerMessage(LogLevel.Error, "Could not find AddTypeExtension method in Hot Chocolate assembly. API may have changed.")]
+    public static partial void LogAddTypeExtensionMethodNotFound(this ILogger logger);
+
+    [LoggerMessage(LogLevel.Debug, "Successfully registered: {TypeName}")]
+    public static partial void LogRegistrationSuccess(this ILogger logger, string? typeName);
+
+    [LoggerMessage(LogLevel.Error, "Failed to register GraphQL type extension: {TypeName}")]
+    public static partial void LogRegistrationFailed(this ILogger logger, string? typeName, Exception exception);
 }

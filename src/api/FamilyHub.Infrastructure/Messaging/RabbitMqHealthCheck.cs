@@ -18,25 +18,17 @@ namespace FamilyHub.Infrastructure.Messaging;
 /// when connection is successful.
 /// </para>
 /// </remarks>
-public sealed partial class RabbitMqHealthCheck : IHealthCheck
+/// <param name="logger">Logger for structured logging.</param>
+/// <param name="settings">RabbitMQ configuration settings.</param>
+public sealed partial class RabbitMqHealthCheck(
+    ILogger<RabbitMqHealthCheck> logger,
+    IOptions<RabbitMqSettings> settings) : IHealthCheck
 {
     private static readonly TimeSpan HealthCheckTimeout = TimeSpan.FromSeconds(5);
 
-    private readonly ILogger<RabbitMqHealthCheck> _logger;
-    private readonly RabbitMqSettings _settings;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RabbitMqHealthCheck"/> class.
-    /// </summary>
-    /// <param name="logger">Logger for structured logging.</param>
-    /// <param name="settings">RabbitMQ configuration settings.</param>
-    public RabbitMqHealthCheck(
-        ILogger<RabbitMqHealthCheck> logger,
-        IOptions<RabbitMqSettings> settings)
-    {
-        _logger = logger;
-        _settings = settings.Value;
-    }
+    // LoggerMessage source generator requires _logger field
+    private readonly ILogger<RabbitMqHealthCheck> _logger = logger;
+    private readonly RabbitMqSettings _settings = settings.Value;
 
     /// <inheritdoc />
     public async Task<HealthCheckResult> CheckHealthAsync(

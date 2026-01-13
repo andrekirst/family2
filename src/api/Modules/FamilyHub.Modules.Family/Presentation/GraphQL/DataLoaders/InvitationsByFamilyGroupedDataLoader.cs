@@ -1,7 +1,6 @@
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using GreenDonut;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders;

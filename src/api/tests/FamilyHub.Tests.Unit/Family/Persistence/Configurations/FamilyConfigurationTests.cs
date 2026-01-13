@@ -1,5 +1,4 @@
 using FamilyHub.Modules.Family.Persistence;
-using FamilyHub.Modules.Family.Persistence.Configurations;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -66,7 +65,7 @@ public sealed class FamilyConfigurationTests : IDisposable
 
         // Assert
         primaryKey.Should().NotBeNull();
-        primaryKey!.Properties.Should().HaveCount(1);
+        primaryKey.Properties.Should().HaveCount(1);
         primaryKey.Properties[0].Name.Should().Be("Id");
     }
 
@@ -78,7 +77,7 @@ public sealed class FamilyConfigurationTests : IDisposable
 
         // Assert
         idProperty.Should().NotBeNull();
-        idProperty!.GetValueConverter().Should().NotBeNull("Id should have a Vogen value converter");
+        idProperty.GetValueConverter().Should().NotBeNull("Id should have a Vogen value converter");
         idProperty.GetColumnName().Should().Be("id");
         idProperty.IsNullable.Should().BeFalse();
     }
@@ -95,7 +94,7 @@ public sealed class FamilyConfigurationTests : IDisposable
 
         // Assert
         nameProperty.Should().NotBeNull();
-        nameProperty!.GetMaxLength().Should().Be(100);
+        nameProperty.GetMaxLength().Should().Be(100);
         nameProperty.IsNullable.Should().BeFalse();
         nameProperty.GetColumnName().Should().Be("name");
         nameProperty.GetValueConverter().Should().NotBeNull("Name should have a Vogen value converter");
@@ -109,7 +108,7 @@ public sealed class FamilyConfigurationTests : IDisposable
 
         // Assert
         ownerIdProperty.Should().NotBeNull();
-        ownerIdProperty!.IsNullable.Should().BeFalse();
+        ownerIdProperty.IsNullable.Should().BeFalse();
         ownerIdProperty.GetColumnName().Should().Be("owner_id");
         ownerIdProperty.GetValueConverter().Should().NotBeNull("OwnerId should have a Vogen value converter");
     }
@@ -129,7 +128,7 @@ public sealed class FamilyConfigurationTests : IDisposable
         ownerIdProperty.Should().NotBeNull();
         var ownerIdIndex = indexes.FirstOrDefault(i => i.Properties.Any(p => p.Name == "OwnerId"));
         ownerIdIndex.Should().NotBeNull("Index on OwnerId should exist");
-        ownerIdIndex!.GetDatabaseName().Should().Be("ix_families_owner_id");
+        ownerIdIndex.GetDatabaseName().Should().Be("ix_families_owner_id");
     }
 
     #endregion
@@ -146,7 +145,7 @@ public sealed class FamilyConfigurationTests : IDisposable
         queryFilter.Should().NotBeNull("Query filter for soft delete should be configured");
 
         // The query filter expression should reference DeletedAt
-        var filterExpression = queryFilter!.ToString();
+        var filterExpression = queryFilter.ToString();
         filterExpression.Should().Contain("DeletedAt");
     }
 
@@ -163,12 +162,12 @@ public sealed class FamilyConfigurationTests : IDisposable
 
         // Assert
         createdAtProperty.Should().NotBeNull();
-        createdAtProperty!.GetColumnName().Should().Be("created_at");
+        createdAtProperty.GetColumnName().Should().Be("created_at");
         createdAtProperty.IsNullable.Should().BeFalse();
         createdAtProperty.GetDefaultValueSql().Should().Be("CURRENT_TIMESTAMP");
 
         updatedAtProperty.Should().NotBeNull();
-        updatedAtProperty!.GetColumnName().Should().Be("updated_at");
+        updatedAtProperty.GetColumnName().Should().Be("updated_at");
         updatedAtProperty.IsNullable.Should().BeFalse();
         updatedAtProperty.GetDefaultValueSql().Should().Be("CURRENT_TIMESTAMP");
     }
@@ -199,7 +198,7 @@ public sealed class FamilyConfigurationTests : IDisposable
 
         // Assert
         deletedAtProperty.Should().NotBeNull();
-        deletedAtProperty!.IsNullable.Should().BeTrue("DeletedAt should be nullable for soft delete");
+        deletedAtProperty.IsNullable.Should().BeTrue("DeletedAt should be nullable for soft delete");
         deletedAtProperty.GetColumnName().Should().Be("deleted_at");
     }
 

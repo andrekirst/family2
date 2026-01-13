@@ -1,7 +1,6 @@
 using FamilyHub.Infrastructure.GraphQL;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
-using FamilyHub.SharedKernel.Domain.ValueObjects;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 

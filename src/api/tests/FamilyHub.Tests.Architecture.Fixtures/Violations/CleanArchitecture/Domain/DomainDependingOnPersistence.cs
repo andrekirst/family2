@@ -6,14 +6,7 @@ namespace FamilyHub.Tests.Architecture.Fixtures.Violations.CleanArchitecture.Dom
 /// INTENTIONAL VIOLATION: Domain class depending on Persistence layer.
 /// Used for negative testing of CleanArchitectureTests.DomainLayer_ShouldNotDependOn_PersistenceLayer
 /// </summary>
-public sealed class DomainDependingOnPersistence
+public sealed class DomainDependingOnPersistence(PersistenceService service)
 {
-    private readonly PersistenceService _service;
-
-    public DomainDependingOnPersistence(PersistenceService service)
-    {
-        _service = service;
-    }
-
-    public void DoWork() => _service.SaveData();
+    public void DoWork() => service.SaveData();
 }

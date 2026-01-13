@@ -1,11 +1,9 @@
-using EFCore.NamingConventions.Internal;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Tests.Integration.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -31,7 +29,7 @@ public sealed class TestApplicationFactory(PostgreSqlContainerFixture containerF
 
             // Add AuthDbContext with test container connection string
             // Use AddPooledDbContextFactory to match production setup (singleton-safe)
-            services.AddPooledDbContextFactory<AuthDbContext>((serviceProvider, options) =>
+            services.AddPooledDbContextFactory<AuthDbContext>((_, options) =>
                 options.UseNpgsql(containerFixture.ConnectionString, npgsqlOptions =>
                     {
                         // Specify migrations assembly explicitly

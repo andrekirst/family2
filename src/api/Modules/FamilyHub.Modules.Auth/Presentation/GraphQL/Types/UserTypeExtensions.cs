@@ -1,8 +1,6 @@
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using HotChocolate.Types;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 

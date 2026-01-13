@@ -190,7 +190,7 @@ public class RabbitMqPublisherTests(RabbitMqContainerFixture fixture) : IAsyncLi
         var result = await channel.BasicGetAsync(queueName, autoAck: true);
 
         result.Should().NotBeNull();
-        var receivedMessage = Encoding.UTF8.GetString(result!.Body.ToArray());
+        var receivedMessage = Encoding.UTF8.GetString(result.Body.ToArray());
         receivedMessage.Should().Be(expectedMessage);
     }
 

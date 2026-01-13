@@ -6,14 +6,7 @@ namespace FamilyHub.Tests.Architecture.Fixtures.Violations.CleanArchitecture.App
 /// INTENTIONAL VIOLATION: Application class depending on Presentation layer.
 /// Used for negative testing of CleanArchitectureTests.ApplicationLayer_ShouldNotDependOn_PresentationLayer
 /// </summary>
-public sealed class ApplicationDependingOnPresentation
+public sealed class ApplicationDependingOnPresentation(PresentationController controller)
 {
-    private readonly PresentationController _controller;
-
-    public ApplicationDependingOnPresentation(PresentationController controller)
-    {
-        _controller = controller;
-    }
-
-    public void DoWork() => _controller.HandleRequest();
+    public void DoWork() => controller.HandleRequest();
 }

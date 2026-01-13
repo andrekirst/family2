@@ -3,7 +3,6 @@ using FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders;
-using HotChocolate.Types;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 

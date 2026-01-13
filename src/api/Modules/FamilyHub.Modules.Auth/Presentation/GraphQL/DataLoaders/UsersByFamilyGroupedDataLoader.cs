@@ -1,7 +1,6 @@
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using GreenDonut;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders;

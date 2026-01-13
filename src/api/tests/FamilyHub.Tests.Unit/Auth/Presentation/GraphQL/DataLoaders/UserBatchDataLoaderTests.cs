@@ -47,7 +47,7 @@ public sealed class UserBatchDataLoaderTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(user.Id);
+        result.Id.Should().Be(user.Id);
         result.Email.Should().Be(user.Email);
     }
 
@@ -198,7 +198,7 @@ public sealed class UserBatchDataLoaderTests : IDisposable
 
         // Assert
         result1.Should().NotBe(result2);
-        result1!.Email.Should().Be(Email.From("user1@example.com"));
+        result1.Email.Should().Be(Email.From("user1@example.com"));
         result2!.Email.Should().Be(Email.From("user2@example.com"));
     }
 
@@ -230,7 +230,7 @@ public sealed class UserBatchDataLoaderTests : IDisposable
 
         // Assert
         existingResult.Should().NotBeNull();
-        existingResult!.Id.Should().Be(existingUser.Id);
+        existingResult.Id.Should().Be(existingUser.Id);
         nonExistentResult.Should().BeNull();
     }
 

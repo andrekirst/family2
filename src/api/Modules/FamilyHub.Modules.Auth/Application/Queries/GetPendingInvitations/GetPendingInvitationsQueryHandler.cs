@@ -1,5 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
-using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
@@ -10,7 +10,7 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 /// </summary>
 /// <param name="userContext">The current authenticated user context.</param>
 /// <param name="invitationRepository">Repository for invitation data access.</param>
-public sealed partial class GetPendingInvitationsQueryHandler(
+public sealed class GetPendingInvitationsQueryHandler(
     IUserContext userContext,
     IFamilyMemberInvitationRepository invitationRepository)
     : IRequestHandler<GetPendingInvitationsQuery, GetPendingInvitationsResult>
@@ -23,9 +23,9 @@ public sealed partial class GetPendingInvitationsQueryHandler(
         // Get FamilyId from user context (already loaded and validated by behaviors)
         var familyId = userContext.FamilyId;
 
-        // Fetch pending invitations from repository
-        var invitations = await invitationRepository.GetPendingByFamilyIdAsync(
-            familyId,
+        // Fetch pending invitations from repository using Specification pattern
+        var invitations = await invitationRepository.FindAllAsync(
+            new PendingInvitationByFamilySpecification(familyId),
             cancellationToken);
 
         // Map domain entities to DTOs

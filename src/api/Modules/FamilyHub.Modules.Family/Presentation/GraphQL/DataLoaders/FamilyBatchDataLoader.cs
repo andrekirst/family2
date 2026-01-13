@@ -1,6 +1,5 @@
 using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using GreenDonut;
 using Microsoft.EntityFrameworkCore;
 using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 
