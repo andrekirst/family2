@@ -1,14 +1,15 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using Microsoft.AspNetCore.Http;
 
-namespace FamilyHub.Api.Infrastructure;
+namespace FamilyHub.Tests.Integration.Helpers;
 
 /// <summary>
 /// Reads current user identity from X-Test-User-Id header.
 /// Used for k6 performance testing without real JWT tokens.
 /// </summary>
 /// <remarks>
-/// This service is ONLY registered when ASPNETCORE_ENVIRONMENT=Test.
+/// This service should be registered in test factories that need header-based authentication.
 /// It allows k6 tests to simulate authenticated users by passing a user ID
 /// in the X-Test-User-Id header instead of requiring a valid JWT token.
 ///
@@ -16,7 +17,7 @@ namespace FamilyHub.Api.Infrastructure;
 /// <code>
 /// const response = http.post(graphqlUrl, JSON.stringify({ query }), {
 ///     headers: {
-///         'Content-Type': 'application/json',
+///         'Content-Type': MediaTypeNames.Application.Json, // 'application/json'
 ///         'X-Test-User-Id': '00000000-0000-0000-0000-000000000001'
 ///     }
 /// });
