@@ -1,11 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
-using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Domain.Specifications;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Infrastructure.Extensions;
 using FamilyHub.Modules.Family.Application.Abstractions;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using IdentityModel.Client;
@@ -19,6 +18,12 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 /// Handler for CompleteZitadelLoginCommand.
 /// Exchanges authorization code for tokens and creates/syncs user.
 /// </summary>
+/// <param name="settings">Zitadel OAuth configuration settings.</param>
+/// <param name="userRepository">Repository for user data access.</param>
+/// <param name="familyService">Service for family operations.</param>
+/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="httpClientFactory">Factory for creating HTTP clients.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class CompleteZitadelLoginCommandHandler(
     IOptions<ZitadelSettings> settings,
     IUserRepository userRepository,
@@ -31,12 +36,13 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
     private readonly ZitadelSettings _settings = settings.Value;
     private readonly JwtSecurityTokenHandler _jwtHandler = new();
 
+    /// <inheritdoc />
     public async Task<CompleteZitadelLoginResult> Handle(
         CompleteZitadelLoginCommand request,
         CancellationToken cancellationToken)
     {
         // TODO Decorator
-        logger.LogInformation("Completing Zitadel OAuth login");
+        LogCompletingLogin();
 
         // 1. Exchange authorization code for tokens
         var tokenResponse = await ExchangeAuthorizationCodeAsync(
@@ -50,7 +56,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
             throw new InvalidOperationException($"Token exchange failed: {tokenResponse.Error}");
         }
 
-        logger.LogInformation("Successfully exchanged authorization code for tokens");
+        LogTokenExchangeSuccess();
 
         // 2. Decode ID token to extract user claims
         var idToken = _jwtHandler.ReadJwtToken(tokenResponse.IdentityToken);
@@ -113,9 +119,8 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
         CancellationToken cancellationToken)
     {
         // Try to find existing user by Zitadel user ID
-        var user = await userRepository.GetByExternalUserIdAsync(
-            zitadelUserId,
-            "zitadel",
+        var user = await userRepository.FindOneAsync(
+            new UserByExternalProviderSpecification("zitadel", zitadelUserId),
             cancellationToken);
 
         if (user != null)
@@ -176,4 +181,10 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
 
     [LoggerMessage(LogLevel.Information, "Created personal family {familyId} '{familyName}' for user {userId}")]
     static partial void LogCreatedPersonalFamilyFamilyidFamilynameForUserUserid(ILogger<CompleteZitadelLoginCommandHandler> logger, Guid familyId, string familyName, Guid userId);
+
+    [LoggerMessage(LogLevel.Information, "Completing Zitadel OAuth login")]
+    partial void LogCompletingLogin();
+
+    [LoggerMessage(LogLevel.Information, "Successfully exchanged authorization code for tokens")]
+    partial void LogTokenExchangeSuccess();
 }

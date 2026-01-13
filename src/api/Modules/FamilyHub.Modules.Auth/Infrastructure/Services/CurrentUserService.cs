@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Domain.Specifications;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.AspNetCore.Http;
 
@@ -11,6 +12,8 @@ namespace FamilyHub.Modules.Auth.Infrastructure.Services;
 /// Implementation of current user service using HTTP context to access JWT claims.
 /// Works with Zitadel OAuth - maps Zitadel's 'sub' claim to internal UserId.
 /// </summary>
+/// <param name="httpContextAccessor">Accessor for the HTTP context containing JWT claims.</param>
+/// <param name="userRepository">Repository for user data access.</param>
 public sealed class CurrentUserService(
     IHttpContextAccessor httpContextAccessor,
     IUserRepository userRepository)
@@ -32,7 +35,7 @@ public sealed class CurrentUserService(
 
         // Look up internal UserId by Zitadel's external user ID
         var user = userRepository
-            .GetByExternalUserIdAsync(zitadelUserId, "zitadel", CancellationToken.None)
+            .FindOneAsync(new UserByExternalProviderSpecification("zitadel", zitadelUserId), CancellationToken.None)
             .GetAwaiter()
             .GetResult() ?? throw new UnauthorizedAccessException($"User with external ID '{zitadelUserId}' not found in database. User may need to complete OAuth registration.");
 
@@ -54,9 +57,8 @@ public sealed class CurrentUserService(
         }
 
         // Look up internal UserId by Zitadel's external user ID
-        var user = await userRepository.GetByExternalUserIdAsync(
-            zitadelUserId,
-            "zitadel",
+        var user = await userRepository.FindOneAsync(
+            new UserByExternalProviderSpecification("zitadel", zitadelUserId),
             cancellationToken) ?? throw new UnauthorizedAccessException(
                 $"User with external ID '{zitadelUserId}' not found in database. " +
                 $"User may need to complete OAuth registration.");

@@ -1,13 +1,11 @@
 using AutoFixture.Xunit2;
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 using FamilyMemberInvitationAggregate = FamilyHub.Modules.Family.Domain.Aggregates.FamilyMemberInvitation;
 
@@ -50,7 +48,7 @@ public class GetPendingInvitationsQueryHandlerTests
 
         userContext.FamilyId.Returns(familyId);
 
-        repository.GetPendingByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+        repository.FindAllAsync(Arg.Any<PendingInvitationByFamilySpecification>(), Arg.Any<CancellationToken>())
             .Returns([invitation1, invitation2]);
 
         var query = new GetPendingInvitationsQuery();
@@ -85,7 +83,7 @@ public class GetPendingInvitationsQueryHandlerTests
 
         userContext.FamilyId.Returns(familyId);
 
-        repository.GetPendingByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+        repository.FindAllAsync(Arg.Any<PendingInvitationByFamilySpecification>(), Arg.Any<CancellationToken>())
             .Returns([]);
 
         var query = new GetPendingInvitationsQuery();
@@ -118,7 +116,7 @@ public class GetPendingInvitationsQueryHandlerTests
 
         userContext.FamilyId.Returns(familyId);
 
-        repository.GetPendingByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+        repository.FindAllAsync(Arg.Any<PendingInvitationByFamilySpecification>(), Arg.Any<CancellationToken>())
             .Returns([invitation]);
 
         var query = new GetPendingInvitationsQuery();
@@ -157,7 +155,7 @@ public class GetPendingInvitationsQueryHandlerTests
 
         userContext.FamilyId.Returns(familyId);
 
-        repository.GetPendingByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+        repository.FindAllAsync(Arg.Any<PendingInvitationByFamilySpecification>(), Arg.Any<CancellationToken>())
             .Returns([]);
 
         var query = new GetPendingInvitationsQuery();
@@ -166,8 +164,8 @@ public class GetPendingInvitationsQueryHandlerTests
         await sut.Handle(query, CancellationToken.None);
 
         // Assert
-        await repository.Received(1).GetPendingByFamilyIdAsync(
-            familyId,
+        await repository.Received(1).FindAllAsync(
+            Arg.Any<PendingInvitationByFamilySpecification>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -184,7 +182,7 @@ public class GetPendingInvitationsQueryHandlerTests
 
         userContext.FamilyId.Returns(familyId);
 
-        repository.GetPendingByFamilyIdAsync(familyId, cancellationToken)
+        repository.FindAllAsync(Arg.Any<PendingInvitationByFamilySpecification>(), cancellationToken)
             .Returns([]);
 
         var query = new GetPendingInvitationsQuery();
@@ -193,7 +191,7 @@ public class GetPendingInvitationsQueryHandlerTests
         await sut.Handle(query, cancellationToken);
 
         // Assert
-        await repository.Received(1).GetPendingByFamilyIdAsync(familyId, cancellationToken);
+        await repository.Received(1).FindAllAsync(Arg.Any<PendingInvitationByFamilySpecification>(), cancellationToken);
     }
 
     #endregion

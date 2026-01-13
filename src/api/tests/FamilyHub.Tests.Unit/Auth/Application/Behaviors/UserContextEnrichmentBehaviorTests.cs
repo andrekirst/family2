@@ -4,7 +4,6 @@ using FamilyHub.Modules.Auth.Application.Behaviors;
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
@@ -20,13 +19,13 @@ namespace FamilyHub.Tests.Unit.Auth.Application.Behaviors;
 /// Uses NSubstitute for mocking with AutoFixture attribute-based dependency injection.
 /// Uses FluentAssertions for readable, expressive test assertions.
 /// </summary>
-public sealed partial class UserContextEnrichmentBehaviorTests
+public sealed class UserContextEnrichmentBehaviorTests
 {
     #region Test Request Types
 
-    public record PublicTestQuery() : IRequest<string>, IPublicQuery;
-    public record AuthenticatedTestCommand() : IRequest<string>, IRequireAuthentication;
-    public record UnannotatedTestQuery() : IRequest<string>;
+    public record PublicTestQuery : IRequest<string>, IPublicQuery;
+    public record AuthenticatedTestCommand : IRequest<string>, IRequireAuthentication;
+    public record UnannotatedTestQuery : IRequest<string>;
 
     #endregion
 

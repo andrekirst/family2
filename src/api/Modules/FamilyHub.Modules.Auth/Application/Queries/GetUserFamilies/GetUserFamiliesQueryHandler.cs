@@ -7,10 +7,12 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetUserFamilies;
 /// Handler for GetUserFamiliesQuery.
 /// Retrieves all families that a user belongs to.
 /// </summary>
+/// <param name="familyService">Service for family operations via anti-corruption layer.</param>
 public sealed class GetUserFamiliesQueryHandler(
     IFamilyService familyService)
     : IRequestHandler<GetUserFamiliesQuery, GetUserFamiliesResult>
 {
+    /// <inheritdoc />
     public async Task<GetUserFamiliesResult> Handle(
         GetUserFamiliesQuery request,
         CancellationToken cancellationToken)

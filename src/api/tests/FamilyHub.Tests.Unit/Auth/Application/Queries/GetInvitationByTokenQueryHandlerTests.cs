@@ -1,11 +1,9 @@
 using FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 using FamilyMemberInvitationAggregate = FamilyHub.Modules.Family.Domain.Aggregates.FamilyMemberInvitation;
 
@@ -36,7 +34,7 @@ public class GetInvitationByTokenQueryHandlerTests
             invitedByUserId,
             "Welcome!");
 
-        repository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
 
         var query = new GetInvitationByTokenQuery(invitation.Token);
@@ -47,7 +45,7 @@ public class GetInvitationByTokenQueryHandlerTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(invitation.Id.Value);
+        result.Id.Should().Be(invitation.Id.Value);
         result.Email.Should().Be(email.Value);
         result.Role.Should().Be(FamilyRole.Member);
         result.Status.Should().Be(InvitationStatus.Pending);
@@ -63,7 +61,7 @@ public class GetInvitationByTokenQueryHandlerTests
         // Arrange
         var token = InvitationToken.Generate();
 
-        repository.GetByTokenAsync(token, Arg.Any<CancellationToken>())
+        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns((FamilyMemberInvitationAggregate?)null);
 
         var query = new GetInvitationByTokenQuery(token);
@@ -95,7 +93,7 @@ public class GetInvitationByTokenQueryHandlerTests
             invitedByUserId,
             "Important message");
 
-        repository.GetByTokenAsync(invitation.Token, Arg.Any<CancellationToken>())
+        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
 
         var query = new GetInvitationByTokenQuery(invitation.Token);
@@ -106,7 +104,7 @@ public class GetInvitationByTokenQueryHandlerTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(invitation.Id.Value);
+        result.Id.Should().Be(invitation.Id.Value);
         result.Email.Should().Be(email.Value);
         result.Role.Should().Be(FamilyRole.Admin);
         result.Status.Should().Be(InvitationStatus.Pending);
@@ -128,7 +126,7 @@ public class GetInvitationByTokenQueryHandlerTests
         // Arrange
         var token = InvitationToken.Generate();
 
-        repository.GetByTokenAsync(token, Arg.Any<CancellationToken>())
+        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns((FamilyMemberInvitationAggregate?)null);
 
         var query = new GetInvitationByTokenQuery(token);
@@ -138,8 +136,8 @@ public class GetInvitationByTokenQueryHandlerTests
         await handler.Handle(query, CancellationToken.None);
 
         // Assert
-        await repository.Received(1).GetByTokenAsync(
-            token,
+        await repository.Received(1).FindOneAsync(
+            Arg.Any<InvitationByTokenSpecification>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -152,7 +150,7 @@ public class GetInvitationByTokenQueryHandlerTests
         var cts = new CancellationTokenSource();
         var cancellationToken = cts.Token;
 
-        repository.GetByTokenAsync(token, cancellationToken)
+        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), cancellationToken)
             .Returns((FamilyMemberInvitationAggregate?)null);
 
         var query = new GetInvitationByTokenQuery(token);
@@ -162,7 +160,7 @@ public class GetInvitationByTokenQueryHandlerTests
         await handler.Handle(query, cancellationToken);
 
         // Assert
-        await repository.Received(1).GetByTokenAsync(token, cancellationToken);
+        await repository.Received(1).FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), cancellationToken);
     }
 
     #endregion

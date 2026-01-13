@@ -12,6 +12,7 @@ public sealed partial class RequireAdminHandler(
     ILogger<RequireAdminHandler> logger)
     : AuthorizationHandler<RequireAdminRequirement>
 {
+    /// <inheritdoc />
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         RequireAdminRequirement requirement)

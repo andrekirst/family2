@@ -1,7 +1,6 @@
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 using MediatR;

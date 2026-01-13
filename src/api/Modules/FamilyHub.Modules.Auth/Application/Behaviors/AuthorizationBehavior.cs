@@ -17,6 +17,9 @@ namespace FamilyHub.Modules.Auth.Application.Behaviors;
 /// </summary>
 /// <typeparam name="TRequest">The request type.</typeparam>
 /// <typeparam name="TResponse">The response type.</typeparam>
+/// <param name="userContext">The current authenticated user context.</param>
+/// <param name="authorizationService">ASP.NET Core authorization service for policy evaluation.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class AuthorizationBehavior<TRequest, TResponse>(
     IUserContext userContext,
     IAuthorizationService authorizationService,
@@ -24,6 +27,7 @@ public sealed partial class AuthorizationBehavior<TRequest, TResponse>(
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
+    /// <inheritdoc />
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,

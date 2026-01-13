@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using OutboxEventId = FamilyHub.Modules.Auth.Domain.ValueObjects.OutboxEventId;
 
 namespace FamilyHub.Modules.Auth.Persistence.Configurations;
 
@@ -10,6 +10,7 @@ namespace FamilyHub.Modules.Auth.Persistence.Configurations;
 /// </summary>
 public class OutboxEventConfiguration : IEntityTypeConfiguration<OutboxEvent>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<OutboxEvent> builder)
     {
         builder.ToTable("outbox_events", "auth");

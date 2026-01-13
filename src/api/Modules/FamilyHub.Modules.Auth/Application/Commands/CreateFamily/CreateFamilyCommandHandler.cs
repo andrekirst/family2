@@ -1,7 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Application.Abstractions;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
@@ -14,6 +12,10 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 /// Creates a new family and establishes owner membership.
 /// User context is automatically provided by UserContextEnrichmentBehavior.
 /// </summary>
+/// <param name="userContext">The current authenticated user context.</param>
+/// <param name="familyService">Service for family operations.</param>
+/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class CreateFamilyCommandHandler(
     IUserContext userContext,
     IFamilyService familyService,
@@ -21,6 +23,7 @@ public sealed partial class CreateFamilyCommandHandler(
     ILogger<CreateFamilyCommandHandler> logger)
     : IRequestHandler<CreateFamilyCommand, CreateFamilyResult>
 {
+    /// <inheritdoc />
     public async Task<CreateFamilyResult> Handle(
         CreateFamilyCommand request,
         CancellationToken cancellationToken)

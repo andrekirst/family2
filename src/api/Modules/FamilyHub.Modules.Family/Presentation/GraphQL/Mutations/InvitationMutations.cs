@@ -1,5 +1,4 @@
 using FamilyHub.Modules.Family.Application.Commands.InviteFamilyMemberByEmail;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Presentation.GraphQL.Errors;

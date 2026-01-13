@@ -1,6 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
@@ -72,7 +71,7 @@ public sealed class ValidationCacheTests
     {
         // Arrange
         var cache = new ValidationCache();
-        var familyId = FamilyId.New();
+        FamilyId.New();
         var userId = UserId.New();
         var family = FamilyAggregate.Create(FamilyName.From("Test Family"), userId);
 
@@ -289,7 +288,7 @@ public sealed class ValidationCacheTests
     {
         // Arrange
         var cache = new ValidationCache();
-        var familyId = FamilyId.New();
+        FamilyId.New();
         var userId = UserId.New();
         var family = FamilyAggregate.Create(FamilyName.From("Test Family"), userId);
         var key = "SharedKey:123";

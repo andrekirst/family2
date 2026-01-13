@@ -8,7 +8,7 @@ namespace FamilyHub.Infrastructure.GraphQL.Filters;
 /// Maps exceptions to GraphQL errors with appropriate error codes.
 /// Eliminates duplicated try-catch blocks across mutations/queries.
 /// </summary>
-public sealed class GraphQLErrorFilter : IErrorFilter
+public sealed class GraphQlErrorFilter : IErrorFilter
 {
     /// <summary>
     /// Processes and transforms GraphQL errors based on the exception type.

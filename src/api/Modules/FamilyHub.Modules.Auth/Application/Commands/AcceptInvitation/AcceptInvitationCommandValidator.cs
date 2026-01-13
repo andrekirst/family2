@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Services;
-using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Application.Abstractions;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FluentValidation;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
@@ -14,9 +14,17 @@ namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 /// </summary>
 public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptInvitationCommand>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AcceptInvitationCommandValidator"/> class.
+    /// </summary>
+    /// <param name="invitationRepository">Repository for invitation data access.</param>
+    /// <param name="familyService">Service for family operations via anti-corruption layer.</param>
+    /// <param name="userContext">The current authenticated user context.</param>
+    /// <param name="timeProvider">Provider for current time (supports testing).</param>
+    /// <param name="validationCache">Cache for sharing validated entities with handler.</param>
     public AcceptInvitationCommandValidator(
         IFamilyMemberInvitationRepository invitationRepository,
-        IFamilyRepository familyRepository,
+        IFamilyService familyService,
         IUserContext userContext,
         TimeProvider timeProvider,
         IValidationCache validationCache)
@@ -25,7 +33,9 @@ public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptI
             .CustomAsync(async (token, context, cancellationToken) =>
             {
                 // 1. Token existence check
-                var invitation = await invitationRepository.GetByTokenAsync(token, cancellationToken);
+                var invitation = await invitationRepository.FindOneAsync(
+                    new InvitationByTokenSpecification(token),
+                    cancellationToken);
                 if (invitation == null)
                 {
                     context.AddFailure("Invalid or expired invitation token.");
@@ -53,9 +63,9 @@ public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptI
                     return;
                 }
 
-                // 5. Family exists check
-                var family = await familyRepository.GetByIdAsync(invitation.FamilyId, cancellationToken);
-                if (family == null)
+                // 5. Family exists check (via Anti-Corruption Layer service)
+                var familyDto = await familyService.GetFamilyByIdAsync(invitation.FamilyId, cancellationToken);
+                if (familyDto == null)
                 {
                     context.AddFailure("Family not found.");
                     return;
@@ -63,7 +73,7 @@ public sealed class AcceptInvitationCommandValidator : AbstractValidator<AcceptI
 
                 // Cache entities for handler (eliminates duplicate database queries)
                 validationCache.Set(CacheKeyBuilder.FamilyMemberInvitation(token.Value), invitation);
-                validationCache.Set(CacheKeyBuilder.Family(invitation.FamilyId.Value), family);
+                validationCache.Set(CacheKeyBuilder.Family(invitation.FamilyId.Value), familyDto);
             });
     }
 }

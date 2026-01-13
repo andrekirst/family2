@@ -34,6 +34,7 @@ public sealed class DomainEventOutboxInterceptor : SaveChangesInterceptor
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+    /// <inheritdoc />
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
@@ -47,6 +48,7 @@ public sealed class DomainEventOutboxInterceptor : SaveChangesInterceptor
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
+    /// <inheritdoc />
     public override InterceptionResult<int> SavingChanges(
         DbContextEventData eventData,
         InterceptionResult<int> result)

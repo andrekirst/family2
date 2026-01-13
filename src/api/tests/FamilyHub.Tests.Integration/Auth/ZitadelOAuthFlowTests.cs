@@ -128,7 +128,7 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
         using var scope = _factory.Services.CreateScope();
         var (mediator, userRepository) = TestServices.ResolveOAuthServices(scope);
         var familyRepository = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredService<FamilyHub.SharedKernel.Interfaces.IUnitOfWork>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<SharedKernel.Interfaces.IUnitOfWork>();
 
         var testId = TestDataFactory.GenerateTestId();
         var zitadelUserId = $"zitadel-user-existing-{testId}";

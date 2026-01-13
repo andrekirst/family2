@@ -8,8 +8,8 @@ on:
   workflow_dispatch: # Manual trigger for E2E tests
 
 env:
-  DOTNET_VERSION: "10.0.x"
-  NODE_VERSION: "22"
+  DOTNET_VERSION: '10.0.x'
+  NODE_VERSION: '22'
 
 jobs:
   backend-ci:
@@ -26,6 +26,8 @@ jobs:
         run: dotnet build src/api/FamilyHub.sln --no-restore
       - name: Unit Tests
         run: dotnet test src/api/tests/FamilyHub.Tests.Unit --no-build --collect:"XPlat Code Coverage"
+      - name: Architecture Tests
+        run: dotnet test src/api/tests/FamilyHub.Tests.Architecture --no-build --verbosity normal
       # TODO: Re-enable integration tests after investigation
       # - name: Integration Tests with Testcontainers
       #   run: dotnet test src/api/tests/FamilyHub.Tests.Integration --no-build --collect:"XPlat Code Coverage"
@@ -46,8 +48,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-          cache-dependency-path: "**/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - name: Install dependencies
         working-directory: src/frontend/family-hub-web
         run: npm install --prefer-offline
@@ -114,8 +116,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-          cache-dependency-path: "**/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       # Start Backend API
       - name: Start API in background
@@ -123,7 +125,7 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Test
           DOTNET_ENVIRONMENT: Test
-          CI: "true"
+          CI: 'true'
         run: |
           dotnet run --environment Test &
           echo "Waiting for API to start..."
@@ -143,7 +145,7 @@ jobs:
       - name: Run Playwright E2E tests
         working-directory: src/frontend/family-hub-web
         env:
-          CI: "true"
+          CI: 'true'
         run: npx playwright test
 
       # Upload test artifacts

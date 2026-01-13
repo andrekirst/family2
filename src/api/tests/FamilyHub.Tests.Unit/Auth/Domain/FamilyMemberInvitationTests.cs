@@ -1,5 +1,3 @@
-using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Family.Domain.Events;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -78,7 +76,7 @@ public class FamilyMemberInvitationTests
         invitation.DomainEvents.Should().HaveCount(1);
         var domainEvent = invitation.DomainEvents.First() as FamilyMemberInvitedEvent;
         domainEvent.Should().NotBeNull();
-        domainEvent!.EventVersion.Should().Be(1);
+        domainEvent.EventVersion.Should().Be(1);
         domainEvent.InvitationId.Should().Be(invitation.Id);
         domainEvent.FamilyId.Should().Be(familyId);
         domainEvent.Email.Should().Be(email);
@@ -128,7 +126,7 @@ public class FamilyMemberInvitationTests
         invitation.DomainEvents.Should().HaveCount(1);
         var domainEvent = invitation.DomainEvents.First() as InvitationAcceptedEvent;
         domainEvent.Should().NotBeNull();
-        domainEvent!.EventVersion.Should().Be(1);
+        domainEvent.EventVersion.Should().Be(1);
         domainEvent.InvitationId.Should().Be(invitation.Id);
         domainEvent.FamilyId.Should().Be(invitation.FamilyId);
         domainEvent.UserId.Should().Be(userId);
@@ -207,7 +205,7 @@ public class FamilyMemberInvitationTests
         invitation.DomainEvents.Should().HaveCount(1);
         var domainEvent = invitation.DomainEvents.First() as InvitationCanceledEvent;
         domainEvent.Should().NotBeNull();
-        domainEvent!.EventVersion.Should().Be(1);
+        domainEvent.EventVersion.Should().Be(1);
         domainEvent.InvitationId.Should().Be(invitation.Id);
         domainEvent.FamilyId.Should().Be(invitation.FamilyId);
         domainEvent.CanceledByUserId.Should().Be(canceledBy);
@@ -306,7 +304,7 @@ public class FamilyMemberInvitationTests
         invitation.DomainEvents.Should().HaveCount(1);
         var domainEvent = invitation.DomainEvents.First() as FamilyMemberInvitedEvent;
         domainEvent.Should().NotBeNull();
-        domainEvent!.IsResend.Should().BeTrue();
+        domainEvent.IsResend.Should().BeTrue();
         domainEvent.InvitedByUserId.Should().Be(resentBy);
     }
 

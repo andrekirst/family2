@@ -2,7 +2,7 @@
 
 **Purpose:** Guide to architectural decisions, domain model, event chains, and system design patterns in Family Hub.
 
-**Key Resources:** 6 ADRs, Domain Model, Event Chains Reference, Multi-Tenancy Strategy
+**Key Resources:** 12 ADRs, Domain Model, Event Chains Reference, Multi-Tenancy Strategy
 
 ---
 
@@ -10,7 +10,9 @@
 
 ### Architecture Decision Records (ADRs)
 
-Family Hub has **6 ADRs** documenting critical architectural decisions:
+Family Hub has **12 ADRs** documenting critical architectural decisions:
+
+**Core Architecture:**
 
 1. **[ADR-001: Modular Monolith First](ADR-001-MODULAR-MONOLITH-FIRST.md)** - Why not microservices from day one
 2. **[ADR-002: OAuth with Zitadel](ADR-002-OAUTH-WITH-ZITADEL.md)** - OAuth provider selection
@@ -18,6 +20,15 @@ Family Hub has **6 ADRs** documenting critical architectural decisions:
 4. **[ADR-004: Playwright Migration](ADR-004-PLAYWRIGHT-MIGRATION.md)** - E2E testing framework
 5. **[ADR-005: Family Module Extraction](ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md)** - Bounded context extraction
 6. **[ADR-006: Email-Only Authentication](ADR-006-EMAIL-ONLY-AUTHENTICATION.md)** - Auth strategy
+
+**Infrastructure & Patterns:**
+
+1. **[ADR-007: Family DbContext Separation](ADR-007-FAMILY-DBCONTEXT-SEPARATION-STRATEGY.md)** - One DbContext per module with schema separation
+2. **[ADR-008: RabbitMQ Integration](ADR-008-RABBITMQ-INTEGRATION-STRATEGY.md)** - Message broker with Polly v8 resilience
+3. **[ADR-009: Modular Middleware Composition](ADR-009-MODULAR-MIDDLEWARE-COMPOSITION-PATTERN.md)** - UseAuthModule/UseFamilyModule pattern
+4. **[ADR-010: Performance Testing](ADR-010-PERFORMANCE-TESTING-STRATEGY.md)** - k6-based performance testing
+5. **[ADR-011: DataLoader Pattern](ADR-011-DATALOADER-PATTERN.md)** - Hot Chocolate DataLoader for N+1 prevention
+6. **[ADR-012: Architecture Testing](ADR-012-ARCHITECTURE-TESTING-STRATEGY.md)** - NetArchTest for architecture validation
 
 ---
 
@@ -279,6 +290,96 @@ CREATE POLICY family_isolation_policy ON auth.users
 
 ---
 
+### ADR-007: Family DbContext Separation
+
+**Decision:** One DbContext per module with PostgreSQL schema separation.
+
+**Rationale:**
+
+- Enforces bounded context boundaries at database level
+- Cross-module ID references without FK constraints
+- IUserLookupService for cross-module queries
+- Pooled DbContext factories for DataLoader performance
+
+**Status:** Implemented
+
+---
+
+### ADR-008: RabbitMQ Integration
+
+**Decision:** IMessageBrokerPublisher abstraction with RabbitMqPublisher implementation.
+
+**Rationale:**
+
+- Polly v8 resilience (exponential backoff + jitter)
+- Publisher confirms for guaranteed delivery
+- Dead Letter Exchange for failed messages
+- Testable through interface abstraction
+
+**Status:** Implemented
+
+---
+
+### ADR-009: Modular Middleware Composition
+
+**Decision:** UseAuthModule(), UseFamilyModule() extension methods for middleware.
+
+**Rationale:**
+
+- PostgresRlsContextMiddleware sets RLS session variables
+- Explicit middleware ordering in Program.cs
+- Module-specific middleware encapsulation
+- Transaction-scoped session variables for fail-secure behavior
+
+**Status:** Implemented
+
+---
+
+### ADR-010: Performance Testing
+
+**Decision:** k6-based performance testing with custom DataLoader metrics.
+
+**Rationale:**
+
+- Validates DataLoader efficiency (p95 < 200ms)
+- Custom metrics (dl_*) for granular analysis
+- Configurable threshold sets (default, strict, stress, dataLoader)
+- X-Test-User-Id header for test environment auth bypass
+
+**Status:** Implemented
+
+---
+
+### ADR-011: DataLoader Pattern
+
+**Decision:** Hot Chocolate GreenDonut DataLoaders for N+1 prevention.
+
+**Rationale:**
+
+- Query count: 201 → ≤3 (67x reduction)
+- Latency: p95 < 200ms (42x improvement)
+- Request-scoped caching via DataLoaderScope
+- Automatic batching across GraphQL resolvers
+
+**Status:** Implemented
+
+---
+
+### ADR-012: Architecture Testing
+
+**Decision:** NetArchTest.Rules with ExceptionRegistry pattern.
+
+**Rationale:**
+
+- Automated Clean Architecture layer validation
+- Module boundary separation enforcement
+- ExceptionRegistry for known violations with phase tracking
+- Negative test fixtures validate test correctness
+
+**Status:** Implemented
+
+---
+
 ## When to Create New ADR
 
 Create an ADR when making decisions about:
@@ -332,11 +433,11 @@ Create an ADR when making decisions about:
 
 ---
 
-**Last Updated:** 2026-01-09
+**Last Updated:** 2026-01-12
 **Derived from:** Root CLAUDE.md v5.0.0
 **Canonical Sources:**
 
-- ADR-001 through ADR-006 (Architectural decisions)
+- ADR-001 through ADR-012 (Architectural decisions)
 - domain-model-microservices-map.md (DDD structure)
 - event-chains-reference.md (Event automation)
 - multi-tenancy-strategy.md (RLS implementation)
@@ -347,3 +448,4 @@ Create an ADR when making decisions about:
 - [ ] Domain model diagram accurate
 - [ ] Event chain examples match reference
 - [ ] Module count and names correct (8 modules)
+- [ ] All 12 ADRs listed with correct links

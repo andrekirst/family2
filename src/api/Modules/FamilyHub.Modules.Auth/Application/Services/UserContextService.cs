@@ -1,6 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
 namespace FamilyHub.Modules.Auth.Application.Services;
@@ -25,10 +24,16 @@ public sealed class UserContextService : IUserContext
             "Ensure the request implements IRequireAuthentication and UserContextEnrichmentBehavior has executed.");
     }
 
-    // Explicit implementation of SharedKernel.IUserContext properties
+    /// <inheritdoc />
     public UserId UserId => User.Id;
+
+    /// <inheritdoc />
     public FamilyId FamilyId => User.FamilyId;
+
+    /// <inheritdoc />
     public FamilyRole Role => User.Role;
+
+    /// <inheritdoc />
     public Email Email => User.Email;
 
     /// <summary>

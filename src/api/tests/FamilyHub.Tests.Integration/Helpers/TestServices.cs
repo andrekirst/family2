@@ -1,4 +1,3 @@
-using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.SharedKernel.Interfaces;

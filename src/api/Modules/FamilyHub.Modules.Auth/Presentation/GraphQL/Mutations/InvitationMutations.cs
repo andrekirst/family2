@@ -1,7 +1,6 @@
 using FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 using FamilyHub.Modules.Auth.Application.Commands.CancelInvitation;
 using FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
@@ -145,7 +144,14 @@ public sealed class InvitationMutations
 /// </summary>
 public sealed record UpdatedInvitationDto
 {
+    /// <summary>
+    /// Gets the unique identifier of the updated invitation.
+    /// </summary>
     public required Guid InvitationId { get; init; }
+
+    /// <summary>
+    /// Gets the newly assigned role for the invitation.
+    /// </summary>
     public required UserRoleType Role { get; init; }
 }
 
@@ -154,7 +160,18 @@ public sealed record UpdatedInvitationDto
 /// </summary>
 public sealed record AcceptedInvitationDto
 {
+    /// <summary>
+    /// Gets the unique identifier of the family joined.
+    /// </summary>
     public required Guid FamilyId { get; init; }
+
+    /// <summary>
+    /// Gets the name of the family joined.
+    /// </summary>
     public required string FamilyName { get; init; }
+
+    /// <summary>
+    /// Gets the role assigned to the user in the family.
+    /// </summary>
     public required UserRoleType Role { get; init; }
 }

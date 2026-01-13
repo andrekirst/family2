@@ -95,7 +95,6 @@ public class Family : AggregateRoot<FamilyId>, ISoftDeletable
             return;
         }
 
-        var oldOwnerId = OwnerId;
         OwnerId = newOwnerId;
 
         // Domain event

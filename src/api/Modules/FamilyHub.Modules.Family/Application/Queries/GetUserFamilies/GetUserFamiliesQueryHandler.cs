@@ -1,4 +1,6 @@
 using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
+using FamilyHub.SharedKernel.Application.Abstractions;
 using MediatR;
 
 namespace FamilyHub.Modules.Family.Application.Queries.GetUserFamilies;
@@ -7,8 +9,11 @@ namespace FamilyHub.Modules.Family.Application.Queries.GetUserFamilies;
 /// Handler for GetUserFamiliesQuery.
 /// Retrieves all families that a user belongs to.
 /// </summary>
+/// <param name="familyRepository">Repository for family data access.</param>
+/// <param name="userLookupService">Service for cross-module user lookups.</param>
 public sealed class GetUserFamiliesQueryHandler(
-    IFamilyRepository familyRepository)
+    IFamilyRepository familyRepository,
+    IUserLookupService userLookupService)
     : IRequestHandler<GetUserFamiliesQuery, GetUserFamiliesResult>
 {
     /// <summary>
@@ -22,8 +27,21 @@ public sealed class GetUserFamiliesQueryHandler(
         CancellationToken cancellationToken)
     {
 
-        // 1. Query family from repository (users now have only one family)
-        var family = await familyRepository.GetFamilyByUserIdAsync(request.UserId, cancellationToken);
+        // 1. Get user's family ID via cross-module service (users now have only one family)
+        var familyId = await userLookupService.GetUserFamilyIdAsync(request.UserId, cancellationToken);
+
+        if (familyId == null)
+        {
+            return new GetUserFamiliesResult
+            {
+                Families = []
+            };
+        }
+
+        // 2. Query family using Specification pattern
+        var family = await familyRepository.FindOneAsync(
+            new FamilyByIdSpecification(familyId.Value),
+            cancellationToken);
 
         if (family == null)
         {
@@ -33,10 +51,10 @@ public sealed class GetUserFamiliesQueryHandler(
             };
         }
 
-        // 2. Get member count from repository
-        var memberCount = await familyRepository.GetMemberCountAsync(family.Id, cancellationToken);
+        // 3. Get member count from cross-module service
+        var memberCount = await userLookupService.GetFamilyMemberCountAsync(family.Id, cancellationToken);
 
-        // 3. Map to DTO
+        // 4. Map to DTO
         var familyDto = new FamilyDto
         {
             FamilyId = family.Id,

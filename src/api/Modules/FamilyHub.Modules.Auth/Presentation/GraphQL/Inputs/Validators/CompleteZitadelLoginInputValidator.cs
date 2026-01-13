@@ -8,6 +8,9 @@ namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs.Validators;
 /// </summary>
 public sealed class CompleteZitadelLoginInputValidator : AbstractValidator<CompleteZitadelLoginInput>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CompleteZitadelLoginInputValidator"/> class.
+    /// </summary>
     public CompleteZitadelLoginInputValidator()
     {
         RuleFor(x => x.AuthorizationCode)

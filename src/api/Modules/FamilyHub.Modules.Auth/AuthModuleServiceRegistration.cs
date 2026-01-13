@@ -7,7 +7,6 @@ using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Infrastructure.BackgroundServices;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
-using FamilyHub.Modules.Auth.Infrastructure.Messaging;
 using FamilyHub.Modules.Auth.Infrastructure.Persistence;
 using FamilyHub.Modules.Auth.Infrastructure.Services;
 using FamilyHub.Modules.Auth.Persistence;
@@ -17,6 +16,7 @@ using FamilyHub.SharedKernel.Interfaces;
 using FluentValidation;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -72,12 +72,13 @@ public static class AuthModuleServiceRegistration
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
 
-        // PHASE 4: Family repository registrations (implementation in Auth module, interface in Family module)
-        // These implement Family module interfaces but remain in Auth module to avoid circular dependency
-        // They use AuthDbContext (shared database) and will be moved in Phase 5+
-        // Auth module registers them because they depend on AuthDbContext
-        services.AddScoped<Family.Domain.Repositories.IFamilyRepository, FamilyRepository>();
-        services.AddScoped<Family.Domain.Repositories.IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
+        // PHASE 5: IUserLookupService for cross-module queries
+        // Family module uses this to query User data without direct DbContext access
+        services.AddScoped<SharedKernel.Application.Abstractions.IUserLookupService, UserLookupService>();
+
+        // PHASE 5: Family repository registrations REMOVED
+        // Repository implementations moved to Family module with FamilyDbContext
+        // See FamilyModuleServiceRegistration for new registrations
 
         // Zitadel OAuth Configuration
         services.Configure<ZitadelSettings>(configuration.GetSection(ZitadelSettings.SectionName));
@@ -136,8 +137,8 @@ public static class AuthModuleServiceRegistration
         // FluentValidation - Validators
         services.AddValidatorsFromAssembly(typeof(AuthModuleServiceRegistration).Assembly);
 
-        // RabbitMQ Publisher (stub for Phase 2)
-        services.AddSingleton<IRabbitMqPublisher, StubRabbitMqPublisher>();
+        // Note: RabbitMQ publisher is now registered centrally in Program.cs via AddRabbitMq()
+        // This enables the real RabbitMQ implementation with retry policies and health checks
 
         // Background Services
         services.AddHostedService<OutboxEventPublisher>();
@@ -154,40 +155,69 @@ public static class AuthModuleServiceRegistration
     /// <param name="loggerFactory">Optional logger factory for diagnostics.</param>
     /// <returns>The builder for chaining.</returns>
     /// <remarks>
+    /// <para>
     /// This method scans the Auth module assembly for GraphQL type extensions and automatically
     /// registers them with Hot Chocolate. Type extensions include:
-    /// - Queries (classes decorated with [ExtendObjectType("Query")])
-    /// - Mutations (classes decorated with [ExtendObjectType("Mutation")])
-    ///
-    /// PHASE 4 UPDATE: Family GraphQL schema extracted to Family module.
-    /// Moved to Family module:
-    /// - FamilyType (core GraphQL type)
-    /// - FamilyQueries (using SharedKernel.IUserContext)
-    /// - FamilyMutations (CreateFamily - invokes Auth command)
-    /// - InviteFamilyMemberByEmail mutation
-    /// Auth module retains:
-    /// - UserType, UserTypeExtensions
-    /// - FamilyTypeExtensions (requires User data for Members/Owner - temporary)
-    /// - AcceptInvitation, CancelInvitation mutations (modify User aggregate)
-    /// TODO Phase 5+: Create IUserLookupService for proper abstraction
-    ///
-    /// Example usage in Program.cs:
+    /// </para>
+    /// <list type="bullet">
+    /// <item><description>Queries (classes decorated with [ExtendObjectType("Query")])</description></item>
+    /// <item><description>Mutations (classes decorated with [ExtendObjectType("Mutation")])</description></item>
+    /// </list>
+    /// <para>
+    /// <strong>Auth module owns:</strong> UserType, UserTypeExtensions, FamilyTypeExtensions
+    /// (requires User data for Members/Owner), AcceptInvitation and CancelInvitation mutations
+    /// (modify User aggregate).
+    /// </para>
+    /// <para>
+    /// <strong>Family module owns:</strong> FamilyType, FamilyQueries, FamilyMutations,
+    /// InviteFamilyMemberByEmail mutation. Cross-module queries use IUserLookupService
+    /// for proper bounded context separation.
+    /// </para>
+    /// </remarks>
+    /// <example>
     /// <code>
     /// var loggerFactory = builder.Services.BuildServiceProvider().GetService&lt;ILoggerFactory&gt;();
-    /// graphqlBuilder.AddAuthModuleGraphQLTypes(loggerFactory);
+    /// graphqlBuilder.AddAuthModuleGraphQlTypes(loggerFactory);
     /// </code>
-    /// </remarks>
+    /// </example>
     public static IRequestExecutorBuilder AddAuthModuleGraphQlTypes(
         this IRequestExecutorBuilder builder,
         ILoggerFactory? loggerFactory = null)
     {
         return builder
             .RegisterDbContextFactory<AuthDbContext>()
-            .AddType<Presentation.GraphQL.Types.UserType>() // Register UserType so extensions can be applied
-            .AddTypeExtension<Presentation.GraphQL.Types.UserTypeExtensions>() // Explicitly register UserTypeExtensions
-            .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>() // Extends Family.Domain.Aggregates.FamilyAggregate (from Family module)
+            // Core entity types (must be registered before their extensions)
+            .AddType<Presentation.GraphQL.Types.UserType>()
+            .AddTypeExtension<Presentation.GraphQL.Types.UserTypeExtensions>()
+            .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>()
+            // Namespace container types (no [ExtendObjectType] attribute - must be registered explicitly)
+            // These provide GraphQL schema organization: query { auth { ... } invitations { ... } }
+            .AddType<Presentation.GraphQL.Types.AuthType>()
+            .AddType<Presentation.GraphQL.Types.InvitationsType>()
+            // Auto-discover all type extensions with [ExtendObjectType] attribute
+            // This includes: Query/Mutation extensions, AuthTypeExtensions, InvitationsTypeExtensions
             .AddTypeExtensionsFromAssemblies(
                 [typeof(AuthModuleServiceRegistration).Assembly],
                 loggerFactory);
+    }
+
+    /// <summary>
+    /// Registers Auth module middleware in the ASP.NET Core pipeline.
+    /// Currently includes:
+    /// - PostgreSQL RLS context middleware (sets current_user_id for Row-Level Security)
+    ///
+    /// EXECUTION ORDER:
+    /// This method MUST be called AFTER UseAuthentication() and UseAuthorization()
+    /// because it relies on the authenticated user claims to set the RLS context.
+    /// </summary>
+    /// <param name="app">The application builder.</param>
+    /// <returns>The application builder for chaining.</returns>
+    public static IApplicationBuilder UseAuthModule(this IApplicationBuilder app)
+    {
+        // PostgreSQL RLS context - sets session variable for Row-Level Security
+        // Relies on authenticated user claims from preceding auth middleware
+        app.UseMiddleware<Infrastructure.Middleware.PostgresRlsContextMiddleware>();
+
+        return app;
     }
 }

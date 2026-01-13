@@ -20,7 +20,7 @@ public static class CacheKeyBuilder
     /// <returns>Cache key in format "FamilyMemberInvitation:{token}"</returns>
     public static string FamilyMemberInvitation(string token)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(token, nameof(token));
+        ArgumentException.ThrowIfNullOrWhiteSpace(token);
         return $"FamilyMemberInvitation:{token}";
     }
 
@@ -29,14 +29,10 @@ public static class CacheKeyBuilder
     /// </summary>
     /// <param name="familyId">Family ID.</param>
     /// <returns>Cache key in format "Family:{familyId}"</returns>
-    public static string Family(Guid familyId)
-    {
-        if (familyId == Guid.Empty)
-        {
-            throw new ArgumentException("Family ID cannot be empty.", nameof(familyId));
-        }
-        return $"Family:{familyId}";
-    }
+    public static string Family(Guid familyId) =>
+        familyId == Guid.Empty
+            ? throw new ArgumentException("Family ID cannot be empty.", nameof(familyId))
+            : $"Family:{familyId}";
 
     // Future extension points (commented out until needed):
     // public static string User(Guid userId) => $"User:{userId}";

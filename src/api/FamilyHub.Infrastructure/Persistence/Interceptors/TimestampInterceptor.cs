@@ -44,19 +44,9 @@ namespace FamilyHub.Infrastructure.Persistence.Interceptors;
 /// </code>
 /// </para>
 /// </remarks>
-public sealed class TimestampInterceptor : SaveChangesInterceptor
+/// <param name="timeProvider">The time provider for generating timestamps.</param>
+public sealed class TimestampInterceptor(TimeProvider timeProvider) : SaveChangesInterceptor
 {
-    private readonly TimeProvider _timeProvider;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TimestampInterceptor"/> class.
-    /// </summary>
-    /// <param name="timeProvider">The time provider for generating timestamps.</param>
-    public TimestampInterceptor(TimeProvider timeProvider)
-    {
-        _timeProvider = timeProvider;
-    }
-
     /// <summary>
     /// Intercepts synchronous SaveChanges to update timestamps.
     /// </summary>
@@ -91,7 +81,7 @@ public sealed class TimestampInterceptor : SaveChangesInterceptor
             return;
         }
 
-        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var now = timeProvider.GetUtcNow().UtcDateTime;
 
         // Process only entities implementing ITimestampable
         var timestampableEntries = context.ChangeTracker

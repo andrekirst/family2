@@ -26,9 +26,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Modules\FamilyHub.Modules.Auth\FamilyHub.Modules.Auth.csproj" />
     <ProjectReference Include="..\..\FamilyHub.SharedKernel\FamilyHub.SharedKernel.csproj" />
     <ProjectReference Include="..\..\Modules\FamilyHub.Modules.Family\FamilyHub.Modules.Family.csproj" />
+    <ProjectReference Include="..\..\FamilyHub.Infrastructure\FamilyHub.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

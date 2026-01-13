@@ -1,4 +1,3 @@
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;

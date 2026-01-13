@@ -1,4 +1,3 @@
-using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 

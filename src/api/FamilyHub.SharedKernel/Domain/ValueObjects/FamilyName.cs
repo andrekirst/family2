@@ -1,5 +1,3 @@
-using Vogen;
-
 namespace FamilyHub.SharedKernel.Domain.ValueObjects;
 
 /// <summary>

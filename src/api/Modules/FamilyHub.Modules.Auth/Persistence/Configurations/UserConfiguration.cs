@@ -10,6 +10,7 @@ namespace FamilyHub.Modules.Auth.Persistence.Configurations;
 /// </summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable("users", "auth");
@@ -76,6 +77,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired();
 
         // Family relationship - User belongs to one Family
+        // PHASE 5 STATE: FamilyId references family.families.id (cross-schema, no FK constraint)
+        // Application-level validation via IUserLookupService maintains consistency
+        // NOTE: FamilyId uses Guid.Empty to represent "no family" rather than null
+        // (Vogen value types cannot be null; future refactoring could use FamilyId? for cleaner semantics)
         builder.Property(u => u.FamilyId)
             .HasConversion(new FamilyId.EfCoreValueConverter())
             .HasColumnName("family_id")
@@ -83,15 +88,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(u => u.FamilyId)
             .HasDatabaseName("ix_users_family_id");
-
-        // Family relationship - User belongs to one Family
-        // NOTE: The Family aggregate no longer has a Members collection in the domain model.
-        // The relationship is established via foreign key only (unidirectional from User to Family).
-        // If bidirectional navigation is needed in queries, use explicit Include/Join in repositories.
-        builder.HasOne<FamilyAggregate>()
-            .WithMany() // No navigation property on Family side
-            .HasForeignKey(u => u.FamilyId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         // Role with Vogen value converter
         builder.Property(u => u.Role)

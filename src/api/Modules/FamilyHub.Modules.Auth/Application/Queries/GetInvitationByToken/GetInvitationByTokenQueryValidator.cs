@@ -1,5 +1,4 @@
-using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentValidation;
 
@@ -13,6 +12,10 @@ public sealed class GetInvitationByTokenQueryValidator : AbstractValidator<GetIn
 {
     private readonly IFamilyMemberInvitationRepository _invitationRepository;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GetInvitationByTokenQueryValidator"/> class.
+    /// </summary>
+    /// <param name="invitationRepository">Repository for invitation data access.</param>
     public GetInvitationByTokenQueryValidator(IFamilyMemberInvitationRepository invitationRepository)
     {
         _invitationRepository = invitationRepository;
@@ -26,7 +29,9 @@ public sealed class GetInvitationByTokenQueryValidator : AbstractValidator<GetIn
 
     private async Task<bool> BeValidPendingInvitation(InvitationToken token, CancellationToken cancellationToken)
     {
-        var invitation = await _invitationRepository.GetByTokenAsync(token, cancellationToken);
+        var invitation = await _invitationRepository.FindOneAsync(
+            new InvitationByTokenSpecification(token),
+            cancellationToken);
 
         // Not found or not pending
         return invitation != null && invitation.Status == InvitationStatus.Pending;

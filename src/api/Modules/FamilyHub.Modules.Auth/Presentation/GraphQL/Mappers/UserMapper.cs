@@ -1,7 +1,6 @@
 using FamilyHub.Infrastructure.GraphQL;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
-using FamilyHub.SharedKernel.Domain.ValueObjects;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 
@@ -17,7 +16,7 @@ public static class UserMapper
     /// </summary>
     /// <param name="user">User domain entity</param>
     /// <returns>UserType for GraphQL response</returns>
-    public static UserType AsGraphQLType(User user)
+    public static UserType AsGraphQlType(User user)
     {
         return new UserType
         {

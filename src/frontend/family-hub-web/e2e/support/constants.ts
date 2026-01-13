@@ -137,6 +137,68 @@ export const GRAPHQL_OPERATIONS = {
 } as const;
 
 /**
+ * GraphQL Schema Validation Configuration
+ *
+ * Constants for schema introspection and validation tests.
+ * @see Issue #74 - E2E Tests - GraphQL Schema Validation
+ */
+export const SCHEMA = {
+  /** Schema introspection timeout (ms) */
+  INTROSPECTION_TIMEOUT: 5000,
+
+  /** Maximum acceptable schema size (KB) */
+  MAX_SCHEMA_SIZE_KB: 500,
+
+  /** Performance warning threshold (ms) */
+  PERFORMANCE_WARNING_MS: 2000,
+
+  /**
+   * Expected Auth module types
+   * These types should always be present in the schema
+   */
+  AUTH_MODULE_TYPES: [
+    'User',
+    'UserRole',
+    'CreateFamilyPayload',
+    'AcceptInvitationPayload',
+  ] as const,
+
+  /**
+   * Expected Family module types
+   * These types should always be present in the schema
+   */
+  FAMILY_MODULE_TYPES: [
+    'Family',
+    'FamilyMemberInvitation',
+    'CreateFamilyInput',
+    'AcceptInvitationInput',
+  ] as const,
+
+  /**
+   * Expected error types (union members)
+   * These follow the MutationConventions pattern from Hot Chocolate
+   */
+  ERROR_TYPES: [
+    'ValidationError',
+    'BusinessError',
+    'ValueObjectError',
+    'UnauthorizedError',
+  ] as const,
+
+  /**
+   * Critical query fields that must exist
+   * Removing these would be a breaking change
+   */
+  CRITICAL_QUERY_FIELDS: ['family', 'families', 'user', 'invitationsPending'] as const,
+
+  /**
+   * Critical mutation fields that must exist
+   * Removing these would be a breaking change
+   */
+  CRITICAL_MUTATION_FIELDS: ['createFamily', 'acceptInvitation'] as const,
+} as const;
+
+/**
  * WCAG Accessibility Rules
  *
  * Configuration for axe-core accessibility testing
@@ -155,11 +217,11 @@ export const A11Y_RULES = {
   'aria-valid-attr-value': { enabled: true },
 
   /** Label rule */
-  'label': { enabled: true },
+  label: { enabled: true },
 
   /** Button name rule */
   'button-name': { enabled: true },
 
   /** Region rule */
-  'region': { enabled: true },
+  region: { enabled: true },
 } as const;

@@ -1,5 +1,6 @@
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -15,10 +16,17 @@ namespace FamilyHub.Modules.Family.Application.Commands.InviteFamilyMemberByEmai
 /// User context and authorization are handled by pipeline behaviors.
 /// NOTE: Cross-module dependency - uses IUserContext and IUnitOfWork from Auth module.
 /// </summary>
+/// <param name="userContext">The current authenticated user context.</param>
+/// <param name="familyRepository">Repository for family data access.</param>
+/// <param name="invitationRepository">Repository for invitation data access.</param>
+/// <param name="userLookupService">Service for cross-module user lookups.</param>
+/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="logger">Logger for structured logging.</param>
 public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IUserContext userContext,
     IFamilyRepository familyRepository,
     IFamilyMemberInvitationRepository invitationRepository,
+    IUserLookupService userLookupService,
     IUnitOfWork unitOfWork,
     ILogger<InviteFamilyMemberByEmailCommandHandler> logger)
     : IRequestHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
@@ -45,16 +53,18 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
             return Result.Failure<InviteFamilyMemberByEmailResult>("Family not found.");
         }
 
-        // 2. Check if email is already a family member
-        var isExistingMember = await invitationRepository.IsUserMemberOfFamilyAsync(request.FamilyId, request.Email, cancellationToken);
+        // 2. Check if email is already a family member (cross-module via service)
+        var isExistingMember = await userLookupService.IsEmailMemberOfFamilyAsync(request.FamilyId, request.Email, cancellationToken);
         if (isExistingMember)
         {
             LogEmailAlreadyMember(request.Email.Value);
             return Result.Failure<InviteFamilyMemberByEmailResult>($"Email '{request.Email.Value}' is already a member of this family.");
         }
 
-        // 3. Check for duplicate pending invitation
-        var existingInvitation = await invitationRepository.GetPendingByEmailAsync(request.FamilyId, request.Email, cancellationToken);
+        // 3. Check for duplicate pending invitation using Specification pattern
+        var existingInvitation = await invitationRepository.FindOneAsync(
+            new PendingInvitationByEmailSpecification(request.FamilyId, request.Email),
+            cancellationToken);
         if (existingInvitation != null)
         {
             LogDuplicateInvitation(request.Email.Value);

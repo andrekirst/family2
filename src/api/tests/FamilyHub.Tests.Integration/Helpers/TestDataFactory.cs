@@ -2,8 +2,6 @@ using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Family.Application.Abstractions;
-using FamilyHub.Modules.Family.Domain.Aggregates;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using MediatR;
@@ -22,6 +20,7 @@ public static class TestDataFactory
     /// Automatically persists to database via unit of work.
     /// </summary>
     /// <param name="userRepository">The user repository to add the user to.</param>
+    /// <param name="familyService">The service for family</param>
     /// <param name="unitOfWork">The unit of work to save changes.</param>
     /// <param name="emailPrefix">The prefix for the test user's email (default: "test").</param>
     /// <returns>The created and persisted user entity.</returns>
@@ -92,6 +91,7 @@ public static class TestDataFactory
     /// </summary>
     /// <param name="mediator">The MediatR mediator to send commands.</param>
     /// <param name="familyRepository">The family repository to retrieve the created family.</param>
+    /// <param name="familyService">The service for family</param>
     /// <param name="ownerId">The ID of the user who will own the family.</param>
     /// <param name="familyName">The name of the family (default: auto-generated).</param>
     /// <returns>The created and persisted family entity.</returns>

@@ -1,10 +1,9 @@
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Infrastructure.Messaging;
-using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OutboxEventId = FamilyHub.Modules.Auth.Domain.ValueObjects.OutboxEventId;
 
 namespace FamilyHub.Modules.Auth.Infrastructure.BackgroundServices;
 
@@ -41,6 +40,7 @@ public sealed partial class OutboxEventPublisher(
     // Exponential backoff delays (in seconds)
     private static readonly int[] RetryDelays = [1, 2, 5, 15, 60, 300, MaxRetryDelay];
 
+    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         LogOutboxEventPublisherStartedPollingEveryIntervalSeconds(logger, PollingIntervalSeconds);
@@ -59,7 +59,7 @@ public sealed partial class OutboxEventPublisher(
             await Task.Delay(TimeSpan.FromSeconds(PollingIntervalSeconds), stoppingToken);
         }
 
-        logger.LogInformation("Outbox Event Publisher stopped.");
+        LogPublisherStopped();
     }
 
     private async Task ProcessPendingEventsAsync(CancellationToken cancellationToken)
@@ -67,7 +67,7 @@ public sealed partial class OutboxEventPublisher(
         // Create a scope for scoped dependencies
         using var scope = serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IOutboxEventRepository>();
-        var publisher = scope.ServiceProvider.GetRequiredService<IRabbitMqPublisher>();
+        var publisher = scope.ServiceProvider.GetRequiredService<IMessageBrokerPublisher>();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         // 1. Fetch pending events
@@ -159,4 +159,7 @@ public sealed partial class OutboxEventPublisher(
 
     [LoggerMessage(LogLevel.Error, "Error processing outbox events. Will retry in {interval} seconds.")]
     static partial void LogErrorProcessingOutboxEventsWillRetryInIntervalSeconds(ILogger<OutboxEventPublisher> logger, int interval);
+
+    [LoggerMessage(LogLevel.Information, "Outbox Event Publisher stopped.")]
+    partial void LogPublisherStopped();
 }

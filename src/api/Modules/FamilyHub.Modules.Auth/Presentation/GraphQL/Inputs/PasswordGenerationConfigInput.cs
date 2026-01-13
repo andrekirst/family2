@@ -28,7 +28,7 @@ public sealed record PasswordGenerationConfigInput
     public required bool IncludeDigits { get; init; }
 
     /// <summary>
-    /// Include symbols (!@#$%^&*).
+    /// Include symbols (!@#$%^&amp;*).
     /// </summary>
     public required bool IncludeSymbols { get; init; }
 }

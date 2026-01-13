@@ -2,13 +2,11 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Application.Abstractions;
-using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using Xunit;
 using Result = FamilyHub.SharedKernel.Domain.Result;
 
 namespace FamilyHub.Tests.Unit.Auth.Application;

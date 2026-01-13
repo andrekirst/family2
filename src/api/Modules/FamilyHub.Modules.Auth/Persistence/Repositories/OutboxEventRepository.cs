@@ -1,13 +1,14 @@
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using OutboxEventId = FamilyHub.Modules.Auth.Domain.ValueObjects.OutboxEventId;
 
 namespace FamilyHub.Modules.Auth.Persistence.Repositories;
 
 /// <summary>
 /// EF Core implementation of the OutboxEvent repository.
 /// </summary>
+/// <param name="context">The Auth module database context.</param>
 public sealed class OutboxEventRepository(AuthDbContext context) : IOutboxEventRepository
 {
     /// <inheritdoc />
@@ -30,7 +31,7 @@ public sealed class OutboxEventRepository(AuthDbContext context) : IOutboxEventR
     public async Task<List<OutboxEvent>> GetPendingEventsAsync(int batchSize, CancellationToken cancellationToken = default)
     {
         return await context.OutboxEvents
-            .Where(e => e.Status == OutboxEventStatus.Pending)
+            .Where(e => e.Status == OutboxEventStatus.PENDING)
             .OrderBy(e => e.CreatedAt)
             .Take(batchSize)
             .ToListAsync(cancellationToken);
@@ -40,7 +41,7 @@ public sealed class OutboxEventRepository(AuthDbContext context) : IOutboxEventR
     public async Task<List<OutboxEvent>> GetEventsForArchivalAsync(DateTime olderThan, CancellationToken cancellationToken = default)
     {
         return await context.OutboxEvents
-            .Where(e => e.Status == OutboxEventStatus.Processed && e.CreatedAt < olderThan)
+            .Where(e => e.Status == OutboxEventStatus.PROCESSED && e.CreatedAt < olderThan)
             .OrderBy(e => e.CreatedAt)
             .ToListAsync(cancellationToken);
     }

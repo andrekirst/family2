@@ -1,15 +1,18 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mime;
 using AspNetCoreRateLimit;
-using FamilyHub.Api.Middleware;
 using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
+using FamilyHub.Infrastructure.Messaging;
 using FamilyHub.Modules.Auth;
 using FamilyHub.Modules.Auth.Infrastructure.BackgroundJobs;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Mutations;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Queries;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders;
 using FamilyHub.Modules.Family;
+using FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Serilog;
@@ -44,6 +47,13 @@ try
     // Module registrations
     builder.Services.AddAuthModule(builder.Configuration);
     builder.Services.AddFamilyModule(builder.Configuration);
+
+    // RabbitMQ messaging infrastructure
+    builder.Services.AddRabbitMq(builder.Configuration);
+
+    // Health checks
+    builder.Services.AddHealthChecks()
+        .AddRabbitMqHealthCheck(tags: ["ready", "infrastructure"]);
 
     // Quartz.NET Background Jobs Configuration
     builder.Services.AddQuartz(q =>
@@ -95,37 +105,27 @@ try
         .AddFiltering()
         .AddSorting()
         .AddProjections() // Re-enabled - works correctly when FamilyType is properly registered
-        .AddErrorFilter<GraphQLErrorFilter>() // Centralized exception → GraphQL error mapping
+        .AddErrorFilter<GraphQlErrorFilter>() // Centralized exception → GraphQL error mapping
         .AddDiagnosticEventListener<GraphQlLoggingInterceptor>() // GraphQL operation logging
         .ModifyRequestOptions(opt =>
         {
             opt.IncludeExceptionDetails = builder.Environment.IsDevelopment();
         });
 
-    // Module-based GraphQL type extension registration
-    // Register Auth module GraphQL types (DbContext, type extensions, custom types)
+    // Module-based GraphQL type registration via auto-discovery
+    // All types with [ExtendObjectType] attribute are automatically discovered
+    // Only namespace container types (AuthType, InvitationsType) require explicit registration
     graphqlBuilder.AddAuthModuleGraphQlTypes();
-    // Register Family module GraphQL types
     graphqlBuilder.AddFamilyModuleGraphQlTypes();
 
-    // Explicitly register type extensions from Auth module
-    // Note: FamilyQueries moved to Family module (Sprint 3, Issue #36)
-    // FamilyMutations stays in Auth (CreateFamily modifies User aggregate)
+    // Register DataLoaders for N+1 query prevention
+    // BatchDataLoaders: 1:1 mapping (e.g., UserId -> User)
+    // GroupedDataLoaders: 1:N mapping (e.g., FamilyId -> [User, User, ...])
     graphqlBuilder
-        .AddTypeExtension<FamilyMutations>()
-        .AddTypeExtension<AuthMutations>()
-        .AddTypeExtension<HealthQueries>()
-        .AddTypeExtension<UserQueries>()
-        .AddTypeExtension<InvitationQueries>()
-        .AddTypeExtension<InvitationMutations>()
-        // New namespace types (schema restructuring)
-        .AddType<AuthType>()
-        .AddType<AuthTypeExtensions>()
-        .AddTypeExtension<AuthQueryExtension>()
-        .AddType<InvitationsType>()
-        .AddType<InvitationsTypeExtensions>()
-        .AddTypeExtension<InvitationsQueryExtension>()
-        .AddTypeExtension<RolesQueries>();
+        .AddDataLoader<UserBatchDataLoader>()
+        .AddDataLoader<UsersByFamilyGroupedDataLoader>()
+        .AddDataLoader<FamilyBatchDataLoader>()
+        .AddDataLoader<InvitationsByFamilyGroupedDataLoader>();
 
     // Future modules can be registered here:
     // graphqlBuilder.AddCalendarModuleGraphQLTypes();
@@ -147,7 +147,7 @@ try
     }
 
     // Clear default claim type mappings to use short claim names (sub, email, etc.)
-    System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+    JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -224,18 +224,27 @@ try
     // Authentication and Authorization middleware
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseAuthModule();
 
-    // PostgreSQL RLS context middleware - MUST run after UseAuthentication()
-    // Sets the current_user_id session variable for Row-Level Security policies
-    app.UsePostgresContext();
+    // Family module middleware - placeholder for future expansion
+    app.UseFamilyModule();
 
     // GraphQL endpoint
     app.MapGraphQL();
 
-    // Health check endpoint
-    app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
-       .WithName("HealthCheck");
+    // Health check endpoints
+    // Main health endpoint with full status
+    app.MapHealthChecks("/health", new HealthCheckOptions
+    {
+        ResponseWriter = WriteHealthCheckResponse
+    });
 
+    // RabbitMQ-specific health endpoint
+    app.MapHealthChecks("/health/rabbitmq", new HealthCheckOptions
+    {
+        Predicate = check => check.Name == "rabbitmq",
+        ResponseWriter = WriteHealthCheckResponse
+    });
 
     Log.Information("Family Hub API started successfully");
     app.Run();
@@ -250,5 +259,35 @@ finally
     Log.CloseAndFlush();
 }
 
-// Make Program class accessible for integration testing
-public partial class Program { }
+// Writes health check results as JSON response
+static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = MediaTypeNames.Application.Json;
+
+    var result = new
+    {
+        status = report.Status.ToString(),
+        timestamp = DateTime.UtcNow,
+        totalDuration = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            description = e.Value.Description,
+            duration = e.Value.Duration.TotalMilliseconds,
+            data = e.Value.Data,
+            exception = e.Value.Exception?.Message
+        })
+    };
+
+    return context.Response.WriteAsJsonAsync(result);
+}
+
+namespace FamilyHub.Api
+{
+    /// <summary>
+    /// Main application entry point.
+    /// Partial class declaration for WebApplicationFactory integration testing.
+    /// </summary>
+    public partial class Program { }
+}

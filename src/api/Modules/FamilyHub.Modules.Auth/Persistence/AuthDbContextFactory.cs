@@ -9,6 +9,7 @@ namespace FamilyHub.Modules.Auth.Persistence;
 /// </summary>
 public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
 {
+    /// <inheritdoc />
     public AuthDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<AuthDbContext>();

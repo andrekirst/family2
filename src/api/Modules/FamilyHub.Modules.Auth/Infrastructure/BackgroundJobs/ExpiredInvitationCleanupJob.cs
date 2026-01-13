@@ -1,4 +1,4 @@
-using FamilyHub.Modules.Family.Domain.Repositories;
+using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,9 +16,10 @@ public partial class ExpiredInvitationCleanupJob(
     ILogger<ExpiredInvitationCleanupJob> logger)
     : IJob
 {
+    /// <inheritdoc />
     public async Task Execute(IJobExecutionContext context)
     {
-        logger.LogInformation("ExpiredInvitationCleanupJob starting execution");
+        LogJobStarting();
 
         using var scope = serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
@@ -26,13 +27,15 @@ public partial class ExpiredInvitationCleanupJob(
 
         try
         {
-            // Get expired invitations older than 30 days
+            // Get expired invitations older than 30 days using Specification pattern
             var expirationThreshold = DateTime.UtcNow.AddDays(-30);
-            var expiredInvitations = await repository.GetExpiredInvitationsForCleanupAsync(expirationThreshold, context.CancellationToken);
+            var expiredInvitations = await repository.FindAllAsync(
+                new ExpiredInvitationForCleanupSpecification(expirationThreshold),
+                context.CancellationToken);
 
             if (expiredInvitations.Count == 0)
             {
-                logger.LogInformation("No expired invitations to clean up");
+                LogNoExpiredInvitations();
                 return;
             }
 
@@ -46,7 +49,7 @@ public partial class ExpiredInvitationCleanupJob(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error executing ExpiredInvitationCleanupJob");
+            LogJobError(ex);
             throw;
         }
     }
@@ -56,4 +59,13 @@ public partial class ExpiredInvitationCleanupJob(
 
     [LoggerMessage(LogLevel.Information, "Successfully deleted {count} expired invitations")]
     static partial void LogSuccessfullyDeletedCountExpiredInvitations(ILogger<ExpiredInvitationCleanupJob> logger, int count);
+
+    [LoggerMessage(LogLevel.Information, "ExpiredInvitationCleanupJob starting execution")]
+    partial void LogJobStarting();
+
+    [LoggerMessage(LogLevel.Information, "No expired invitations to clean up")]
+    partial void LogNoExpiredInvitations();
+
+    [LoggerMessage(LogLevel.Error, "Error executing ExpiredInvitationCleanupJob")]
+    partial void LogJobError(Exception exception);
 }
