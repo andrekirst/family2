@@ -34,6 +34,11 @@ public class FamilyDbContext(DbContextOptions<FamilyDbContext> options) : DbCont
     /// </summary>
     public DbSet<FamilyMemberInvitation> FamilyMemberInvitations => Set<FamilyMemberInvitation>();
 
+    /// <summary>
+    /// Email outbox for tracking email delivery.
+    /// </summary>
+    public DbSet<Domain.EmailOutbox> EmailOutbox => Set<Domain.EmailOutbox>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

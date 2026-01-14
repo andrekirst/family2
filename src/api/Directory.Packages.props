@@ -54,6 +54,10 @@
     <!-- Infrastructure -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.0" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="9.0.0" />
+    <!-- Email -->
+    <PackageVersion Include="MailKit" Version="4.11.0" />
+    <PackageVersion Include="MimeKit" Version="4.11.0" />
+    <PackageVersion Include="RazorLight" Version="2.3.1" />
     <!-- Resilience -->
     <PackageVersion Include="Polly.Core" Version="8.5.0" />
     <PackageVersion Include="Polly" Version="8.5.0" />

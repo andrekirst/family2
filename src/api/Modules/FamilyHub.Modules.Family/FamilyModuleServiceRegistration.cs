@@ -70,9 +70,13 @@ public static class FamilyModuleServiceRegistration
         // These use FamilyDbContext and IUserLookupService for cross-module queries
         services.AddScoped<IFamilyRepository, FamilyRepository>();
         services.AddScoped<IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
+        services.AddScoped<IEmailOutboxRepository, EmailOutboxRepository>();
 
         // Application Services (Anti-corruption layer for cross-module interactions)
         services.AddScoped<Application.Abstractions.IFamilyService, Application.Services.FamilyService>();
+
+        // Background services
+        services.AddHostedService<Infrastructure.BackgroundServices.InvitationEmailService>();
 
         // MediatR - Command/Query handlers
         services.AddMediatR(cfg =>
