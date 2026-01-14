@@ -261,8 +261,8 @@ test.describe('Family Invite Members Wizard Step', () => {
 
     test('should validate email format on blur', async ({ page }) => {
       await test.step('Enter invalid email', async () => {
-        await page.locator('input[id="email-0"]').fill('invalid-email');
-        await page.locator('input[id="email-0"]').blur();
+        await page.getByLabel('Email address 1').fill('invalid-email');
+        await page.getByLabel('Email address 1').blur();
       });
 
       await test.step('Verify error message', async () => {
@@ -272,14 +272,14 @@ test.describe('Family Invite Members Wizard Step', () => {
 
     test('should detect duplicate emails (case-insensitive)', async ({ page }) => {
       await test.step('Add first email', async () => {
-        await page.locator('input[id="email-0"]').fill('test@example.com');
-        await page.locator('input[id="email-0"]').blur();
+        await page.getByLabel('Email address 1').fill('test@example.com');
+        await page.getByLabel('Email address 1').blur();
       });
 
       await test.step('Add second email (duplicate, different case)', async () => {
         await page.getByRole('button', { name: 'Add Another Email' }).click();
-        await page.locator('input[id="email-1"]').fill('TEST@EXAMPLE.COM');
-        await page.locator('input[id="email-1"]').blur();
+        await page.getByLabel('Email address 2').fill('TEST@EXAMPLE.COM');
+        await page.getByLabel('Email address 2').blur();
       });
 
       await test.step('Verify duplicate error', async () => {
@@ -298,10 +298,10 @@ test.describe('Family Invite Members Wizard Step', () => {
       for (let i = 0; i < validEmails.length; i++) {
         await test.step(`Add valid email ${i + 1}: ${validEmails[i]}`, async () => {
           if (i > 0) {
-            await page.getByRole('button', { name: 'Add Another Email' }).click();
+            await page.getByRole('button', { name: 'Add another email invitation' }).click();
           }
-          await page.locator(`input[id="email-${i}"]`).fill(validEmails[i]);
-          await page.locator(`input[id="email-${i}"]`).blur();
+          await page.getByLabel(`Email address ${i + 1}`).fill(validEmails[i]);
+          await page.getByLabel(`Email address ${i + 1}`).blur();
           // No error should appear
           await expect(page.getByText('Invalid email format')).not.toBeVisible();
         });
@@ -342,9 +342,9 @@ test.describe('Family Invite Members Wizard Step', () => {
 
     test('should remove email row', async ({ page }) => {
       await test.step('Add second row', async () => {
-        await page.locator('input[id="email-0"]').fill('first@example.com');
+        await page.getByLabel('Email address 1').fill('first@example.com');
         await page.getByRole('button', { name: 'Add Another Email' }).click();
-        await page.locator('input[id="email-1"]').fill('second@example.com');
+        await page.getByLabel('Email address 2').fill('second@example.com');
         await expect(page.getByText(/\d+ of 20 emails/)).toBeVisible();
       });
 
@@ -359,19 +359,19 @@ test.describe('Family Invite Members Wizard Step', () => {
       });
 
       await test.step('Verify second email moved to first position', async () => {
-        await expect(page.locator('input[id="email-0"]')).toHaveValue('second@example.com');
+        await expect(page.getByLabel('Email address 1')).toHaveValue('second@example.com');
       });
     });
 
     test('should keep at least one row (clear instead of remove)', async ({ page }) => {
       await test.step('Try to remove the only row', async () => {
-        await page.locator('input[id="email-0"]').fill('test@example.com');
+        await page.getByLabel('Email address 1').fill('test@example.com');
         const removeButton = page.locator('button[aria-label*="Remove"]').first();
         await removeButton.click();
       });
 
       await test.step('Verify row still exists but cleared', async () => {
-        await expect(page.locator('input[id="email-0"]')).toHaveValue('');
+        await expect(page.getByLabel('Email address 1')).toHaveValue('');
         await expect(page.getByText(/\d+ of 20 emails/)).toBeVisible();
       });
     });
@@ -439,7 +439,7 @@ test.describe('Family Invite Members Wizard Step', () => {
     test('should allow message up to 500 characters', async ({ page }) => {
       await test.step('Enter 500 character message', async () => {
         const message = 'a'.repeat(500);
-        await page.locator('textarea#invitation-message').fill(message);
+        await page.getByLabel('Invitation Message (Optional)').fill(message);
       });
 
       await test.step('Verify character counter', async () => {
@@ -454,8 +454,8 @@ test.describe('Family Invite Members Wizard Step', () => {
     test('should show error when exceeding 500 characters', async ({ page }) => {
       await test.step('Enter 501 character message', async () => {
         const message = 'a'.repeat(501);
-        await page.locator('textarea#invitation-message').fill(message);
-        await page.locator('textarea#invitation-message').blur();
+        await page.getByLabel('Invitation Message (Optional)').fill(message);
+        await page.getByLabel('Invitation Message (Optional)').blur();
       });
 
       await test.step('Verify error message', async () => {
@@ -466,7 +466,7 @@ test.describe('Family Invite Members Wizard Step', () => {
     test('should show character counter with color change near limit', async ({ page }) => {
       await test.step('Enter message close to limit', async () => {
         const message = 'a'.repeat(460);
-        await page.locator('textarea#invitation-message').fill(message);
+        await page.getByLabel('Invitation Message (Optional)').fill(message);
       });
 
       await test.step('Verify counter shows amber color (>450 chars)', async () => {
@@ -491,9 +491,9 @@ test.describe('Family Invite Members Wizard Step', () => {
       });
 
       await test.step('Fill some invitation data', async () => {
-        await page.locator('input[id="email-0"]').fill('test@example.com');
+        await page.getByLabel('Email address 1').fill('test@example.com');
         await page.locator('select[id="role-0"]').selectOption('ADMIN');
-        await page.locator('textarea#invitation-message').fill('Test message');
+        await page.getByLabel('Invitation Message (Optional)').fill('Test message');
       });
 
       await test.step('Navigate back', async () => {
@@ -511,9 +511,9 @@ test.describe('Family Invite Members Wizard Step', () => {
 
       await test.step('Verify data preserved', async () => {
         await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
-        await expect(page.locator('input[id="email-0"]')).toHaveValue('test@example.com');
+        await expect(page.getByLabel('Email address 1')).toHaveValue('test@example.com');
         await expect(page.locator('select[id="role-0"]')).toHaveValue('ADMIN');
-        await expect(page.locator('textarea#invitation-message')).toHaveValue('Test message');
+        await expect(page.getByLabel('Invitation Message (Optional)')).toHaveValue('Test message');
       });
     });
   });
@@ -532,7 +532,7 @@ test.describe('Family Invite Members Wizard Step', () => {
     test('should allow Tab navigation through form fields', async ({ page }) => {
       await test.step('Tab through fields', async () => {
         await page.keyboard.press('Tab'); // Email input
-        await expect(page.locator('input[id="email-0"]')).toBeFocused();
+        await expect(page.getByLabel('Email address 1')).toBeFocused();
 
         await page.keyboard.press('Tab'); // Role select
         await expect(page.locator('select[id="role-0"]')).toBeFocused();
@@ -547,8 +547,8 @@ test.describe('Family Invite Members Wizard Step', () => {
 
     test('should submit form with Enter key from email input', async ({ page }) => {
       await test.step('Type email and press Enter', async () => {
-        await page.locator('input[id="email-0"]').fill('test@example.com');
-        await page.locator('input[id="email-0"]').press('Enter');
+        await page.getByLabel('Email address 1').fill('test@example.com');
+        await page.getByLabel('Email address 1').press('Enter');
       });
 
       await test.step('Verify redirect to dashboard', async () => {
@@ -624,7 +624,7 @@ test.describe('Family Invite Members Wizard Step', () => {
 
     test('should have proper ARIA labels on inputs', async ({ page }) => {
       await test.step('Verify email input has aria-label', async () => {
-        const emailInput = page.locator('input[id="email-0"]');
+        const emailInput = page.getByLabel('Email address 1');
         await expect(emailInput).toHaveAttribute('aria-label', /Email address/);
       });
 
@@ -642,12 +642,12 @@ test.describe('Family Invite Members Wizard Step', () => {
     test('should have aria-invalid on message textarea when error', async ({ page }) => {
       await test.step('Trigger error', async () => {
         const message = 'a'.repeat(501);
-        await page.locator('textarea#invitation-message').fill(message);
-        await page.locator('textarea#invitation-message').blur();
+        await page.getByLabel('Invitation Message (Optional)').fill(message);
+        await page.getByLabel('Invitation Message (Optional)').blur();
       });
 
       await test.step('Verify aria-invalid', async () => {
-        await expect(page.locator('textarea#invitation-message')).toHaveAttribute(
+        await expect(page.getByLabel('Invitation Message (Optional)')).toHaveAttribute(
           'aria-invalid',
           'true'
         );
@@ -656,7 +656,7 @@ test.describe('Family Invite Members Wizard Step', () => {
 
     test('should have aria-describedby on message textarea', async ({ page }) => {
       await test.step('Verify aria-describedby', async () => {
-        const textarea = page.locator('textarea#invitation-message');
+        const textarea = page.getByLabel('Invitation Message (Optional)');
         await expect(textarea).toHaveAttribute('aria-describedby', /.+/);
       });
     });
