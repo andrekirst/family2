@@ -18,6 +18,7 @@ public sealed partial class SmtpEmailService : IEmailService, IAsyncDisposable
     private readonly ResiliencePipeline _resiliencePipeline;
     private SmtpClient? _smtpClient;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
+    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SmtpEmailService"/> class.
@@ -49,6 +50,8 @@ public sealed partial class SmtpEmailService : IEmailService, IAsyncDisposable
         EmailMessage message,
         CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         try
         {
             LogSendingEmail(message.To);
@@ -141,6 +144,13 @@ public sealed partial class SmtpEmailService : IEmailService, IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
         if (_smtpClient != null)
         {
             if (_smtpClient.IsConnected)
