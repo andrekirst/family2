@@ -169,9 +169,6 @@ test.describe('Family Invite Members Wizard Step', () => {
         // Click the Next button (SPA navigation - no page reload)
         const nextButton = page.getByRole('button', { name: /Next|Create Family/i });
         await nextButton.click({ noWaitAfter: true });
-
-        // Wait for wizard transition and Angular change detection
-        await page.waitForTimeout(200);
       });
 
       await test.step('Step 2: Verify invite members step renders', async () => {
@@ -183,7 +180,12 @@ test.describe('Family Invite Members Wizard Step', () => {
         // We'll verify the form works by interacting with it in the next steps
 
         // Wait for FormArray to initialize and render the first email row
-        await page.waitForTimeout(300);
+        // This allows time for:
+        // 1. Wizard effect() to trigger renderCurrentStep()
+        // 2. Component creation and ngOnInit execution
+        // 3. FormArray row addition via addEmailInvitation()
+        // 4. Angular's change detection to render form inputs
+        await page.waitForTimeout(800);
       });
 
       await test.step('Add first invitation', async () => {
@@ -192,8 +194,10 @@ test.describe('Family Invite Members Wizard Step', () => {
       });
 
       await test.step('Add second invitation', async () => {
-        await page.getByRole('button', { name: 'Add Another Email' }).click();
-        await expect(page.getByText(/\d+ of 20 emails/)).toBeVisible();
+        await page.getByRole('button', { name: 'Add another email invitation' }).click();
+        // Wait for DOM to update after adding new form row
+        await page.waitForTimeout(200);
+        await expect(page.getByText(/2 of 20 emails/)).toBeVisible();
         await page.getByLabel('Email address 2').fill('bob@example.com');
         await page.locator('select[id="role-1"]').selectOption('MEMBER');
       });

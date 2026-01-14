@@ -12,7 +12,6 @@ import {
 import { CommonModule } from '@angular/common';
 import { InputComponent } from '../../../../shared/components/atoms/input/input.component';
 import { IconComponent } from '../../../../shared/components/atoms/icon/icon.component';
-import { ButtonComponent } from '../../../../shared/components/atoms/button/button.component';
 import { InviteMembersStepData, UserRole } from '../../models/invite-members-step.models';
 
 /**
@@ -58,7 +57,7 @@ import { InviteMembersStepData, UserRole } from '../../models/invite-members-ste
 @Component({
   selector: 'app-invite-members-step',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, IconComponent, ButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, InputComponent, IconComponent],
   templateUrl: './invite-members-step.component.html',
   styleUrls: ['./invite-members-step.component.scss'],
 })
@@ -81,6 +80,12 @@ export class InviteMembersStepComponent implements OnInit {
   private readonly MAX_INVITATIONS = 20;
 
   /**
+   * Tracks last emitted data to prevent redundant emissions.
+   * Used to avoid triggering unnecessary wizard re-renders.
+   */
+  private lastEmittedData: InviteMembersStepData | null = null;
+
+  /**
    * RFC 5322 Email validation regex.
    * Validates email format on blur.
    */
@@ -97,14 +102,24 @@ export class InviteMembersStepComponent implements OnInit {
 
   /**
    * Reactive form for email invitations and message.
+   * Initialized in constructor to ensure FormArray has content before template evaluates.
    */
-  emailForm = new FormGroup({
-    invitations: new FormArray<FormGroup>([]),
-    message: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.maxLength(500)],
-    }),
-  });
+  emailForm!: FormGroup;
+
+  /**
+   * Constructor initializes form structure with one default email row.
+   * This ensures the FormArray is populated BEFORE Angular's first change detection cycle,
+   * which is critical for dynamically created components like wizard steps.
+   */
+  constructor() {
+    this.emailForm = new FormGroup({
+      invitations: new FormArray<FormGroup>([this.createEmailInvitationGroup()]),
+      message: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.maxLength(500)],
+      }),
+    });
+  }
 
   /**
    * Checks whether more invitations can be added.
@@ -158,11 +173,14 @@ export class InviteMembersStepComponent implements OnInit {
   /**
    * Initializes form with data from WizardService if available.
    * Sets up reactive effect to emit data changes.
+   *
+   * Note: Constructor already initialized FormArray with one default row.
+   * This method only restores data when navigating back to this step.
    */
   ngOnInit(): void {
     // Restore data if navigating back
     if (this.data?.invitations && this.data.invitations.length > 0) {
-      // Clear any default rows
+      // Clear the default row from constructor
       this.emailInvitationControls.clear();
 
       // Recreate rows from saved data
@@ -176,13 +194,8 @@ export class InviteMembersStepComponent implements OnInit {
       if (this.data.message) {
         this.emailForm.patchValue({ message: this.data.message });
       }
-    } else {
-      // Initialize with one empty row
-      this.addEmailInvitation();
     }
-
-    // Emit initial data
-    this.emitData();
+    // If no data to restore, constructor's default row is already present
 
     // Subscribe to changes and emit data
     this.emailForm.valueChanges.subscribe(() => {
@@ -245,6 +258,10 @@ export class InviteMembersStepComponent implements OnInit {
     }
 
     this.emailInvitationControls.push(this.createEmailInvitationGroup());
+
+    // Emit data to trigger wizard re-render
+    // FormArray structural changes don't trigger valueChanges, so we emit manually
+    this.emitData();
   }
 
   /**
@@ -260,6 +277,7 @@ export class InviteMembersStepComponent implements OnInit {
       group.get('email')?.setValue('');
       group.get('role')?.setValue('MEMBER');
       group.markAsUntouched();
+      // emitData() will be called by valueChanges when values are cleared
       return;
     }
 
@@ -269,6 +287,10 @@ export class InviteMembersStepComponent implements OnInit {
     this.emailInvitationControls.controls.forEach((group) => {
       group.get('email')?.updateValueAndValidity();
     });
+
+    // Emit data to trigger wizard re-render
+    // FormArray structural changes don't trigger valueChanges, so we emit manually
+    this.emitData();
   }
 
   /**
@@ -326,6 +348,7 @@ export class InviteMembersStepComponent implements OnInit {
   /**
    * Emits current form data to WizardService.
    * Filters out empty emails and trims values.
+   * Only emits if data has actually changed to prevent unnecessary re-renders.
    */
   private emitData(): void {
     const formValue = this.emailForm.getRawValue();
@@ -338,10 +361,17 @@ export class InviteMembersStepComponent implements OnInit {
         role: inv.role as UserRole,
       }));
 
-    this.dataChange.emit({
+    const newData: InviteMembersStepData = {
       invitations: validInvitations,
       message: formValue.message.trim(),
-    });
+    };
+
+    // Check if data has actually changed before emitting
+    // This prevents continuous re-renders caused by wizard's markForCheck()
+    if (JSON.stringify(newData) !== JSON.stringify(this.lastEmittedData)) {
+      this.lastEmittedData = newData;
+      this.dataChange.emit(newData);
+    }
   }
 
   /**
