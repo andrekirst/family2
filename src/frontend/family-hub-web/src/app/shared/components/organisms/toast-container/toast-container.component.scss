@@ -1,0 +1,27 @@
+// Toast Container Styles
+// Most styling handled by Tailwind CSS classes in template
+// This file contains only custom styles not achievable with Tailwind
+
+:host {
+  // Component wrapper (empty - using fixed positioning in template)
+}
+
+// Custom scrollbar for toast container (if many toasts)
+.toast-container {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+}

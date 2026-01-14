@@ -1,0 +1,22 @@
+// Email Preview Component Styles
+// Most styling handled by Tailwind CSS classes in template
+
+:host {
+  display: block;
+}
+
+// Smooth height transition for collapsible content
+#email-preview-content {
+  animation: slideDown 200ms ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

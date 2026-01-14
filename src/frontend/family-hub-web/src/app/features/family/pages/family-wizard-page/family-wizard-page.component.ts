@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { WizardComponent } from '../../../../shared/components/organisms/wizard/wizard.component';
@@ -11,6 +11,8 @@ import { InviteMembersStepComponent } from '../../components/invite-members-step
 import { InviteMembersStepData } from '../../models/invite-members-step.models';
 import { FamilyService } from '../../services/family.service';
 import { InvitationService } from '../../services/invitation.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmInvitesDialogComponent } from '../../../../shared/components/organisms/confirm-invites-dialog/confirm-invites-dialog.component';
 
 /**
  * Event emitted when wizard completes.
@@ -59,7 +61,7 @@ export interface WizardCompleteEvent {
 @Component({
   selector: 'app-family-wizard-page',
   standalone: true,
-  imports: [CommonModule, WizardComponent],
+  imports: [CommonModule, WizardComponent, ConfirmInvitesDialogComponent],
   template: `
     <!-- Error Alert -->
     @if (familyService.error()) {
@@ -105,6 +107,16 @@ export interface WizardCompleteEvent {
       [isSubmitting]="familyService.isLoading()"
       (complete)="onWizardComplete($event)"
     ></app-wizard>
+
+    <!-- Confirmation Dialog -->
+    <app-confirm-invites-dialog
+      [isOpen]="showConfirmDialog()"
+      [invitations]="pendingInviteData()?.invitations ?? []"
+      [familyName]="familyService.currentFamily()?.name ?? ''"
+      [personalMessage]="pendingInviteData()?.message"
+      (confirm)="onConfirmSendInvitations()"
+      (cancel)="onCancelSendInvitations()"
+    />
   `,
   styles: [],
 })
@@ -121,9 +133,24 @@ export class FamilyWizardPageComponent implements OnInit {
   private invitationService = inject(InvitationService);
 
   /**
+   * Injected ToastService for user feedback notifications.
+   */
+  private toastService = inject(ToastService);
+
+  /**
    * Injected Router for navigation after wizard completion.
    */
   private router = inject(Router);
+
+  /**
+   * Signal for showing confirmation dialog.
+   */
+  showConfirmDialog = signal(false);
+
+  /**
+   * Signal for pending invitation data before confirmation.
+   */
+  pendingInviteData = signal<InviteMembersStepData | null>(null);
 
   /**
    * Wizard step configurations.
@@ -268,53 +295,78 @@ export class FamilyWizardPageComponent implements OnInit {
 
     // Success: Family created
     console.log('Family created successfully.');
+    this.toastService.success('Family created successfully!');
 
-    // Get family ID for invitations
+    // Check if there are invitations to send
+    const inviteData = event.get('invite-members') as InviteMembersStepData | undefined;
+
+    if (inviteData?.invitations && inviteData.invitations.length > 0) {
+      // Show confirmation dialog instead of sending immediately
+      this.pendingInviteData.set(inviteData);
+      this.showConfirmDialog.set(true);
+      return; // Wait for confirmation
+    }
+
+    // No invitations - navigate directly to dashboard
+    this.router.navigate(['/dashboard']);
+  }
+
+  /**
+   * Handles confirmation to send invitations.
+   * Called when user clicks "Send Invitations" in confirmation dialog.
+   */
+  async onConfirmSendInvitations(): Promise<void> {
+    this.showConfirmDialog.set(false);
+
+    const inviteData = this.pendingInviteData();
     const familyId = this.familyService.currentFamily()?.id;
-    if (!familyId) {
-      console.error('Family ID not found after creation');
+
+    if (!familyId || !inviteData?.invitations) {
+      console.error('Missing family ID or invitation data');
       this.router.navigate(['/dashboard']);
       return;
     }
 
-    // 2. Send invitations if any exist
-    const inviteData = event.get('invite-members') as InviteMembersStepData | undefined;
+    console.log(`Sending ${inviteData.invitations.length} invitations...`);
 
-    if (inviteData?.invitations && inviteData.invitations.length > 0) {
-      console.log(`Sending ${inviteData.invitations.length} invitations...`);
+    try {
+      // Send invitations via InvitationService
+      const result = await this.invitationService.inviteFamilyMembersByEmail(
+        familyId,
+        inviteData.invitations.map((inv) => ({
+          email: inv.email,
+          role: inv.role as 'ADMIN' | 'MEMBER', // Backend doesn't support CHILD yet
+        }))
+      );
 
-      try {
-        // Send invitations via InvitationService
-        const result = await this.invitationService.inviteFamilyMembersByEmail(
-          familyId,
-          inviteData.invitations.map((inv) => ({
-            email: inv.email,
-            role: inv.role as 'ADMIN' | 'MEMBER', // Backend doesn't support CHILD yet
-          }))
-        );
-
-        // Log results
-        console.log(
-          `Invitations sent: ${result.successCount} succeeded, ${result.errors.length} failed`
-        );
-
-        if (result.errors.length > 0) {
-          console.warn('Some invitations failed:', result.errors);
-        }
-
-        // TODO: Show results modal with success/failure details
-        // For MVP, just navigate to dashboard
-        // Future: Add modal with results summary
-      } catch (err) {
-        // Network or unexpected error
-        console.error('Failed to send invitations:', err);
-        // TODO: Show error modal
-        // For MVP, still navigate to dashboard (family created successfully)
+      // Show success/failure toasts
+      if (result.successCount > 0) {
+        this.toastService.success(`${result.successCount} invitation(s) sent!`);
       }
-    }
 
-    // Navigate to dashboard
-    console.log('Navigating to dashboard.');
+      if (result.errors.length > 0) {
+        this.toastService.warning(`${result.errors.length} invitation(s) failed`);
+        console.warn('Some invitations failed:', result.errors);
+      }
+    } catch (err) {
+      // Network or unexpected error
+      console.error('Failed to send invitations:', err);
+      this.toastService.error('Failed to send invitations');
+    } finally {
+      // Clear pending data and navigate to dashboard
+      this.pendingInviteData.set(null);
+      this.router.navigate(['/dashboard']);
+    }
+  }
+
+  /**
+   * Handles cancellation of sending invitations.
+   * Called when user clicks "Cancel" in confirmation dialog.
+   */
+  onCancelSendInvitations(): void {
+    this.showConfirmDialog.set(false);
+    this.pendingInviteData.set(null);
+    // Navigate to dashboard without sending invitations
     this.router.navigate(['/dashboard']);
   }
 }
