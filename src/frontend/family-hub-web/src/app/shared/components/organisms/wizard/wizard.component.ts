@@ -11,6 +11,7 @@ import {
   AfterViewInit,
   inject,
   ChangeDetectorRef,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -277,6 +278,24 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private currentStepComponentRef?: ComponentRef<unknown>;
 
+  // ===== Constructor =====
+
+  constructor() {
+    // Watch for currentStep changes and re-render the step component
+    // This is critical for wizard navigation to work properly
+    effect(() => {
+      // Read the currentStep signal to create a reactive dependency
+      const step = this.wizardService.currentStep();
+
+      // Only render if:
+      // 1. We have a view container (after AfterViewInit)
+      // 2. Steps are initialized (prevents running during construction)
+      if (this.stepContainer && this.wizardService.totalSteps() > 0) {
+        this.renderCurrentStep();
+      }
+    });
+  }
+
   // ===== Lifecycle Hooks =====
 
   /**
@@ -295,6 +314,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   ngAfterViewInit(): void {
     // Render initial step immediately
+    // The effect will handle subsequent step changes
     this.renderCurrentStep();
   }
 
