@@ -1,0 +1,630 @@
+{
+  "queryFields": [
+    "auth",
+    "family",
+    "familyMembers",
+    "health",
+    "invitations",
+    "me",
+    "roles"
+  ],
+  "mutationFields": [
+    "acceptInvitation",
+    "cancelInvitation",
+    "completeZitadelLogin",
+    "createFamily",
+    "inviteFamilyMemberByEmail",
+    "inviteFamilyMembers",
+    "updateInvitationRole"
+  ],
+  "types": {
+    "AcceptedInvitationDto": {
+      "kind": "OBJECT",
+      "fields": [
+        "familyId",
+        "familyName",
+        "role"
+      ]
+    },
+    "AcceptInvitationError": {
+      "kind": "UNION",
+      "possibleTypes": [
+        "BusinessError",
+        "InternalServerError",
+        "UnauthorizedError",
+        "ValidationError",
+        "ValueObjectError"
+      ]
+    },
+    "AcceptInvitationInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "token"
+      ]
+    },
+    "AcceptInvitationPayload": {
+      "kind": "OBJECT",
+      "fields": [
+        "acceptedInvitationDto",
+        "errors"
+      ]
+    },
+    "ApplyPolicy": {
+      "kind": "ENUM",
+      "enumValues": [
+        "AFTER_RESOLVER",
+        "BEFORE_RESOLVER",
+        "VALIDATION"
+      ]
+    },
+    "AuditInfoType": {
+      "kind": "OBJECT",
+      "fields": [
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AuthenticationResult": {
+      "kind": "OBJECT",
+      "fields": [
+        "accessToken",
+        "expiresAt",
+        "refreshToken",
+        "user"
+      ]
+    },
+    "AuthType": {
+      "kind": "OBJECT",
+      "fields": [
+        "url"
+      ]
+    },
+    "AuthUrlPayload": {
+      "kind": "OBJECT",
+      "fields": [
+        "authorizationUrl",
+        "codeVerifier",
+        "state"
+      ]
+    },
+    "BusinessError": {
+      "kind": "OBJECT",
+      "fields": [
+        "code",
+        "message"
+      ],
+      "interfaces": [
+        "Error"
+      ]
+    },
+    "CancelInvitationError": {
+      "kind": "UNION",
+      "possibleTypes": [
+        "BusinessError",
+        "InternalServerError",
+        "UnauthorizedError",
+        "ValidationError",
+        "ValueObjectError"
+      ]
+    },
+    "CancelInvitationInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "invitationId"
+      ]
+    },
+    "CancelInvitationPayload": {
+      "kind": "OBJECT",
+      "fields": [
+        "boolean",
+        "errors"
+      ]
+    },
+    "CompleteZitadelLoginError": {
+      "kind": "UNION",
+      "possibleTypes": [
+        "BusinessError",
+        "InternalServerError",
+        "UnauthorizedError",
+        "ValidationError",
+        "ValueObjectError"
+      ]
+    },
+    "CompleteZitadelLoginInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "authorizationCode",
+        "codeVerifier"
+      ]
+    },
+    "CompleteZitadelLoginPayload": {
+      "kind": "OBJECT",
+      "fields": [
+        "authenticationResult",
+        "errors"
+      ]
+    },
+    "CreatedFamilyDto": {
+      "kind": "OBJECT",
+      "fields": [
+        "createdAt",
+        "id",
+        "name",
+        "ownerId",
+        "updatedAt"
+      ]
+    },
+    "CreateFamilyError": {
+      "kind": "UNION",
+      "possibleTypes": [
+        "BusinessError",
+        "InternalServerError",
+        "UnauthorizedError",
+        "ValidationError",
+        "ValueObjectError"
+      ]
+    },
+    "CreateFamilyInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "name"
+      ]
+    },
+    "CreateFamilyPayload": {
+      "kind": "OBJECT",
+      "fields": [
+        "createdFamilyDto",
+        "errors"
+      ]
+    },
+    "DomainEvent": {
+      "kind": "OBJECT",
+      "fields": [
+        "eventId",
+        "occurredOn"
+      ]
+    },
+    "Email": {
+      "kind": "OBJECT",
+      "fields": [
+        "isInitialized",
+        "value"
+      ]
+    },
+    "Error": {
+      "kind": "INTERFACE",
+      "fields": [
+        "message"
+      ],
+      "possibleTypes": [
+        "BusinessError",
+        "InternalServerError",
+        "UnauthorizedError",
+        "ValidationError",
+        "ValueObjectError"
+      ]
+    },
+    "Family": {
+      "kind": "OBJECT",
+      "fields": [
+        "auditInfo",
+        "id",
+        "invitations",
+        "members",
+        "name",
+        "owner"
+      ]
+    },
+    "FamilyId": {
+      "kind": "OBJECT",
+      "fields": [
+        "isInitialized",
+        "value"
+      ]
+    },
+    "FamilyIdInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "value"
+      ]
+    },
+    "FamilyInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "createdAt",
+        "deletedAt",
+        "id",
+        "name",
+        "ownerId",
+        "updatedAt"
+      ]
+    },
+    "FamilyMemberType": {
+      "kind": "OBJECT",
+      "fields": [
+        "auditInfo",
+        "email",
+        "emailVerified",
+        "id",
+        "isOwner",
+        "joinedAt",
+        "role"
+      ]
+    },
+    "FamilyNameInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "value"
+      ]
+    },
+    "FamilyRole": {
+      "kind": "OBJECT",
+      "fields": [
+        "isInitialized",
+        "value"
+      ]
+    },
+    "HealthStatus": {
+      "kind": "OBJECT",
+      "fields": [
+        "service",
+        "status",
+        "timestamp"
+      ]
+    },
+    "InternalServerError": {
+      "kind": "OBJECT",
+      "fields": [
+        "message"
+      ],
+      "interfaces": [
+        "Error"
+      ]
+    },
+    "InvitationDisplayCode": {
+      "kind": "OBJECT",
+      "fields": [
+        "isInitialized",
+        "value"
+      ]
+    },
+    "InvitationErrorCode": {
+      "kind": "ENUM",
+      "enumValues": [
+        "ALREADY_MEMBER",
+        "DUPLICATE_IN_BATCH",
+        "DUPLICATE_PENDING_INVITATION",
+        "INVALID_EMAIL",
+        "INVALID_ROLE",
+        "MEMBER_OF_ANOTHER_FAMILY",
+        "SELF_INVITE",
+        "UNKNOWN"
+      ]
+    },
+    "InvitationFailure": {
+      "kind": "OBJECT",
+      "fields": [
+        "email",
+        "errorCode",
+        "errorMessage",
+        "role"
+      ]
+    },
+    "InvitationId": {
+      "kind": "OBJECT",
+      "fields": [
+        "isInitialized",
+        "value"
+      ]
+    },
+    "InvitationRequestInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "email",
+        "role"
+      ]
+    },
+    "InvitationStatus": {
+      "kind": "OBJECT",
+      "fields": [
+        "isInitialized",
+        "value"
+      ]
+    },
+    "InvitationStatusType": {
+      "kind": "ENUM",
+      "enumValues": [
+        "ACCEPTED",
+        "CANCELLED",
+        "EXPIRED",
+        "PENDING",
+        "REJECTED"
+      ]
+    },
+    "InvitationsType": {
+      "kind": "OBJECT",
+      "fields": [
+        "byToken",
+        "pending"
+      ]
+    },
+    "InvitationSuccess": {
+      "kind": "OBJECT",
+      "fields": [
+        "displayCode",
+        "email",
+        "expiresAt",
+        "invitationId",
+        "role",
+        "status",
+        "token"
+      ]
+    },
+    "InvitationToken": {
+      "kind": "OBJECT",
+      "fields": [
+        "isInitialized",
+        "value"
+      ]
+    },
+    "InviteFamilyMemberByEmailError": {
+      "kind": "UNION",
+      "possibleTypes": [
+        "BusinessError",
+        "InternalServerError",
+        "UnauthorizedError",
+        "ValidationError",
+        "ValueObjectError"
+      ]
+    },
+    "InviteFamilyMemberByEmailInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "email",
+        "familyId",
+        "message",
+        "role"
+      ]
+    },
+    "InviteFamilyMemberByEmailPayload": {
+      "kind": "OBJECT",
+      "fields": [
+        "errors",
+        "inviteFamilyMemberByEmailResult"
+      ]
+    },
+    "InviteFamilyMemberByEmailResult": {
+      "kind": "OBJECT",
+      "fields": [
+        "displayCode",
+        "email",
+        "expiresAt",
+        "invitationId",
+        "role",
+        "status",
+        "token"
+      ]
+    },
+    "InviteFamilyMembersError": {
+      "kind": "UNION",
+      "possibleTypes": [
+        "BusinessError",
+        "InternalServerError",
+        "UnauthorizedError",
+        "ValidationError",
+        "ValueObjectError"
+      ]
+    },
+    "InviteFamilyMembersInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "familyId",
+        "invitations",
+        "message"
+      ]
+    },
+    "InviteFamilyMembersPayload": {
+      "kind": "OBJECT",
+      "fields": [
+        "errors",
+        "inviteFamilyMembersResult"
+      ]
+    },
+    "InviteFamilyMembersResult": {
+      "kind": "OBJECT",
+      "fields": [
+        "allSucceeded",
+        "anySucceeded",
+        "failedInvitations",
+        "successfulInvitations",
+        "totalRequested"
+      ]
+    },
+    "Mutation": {
+      "kind": "OBJECT",
+      "fields": [
+        "acceptInvitation",
+        "cancelInvitation",
+        "completeZitadelLogin",
+        "createFamily",
+        "inviteFamilyMemberByEmail",
+        "inviteFamilyMembers",
+        "updateInvitationRole"
+      ]
+    },
+    "PendingInvitationType": {
+      "kind": "OBJECT",
+      "fields": [
+        "displayCode",
+        "email",
+        "expiresAt",
+        "id",
+        "invitedAt",
+        "invitedById",
+        "isExpired",
+        "message",
+        "role",
+        "status"
+      ]
+    },
+    "Query": {
+      "kind": "OBJECT",
+      "fields": [
+        "auth",
+        "family",
+        "familyMembers",
+        "health",
+        "invitations",
+        "me",
+        "roles"
+      ]
+    },
+    "RoleMetadata": {
+      "kind": "OBJECT",
+      "fields": [
+        "badgeColorClass",
+        "description",
+        "label",
+        "value"
+      ]
+    },
+    "RolesType": {
+      "kind": "OBJECT",
+      "fields": [
+        "all",
+        "invitable"
+      ]
+    },
+    "UnauthorizedError": {
+      "kind": "OBJECT",
+      "fields": [
+        "message"
+      ],
+      "interfaces": [
+        "Error"
+      ]
+    },
+    "UpdatedInvitationDto": {
+      "kind": "OBJECT",
+      "fields": [
+        "invitationId",
+        "role"
+      ]
+    },
+    "UpdateInvitationRoleError": {
+      "kind": "UNION",
+      "possibleTypes": [
+        "BusinessError",
+        "InternalServerError",
+        "UnauthorizedError",
+        "ValidationError",
+        "ValueObjectError"
+      ]
+    },
+    "UpdateInvitationRoleInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "invitationId",
+        "newRole"
+      ]
+    },
+    "UpdateInvitationRolePayload": {
+      "kind": "OBJECT",
+      "fields": [
+        "errors",
+        "updatedInvitationDto"
+      ]
+    },
+    "User": {
+      "kind": "OBJECT",
+      "fields": [
+        "createdAt",
+        "deletedAt",
+        "domainEvents",
+        "email",
+        "emailVerified",
+        "emailVerifiedAt",
+        "externalProvider",
+        "externalUserId",
+        "familyId",
+        "id",
+        "role",
+        "roleInFamily",
+        "updatedAt"
+      ]
+    },
+    "UserId": {
+      "kind": "OBJECT",
+      "fields": [
+        "isInitialized",
+        "value"
+      ]
+    },
+    "UserIdInput": {
+      "kind": "INPUT_OBJECT",
+      "inputFields": [
+        "value"
+      ]
+    },
+    "UserRoleType": {
+      "kind": "ENUM",
+      "enumValues": [
+        "ADMIN",
+        "CHILD",
+        "MEMBER",
+        "OWNER"
+      ]
+    },
+    "UserType": {
+      "kind": "OBJECT",
+      "fields": [
+        "auditInfo",
+        "email",
+        "emailVerified",
+        "family",
+        "id"
+      ]
+    },
+    "ValidationError": {
+      "kind": "OBJECT",
+      "fields": [
+        "field",
+        "message"
+      ],
+      "interfaces": [
+        "Error"
+      ]
+    },
+    "ValueObjectError": {
+      "kind": "OBJECT",
+      "fields": [
+        "message"
+      ],
+      "interfaces": [
+        "Error"
+      ]
+    }
+  },
+  "errorTypes": [
+    "AcceptInvitationError",
+    "BusinessError",
+    "CancelInvitationError",
+    "CompleteZitadelLoginError",
+    "CreateFamilyError",
+    "Error",
+    "InternalServerError",
+    "InviteFamilyMemberByEmailError",
+    "InviteFamilyMembersError",
+    "UnauthorizedError",
+    "UpdateInvitationRoleError",
+    "ValidationError",
+    "ValueObjectError"
+  ],
+  "directives": [
+    "cost",
+    "deprecated",
+    "include",
+    "skip",
+    "specifiedBy"
+  ]
+}
