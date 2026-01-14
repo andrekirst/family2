@@ -1,6 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Infrastructure.Authorization;
 using FamilyHub.Modules.Auth.Persistence;
+using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using NSubstitute;
 
 namespace FamilyHub.Tests.Integration.Helpers;
@@ -90,6 +92,26 @@ public sealed class GraphQlTestFactory(PostgreSqlContainerFixture containerFixtu
                 return factory.CreateDbContext();
             });
 
+            // Remove existing FamilyDbContext registrations
+            services.RemoveAll<DbContextOptions<FamilyDbContext>>();
+            services.RemoveAll<FamilyDbContext>();
+            services.RemoveAll<IDbContextFactory<FamilyDbContext>>();
+
+            // Add FamilyDbContext with test container connection string
+            services.AddPooledDbContextFactory<FamilyDbContext>((_, options) =>
+                options.UseNpgsql(containerFixture.ConnectionString, npgsqlOptions =>
+                    {
+                        npgsqlOptions.MigrationsAssembly(typeof(FamilyDbContext).Assembly.GetName().Name);
+                    })
+                    .UseSnakeCaseNamingConvention());
+
+            // Also register scoped FamilyDbContext
+            services.AddScoped(sp =>
+            {
+                var factory = sp.GetRequiredService<IDbContextFactory<FamilyDbContext>>();
+                return factory.CreateDbContext();
+            });
+
             // GraphQL types are auto-discovered via Program.cs → AddAuthModuleGraphQlTypes()
             // No explicit type registration needed here - WebApplicationFactory<Program> inherits the full DI container
 
@@ -116,11 +138,10 @@ public sealed class GraphQlTestFactory(PostgreSqlContainerFixture containerFixtu
             // Add test authorization handler that always succeeds
             services.AddScoped<IAuthorizationHandler, TestAuthorizationHandler>();
 
-            // Build service provider and apply migrations
-            var serviceProvider = services.BuildServiceProvider();
-            using var scope = serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-            dbContext.Database.Migrate();
+            // Register a hosted service that applies migrations on startup
+            // NOTE: Using EnsureCreatedAsync() instead of Migrate() to avoid
+            // PendingModelChangesWarning in .NET 10. This matches TestApplicationFactory behavior.
+            services.AddHostedService<GraphQlMigrationHostedService>();
         });
     }
 }
@@ -141,4 +162,54 @@ internal sealed class TestAuthorizationHandler : IAuthorizationHandler
 
         return Task.CompletedTask;
     }
+}
+
+/// <summary>
+/// Hosted service that applies EF Core database schemas on startup for GraphQL tests.
+/// Creates both Auth and Family schemas for cross-module testing.
+/// Uses idempotent schema creation to support shared database containers across tests.
+/// </summary>
+internal sealed class GraphQlMigrationHostedService(IServiceProvider serviceProvider) : IHostedService
+{
+    // Static flag to ensure schemas are only created once per test run
+    // This is necessary because multiple tests share the same database container
+    private static bool _schemasCreated;
+    private static readonly object Lock = new();
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        // Quick check without lock for performance
+        if (_schemasCreated)
+            return;
+
+        lock (Lock)
+        {
+            // Double-check after acquiring lock
+            if (_schemasCreated)
+                return;
+
+            _schemasCreated = true;
+        }
+
+        using var scope = serviceProvider.CreateScope();
+
+        // Create Auth schema first
+        var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+        await authDbContext.Database.EnsureCreatedAsync(cancellationToken);
+
+        // Create Family schema using SQL script
+        // Catch "already exists" error in case PostgreSqlContainerFixture already created it
+        var familyDbContext = scope.ServiceProvider.GetRequiredService<FamilyDbContext>();
+        try
+        {
+            var script = familyDbContext.Database.GenerateCreateScript();
+            await familyDbContext.Database.ExecuteSqlRawAsync(script, cancellationToken);
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07") // 42P07 = duplicate_table
+        {
+            // Schema already exists - this is expected when PostgreSqlContainerFixture runs first
+        }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

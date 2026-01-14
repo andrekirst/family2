@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FamilyHub.Modules.Family.Domain.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Integration.Helpers;
@@ -67,8 +68,9 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test assertions
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         // Create two separate families with owners
         var userA = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner-a");
@@ -96,7 +98,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
 
         await invitationRepo.AddAsync(invitationA);
         await invitationRepo.AddAsync(invitationB);
-        await unitOfWork.SaveChangesAsync();
+        await familyUnitOfWork.SaveChangesAsync();
 
         // Setup authentication for User A (with external user ID for authorization)
         var client = CreateAuthenticatedClient(userA.Email.Value, userA.Id, userA.ExternalUserId);
@@ -140,8 +142,9 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test assertions
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         // Create two families
         var userA = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "isolated-a");
@@ -158,7 +161,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
             userB.Id);
 
         await invitationRepo.AddAsync(invitationB);
-        await unitOfWork.SaveChangesAsync();
+        await familyUnitOfWork.SaveChangesAsync();
 
         // Setup authentication for User A (who belongs to Family A)
         var client = CreateAuthenticatedClient(userA.Email.Value, userA.Id);
@@ -201,8 +204,9 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test assertions
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "multi");
         var family = await familyRepo.GetByIdAsync(user.FamilyId);
@@ -230,7 +234,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         await invitationRepo.AddAsync(invitation1);
         await invitationRepo.AddAsync(invitation2);
         await invitationRepo.AddAsync(invitation3);
-        await unitOfWork.SaveChangesAsync();
+        await familyUnitOfWork.SaveChangesAsync();
 
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
@@ -346,8 +350,9 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test assertions
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         var user = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "fields");
         var family = await familyRepo.GetByIdAsync(user.FamilyId);
@@ -361,7 +366,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
             "Welcome to our family!");
 
         await invitationRepo.AddAsync(invitation);
-        await unitOfWork.SaveChangesAsync();
+        await familyUnitOfWork.SaveChangesAsync();
 
         var client = CreateAuthenticatedClient(user.Email.Value, user.Id);
 
@@ -414,8 +419,9 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test assertions
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         // Create 3 separate families
         var user1 = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "user1");
@@ -436,7 +442,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         await invitationRepo.AddAsync(inv2A);
         await invitationRepo.AddAsync(inv2B);
         await invitationRepo.AddAsync(inv3);
-        await unitOfWork.SaveChangesAsync();
+        await familyUnitOfWork.SaveChangesAsync();
 
         var query = """
         query {

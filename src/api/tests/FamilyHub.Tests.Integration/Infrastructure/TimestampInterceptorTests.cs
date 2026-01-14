@@ -6,7 +6,6 @@ using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.Tests.Unit.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 
 namespace FamilyHub.Tests.Integration.Infrastructure;
@@ -20,44 +19,54 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 /// while User entities remain in AuthDbContext (auth schema).
 /// Tests use the appropriate DbContext for each entity type.
 /// </summary>
+/// <remarks>
+/// Uses PostgreSqlContainerFixture for isolated, reproducible database testing.
+/// The fixture provides both Auth and Family schemas via Testcontainers.
+/// </remarks>
 [Collection("Database")]
-public class TimestampInterceptorTests : IAsyncLifetime
+public class TimestampInterceptorTests(PostgreSqlContainerFixture containerFixture) : IAsyncLifetime
 {
     private AuthDbContext _authContext = null!;
     private FamilyDbContext _familyContext = null!;
     private FakeTimeProvider _timeProvider = null!;
 
-    public async Task InitializeAsync()
+    public Task InitializeAsync()
     {
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2024, 1, 1, 12, 0, 0, TimeSpan.Zero));
 
-        var services = new ServiceCollection();
-        services.AddSingleton<TimeProvider>(_timeProvider);
-        services.BuildServiceProvider();
-
-        var connectionString = "Host=localhost;Database=familyhub_test;Username=familyhub;Password=Dev123!";
+        // Use connection string from Testcontainers fixture
+        var connectionString = containerFixture.ConnectionString;
 
         var authOptions = new DbContextOptionsBuilder<AuthDbContext>()
             .UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention()
             .AddInterceptors(new TimestampInterceptor(_timeProvider))
             .Options;
 
         var familyOptions = new DbContextOptionsBuilder<FamilyDbContext>()
             .UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention()
             .AddInterceptors(new TimestampInterceptor(_timeProvider))
             .Options;
 
         _authContext = new AuthDbContext(authOptions);
         _familyContext = new FamilyDbContext(familyOptions);
 
-        await _authContext.Database.EnsureCreatedAsync();
-        await _familyContext.Database.EnsureCreatedAsync();
+        // Schemas are created by the fixture - no need to call EnsureCreatedAsync here
+        return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
-        await _familyContext.Database.EnsureDeletedAsync();
-        await _authContext.Database.EnsureDeletedAsync();
+        // Clean up data but don't delete schemas (fixture manages database lifecycle)
+        // Order matters due to foreign key constraints:
+        // 1. Delete invitations first (FK to families)
+        // 2. Delete families
+        // 3. Delete users
+        await _familyContext.FamilyMemberInvitations.ExecuteDeleteAsync();
+        await _familyContext.Families.ExecuteDeleteAsync();
+        await _authContext.Users.ExecuteDeleteAsync();
+
         await _familyContext.DisposeAsync();
         await _authContext.DisposeAsync();
     }

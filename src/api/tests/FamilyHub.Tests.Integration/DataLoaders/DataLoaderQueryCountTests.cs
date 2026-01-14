@@ -16,10 +16,14 @@ namespace FamilyHub.Tests.Integration.DataLoaders;
 /// </summary>
 /// <remarks>
 /// These tests verify the N+1 query prevention documented in ADR-011.
-/// Expected query counts:
-/// - 100 users with families: ≤3 queries (vs 101 without DataLoaders)
+/// Expected query counts (with ManualBatchScheduler for deterministic batching):
+/// - 100 users with families: exactly 2 queries (1 for users + 1 for families)
 /// - Family with N members: 1 query (vs N+1 without DataLoaders)
 /// - Family with N invitations: 1 query (vs N+1 without DataLoaders)
+///
+/// Note: Tests use ManualBatchScheduler instead of AutoBatchScheduler to ensure
+/// deterministic batching behavior. AutoBatchScheduler's timing-based dispatch can
+/// cause flaky test results in CI environments.
 /// </remarks>
 [Collection("DataLoaderQueryCount")]
 public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixture fixture) : IAsyncLifetime
@@ -55,19 +59,24 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
             "DELETE FROM family.families");
     }
 
-    #region Test 1: Query100UsersWithFamilies_UsesMaxThreeQueries
+    #region Test 1: Query100UsersWithFamilies_UsesExactlyTwoQueries
 
     /// <summary>
-    /// Tests that querying 100 users across 20 families uses at most 3 database queries:
-    /// 1. Query for users (via UserBatchDataLoader)
-    /// 2. Batched query for families (via FamilyBatchDataLoader)
+    /// Tests that querying 100 users across 20 families uses exactly 2 database queries:
+    /// 1. One batched query for all users (via UserBatchDataLoader)
+    /// 2. One batched query for all families (via FamilyBatchDataLoader)
     /// </summary>
     /// <remarks>
     /// Without DataLoaders, this would be 101 queries (1 + 100 N+1).
-    /// With DataLoaders, we achieve ≤3 queries via batching.
+    /// With DataLoaders and ManualBatchScheduler for deterministic batching,
+    /// we achieve exactly 2 queries.
+    ///
+    /// Note: Uses ManualBatchScheduler instead of AutoBatchScheduler because
+    /// AutoBatchScheduler's timing-based dispatch is non-deterministic and can
+    /// split requests across multiple batches in CI environments.
     /// </remarks>
     [Fact]
-    public async Task Query100UsersWithFamilies_UsesMaxThreeQueries()
+    public async Task Query100UsersWithFamilies_UsesExactlyTwoQueries()
     {
         // Arrange - Create 100 users across 20 families (5 users each)
         await using var seedAuthContext = fixture.CreateAuthDbContext();
@@ -92,26 +101,35 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
         var authFactory = CreateAuthContextFactory();
         var familyFactory = CreateFamilyContextFactory();
 
-        var batchScheduler = new AutoBatchScheduler();
+        // Use ManualBatchScheduler for deterministic batching control
+        // AutoBatchScheduler timing is non-deterministic and causes flaky tests in CI
+        var manualScheduler = new ManualBatchScheduler();
         var options = new DataLoaderOptions();
 
-        var userDataLoader = new UserBatchDataLoader(authFactory, batchScheduler, options);
-        var familyDataLoader = new FamilyBatchDataLoader(familyFactory, batchScheduler, options);
+        var userDataLoader = new UserBatchDataLoader(authFactory, manualScheduler, options);
+        var familyDataLoader = new FamilyBatchDataLoader(familyFactory, manualScheduler, options);
 
-        // Act - Load all users and their families
+        // Act - Queue all user requests (not yet executed)
         var userTasks = allUserIds.Select(id =>
-            userDataLoader.LoadAsync(id, CancellationToken.None));
+            userDataLoader.LoadAsync(id, CancellationToken.None)).ToList();
+
+        // Explicitly dispatch the user batch - ensures all 100 users are in one batch
+        await manualScheduler.DispatchAsync();
         var users = await Task.WhenAll(userTasks);
 
-        // Load all families for these users
+        // Extract family IDs from loaded users
         var familyIds = users
             .Where(u => u != null)
             .Select(u => u!.FamilyId)
             .Distinct()
             .ToList();
 
+        // Queue all family requests (not yet executed)
         var familyTasks = familyIds.Select(id =>
-            familyDataLoader.LoadAsync(id, CancellationToken.None));
+            familyDataLoader.LoadAsync(id, CancellationToken.None)).ToList();
+
+        // Explicitly dispatch the family batch - ensures all 20 families are in one batch
+        await manualScheduler.DispatchAsync();
         var families = await Task.WhenAll(familyTasks);
 
         // Assert
@@ -120,10 +138,11 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
         families.Should().HaveCount(20, "Should have 20 distinct families");
 
         var queryCount = QueryCountingInterceptor.GetQueryCount(_testId);
-        queryCount.Should().BeLessThanOrEqualTo(3,
-            "DataLoaders should batch 100 user + 20 family lookups into at most 3 queries. " +
+        queryCount.Should().Be(2,
+            "With ManualBatchScheduler, DataLoaders should batch all 100 users into 1 query " +
+            "and all 20 families into 1 query (total: 2 queries). " +
             $"Actual queries: {queryCount}. " +
-            $"Executed SQL: [{string.Join(", ", QueryCountingInterceptor.GetExecutedQueries(_testId).Take(5))}...]");
+            $"Executed SQL: [{string.Join(", ", QueryCountingInterceptor.GetExecutedQueries(_testId))}]");
     }
 
     #endregion
@@ -136,7 +155,7 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
     /// </summary>
     /// <remarks>
     /// Without DataLoaders, this would be N+1 queries.
-    /// With GroupedDataLoader, we achieve 1 query for all members.
+    /// With GroupedDataLoader and ManualBatchScheduler, we achieve exactly 1 query.
     /// </remarks>
     [Fact]
     public async Task QueryFamilyWithMembers_UsesSingleBatchQuery()
@@ -158,15 +177,17 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
         // Create context factory with query counting interceptor
         var authFactory = CreateAuthContextFactory();
 
-        var batchScheduler = new AutoBatchScheduler();
+        // Use ManualBatchScheduler for deterministic batching
+        var manualScheduler = new ManualBatchScheduler();
         var options = new DataLoaderOptions();
 
         var usersByFamilyDataLoader = new UsersByFamilyGroupedDataLoader(
-            authFactory, batchScheduler, options);
+            authFactory, manualScheduler, options);
 
-        // Act - Load all members for the family
-        var loadedMembers = await usersByFamilyDataLoader.LoadAsync(
-            family.Id, CancellationToken.None);
+        // Act - Queue the request and dispatch
+        var task = usersByFamilyDataLoader.LoadAsync(family.Id, CancellationToken.None);
+        await manualScheduler.DispatchAsync();
+        var loadedMembers = await task;
 
         // Assert
         loadedMembers.Should().HaveCount(50,
@@ -186,6 +207,9 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
     /// Tests that querying a family with 20 pending invitations uses exactly 1 batch query
     /// via InvitationsByFamilyGroupedDataLoader.
     /// </summary>
+    /// <remarks>
+    /// Uses ManualBatchScheduler for deterministic batching behavior.
+    /// </remarks>
     [Fact]
     public async Task QueryFamilyWithInvitations_UsesSingleBatchQuery()
     {
@@ -212,15 +236,17 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
         // Create context factory with query counting interceptor
         var familyFactory = CreateFamilyContextFactory();
 
-        var batchScheduler = new AutoBatchScheduler();
+        // Use ManualBatchScheduler for deterministic batching
+        var manualScheduler = new ManualBatchScheduler();
         var options = new DataLoaderOptions();
 
         var invitationsDataLoader = new InvitationsByFamilyGroupedDataLoader(
-            familyFactory, batchScheduler, options);
+            familyFactory, manualScheduler, options);
 
-        // Act - Load all invitations for the family
-        var loadedInvitations = await invitationsDataLoader.LoadAsync(
-            family.Id, CancellationToken.None);
+        // Act - Queue the request and dispatch
+        var task = invitationsDataLoader.LoadAsync(family.Id, CancellationToken.None);
+        await manualScheduler.DispatchAsync();
+        var loadedInvitations = await task;
 
         // Assert
         loadedInvitations.Should().HaveCount(20,
@@ -240,6 +266,9 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
     /// Tests that querying members for multiple families uses a single batch query.
     /// This validates the batching behavior when resolving members for a list of families.
     /// </summary>
+    /// <remarks>
+    /// Uses ManualBatchScheduler for deterministic batching behavior.
+    /// </remarks>
     [Fact]
     public async Task QueryMultipleFamiliesWithMembers_UsesSingleBatchQuery()
     {
@@ -262,15 +291,19 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
         // Create context factory with query counting interceptor
         var authFactory = CreateAuthContextFactory();
 
-        var batchScheduler = new AutoBatchScheduler();
+        // Use ManualBatchScheduler for deterministic batching
+        var manualScheduler = new ManualBatchScheduler();
         var options = new DataLoaderOptions();
 
         var usersByFamilyDataLoader = new UsersByFamilyGroupedDataLoader(
-            authFactory, batchScheduler, options);
+            authFactory, manualScheduler, options);
 
-        // Act - Load members for all 10 families concurrently
+        // Act - Queue all requests then dispatch
         var tasks = familyIds.Select(id =>
-            usersByFamilyDataLoader.LoadAsync(id, CancellationToken.None));
+            usersByFamilyDataLoader.LoadAsync(id, CancellationToken.None)).ToList();
+
+        // Dispatch all requests in a single batch
+        await manualScheduler.DispatchAsync();
         var results = await Task.WhenAll(tasks);
 
         // Assert
@@ -293,12 +326,11 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
     /// via FamilyBatchDataLoader.
     /// </summary>
     /// <remarks>
-    /// Note: GreenDonut's AutoBatchScheduler batches requests within scheduling windows.
-    /// With 50 concurrent LoadAsync calls, some may be executed in separate batches.
-    /// The key metric is that we see significantly fewer queries than 50 (N+1 pattern).
+    /// With ManualBatchScheduler for deterministic batching, all 50 family
+    /// requests are batched into a single query.
     /// </remarks>
     [Fact]
-    public async Task QueryFamiliesForMultipleUsers_UsesBatchedQueries()
+    public async Task QueryFamiliesForMultipleUsers_UsesSingleBatchQuery()
     {
         // Arrange - Create 50 users with unique families
         await using var seedAuthContext = fixture.CreateAuthDbContext();
@@ -324,14 +356,18 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
         // Create context factory with query counting interceptor
         var familyFactory = CreateFamilyContextFactory();
 
-        var batchScheduler = new AutoBatchScheduler();
+        // Use ManualBatchScheduler for deterministic batching
+        var manualScheduler = new ManualBatchScheduler();
         var options = new DataLoaderOptions();
 
-        var familyDataLoader = new FamilyBatchDataLoader(familyFactory, batchScheduler, options);
+        var familyDataLoader = new FamilyBatchDataLoader(familyFactory, manualScheduler, options);
 
-        // Act - Load all families concurrently
+        // Act - Queue all requests then dispatch
         var tasks = familyIds.Select(id =>
-            familyDataLoader.LoadAsync(id, CancellationToken.None));
+            familyDataLoader.LoadAsync(id, CancellationToken.None)).ToList();
+
+        // Dispatch all requests in a single batch
+        await manualScheduler.DispatchAsync();
         var families = await Task.WhenAll(tasks);
 
         // Assert
@@ -339,11 +375,8 @@ public sealed class DataLoaderQueryCountTests(DualSchemaPostgreSqlContainerFixtu
         families.All(f => f != null).Should().BeTrue("All families should be loaded");
 
         var queryCount = QueryCountingInterceptor.GetQueryCount(_testId);
-        // DataLoaders batch requests within scheduling windows. With 50 concurrent calls,
-        // we expect significantly fewer than 50 queries (which would be N+1 pattern).
-        // Typically we see 1-10 batches depending on timing.
-        queryCount.Should().BeLessThanOrEqualTo(10,
-            "FamilyBatchDataLoader should batch 50 family lookups into at most 10 queries (vs 50 without batching). " +
+        queryCount.Should().Be(1,
+            "With ManualBatchScheduler, FamilyBatchDataLoader should batch all 50 family lookups into a single query. " +
             $"Actual queries: {queryCount}");
     }
 

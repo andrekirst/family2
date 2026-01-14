@@ -190,15 +190,24 @@ public static class AuthModuleServiceRegistration
             .AddType<Presentation.GraphQL.Types.UserType>()
             .AddTypeExtension<Presentation.GraphQL.Types.UserTypeExtensions>()
             .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>()
-            // Namespace container types (no [ExtendObjectType] attribute - must be registered explicitly)
-            // These provide GraphQL schema organization: query { auth { ... } invitations { ... } }
+            // Namespace container types - provide GraphQL schema organization
+            // query { auth { ... } invitations { ... } }
             .AddType<Presentation.GraphQL.Types.AuthType>()
             .AddType<Presentation.GraphQL.Types.InvitationsType>()
-            // Auto-discover all type extensions with [ExtendObjectType] attribute
-            // This includes: Query/Mutation extensions, AuthTypeExtensions, InvitationsTypeExtensions
-            .AddTypeExtensionsFromAssemblies(
-                [typeof(AuthModuleServiceRegistration).Assembly],
-                loggerFactory);
+            // Extensions for namespace container types
+            .AddTypeExtension<Presentation.GraphQL.Types.AuthTypeExtensions>()
+            .AddTypeExtension<Presentation.GraphQL.Types.InvitationsTypeExtensions>()
+            // Query extensions - extend Query type with authentication-related queries
+            .AddTypeExtension<Presentation.GraphQL.Queries.HealthQueries>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.UserQueries>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.AuthQueryExtension>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.InvitationsQueryExtension>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.InvitationQueries>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.RolesQueries>()
+            // Mutation extensions - extend Mutation type with authentication-related mutations
+            .AddTypeExtension<Presentation.GraphQL.Mutations.AuthMutations>()
+            .AddTypeExtension<Presentation.GraphQL.Mutations.FamilyMutations>()
+            .AddTypeExtension<Presentation.GraphQL.Mutations.InvitationMutations>();
     }
 
     /// <summary>

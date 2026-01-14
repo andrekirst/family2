@@ -1,6 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Family.Application.Abstractions;
+using FamilyHub.Modules.Family.Domain.Abstractions;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Interfaces;
 using FamilyHub.SharedKernel.Application.CQRS;
@@ -16,16 +17,22 @@ namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 /// Entities are retrieved from IValidationCache (populated by validator).
 /// SPECIAL CASE: User may not have a family yet (joining via invitation).
 /// </summary>
+/// <remarks>
+/// This handler performs cross-module operations affecting both Auth (User) and Family (Invitation)
+/// contexts. Both IUnitOfWork (Auth) and IFamilyUnitOfWork (Family) must be saved to persist all changes.
+/// </remarks>
 /// <param name="userContext">The current authenticated user context.</param>
 /// <param name="invitationRepository">Repository for invitation data access.</param>
 /// <param name="validationCache">Cache containing validated entities from validator.</param>
-/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="unitOfWork">Unit of work for Auth database transactions.</param>
+/// <param name="familyUnitOfWork">Unit of work for Family database transactions.</param>
 /// <param name="logger">Logger for structured logging.</param>
 public sealed partial class AcceptInvitationCommandHandler(
     IUserContext userContext,
     IFamilyMemberInvitationRepository invitationRepository,
     IValidationCache validationCache,
     IUnitOfWork unitOfWork,
+    IFamilyUnitOfWork familyUnitOfWork,
     ILogger<AcceptInvitationCommandHandler> logger)
     : ICommandHandler<AcceptInvitationCommand, FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>
 {
@@ -61,8 +68,11 @@ public sealed partial class AcceptInvitationCommandHandler(
         // 6. Update invitation status
         await invitationRepository.UpdateAsync(invitation, cancellationToken);
 
-        // 7. Commit changes (User already tracked by EF Core from UserContextEnrichmentBehavior)
+        // 7. Commit changes to both contexts
+        // - AuthDbContext: User family/role updates (tracked by UserContextEnrichmentBehavior)
+        // - FamilyDbContext: Invitation status update
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        await familyUnitOfWork.SaveChangesAsync(cancellationToken);
 
         LogInvitationAccepted(currentUserId.Value, family.Id.Value, invitation.Role.Value);
 

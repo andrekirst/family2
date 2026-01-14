@@ -51,34 +51,42 @@ public sealed class DefaultMutationErrorsAttribute : ObjectFieldDescriptorAttrib
     }
 
     /// <summary>
-    /// Discovers the Error&lt;T&gt; extension method from HotChocolate.Types assembly.
+    /// Discovers the Error&lt;T&gt; extension method from HotChocolate.Types.Mutations assembly.
+    /// In Hot Chocolate 14+, mutation conventions (including Error&lt;T&gt;) are in a separate assembly.
     /// </summary>
     private static MethodInfo? DiscoverErrorMethod()
     {
-        // Get the HotChocolate.Types assembly
-        var hotChocolateAssembly = Assembly.GetAssembly(typeof(IObjectFieldDescriptor));
+        // Search all loaded assemblies for the Error<T> extension method
+        // In Hot Chocolate 14+, it's in HotChocolate.Types.Mutations
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(a => a.FullName?.StartsWith("HotChocolate", StringComparison.OrdinalIgnoreCase) == true);
 
-        if (hotChocolateAssembly is null)
+        foreach (var assembly in assemblies)
         {
-            return null;
-        }
-
-        // Search for extension classes that have an Error<T> method for IObjectFieldDescriptor
-        var extensionTypes = hotChocolateAssembly
-            .GetTypes()
-            .Where(t => t is { IsClass: true, IsAbstract: true, IsSealed: true }); // Static classes
-
-        foreach (var extensionType in extensionTypes)
-        {
-            var method = extensionType
-                .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .FirstOrDefault(m => m is { Name: "Error", IsGenericMethod: true }
-                                     && m.GetParameters().Length == 1
-                                     && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
-
-            if (method is not null)
+            try
             {
-                return method;
+                // Search for extension classes that have an Error<T> method for IObjectFieldDescriptor
+                var extensionTypes = assembly
+                    .GetTypes()
+                    .Where(t => t is { IsClass: true, IsAbstract: true, IsSealed: true }); // Static classes
+
+                foreach (var extensionType in extensionTypes)
+                {
+                    var method = extensionType
+                        .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                        .FirstOrDefault(m => m is { Name: "Error", IsGenericMethod: true }
+                                             && m.GetParameters().Length == 1
+                                             && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
+
+                    if (method is not null)
+                    {
+                        return method;
+                    }
+                }
+            }
+            catch (ReflectionTypeLoadException)
+            {
+                // Some assemblies may have loading issues, skip them
             }
         }
 
