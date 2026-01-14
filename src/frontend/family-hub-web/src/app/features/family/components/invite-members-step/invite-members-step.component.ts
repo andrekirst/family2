@@ -1,14 +1,4 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  OnInit,
-  computed,
-  signal,
-  ChangeDetectorRef,
-  inject,
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, computed, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormGroup,
@@ -115,11 +105,6 @@ export class InviteMembersStepComponent implements OnInit {
    * Initialized in constructor to ensure FormArray has content before template evaluates.
    */
   emailForm!: FormGroup;
-
-  /**
-   * Change detector ref for manual change detection after FormArray modifications.
-   */
-  private cdr = inject(ChangeDetectorRef);
 
   /**
    * Signal tracking current number of email invitations.
