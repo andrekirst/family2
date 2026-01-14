@@ -2,6 +2,7 @@ using FamilyHub.Modules.Family.Application.Commands.InviteFamilyMembers;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Application.Abstractions;
+using FamilyHub.SharedKernel.Domain.Specifications;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using FluentAssertions;
@@ -276,6 +277,127 @@ public sealed class InviteFamilyMembersCommandHandlerTests
         result.FailedInvitations.Should().HaveCount(2); // Both duplicates fail
         result.FailedInvitations.Should().AllSatisfy(f =>
             f.ErrorCode.Should().Be(InvitationErrorCode.DUPLICATE_IN_BATCH));
+    }
+
+    #endregion
+
+    #region Cross-Family and Duplicate Validation Tests
+
+    [Fact]
+    public async Task Handle_WhenEmailIsAlreadyMember_ShouldFailWithAlreadyMemberError()
+    {
+        // Arrange
+        SetupFamilyExists();
+
+        var existingMemberEmail = Email.From("existing@example.com");
+
+        // Mock: This email is already a member of THIS family
+        _userLookupService.IsEmailMemberOfFamilyAsync(_familyId, existingMemberEmail, CancellationToken.None)
+            .Returns(Task.FromResult(true));
+
+        // Other validations pass - use real values with ReturnsForAnyArgs
+        _userLookupService.GetFamilyIdByEmailAsync(existingMemberEmail, CancellationToken.None)
+            .ReturnsForAnyArgs(Task.FromResult<FamilyId?>(null));
+
+        _invitationRepository.FindOneAsync(null!, CancellationToken.None)
+            .ReturnsForAnyArgs(Task.FromResult<FamilyMemberInvitation?>(null));
+
+        var command = new InviteFamilyMembersCommand(
+            _familyId,
+            [new InvitationRequest(existingMemberEmail, FamilyRole.Member)]);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.SuccessfulInvitations.Should().BeEmpty();
+        result.FailedInvitations.Should().HaveCount(1);
+        result.FailedInvitations.First().ErrorCode.Should().Be(InvitationErrorCode.ALREADY_MEMBER);
+        result.FailedInvitations.First().Email.Should().Be(existingMemberEmail);
+        result.FailedInvitations.First().ErrorMessage.Should().Contain("already a member of this family");
+    }
+
+    [Fact]
+    public async Task Handle_WhenEmailIsMemberOfAnotherFamily_ShouldFailWithCrossFamilyError()
+    {
+        // Arrange
+        SetupFamilyExists();
+
+        var crossFamilyEmail = Email.From("crossfamily@example.com");
+        var otherFamilyId = FamilyId.New();
+
+        // Mock: Email is NOT a member of THIS family
+        _userLookupService.IsEmailMemberOfFamilyAsync(_familyId, crossFamilyEmail, CancellationToken.None)
+            .Returns(Task.FromResult(false));
+
+        // Mock: Email IS a member of ANOTHER family
+        _userLookupService.GetFamilyIdByEmailAsync(crossFamilyEmail, CancellationToken.None)
+            .Returns(Task.FromResult<FamilyId?>(otherFamilyId));
+
+        // Other validations pass
+        _invitationRepository.FindOneAsync(null!, CancellationToken.None)
+            .ReturnsForAnyArgs(Task.FromResult<FamilyMemberInvitation?>(null));
+
+        var command = new InviteFamilyMembersCommand(
+            _familyId,
+            [new InvitationRequest(crossFamilyEmail, FamilyRole.Member)]);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.SuccessfulInvitations.Should().BeEmpty();
+        result.FailedInvitations.Should().HaveCount(1);
+        result.FailedInvitations.First().ErrorCode.Should().Be(InvitationErrorCode.MEMBER_OF_ANOTHER_FAMILY);
+        result.FailedInvitations.First().Email.Should().Be(crossFamilyEmail);
+        result.FailedInvitations.First().ErrorMessage.Should().Contain("already a member of another family");
+    }
+
+    [Fact]
+    public async Task Handle_WhenPendingInvitationExists_ShouldFailWithDuplicateInvitationError()
+    {
+        // Arrange
+        SetupFamilyExists();
+
+        var invitedEmail = Email.From("pending@example.com");
+
+        // Mock: Email is NOT already a member
+        _userLookupService.IsEmailMemberOfFamilyAsync(_familyId, invitedEmail, CancellationToken.None)
+            .Returns(Task.FromResult(false));
+
+        _userLookupService.GetFamilyIdByEmailAsync(invitedEmail, CancellationToken.None)
+            .Returns(Task.FromResult<FamilyId?>(null));
+
+        // Mock: There IS a pending invitation for this email
+        var existingInvitation = FamilyMemberInvitation.CreateEmailInvitation(
+            _familyId,
+            invitedEmail,
+            FamilyRole.Member,
+            _currentUserId,
+            null);
+
+        _invitationRepository.FindOneAsync(null!, CancellationToken.None)
+            .ReturnsForAnyArgs(Task.FromResult<FamilyMemberInvitation?>(existingInvitation));
+
+        var command = new InviteFamilyMembersCommand(
+            _familyId,
+            [new InvitationRequest(invitedEmail, FamilyRole.Member)]);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.SuccessfulInvitations.Should().BeEmpty();
+        result.FailedInvitations.Should().HaveCount(1);
+        result.FailedInvitations.First().ErrorCode.Should().Be(InvitationErrorCode.DUPLICATE_PENDING_INVITATION);
+        result.FailedInvitations.First().Email.Should().Be(invitedEmail);
+        result.FailedInvitations.First().ErrorMessage.Should().Contain("already has a pending invitation");
     }
 
     #endregion
