@@ -196,7 +196,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       await test.step('Add second invitation', async () => {
         await page.getByRole('button', { name: 'Add another email invitation' }).click();
         // Wait for DOM to update after adding new form row
-        await page.waitForTimeout(200);
+        await page.waitForTimeout(500);
         await expect(page.getByText(/2 of 20 emails/)).toBeVisible();
         await page.getByLabel('Email address 2').fill('bob@example.com');
         await page.locator('select[id="role-1"]').selectOption('MEMBER');

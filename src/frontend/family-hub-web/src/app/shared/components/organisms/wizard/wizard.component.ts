@@ -278,6 +278,12 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private currentStepComponentRef?: ComponentRef<unknown>;
 
+  /**
+   * Tracks the last rendered step index to prevent unnecessary re-renders.
+   * The effect may trigger due to change detection cycles, not just signal changes.
+   */
+  private lastRenderedStep = -1;
+
   // ===== Constructor =====
 
   constructor() {
@@ -287,10 +293,17 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
       // Read the currentStep signal to create a reactive dependency
       const step = this.wizardService.currentStep();
 
+      // Guard: Skip rendering if step hasn't actually changed
+      // This prevents re-renders triggered by change detection cycles
+      if (step === this.lastRenderedStep) {
+        return;
+      }
+
       // Only render if:
       // 1. We have a view container (after AfterViewInit)
       // 2. Steps are initialized (prevents running during construction)
       if (this.stepContainer && this.wizardService.totalSteps() > 0) {
+        this.lastRenderedStep = step;
         this.renderCurrentStep();
       }
     });
@@ -426,6 +439,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
       ) {
         (dataChangeEmitter as EventEmitter<unknown>).subscribe((data: unknown) => {
           this.wizardService.setStepData(config.id, data);
+          // DON'T call markForCheck here - it triggers the effect() which recreates the component!
         });
       }
     }

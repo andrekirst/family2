@@ -1,4 +1,14 @@
-import { Component, Input, Output, EventEmitter, OnInit, computed, signal } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  computed,
+  signal,
+  ChangeDetectorRef,
+  inject,
+} from '@angular/core';
 import {
   ReactiveFormsModule,
   FormGroup,
@@ -107,6 +117,17 @@ export class InviteMembersStepComponent implements OnInit {
   emailForm!: FormGroup;
 
   /**
+   * Change detector ref for manual change detection after FormArray modifications.
+   */
+  private cdr = inject(ChangeDetectorRef);
+
+  /**
+   * Signal tracking current number of email invitations.
+   * Updated after FormArray structural changes to trigger template reactivity.
+   */
+  private invitationCountSignal = signal(1); // Initialized with 1 (constructor adds one row)
+
+  /**
    * Constructor initializes form structure with one default email row.
    * This ensures the FormArray is populated BEFORE Angular's first change detection cycle,
    * which is critical for dynamically created components like wizard steps.
@@ -134,12 +155,10 @@ export class InviteMembersStepComponent implements OnInit {
 
   /**
    * Gets current invitation count.
-   *
-   * Note: Using getter function instead of computed signal because
-   * FormArray.length is not a signal - computed signals only track signal dependencies.
+   * Now uses a signal to ensure template reactivity.
    */
   invitationCount(): number {
-    return this.emailInvitationControls.length;
+    return this.invitationCountSignal();
   }
 
   /**
@@ -190,12 +209,15 @@ export class InviteMembersStepComponent implements OnInit {
         this.emailInvitationControls.push(group);
       });
 
+      // Update signal with restored count
+      this.invitationCountSignal.set(this.emailInvitationControls.length);
+
       // Restore message
       if (this.data.message) {
         this.emailForm.patchValue({ message: this.data.message });
       }
     }
-    // If no data to restore, constructor's default row is already present
+    // If no data to restore, constructor's default row is already present (count signal already set to 1)
 
     // Subscribe to changes and emit data
     this.emailForm.valueChanges.subscribe(() => {
@@ -259,9 +281,26 @@ export class InviteMembersStepComponent implements OnInit {
 
     this.emailInvitationControls.push(this.createEmailInvitationGroup());
 
-    // Emit data to trigger wizard re-render
-    // FormArray structural changes don't trigger valueChanges, so we emit manually
-    this.emitData();
+    // Update signal to trigger template reactivity
+    this.invitationCountSignal.set(this.emailInvitationControls.length);
+
+    // Force emit to notify wizard of structural change (bypass deduplication)
+    // This triggers wizard's markForCheck() which schedules change detection
+    const formValue = this.emailForm.getRawValue();
+    const validInvitations = (formValue.invitations as any[])
+      .filter((inv: any) => inv.email.trim() !== '')
+      .map((inv: any) => ({
+        email: inv.email.trim(),
+        role: inv.role as UserRole,
+      }));
+
+    const newData: InviteMembersStepData = {
+      invitations: validInvitations,
+      message: formValue.message.trim(),
+    };
+
+    this.lastEmittedData = newData;
+    this.dataChange.emit(newData);
   }
 
   /**
@@ -288,9 +327,26 @@ export class InviteMembersStepComponent implements OnInit {
       group.get('email')?.updateValueAndValidity();
     });
 
-    // Emit data to trigger wizard re-render
-    // FormArray structural changes don't trigger valueChanges, so we emit manually
-    this.emitData();
+    // Update signal to trigger template reactivity
+    this.invitationCountSignal.set(this.emailInvitationControls.length);
+
+    // Force emit to notify wizard of structural change (bypass deduplication)
+    // This triggers wizard's markForCheck() which schedules change detection
+    const formValue = this.emailForm.getRawValue();
+    const validInvitations = (formValue.invitations as any[])
+      .filter((inv: any) => inv.email.trim() !== '')
+      .map((inv: any) => ({
+        email: inv.email.trim(),
+        role: inv.role as UserRole,
+      }));
+
+    const newData: InviteMembersStepData = {
+      invitations: validInvitations,
+      message: formValue.message.trim(),
+    };
+
+    this.lastEmittedData = newData;
+    this.dataChange.emit(newData);
   }
 
   /**
