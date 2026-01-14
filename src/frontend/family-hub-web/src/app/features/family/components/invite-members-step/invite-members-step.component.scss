@@ -1,0 +1,11 @@
+// Component-specific styles for invite-members-step
+// Most styling is handled by Tailwind CSS classes in the template
+
+:host {
+  display: block;
+}
+
+// Ensure select dropdowns match input height
+select {
+  appearance: auto; // Use native dropdown appearance
+}

@@ -7,7 +7,10 @@ import {
   FamilyNameStepComponent,
   FamilyNameStepData,
 } from '../../components/family-name-step/family-name-step.component';
+import { InviteMembersStepComponent } from '../../components/invite-members-step/invite-members-step.component';
+import { InviteMembersStepData } from '../../models/invite-members-step.models';
 import { FamilyService } from '../../services/family.service';
+import { InvitationService } from '../../services/invitation.service';
 
 /**
  * Event emitted when wizard completes.
@@ -113,6 +116,11 @@ export class FamilyWizardPageComponent implements OnInit {
   familyService = inject(FamilyService);
 
   /**
+   * Injected InvitationService for sending email invitations.
+   */
+  private invitationService = inject(InvitationService);
+
+  /**
    * Injected Router for navigation after wizard completion.
    */
   private router = inject(Router);
@@ -156,13 +164,17 @@ export class FamilyWizardPageComponent implements OnInit {
         return null;
       },
     },
-    // Future steps will be added here:
-    // {
-    //   id: 'family-members',
-    //   componentType: FamilyMembersStepComponent,
-    //   title: 'Add Family Members',
-    //   canSkip: true
-    // },
+    {
+      id: 'invite-members',
+      componentType: InviteMembersStepComponent,
+      title: 'Invite Family Members',
+      canSkip: true,
+      validateOnNext: () => {
+        // No validation - invitations are completely optional
+        return null;
+      },
+    },
+    // Future steps:
     // {
     //   id: 'family-preferences',
     //   componentType: FamilyPreferencesStepComponent,
@@ -254,9 +266,55 @@ export class FamilyWizardPageComponent implements OnInit {
       return;
     }
 
-    // Success: Navigate to dashboard
-    // FamilyService.currentFamily signal is now populated
-    console.log('Family created successfully. Navigating to dashboard.');
+    // Success: Family created
+    console.log('Family created successfully.');
+
+    // Get family ID for invitations
+    const familyId = this.familyService.currentFamily()?.id;
+    if (!familyId) {
+      console.error('Family ID not found after creation');
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
+    // 2. Send invitations if any exist
+    const inviteData = event.get('invite-members') as InviteMembersStepData | undefined;
+
+    if (inviteData?.invitations && inviteData.invitations.length > 0) {
+      console.log(`Sending ${inviteData.invitations.length} invitations...`);
+
+      try {
+        // Send invitations via InvitationService
+        const result = await this.invitationService.inviteFamilyMembersByEmail(
+          familyId,
+          inviteData.invitations.map((inv) => ({
+            email: inv.email,
+            role: inv.role as 'ADMIN' | 'MEMBER', // Backend doesn't support CHILD yet
+          }))
+        );
+
+        // Log results
+        console.log(
+          `Invitations sent: ${result.successCount} succeeded, ${result.errors.length} failed`
+        );
+
+        if (result.errors.length > 0) {
+          console.warn('Some invitations failed:', result.errors);
+        }
+
+        // TODO: Show results modal with success/failure details
+        // For MVP, just navigate to dashboard
+        // Future: Add modal with results summary
+      } catch (err) {
+        // Network or unexpected error
+        console.error('Failed to send invitations:', err);
+        // TODO: Show error modal
+        // For MVP, still navigate to dashboard (family created successfully)
+      }
+    }
+
+    // Navigate to dashboard
+    console.log('Navigating to dashboard.');
     this.router.navigate(['/dashboard']);
   }
 }
