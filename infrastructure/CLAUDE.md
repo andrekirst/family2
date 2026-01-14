@@ -2,7 +2,7 @@
 
 **Purpose:** Guide for Docker Compose, Kubernetes deployment, CI/CD pipelines, and infrastructure management in Family Hub.
 
-**Tech Stack:** Docker Compose, Kubernetes (K8s), GitHub Actions, PostgreSQL 16, RabbitMQ, Zitadel, Seq, MailHog
+**Tech Stack:** Docker Compose, Kubernetes (K8s), GitHub Actions, PostgreSQL 16, RabbitMQ, Redis, Zitadel, Seq, MailHog
 
 ---
 
@@ -14,6 +14,7 @@
 
 - **PostgreSQL 16** - Primary database (port 5432)
 - **RabbitMQ 3.12** - Message broker (ports 5672, 15672)
+- **Redis 7 Alpine** - Real-time subscriptions (port 6379)
 - **Zitadel v2.47.0** - OAuth 2.0 provider (port 8080)
 - **Seq** - Structured logging (port 5341)
 - **MailHog** - Email testing (ports 1025, 8025)
@@ -69,6 +70,7 @@ SMTP_FROM_ADDRESS=noreply@familyhub.local
 - RabbitMQ Management: `http://localhost:15672` (familyhub/Dev123!)
 - Seq Logging: `http://localhost:5341`
 - MailHog UI: `http://localhost:8025`
+- Redis: `localhost:6379` (no UI, use redis-cli)
 
 **Health Checks:**
 
@@ -78,6 +80,13 @@ docker exec familyhub-postgres pg_isready -U familyhub
 
 # RabbitMQ
 docker exec familyhub-rabbitmq rabbitmq-diagnostics ping
+
+# Redis
+docker exec familyhub-redis redis-cli ping
+# Expected: PONG
+
+# Backend Health Endpoint (includes Redis check)
+curl http://localhost:7000/health/redis
 
 # Check all containers
 docker-compose ps
@@ -420,6 +429,32 @@ docker exec familyhub-rabbitmq rabbitmqctl list_queues
 docker-compose restart rabbitmq
 ```
 
+### Redis Issues
+
+```bash
+# Test connection
+docker exec familyhub-redis redis-cli ping
+# Expected: PONG
+
+# Monitor real-time activity
+docker exec -it familyhub-redis redis-cli MONITOR
+# Shows all commands in real-time
+
+# Check subscription messages
+docker exec -it familyhub-redis redis-cli
+> PUBSUB CHANNELS family-*
+> PUBSUB NUMSUB family-members-changed:123e4567-e89b-12d3-a456-426614174000
+
+# View Redis logs
+docker-compose logs -f redis
+
+# Reset Redis (clears all data)
+docker exec familyhub-redis redis-cli FLUSHALL
+
+# Restart Redis
+docker-compose restart redis
+```
+
 **See:** [docs/development/DEBUGGING_GUIDE.md](../docs/development/DEBUGGING_GUIDE.md#infrastructure-issues)
 
 ---
@@ -432,7 +467,7 @@ docker-compose restart rabbitmq
 
 ---
 
-**Last Updated:** 2026-01-09
+**Last Updated:** 2026-01-14
 **Derived from:** Root CLAUDE.md v5.0.0
 **Canonical Sources:**
 
@@ -440,9 +475,13 @@ docker-compose restart rabbitmq
 - docs/development/LOCAL_DEVELOPMENT_SETUP.md (Setup instructions)
 - docs/development/DEBUGGING_GUIDE.md (Troubleshooting)
 
+**Recent Changes:**
+
+- 2026-01-14: Added Redis 7 Alpine for GraphQL subscriptions (#84)
+
 **Sync Checklist:**
 
-- [ ] Docker Compose services match docker-compose.yml
-- [ ] Environment variables match LOCAL_DEVELOPMENT_SETUP.md
-- [ ] Port mappings match documented URLs
-- [ ] Health checks accurate
+- [x] Docker Compose services match docker-compose.yml
+- [x] Environment variables match LOCAL_DEVELOPMENT_SETUP.md
+- [x] Port mappings match documented URLs
+- [x] Health checks accurate

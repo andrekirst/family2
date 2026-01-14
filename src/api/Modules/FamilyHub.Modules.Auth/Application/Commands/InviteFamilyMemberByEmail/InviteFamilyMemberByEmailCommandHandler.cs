@@ -20,6 +20,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 /// <param name="userLookupService">Service for cross-module user lookups.</param>
 /// <param name="invitationRepository">Repository for invitation data access.</param>
 /// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="subscriptionPublisher">Publisher for real-time subscription events.</param>
 /// <param name="logger">Logger for structured logging.</param>
 public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IUserContext userContext,
@@ -27,6 +28,7 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IUserLookupService userLookupService,
     IFamilyMemberInvitationRepository invitationRepository,
     IUnitOfWork unitOfWork,
+    FamilyHub.Modules.Auth.Application.Services.SubscriptionEventPublisher subscriptionPublisher,
     ILogger<InviteFamilyMemberByEmailCommandHandler> logger)
     : ICommandHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
 {
@@ -87,7 +89,28 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
 
         LogInvitationCreated(invitation.Id.Value, request.Email.Value);
 
-        // 7. Return result
+        // 7. Publish subscription event for real-time UI updates
+        await subscriptionPublisher.PublishInvitationAddedAsync(
+            invitation.FamilyId,
+            new Presentation.GraphQL.Types.PendingInvitationType
+            {
+                Id = invitation.Id.Value,
+                Email = invitation.Email.Value,
+                Role = invitation.Role == FamilyRole.Owner ? Presentation.GraphQL.Types.UserRoleType.OWNER :
+                       invitation.Role == FamilyRole.Admin ? Presentation.GraphQL.Types.UserRoleType.ADMIN :
+                       invitation.Role == FamilyRole.Child ? Presentation.GraphQL.Types.UserRoleType.CHILD :
+                       Presentation.GraphQL.Types.UserRoleType.MEMBER,
+                Status = Presentation.GraphQL.Types.InvitationStatusType.PENDING,
+                InvitedById = currentUserId.Value,
+                InvitedAt = invitation.CreatedAt,
+                ExpiresAt = invitation.ExpiresAt,
+                Message = invitation.Message,
+                DisplayCode = invitation.DisplayCode.Value
+            },
+            cancellationToken
+        );
+
+        // 8. Return result
         return Result.Success(new InviteFamilyMemberByEmailResult
         {
             InvitationId = invitation.Id,

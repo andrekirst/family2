@@ -3,6 +3,7 @@ using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Abstractions;
 using FamilyHub.SharedKernel.Domain;
+using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using FamilyHub.SharedKernel.Application.CQRS;
 using Microsoft.Extensions.Logging;
@@ -26,6 +27,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;
 /// <param name="validationCache">Cache containing validated entities from validator.</param>
 /// <param name="unitOfWork">Unit of work for Auth database transactions.</param>
 /// <param name="familyUnitOfWork">Unit of work for Family database transactions.</param>
+/// <param name="subscriptionPublisher">Publisher for real-time subscription events.</param>
 /// <param name="logger">Logger for structured logging.</param>
 public sealed partial class AcceptInvitationCommandHandler(
     IUserContext userContext,
@@ -33,6 +35,7 @@ public sealed partial class AcceptInvitationCommandHandler(
     IValidationCache validationCache,
     IUnitOfWork unitOfWork,
     IFamilyUnitOfWork familyUnitOfWork,
+    FamilyHub.Modules.Auth.Application.Services.SubscriptionEventPublisher subscriptionPublisher,
     ILogger<AcceptInvitationCommandHandler> logger)
     : ICommandHandler<AcceptInvitationCommand, FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>
 {
@@ -76,7 +79,38 @@ public sealed partial class AcceptInvitationCommandHandler(
 
         LogInvitationAccepted(currentUserId.Value, family.Id.Value, invitation.Role.Value);
 
-        // 8. Return result
+        // 8. Publish subscription events for real-time UI updates
+        // Publish family member ADDED event
+        await subscriptionPublisher.PublishFamilyMemberAddedAsync(
+            invitation.FamilyId,
+            new Presentation.GraphQL.Types.FamilyMemberType
+            {
+                Id = currentUser.Id.Value,
+                Email = currentUser.Email.Value,
+                EmailVerified = currentUser.EmailVerified,
+                Role = invitation.Role == FamilyRole.Owner ? Presentation.GraphQL.Types.UserRoleType.OWNER :
+                       invitation.Role == FamilyRole.Admin ? Presentation.GraphQL.Types.UserRoleType.ADMIN :
+                       invitation.Role == FamilyRole.Child ? Presentation.GraphQL.Types.UserRoleType.CHILD :
+                       Presentation.GraphQL.Types.UserRoleType.MEMBER,
+                JoinedAt = DateTime.UtcNow,
+                IsOwner = invitation.Role == FamilyRole.Owner,
+                AuditInfo = new FamilyHub.Infrastructure.GraphQL.Types.AuditInfoType
+                {
+                    CreatedAt = currentUser.CreatedAt,
+                    UpdatedAt = currentUser.UpdatedAt
+                }
+            },
+            cancellationToken
+        );
+
+        // Publish invitation REMOVED event (invitation no longer pending)
+        await subscriptionPublisher.PublishInvitationRemovedAsync(
+            invitation.FamilyId,
+            invitation.Token.Value,
+            cancellationToken
+        );
+
+        // 9. Return result
         return Result.Success(new AcceptInvitationResult
         {
             FamilyId = invitation.FamilyId,

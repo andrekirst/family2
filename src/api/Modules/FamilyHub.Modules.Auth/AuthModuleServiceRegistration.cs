@@ -97,6 +97,10 @@ public static class AuthModuleServiceRegistration
         // between validators and handlers
         services.AddScoped<IValidationCache, ValidationCache>();
 
+        // Subscription Event Publisher - Helper service for publishing GraphQL subscription messages
+        // Used by command handlers to trigger real-time updates via Redis PubSub
+        services.AddScoped<SubscriptionEventPublisher>();
+
         // GraphQL Mutation Conventions (Hot Chocolate v14 native pattern)
         // No manual registration needed - mutations use [UseMutationConvention] attribute
 
@@ -207,7 +211,9 @@ public static class AuthModuleServiceRegistration
             // Mutation extensions - extend Mutation type with authentication-related mutations
             .AddTypeExtension<Presentation.GraphQL.Mutations.AuthMutations>()
             .AddTypeExtension<Presentation.GraphQL.Mutations.FamilyMutations>()
-            .AddTypeExtension<Presentation.GraphQL.Mutations.InvitationMutations>();
+            .AddTypeExtension<Presentation.GraphQL.Mutations.InvitationMutations>()
+            // Subscription extensions - extend Subscription type with real-time updates
+            .AddTypeExtension<Presentation.GraphQL.Subscriptions.InvitationSubscriptions>();
     }
 
     /// <summary>

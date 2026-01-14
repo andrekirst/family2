@@ -577,9 +577,13 @@ query {
 
 ## Subscriptions
 
-### 1. familyMembersChanged
+### 1. familyMembersChanged ✅ IMPLEMENTED
 
 Real-time updates when family members change.
+
+**Status:** ✅ IMPLEMENTED (Issue #84)
+**Implementation:** `InvitationSubscriptions.cs` with inline authorization
+**Transport:** Hot Chocolate + Redis PubSub
 
 **Signature:**
 
@@ -598,6 +602,13 @@ type FamilyMembersChangedPayload {
 ```
 
 **Authorization:** Requires family membership (any role).
+
+**Implementation Details:**
+
+- **Resolver:** `InvitationSubscriptions.FamilyMembersChanged()`
+- **Topic Pattern:** `family-members-changed:{familyId}`
+- **Authorization:** Inline check via `IUserRepository` (yield break if unauthorized)
+- **Publishing:** `SubscriptionEventPublisher.PublishFamilyMemberAddedAsync()`
 
 **Triggers:**
 
@@ -622,9 +633,13 @@ subscription {
 
 ---
 
-### 2. pendingInvitationsChanged
+### 2. pendingInvitationsChanged ✅ IMPLEMENTED
 
 Real-time updates when pending invitations change.
+
+**Status:** ✅ IMPLEMENTED (Issue #84)
+**Implementation:** `InvitationSubscriptions.cs` with role-based authorization
+**Transport:** Hot Chocolate + Redis PubSub
 
 **Signature:**
 
@@ -643,6 +658,13 @@ type PendingInvitationsChangedPayload {
 ```
 
 **Authorization:** Requires OWNER or ADMIN role.
+
+**Implementation Details:**
+
+- **Resolver:** `InvitationSubscriptions.PendingInvitationsChanged()`
+- **Topic Pattern:** `pending-invitations-changed:{familyId}`
+- **Authorization:** Inline role check (OWNER or ADMIN only, yield break otherwise)
+- **Publishing:** `SubscriptionEventPublisher.PublishInvitationCreatedAsync()`, `PublishInvitationCanceledAsync()`
 
 **Triggers:**
 

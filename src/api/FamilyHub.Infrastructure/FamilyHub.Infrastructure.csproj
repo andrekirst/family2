@@ -4,6 +4,7 @@
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" />
     <PackageReference Include="HotChocolate.Execution" />
+    <PackageReference Include="HotChocolate.Subscriptions.Redis" />
     <PackageReference Include="HotChocolate.Types" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
@@ -22,6 +23,7 @@
     <PackageReference Include="Polly.Core" />
     <PackageReference Include="RabbitMQ.Client" />
     <PackageReference Include="RazorLight" />
+    <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 
   <ItemGroup>
