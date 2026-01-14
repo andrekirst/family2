@@ -237,7 +237,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       });
 
       await test.step('Step 2: Skip invite members', async () => {
-        await expect(page.getByText('Invite Family Members')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
         await page.getByRole('button', { name: 'Skip' }).click();
       });
 
@@ -256,7 +256,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       // Complete step 1
       await page.locator('input[aria-label="Family name"]').fill('Test Family');
       await page.getByRole('button', { name: 'Next' }).click();
-      await expect(page.getByText('Invite Family Members')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
     });
 
     test('should validate email format on blur', async ({ page }) => {
@@ -317,7 +317,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       // Complete step 1
       await page.locator('input[aria-label="Family name"]').fill('Test Family');
       await page.getByRole('button', { name: 'Next' }).click();
-      await expect(page.getByText('Invite Family Members')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
     });
 
     test('should add email rows up to 20', async ({ page }) => {
@@ -385,7 +385,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       // Complete step 1
       await page.locator('input[aria-label="Family name"]').fill('Test Family');
       await page.getByRole('button', { name: 'Next' }).click();
-      await expect(page.getByText('Invite Family Members')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
     });
 
     test('should default to MEMBER role', async ({ page }) => {
@@ -433,7 +433,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       // Complete step 1
       await page.locator('input[aria-label="Family name"]').fill('Test Family');
       await page.getByRole('button', { name: 'Next' }).click();
-      await expect(page.getByText('Invite Family Members')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
     });
 
     test('should allow message up to 500 characters', async ({ page }) => {
@@ -487,7 +487,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       await test.step('Complete step 1', async () => {
         await page.locator('input[aria-label="Family name"]').fill('Test Family');
         await page.getByRole('button', { name: 'Next' }).click();
-        await expect(page.getByText('Invite Family Members')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
       });
 
       await test.step('Fill some invitation data', async () => {
@@ -510,7 +510,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       });
 
       await test.step('Verify data preserved', async () => {
-        await expect(page.getByText('Invite Family Members')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
         await expect(page.locator('input[id="email-0"]')).toHaveValue('test@example.com');
         await expect(page.locator('select[id="role-0"]')).toHaveValue('ADMIN');
         await expect(page.locator('textarea#invitation-message')).toHaveValue('Test message');
@@ -526,7 +526,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       // Complete step 1
       await page.locator('input[aria-label="Family name"]').fill('Test Family');
       await page.getByRole('button', { name: 'Next' }).click();
-      await expect(page.getByText('Invite Family Members')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
     });
 
     test('should allow Tab navigation through form fields', async ({ page }) => {
@@ -601,7 +601,7 @@ test.describe('Family Invite Members Wizard Step', () => {
         await page.goto('/family/create');
         await page.locator('input[aria-label="Family name"]').fill('Test Family');
         await page.getByRole('button', { name: 'Next' }).click();
-        await expect(page.getByText('Invite Family Members')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
         await page.getByRole('button', { name: 'Skip' }).click();
       });
 
@@ -619,7 +619,7 @@ test.describe('Family Invite Members Wizard Step', () => {
       // Complete step 1
       await page.locator('input[aria-label="Family name"]').fill('Test Family');
       await page.getByRole('button', { name: 'Next' }).click();
-      await expect(page.getByText('Invite Family Members')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
     });
 
     test('should have proper ARIA labels on inputs', async ({ page }) => {
