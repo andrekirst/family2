@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Mime;
 using AspNetCoreRateLimit;
+using FamilyHub.Infrastructure.Email;
 using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Infrastructure.Messaging;
@@ -51,9 +52,13 @@ try
     // RabbitMQ messaging infrastructure
     builder.Services.AddRabbitMq(builder.Configuration);
 
+    // Email infrastructure
+    builder.Services.AddEmailServices(builder.Configuration);
+
     // Health checks
     builder.Services.AddHealthChecks()
-        .AddRabbitMqHealthCheck(tags: ["ready", "infrastructure"]);
+        .AddRabbitMqHealthCheck(tags: ["ready", "infrastructure"])
+        .AddSmtpHealthCheck(tags: ["ready", "infrastructure"]);
 
     // Quartz.NET Background Jobs Configuration
     builder.Services.AddQuartz(q =>
