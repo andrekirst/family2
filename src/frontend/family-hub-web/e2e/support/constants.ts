@@ -158,7 +158,7 @@ export const SCHEMA = {
    */
   AUTH_MODULE_TYPES: [
     'User',
-    'UserRole',
+    'UserRoleType',
     'CreateFamilyPayload',
     'AcceptInvitationPayload',
   ] as const,
@@ -169,7 +169,7 @@ export const SCHEMA = {
    */
   FAMILY_MODULE_TYPES: [
     'Family',
-    'FamilyMemberInvitation',
+    'PendingInvitationType',
     'CreateFamilyInput',
     'AcceptInvitationInput',
   ] as const,
@@ -189,7 +189,7 @@ export const SCHEMA = {
    * Critical query fields that must exist
    * Removing these would be a breaking change
    */
-  CRITICAL_QUERY_FIELDS: ['family', 'families', 'user', 'invitationsPending'] as const,
+  CRITICAL_QUERY_FIELDS: ['family', 'familyMembers', 'invitations'] as const,
 
   /**
    * Critical mutation fields that must exist

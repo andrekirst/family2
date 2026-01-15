@@ -59,11 +59,12 @@ test.describe('GraphQL Schema - Introspection', () => {
     });
   });
 
-  test('should have no subscription type (not implemented)', async ({ schemaClient }) => {
-    await test.step('Verify Subscription type is null', async () => {
+  test('should have Subscription root type', async ({ schemaClient }) => {
+    await test.step('Verify Subscription type exists', async () => {
       const schema = await schemaClient.getRawSchema();
-      // Subscriptions are not implemented in Phase 0
-      expect(schema.subscriptionType).toBeNull();
+      // Subscriptions implemented in issue #84 (GraphQL Real-Time Subscriptions)
+      expect(schema.subscriptionType).not.toBeNull();
+      expect(schema.subscriptionType?.name).toBe('Subscription');
     });
   });
 });
