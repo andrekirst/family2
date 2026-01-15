@@ -147,9 +147,18 @@ public class FamilyDbContext : DbContext
         // Publish each domain event
         foreach (var domainEvent in domainEvents)
         {
-            _logger?.LogInformation("📤 [FamilyDbContext] Publishing domain event: {EventType}", domainEvent.GetType().Name);
-            await _mediator.Publish(domainEvent, cancellationToken);
-            _logger?.LogInformation("✅ [FamilyDbContext] Successfully published {EventType}", domainEvent.GetType().Name);
+            try
+            {
+                _logger?.LogInformation("📤 [FamilyDbContext] Publishing domain event: {EventType}", domainEvent.GetType().Name);
+                await _mediator.Publish(domainEvent, cancellationToken);
+                _logger?.LogInformation("✅ [FamilyDbContext] Successfully published {EventType}", domainEvent.GetType().Name);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "❌ [FamilyDbContext] Error publishing domain event {EventType}: {ErrorMessage}",
+                    domainEvent.GetType().Name, ex.Message);
+                throw;
+            }
         }
     }
 

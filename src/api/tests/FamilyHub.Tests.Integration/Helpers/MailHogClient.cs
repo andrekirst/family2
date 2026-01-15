@@ -58,11 +58,25 @@ public sealed class MailHogClient : IDisposable
         {
             var response = await _httpClient.GetFromJsonAsync<MailHogResponse>(
                 "/api/v2/messages");
-            return response?.Items ?? new List<MailHogMessage>();
+
+            var emails = response?.Items ?? new List<MailHogMessage>();
+            Console.WriteLine($"📧 MailHog: Retrieved {emails.Count} emails from API");
+
+            if (emails.Any())
+            {
+                foreach (var email in emails)
+                {
+                    var recipients = string.Join(", ", email.To.Select(to => $"{to.Mailbox}@{to.Domain}"));
+                    Console.WriteLine($"   - To: {recipients}");
+                }
+            }
+
+            return emails;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to fetch emails from MailHog: {ex.Message}");
+            Console.WriteLine($"❌ Failed to fetch emails from MailHog: {ex.Message}");
+            Console.WriteLine($"   Stack trace: {ex.StackTrace}");
             return new List<MailHogMessage>();
         }
     }
@@ -228,8 +242,23 @@ public sealed class MailHogClient : IDisposable
     /// </example>
     public string? ExtractInvitationToken(MailHogMessage email)
     {
+        string htmlBody = email.Content.Body;
+
+        // If MIME parts exist, extract HTML body from the appropriate part
+        if (email.MIME?.Parts != null && email.MIME.Parts.Any())
+        {
+            var htmlPart = email.MIME.Parts.FirstOrDefault(part =>
+                part.Headers.TryGetValue("Content-Type", out var contentType) &&
+                contentType.Any(ct => ct.Contains("text/html", StringComparison.OrdinalIgnoreCase)));
+
+            if (htmlPart != null)
+            {
+                htmlBody = htmlPart.Body;
+            }
+        }
+
         var match = System.Text.RegularExpressions.Regex.Match(
-            email.Content.Body,
+            htmlBody,
             @"token=([a-zA-Z0-9-]+)");
         return match.Success ? match.Groups[1].Value : null;
     }
@@ -242,8 +271,23 @@ public sealed class MailHogClient : IDisposable
     /// <returns>List of URLs</returns>
     public List<string> ExtractUrls(MailHogMessage email)
     {
+        string htmlBody = email.Content.Body;
+
+        // If MIME parts exist, extract HTML body from the appropriate part
+        if (email.MIME?.Parts != null && email.MIME.Parts.Any())
+        {
+            var htmlPart = email.MIME.Parts.FirstOrDefault(part =>
+                part.Headers.TryGetValue("Content-Type", out var contentType) &&
+                contentType.Any(ct => ct.Contains("text/html", StringComparison.OrdinalIgnoreCase)));
+
+            if (htmlPart != null)
+            {
+                htmlBody = htmlPart.Body;
+            }
+        }
+
         var matches = System.Text.RegularExpressions.Regex.Matches(
-            email.Content.Body,
+            htmlBody,
             @"https?://[^\s<"">]+");
         return matches.Select(m => m.Value).ToList();
     }
@@ -256,11 +300,48 @@ public sealed class MailHogClient : IDisposable
     /// <returns>Plain text body</returns>
     public string GetPlainTextBody(MailHogMessage email)
     {
-        // Simple HTML tag removal (for basic cases)
-        return System.Text.RegularExpressions.Regex.Replace(
-            email.Content.Body,
+        string htmlBody = email.Content.Body;
+
+        // If MIME parts exist, extract HTML body from the appropriate part
+        if (email.MIME?.Parts != null && email.MIME.Parts.Any())
+        {
+            // Find the HTML part (Content-Type: text/html)
+            var htmlPart = email.MIME.Parts.FirstOrDefault(part =>
+                part.Headers.TryGetValue("Content-Type", out var contentType) &&
+                contentType.Any(ct => ct.Contains("text/html", StringComparison.OrdinalIgnoreCase)));
+
+            if (htmlPart != null)
+            {
+                htmlBody = htmlPart.Body;
+            }
+        }
+
+        // Remove <style> tags and their contents
+        var plainText = System.Text.RegularExpressions.Regex.Replace(
+            htmlBody,
+            @"<style[^>]*>.*?</style>",
+            "",
+            System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // Remove <script> tags and their contents
+        plainText = System.Text.RegularExpressions.Regex.Replace(
+            plainText,
+            @"<script[^>]*>.*?</script>",
+            "",
+            System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // Strip remaining HTML tags
+        plainText = System.Text.RegularExpressions.Regex.Replace(
+            plainText,
             @"<[^>]*>",
-            "").Trim();
+            "");
+
+        // Decode HTML entities (&#xNNNN; format for Unicode characters like emojis)
+        plainText = System.Net.WebUtility.HtmlDecode(plainText);
+
+        // Normalize whitespace and trim
+        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ");
+        return plainText.Trim();
     }
 
     public void Dispose()

@@ -35,4 +35,11 @@
     <InternalsVisibleTo Include="FamilyHub.Tests.Integration" />
   </ItemGroup>
 
+  <!-- Copy email templates to output directory -->
+  <ItemGroup>
+    <None Include="Email\Templates\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

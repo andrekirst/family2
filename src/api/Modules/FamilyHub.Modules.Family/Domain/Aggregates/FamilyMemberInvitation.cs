@@ -114,6 +114,7 @@ public class FamilyMemberInvitation : AggregateRoot<InvitationId>
             token: invitation.Token,
             expiresAt: invitation.ExpiresAt,
             invitedByUserId: invitedByUserId,
+            message: message,
             isResend: false
         ));
 
@@ -197,6 +198,7 @@ public class FamilyMemberInvitation : AggregateRoot<InvitationId>
             token: Token,
             expiresAt: ExpiresAt,
             invitedByUserId: resentByUserId,
+            message: Message, // Use existing message when resending
             isResend: true
         ));
     }

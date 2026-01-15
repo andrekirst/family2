@@ -16,6 +16,7 @@ public sealed class FamilyMemberInvitedEvent(
     InvitationToken token,
     DateTime expiresAt,
     UserId invitedByUserId,
+    string? message = null,
     bool isResend = false)
     : DomainEvent
 {
@@ -58,6 +59,11 @@ public sealed class FamilyMemberInvitedEvent(
     /// User who created the invitation.
     /// </summary>
     public UserId InvitedByUserId { get; } = invitedByUserId;
+
+    /// <summary>
+    /// Optional personal message from the inviter.
+    /// </summary>
+    public string? Message { get; } = message;
 
     /// <summary>
     /// Whether this is a resend of an existing invitation.

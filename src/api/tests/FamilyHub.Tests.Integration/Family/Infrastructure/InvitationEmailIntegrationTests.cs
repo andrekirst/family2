@@ -218,11 +218,15 @@ public sealed class InvitationEmailIntegrationTests(PostgreSqlContainerFixture c
 
         // Act
         await client.PostAsJsonAsync("/graphql", new { query = mutation });
-        await Task.Delay(2000);
+
+        // Wait for email to arrive (async background processing)
+        await Task.Delay(2000); // Allow EmailOutbox background service to process
 
         // Assert
-        var email = await _mailHog.GetEmailByRecipientAsync(inviteeEmail);
-        email.Should().NotBeNull();
+        var email = await _mailHog.WaitForEmailAsync(
+            e => e.To.Any(to => $"{to.Mailbox}@{to.Domain}" == inviteeEmail),
+            5000);
+        email.Should().NotBeNull("email should arrive in MailHog");
 
         var subject = email!.Content.Headers["Subject"][0];
         subject.Should().Contain("invited", "subject should indicate invitation");
@@ -273,11 +277,15 @@ public sealed class InvitationEmailIntegrationTests(PostgreSqlContainerFixture c
 
         // Act
         await client.PostAsJsonAsync("/graphql", new { query = mutation });
-        await Task.Delay(2000);
+
+        // Wait for email to arrive (async background processing)
+        await Task.Delay(2000); // Allow EmailOutbox background service to process
 
         // Assert
-        var email = await _mailHog.GetEmailByRecipientAsync(inviteeEmail);
-        email.Should().NotBeNull();
+        var email = await _mailHog.WaitForEmailAsync(
+            e => e.To.Any(to => $"{to.Mailbox}@{to.Domain}" == inviteeEmail),
+            5000);
+        email.Should().NotBeNull("email should arrive in MailHog");
 
         var bodyPlainText = _mailHog.GetPlainTextBody(email!);
         bodyPlainText.Should().Contain(personalMessage, "email body should include personal message");
@@ -325,11 +333,15 @@ public sealed class InvitationEmailIntegrationTests(PostgreSqlContainerFixture c
 
         // Act
         await client.PostAsJsonAsync("/graphql", new { query = mutation });
-        await Task.Delay(2000);
+
+        // Wait for email to arrive (async background processing)
+        await Task.Delay(2000); // Allow EmailOutbox background service to process
 
         // Assert
-        var email = await _mailHog.GetEmailByRecipientAsync(inviteeEmail);
-        email.Should().NotBeNull();
+        var email = await _mailHog.WaitForEmailAsync(
+            e => e.To.Any(to => $"{to.Mailbox}@{to.Domain}" == inviteeEmail),
+            5000);
+        email.Should().NotBeNull("email should arrive in MailHog");
 
         // Extract invitation token from email body
         var token = _mailHog.ExtractInvitationToken(email!);
@@ -384,11 +396,15 @@ public sealed class InvitationEmailIntegrationTests(PostgreSqlContainerFixture c
 
         // Act
         await client.PostAsJsonAsync("/graphql", new { query = mutation });
-        await Task.Delay(2000);
+
+        // Wait for email to arrive (async background processing)
+        await Task.Delay(2000); // Allow EmailOutbox background service to process
 
         // Assert
-        var email = await _mailHog.GetEmailByRecipientAsync(inviteeEmail);
-        email.Should().NotBeNull();
+        var email = await _mailHog.WaitForEmailAsync(
+            e => e.To.Any(to => $"{to.Mailbox}@{to.Domain}" == inviteeEmail),
+            5000);
+        email.Should().NotBeNull("email should arrive in MailHog");
 
         var bodyPlainText = _mailHog.GetPlainTextBody(email!);
         bodyPlainText.Should().ContainAny("Admin", "administrator", "admin role",
@@ -437,11 +453,15 @@ public sealed class InvitationEmailIntegrationTests(PostgreSqlContainerFixture c
 
         // Act
         await client.PostAsJsonAsync("/graphql", new { query = mutation });
-        await Task.Delay(2000);
+
+        // Wait for email to arrive (async background processing)
+        await Task.Delay(2000); // Allow EmailOutbox background service to process
 
         // Assert
-        var email = await _mailHog.GetEmailByRecipientAsync(inviteeEmail);
-        email.Should().NotBeNull();
+        var email = await _mailHog.WaitForEmailAsync(
+            e => e.To.Any(to => $"{to.Mailbox}@{to.Domain}" == inviteeEmail),
+            5000);
+        email.Should().NotBeNull("email should arrive in MailHog");
 
         var bodyPlainText = _mailHog.GetPlainTextBody(email!);
         bodyPlainText.Should().ContainAny("Member", "member role",
@@ -494,11 +514,15 @@ public sealed class InvitationEmailIntegrationTests(PostgreSqlContainerFixture c
 
         // Act
         await client.PostAsJsonAsync("/graphql", new { query = mutation });
-        await Task.Delay(2000);
+
+        // Wait for email to arrive (async background processing)
+        await Task.Delay(2000); // Allow EmailOutbox background service to process
 
         // Assert
-        var email = await _mailHog.GetEmailByRecipientAsync(inviteeEmail);
-        email.Should().NotBeNull();
+        var email = await _mailHog.WaitForEmailAsync(
+            e => e.To.Any(to => $"{to.Mailbox}@{to.Domain}" == inviteeEmail),
+            5000);
+        email.Should().NotBeNull("email should arrive in MailHog");
 
         // Verify HTML content
         email!.Content.Body.Should().NotBeNullOrWhiteSpace("email should have content");
@@ -553,14 +577,18 @@ public sealed class InvitationEmailIntegrationTests(PostgreSqlContainerFixture c
 
         // Act
         await client.PostAsJsonAsync("/graphql", new { query = mutation });
-        await Task.Delay(2000);
+
+        // Wait for email to arrive (async background processing)
+        await Task.Delay(2000); // Allow EmailOutbox background service to process
 
         // Assert
-        var email = await _mailHog.GetEmailByRecipientAsync(inviteeEmail);
-        email.Should().NotBeNull();
+        var email = await _mailHog.WaitForEmailAsync(
+            e => e.To.Any(to => $"{to.Mailbox}@{to.Domain}" == inviteeEmail),
+            5000);
+        email.Should().NotBeNull("email should arrive in MailHog");
 
         var fromAddress = $"{email!.From.Mailbox}@{email.From.Domain}";
-        fromAddress.Should().Be("noreply@familyhub.local",
+        fromAddress.Should().Be("no-reply@familyhub.local",
             "from address should match SMTP configuration");
     }
 

@@ -24,4 +24,14 @@ public sealed record InvitationEmailModel
     /// Gets the date and time when the invitation expires.
     /// </summary>
     public required DateTime ExpiresAt { get; init; }
+
+    /// <summary>
+    /// Gets the role to which the user is being invited (e.g., "Member", "Admin").
+    /// </summary>
+    public required string Role { get; init; }
+
+    /// <summary>
+    /// Gets the optional personal message from the inviter.
+    /// </summary>
+    public string? Message { get; init; }
 }

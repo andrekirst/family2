@@ -62,12 +62,17 @@ public sealed partial class FamilyMemberInvitedEventHandler(
             var invitationUrl = $"{FrontendBaseUrl}/accept-invitation?token={notification.Token.Value}";
 
             // 4. Render email template
+            var roleValue = notification.Role.Value;
+            var roleCapitalized = char.ToUpper(roleValue[0]) + roleValue.Substring(1); // Capitalize first letter
+
             var emailModel = new InvitationEmailModel
             {
                 InviterName = inviterEmail.Value.Value, // Using email as name (temporary - could extend to get full name)
                 FamilyName = family.Name.Value,
                 InvitationUrl = invitationUrl,
-                ExpiresAt = notification.ExpiresAt
+                ExpiresAt = notification.ExpiresAt,
+                Role = roleCapitalized, // Member, Admin, etc. (capitalized)
+                Message = notification.Message // Optional personal message
             };
 
             var htmlBody = await emailTemplateService.RenderTemplateAsync(

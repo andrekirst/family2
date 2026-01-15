@@ -42,7 +42,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "John Doe",
             FamilyName = "Doe Family",
             InvitationUrl = "https://familyhub.com/invite/123",
-            ExpiresAt = DateTime.UtcNow.AddDays(14)
+            ExpiresAt = DateTime.UtcNow.AddDays(14),
+            Role = "Member"
         };
 
         var expectedHtml = "<html><body>Welcome John Doe to Doe Family!</body></html>";
@@ -68,7 +69,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Jane Smith",
             FamilyName = "Smith Family",
             InvitationUrl = "https://example.com/invite/456",
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            Role = "Member"
         };
 
         _razorEngine.CompileRenderAsync(Arg.Any<string>(), Arg.Any<object>())
@@ -111,7 +113,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test User",
             FamilyName = "Test Family",
             InvitationUrl = "https://test.com/invite",
-            ExpiresAt = new DateTime(2026, 12, 31, 23, 59, 59, DateTimeKind.Utc)
+            ExpiresAt = new DateTime(2026, 12, 31, 23, 59, 59, DateTimeKind.Utc),
+            Role = "Member"
         };
 
         var expectedHtml = @"
@@ -149,7 +152,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test",
             FamilyName = "Test",
             InvitationUrl = "https://test.com",
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow,
+            Role = "Member"
         };
 
         _razorEngine.CompileRenderAsync(Arg.Any<string>(), Arg.Any<object>())
@@ -174,7 +178,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test",
             FamilyName = "Test",
             InvitationUrl = "https://test.com",
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow,
+            Role = "Member"
         };
 
         _razorEngine.CompileRenderAsync(Arg.Any<string>(), Arg.Any<object>())
@@ -199,7 +204,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test",
             FamilyName = "Test",
             InvitationUrl = "https://test.com",
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow,
+            Role = "Member"
         };
 
         _razorEngine.CompileRenderAsync(Arg.Any<string>(), Arg.Any<object>())
@@ -224,7 +230,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test",
             FamilyName = "Test",
             InvitationUrl = "https://test.com",
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow,
+            Role = "Member"
         };
 
         var exception = new InvalidOperationException("Test error");
@@ -257,7 +264,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test",
             FamilyName = "Test",
             InvitationUrl = "https://test.com",
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow,
+            Role = "Member"
         };
 
         _razorEngine.CompileRenderAsync(Arg.Any<string>(), Arg.Any<object>())
@@ -282,7 +290,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test",
             FamilyName = "Test",
             InvitationUrl = "https://test.com",
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow,
+            Role = "Member"
         };
 
         _razorEngine.CompileRenderAsync(Arg.Any<string>(), Arg.Any<object>())
@@ -310,7 +319,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test",
             FamilyName = "Test",
             InvitationUrl = "https://test.com",
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow,
+            Role = "Member"
         };
 
         _razorEngine.CompileRenderAsync(Arg.Any<string>(), Arg.Any<object>())
@@ -334,7 +344,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test",
             FamilyName = "Test",
             InvitationUrl = "https://test.com",
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow,
+            Role = "Member"
         };
 
         // Generate large HTML content (10KB)
@@ -361,7 +372,8 @@ public sealed class RazorEmailTemplateServiceTests
             InviterName = "Test <>&\"'",
             FamilyName = "Test Family",
             InvitationUrl = "https://test.com",
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow,
+            Role = "Member"
         };
 
         var expectedHtml = "<html><body>Test &lt;&gt;&amp;&quot;&#39;</body></html>";

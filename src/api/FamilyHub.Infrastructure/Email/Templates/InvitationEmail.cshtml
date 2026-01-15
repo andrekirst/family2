@@ -48,7 +48,13 @@
     </div>
     <div class="content">
         <p>Hi there,</p>
-        <p><strong>@Model.InviterName</strong> has invited you to join their family on Family Hub.</p>
+        <p><strong>@Model.InviterName</strong> has invited you to join their family on Family Hub as a <strong>@Model.Role</strong>.</p>
+        @if (!string.IsNullOrWhiteSpace(Model.Message))
+        {
+            <p style="font-style: italic; border-left: 3px solid #667eea; padding-left: 15px; margin: 20px 0;">
+                <em>"@Model.Message"</em>
+            </p>
+        }
         <p>Click the button below to accept the invitation:</p>
         <a href="@Model.InvitationUrl" class="button">Accept Invitation</a>
         <p>This invitation expires on <strong>@Model.ExpiresAt.ToString("MMMM dd, yyyy")</strong>.</p>
