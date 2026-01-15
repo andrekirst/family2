@@ -2,6 +2,7 @@ using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Modules.Family.Application.Commands.InviteFamilyMemberByEmail;
 using FamilyHub.Modules.Family.Application.Commands.InviteFamilyMembers;
 using FamilyHub.Modules.Family.Presentation.GraphQL.Inputs;
+using FamilyHub.Modules.Family.Presentation.GraphQL.Payloads;
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
 using FamilyHub.SharedKernel.Domain.Exceptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -67,7 +68,7 @@ public sealed class InvitationMutations : IRequireOwnerOrAdminRole
     /// </summary>
     [DefaultMutationErrors]
     [UseMutationConvention]
-    public async Task<InviteFamilyMembersResult> InviteFamilyMembers(
+    public async Task<InviteFamilyMembersDto> InviteFamilyMembers(
         InviteFamilyMembersInput input,
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
@@ -89,6 +90,30 @@ public sealed class InvitationMutations : IRequireOwnerOrAdminRole
         // Explicit type parameter needed because C# can't infer TResponse through ICommand<T> : IRequest<T>
         var result = await mediator.Send<InviteFamilyMembersResult>(command, cancellationToken);
 
-        return result;
+        // Map result → DTO (primitives for GraphQL)
+        return new InviteFamilyMembersDto
+        {
+            SuccessfulInvitations = result.SuccessfulInvitations
+                .Select(s => new InvitationSuccessDto
+                {
+                    InvitationId = s.InvitationId.Value,
+                    Email = s.Email.Value,
+                    Role = s.Role.Value.ToUpperInvariant(),
+                    Token = s.Token.Value,
+                    DisplayCode = s.DisplayCode.Value,
+                    ExpiresAt = s.ExpiresAt,
+                    Status = s.Status.ToString()
+                })
+                .ToList(),
+            FailedInvitations = result.FailedInvitations
+                .Select(f => new InvitationFailureDto
+                {
+                    Email = f.Email.Value,
+                    Role = f.Role.Value.ToUpperInvariant(),
+                    ErrorCode = f.ErrorCode.ToString(),
+                    ErrorMessage = f.ErrorMessage
+                })
+                .ToList()
+        };
     }
 }

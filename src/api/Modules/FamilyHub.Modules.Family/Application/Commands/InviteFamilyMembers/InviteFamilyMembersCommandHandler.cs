@@ -1,10 +1,10 @@
+using FamilyHub.Modules.Family.Domain.Abstractions;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Application.Abstractions;
 using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.SharedKernel.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Family.Application.Commands.InviteFamilyMembers;
@@ -19,14 +19,14 @@ namespace FamilyHub.Modules.Family.Application.Commands.InviteFamilyMembers;
 /// <param name="familyRepository">Repository for family data access.</param>
 /// <param name="invitationRepository">Repository for invitation data access.</param>
 /// <param name="userLookupService">Service for cross-module user lookups.</param>
-/// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="familyUnitOfWork">Unit of work for Family module database transactions.</param>
 /// <param name="logger">Logger for structured logging.</param>
 public sealed partial class InviteFamilyMembersCommandHandler(
     IUserContext userContext,
     IFamilyRepository familyRepository,
     IFamilyMemberInvitationRepository invitationRepository,
     IUserLookupService userLookupService,
-    IUnitOfWork unitOfWork,
+    IFamilyUnitOfWork familyUnitOfWork,
     ILogger<InviteFamilyMembersCommandHandler> logger)
     : ICommandHandler<InviteFamilyMembersCommand, InviteFamilyMembersResult>
 {
@@ -117,7 +117,7 @@ public sealed partial class InviteFamilyMembersCommandHandler(
         // 4. Save all successful invitations in one transaction
         if (successfulInvitations.Count > 0)
         {
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await familyUnitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         LogBatchInvitationCompleted(successfulInvitations.Count, failedInvitations.Count);

@@ -57,4 +57,14 @@ public sealed class UserLookupService(AuthDbContext context) : IUserLookupServic
 
         return user?.FamilyId;
     }
+
+    /// <inheritdoc />
+    public async Task<Email?> GetUserEmailAsync(UserId userId, CancellationToken cancellationToken = default)
+    {
+        var user = await context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        return user?.Email;
+    }
 }

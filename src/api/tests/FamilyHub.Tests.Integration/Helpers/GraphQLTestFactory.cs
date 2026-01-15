@@ -98,19 +98,13 @@ public sealed class GraphQlTestFactory(PostgreSqlContainerFixture containerFixtu
             services.RemoveAll<IDbContextFactory<FamilyDbContext>>();
 
             // Add FamilyDbContext with test container connection string
-            services.AddPooledDbContextFactory<FamilyDbContext>((_, options) =>
+            // Changed from AddPooledDbContextFactory to AddDbContext to support IMediator and ILogger injection
+            services.AddDbContext<FamilyDbContext>((sp, options) =>
                 options.UseNpgsql(containerFixture.ConnectionString, npgsqlOptions =>
                     {
                         npgsqlOptions.MigrationsAssembly(typeof(FamilyDbContext).Assembly.GetName().Name);
                     })
                     .UseSnakeCaseNamingConvention());
-
-            // Also register scoped FamilyDbContext
-            services.AddScoped(sp =>
-            {
-                var factory = sp.GetRequiredService<IDbContextFactory<FamilyDbContext>>();
-                return factory.CreateDbContext();
-            });
 
             // GraphQL types are auto-discovered via Program.cs → AddAuthModuleGraphQlTypes()
             // No explicit type registration needed here - WebApplicationFactory<Program> inherits the full DI container

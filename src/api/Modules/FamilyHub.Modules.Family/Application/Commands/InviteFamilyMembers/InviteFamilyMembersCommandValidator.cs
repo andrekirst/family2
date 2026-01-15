@@ -4,8 +4,9 @@ namespace FamilyHub.Modules.Family.Application.Commands.InviteFamilyMembers;
 
 /// <summary>
 /// Validator for InviteFamilyMembersCommand.
-/// Validates command-level constraints only (max count, non-empty list).
+/// Validates command-level constraints only (max count).
 /// Individual invitation validation happens in the handler to support partial success.
+/// Empty invitations list is valid (allows users to skip invitation step in wizard).
 /// </summary>
 public sealed class InviteFamilyMembersCommandValidator : AbstractValidator<InviteFamilyMembersCommand>
 {
@@ -26,8 +27,6 @@ public sealed class InviteFamilyMembersCommandValidator : AbstractValidator<Invi
         RuleFor(x => x.Invitations)
             .NotNull()
             .WithMessage("Invitations list is required.")
-            .NotEmpty()
-            .WithMessage("At least one invitation is required.")
             .Must(invitations => invitations.Count <= MaxInvitationsPerBatch)
             .WithMessage($"Cannot process more than {MaxInvitationsPerBatch} invitations per batch.");
 

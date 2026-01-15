@@ -11,6 +11,7 @@
  * - GraphQL query and mutation integration
  * - Toast notifications and navigation
  * - Accessibility compliance (WCAG 2.1 AA)
+ * - RabbitMQ event verification (InvitationAcceptedEvent)
  *
  * Test Coverage:
  * - Happy path: Unauthenticated user "Accept First" flow
@@ -21,9 +22,11 @@
  * - Session storage: Token persistence during auth flow
  * - UI states: Loading, error, success, warning
  * - Accessibility: ARIA labels, keyboard navigation
+ * - RabbitMQ events: InvitationAcceptedEvent published on acceptance
  */
 
 import { test, expect } from '@playwright/test';
+import { test as rabbitmqTest } from '../fixtures/rabbitmq.fixture';
 import { URLS, STORAGE_KEYS, TEST_DATA } from '../support/constants';
 
 test.describe('Invitation Acceptance Flow', () => {
@@ -707,4 +710,291 @@ test.describe('Invitation Acceptance Flow', () => {
       });
     });
   });
+});
+
+/**
+ * RabbitMQ Event Verification Tests
+ *
+ * These tests verify that the backend publishes the correct domain events
+ * when an invitation is accepted. This enables event chain automation
+ * (e.g., sending welcome emails, updating dashboards, triggering workflows).
+ *
+ * Events Verified:
+ * - InvitationAcceptedEvent: Published when user accepts invitation
+ *   - Contains familyId, acceptedByUserId, role
+ *   - Triggers downstream automation (welcome email, analytics, etc.)
+ *
+ * RabbitMQ Fixture:
+ * - Automatically connects to localhost:5672 (RabbitMQ from Docker Compose)
+ * - Binds to familyhub.test exchange (test-specific routing)
+ * - Provides waitForMessage() helper with timeout support
+ * - Auto-cleanup after each test
+ */
+rabbitmqTest.describe('RabbitMQ Event Verification', () => {
+  const validToken = 'valid-test-token-abc123';
+
+  /**
+   * Helper function to setup authenticated session with RabbitMQ test
+   */
+  async function setupAuthenticatedSessionForRabbitMQ(page: any) {
+    const mockAccessToken = TEST_DATA.MOCK_ACCESS_TOKEN;
+    const mockExpiresAt = new Date(Date.now() + 3600000).toISOString();
+
+    await page.addInitScript(
+      ({ token, expires }: { token: string; expires: string }) => {
+        window.localStorage.setItem('family_hub_access_token', token);
+        window.localStorage.setItem('family_hub_token_expires', expires);
+      },
+      { token: mockAccessToken, expires: mockExpiresAt }
+    );
+  }
+
+  /**
+   * Helper function to setup GraphQL mocks for RabbitMQ tests
+   */
+  async function setupInvitationMocksForRabbitMQ(page: any) {
+    await page.route('http://localhost:5002/graphql', async (route: any) => {
+      const request = route.request();
+      const postData = request.postDataJSON();
+
+      // GetInvitationByToken query
+      if (postData?.query?.includes('GetInvitationByToken')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: {
+              invitations: {
+                byToken: {
+                  id: 'invitation-rabbitmq-123',
+                  email: 'rabbitmq@example.com',
+                  role: 'MEMBER',
+                  status: 'PENDING',
+                  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                  message: 'Welcome to RabbitMQ test family!',
+                  displayCode: 'RMQ-123',
+                  family: {
+                    id: 'family-rabbitmq-123',
+                    name: 'RabbitMQ Test Family',
+                  },
+                  memberCount: 2,
+                },
+              },
+            },
+          }),
+        });
+      }
+      // AcceptInvitation mutation
+      else if (postData?.query?.includes('AcceptInvitation')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: {
+              acceptInvitation: {
+                familyId: 'family-rabbitmq-123',
+                familyName: 'RabbitMQ Test Family',
+                role: 'MEMBER',
+                errors: [],
+              },
+            },
+          }),
+        });
+      }
+      // GetCurrentFamily query
+      else if (postData?.query?.includes('GetCurrentFamily')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: {
+              family: {
+                id: 'family-rabbitmq-123',
+                name: 'RabbitMQ Test Family',
+                createdAt: '2026-01-15T00:00:00Z',
+              },
+            },
+          }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+
+    // Wait for route handler to be registered
+    await page.waitForTimeout(50);
+  }
+
+  rabbitmqTest(
+    'should publish InvitationAcceptedEvent when authenticated user accepts invitation',
+    async ({ page, rabbitmq }) => {
+      await rabbitmqTest.step('Setup authenticated session and mocks', async () => {
+        await setupAuthenticatedSessionForRabbitMQ(page);
+        await setupInvitationMocksForRabbitMQ(page);
+      });
+
+      await rabbitmqTest.step('Navigate to invitation and accept', async () => {
+        await page.goto(`/accept-invitation?token=${validToken}`);
+        await expect(page.getByText("You're Invited!")).toBeVisible();
+        await page.getByRole('button', { name: 'Accept Invitation' }).click();
+      });
+
+      await rabbitmqTest.step('Wait for InvitationAcceptedEvent', async () => {
+        const event = await rabbitmq.waitForMessage(
+          (msg) =>
+            msg.eventType === 'InvitationAcceptedEvent' &&
+            msg.data.familyId === 'family-rabbitmq-123',
+          5000
+        );
+
+        expect(event).not.toBeNull();
+        expect(event!.data.familyId).toBe('family-rabbitmq-123');
+        expect(event!.data.acceptedByUserId).toBeTruthy();
+        expect(event!.data.role).toBe('MEMBER');
+      });
+
+      await rabbitmqTest.step('Verify navigation to dashboard after acceptance', async () => {
+        await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+      });
+    }
+  );
+
+  rabbitmqTest(
+    'should publish both FamilyMemberAddedEvent and InvitationRemovedEvent on acceptance',
+    async ({ page, rabbitmq }) => {
+      await rabbitmqTest.step('Setup authenticated session and mocks', async () => {
+        await setupAuthenticatedSessionForRabbitMQ(page);
+        await setupInvitationMocksForRabbitMQ(page);
+      });
+
+      await rabbitmqTest.step('Navigate to invitation and accept', async () => {
+        await page.goto(`/accept-invitation?token=${validToken}`);
+        await expect(page.getByText("You're Invited!")).toBeVisible();
+        await page.getByRole('button', { name: 'Accept Invitation' }).click();
+      });
+
+      await rabbitmqTest.step('Wait for FamilyMemberAddedEvent', async () => {
+        const memberAddedEvent = await rabbitmq.waitForMessage(
+          (msg) =>
+            msg.eventType === 'FamilyMemberAddedEvent' &&
+            msg.data.familyId === 'family-rabbitmq-123',
+          5000
+        );
+
+        expect(memberAddedEvent).not.toBeNull();
+        expect(memberAddedEvent!.data.familyId).toBe('family-rabbitmq-123');
+        expect(memberAddedEvent!.data.member).toBeTruthy();
+        expect(memberAddedEvent!.data.member.email).toBe('rabbitmq@example.com');
+        expect(memberAddedEvent!.data.member.role).toBe('MEMBER');
+      });
+
+      await rabbitmqTest.step('Wait for InvitationRemovedEvent', async () => {
+        const invitationRemovedEvent = await rabbitmq.waitForMessage(
+          (msg) =>
+            msg.eventType === 'InvitationRemovedEvent' &&
+            msg.data.familyId === 'family-rabbitmq-123',
+          5000
+        );
+
+        expect(invitationRemovedEvent).not.toBeNull();
+        expect(invitationRemovedEvent!.data.familyId).toBe('family-rabbitmq-123');
+        expect(invitationRemovedEvent!.data.token).toBe(validToken);
+      });
+
+      await rabbitmqTest.step('Verify navigation to dashboard', async () => {
+        await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+      });
+    }
+  );
+
+  rabbitmqTest(
+    'should NOT publish events when invitation acceptance fails (business error)',
+    async ({ page, rabbitmq }) => {
+      await rabbitmqTest.step('Setup authenticated session with failing acceptance', async () => {
+        await setupAuthenticatedSessionForRabbitMQ(page);
+
+        // Override to return business error
+        await page.route('http://localhost:5002/graphql', async (route: any) => {
+          const postData = route.request().postDataJSON();
+
+          if (postData?.query?.includes('GetInvitationByToken')) {
+            await route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify({
+                data: {
+                  invitations: {
+                    byToken: {
+                      id: 'invitation-fail-123',
+                      email: 'fail@example.com',
+                      role: 'MEMBER',
+                      status: 'PENDING',
+                      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                      message: null,
+                      displayCode: 'FAIL-123',
+                      family: { id: 'family-fail-123', name: 'Fail Family' },
+                      memberCount: 1,
+                    },
+                  },
+                },
+              }),
+            });
+          } else if (postData?.query?.includes('AcceptInvitation')) {
+            // Return business error (e.g., invitation already accepted by someone else)
+            await route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify({
+                data: {
+                  acceptInvitation: {
+                    familyId: null,
+                    familyName: null,
+                    role: null,
+                    errors: [
+                      {
+                        __typename: 'BusinessError',
+                        message: 'This invitation has already been accepted',
+                        code: 'INVITATION_ALREADY_ACCEPTED',
+                      },
+                    ],
+                  },
+                },
+              }),
+            });
+          } else {
+            await route.continue();
+          }
+        });
+      });
+
+      await rabbitmqTest.step('Navigate to invitation and attempt accept', async () => {
+        await page.goto(`/accept-invitation?token=${validToken}`);
+        await expect(page.getByText("You're Invited!")).toBeVisible();
+        await page.getByRole('button', { name: 'Accept Invitation' }).click();
+      });
+
+      await rabbitmqTest.step('Verify error toast displayed', async () => {
+        await expect(page.getByText('This invitation has already been accepted')).toBeVisible();
+      });
+
+      await rabbitmqTest.step('Verify NO events published on failure', async () => {
+        // Wait a bit to ensure no events are published
+        await page.waitForTimeout(2000);
+
+        const allEvents = await rabbitmq.consumeMessages();
+        const invitationEvents = allEvents.filter(
+          (e) =>
+            e.eventType === 'InvitationAcceptedEvent' ||
+            e.eventType === 'FamilyMemberAddedEvent' ||
+            e.eventType === 'InvitationRemovedEvent'
+        );
+
+        expect(invitationEvents.length).toBe(0);
+      });
+
+      await rabbitmqTest.step('Verify user NOT redirected (stays on invitation page)', async () => {
+        await expect(page).toHaveURL(/\/accept-invitation/);
+      });
+    }
+  );
 });

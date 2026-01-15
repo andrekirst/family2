@@ -1,34 +1,36 @@
 /**
- * E2E Test Suite: Family Invite Members Wizard Step (Playwright)
+ * E2E Test Suite: Family Creation Wizard Flow (2-Step) (Playwright)
  *
- * Tests the invite members step in the family creation wizard, including:
- * - Multi-step wizard flow (family name → invite members)
- * - Dynamic FormArray (add/remove email rows, max 20)
- * - Email validation (format, duplicates)
- * - Role selection per invitation
- * - Optional message field
- * - Skip functionality
- * - Data preservation on back navigation
- * - Accessibility compliance (WCAG 2.1 AA)
+ * Consolidated test suite for the complete family creation wizard flow.
+ * Previously split across family-creation.spec.ts (Step 1) and family-invite-members.spec.ts (Step 2).
+ *
+ * Tests the complete 2-step wizard flow:
+ * - Step 1: Family name entry (required, max 50 characters)
+ * - Step 2: Invite members (optional, max 20 invitations)
  *
  * Test Coverage:
  * - Happy path: Create family with invitations
  * - Skip path: Create family without invitations
- * - Form validation (email format, duplicates, max limit)
- * - Add/Remove email rows
- * - Role selection (Admin/Member/Child)
- * - Message field validation
- * - Navigation (Next, Back, Skip)
- * - API integration (InviteFamilyMembersByEmail mutation)
- * - Keyboard navigation
- * - Loading states
- * - Error handling
+ * - Step 1: Form validation (empty name, too long, character counter)
+ * - Step 1: API error handling (user already has family, network errors)
+ * - Step 2: Email validation (format, duplicates, max limit)
+ * - Step 2: Add/Remove email rows (dynamic FormArray)
+ * - Step 2: Role selection (Admin/Member/Child)
+ * - Step 2: Message field validation (max 500 characters)
+ * - Navigation (Next, Back, Skip, data preservation)
+ * - RabbitMQ event verification (FamilyMemberInvitedEvent)
+ * - Keyboard navigation (Tab, Enter)
+ * - Loading states (disabled buttons during submission)
+ * - Accessibility compliance (WCAG 2.1 AA)
+ * - UX edge cases (rapid submissions)
+ * - Guard-based routing (familyGuard, noFamilyGuard)
  */
 
 import { test, expect } from '@playwright/test';
-import { URLS, STORAGE_KEYS, TEST_DATA } from '../support/constants';
+import { test as rabbitmqTest } from '../fixtures/rabbitmq.fixture';
+import { URLS, STORAGE_KEYS, TEST_DATA, SELECTORS } from '../support/constants';
 
-test.describe('Family Invite Members Wizard Step', () => {
+test.describe('Family Creation Wizard (2-Step Flow)', () => {
   test.beforeEach(async ({ context }) => {
     // Reset application state
     await context.clearCookies();
@@ -662,5 +664,414 @@ test.describe('Family Invite Members Wizard Step', () => {
         await expect(textarea).toHaveAttribute('aria-describedby', /.+/);
       });
     });
+  });
+
+  test.describe('Step 1: Form Validation (Family Name)', () => {
+    test.beforeEach(async ({ page }) => {
+      await setupOAuthMock(page);
+      await setupGraphQLMocks(page);
+      await page.goto('/family/create');
+    });
+
+    test('should show error when family name is empty', async ({ page }) => {
+      await test.step('Leave field empty and attempt to submit', async () => {
+        await page.locator(SELECTORS.FAMILY_NAME_INPUT).focus();
+        await page.locator(SELECTORS.FAMILY_NAME_INPUT).blur();
+        await page.getByRole('button', { name: /Next|Create Family/i }).click();
+      });
+
+      await test.step('Verify error message displayed', async () => {
+        await expect(page.getByText('Family name is required')).toBeVisible();
+        await expect(page.getByRole('button', { name: /Next|Create Family/i })).toBeEnabled();
+      });
+    });
+
+    test('should show error when family name exceeds 50 characters', async ({ page }) => {
+      await test.step('Enter 51 characters and attempt to submit', async () => {
+        const longName = 'a'.repeat(51);
+        await page.locator(SELECTORS.FAMILY_NAME_INPUT).fill(longName);
+        await page.getByRole('button', { name: /Next|Create Family/i }).click();
+      });
+
+      await test.step('Verify error message displayed', async () => {
+        await expect(page.getByText('Family name must be 50 characters or less')).toBeVisible();
+        await expect(page.getByRole('button', { name: /Next|Create Family/i })).toBeEnabled();
+      });
+    });
+
+    test('should enable submit button when valid name is entered', async ({ page }) => {
+      await test.step('Enter valid name', async () => {
+        await page.locator(SELECTORS.FAMILY_NAME_INPUT).fill('Valid Family Name');
+      });
+
+      await test.step('Verify no errors and button enabled', async () => {
+        await expect(page.getByText('Family name is required')).not.toBeVisible();
+        await expect(page.getByText('Family name must be 50 characters or less')).not.toBeVisible();
+        await expect(page.getByRole('button', { name: /Next|Create Family/i })).toBeEnabled();
+      });
+    });
+  });
+
+  test.describe('Step 1: API Error Handling', () => {
+    test.beforeEach(async ({ page }) => {
+      await setupOAuthMock(page);
+      await setupGraphQLMocks(page);
+      await page.goto('/family/create');
+    });
+
+    test('should display error when user already has a family', async ({ page }) => {
+      await test.step('Mock CreateFamily with business rule error', async () => {
+        await page.route('http://localhost:5002/graphql', async (route) => {
+          const postData = route.request().postDataJSON();
+
+          if (postData?.query?.includes('CreateFamily')) {
+            await route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify({
+                data: {
+                  createFamily: {
+                    createdFamilyDto: null,
+                    errors: [
+                      {
+                        __typename: 'BusinessError',
+                        message: 'User already has a family',
+                        code: 'BUSINESS_RULE_VIOLATION',
+                      },
+                    ],
+                  },
+                },
+              }),
+            });
+          } else {
+            await route.continue();
+          }
+        });
+      });
+
+      await test.step('Submit form', async () => {
+        await page.locator(SELECTORS.FAMILY_NAME_INPUT).fill('Test Family');
+        await page.getByRole('button', { name: /Next|Create Family/i }).click();
+      });
+
+      await test.step('Verify error displayed and wizard page remains', async () => {
+        await expect(page.locator('[role="alert"]')).toContainText('User already has a family');
+        await expect(page).toHaveURL(/\/family\/create/);
+        await expect(page.locator(SELECTORS.FAMILY_NAME_INPUT)).toHaveValue('Test Family');
+      });
+    });
+
+    test('should display error when network request fails', async ({ page }) => {
+      await test.step('Mock network error', async () => {
+        await page.route('http://localhost:5002/graphql', async (route) => {
+          const postData = route.request().postDataJSON();
+
+          if (postData?.query?.includes('CreateFamily')) {
+            await route.fulfill({
+              status: 500,
+              body: JSON.stringify({ error: 'Internal Server Error' }),
+            });
+          } else {
+            await route.continue();
+          }
+        });
+      });
+
+      await test.step('Submit form', async () => {
+        await page.locator(SELECTORS.FAMILY_NAME_INPUT).fill('Test Family');
+        await page.getByRole('button', { name: /Next|Create Family/i }).click();
+      });
+
+      await test.step('Verify error message', async () => {
+        await expect(page.locator('[role="alert"]')).toBeVisible();
+        await expect(page.getByText('Failed to create family')).toBeVisible();
+      });
+    });
+  });
+
+  test.describe('UX Edge Cases', () => {
+    test('should handle rapid form submissions gracefully', async ({ page }) => {
+      await test.step('Setup mocks', async () => {
+        await setupOAuthMock(page);
+
+        let mutationCount = 0;
+        await page.route('http://localhost:5002/graphql', async (route) => {
+          const postData = route.request().postDataJSON();
+
+          if (postData?.query?.includes('CreateFamily')) {
+            mutationCount++;
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            await route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify({
+                data: {
+                  createFamily: {
+                    createdFamily: {
+                      id: 'family-rapid',
+                      name: 'Rapid Family',
+                      createdAt: '2026-01-15T00:00:00Z',
+                    },
+                    errors: [],
+                  },
+                },
+              }),
+            });
+          } else if (postData?.query?.includes('GetCurrentFamily')) {
+            await route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify({ data: { family: null } }),
+            });
+          } else {
+            await route.continue();
+          }
+        });
+
+        await page.goto('/family/create');
+      });
+
+      await test.step('Click submit multiple times rapidly', async () => {
+        await page.locator(SELECTORS.FAMILY_NAME_INPUT).fill('Rapid Family');
+
+        const submitButton = page.getByRole('button', { name: /Next|Create Family/i });
+        await submitButton.click();
+        await submitButton.click().catch(() => {}); // May be disabled
+        await submitButton.click().catch(() => {}); // May be disabled
+      });
+
+      await test.step('Verify successful redirect', async () => {
+        await expect(page).toHaveURL(/\/dashboard/);
+        // Only one mutation should have been sent (button disabled after first click)
+      });
+    });
+  });
+
+  test.describe('Guard-Based Routing', () => {
+    test('should redirect from dashboard to wizard when user has no family', async ({ page }) => {
+      await test.step('Setup mocks', async () => {
+        await setupOAuthMock(page);
+        await setupGraphQLMocks(page, { hasFamily: false });
+      });
+
+      await test.step('Attempt to visit dashboard', async () => {
+        await page.goto('/dashboard');
+      });
+
+      await test.step('Verify redirect to wizard', async () => {
+        await expect(page).toHaveURL(/\/family\/create/);
+        await expect(page.getByText('Create Your Family')).toBeVisible();
+      });
+    });
+
+    test('should redirect from wizard to dashboard when user already has family', async ({
+      page,
+    }) => {
+      await test.step('Setup mocks', async () => {
+        await setupOAuthMock(page);
+        await setupGraphQLMocks(page, { hasFamily: true });
+      });
+
+      await test.step('Attempt to visit wizard', async () => {
+        await page.goto('/family/create');
+      });
+
+      await test.step('Verify redirect to dashboard', async () => {
+        await expect(page).toHaveURL(/\/dashboard/);
+        await expect(page.locator('h1')).toContainText('Test Family');
+      });
+    });
+  });
+
+  // RabbitMQ Event Verification Tests
+  // Uses rabbitmq.fixture.ts to verify domain events are published correctly
+  rabbitmqTest.describe('RabbitMQ Event Verification', () => {
+    rabbitmqTest(
+      'should publish FamilyMemberInvitedEvent for each invitation',
+      async ({ page, rabbitmq }) => {
+        await rabbitmqTest.step('Setup mocks', async () => {
+          const mockAccessToken = TEST_DATA.MOCK_ACCESS_TOKEN;
+          const mockExpiresAt = new Date(Date.now() + 3600000).toISOString();
+
+          await page.addInitScript(
+            ({ token, expires }: { token: string; expires: string }) => {
+              window.localStorage.setItem('family_hub_access_token', token);
+              window.localStorage.setItem('family_hub_token_expires', expires);
+            },
+            { token: mockAccessToken, expires: mockExpiresAt }
+          );
+
+          // Setup GraphQL mocks for wizard flow
+          await page.route('http://localhost:5002/graphql', async (route: any) => {
+            const request = route.request();
+            const postData = request.postDataJSON();
+
+            if (postData?.query?.includes('GetCurrentFamily')) {
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { family: null } }),
+              });
+            } else if (postData?.query?.includes('CreateFamily')) {
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                  data: {
+                    createFamily: {
+                      createdFamily: {
+                        id: 'family-123',
+                        name: 'Smith Family',
+                        createdAt: '2026-01-15T00:00:00Z',
+                      },
+                      errors: [],
+                    },
+                  },
+                }),
+              });
+            } else {
+              // Let real backend handle InviteFamilyMembersByEmail to trigger events
+              await route.continue();
+            }
+          });
+        });
+
+        await rabbitmqTest.step('Navigate to wizard and complete Step 1', async () => {
+          await page.goto('/family/create');
+          await page.locator('input[aria-label="Family name"]').fill('Smith Family');
+          await page.getByRole('button', { name: 'Next' }).click();
+          await page.waitForTimeout(800); // Wait for Step 2 to render
+        });
+
+        await rabbitmqTest.step('Add 2 invitations with different roles', async () => {
+          // First invitation: ADMIN
+          await page.getByLabel('Email address 1').fill('alice@example.com');
+          await page.locator('select[id="role-0"]').selectOption('ADMIN');
+
+          // Second invitation: MEMBER
+          await page.getByRole('button', { name: 'Add another email invitation' }).click();
+          await page.waitForTimeout(500);
+          await page.getByLabel('Email address 2').fill('bob@example.com');
+          await page.locator('select[id="role-1"]').selectOption('MEMBER');
+
+          // Add personal message
+          await page.locator('textarea#invitation-message').fill('Welcome to our family circle!');
+        });
+
+        await rabbitmqTest.step('Submit wizard (triggers invitation emails + events)', async () => {
+          await page.getByRole('button', { name: 'Create Family' }).click();
+        });
+
+        await rabbitmqTest.step('Verify first FamilyMemberInvitedEvent published', async () => {
+          const event1 = await rabbitmq.waitForMessage(
+            (msg) =>
+              msg.eventType === 'FamilyMemberInvitedEvent' &&
+              msg.data.email === 'alice@example.com',
+            5000
+          );
+
+          expect(event1).not.toBeNull();
+          expect(event1!.data.email).toBe('alice@example.com');
+          expect(event1!.data.role).toBe('ADMIN');
+          expect(event1!.data.message).toBe('Welcome to our family circle!');
+          expect(event1!.data.familyId).toBeTruthy();
+          expect(event1!.data.inviterUserId).toBeTruthy();
+        });
+
+        await rabbitmqTest.step('Verify second FamilyMemberInvitedEvent published', async () => {
+          const event2 = await rabbitmq.waitForMessage(
+            (msg) =>
+              msg.eventType === 'FamilyMemberInvitedEvent' && msg.data.email === 'bob@example.com',
+            5000
+          );
+
+          expect(event2).not.toBeNull();
+          expect(event2!.data.email).toBe('bob@example.com');
+          expect(event2!.data.role).toBe('MEMBER');
+          expect(event2!.data.message).toBe('Welcome to our family circle!');
+          expect(event2!.data.familyId).toBeTruthy();
+        });
+
+        await rabbitmqTest.step(
+          'Verify redirect to dashboard after successful submission',
+          async () => {
+            await expect(page).toHaveURL(/\/dashboard/);
+          }
+        );
+      }
+    );
+
+    rabbitmqTest(
+      'should not publish events when skipping invitations step',
+      async ({ page, rabbitmq }) => {
+        await rabbitmqTest.step('Setup mocks', async () => {
+          const mockAccessToken = TEST_DATA.MOCK_ACCESS_TOKEN;
+          const mockExpiresAt = new Date(Date.now() + 3600000).toISOString();
+
+          await page.addInitScript(
+            ({ token, expires }: { token: string; expires: string }) => {
+              window.localStorage.setItem('family_hub_access_token', token);
+              window.localStorage.setItem('family_hub_token_expires', expires);
+            },
+            { token: mockAccessToken, expires: mockExpiresAt }
+          );
+
+          await page.route('http://localhost:5002/graphql', async (route: any) => {
+            const postData = route.request().postDataJSON();
+
+            if (postData?.query?.includes('GetCurrentFamily')) {
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { family: null } }),
+              });
+            } else if (postData?.query?.includes('CreateFamily')) {
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                  data: {
+                    createFamily: {
+                      createdFamily: {
+                        id: 'family-456',
+                        name: 'Jones Family',
+                        createdAt: '2026-01-15T00:00:00Z',
+                      },
+                      errors: [],
+                    },
+                  },
+                }),
+              });
+            } else {
+              await route.continue();
+            }
+          });
+        });
+
+        await rabbitmqTest.step('Complete wizard without adding invitations', async () => {
+          await page.goto('/family/create');
+          await page.locator('input[aria-label="Family name"]').fill('Jones Family');
+          await page.getByRole('button', { name: 'Next' }).click();
+          await page.waitForTimeout(800);
+
+          // Skip invitations (don't fill any emails, just click Create Family)
+          await page.getByRole('button', { name: 'Create Family' }).click();
+        });
+
+        await rabbitmqTest.step('Verify no FamilyMemberInvitedEvent published', async () => {
+          // Wait briefly to ensure no events arrive
+          await page.waitForTimeout(2000);
+
+          const events = await rabbitmq.consumeMessages();
+          const inviteEvents = events.filter((e) => e.eventType === 'FamilyMemberInvitedEvent');
+
+          expect(inviteEvents.length).toBe(0);
+        });
+
+        await rabbitmqTest.step('Verify redirect to dashboard', async () => {
+          await expect(page).toHaveURL(/\/dashboard/);
+        });
+      }
+    );
   });
 });

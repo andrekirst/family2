@@ -135,7 +135,7 @@ public static class AuthModuleServiceRegistration
             // 3. AuthorizationBehavior - Check family context and role-based policies
             cfg.AddOpenBehavior(typeof(AuthorizationBehavior<,>));
             // 4. ValidationBehavior - Validate input using FluentValidation
-            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(FamilyHub.SharedKernel.Application.Behaviors.ValidationBehavior<,>));
         });
 
         // FluentValidation - Validators

@@ -5,6 +5,7 @@ using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.Modules.Family.Persistence.Repositories;
 using FamilyHub.SharedKernel.Application.Behaviors;
+using FluentValidation;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -42,9 +43,9 @@ public static class FamilyModuleServiceRegistration
         // Register TimeProvider for timestamp management
         services.AddSingleton(TimeProvider.System);
 
-        // PHASE 5: FamilyDbContext with pooled factory (performance optimization)
+        // PHASE 5: FamilyDbContext with domain event dispatching via IMediator
         // Uses same connection string as Auth but targets "family" schema
-        services.AddPooledDbContextFactory<FamilyDbContext>((sp, options) =>
+        services.AddDbContext<FamilyDbContext>((sp, options) =>
         {
             var connectionString = configuration.GetConnectionString("FamilyHubDb");
             options.UseNpgsql(connectionString, npgsqlOptions =>
@@ -54,13 +55,6 @@ public static class FamilyModuleServiceRegistration
                 })
                 .UseSnakeCaseNamingConvention()
                 .AddTimestampInterceptor(sp);
-        });
-
-        // Scoped DbContext from factory
-        services.AddScoped(sp =>
-        {
-            var factory = sp.GetRequiredService<IDbContextFactory<FamilyDbContext>>();
-            return factory.CreateDbContext();
         });
 
         // Unit of Work for Family module
@@ -84,10 +78,12 @@ public static class FamilyModuleServiceRegistration
             cfg.RegisterServicesFromAssembly(typeof(FamilyModuleServiceRegistration).Assembly);
             // Add pipeline behaviors
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            // ValidationBehavior - Validate commands using FluentValidation
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 
-        // FluentValidation - Validators (placeholder - will be populated when validators are moved)
-        // services.AddValidatorsFromAssembly(typeof(FamilyModuleServiceRegistration).Assembly);
+        // FluentValidation - Validators
+        services.AddValidatorsFromAssembly(typeof(FamilyModuleServiceRegistration).Assembly);
 
         return services;
     }

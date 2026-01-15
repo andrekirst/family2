@@ -1,10 +1,10 @@
 using FamilyHub.Modules.Family.Application.Commands.InviteFamilyMembers;
+using FamilyHub.Modules.Family.Domain.Abstractions;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain.Specifications;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.SharedKernel.Interfaces;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -27,7 +27,7 @@ public sealed class InviteFamilyMembersCommandHandlerTests
     private readonly IFamilyRepository _familyRepository;
     private readonly IFamilyMemberInvitationRepository _invitationRepository;
     private readonly IUserLookupService _userLookupService;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IFamilyUnitOfWork _familyUnitOfWork;
     private readonly ILogger<InviteFamilyMembersCommandHandler> _logger;
 
     private readonly FamilyId _familyId;
@@ -40,7 +40,7 @@ public sealed class InviteFamilyMembersCommandHandlerTests
         _familyRepository = Substitute.For<IFamilyRepository>();
         _invitationRepository = Substitute.For<IFamilyMemberInvitationRepository>();
         _userLookupService = Substitute.For<IUserLookupService>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
+        _familyUnitOfWork = Substitute.For<IFamilyUnitOfWork>();
         _logger = Substitute.For<ILogger<InviteFamilyMembersCommandHandler>>();
 
         _familyId = FamilyId.New();
@@ -94,7 +94,7 @@ public sealed class InviteFamilyMembersCommandHandlerTests
             _familyRepository,
             _invitationRepository,
             _userLookupService,
-            _unitOfWork,
+            _familyUnitOfWork,
             _logger);
     }
 
