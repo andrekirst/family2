@@ -18,7 +18,7 @@
         <app-icon
           [name]="getIconName(toast.type)"
           [class]="getIconColorClass(toast.type)"
-          size="w-5 h-5"
+          size="md"
         />
       </div>
 
@@ -34,7 +34,7 @@
         class="flex-shrink-0 p-1 rounded hover:bg-black hover:bg-opacity-10 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current"
         [attr.aria-label]="'Dismiss notification'"
       >
-        <app-icon name="x" class="text-current" size="w-4 h-4" />
+        <app-icon name="x" class="text-current" size="sm" />
       </button>
     </div>
   }

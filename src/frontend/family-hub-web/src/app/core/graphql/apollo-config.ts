@@ -36,7 +36,7 @@ import { environment } from '../../../environments/environment';
  *
  * @returns Apollo Client configuration options
  */
-export function createApollo(): ApolloClientOptions<unknown> {
+export function createApollo(): ApolloClientOptions {
   const httpLink = inject(HttpLink);
 
   // HTTP link for queries and mutations
@@ -120,8 +120,6 @@ export function createApollo(): ApolloClientOptions<unknown> {
   return {
     link,
     cache,
-    // Enable in development for debugging
-    connectToDevTools: !environment.production,
     // Default fetch policy
     defaultOptions: {
       watchQuery: {
