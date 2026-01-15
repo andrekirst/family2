@@ -53,9 +53,22 @@ public sealed record GetInvitationByTokenResult
     public required string DisplayCode { get; init; }
 
     /// <summary>
+    /// Gets the family information.
+    /// </summary>
+    public required FamilyInfo Family { get; init; }
+
+    /// <summary>
+    /// Gets the current member count of the family (for preview).
+    /// </summary>
+    public required int MemberCount { get; init; }
+
+    /// <summary>
     /// Maps a domain FamilyMemberInvitation to a result DTO.
     /// </summary>
-    public static GetInvitationByTokenResult FromDomain(FamilyMemberInvitationAggregate invitation)
+    public static GetInvitationByTokenResult FromDomain(
+        FamilyMemberInvitationAggregate invitation,
+        FamilyAggregate family,
+        int memberCount)
     {
         return new GetInvitationByTokenResult
         {
@@ -67,7 +80,29 @@ public sealed record GetInvitationByTokenResult
             InvitedAt = invitation.CreatedAt,
             ExpiresAt = invitation.ExpiresAt,
             Message = invitation.Message,
-            DisplayCode = invitation.DisplayCode.Value
+            DisplayCode = invitation.DisplayCode.Value,
+            Family = new FamilyInfo
+            {
+                Id = family.Id.Value,
+                Name = family.Name.Value
+            },
+            MemberCount = memberCount
         };
     }
+}
+
+/// <summary>
+/// Family information DTO for invitation preview.
+/// </summary>
+public sealed record FamilyInfo
+{
+    /// <summary>
+    /// Gets the unique identifier of the family.
+    /// </summary>
+    public required Guid Id { get; init; }
+
+    /// <summary>
+    /// Gets the name of the family.
+    /// </summary>
+    public required string Name { get; init; }
 }
