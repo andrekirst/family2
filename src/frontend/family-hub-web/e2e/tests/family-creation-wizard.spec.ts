@@ -215,8 +215,20 @@ test.describe('Family Creation Wizard (2-Step Flow)', () => {
         await page.getByRole('button', { name: 'Create Family' }).click();
       });
 
+      await test.step('Confirm invitations in dialog', async () => {
+        // Wait for confirmation dialog to appear
+        await expect(page.getByRole('dialog', { name: 'Confirm Invitations' })).toBeVisible();
+
+        // Verify invitation details are shown
+        await expect(page.getByText('alice@example.com')).toBeVisible();
+        await expect(page.getByText('bob@example.com')).toBeVisible();
+
+        // Click "Send Invitations" button
+        await page.getByRole('button', { name: 'Send Invitations' }).click();
+      });
+
       await test.step('Verify redirect to dashboard', async () => {
-        await expect(page).toHaveURL(/\/dashboard/);
+        await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
         // TODO: Verify family name appears on dashboard once dashboard is implemented
         // await expect(page.locator('h1')).toContainText('Smith Family');
       });
