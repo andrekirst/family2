@@ -680,6 +680,217 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
+    [Fact]
+    public async Task PublishAsync_TopicEventSenderThrows_DoesNotThrow()
+    {
+        // Arrange - Create a publisher with a failing ITopicEventSender
+        var failingTopicEventSender = Substitute.For<ITopicEventSender>();
+        failingTopicEventSender
+            .When(x => x.SendAsync(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<CancellationToken>()))
+            .Do(_ => throw new InvalidOperationException("Simulated Redis connection failure"));
+
+        var logger = Substitute.For<ILogger<RedisSubscriptionPublisher>>();
+        var failingPublisher = new RedisSubscriptionPublisher(failingTopicEventSender, logger);
+
+        var topicName = $"family-members-changed:{Guid.NewGuid()}";
+        var message = new FamilyMembersChangedPayload
+        {
+            FamilyId = Guid.NewGuid(),
+            ChangeType = ChangeType.ADDED,
+            Member = null
+        };
+
+        // Act - Should NOT throw (graceful degradation)
+        var act = async () => await failingPublisher.PublishAsync(topicName, message);
+
+        // Assert - The key behavior: publisher catches exception and doesn't re-throw
+        await act.Should().NotThrowAsync("publisher should gracefully handle connection failures");
+
+        // Verify ITopicEventSender was called (meaning the exception was thrown and caught)
+        await failingTopicEventSender.Received(1).SendAsync(
+            Arg.Is(topicName),
+            Arg.Any<FamilyMembersChangedPayload>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishAsync_RedisConnectionFailure_GracefulDegradation()
+    {
+        // Arrange - Create a publisher that simulates complete Redis unavailability
+        var unavailableTopicEventSender = Substitute.For<ITopicEventSender>();
+        unavailableTopicEventSender
+            .SendAsync(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<CancellationToken>())
+            .Returns<ValueTask>(_ => throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Redis server unavailable"));
+
+        var logger = Substitute.For<ILogger<RedisSubscriptionPublisher>>();
+        var publisher = new RedisSubscriptionPublisher(unavailableTopicEventSender, logger);
+
+        var topicName = $"family-members-changed:{Guid.NewGuid()}";
+        var message = new FamilyMembersChangedPayload
+        {
+            FamilyId = Guid.NewGuid(),
+            ChangeType = ChangeType.ADDED,
+            Member = new FamilyMemberType
+            {
+                Id = Guid.NewGuid(),
+                Email = "test@example.com",
+                EmailVerified = true,
+                Role = UserRoleType.MEMBER,
+                JoinedAt = DateTime.UtcNow,
+                IsOwner = false,
+                AuditInfo = new AuditInfoType
+                {
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            }
+        };
+
+        // Act - Multiple publish attempts should all succeed (not throw)
+        // This simulates a scenario where Redis is completely unavailable
+        for (var i = 0; i < 3; i++)
+        {
+            var act = async () => await publisher.PublishAsync(topicName, message);
+            await act.Should().NotThrowAsync($"publish attempt {i + 1} should not throw despite Redis unavailability");
+        }
+
+        // Assert - ITopicEventSender was called 3 times (each attempt tried to send)
+        await unavailableTopicEventSender.Received(3).SendAsync(
+            Arg.Is(topicName),
+            Arg.Any<FamilyMembersChangedPayload>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishAsync_SubscriberThrows_DoesNotAffectOtherSubscribers()
+    {
+        // Arrange
+        var familyId = Guid.NewGuid();
+        var topicName = $"family-members-changed:{familyId}";
+        var message = new FamilyMembersChangedPayload
+        {
+            FamilyId = familyId,
+            ChangeType = ChangeType.ADDED,
+            Member = new FamilyMemberType
+            {
+                Id = Guid.NewGuid(),
+                Email = "test@example.com",
+                EmailVerified = true,
+                Role = UserRoleType.MEMBER,
+                JoinedAt = DateTime.UtcNow,
+                IsOwner = false,
+                AuditInfo = new AuditInfoType
+                {
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            }
+        };
+
+        var healthySubscriberReceived = new TaskCompletionSource<bool>();
+        var healthySubscriberMessage = string.Empty;
+        var faultySubscriberCalled = false;
+
+        var subscriber = _redis.GetSubscriber();
+
+        // Subscribe with a faulty handler (throws exception)
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        {
+            faultySubscriberCalled = true;
+            throw new InvalidOperationException("Simulated subscriber error");
+        });
+
+        // Subscribe with a healthy handler
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        {
+            healthySubscriberMessage = value!;
+            healthySubscriberReceived.TrySetResult(true);
+        });
+
+        // Act
+        await _publisher.PublishAsync(topicName, message);
+
+        // Assert - Healthy subscriber should still receive the message
+        var completed = await Task.WhenAny(healthySubscriberReceived.Task, Task.Delay(TimeSpan.FromSeconds(5)));
+        completed.Should().Be(healthySubscriberReceived.Task, "healthy subscriber should receive message despite faulty subscriber");
+        healthySubscriberMessage.Should().NotBeEmpty();
+        faultySubscriberCalled.Should().BeTrue("faulty subscriber should have been called");
+
+        // Cleanup - Unsubscribe all handlers from this channel
+        await subscriber.UnsubscribeAsync(RedisChannel.Literal(topicName));
+    }
+
+    [Fact]
+    public async Task PublishAsync_PartialSubscriberFailure_OtherSubscribersContinueReceiving()
+    {
+        // Arrange
+        var familyId = Guid.NewGuid();
+        var topicName = $"family-members-changed:{familyId}";
+        var messageCount = 5;
+        var receivedByHealthySubscriber = new List<string>();
+        var allMessagesReceived = new TaskCompletionSource<bool>();
+        var faultySubscriberCallCount = 0;
+
+        var subscriber = _redis.GetSubscriber();
+
+        // Faulty subscriber that throws on every other message
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        {
+            Interlocked.Increment(ref faultySubscriberCallCount);
+            if (faultySubscriberCallCount % 2 == 0)
+            {
+                throw new InvalidOperationException("Intermittent subscriber failure");
+            }
+        });
+
+        // Healthy subscriber that collects all messages
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        {
+            lock (receivedByHealthySubscriber)
+            {
+                receivedByHealthySubscriber.Add(value!);
+                if (receivedByHealthySubscriber.Count == messageCount)
+                {
+                    allMessagesReceived.TrySetResult(true);
+                }
+            }
+        });
+
+        // Act - Publish multiple messages
+        for (var i = 0; i < messageCount; i++)
+        {
+            var message = new FamilyMembersChangedPayload
+            {
+                FamilyId = familyId,
+                ChangeType = ChangeType.ADDED,
+                Member = new FamilyMemberType
+                {
+                    Id = Guid.NewGuid(),
+                    Email = $"member{i}@example.com",
+                    EmailVerified = true,
+                    Role = UserRoleType.MEMBER,
+                    JoinedAt = DateTime.UtcNow,
+                    IsOwner = false,
+                    AuditInfo = new AuditInfoType
+                    {
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    }
+                }
+            };
+            await _publisher.PublishAsync(topicName, message);
+        }
+
+        // Assert - Healthy subscriber should receive ALL messages despite faulty subscriber failures
+        var completed = await Task.WhenAny(allMessagesReceived.Task, Task.Delay(TimeSpan.FromSeconds(10)));
+        completed.Should().Be(allMessagesReceived.Task, "healthy subscriber should receive all messages");
+        receivedByHealthySubscriber.Should().HaveCount(messageCount);
+        faultySubscriberCallCount.Should().Be(messageCount, "faulty subscriber should have been called for each message");
+
+        // Cleanup - Unsubscribe all handlers from this channel
+        await subscriber.UnsubscribeAsync(RedisChannel.Literal(topicName));
+    }
+
     #endregion
 
     #region Message Format Tests
