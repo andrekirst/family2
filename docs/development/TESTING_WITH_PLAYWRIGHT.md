@@ -18,6 +18,167 @@ Family Hub uses **Playwright** for E2E testing with these principles:
 
 ---
 
+## E2E Test Strategy (Issue #92)
+
+This section documents the comprehensive E2E test strategy for Family Hub, addressing the key questions raised in Issue #92.
+
+### Test Classification (Unit vs Integration vs E2E)
+
+Family Hub uses a **test pyramid** with clear boundaries between test types:
+
+| Test Type | Scope | Speed | Isolation | Primary Tools | Use Cases |
+|-----------|-------|-------|-----------|---------------|-----------|
+| **Unit** | Single class/function | Fast (<1s) | Complete (mocked) | xUnit, FluentAssertions | Domain logic, value objects, validators |
+| **Integration** | Module + dependencies | Medium (1-10s) | Transaction-scoped | xUnit, GraphQLTestFactory | Command handlers, repositories, GraphQL resolvers |
+| **E2E** | Full stack (UI + API + DB) | Slow (5-60s) | Test database | Playwright | User flows, cross-browser, accessibility, event chains |
+
+**Test Boundaries:**
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                          E2E Tests (Playwright)                     │
+│   - Test user-visible behavior and complete workflows               │
+│   - Cross-browser compatibility (Chromium, Firefox, WebKit)         │
+│   - Accessibility compliance (axe-core)                             │
+│   - Event chain verification (API → DB → Events → Side effects)    │
+├─────────────────────────────────────────────────────────────────────┤
+│                      Integration Tests (xUnit)                       │
+│   - Test module boundaries with real database                        │
+│   - GraphQL mutation/query correctness                              │
+│   - Domain event publication                                         │
+│   - Command/Query handler logic with persistence                     │
+├─────────────────────────────────────────────────────────────────────┤
+│                         Unit Tests (xUnit)                           │
+│   - Test domain logic in isolation                                   │
+│   - Vogen value object validation                                    │
+│   - Business rule enforcement                                        │
+│   - Pure function behavior                                           │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**What Each Layer Tests:**
+
+| Layer | Does Test | Does NOT Test |
+|-------|-----------|---------------|
+| **Unit** | Domain invariants, value object validation, business rules | Database, network, external services |
+| **Integration** | Database operations, GraphQL API, transactions, domain events | UI rendering, browser behavior |
+| **E2E** | User workflows, visual rendering, cross-browser, accessibility | Internal implementation details |
+
+### Test Strategy Decision Matrix
+
+Use this matrix to choose the right test approach:
+
+| Scenario | Test Type | Auth Approach | Rationale |
+|----------|-----------|---------------|-----------|
+| Testing domain logic (e.g., `Family.AddMember()`) | Unit | N/A | Fast, isolated, no external dependencies |
+| Testing value objects (e.g., `Email.From()`) | Unit | N/A | Validation logic only |
+| Testing command handlers | Integration | `ICurrentUserService` mock | Real database, test transaction boundaries |
+| Testing GraphQL mutations | Integration | `ICurrentUserService` mock | Verify domain events published |
+| Testing repository queries | Integration | N/A (internal) | Real database queries with test data |
+| Testing UI-only behavior | E2E | OAuth Mocking | Fast, no backend required |
+| Testing user workflows | E2E | **Test Mode** | Real API calls, full integration |
+| Testing email delivery | E2E | **Test Mode** | MailHog verifies actual email |
+| Testing event chains | E2E | **Test Mode** | Cross-module integration |
+| Testing accessibility | E2E | Either | UI rendering required |
+| Testing cross-browser | E2E | Either | Browser-specific behavior |
+
+### Authentication Strategy Decision (Resolved via Issue #91)
+
+**Question Answered:** What authentication strategy should E2E tests use?
+
+**Decision: Hybrid Approach** - Use **Test Mode** for API-first tests, **OAuth Mocking** for UI-only tests.
+
+| Approach | When to Use | Speed | Coverage | Implementation |
+|----------|-------------|-------|----------|----------------|
+| **Test Mode** (Issue #91) | Testing real backend behavior | ⭐⭐ | ⭐⭐⭐ | `X-Test-User-Id` header |
+| **OAuth Mocking** | Testing UI-only behavior | ⭐⭐⭐ | ⭐ | `localStorage` token injection |
+
+**Trade-offs Table (from Issue #92):**
+
+| Approach | Speed | Coverage | Complexity | Maintenance |
+|----------|-------|----------|-----------|-------------|
+| OAuth Mocking | ⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐ |
+| Test Mode Tokens | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ |
+| Real OAuth Flow | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+
+**Recommendation:** Use **Test Mode** as the default for E2E tests. It provides real backend verification without the complexity of real OAuth flows. Reserve **OAuth Mocking** for fast UI smoke tests that don't need backend validation.
+
+### ADR-004 "API-First" Clarification
+
+**What "API-first testing" means in Family Hub:**
+
+1. **Primary verification via GraphQL API** - Test business logic by calling mutations/queries directly
+2. **UI as spot-check** - Verify UI renders correct results, but don't rely on UI for data verification
+3. **Event chain verification** - Test that mutations trigger correct domain events
+4. **Not "no UI testing"** - UI testing is still valuable for accessibility, cross-browser, user flows
+
+**API-First Testing Pattern:**
+
+```typescript
+test('event chain: create family → event published → UI updated', async ({ graphqlClient, page }) => {
+  // 1. Create via GraphQL API (primary verification)
+  const result = await graphqlClient.mutate(CREATE_FAMILY_MUTATION, {
+    input: { name: 'Test Family' }
+  });
+  expect(result.data.createFamily.familyId).toBeDefined();
+
+  // 2. Verify database state via API query
+  const family = await graphqlClient.query(GET_FAMILY_QUERY);
+  expect(family.data.family.name).toBe('Test Family');
+
+  // 3. UI spot-check (optional, lightweight)
+  await page.goto('/family');
+  await expect(page.getByText('Test Family')).toBeVisible();
+});
+```
+
+### Test Data Management Strategy
+
+**Decision: Test Mode with Database Cleanup**
+
+| Strategy | Use Case | Implementation |
+|----------|----------|----------------|
+| **Test Mode Users** | Authentication | Predefined test users (PRIMARY, MEMBER, NO_FAMILY) |
+| **Unique Test Data** | Isolation | Generate unique names per test (e.g., `Test Family ${Date.now()}`) |
+| **API Cleanup** | State reset | Delete test data via API in `afterEach()` |
+| **MailHog Reset** | Email tests | Clear emails before each test |
+
+**Test Users (from Test Mode section):**
+
+```typescript
+export const TEST_USERS = {
+  PRIMARY: { id: '00000000-0000-0000-0000-000000000001', email: 'test-owner@familyhub.test' },
+  MEMBER: { id: '00000000-0000-0000-0000-000000000002', email: 'test-member@familyhub.test' },
+  NO_FAMILY: { id: '00000000-0000-0000-0000-000000000003', email: 'test-nofamily@familyhub.test' },
+};
+```
+
+### Implementation Status
+
+**Resolved (Issue #91):**
+
+- ✅ Test Mode Authentication implemented
+- ✅ `X-Test-User-Id` / `X-Test-User-Email` headers working
+- ✅ `graphqlClient` fixture configured with test headers
+- ✅ Security safeguards (blocked in Production)
+
+**Current Test Coverage:**
+
+| Test File | Test Count | Status |
+|-----------|------------|--------|
+| `family-creation-wizard.spec.ts` | 22 | ✅ Active |
+| `accessibility.spec.ts` | 8 | ✅ Active |
+| `cross-browser.spec.ts` | 4 | ✅ Active |
+| `graphql-schema-validation.spec.ts` | 12 | ✅ Active |
+| `api-authentication.spec.ts` | 6 | ✅ Active |
+| `invitation-email-verification.spec.ts` | 3 | ⚠️ Skipped (uses mocking) |
+| `event-chains.spec.ts` | 2 | ⚠️ Skipped (Phase 2) |
+| `subscription-updates.spec.ts` | 6 | ⚠️ Blocked (UI pending) |
+
+**Total:** 66 active tests × 3 browsers = 198 test runs
+
+---
+
 ## Quick Start
 
 ### Running Tests
@@ -1097,5 +1258,5 @@ jobs:
 ---
 
 **Last Updated:** 2026-01-19
-**Version:** 2.0.0 (Test Mode Authentication added - Issue #91)
+**Version:** 2.1.0 (E2E Test Strategy documented - Issue #92)
 **Zero-Retry Policy:** Enabled (retries: 0)
