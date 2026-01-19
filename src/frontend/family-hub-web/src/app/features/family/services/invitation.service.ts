@@ -1,6 +1,7 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, effect } from '@angular/core';
 import { GraphQLService, GraphQLError } from '../../../core/services/graphql.service';
 import { PendingInvitation, UserRole } from '../models/family.models';
+import { FamilyEventsService } from './family-events.service';
 
 /**
  * GraphQL response for GetPendingInvitations query.
@@ -83,6 +84,7 @@ interface UpdateInvitationRoleResponse {
 })
 export class InvitationService {
   private graphqlService = inject(GraphQLService);
+  private familyEventsService = inject(FamilyEventsService);
 
   /**
    * Signal holding pending invitations for current family.
@@ -100,6 +102,58 @@ export class InvitationService {
    * Null when no error.
    */
   error = signal<string | null>(null);
+
+  constructor() {
+    // React to pending invitations subscription events
+    effect(() => {
+      const event = this.familyEventsService.lastInvitationEvent();
+
+      if (!event) return;
+
+      // Map subscription invitation to domain PendingInvitation model
+      const domainInvitation: PendingInvitation = {
+        id: event.invitation.id,
+        email: event.invitation.email,
+        role: event.invitation.role as 'OWNER' | 'ADMIN' | 'MEMBER',
+        status: event.invitation.status as
+          | 'PENDING'
+          | 'ACCEPTED'
+          | 'REJECTED'
+          | 'CANCELLED'
+          | 'EXPIRED',
+        invitedAt: event.invitation.invitedAt,
+        expiresAt: event.invitation.expiresAt,
+        displayCode: event.invitation.displayCode,
+      };
+
+      // Update pendingInvitations signal based on change type
+      switch (event.changeType) {
+        case 'ADDED':
+          // Optimistically add invitation to list (avoid duplicates)
+          this.pendingInvitations.update((invitations) => {
+            if (invitations.some((inv) => inv.id === domainInvitation.id)) {
+              return invitations; // Already exists, no-op
+            }
+            return [...invitations, domainInvitation];
+          });
+          break;
+
+        case 'UPDATED':
+          // Update existing invitation (e.g., role change, resend)
+          this.pendingInvitations.update((invitations) =>
+            invitations.map((inv) => (inv.id === domainInvitation.id ? domainInvitation : inv))
+          );
+          break;
+
+        case 'REMOVED':
+          // Remove invitation (cancelled/expired/accepted)
+          this.pendingInvitations.update((invitations) =>
+            invitations.filter((inv) => inv.id !== domainInvitation.id)
+          );
+          break;
+      }
+    });
+  }
 
   /**
    * Loads pending invitations for the specified family.

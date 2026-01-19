@@ -1,7 +1,8 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FamilyService } from '../../services/family.service';
 import { InvitationService } from '../../services/invitation.service';
+import { FamilyEventsService } from '../../services/family-events.service';
 import { UserRole } from '../../models/family.models';
 import { FamilyMembersListComponent } from '../../components/family-members-list/family-members-list.component';
 import { PendingInvitationsComponent } from '../../components/pending-invitations/pending-invitations.component';
@@ -39,9 +40,10 @@ import { MainLayoutComponent } from '../../../../shared/layout/main-layout/main-
   templateUrl: './family-management.component.html',
   styleUrl: './family-management.component.scss',
 })
-export class FamilyManagementComponent implements OnInit {
+export class FamilyManagementComponent implements OnInit, OnDestroy {
   private familyService = inject(FamilyService);
   private invitationService = inject(InvitationService);
+  private familyEventsService = inject(FamilyEventsService);
 
   /**
    * Reactive state from services.
@@ -70,6 +72,9 @@ export class FamilyManagementComponent implements OnInit {
    */
   async loadData(): Promise<void> {
     try {
+      // Unsubscribe from previous family (if any) - handles family switching
+      this.familyEventsService.unsubscribeAll();
+
       // Load current family
       await this.familyService.loadCurrentFamily();
 
@@ -79,11 +84,15 @@ export class FamilyManagementComponent implements OnInit {
         return;
       }
 
-      // Load family members
-      await this.familyService.loadFamilyMembers(family.id);
+      // Load initial data in parallel (faster)
+      await Promise.all([
+        this.familyService.loadFamilyMembers(family.id),
+        this.invitationService.loadPendingInvitations(),
+      ]);
 
-      // Load pending invitations
-      await this.invitationService.loadPendingInvitations();
+      // Subscribe to real-time updates for this family
+      this.familyEventsService.subscribeFamilyMembers(family.id);
+      this.familyEventsService.subscribePendingInvitations(family.id);
 
       // TODO: Load current user's role from auth context
       // For now, assume OWNER for development
@@ -105,7 +114,11 @@ export class FamilyManagementComponent implements OnInit {
    */
   async closeInviteModal(): Promise<void> {
     this.showInviteModal.set(false);
-    // Refresh data to show new invitations/members
-    await this.loadData();
+    // No need to reload - subscriptions will update UI automatically
+  }
+
+  ngOnDestroy(): void {
+    // Unsubscribe from all subscriptions to prevent memory leaks
+    this.familyEventsService.unsubscribeAll();
   }
 }
