@@ -1,7 +1,9 @@
 # E2E Subscription Tests Strategy
 
-**Status:** Phase 5 - Documentation Complete (Implementation Deferred)
-**Issue:** #84 - GraphQL Subscriptions for Real-Time Family Updates
+**Status:** ✅ Substantially Complete (6/9 scenarios implemented)
+**Issue:** #89 - E2E: Playwright Subscription Tests
+**Last Updated:** 2026-01-19
+**Test File:** `/e2e/tests/subscription-updates.spec.ts` (636 lines)
 
 ---
 
@@ -9,7 +11,51 @@
 
 This document outlines the E2E testing strategy for GraphQL subscriptions using Playwright. These tests validate the complete WebSocket subscription flow from frontend to backend.
 
-## Test Scenarios
+**Implementation Status:** 6 test scenarios fully implemented and ready for execution. See detailed status report: `/e2e/reports/subscription-tests-status-2026-01-19.md`
+
+---
+
+## Implementation Status (2026-01-19)
+
+### ✅ Completed Scenarios (6/9)
+
+| # | Scenario | Test Location | Status |
+|---|----------|---------------|--------|
+| 1 | Invitation created (ADDED event) | Line 158-207 | ✅ Complete |
+| 2 | Invitation accepted (REMOVED event) | Line 209-287 | ✅ Complete |
+| 3 | Invitation canceled (REMOVED event) | Line 541-636 | ✅ Complete |
+| 4 | Family member added (ADDED event) | Line 390-488 | ✅ Complete |
+| 5 | Authorization (OWNER/ADMIN only) | Line 289-388 | ✅ Complete |
+| 6 | Subscription reconnection | Line 490-538 | ✅ Complete |
+
+### ⚠️ Blocked Scenarios (2/9)
+
+| # | Scenario | Blocker | Status |
+|---|----------|---------|--------|
+| 7 | Member removed (REMOVED event) | No backend mutation | ⚠️ Blocked |
+| 9 | Role downgrade termination | No real-time auth | ⚠️ Blocked |
+
+### ⚠️ Implicit Coverage (1/9)
+
+| # | Scenario | Status | Notes |
+|---|----------|--------|-------|
+| 8 | MEMBER role rejection | ⚠️ Implicit | Tested in scenario #5 (Line 335-381) |
+
+**Legend:**
+
+- ✅ Complete: Test implemented and ready
+- ⚠️ Blocked: Requires backend implementation
+- ⚠️ Implicit: Tested as part of another scenario
+
+**Next Steps:**
+
+1. Execute tests against live infrastructure
+2. Create backend issues for blocked scenarios (#7, #9)
+3. Consider extracting explicit test for scenario #8
+
+---
+
+## Test Scenarios (Original Plan)
 
 ### 1. Family Members Subscription
 

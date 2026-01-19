@@ -535,4 +535,90 @@ test.describe('GraphQL Subscription Real-Time Updates', () => {
       unsubscribe();
     });
   });
+
+  test('should notify when invitation is canceled', async ({ page }) => {
+    const familyId = 'family-sub-test-6';
+    const familyName = 'Cancellation Test Family';
+    const testInvitationId = '00000000-0000-0000-0000-000000000001';
+
+    await test.step('Setup authenticated session and subscription', async () => {
+      const ownerToken = await setupAuthenticatedSession(page, 'owner-6', 'owner6@example.com');
+      await setupFamilyAndInvitationMocks(page, familyId, familyName);
+
+      // Setup mock for CancelInvitation mutation
+      await page.route('http://localhost:5002/graphql', async (route: any) => {
+        const request = route.request();
+        const postData = request.postDataJSON();
+
+        if (postData?.query?.includes('CancelInvitation')) {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              data: {
+                cancelInvitation: true,
+              },
+            }),
+          });
+        } else {
+          await route.continue();
+        }
+      });
+
+      // Create subscription client for owner
+      const ownerClient = createSubscriptionClient(WS_URL, HTTP_URL, ownerToken);
+
+      const { updates, unsubscribe } = subscribeAndCollect<{
+        pendingInvitationsChanged: PendingInvitationsChangedPayload;
+      }>(ownerClient, PENDING_INVITATIONS_CHANGED_SUBSCRIPTION, {
+        familyId: familyId,
+      });
+
+      await test.step('Cancel invitation via GraphQL mutation', async () => {
+        // Simulate canceling an invitation
+        // In real scenario, this would be triggered by UI button click
+        await page.evaluate(
+          async ({ endpoint, invitationId, token }) => {
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                query: `
+                  mutation CancelInvitation($input: CancelInvitationInput!) {
+                    cancelInvitation(input: $input)
+                  }
+                `,
+                variables: {
+                  input: { invitationId },
+                },
+              }),
+            });
+            return response.json();
+          },
+          {
+            endpoint: HTTP_URL,
+            invitationId: testInvitationId,
+            token: ownerToken,
+          }
+        );
+      });
+
+      await test.step('Verify subscription receives REMOVED event', async () => {
+        const update = await waitForSubscriptionUpdate(
+          updates,
+          (u) => u.pendingInvitationsChanged.changeType === ChangeType.REMOVED,
+          5000
+        );
+
+        expect(update).not.toBeNull();
+        expect(update!.pendingInvitationsChanged.changeType).toBe(ChangeType.REMOVED);
+        expect(update!.pendingInvitationsChanged.invitation).toBeNull();
+      });
+
+      unsubscribe();
+    });
+  });
 });
