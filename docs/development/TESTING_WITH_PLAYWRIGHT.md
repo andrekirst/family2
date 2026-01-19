@@ -180,6 +180,209 @@ test('should access protected route', async ({ authenticatedPage }) => {
 });
 ```
 
+---
+
+## Test Mode Authentication (Issue #91)
+
+**Purpose:** Enable E2E tests to authenticate with the real backend without requiring Zitadel OAuth tokens.
+
+### How It Works
+
+When `FAMILYHUB_TEST_MODE=true` environment variable is set:
+
+1. Backend accepts `X-Test-User-Id` and `X-Test-User-Email` HTTP headers
+2. These headers replace JWT token validation
+3. Tests can make authenticated API calls via `graphqlClient` fixture
+4. No need to mock OAuth flow or GraphQL responses
+
+### Configuration
+
+**Backend Environment Variable:**
+
+```bash
+FAMILYHUB_TEST_MODE=true
+```
+
+**Test Mode Settings (appsettings.Test.json):**
+
+```json
+{
+  "TestMode": {
+    "Enabled": true
+  }
+}
+```
+
+### Security Safeguards
+
+- Test mode is **blocked in Production environment** (throws `InvalidOperationException`)
+- Logs warning when test mode is active
+- Requires explicit opt-in via environment variable or config
+
+### Test Users
+
+Predefined test users for E2E tests:
+
+```typescript
+export const TEST_USERS = {
+  PRIMARY: {
+    id: '00000000-0000-0000-0000-000000000001',
+    email: 'test-owner@familyhub.test',
+    firstName: 'Test',
+    lastName: 'Owner',
+  },
+  MEMBER: {
+    id: '00000000-0000-0000-0000-000000000002',
+    email: 'test-member@familyhub.test',
+    firstName: 'Test',
+    lastName: 'Member',
+  },
+  NO_FAMILY: {
+    id: '00000000-0000-0000-0000-000000000003',
+    email: 'test-nofamily@familyhub.test',
+    firstName: 'Test',
+    lastName: 'NoFamily',
+  },
+};
+```
+
+### Using the graphqlClient Fixture
+
+The `graphqlClient` fixture is pre-configured with test authentication headers:
+
+```typescript
+import { test, expect } from '../fixtures/auth.fixture';
+import { createFamilyViaAPI } from '../support/api-helpers';
+
+test('should create family via real API', async ({ graphqlClient }) => {
+  // graphqlClient automatically includes X-Test-User-Id and X-Test-User-Email headers
+  const family = await createFamilyViaAPI(graphqlClient, 'My Family');
+
+  expect(family.id).toBeDefined();
+  expect(family.name).toBe('My Family');
+});
+```
+
+### Switching Users in Tests
+
+Use the `switchUser` fixture to change the authenticated user mid-test:
+
+```typescript
+test('should allow switching test users', async ({ graphqlClient, switchUser }) => {
+  // Start as PRIMARY user
+  const primaryFamily = await graphqlClient.query(GET_FAMILY);
+
+  // Switch to MEMBER user
+  switchUser(TEST_USERS.MEMBER);
+  const memberFamily = await graphqlClient.query(GET_FAMILY);
+
+  // Switch to user without family
+  switchUser(TEST_USERS.NO_FAMILY);
+  const noFamily = await graphqlClient.query(GET_FAMILY);
+  expect(noFamily.family).toBeNull();
+});
+```
+
+### Complete Example: Email Verification Test
+
+```typescript
+import { test, expect } from '../fixtures/auth.fixture';
+import { MailHogClient } from '../support/email-helpers';
+import { createFamilyViaAPI, inviteFamilyMembersViaAPI } from '../support/api-helpers';
+
+test.describe('Invitation Email Verification', () => {
+  let mailHog: MailHogClient;
+
+  test.beforeEach(async () => {
+    mailHog = new MailHogClient();
+    await mailHog.clearEmails();
+  });
+
+  test('should send invitation email via real API', async ({ graphqlClient }) => {
+    // Create family (real API call)
+    const family = await createFamilyViaAPI(graphqlClient, 'Test Family');
+
+    // Send invitation (triggers real email)
+    const result = await inviteFamilyMembersViaAPI(
+      graphqlClient,
+      family.id,
+      [{ email: 'invitee@example.com', role: 'MEMBER' }]
+    );
+
+    expect(result.successfulInvitations).toHaveLength(1);
+
+    // Verify email arrived in MailHog
+    const email = await mailHog.waitForEmail(
+      (e) => e.To[0].Mailbox === 'invitee',
+      10000
+    );
+    expect(email).not.toBeNull();
+    expect(email.Content.Headers.Subject[0]).toContain('invited you');
+  });
+});
+```
+
+### Running Tests with Test Mode
+
+**Local Development:**
+
+The `global-setup.ts` automatically sets `FAMILYHUB_TEST_MODE=true` when starting the API:
+
+```bash
+npm run e2e
+```
+
+**Manual Testing:**
+
+```bash
+# Start API with test mode
+FAMILYHUB_TEST_MODE=true dotnet run --project src/api/FamilyHub.Api --environment Test
+
+# Test with curl
+curl -X POST http://localhost:5002/graphql \
+  -H "Content-Type: application/json" \
+  -H "X-Test-User-Id: 00000000-0000-0000-0000-000000000001" \
+  -H "X-Test-User-Email: test-owner@familyhub.test" \
+  -d '{"query": "{ family { id name } }"}'
+```
+
+**CI Environment:**
+
+In GitHub Actions, set the environment variable when starting the API:
+
+```yaml
+- name: Start API with test mode
+  run: |
+    cd src/api/FamilyHub.Api
+    FAMILYHUB_TEST_MODE=true dotnet run --environment Test &
+```
+
+### Key Differences from OAuth Mocking
+
+| Aspect | OAuth Mocking | Test Mode |
+|--------|---------------|-----------|
+| Backend | Mocked responses | Real API calls |
+| Database | No changes | Real writes |
+| Events | Not triggered | Real domain events |
+| Emails | Not sent | Sent to MailHog |
+| Speed | Fast | Slightly slower |
+| Confidence | Lower | Higher (tests real flow) |
+
+**Use Test Mode when:**
+
+- Testing complete event chains
+- Verifying email delivery
+- Testing database constraints
+- Testing real business logic
+
+**Use OAuth Mocking when:**
+
+- Testing frontend-only behavior
+- Need fast unit-style UI tests
+- Backend not required
+
+---
+
 ### GraphQL Fixture (Request Interception)
 
 **File:** `e2e/fixtures/graphql.fixture.ts`
@@ -893,6 +1096,6 @@ jobs:
 
 ---
 
-**Last Updated:** 2026-01-09
-**Version:** 1.0.0
+**Last Updated:** 2026-01-19
+**Version:** 2.0.0 (Test Mode Authentication added - Issue #91)
 **Zero-Retry Policy:** Enabled (retries: 0)

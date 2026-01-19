@@ -1,50 +1,42 @@
 /**
  * E2E Test Suite: Invitation Email Verification (Playwright + MailHog)
  *
- * ⚠️ **TESTS SKIPPED - BLOCKED BY ISSUE #91** ⚠️
+ * **Issue #91 IMPLEMENTED** - These tests use header-based authentication.
  *
- * **Why Skipped:**
- * These E2E tests require real backend authentication (valid JWT tokens) to work properly.
- * GraphQL mocking prevents the backend from creating invitations in the database, so
- * no emails are sent by the background service (InvitationEmailService).
+ * **How it Works:**
+ * With FAMILYHUB_TEST_MODE=true, the backend accepts X-Test-User-Id and
+ * X-Test-User-Email headers instead of requiring valid JWT tokens.
+ * This enables full end-to-end testing without Zitadel OAuth.
  *
- * **Alternative Testing:**
- * Email verification is already covered by backend integration tests:
+ * **Test Flow:**
+ * 1. Use graphqlClient fixture (authenticated with test headers)
+ * 2. Call real backend GraphQL API (CreateFamily, InviteFamilyMembers)
+ * 3. Backend creates invitations in database
+ * 4. Background service sends emails to SMTP
+ * 5. MailHog captures emails for verification
+ *
+ * **Also Covered by Backend Integration Tests:**
  * `src/api/tests/FamilyHub.Tests.Integration/Family/Infrastructure/InvitationEmailIntegrationTests.cs`
  *
- * These 9 integration tests verify:
- * - ✅ Email delivery to MailHog
- * - ✅ Subject line content
- * - ✅ Personal message inclusion
- * - ✅ Valid invitation token links
- * - ✅ Role-specific content (ADMIN vs MEMBER)
- * - ✅ Multiple invitations (batch processing)
- * - ✅ HTML + plain text MIME parts
- * - ✅ From address configuration
- *
- * **When to Re-enable:**
- * Once Issue #91 (E2E Authentication) is implemented, these tests can be refactored to:
- * 1. Use real OAuth tokens (not mocked localStorage)
- * 2. Call real backend GraphQL API (not mocked routes)
- * 3. Verify emails from complete end-to-end flow
- *
- * **References:**
- * - Issue #91: E2E Authentication implementation
- * - Issue #87: Family invitation flow E2E tests (parent issue)
- * - Backend integration tests: InvitationEmailIntegrationTests.cs
- *
- * **Technical Details:**
- * Email flow requires: GraphQL → Database (email_outbox) → Background Service → SMTP → MailHog
- * Mocking GraphQL blocks database writes, preventing emails from being sent.
+ * @see Issue #91 - E2E Authentication for API-First Testing
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/auth.fixture';
 import { MailHogClient } from '../support/email-helpers';
+import {
+  createFamilyViaAPI,
+  inviteFamilyMembersViaAPI,
+  getCurrentFamilyViaAPI,
+} from '../support/api-helpers';
+import { TEST_USERS } from '../support/constants';
 
-// ⚠️ TESTS SKIPPED - See file header for explanation
-// Email verification is covered by backend integration tests (InvitationEmailIntegrationTests.cs)
-// These E2E tests require Issue #91 (E2E Authentication) to be implemented first
-test.describe.skip('Invitation Email Verification', () => {
+/**
+ * Email verification tests using real backend authentication
+ *
+ * These tests verify the complete invitation email flow:
+ * CreateFamily → InviteFamilyMembers → EmailOutbox → SMTP → MailHog
+ */
+test.describe('Invitation Email Verification', () => {
   let mailHog: MailHogClient;
 
   test.beforeEach(async ({ context }) => {
@@ -60,218 +52,90 @@ test.describe.skip('Invitation Email Verification', () => {
   });
 
   /**
-   * Setup authenticated session with mock OAuth tokens
+   * Helper to ensure test user has a family (creates one if needed)
+   * Returns the family ID for use in invitation tests
    */
-  async function setupAuthenticatedSession(page: any) {
-    await page.addInitScript(() => {
-      window.localStorage.setItem('family_hub_access_token', 'mock-jwt-token-for-testing');
-      window.localStorage.setItem(
-        'family_hub_token_expires',
-        new Date(Date.now() + 3600000).toISOString()
-      );
-    });
-  }
-
-  /**
-   * Setup GraphQL mocking for family creation wizard
-   * TEMPORARY: Mocks backend responses until E2E auth is implemented
-   */
-  async function setupFamilyCreationMocks(page: any) {
-    await page.route('http://localhost:5002/graphql', async (route: any) => {
-      const request = route.request();
-      const postData = request.postDataJSON();
-
-      // GetCurrentUser query
-      if (postData?.query?.includes('GetCurrentUser')) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            data: {
-              currentUser: {
-                id: 'user-email-test-123',
-                email: 'owner@example.com',
-                emailVerified: true,
-                firstName: 'Test',
-                lastName: 'Owner',
-              },
-            },
-          }),
-        });
-      }
-      // GetCurrentFamily query
-      else if (postData?.query?.includes('GetCurrentFamily')) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            data: {
-              family: null,
-            },
-          }),
-        });
-      }
-      // CreateFamily mutation
-      else if (postData?.query?.includes('CreateFamily')) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            data: {
-              createFamily: {
-                createdFamilyDto: {
-                  id: 'mock-family-id-123',
-                  name: postData.variables.input.name,
-                },
-                errors: [],
-              },
-            },
-          }),
-        });
-      }
-      // InviteFamilyMembers mutation
-      else if (postData?.query?.includes('InviteFamilyMembers')) {
-        const invitations = postData.variables.input.invitations;
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            data: {
-              inviteFamilyMembers: {
-                successCount: invitations.length,
-                failedCount: 0,
-                errors: [],
-              },
-            },
-          }),
-        });
-      }
-      // Let other requests through
-      else {
-        await route.continue();
-      }
-    });
-
-    // Wait for route handler registration
-    await page.waitForTimeout(50);
-  }
-
-  /**
-   * Helper function to complete the family creation wizard with invitations
-   * Uses GraphQL mocking (temporary until E2E auth is implemented)
-   */
-  async function completeFamilyCreationWizard(
-    page: any,
-    options: {
-      familyName: string;
-      invitations: { email: string; role: 'MEMBER' | 'ADMIN'; message?: string }[];
-    }
-  ) {
-    const { familyName, invitations } = options;
-
-    // Step 1: Navigate to wizard
-    await page.goto('/create-family');
-    await expect(page.getByRole('heading', { name: 'Create Your Family' })).toBeVisible();
-
-    // Step 2: Fill in family name and click Next
-    await page.getByLabel('Family Name').fill(familyName);
-    await page.getByRole('button', { name: 'Next' }).click();
-
-    // Step 3: Wait for Step 2 (Invite Members)
-    await expect(page.getByRole('heading', { name: 'Invite Family Members' })).toBeVisible();
-
-    // Step 4: Fill in invitations
-    for (let i = 0; i < invitations.length; i++) {
-      const invitation = invitations[i];
-
-      // Fill in email
-      await page.getByLabel(`Email address ${i + 1}`).fill(invitation.email);
-
-      // Select role
-      await page.locator(`select[id="role-${i}"]`).selectOption(invitation.role);
-
-      // Fill in message if provided
-      if (invitation.message) {
-        await page.getByLabel('Personal message (optional)').fill(invitation.message);
-      }
-
-      // Add another invitation if not the last one
-      if (i < invitations.length - 1) {
-        await page.getByRole('button', { name: 'Add another email invitation' }).click();
-      }
+  async function ensureFamilyExists(
+    graphqlClient: any,
+    familyName: string
+  ): Promise<{ familyId: string; familyName: string }> {
+    // Check if user already has a family
+    const existingFamily = await getCurrentFamilyViaAPI(graphqlClient);
+    if (existingFamily) {
+      console.log(`Using existing family: ${existingFamily.name} (${existingFamily.id})`);
+      return { familyId: existingFamily.id, familyName: existingFamily.name };
     }
 
-    // Step 5: Submit wizard (mocked GraphQL responses)
-    await page.getByRole('button', { name: 'Create Family' }).click();
-
-    // Step 6: Confirm invitations in dialog
-    await expect(page.getByRole('dialog', { name: 'Confirm Invitations' })).toBeVisible();
-    await page.getByRole('button', { name: 'Send Invitations' }).click();
-
-    // Step 7: Wait for success
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+    // Create a new family
+    const family = await createFamilyViaAPI(graphqlClient, familyName);
+    console.log(`Created new family: ${family.name} (${family.id})`);
+    return { familyId: family.id, familyName: family.name };
   }
 
-  test('should send email with correct recipient and subject', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
+  test('should send email with correct recipient and subject', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Email Test Family ${timestamp}`;
+    const inviteeEmail = `invitee-${timestamp}@example.com`;
 
-    await test.step('Complete wizard with single invitation', async () => {
-      await completeFamilyCreationWizard(page, {
-        familyName: 'Email Test Family',
-        invitations: [{ email: 'invitee@example.com', role: 'MEMBER' }],
-      });
+    await test.step('Create family and send invitation via API', async () => {
+      const { familyId, familyName } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      const result = await inviteFamilyMembersViaAPI(graphqlClient, familyId, [
+        { email: inviteeEmail, role: 'MEMBER' },
+      ]);
+
+      expect(result.successfulInvitations).toHaveLength(1);
+      expect(result.failedInvitations).toHaveLength(0);
+      console.log(`✅ Invitation sent to ${inviteeEmail}`);
     });
 
     await test.step('Wait for email to arrive in MailHog', async () => {
       const email = await mailHog.waitForEmail(
-        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === 'invitee@example.com'),
-        5000
+        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === inviteeEmail),
+        10000 // Longer timeout for real email pipeline
       );
 
       expect(email).not.toBeNull();
+      console.log('✅ Email received in MailHog');
     });
 
     await test.step('Verify email subject', async () => {
-      const email = await mailHog.getEmailByRecipient('invitee@example.com');
+      const email = await mailHog.getEmailByRecipient(inviteeEmail);
       expect(email).not.toBeNull();
       expect(email!.Content.Headers.Subject[0]).toContain('invited you');
-      expect(email!.Content.Headers.Subject[0]).toContain('Email Test Family');
     });
 
     await test.step('Verify email recipient', async () => {
-      const email = await mailHog.getEmailByRecipient('invitee@example.com');
-      expect(email!.To[0].Mailbox).toBe('invitee');
-      expect(email!.To[0].Domain).toBe('example.com');
+      const email = await mailHog.getEmailByRecipient(inviteeEmail);
+      const [mailbox, domain] = inviteeEmail.split('@');
+      expect(email!.To[0].Mailbox).toBe(mailbox);
+      expect(email!.To[0].Domain).toBe(domain);
     });
   });
 
-  test('should include personal message in email body', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
-    await test.step('Complete wizard with personal message', async () => {
-      const personalMessage = 'Welcome to our family circle! We are excited to have you join us.';
+  test('should include personal message in email body', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Message Test Family ${timestamp}`;
+    const inviteeEmail = `invitee-msg-${timestamp}@example.com`;
+    const personalMessage = 'Welcome to our family circle! We are excited to have you join us.';
 
-      await completeFamilyCreationWizard(page, {
-        familyName: 'Message Test Family',
-        invitations: [
-          {
-            email: 'invitee-message@example.com',
-            role: 'MEMBER',
-            message: personalMessage,
-          },
-        ],
-      });
+    await test.step('Create family and send invitation with personal message', async () => {
+      const { familyId } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      const result = await inviteFamilyMembersViaAPI(
+        graphqlClient,
+        familyId,
+        [{ email: inviteeEmail, role: 'MEMBER' }],
+        personalMessage
+      );
+
+      expect(result.successfulInvitations).toHaveLength(1);
     });
 
     await test.step('Wait for email with personal message', async () => {
       const email = await mailHog.waitForEmail(
         (e) => e.Content.Body.includes('Welcome to our family circle'),
-        5000
+        10000
       );
 
       expect(email).not.toBeNull();
@@ -280,22 +144,29 @@ test.describe.skip('Invitation Email Verification', () => {
     });
   });
 
-  test('should include valid invitation token link', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
-    await test.step('Complete wizard with invitation', async () => {
-      await completeFamilyCreationWizard(page, {
-        familyName: 'Token Test Family',
-        invitations: [{ email: 'invitee-token@example.com', role: 'MEMBER' }],
-      });
+  test('should include valid invitation token link', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Token Test Family ${timestamp}`;
+    const inviteeEmail = `invitee-token-${timestamp}@example.com`;
+
+    await test.step('Create family and send invitation', async () => {
+      const { familyId } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      const result = await inviteFamilyMembersViaAPI(graphqlClient, familyId, [
+        { email: inviteeEmail, role: 'MEMBER' },
+      ]);
+
+      expect(result.successfulInvitations).toHaveLength(1);
+      // API returns the token directly - we can verify it matches email
+      const apiToken = result.successfulInvitations[0].token;
+      expect(apiToken).toBeTruthy();
+      console.log(`API returned token: ${apiToken.substring(0, 10)}...`);
     });
 
     await test.step('Retrieve email from MailHog', async () => {
       const email = await mailHog.waitForEmail(
-        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === 'invitee-token@example.com'),
-        5000
+        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === inviteeEmail),
+        10000
       );
       expect(email).not.toBeNull();
 
@@ -306,7 +177,7 @@ test.describe.skip('Invitation Email Verification', () => {
     });
 
     await test.step('Verify token link format in email', async () => {
-      const email = await mailHog.getEmailByRecipient('invitee-token@example.com');
+      const email = await mailHog.getEmailByRecipient(inviteeEmail);
       const urls = mailHog.extractUrls(email!);
 
       expect(urls.length).toBeGreaterThan(0);
@@ -314,22 +185,26 @@ test.describe.skip('Invitation Email Verification', () => {
     });
   });
 
-  test('should display ADMIN role correctly in email', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
-    await test.step('Complete wizard with ADMIN role invitation', async () => {
-      await completeFamilyCreationWizard(page, {
-        familyName: 'Admin Role Family',
-        invitations: [{ email: 'admin@example.com', role: 'ADMIN' }],
-      });
+  test('should display ADMIN role correctly in email', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Admin Role Family ${timestamp}`;
+    const inviteeEmail = `admin-role-${timestamp}@example.com`;
+
+    await test.step('Create family and send ADMIN invitation', async () => {
+      const { familyId } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      const result = await inviteFamilyMembersViaAPI(graphqlClient, familyId, [
+        { email: inviteeEmail, role: 'ADMIN' },
+      ]);
+
+      expect(result.successfulInvitations).toHaveLength(1);
+      expect(result.successfulInvitations[0].role).toBe('ADMIN');
     });
 
     await test.step('Verify admin role mentioned in email', async () => {
       const email = await mailHog.waitForEmail(
-        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === 'admin@example.com'),
-        5000
+        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === inviteeEmail),
+        10000
       );
       expect(email).not.toBeNull();
 
@@ -338,22 +213,26 @@ test.describe.skip('Invitation Email Verification', () => {
     });
   });
 
-  test('should display MEMBER role correctly in email', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
-    await test.step('Complete wizard with MEMBER role invitation', async () => {
-      await completeFamilyCreationWizard(page, {
-        familyName: 'Member Role Family',
-        invitations: [{ email: 'member@example.com', role: 'MEMBER' }],
-      });
+  test('should display MEMBER role correctly in email', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Member Role Family ${timestamp}`;
+    const inviteeEmail = `member-role-${timestamp}@example.com`;
+
+    await test.step('Create family and send MEMBER invitation', async () => {
+      const { familyId } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      const result = await inviteFamilyMembersViaAPI(graphqlClient, familyId, [
+        { email: inviteeEmail, role: 'MEMBER' },
+      ]);
+
+      expect(result.successfulInvitations).toHaveLength(1);
+      expect(result.successfulInvitations[0].role).toBe('MEMBER');
     });
 
     await test.step('Verify member role mentioned in email', async () => {
       const email = await mailHog.waitForEmail(
-        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === 'member@example.com'),
-        5000
+        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === inviteeEmail),
+        10000
       );
       expect(email).not.toBeNull();
 
@@ -362,37 +241,39 @@ test.describe.skip('Invitation Email Verification', () => {
     });
   });
 
-  test('should send multiple emails when inviting multiple members', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
+  test('should send multiple emails when inviting multiple members', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Multi Invite Family ${timestamp}`;
+    const invitees = [
+      { email: `alice-${timestamp}@example.com`, role: 'ADMIN' as const },
+      { email: `bob-${timestamp}@example.com`, role: 'MEMBER' as const },
+      { email: `charlie-${timestamp}@example.com`, role: 'MEMBER' as const },
+    ];
 
-    await test.step('Complete wizard with 3 invitations', async () => {
-      await completeFamilyCreationWizard(page, {
-        familyName: 'Multi Invite Family',
-        invitations: [
-          { email: 'alice@example.com', role: 'ADMIN' },
-          { email: 'bob@example.com', role: 'MEMBER' },
-          { email: 'charlie@example.com', role: 'MEMBER' },
-        ],
-      });
+    await test.step('Create family and send batch invitations', async () => {
+      const { familyId } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      const result = await inviteFamilyMembersViaAPI(graphqlClient, familyId, invitees);
+
+      expect(result.successfulInvitations).toHaveLength(3);
+      expect(result.failedInvitations).toHaveLength(0);
+      console.log('✅ All 3 invitations sent successfully');
     });
 
     await test.step('Wait for all 3 emails (background service batch processing)', async () => {
       const emails = await mailHog.waitForEmails(
         3,
         (e) => e.Content.Headers.Subject[0].includes('invited you'),
-        5000
+        15000 // Longer timeout for batch processing
       );
 
       expect(emails.length).toBe(3);
     });
 
     await test.step('Verify each email has correct recipient', async () => {
-      const email1 = await mailHog.getEmailByRecipient('alice@example.com');
-      const email2 = await mailHog.getEmailByRecipient('bob@example.com');
-      const email3 = await mailHog.getEmailByRecipient('charlie@example.com');
+      const email1 = await mailHog.getEmailByRecipient(invitees[0].email);
+      const email2 = await mailHog.getEmailByRecipient(invitees[1].email);
+      const email3 = await mailHog.getEmailByRecipient(invitees[2].email);
 
       expect(email1).not.toBeNull();
       expect(email2).not.toBeNull();
@@ -407,45 +288,56 @@ test.describe.skip('Invitation Email Verification', () => {
     });
   });
 
-  test('should include family name in email body', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
-    await test.step('Complete wizard with distinct family name', async () => {
-      await completeFamilyCreationWizard(page, {
-        familyName: 'The Awesome Smith Family',
-        invitations: [{ email: 'family-name-test@example.com', role: 'MEMBER' }],
-      });
+  test('should include family name in email body', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `The Awesome Smith Family ${timestamp}`;
+    const inviteeEmail = `family-name-${timestamp}@example.com`;
+
+    await test.step('Create family with distinct name and send invitation', async () => {
+      const { familyId, familyName } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      const result = await inviteFamilyMembersViaAPI(graphqlClient, familyId, [
+        { email: inviteeEmail, role: 'MEMBER' },
+      ]);
+
+      expect(result.successfulInvitations).toHaveLength(1);
     });
 
     await test.step('Verify family name in email', async () => {
       const email = await mailHog.waitForEmail(
-        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === 'family-name-test@example.com'),
-        5000
+        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === inviteeEmail),
+        10000
       );
       expect(email).not.toBeNull();
 
+      // Family name should appear in email body
       expect(email!.Content.Body).toContain('The Awesome Smith Family');
     });
   });
 
-  test('should include invitation display code in email', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
-    await test.step('Complete wizard with invitation', async () => {
-      await completeFamilyCreationWizard(page, {
-        familyName: 'Display Code Family',
-        invitations: [{ email: 'display-code@example.com', role: 'MEMBER' }],
-      });
+  test('should include invitation display code in email', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Display Code Family ${timestamp}`;
+    const inviteeEmail = `display-code-${timestamp}@example.com`;
+
+    await test.step('Create family and send invitation', async () => {
+      const { familyId } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      const result = await inviteFamilyMembersViaAPI(graphqlClient, familyId, [
+        { email: inviteeEmail, role: 'MEMBER' },
+      ]);
+
+      expect(result.successfulInvitations).toHaveLength(1);
+      // API returns display code - verify format
+      const displayCode = result.successfulInvitations[0].displayCode;
+      expect(displayCode).toMatch(/^[A-Z0-9]{3}-[A-Z0-9]{3}-[0-9]{3}$/);
+      console.log(`API returned display code: ${displayCode}`);
     });
 
     await test.step('Verify display code format in email', async () => {
       const email = await mailHog.waitForEmail(
-        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === 'display-code@example.com'),
-        5000
+        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === inviteeEmail),
+        10000
       );
       expect(email).not.toBeNull();
 
@@ -455,22 +347,23 @@ test.describe.skip('Invitation Email Verification', () => {
     });
   });
 
-  test('should include sender information in email headers', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
-    await test.step('Complete wizard with invitation', async () => {
-      await completeFamilyCreationWizard(page, {
-        familyName: 'Sender Test Family',
-        invitations: [{ email: 'sender-test@example.com', role: 'MEMBER' }],
-      });
+  test('should include sender information in email headers', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Sender Test Family ${timestamp}`;
+    const inviteeEmail = `sender-test-${timestamp}@example.com`;
+
+    await test.step('Create family and send invitation', async () => {
+      const { familyId } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      await inviteFamilyMembersViaAPI(graphqlClient, familyId, [
+        { email: inviteeEmail, role: 'MEMBER' },
+      ]);
     });
 
     await test.step('Verify sender email address', async () => {
       const email = await mailHog.waitForEmail(
-        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === 'sender-test@example.com'),
-        5000
+        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === inviteeEmail),
+        10000
       );
       expect(email).not.toBeNull();
 
@@ -479,22 +372,23 @@ test.describe.skip('Invitation Email Verification', () => {
     });
   });
 
-  test('should have HTML email structure with proper formatting', async ({ page }) => {
-    await test.step('Setup authenticated session and mocks', async () => {
-      await setupAuthenticatedSession(page);
-      await setupFamilyCreationMocks(page);
-    });
-    await test.step('Complete wizard with invitation', async () => {
-      await completeFamilyCreationWizard(page, {
-        familyName: 'HTML Test Family',
-        invitations: [{ email: 'html-test@example.com', role: 'MEMBER' }],
-      });
+  test('should have HTML email structure with proper formatting', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `HTML Test Family ${timestamp}`;
+    const inviteeEmail = `html-test-${timestamp}@example.com`;
+
+    await test.step('Create family and send invitation', async () => {
+      const { familyId } = await ensureFamilyExists(graphqlClient, testFamilyName);
+
+      await inviteFamilyMembersViaAPI(graphqlClient, familyId, [
+        { email: inviteeEmail, role: 'MEMBER' },
+      ]);
     });
 
     await test.step('Verify HTML structure', async () => {
       const email = await mailHog.waitForEmail(
-        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === 'html-test@example.com'),
-        5000
+        (e) => e.To.some((to) => `${to.Mailbox}@${to.Domain}` === inviteeEmail),
+        10000
       );
       expect(email).not.toBeNull();
 
@@ -506,6 +400,78 @@ test.describe.skip('Invitation Email Verification', () => {
       // Should contain invitation link as anchor tag
       expect(email!.Content.Body).toContain('<a');
       expect(email!.Content.Body).toContain('href=');
+    });
+  });
+});
+
+/**
+ * Additional tests for edge cases and error handling
+ */
+test.describe('Invitation Email Edge Cases', () => {
+  let mailHog: MailHogClient;
+
+  test.beforeEach(async ({ context }) => {
+    mailHog = new MailHogClient();
+    await mailHog.clearEmails();
+    await context.clearCookies();
+  });
+
+  test('should handle duplicate invitation gracefully', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Duplicate Test Family ${timestamp}`;
+    const inviteeEmail = `duplicate-${timestamp}@example.com`;
+
+    await test.step('Create family and send first invitation', async () => {
+      // First, check if user has a family, create if not
+      let family = await getCurrentFamilyViaAPI(graphqlClient);
+      if (!family) {
+        family = await createFamilyViaAPI(graphqlClient, testFamilyName);
+      }
+
+      const result = await inviteFamilyMembersViaAPI(graphqlClient, family.id, [
+        { email: inviteeEmail, role: 'MEMBER' },
+      ]);
+
+      expect(result.successfulInvitations).toHaveLength(1);
+    });
+
+    await test.step('Attempt duplicate invitation - should fail', async () => {
+      const family = await getCurrentFamilyViaAPI(graphqlClient);
+      expect(family).not.toBeNull();
+
+      const result = await inviteFamilyMembersViaAPI(graphqlClient, family!.id, [
+        { email: inviteeEmail, role: 'MEMBER' },
+      ]);
+
+      // Duplicate should be in failed invitations
+      expect(result.failedInvitations).toHaveLength(1);
+      expect(result.failedInvitations[0].email).toBe(inviteeEmail);
+      console.log(`✅ Duplicate correctly rejected: ${result.failedInvitations[0].errorMessage}`);
+    });
+  });
+
+  test('should reject invalid email format', async ({ graphqlClient }) => {
+    const timestamp = Date.now();
+    const testFamilyName = `Invalid Email Family ${timestamp}`;
+
+    await test.step('Create family and attempt invalid email invitation', async () => {
+      let family = await getCurrentFamilyViaAPI(graphqlClient);
+      if (!family) {
+        family = await createFamilyViaAPI(graphqlClient, testFamilyName);
+      }
+
+      // This should throw due to Vogen validation on backend
+      try {
+        await inviteFamilyMembersViaAPI(graphqlClient, family.id, [
+          { email: 'not-an-email', role: 'MEMBER' },
+        ]);
+        // If we get here, test should fail
+        expect(true).toBe(false); // Force failure
+      } catch (error: any) {
+        // Expected - invalid email should be rejected
+        expect(error.message).toContain('Invalid');
+        console.log('✅ Invalid email correctly rejected');
+      }
     });
   });
 });

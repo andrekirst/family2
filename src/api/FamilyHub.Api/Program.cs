@@ -49,6 +49,20 @@ try
     builder.Services.AddAuthModule(builder.Configuration);
     builder.Services.AddFamilyModule(builder.Configuration);
 
+    // TEST MODE: Enable header-based authentication for E2E tests
+    // When enabled, bypasses JWT validation and uses X-Test-User-Id / X-Test-User-Email headers
+    // SECURITY: Blocked in Production environment - will throw InvalidOperationException
+    var testModeEnabled = builder.Services.TryAddTestMode(
+        builder.Configuration,
+        builder.Environment.EnvironmentName);
+
+    if (testModeEnabled)
+    {
+        Log.Warning(
+            "Test mode is ENABLED - JWT validation is bypassed. " +
+            "Use X-Test-User-Id and X-Test-User-Email headers for authentication.");
+    }
+
     // RabbitMQ messaging infrastructure
     builder.Services.AddRabbitMq(builder.Configuration);
 
