@@ -616,8 +616,9 @@ describe('InviteMembersStepComponent', () => {
     });
 
     it('should render Add Another Email button', () => {
+      // Template uses a plain <button> element, not <app-button>
       const button = fixture.debugElement.query(
-        By.css('app-button[ariaLabel="Add another email invitation"]')
+        By.css('button[aria-label="Add another email invitation"]')
       );
       expect(button).toBeTruthy();
     });

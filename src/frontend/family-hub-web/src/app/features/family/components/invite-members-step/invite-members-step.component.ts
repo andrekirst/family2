@@ -208,6 +208,10 @@ export class InviteMembersStepComponent implements OnInit {
     this.emailForm.valueChanges.subscribe(() => {
       this.emitData();
     });
+
+    // Emit initial data state (important for wizard step contract)
+    // valueChanges doesn't fire on subscribe, so emit manually
+    this.emitData();
   }
 
   /**

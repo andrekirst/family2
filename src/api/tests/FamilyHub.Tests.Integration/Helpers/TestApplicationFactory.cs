@@ -52,19 +52,14 @@ public sealed class TestApplicationFactory(PostgreSqlContainerFixture containerF
             services.RemoveAll<IDbContextFactory<FamilyDbContext>>();
 
             // Add FamilyDbContext with test container connection string
-            services.AddPooledDbContextFactory<FamilyDbContext>((_, options) =>
+            // Use AddDbContext (not AddPooledDbContextFactory) to match production pattern
+            // FamilyModuleServiceRegistration uses AddDbContext which registers as scoped
+            services.AddDbContext<FamilyDbContext>((_, options) =>
                 options.UseNpgsql(containerFixture.ConnectionString, npgsqlOptions =>
                     {
                         npgsqlOptions.MigrationsAssembly(typeof(FamilyDbContext).Assembly.GetName().Name);
                     })
                     .UseSnakeCaseNamingConvention());
-
-            // Also register scoped FamilyDbContext
-            services.AddScoped(sp =>
-            {
-                var factory = sp.GetRequiredService<IDbContextFactory<FamilyDbContext>>();
-                return factory.CreateDbContext();
-            });
 
             // Remove the existing ICurrentUserService registration
             services.RemoveAll<ICurrentUserService>();

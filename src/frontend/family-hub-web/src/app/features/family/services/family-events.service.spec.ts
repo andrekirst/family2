@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Apollo } from 'apollo-angular';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { FamilyEventsService } from './family-events.service';
 import { ToastService } from '../../../core/services/toast.service';
 
@@ -287,7 +287,16 @@ describe('FamilyEventsService', () => {
 
   describe('connection status', () => {
     it('should set isConnected to true when subscription succeeds', (done) => {
-      const mockSubscription = of({
+      // Use a Subject instead of `of()` to prevent immediate completion
+      // Real WebSocket subscriptions stay open - they don't complete immediately
+      const mockSubject = new Subject();
+
+      apolloMock.subscribe.and.returnValue(mockSubject.asObservable() as any);
+
+      service.subscribeFamilyMembers('family-id');
+
+      // Emit data (simulating WebSocket message)
+      mockSubject.next({
         data: {
           familyMembersChanged: {
             familyId: 'family-id',
@@ -303,10 +312,6 @@ describe('FamilyEventsService', () => {
           },
         },
       });
-
-      apolloMock.subscribe.and.returnValue(mockSubscription as any);
-
-      service.subscribeFamilyMembers('family-id');
 
       setTimeout(() => {
         expect(service.isConnected()).toBe(true);
