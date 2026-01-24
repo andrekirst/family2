@@ -97,6 +97,10 @@ public static class AuthModuleServiceRegistration
         // between validators and handlers
         services.AddScoped<IValidationCache, ValidationCache>();
 
+        // Subscription Event Publisher - Helper service for publishing GraphQL subscription messages
+        // Used by command handlers to trigger real-time updates via Redis PubSub
+        services.AddScoped<SubscriptionEventPublisher>();
+
         // GraphQL Mutation Conventions (Hot Chocolate v14 native pattern)
         // No manual registration needed - mutations use [UseMutationConvention] attribute
 
@@ -131,7 +135,7 @@ public static class AuthModuleServiceRegistration
             // 3. AuthorizationBehavior - Check family context and role-based policies
             cfg.AddOpenBehavior(typeof(AuthorizationBehavior<,>));
             // 4. ValidationBehavior - Validate input using FluentValidation
-            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(FamilyHub.SharedKernel.Application.Behaviors.ValidationBehavior<,>));
         });
 
         // FluentValidation - Validators
@@ -190,15 +194,26 @@ public static class AuthModuleServiceRegistration
             .AddType<Presentation.GraphQL.Types.UserType>()
             .AddTypeExtension<Presentation.GraphQL.Types.UserTypeExtensions>()
             .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>()
-            // Namespace container types (no [ExtendObjectType] attribute - must be registered explicitly)
-            // These provide GraphQL schema organization: query { auth { ... } invitations { ... } }
+            // Namespace container types - provide GraphQL schema organization
+            // query { auth { ... } invitations { ... } }
             .AddType<Presentation.GraphQL.Types.AuthType>()
             .AddType<Presentation.GraphQL.Types.InvitationsType>()
-            // Auto-discover all type extensions with [ExtendObjectType] attribute
-            // This includes: Query/Mutation extensions, AuthTypeExtensions, InvitationsTypeExtensions
-            .AddTypeExtensionsFromAssemblies(
-                [typeof(AuthModuleServiceRegistration).Assembly],
-                loggerFactory);
+            // Extensions for namespace container types
+            .AddTypeExtension<Presentation.GraphQL.Types.AuthTypeExtensions>()
+            .AddTypeExtension<Presentation.GraphQL.Types.InvitationsTypeExtensions>()
+            // Query extensions - extend Query type with authentication-related queries
+            .AddTypeExtension<Presentation.GraphQL.Queries.HealthQueries>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.UserQueries>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.AuthQueryExtension>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.InvitationsQueryExtension>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.InvitationQueries>()
+            .AddTypeExtension<Presentation.GraphQL.Queries.RolesQueries>()
+            // Mutation extensions - extend Mutation type with authentication-related mutations
+            .AddTypeExtension<Presentation.GraphQL.Mutations.AuthMutations>()
+            .AddTypeExtension<Presentation.GraphQL.Mutations.FamilyMutations>()
+            .AddTypeExtension<Presentation.GraphQL.Mutations.InvitationMutations>()
+            // Subscription extensions - extend Subscription type with real-time updates
+            .AddTypeExtension<Presentation.GraphQL.Subscriptions.InvitationSubscriptions>();
     }
 
     /// <summary>

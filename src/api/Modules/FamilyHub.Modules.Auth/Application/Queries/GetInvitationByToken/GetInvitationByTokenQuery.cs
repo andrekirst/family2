@@ -1,6 +1,6 @@
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 
@@ -11,5 +11,5 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
 /// <param name="Token">The invitation token.</param>
 public sealed record GetInvitationByTokenQuery(
     InvitationToken Token
-) : IRequest<GetInvitationByTokenResult?>,
+) : IQuery<GetInvitationByTokenResult?>,
     IPublicQuery;

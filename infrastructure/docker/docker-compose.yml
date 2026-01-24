@@ -14,14 +14,14 @@ services:
       POSTGRES_USER: familyhub
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Dev123!}
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init-scripts:/docker-entrypoint-initdb.d
     networks:
       - familyhub-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U familyhub"]
+      test: ['CMD-SHELL', 'pg_isready -U familyhub']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,14 +35,32 @@ services:
       RABBITMQ_DEFAULT_USER: familyhub
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-Dev123!}
     ports:
-      - "5672:5672"   # AMQP
-      - "15672:15672" # Management UI
+      - '5672:5672' # AMQP
+      - '15672:15672' # Management UI
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - familyhub-network
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis (Subscription Transport for GraphQL)
+  redis:
+    image: redis:7-alpine
+    container_name: familyhub-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - familyhub-network
+    command: redis-server --appendonly yes --appendfsync everysec
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -63,9 +81,9 @@ services:
       ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: familyhub
       ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${POSTGRES_PASSWORD:-Dev123!}
       ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
-      ZITADEL_EXTERNALSECURE: "false"
+      ZITADEL_EXTERNALSECURE: 'false'
       ZITADEL_EXTERNALPORT: 8080
-      ZITADEL_TLS_ENABLED: "false"
+      ZITADEL_TLS_ENABLED: 'false'
       ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY:-MasterKey123!MustBe32Characters!}
       ZITADEL_FIRSTINSTANCE_ORG_NAME: FamilyHub
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
@@ -83,7 +101,7 @@ services:
       ZITADEL_SMTP_PASSWORD: ${SMTP_PASSWORD}
       ZITADEL_SMTP_REPLY_TO_ADDRESS: ${SMTP_REPLY_TO_ADDRESS:-support@familyhub.local}
     ports:
-      - "8080:8080"
+      - '8080:8080'
     depends_on:
       postgres:
         condition: service_healthy
@@ -100,7 +118,7 @@ services:
     environment:
       ACCEPT_EULA: Y
     ports:
-      - "5341:80"
+      - '5341:80'
     volumes:
       - seq_data:/data
     networks:
@@ -112,8 +130,8 @@ services:
     image: mailhog/mailhog:latest
     container_name: familyhub-mailhog
     ports:
-      - "1025:1025" # SMTP server
-      - "8025:8025" # Web UI
+      - '1025:1025' # SMTP server
+      - '8025:8025' # Web UI
     networks:
       - familyhub-network
     restart: unless-stopped
@@ -125,4 +143,5 @@ networks:
 volumes:
   postgres_data:
   rabbitmq_data:
+  redis_data:
   seq_data:

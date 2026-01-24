@@ -1,6 +1,6 @@
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 
@@ -10,5 +10,5 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 /// </summary>
 public sealed record CreateFamilyCommand(
     FamilyName Name
-) : IRequest<CreateFamilyResult>,
+) : ICommand<CreateFamilyResult>,
     IRequireAuthentication;

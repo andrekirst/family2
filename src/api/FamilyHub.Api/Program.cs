@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Mime;
 using AspNetCoreRateLimit;
+using FamilyHub.Infrastructure.Email;
 using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Infrastructure.Messaging;
@@ -48,12 +49,34 @@ try
     builder.Services.AddAuthModule(builder.Configuration);
     builder.Services.AddFamilyModule(builder.Configuration);
 
+    // TEST MODE: Enable header-based authentication for E2E tests
+    // When enabled, bypasses JWT validation and uses X-Test-User-Id / X-Test-User-Email headers
+    // SECURITY: Blocked in Production environment - will throw InvalidOperationException
+    var testModeEnabled = builder.Services.TryAddTestMode(
+        builder.Configuration,
+        builder.Environment.EnvironmentName);
+
+    if (testModeEnabled)
+    {
+        Log.Warning(
+            "Test mode is ENABLED - JWT validation is bypassed. " +
+            "Use X-Test-User-Id and X-Test-User-Email headers for authentication.");
+    }
+
     // RabbitMQ messaging infrastructure
     builder.Services.AddRabbitMq(builder.Configuration);
 
+    // Redis (GraphQL subscriptions transport)
+    builder.Services.AddRedis(builder.Configuration);
+
+    // Email infrastructure
+    builder.Services.AddEmailServices(builder.Configuration);
+
     // Health checks
     builder.Services.AddHealthChecks()
-        .AddRabbitMqHealthCheck(tags: ["ready", "infrastructure"]);
+        .AddRabbitMqHealthCheck(tags: ["ready", "infrastructure"])
+        .AddRedisHealthCheck(tags: ["ready", "infrastructure"])
+        .AddSmtpHealthCheck(tags: ["ready", "infrastructure"]);
 
     // Quartz.NET Background Jobs Configuration
     builder.Services.AddQuartz(q =>
@@ -100,13 +123,16 @@ try
         .AddGraphQLServer()
         .AddQueryType(d => d.Name("Query"))
         .AddMutationType(d => d.Name("Mutation"))
+        .AddSubscriptionType(d => d.Name("Subscription")) // Enable GraphQL subscriptions
         .AddMutationConventions() // Enable mutation conventions for declarative error handling
         .AddAuthorization() // Enable authorization for GraphQL (requires HotChocolate.AspNetCore.Authorization)
+        .TryAddTypeInterceptor<FamilyHub.Infrastructure.GraphQL.Interceptors.AuthorizationTypeInterceptor>() // Apply authorization via IRequireXXX interfaces on mutation classes
         .AddFiltering()
         .AddSorting()
         .AddProjections() // Re-enabled - works correctly when FamilyType is properly registered
         .AddErrorFilter<GraphQlErrorFilter>() // Centralized exception → GraphQL error mapping
         .AddDiagnosticEventListener<GraphQlLoggingInterceptor>() // GraphQL operation logging
+        .AddRedisSubscriptions(sp => sp.GetRequiredService<StackExchange.Redis.IConnectionMultiplexer>()) // Redis PubSub for multi-instance subscriptions
         .ModifyRequestOptions(opt =>
         {
             opt.IncludeExceptionDetails = builder.Environment.IsDevelopment();
@@ -217,6 +243,9 @@ try
 
     app.UseHttpsRedirection();
     app.UseCors("AllowAngularApp");
+
+    // WebSocket support for GraphQL subscriptions
+    app.UseWebSockets();
 
     // Rate Limiting Middleware
     app.UseIpRateLimiting();

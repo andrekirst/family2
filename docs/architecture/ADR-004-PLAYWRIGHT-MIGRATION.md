@@ -324,6 +324,97 @@ export const test = base.extend<RabbitMQFixture>({
 
 ---
 
+## Addendum: Test Authentication Strategy (January 2026)
+
+**Status:** Accepted
+**Date:** 2026-01-19
+**Related Issue:** [Issue #91](https://github.com/andrekirst/family2/issues/91), [Issue #92](https://github.com/andrekirst/family2/issues/92)
+
+### Context
+
+The original ADR-004 left E2E authentication strategy undefined. Issue #92 raised key questions:
+
+1. What authentication approach should E2E tests use?
+2. How does "API-first testing" work with auth requirements?
+3. What tradeoffs are acceptable?
+
+### Decision: Hybrid Test Authentication
+
+Implement **Test Mode Authentication** (Issue #91) as the primary E2E auth strategy, with **OAuth Mocking** as a secondary option for UI-only tests.
+
+**Test Mode Authentication:**
+
+```csharp
+// Backend accepts test headers when FAMILYHUB_TEST_MODE=true
+X-Test-User-Id: 00000000-0000-0000-0000-000000000001
+X-Test-User-Email: test-owner@familyhub.test
+```
+
+**When to Use Each Approach:**
+
+| Approach | Use Case | Speed | Coverage |
+|----------|----------|-------|----------|
+| **Test Mode** | API-first testing, event chains, email verification | ⭐⭐ | ⭐⭐⭐ |
+| **OAuth Mocking** | Fast UI smoke tests, visual regression | ⭐⭐⭐ | ⭐ |
+| **Real OAuth** | Critical auth flow testing (rare) | ⭐ | ⭐⭐⭐ |
+
+### "API-First Testing" Clarification
+
+The ADR-004 principle "Verify event chains via GraphQL + RabbitMQ" means:
+
+1. **Primary verification via API** - Call GraphQL mutations/queries to test business logic
+2. **Event verification via RabbitMQ** - Confirm domain events are published
+3. **UI as spot-check** - Optionally verify UI renders correct state
+4. **NOT "no UI testing"** - UI testing remains valuable for accessibility, cross-browser, UX
+
+**Example API-First Test:**
+
+```typescript
+test('event chain: family creation', async ({ graphqlClient, rabbitmq, page }) => {
+  // 1. API call (primary verification)
+  const result = await graphqlClient.mutate(CREATE_FAMILY, { name: 'Test' });
+  expect(result.data.createFamily.familyId).toBeDefined();
+
+  // 2. Event verification (optional)
+  const event = await rabbitmq.waitForMessage(
+    (msg) => msg.eventType === 'FamilyCreatedEvent',
+    5000
+  );
+  expect(event).toBeDefined();
+
+  // 3. UI spot-check (optional)
+  await page.goto('/family');
+  await expect(page.getByText('Test')).toBeVisible();
+});
+```
+
+### Security Safeguards
+
+Test Mode includes security measures:
+
+1. **Environment Block** - Throws `InvalidOperationException` if enabled in Production
+2. **Explicit Opt-In** - Requires `FAMILYHUB_TEST_MODE=true` environment variable
+3. **Warning Logs** - Logs warning when test mode is active
+4. **Header-Only** - Only works via specific HTTP headers (not query params)
+
+### Tradeoffs Accepted
+
+| Tradeoff | Rationale |
+|----------|-----------|
+| Test Mode doesn't test OAuth flow | OAuth flow tested via Zitadel's own tests; our focus is business logic |
+| Backend modification required | Small change (middleware) for significant testing benefit |
+| Test users are synthetic | Predictable state more valuable than realistic randomness |
+| Some tests skip real auth | Speed gain outweighs marginal coverage loss |
+
+### Implementation References
+
+- **Backend Middleware:** `FamilyHub.Modules.Auth.Presentation/Middleware/TestModeAuthenticationMiddleware.cs`
+- **Playwright Fixture:** `e2e/fixtures/auth.fixture.ts`
+- **Test Users:** `e2e/support/constants.ts` (TEST_USERS)
+- **Documentation:** [TESTING_WITH_PLAYWRIGHT.md](../development/TESTING_WITH_PLAYWRIGHT.md#test-mode-authentication-issue-91)
+
+---
+
 ## Related Decisions
 
 - [ADR-001: Modular Monolith First](ADR-001-MODULAR-MONOLITH-FIRST.md) - Backend architecture influences E2E test strategy
@@ -424,5 +515,5 @@ Once Health, Calendar, Task, Shopping, and Communication modules are implemented
 ---
 
 **Decision Date:** 2026-01-04
-**Last Updated:** 2026-01-04
-**Version:** 1.0
+**Last Updated:** 2026-01-19
+**Version:** 1.1 (Added Test Authentication Strategy Addendum - Issue #91, #92)

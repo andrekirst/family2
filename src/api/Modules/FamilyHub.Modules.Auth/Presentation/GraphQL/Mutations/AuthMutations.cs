@@ -1,8 +1,8 @@
 using FamilyHub.Infrastructure.GraphQL;
+using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Inputs;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
-using FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -35,12 +35,8 @@ public sealed class AuthMutations
     /// <param name="logger">Logger for operation logging.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Authentication result with user and tokens.</returns>
+    [DefaultMutationErrors]
     [UseMutationConvention]
-    [Error(typeof(BusinessError))]
-    [Error(typeof(ValidationError))]
-    [Error(typeof(ValueObjectError))]
-    [Error(typeof(UnauthorizedError))]
-    [Error(typeof(InternalServerError))]
     public async Task<AuthenticationResult> CompleteZitadelLogin(
         CompleteZitadelLoginInput input,
         [Service] IMediator mediator,
@@ -54,8 +50,8 @@ public sealed class AuthMutations
             AuthorizationCode: input.AuthorizationCode,
             CodeVerifier: input.CodeVerifier);
 
-        // Send command via MediatR (automatic validation via ValidationBehavior)
-        var result = await mediator.Send(command, cancellationToken);
+        // Explicit type parameter needed because C# can't infer TResponse through ICommand<T> : IRequest<T>
+        var result = await mediator.Send<CompleteZitadelLoginResult>(command, cancellationToken);
 
         // Map result → return data directly
         var authResult = new AuthenticationResult

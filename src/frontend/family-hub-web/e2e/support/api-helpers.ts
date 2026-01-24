@@ -1,5 +1,5 @@
 import { APIRequestContext } from '@playwright/test';
-import { URLS } from './constants';
+import { URLS, TEST_AUTH_HEADERS, TEST_USERS, TestUser } from './constants';
 import { FamilyName } from './vogen-mirrors';
 
 /**
@@ -7,15 +7,63 @@ import { FamilyName } from './vogen-mirrors';
  *
  * Provides API-first testing capabilities using Playwright's APIRequestContext.
  * Enables testing event chains without UI interaction for faster, more reliable tests.
+ *
+ * @see Issue #91 - E2E Authentication for API-First Testing
  */
 
 /**
  * GraphQL Client for API-first testing
  *
  * Wraps Playwright's APIRequestContext with GraphQL-specific helpers.
+ * Supports header-based authentication for test mode.
  */
 export class GraphQLClient {
+  private testUser: TestUser | null = null;
+
   constructor(private apiContext: APIRequestContext) {}
+
+  /**
+   * Set the test user for authenticated requests.
+   * When set, all requests will include X-Test-User-Id and X-Test-User-Email headers.
+   *
+   * @param user - The test user to authenticate as, or null to clear authentication
+   * @returns this - for method chaining
+   *
+   * @example
+   * ```typescript
+   * const client = new GraphQLClient(apiContext);
+   * client.setTestUser(TEST_USERS.PRIMARY);
+   * await client.mutate(CREATE_FAMILY_MUTATION, { input: { name: 'Test' } });
+   * ```
+   */
+  setTestUser(user: TestUser | null): this {
+    this.testUser = user;
+    return this;
+  }
+
+  /**
+   * Get the currently set test user.
+   */
+  getTestUser(): TestUser | null {
+    return this.testUser;
+  }
+
+  /**
+   * Build headers for the GraphQL request.
+   * Includes test auth headers if a test user is set.
+   */
+  private getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (this.testUser) {
+      headers[TEST_AUTH_HEADERS.USER_ID] = this.testUser.id;
+      headers[TEST_AUTH_HEADERS.USER_EMAIL] = this.testUser.email;
+    }
+
+    return headers;
+  }
 
   /**
    * Execute a GraphQL query
@@ -27,11 +75,15 @@ export class GraphQLClient {
    */
   async query<T = any>(query: string, variables?: any): Promise<T> {
     const response = await this.apiContext.post(URLS.GRAPHQL, {
+      headers: this.getHeaders(),
       data: { query, variables },
     });
 
     if (!response.ok()) {
-      throw new Error(`GraphQL query failed: ${response.statusText()}`);
+      const body = await response.text();
+      throw new Error(
+        `GraphQL query failed: ${response.status()} ${response.statusText()}\n${body}`
+      );
     }
 
     const data = await response.json();
@@ -129,18 +181,32 @@ export async function getCurrentFamilyViaAPI(
 }
 
 /**
- * Create a GraphQL client with authentication
+ * Create a GraphQL client with test authentication
+ *
+ * Creates a GraphQL client that authenticates using test mode headers.
+ * When the backend has FAMILYHUB_TEST_MODE=true, it will accept these
+ * headers instead of requiring valid JWT tokens.
  *
  * @param apiContext - Playwright APIRequestContext
- * @param accessToken - OAuth access token (optional, uses mock token by default)
+ * @param testUser - The test user to authenticate as (defaults to PRIMARY)
+ * @returns GraphQL client configured with test authentication headers
+ *
+ * @see Issue #91 - E2E Authentication for API-First Testing
+ *
+ * @example
+ * ```typescript
+ * // Use default PRIMARY user
+ * const client = createAuthenticatedGraphQLClient(apiContext);
+ *
+ * // Use specific test user
+ * const memberClient = createAuthenticatedGraphQLClient(apiContext, TEST_USERS.MEMBER);
+ * ```
  */
 export function createAuthenticatedGraphQLClient(
   apiContext: APIRequestContext,
-  accessToken?: string
+  testUser: TestUser = TEST_USERS.PRIMARY
 ): GraphQLClient {
-  // Note: In real implementation, we'll need to configure
-  // APIRequestContext with proper headers. For now, this is a placeholder.
-  return new GraphQLClient(apiContext);
+  return new GraphQLClient(apiContext).setTestUser(testUser);
 }
 
 /**
@@ -203,4 +269,128 @@ export const GraphQLQueries = {
       }
     }
   `,
+
+  /**
+   * Invite family members (batch operation)
+   * Used for E2E email verification tests
+   */
+  INVITE_FAMILY_MEMBERS: `
+    mutation InviteFamilyMembers($input: InviteFamilyMembersInput!) {
+      inviteFamilyMembers(input: $input) {
+        successfulInvitations {
+          invitationId
+          email
+          role
+          token
+          displayCode
+          expiresAt
+          status
+        }
+        failedInvitations {
+          email
+          role
+          errorCode
+          errorMessage
+        }
+        errors {
+          __typename
+          ... on ValidationError {
+            message
+            field
+          }
+          ... on BusinessError {
+            message
+            code
+          }
+        }
+      }
+    }
+  `,
 } as const;
+
+/**
+ * Invitation request input for batch invitations
+ */
+export interface InvitationInput {
+  email: string;
+  role: 'ADMIN' | 'MEMBER' | 'CHILD';
+}
+
+/**
+ * Result of a successful invitation
+ */
+export interface InvitationSuccess {
+  invitationId: string;
+  email: string;
+  role: string;
+  token: string;
+  displayCode: string;
+  expiresAt: string;
+  status: string;
+}
+
+/**
+ * Result of a failed invitation
+ */
+export interface InvitationFailure {
+  email: string;
+  role: string;
+  errorCode: string;
+  errorMessage: string;
+}
+
+/**
+ * Result of invite family members mutation
+ */
+export interface InviteFamilyMembersResult {
+  successfulInvitations: InvitationSuccess[];
+  failedInvitations: InvitationFailure[];
+}
+
+/**
+ * Invite family members via API
+ *
+ * Sends batch invitations to the specified email addresses.
+ * This triggers the email sending pipeline through the EmailOutbox.
+ *
+ * @param client - Authenticated GraphQL client
+ * @param familyId - ID of the family to invite members to
+ * @param invitations - List of email/role pairs to invite
+ * @param message - Optional personal message to include
+ * @returns Result with successful and failed invitations
+ *
+ * @example
+ * ```typescript
+ * const result = await inviteFamilyMembersViaAPI(client, familyId, [
+ *   { email: 'alice@example.com', role: 'ADMIN' },
+ *   { email: 'bob@example.com', role: 'MEMBER' },
+ * ], 'Welcome to our family!');
+ * console.log('Sent:', result.successfulInvitations.length);
+ * ```
+ */
+export async function inviteFamilyMembersViaAPI(
+  client: GraphQLClient,
+  familyId: string,
+  invitations: InvitationInput[],
+  message?: string
+): Promise<InviteFamilyMembersResult> {
+  const result = await client.mutate(GraphQLQueries.INVITE_FAMILY_MEMBERS, {
+    input: {
+      familyId,
+      invitations: invitations.map((i) => ({
+        email: i.email,
+        role: i.role,
+      })),
+      message,
+    },
+  });
+
+  if (result.inviteFamilyMembers.errors?.length > 0) {
+    throw new Error(`Invite failed: ${JSON.stringify(result.inviteFamilyMembers.errors, null, 2)}`);
+  }
+
+  return {
+    successfulInvitations: result.inviteFamilyMembers.successfulInvitations || [],
+    failedInvitations: result.inviteFamilyMembers.failedInvitations || [],
+  };
+}

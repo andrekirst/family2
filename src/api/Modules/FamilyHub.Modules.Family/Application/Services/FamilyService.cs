@@ -1,9 +1,9 @@
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.Specifications;
+using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.SharedKernel.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using FamilyHub.SharedKernel.Interfaces;
 using Microsoft.Extensions.Logging;
 using Result = FamilyHub.SharedKernel.Domain.Result;
 
@@ -11,13 +11,13 @@ namespace FamilyHub.Modules.Family.Application.Services;
 
 /// <summary>
 /// Implementation of IFamilyService for Family bounded context operations.
-/// PHASE 3: Uses shared AuthDbContext via IUnitOfWork abstraction.
-/// FUTURE (Phase 5+): Will use FamilyDbContext when separated.
+/// PHASE 5: Uses FamilyDbContext directly for persistence.
+/// Family module now has its own DbContext separate from Auth module.
 /// </summary>
 public sealed partial class FamilyService(
     IFamilyRepository familyRepository,
     IUserLookupService userLookupService,
-    IUnitOfWork unitOfWork,
+    FamilyDbContext dbContext,
     ILogger<FamilyService> logger) : IFamilyService
 {
     /// <summary>
@@ -41,7 +41,7 @@ public sealed partial class FamilyService(
 
             // Persist through repository abstraction
             await familyRepository.AddAsync(family, cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             LogFamilyCreated(family.Id.Value, name.Value, ownerId.Value);
 
@@ -88,7 +88,7 @@ public sealed partial class FamilyService(
             // Use domain method to transfer ownership
             family.TransferOwnership(newOwnerId);
 
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             LogOwnershipTransferred(familyId.Value, newOwnerId.Value);
 

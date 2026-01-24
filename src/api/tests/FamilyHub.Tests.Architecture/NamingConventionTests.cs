@@ -1,6 +1,7 @@
 using System.Reflection;
 using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Family.Domain.Aggregates;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain;
 
 namespace FamilyHub.Tests.Architecture;
@@ -55,7 +56,7 @@ public sealed class NamingConventionTests
     }
 
     /// <summary>
-    /// Command classes should end with 'Command' suffix.
+    /// Command classes implementing ICommand should end with 'Command' suffix.
     /// This makes it clear they represent write operations.
     /// </summary>
     [Fact]
@@ -66,33 +67,25 @@ public sealed class NamingConventionTests
             .SelectMany(a => Types.InAssembly(a).GetTypes())
             .ToList();
 
-        // Find types in Commands namespaces that appear to be command classes
-        var potentialCommands = allTypes
-            .Where(t => t.Namespace != null &&
-                        t.Namespace.Contains(TestConstants.CommandsSuffix.TrimStart('.')) &&
-                        t.IsClass &&
+        // Find types that implement ICommand but don't follow naming convention
+        var violatingCommands = allTypes
+            .Where(t => t.IsClass &&
                         !t.IsAbstract &&
-                        !t.Name.Contains("Handler") &&
-                        !t.Name.Contains("Validator") &&
-                        !t.Name.Contains("Result") &&
-                        !t.Name.Contains("Response") &&
-                        !t.Name.Contains("Behavior") &&
-                        !t.Name.Contains("Exception") &&
-                        !t.Name.Contains("<") && // Exclude compiler-generated
+                        ImplementsICommand(t) &&
                         !t.Name.EndsWith("Command"))
+            .Select(t => t.FullName)
             .ToList();
 
         // Act & Assert
-        potentialCommands.Should().BeEmpty(
-            because: $"All command classes in .Commands namespace should end with 'Command' suffix. " +
+        violatingCommands.Should().BeEmpty(
+            because: $"All command classes implementing ICommand should end with 'Command' suffix. " +
                      $"This clearly identifies them as CQRS commands representing write operations. " +
-                     $"Potential violations: {string.Join(", ", potentialCommands.Select(t => t.FullName))}");
+                     $"Violating types: {string.Join(", ", violatingCommands)}");
     }
 
     /// <summary>
-    /// CQRS Query classes (implementing IRequest) should end with 'Query' suffix.
+    /// Query classes implementing IQuery should end with 'Query' suffix.
     /// This makes it clear they represent read operations.
-    /// Note: GraphQL query extension classes and DTOs in Queries namespace are excluded.
     /// </summary>
     [Fact]
     public void Queries_ShouldEndWith_Query()
@@ -102,27 +95,20 @@ public sealed class NamingConventionTests
             .SelectMany(a => Types.InAssembly(a).GetTypes())
             .ToList();
 
-        // Find types in Application.Queries namespaces that appear to be CQRS query classes
-        // Exclude: Handlers, Validators, Results, DTOs, GraphQL extensions
-        var potentialQueries = allTypes
-            .Where(t => t.Namespace != null &&
-                        t.Namespace.Contains($"{TestConstants.ApplicationLayer}.Queries".TrimStart('.')) &&
-                        t.IsClass &&
+        // Find types that implement IQuery but don't follow naming convention
+        var violatingQueries = allTypes
+            .Where(t => t.IsClass &&
                         !t.IsAbstract &&
-                        !t.Name.Contains("Handler") &&
-                        !t.Name.Contains("Validator") &&
-                        !t.Name.Contains("Result") &&
-                        !t.Name.Contains("Response") &&
-                        !t.Name.EndsWith("Dto") &&
-                        !t.Name.Contains("<") && // Exclude compiler-generated
+                        ImplementsIQuery(t) &&
                         !t.Name.EndsWith("Query"))
+            .Select(t => t.FullName)
             .ToList();
 
         // Act & Assert
-        potentialQueries.Should().BeEmpty(
-            because: $"All CQRS query classes in .Application.Queries namespace should end with 'Query' suffix. " +
+        violatingQueries.Should().BeEmpty(
+            because: $"All query classes implementing IQuery should end with 'Query' suffix. " +
                      $"This clearly identifies them as CQRS queries representing read operations. " +
-                     $"Potential violations: {string.Join(", ", potentialQueries.Select(t => t.FullName))}");
+                     $"Violating types: {string.Join(", ", violatingQueries)}");
     }
 
     /// <summary>
@@ -231,5 +217,25 @@ public sealed class NamingConventionTests
                      $"This follows Hot Chocolate conventions for mutation return types. " +
                      $"Example: CreateFamilyPayload, LoginPayload. " +
                      $"Violating types: {string.Join(", ", violatingTypes)}");
+    }
+
+    /// <summary>
+    /// Helper method to check if a type implements ICommand or ICommand{TResponse}.
+    /// </summary>
+    private static bool ImplementsICommand(Type type)
+    {
+        return type.GetInterfaces().Any(i =>
+            i == typeof(ICommand) ||
+            (i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommand<>)));
+    }
+
+    /// <summary>
+    /// Helper method to check if a type implements IQuery or IQuery{TResponse}.
+    /// </summary>
+    private static bool ImplementsIQuery(Type type)
+    {
+        return type.GetInterfaces().Any(i =>
+            i == typeof(IQuery) ||
+            (i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQuery<>)));
     }
 }

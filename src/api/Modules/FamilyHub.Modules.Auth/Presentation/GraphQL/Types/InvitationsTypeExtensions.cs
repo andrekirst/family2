@@ -28,7 +28,8 @@ public sealed class InvitationsTypeExtensions
         var query = new GetPendingInvitationsQuery();
 
         // 2. Execute query via MediatR (user context and authorization handled by behaviors)
-        var result = await mediator.Send(query, cancellationToken);
+        // Explicit type parameter needed because C# can't infer TResponse through IQuery<T> : IRequest<T>
+        var result = await mediator.Send<GetPendingInvitationsResult>(query, cancellationToken);
 
         // 3. Map application DTOs → GraphQL types
         return result.Invitations
@@ -62,7 +63,8 @@ public sealed class InvitationsTypeExtensions
         var query = new GetInvitationByTokenQuery(InvitationToken.From(token));
 
         // 2. Execute query via MediatR
-        var result = await mediator.Send(query, cancellationToken);
+        // Explicit type parameter needed because C# can't infer TResponse through IQuery<T> : IRequest<T>
+        var result = await mediator.Send<GetInvitationByTokenResult?>(query, cancellationToken);
 
         // 3. Map application DTO → GraphQL type
         if (result == null)

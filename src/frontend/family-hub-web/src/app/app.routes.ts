@@ -41,6 +41,15 @@ export const routes: Routes = [
     title: 'Manage Family - Family Hub',
   },
   {
+    path: 'accept-invitation',
+    loadComponent: () =>
+      import('./features/auth/components/accept-invitation/accept-invitation.component').then(
+        (m) => m.AcceptInvitationComponent
+      ),
+    title: 'Accept Invitation - Family Hub',
+    // NO authGuard - public route for unauthenticated users
+  },
+  {
     path: 'dashboard',
     loadComponent: () =>
       import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),

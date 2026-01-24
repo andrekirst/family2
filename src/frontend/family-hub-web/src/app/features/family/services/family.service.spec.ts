@@ -2,20 +2,42 @@ import { TestBed } from '@angular/core/testing';
 import { FamilyService, Family } from './family.service';
 import { GraphQLService, GraphQLError } from '../../../core/services/graphql.service';
 import { FamilyMember } from '../models/family.models';
+import { FamilyEventsService } from './family-events.service';
+import { signal } from '@angular/core';
 
 describe('FamilyService', () => {
   let service: FamilyService;
   let graphqlService: jasmine.SpyObj<GraphQLService>;
+  // Injected for DI but not directly used in current tests
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _familyEventsService: jasmine.SpyObj<FamilyEventsService>;
 
   beforeEach(() => {
     const graphqlSpy = jasmine.createSpyObj('GraphQLService', ['query', 'mutate']);
+    const familyEventsSpy = jasmine.createSpyObj(
+      'FamilyEventsService',
+      ['subscribeFamilyMembers', 'subscribePendingInvitations', 'unsubscribeAll'],
+      {
+        lastMemberEvent: signal(null),
+        lastInvitationEvent: signal(null),
+        isConnected: signal(false),
+        connectionError: signal(null),
+      }
+    );
 
     TestBed.configureTestingModule({
-      providers: [FamilyService, { provide: GraphQLService, useValue: graphqlSpy }],
+      providers: [
+        FamilyService,
+        { provide: GraphQLService, useValue: graphqlSpy },
+        { provide: FamilyEventsService, useValue: familyEventsSpy },
+      ],
     });
 
     service = TestBed.inject(FamilyService);
     graphqlService = TestBed.inject(GraphQLService) as jasmine.SpyObj<GraphQLService>;
+    _familyEventsService = TestBed.inject(
+      FamilyEventsService
+    ) as jasmine.SpyObj<FamilyEventsService>;
   });
 
   it('should be created', () => {

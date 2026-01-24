@@ -65,7 +65,7 @@ public sealed class CreateFamilyIntegrationTests(PostgreSqlContainerFixture cont
         var command = new CreateFamilyCommand(FamilyName.From(familyName));
 
         // Act
-        var result = await mediator.Send(command);
+        var result = await mediator.Send<CreateFamilyResult>(command);
 
         // Assert
         result.Should().NotBeNull();
@@ -93,7 +93,7 @@ public sealed class CreateFamilyIntegrationTests(PostgreSqlContainerFixture cont
         // Create first family
         var firstFamilyName = $"First Family {testId}";
         var firstCommand = new CreateFamilyCommand(FamilyName.From(firstFamilyName));
-        var firstResult = await mediator.Send(firstCommand);
+        var firstResult = await mediator.Send<CreateFamilyResult>(firstCommand);
 
         // Soft delete the first family (requires direct repository access for test manipulation)
         var firstFamily = await familyRepo.GetByIdAsync(firstResult.FamilyId);
@@ -104,7 +104,7 @@ public sealed class CreateFamilyIntegrationTests(PostgreSqlContainerFixture cont
         // Act - Create a new family after soft delete
         var newFamilyName = $"New Family After Delete {testId}";
         var newCommand = new CreateFamilyCommand(FamilyName.From(newFamilyName));
-        var newResult = await mediator.Send(newCommand);
+        var newResult = await mediator.Send<CreateFamilyResult>(newCommand);
 
         // Assert
         newResult.Should().NotBeNull();
@@ -147,7 +147,7 @@ public sealed class CreateFamilyIntegrationTests(PostgreSqlContainerFixture cont
         var command = new CreateFamilyCommand(FamilyName.From("Test Family"));
 
         // Act
-        var act = async () => await mediator.Send(command);
+        var act = async () => await mediator.Send<CreateFamilyResult>(command);
 
         // Assert
         // With the new pipeline architecture, UserContextEnrichmentBehavior throws UnauthorizedAccessException
@@ -204,11 +204,11 @@ public sealed class CreateFamilyIntegrationTests(PostgreSqlContainerFixture cont
 
         // Create first family
         var firstCommand = new CreateFamilyCommand(FamilyName.From($"First Family {testId}"));
-        var firstResult = await mediator.Send(firstCommand);
+        var firstResult = await mediator.Send<CreateFamilyResult>(firstCommand);
 
         // Act - Create a second family (should replace the first)
         var secondCommand = new CreateFamilyCommand(FamilyName.From($"Second Family {testId}"));
-        var secondResult = await mediator.Send(secondCommand);
+        var secondResult = await mediator.Send<CreateFamilyResult>(secondCommand);
 
         // Assert - User's family should be updated to the second family
         secondResult.Should().NotBeNull();

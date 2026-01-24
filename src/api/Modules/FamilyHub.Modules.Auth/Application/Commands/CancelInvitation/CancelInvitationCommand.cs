@@ -1,6 +1,6 @@
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.CancelInvitation;
 
@@ -11,4 +11,4 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CancelInvitation;
 /// <param name="InvitationId">The ID of the invitation to cancel.</param>
 public record CancelInvitationCommand(
     InvitationId InvitationId
-) : IRequest<Result>;
+) : ICommand<Result>;

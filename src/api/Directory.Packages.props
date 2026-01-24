@@ -20,6 +20,7 @@
     <PackageVersion Include="Testcontainers" Version="4.9.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.9.0" />
     <PackageVersion Include="Testcontainers.RabbitMq" Version="4.9.0" />
+    <PackageVersion Include="Testcontainers.Redis" Version="4.9.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <!-- Architecture Testing -->
@@ -36,6 +37,7 @@
     <PackageVersion Include="HotChocolate.AspNetCore.Authorization" Version="15.1.11" />
     <PackageVersion Include="HotChocolate.Data.EntityFramework" Version="15.1.11" />
     <PackageVersion Include="HotChocolate.Execution" Version="15.1.11" />
+    <PackageVersion Include="HotChocolate.Subscriptions.Redis" Version="15.1.11" />
     <PackageVersion Include="HotChocolate.Types" Version="15.1.11" />
     <!-- Validation & CQRS -->
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
@@ -53,7 +55,12 @@
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
     <!-- Infrastructure -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.0" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.8.16" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="9.0.0" />
+    <!-- Email -->
+    <PackageVersion Include="MailKit" Version="4.11.0" />
+    <PackageVersion Include="MimeKit" Version="4.11.0" />
+    <PackageVersion Include="RazorLight" Version="2.3.1" />
     <!-- Resilience -->
     <PackageVersion Include="Polly.Core" Version="8.5.0" />
     <PackageVersion Include="Polly" Version="8.5.0" />

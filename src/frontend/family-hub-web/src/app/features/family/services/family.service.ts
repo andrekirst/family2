@@ -1,6 +1,7 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { GraphQLService, GraphQLError } from '../../../core/services/graphql.service';
 import { FamilyMember } from '../models/family.models';
+import { FamilyEventsService } from './family-events.service';
 
 /**
  * Family domain model matching backend GraphQL schema.
@@ -63,6 +64,7 @@ interface CreateFamilyResponse {
 })
 export class FamilyService {
   private graphqlService = inject(GraphQLService);
+  private familyEventsService = inject(FamilyEventsService);
 
   /**
    * Signal holding the current active family.
@@ -93,6 +95,52 @@ export class FamilyService {
    * Reactively updates when currentFamily changes.
    */
   hasFamily = computed(() => this.currentFamily() !== null);
+
+  constructor() {
+    // React to family member subscription events
+    effect(() => {
+      const event = this.familyEventsService.lastMemberEvent();
+
+      if (!event) return;
+
+      // Map subscription member to domain FamilyMember model
+      const domainMember: FamilyMember = {
+        id: event.member.id,
+        email: event.member.email,
+        emailVerified: event.member.emailVerified,
+        role: event.member.role as 'OWNER' | 'ADMIN' | 'MEMBER',
+        auditInfo: {
+          createdAt: event.member.joinedAt,
+          updatedAt: event.member.joinedAt,
+        },
+      };
+
+      // Update familyMembers signal based on change type
+      switch (event.changeType) {
+        case 'ADDED':
+          // Optimistically add member to list (avoid duplicates)
+          this.familyMembers.update((members) => {
+            if (members.some((m) => m.id === domainMember.id)) {
+              return members; // Already exists, no-op
+            }
+            return [...members, domainMember];
+          });
+          break;
+
+        case 'UPDATED':
+          // Update existing member
+          this.familyMembers.update((members) =>
+            members.map((m) => (m.id === domainMember.id ? domainMember : m))
+          );
+          break;
+
+        case 'REMOVED':
+          // Remove member from list
+          this.familyMembers.update((members) => members.filter((m) => m.id !== domainMember.id));
+          break;
+      }
+    });
+  }
 
   /**
    * Loads the current user's active family from backend.

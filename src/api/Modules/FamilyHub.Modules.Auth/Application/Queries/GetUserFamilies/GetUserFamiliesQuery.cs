@@ -1,5 +1,5 @@
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetUserFamilies;
 
@@ -8,4 +8,4 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetUserFamilies;
 /// </summary>
 public sealed record GetUserFamiliesQuery(
     UserId UserId
-) : IRequest<GetUserFamiliesResult>;
+) : IQuery<GetUserFamiliesResult>;

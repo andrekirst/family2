@@ -1,0 +1,68 @@
+@model FamilyHub.Infrastructure.Email.Models.InvitationEmailModel
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>You're Invited to Join @Model.FamilyName!</h1>
+    </div>
+    <div class="content">
+        <p>Hi there,</p>
+        <p><strong>@Model.InviterName</strong> has invited you to join their family on Family Hub as a <strong>@Model.Role</strong>.</p>
+        @if (!string.IsNullOrWhiteSpace(Model.Message))
+        {
+            <p style="font-style: italic; border-left: 3px solid #667eea; padding-left: 15px; margin: 20px 0;">
+                <em>"@Model.Message"</em>
+            </p>
+        }
+        <p>Click the button below to accept the invitation:</p>
+        <a href="@Model.InvitationUrl" class="button">Accept Invitation</a>
+        <p>This invitation expires on <strong>@Model.ExpiresAt.ToString("MMMM dd, yyyy")</strong>.</p>
+        <p>If you didn't expect this invitation, you can safely ignore this email.</p>
+    </div>
+    <div class="footer">
+        <p>Family Hub - Your Family Organization Platform</p>
+        <p>This is an automated message, please do not reply.</p>
+    </div>
+</body>
+</html>

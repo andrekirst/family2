@@ -1,5 +1,6 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Persistence;
+using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.Tests.Integration.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -45,6 +46,21 @@ public sealed class TestApplicationFactory(PostgreSqlContainerFixture containerF
                 return factory.CreateDbContext();
             });
 
+            // Remove existing FamilyDbContext registrations
+            services.RemoveAll<DbContextOptions<FamilyDbContext>>();
+            services.RemoveAll<FamilyDbContext>();
+            services.RemoveAll<IDbContextFactory<FamilyDbContext>>();
+
+            // Add FamilyDbContext with test container connection string
+            // Use AddDbContext (not AddPooledDbContextFactory) to match production pattern
+            // FamilyModuleServiceRegistration uses AddDbContext which registers as scoped
+            services.AddDbContext<FamilyDbContext>((_, options) =>
+                options.UseNpgsql(containerFixture.ConnectionString, npgsqlOptions =>
+                    {
+                        npgsqlOptions.MigrationsAssembly(typeof(FamilyDbContext).Assembly.GetName().Name);
+                    })
+                    .UseSnakeCaseNamingConvention());
+
             // Remove the existing ICurrentUserService registration
             services.RemoveAll<ICurrentUserService>();
 
@@ -61,50 +77,53 @@ public sealed class TestApplicationFactory(PostgreSqlContainerFixture containerF
     }
 
     /// <summary>
-    /// Hosted service that applies EF Core migrations on startup.
-    /// This runs after all services are registered and the host is built.
+    /// Hosted service that applies EF Core schemas on startup.
+    /// Creates both Auth and Family schemas for cross-module testing.
+    /// Handles cases where schemas already exist (e.g., created by PostgreSqlContainerFixture).
     /// </summary>
     private class MigrationHostedService(IServiceProvider serviceProvider) : IHostedService
     {
+        // Static flag to ensure schemas are only created once per test run
+        private static bool _schemasCreated;
+        private static readonly object Lock = new();
+
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            using var scope = serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-
-            // Debug: Check migrations assembly configuration
-            var assemblyName = typeof(AuthDbContext).Assembly.GetName().Name;
-            Console.WriteLine($"[Migration Debug] AuthDbContext Assembly: {assemblyName}");
-            Console.WriteLine($"[Migration Debug] AuthDbContext Assembly Full Name: {typeof(AuthDbContext).Assembly.FullName}");
-
-            // Check if migration types exist in the assembly
-            var authAssembly = typeof(AuthDbContext).Assembly;
-            var migrationTypes = authAssembly.GetTypes()
-                .Where(t => t.Namespace == "FamilyHub.Modules.Auth.Migrations" && !t.Name.Contains("Snapshot"))
-                .ToList();
-            Console.WriteLine($"[Migration Debug] Migration types found in assembly: {migrationTypes.Count}");
-            foreach (var type in migrationTypes)
+            // Quick check without lock for performance
+            if (_schemasCreated)
             {
-                Console.WriteLine($"[Migration Debug]   - {type.FullName}");
+                return;
             }
 
-            // Check all migrations
-            var allMigrations = dbContext.Database.GetMigrations();
-            var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync(cancellationToken);
-            var appliedMigrations = await dbContext.Database.GetAppliedMigrationsAsync(cancellationToken);
+            lock (Lock)
+            {
+                // Double-check after acquiring lock
+                if (_schemasCreated)
+                {
+                    return;
+                }
 
-            Console.WriteLine($"[Migration Debug] Total migrations: {allMigrations.Count()}");
-            Console.WriteLine($"[Migration Debug] All migrations: {string.Join(", ", allMigrations)}");
-            Console.WriteLine($"[Migration Debug] Pending migrations: {string.Join(", ", pendingMigrations)}");
-            Console.WriteLine($"[Migration Debug] Applied migrations: {string.Join(", ", appliedMigrations)}");
+                _schemasCreated = true;
+            }
 
-            // Apply migrations
-            // NOTE: Using EnsureCreated() instead of MigrateAsync() as a workaround for
-            // EF Core migration discovery issues. See PostgreSqlContainerFixture for explanation.
-            await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+            using var scope = serviceProvider.CreateScope();
 
-            // Verify schema exists
-            var hasSchema = await dbContext.Database.CanConnectAsync(cancellationToken);
-            Console.WriteLine($"[Migration Debug] Database connection: {hasSchema}");
+            // Create Auth schema
+            var authDbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+            await authDbContext.Database.EnsureCreatedAsync(cancellationToken);
+
+            // Create Family schema using SQL script
+            // Catch "already exists" error in case PostgreSqlContainerFixture already created it
+            var familyDbContext = scope.ServiceProvider.GetRequiredService<FamilyDbContext>();
+            try
+            {
+                var script = familyDbContext.Database.GenerateCreateScript();
+                await familyDbContext.Database.ExecuteSqlRawAsync(script, cancellationToken);
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07") // 42P07 = duplicate_table
+            {
+                // Schema already exists - this is expected when PostgreSqlContainerFixture runs first
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

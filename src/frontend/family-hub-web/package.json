@@ -31,7 +31,10 @@
     "@angular/platform-browser": "^21.0.6",
     "@angular/platform-browser-dynamic": "^21.0.6",
     "@angular/router": "^21.0.6",
+    "@apollo/client": "^4.0.13",
+    "apollo-angular": "^13.0.0",
     "graphql": "^16.12.0",
+    "graphql-ws": "^6.0.6",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.1"
@@ -48,6 +51,7 @@
     "angular-eslint": "21.0.1",
     "autoprefixer": "^10.4.23",
     "axe-core": "^4.11.0",
+    "cross-fetch": "^4.1.0",
     "eslint": "^9.39.1",
     "jasmine-core": "~5.2.0",
     "karma": "~6.4.0",

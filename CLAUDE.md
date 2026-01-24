@@ -6,7 +6,7 @@
 
 **Tech Stack:** .NET Core 10 (C# 14, Hot Chocolate GraphQL) | Angular v21 (TypeScript, Tailwind) | PostgreSQL 16 (RLS) | RabbitMQ | Zitadel OAuth | Docker Compose→Kubernetes | Vogen 8.0+
 
-**Phase:** Phase 0 - Foundation & Tooling (IN PROGRESS). OAuth integration completed. Next: Frontend OAuth, then Phase 1 Core MVP.
+**Phase:** Phase 0 - Foundation & Tooling (IN PROGRESS). OAuth integration completed. Frontend OAuth completed. Next: Family Member Invites, then Phase 1 Core MVP.
 
 **Architecture:** Modular Monolith (Phase 1-4) → Microservices (Phase 5+). See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
 

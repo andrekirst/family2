@@ -4,7 +4,7 @@ namespace FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 /// Represents an unauthorized access error.
 /// Maps from UnauthorizedAccessException.
 /// </summary>
-public sealed class UnauthorizedError : BaseError
+public sealed class UnauthorizedError : BaseError, IDefaultMutationError
 {
     /// <summary>
     /// Initializes a new instance of the UnauthorizedError class from an UnauthorizedAccessException.

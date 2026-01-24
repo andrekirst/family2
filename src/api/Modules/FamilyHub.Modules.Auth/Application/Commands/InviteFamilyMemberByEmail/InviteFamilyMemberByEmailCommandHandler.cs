@@ -1,10 +1,11 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Specifications;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using IUserLookupService = FamilyHub.SharedKernel.Application.Abstractions.IUserLookupService;
 
@@ -20,6 +21,7 @@ namespace FamilyHub.Modules.Auth.Application.Commands.InviteFamilyMemberByEmail;
 /// <param name="userLookupService">Service for cross-module user lookups.</param>
 /// <param name="invitationRepository">Repository for invitation data access.</param>
 /// <param name="unitOfWork">Unit of work for database transactions.</param>
+/// <param name="subscriptionPublisher">Publisher for real-time subscription events.</param>
 /// <param name="logger">Logger for structured logging.</param>
 public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IUserContext userContext,
@@ -27,8 +29,9 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
     IUserLookupService userLookupService,
     IFamilyMemberInvitationRepository invitationRepository,
     IUnitOfWork unitOfWork,
+    FamilyHub.Modules.Auth.Application.Services.SubscriptionEventPublisher subscriptionPublisher,
     ILogger<InviteFamilyMemberByEmailCommandHandler> logger)
-    : IRequestHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
+    : ICommandHandler<InviteFamilyMemberByEmailCommand, FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>>
 {
     /// <inheritdoc />
     public async Task<FamilyHub.SharedKernel.Domain.Result<InviteFamilyMemberByEmailResult>> Handle(
@@ -87,7 +90,25 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
 
         LogInvitationCreated(invitation.Id.Value, request.Email.Value);
 
-        // 7. Return result
+        // 7. Publish subscription event for real-time UI updates
+        await subscriptionPublisher.PublishInvitationAddedAsync(
+            invitation.FamilyId,
+            new PendingInvitationDto
+            {
+                Id = invitation.Id.Value,
+                Email = invitation.Email.Value,
+                Role = invitation.Role.Value,
+                Status = invitation.Status.Value,
+                InvitedById = currentUserId.Value,
+                InvitedAt = invitation.CreatedAt,
+                ExpiresAt = invitation.ExpiresAt,
+                Message = invitation.Message,
+                DisplayCode = invitation.DisplayCode.Value
+            },
+            cancellationToken
+        );
+
+        // 8. Return result
         return Result.Success(new InviteFamilyMemberByEmailResult
         {
             InvitationId = invitation.Id,

@@ -105,7 +105,7 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
         );
 
         // Act
-        var result = await mediator.Send(command);
+        var result = await mediator.Send<CompleteZitadelLoginResult>(command);
 
         // Assert
         Assert.NotNull(result);
@@ -160,7 +160,7 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
         );
 
         // Act
-        var result = await mediator.Send(command);
+        var result = await mediator.Send<CompleteZitadelLoginResult>(command);
 
         // Assert
         Assert.NotNull(result);
@@ -190,7 +190,7 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await mediator.Send(command)
+            async () => await mediator.Send<CompleteZitadelLoginResult>(command)
         );
     }
 
@@ -214,7 +214,7 @@ public sealed class ZitadelOAuthFlowTests : IDisposable
         );
 
         // Act
-        var result = await mediator.Send(command);
+        var result = await mediator.Send<CompleteZitadelLoginResult>(command);
 
         // Assert
         Assert.NotNull(result);

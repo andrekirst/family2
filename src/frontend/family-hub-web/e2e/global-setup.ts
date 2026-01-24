@@ -7,19 +7,24 @@ import * as path from 'path';
  * Global Setup for Playwright Tests
  *
  * Manages Testcontainers lifecycle:
- * 1. Start Docker Compose services (PostgreSQL, RabbitMQ) - SKIPPED IN CI
+ * 1. Start Docker Compose services (PostgreSQL, RabbitMQ, MailHog) - SKIPPED IN CI
  * 2. Wait for service health checks
- * 3. Start .NET API in Test environment - SKIPPED IN CI
+ * 3. Start .NET API in Test environment with FAMILYHUB_TEST_MODE=true - SKIPPED IN CI
  * 4. Wait for GraphQL endpoint availability
+ *
+ * TEST MODE (Issue #91):
+ * - FAMILYHUB_TEST_MODE=true enables header-based authentication
+ * - Backend accepts X-Test-User-Id and X-Test-User-Email headers
+ * - This bypasses Zitadel OAuth for E2E testing
  *
  * CI Environment:
  * - GitHub Actions provides postgres/rabbitmq via services
- * - API is started separately in CI workflow
+ * - API is started separately in CI workflow with FAMILYHUB_TEST_MODE=true
  * - This setup skips Docker Compose and API startup when CI=true
  *
  * Local Development:
- * - Uses Docker Compose to start postgres/rabbitmq
- * - Starts .NET API via dotnet run
+ * - Uses Docker Compose to start postgres/rabbitmq/mailhog
+ * - Starts .NET API via dotnet run with Test mode enabled
  */
 async function globalSetup(config: FullConfig) {
   console.log('\n🚀 Starting test infrastructure...\n');
@@ -97,7 +102,7 @@ async function globalSetup(config: FullConfig) {
   // Step 3: Start .NET API in Test environment (background process)
   // SKIP IN CI - API is started separately in GitHub Actions workflow
   if (!isCI) {
-    console.log('🔧 Starting .NET API in Test environment...');
+    console.log('🔧 Starting .NET API in Test environment with FAMILYHUB_TEST_MODE=true...');
 
     const apiProjectPath = path.resolve(
       __dirname,
@@ -121,6 +126,10 @@ async function globalSetup(config: FullConfig) {
           ...process.env,
           ASPNETCORE_ENVIRONMENT: 'Test',
           DOTNET_ENVIRONMENT: 'Test',
+          // Issue #91: Enable header-based authentication for E2E tests
+          // This allows tests to authenticate via X-Test-User-Id headers
+          // instead of requiring valid Zitadel OAuth tokens
+          FAMILYHUB_TEST_MODE: 'true',
         },
       }
     );

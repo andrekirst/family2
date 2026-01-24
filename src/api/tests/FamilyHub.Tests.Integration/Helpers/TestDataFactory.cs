@@ -112,7 +112,7 @@ public static class TestDataFactory
 
         // Use the command handler to ensure proper family creation with membership
         var command = new CreateFamilyCommand(FamilyName.From(familyName));
-        var result = await mediator.Send(command);
+        var result = await mediator.Send<CreateFamilyResult>(command);
 
         // Retrieve the created family from service
         var familyDto = await familyService.GetFamilyByIdAsync(result.FamilyId, CancellationToken.None) ?? throw new InvalidOperationException($"Family {result.FamilyId.Value} was created but could not be retrieved.");

@@ -244,7 +244,7 @@ public sealed class CreateFamilyMutationTests(PostgreSqlContainerFixture contain
         // Set authentication and create family via command handler
         TestCurrentUserService.SetUserId(user.Id);
         var createCommand = new CreateFamilyCommand(FamilyName.From("Existing Family"));
-        var familyResult = await mediator.Send(createCommand);
+        var familyResult = await mediator.Send<CreateFamilyResult>(createCommand);
 
         // Verify family was created
         var family = await familyRepo.GetByIdAsync(familyResult.FamilyId);

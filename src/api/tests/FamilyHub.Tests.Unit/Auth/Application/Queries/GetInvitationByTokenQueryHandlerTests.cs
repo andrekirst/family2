@@ -1,10 +1,13 @@
 using FamilyHub.Modules.Auth.Application.Queries.GetInvitationByToken;
+using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using NSubstitute;
+using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 using FamilyMemberInvitationAggregate = FamilyHub.Modules.Family.Domain.Aggregates.FamilyMemberInvitation;
 
 namespace FamilyHub.Tests.Unit.Auth.Application.Queries;
@@ -21,10 +24,13 @@ public class GetInvitationByTokenQueryHandlerTests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_ShouldReturnInvitation_WhenTokenValid(
-        IFamilyMemberInvitationRepository repository)
+        IFamilyMemberInvitationRepository invitationRepository,
+        IFamilyRepository familyRepository,
+        IUserRepository userRepository)
     {
         // Arrange
         var familyId = FamilyId.New();
+        var ownerId = UserId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
@@ -34,11 +40,18 @@ public class GetInvitationByTokenQueryHandlerTests
             invitedByUserId,
             "Welcome!");
 
-        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
+        var family = FamilyAggregate.Create(FamilyName.From("Test Family"), ownerId);
+        var users = new List<User> { /* Mock users */ };
+
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
+        familyRepository.GetByIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(family);
+        userRepository.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(users);
 
         var query = new GetInvitationByTokenQuery(invitation.Token);
-        var handler = new GetInvitationByTokenQueryHandler(repository);
+        var handler = new GetInvitationByTokenQueryHandler(invitationRepository, familyRepository, userRepository);
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -52,20 +65,25 @@ public class GetInvitationByTokenQueryHandlerTests
         result.InvitedByUserId.Should().Be(invitedByUserId.Value);
         result.Message.Should().Be("Welcome!");
         result.DisplayCode.Should().Be(invitation.DisplayCode.Value);
+        result.Family.Should().NotBeNull();
+        result.Family.Name.Should().Be("Test Family");
+        result.MemberCount.Should().Be(0);
     }
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_ShouldReturnNull_WhenTokenNotFound(
-        IFamilyMemberInvitationRepository repository)
+        IFamilyMemberInvitationRepository invitationRepository,
+        IFamilyRepository familyRepository,
+        IUserRepository userRepository)
     {
         // Arrange
         var token = InvitationToken.Generate();
 
-        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns((FamilyMemberInvitationAggregate?)null);
 
         var query = new GetInvitationByTokenQuery(token);
-        var handler = new GetInvitationByTokenQueryHandler(repository);
+        var handler = new GetInvitationByTokenQueryHandler(invitationRepository, familyRepository, userRepository);
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -80,10 +98,13 @@ public class GetInvitationByTokenQueryHandlerTests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_ShouldMapDomainEntity_ToApplicationDTO(
-        IFamilyMemberInvitationRepository repository)
+        IFamilyMemberInvitationRepository invitationRepository,
+        IFamilyRepository familyRepository,
+        IUserRepository userRepository)
     {
         // Arrange
         var familyId = FamilyId.New();
+        var ownerId = UserId.New();
         var email = Email.From("test@example.com");
         var invitedByUserId = UserId.New();
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
@@ -93,11 +114,18 @@ public class GetInvitationByTokenQueryHandlerTests
             invitedByUserId,
             "Important message");
 
-        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
+        var family = FamilyAggregate.Create(FamilyName.From("Admin Family"), ownerId);
+        var users = new List<User> { /* Mock 2 users */ };
+
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns(invitation);
+        familyRepository.GetByIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(family);
+        userRepository.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(users);
 
         var query = new GetInvitationByTokenQuery(invitation.Token);
-        var handler = new GetInvitationByTokenQueryHandler(repository);
+        var handler = new GetInvitationByTokenQueryHandler(invitationRepository, familyRepository, userRepository);
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -113,6 +141,9 @@ public class GetInvitationByTokenQueryHandlerTests
         result.ExpiresAt.Should().Be(invitation.ExpiresAt);
         result.Message.Should().Be("Important message");
         result.DisplayCode.Should().Be(invitation.DisplayCode.Value);
+        result.Family.Should().NotBeNull();
+        result.Family.Name.Should().Be("Admin Family");
+        result.MemberCount.Should().Be(0);
     }
 
     #endregion
@@ -121,46 +152,50 @@ public class GetInvitationByTokenQueryHandlerTests
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_ShouldCallRepository_WithCorrectToken(
-        IFamilyMemberInvitationRepository repository)
+        IFamilyMemberInvitationRepository invitationRepository,
+        IFamilyRepository familyRepository,
+        IUserRepository userRepository)
     {
         // Arrange
         var token = InvitationToken.Generate();
 
-        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), Arg.Any<CancellationToken>())
             .Returns((FamilyMemberInvitationAggregate?)null);
 
         var query = new GetInvitationByTokenQuery(token);
-        var handler = new GetInvitationByTokenQueryHandler(repository);
+        var handler = new GetInvitationByTokenQueryHandler(invitationRepository, familyRepository, userRepository);
 
         // Act
         await handler.Handle(query, CancellationToken.None);
 
         // Assert
-        await repository.Received(1).FindOneAsync(
+        await invitationRepository.Received(1).FindOneAsync(
             Arg.Any<InvitationByTokenSpecification>(),
             Arg.Any<CancellationToken>());
     }
 
     [Theory, AutoNSubstituteData]
     public async Task Handle_WithCancellationToken_ShouldPassTokenToRepository(
-        IFamilyMemberInvitationRepository repository)
+        IFamilyMemberInvitationRepository invitationRepository,
+        IFamilyRepository familyRepository,
+        IUserRepository userRepository)
     {
         // Arrange
         var token = InvitationToken.Generate();
         var cts = new CancellationTokenSource();
         var cancellationToken = cts.Token;
 
-        repository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), cancellationToken)
+        invitationRepository.FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), cancellationToken)
             .Returns((FamilyMemberInvitationAggregate?)null);
 
         var query = new GetInvitationByTokenQuery(token);
-        var handler = new GetInvitationByTokenQueryHandler(repository);
+        var handler = new GetInvitationByTokenQueryHandler(invitationRepository, familyRepository, userRepository);
 
         // Act
         await handler.Handle(query, cancellationToken);
 
         // Assert
-        await repository.Received(1).FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), cancellationToken);
+        await invitationRepository.Received(1).FindOneAsync(Arg.Any<InvitationByTokenSpecification>(), cancellationToken);
     }
 
     #endregion

@@ -1,7 +1,7 @@
-namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+namespace FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 
 /// <summary>
-/// GraphQL enum for subscription change types.
+/// Change type for subscription payloads.
 /// Indicates what type of change occurred in real-time updates.
 /// </summary>
 public enum ChangeType

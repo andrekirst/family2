@@ -52,6 +52,65 @@ export const TEST_DATA = {
 } as const;
 
 /**
+ * Test Authentication Headers
+ *
+ * These headers are used by E2E tests to authenticate with the backend
+ * when Test Mode is enabled (FAMILYHUB_TEST_MODE=true).
+ * The backend's HeaderBasedCurrentUserService reads these headers
+ * instead of validating JWT tokens.
+ *
+ * @see Issue #91 - E2E Authentication for API-First Testing
+ */
+export const TEST_AUTH_HEADERS = {
+  /** Header name for test user ID */
+  USER_ID: 'X-Test-User-Id',
+
+  /** Header name for test user email */
+  USER_EMAIL: 'X-Test-User-Email',
+} as const;
+
+/**
+ * Predefined Test Users for E2E Tests
+ *
+ * These users are used for E2E testing with header-based authentication.
+ * The IDs are well-known UUIDs that can be used across tests.
+ *
+ * Note: These users may or may not exist in the database - they will
+ * be created on-demand when the CreateFamily or CompleteZitadelLogin
+ * mutations are called.
+ */
+export const TEST_USERS = {
+  /** Primary test user - typically the family owner */
+  PRIMARY: {
+    id: '00000000-0000-0000-0000-000000000001',
+    email: 'test-owner@familyhub.test',
+    firstName: 'Test',
+    lastName: 'Owner',
+  },
+
+  /** Secondary test user - typically a family member */
+  MEMBER: {
+    id: '00000000-0000-0000-0000-000000000002',
+    email: 'test-member@familyhub.test',
+    firstName: 'Test',
+    lastName: 'Member',
+  },
+
+  /** Test user without a family - for testing invitation acceptance */
+  NO_FAMILY: {
+    id: '00000000-0000-0000-0000-000000000003',
+    email: 'test-nofamily@familyhub.test',
+    firstName: 'Test',
+    lastName: 'NoFamily',
+  },
+} as const;
+
+/**
+ * Type definition for test users
+ */
+export type TestUser = (typeof TEST_USERS)[keyof typeof TEST_USERS];
+
+/**
  * Timeout Configuration (in milliseconds)
  */
 export const TIMEOUTS = {
@@ -158,7 +217,7 @@ export const SCHEMA = {
    */
   AUTH_MODULE_TYPES: [
     'User',
-    'UserRole',
+    'UserRoleType',
     'CreateFamilyPayload',
     'AcceptInvitationPayload',
   ] as const,
@@ -169,7 +228,7 @@ export const SCHEMA = {
    */
   FAMILY_MODULE_TYPES: [
     'Family',
-    'FamilyMemberInvitation',
+    'PendingInvitationType',
     'CreateFamilyInput',
     'AcceptInvitationInput',
   ] as const,
@@ -189,7 +248,7 @@ export const SCHEMA = {
    * Critical query fields that must exist
    * Removing these would be a breaking change
    */
-  CRITICAL_QUERY_FIELDS: ['family', 'families', 'user', 'invitationsPending'] as const,
+  CRITICAL_QUERY_FIELDS: ['family', 'familyMembers', 'invitations'] as const,
 
   /**
    * Critical mutation fields that must exist

@@ -18,6 +18,167 @@ Family Hub uses **Playwright** for E2E testing with these principles:
 
 ---
 
+## E2E Test Strategy (Issue #92)
+
+This section documents the comprehensive E2E test strategy for Family Hub, addressing the key questions raised in Issue #92.
+
+### Test Classification (Unit vs Integration vs E2E)
+
+Family Hub uses a **test pyramid** with clear boundaries between test types:
+
+| Test Type | Scope | Speed | Isolation | Primary Tools | Use Cases |
+|-----------|-------|-------|-----------|---------------|-----------|
+| **Unit** | Single class/function | Fast (<1s) | Complete (mocked) | xUnit, FluentAssertions | Domain logic, value objects, validators |
+| **Integration** | Module + dependencies | Medium (1-10s) | Transaction-scoped | xUnit, GraphQLTestFactory | Command handlers, repositories, GraphQL resolvers |
+| **E2E** | Full stack (UI + API + DB) | Slow (5-60s) | Test database | Playwright | User flows, cross-browser, accessibility, event chains |
+
+**Test Boundaries:**
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                          E2E Tests (Playwright)                     │
+│   - Test user-visible behavior and complete workflows               │
+│   - Cross-browser compatibility (Chromium, Firefox, WebKit)         │
+│   - Accessibility compliance (axe-core)                             │
+│   - Event chain verification (API → DB → Events → Side effects)    │
+├─────────────────────────────────────────────────────────────────────┤
+│                      Integration Tests (xUnit)                       │
+│   - Test module boundaries with real database                        │
+│   - GraphQL mutation/query correctness                              │
+│   - Domain event publication                                         │
+│   - Command/Query handler logic with persistence                     │
+├─────────────────────────────────────────────────────────────────────┤
+│                         Unit Tests (xUnit)                           │
+│   - Test domain logic in isolation                                   │
+│   - Vogen value object validation                                    │
+│   - Business rule enforcement                                        │
+│   - Pure function behavior                                           │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**What Each Layer Tests:**
+
+| Layer | Does Test | Does NOT Test |
+|-------|-----------|---------------|
+| **Unit** | Domain invariants, value object validation, business rules | Database, network, external services |
+| **Integration** | Database operations, GraphQL API, transactions, domain events | UI rendering, browser behavior |
+| **E2E** | User workflows, visual rendering, cross-browser, accessibility | Internal implementation details |
+
+### Test Strategy Decision Matrix
+
+Use this matrix to choose the right test approach:
+
+| Scenario | Test Type | Auth Approach | Rationale |
+|----------|-----------|---------------|-----------|
+| Testing domain logic (e.g., `Family.AddMember()`) | Unit | N/A | Fast, isolated, no external dependencies |
+| Testing value objects (e.g., `Email.From()`) | Unit | N/A | Validation logic only |
+| Testing command handlers | Integration | `ICurrentUserService` mock | Real database, test transaction boundaries |
+| Testing GraphQL mutations | Integration | `ICurrentUserService` mock | Verify domain events published |
+| Testing repository queries | Integration | N/A (internal) | Real database queries with test data |
+| Testing UI-only behavior | E2E | OAuth Mocking | Fast, no backend required |
+| Testing user workflows | E2E | **Test Mode** | Real API calls, full integration |
+| Testing email delivery | E2E | **Test Mode** | MailHog verifies actual email |
+| Testing event chains | E2E | **Test Mode** | Cross-module integration |
+| Testing accessibility | E2E | Either | UI rendering required |
+| Testing cross-browser | E2E | Either | Browser-specific behavior |
+
+### Authentication Strategy Decision (Resolved via Issue #91)
+
+**Question Answered:** What authentication strategy should E2E tests use?
+
+**Decision: Hybrid Approach** - Use **Test Mode** for API-first tests, **OAuth Mocking** for UI-only tests.
+
+| Approach | When to Use | Speed | Coverage | Implementation |
+|----------|-------------|-------|----------|----------------|
+| **Test Mode** (Issue #91) | Testing real backend behavior | ⭐⭐ | ⭐⭐⭐ | `X-Test-User-Id` header |
+| **OAuth Mocking** | Testing UI-only behavior | ⭐⭐⭐ | ⭐ | `localStorage` token injection |
+
+**Trade-offs Table (from Issue #92):**
+
+| Approach | Speed | Coverage | Complexity | Maintenance |
+|----------|-------|----------|-----------|-------------|
+| OAuth Mocking | ⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐ |
+| Test Mode Tokens | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ |
+| Real OAuth Flow | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+
+**Recommendation:** Use **Test Mode** as the default for E2E tests. It provides real backend verification without the complexity of real OAuth flows. Reserve **OAuth Mocking** for fast UI smoke tests that don't need backend validation.
+
+### ADR-004 "API-First" Clarification
+
+**What "API-first testing" means in Family Hub:**
+
+1. **Primary verification via GraphQL API** - Test business logic by calling mutations/queries directly
+2. **UI as spot-check** - Verify UI renders correct results, but don't rely on UI for data verification
+3. **Event chain verification** - Test that mutations trigger correct domain events
+4. **Not "no UI testing"** - UI testing is still valuable for accessibility, cross-browser, user flows
+
+**API-First Testing Pattern:**
+
+```typescript
+test('event chain: create family → event published → UI updated', async ({ graphqlClient, page }) => {
+  // 1. Create via GraphQL API (primary verification)
+  const result = await graphqlClient.mutate(CREATE_FAMILY_MUTATION, {
+    input: { name: 'Test Family' }
+  });
+  expect(result.data.createFamily.familyId).toBeDefined();
+
+  // 2. Verify database state via API query
+  const family = await graphqlClient.query(GET_FAMILY_QUERY);
+  expect(family.data.family.name).toBe('Test Family');
+
+  // 3. UI spot-check (optional, lightweight)
+  await page.goto('/family');
+  await expect(page.getByText('Test Family')).toBeVisible();
+});
+```
+
+### Test Data Management Strategy
+
+**Decision: Test Mode with Database Cleanup**
+
+| Strategy | Use Case | Implementation |
+|----------|----------|----------------|
+| **Test Mode Users** | Authentication | Predefined test users (PRIMARY, MEMBER, NO_FAMILY) |
+| **Unique Test Data** | Isolation | Generate unique names per test (e.g., `Test Family ${Date.now()}`) |
+| **API Cleanup** | State reset | Delete test data via API in `afterEach()` |
+| **MailHog Reset** | Email tests | Clear emails before each test |
+
+**Test Users (from Test Mode section):**
+
+```typescript
+export const TEST_USERS = {
+  PRIMARY: { id: '00000000-0000-0000-0000-000000000001', email: 'test-owner@familyhub.test' },
+  MEMBER: { id: '00000000-0000-0000-0000-000000000002', email: 'test-member@familyhub.test' },
+  NO_FAMILY: { id: '00000000-0000-0000-0000-000000000003', email: 'test-nofamily@familyhub.test' },
+};
+```
+
+### Implementation Status
+
+**Resolved (Issue #91):**
+
+- ✅ Test Mode Authentication implemented
+- ✅ `X-Test-User-Id` / `X-Test-User-Email` headers working
+- ✅ `graphqlClient` fixture configured with test headers
+- ✅ Security safeguards (blocked in Production)
+
+**Current Test Coverage:**
+
+| Test File | Test Count | Status |
+|-----------|------------|--------|
+| `family-creation-wizard.spec.ts` | 22 | ✅ Active |
+| `accessibility.spec.ts` | 8 | ✅ Active |
+| `cross-browser.spec.ts` | 4 | ✅ Active |
+| `graphql-schema-validation.spec.ts` | 12 | ✅ Active |
+| `api-authentication.spec.ts` | 6 | ✅ Active |
+| `invitation-email-verification.spec.ts` | 3 | ⚠️ Skipped (uses mocking) |
+| `event-chains.spec.ts` | 2 | ⚠️ Skipped (Phase 2) |
+| `subscription-updates.spec.ts` | 6 | ⚠️ Blocked (UI pending) |
+
+**Total:** 66 active tests × 3 browsers = 198 test runs
+
+---
+
 ## Quick Start
 
 ### Running Tests
@@ -179,6 +340,209 @@ test('should access protected route', async ({ authenticatedPage }) => {
   await expect(authenticatedPage).toHaveURL(/dashboard/);
 });
 ```
+
+---
+
+## Test Mode Authentication (Issue #91)
+
+**Purpose:** Enable E2E tests to authenticate with the real backend without requiring Zitadel OAuth tokens.
+
+### How It Works
+
+When `FAMILYHUB_TEST_MODE=true` environment variable is set:
+
+1. Backend accepts `X-Test-User-Id` and `X-Test-User-Email` HTTP headers
+2. These headers replace JWT token validation
+3. Tests can make authenticated API calls via `graphqlClient` fixture
+4. No need to mock OAuth flow or GraphQL responses
+
+### Configuration
+
+**Backend Environment Variable:**
+
+```bash
+FAMILYHUB_TEST_MODE=true
+```
+
+**Test Mode Settings (appsettings.Test.json):**
+
+```json
+{
+  "TestMode": {
+    "Enabled": true
+  }
+}
+```
+
+### Security Safeguards
+
+- Test mode is **blocked in Production environment** (throws `InvalidOperationException`)
+- Logs warning when test mode is active
+- Requires explicit opt-in via environment variable or config
+
+### Test Users
+
+Predefined test users for E2E tests:
+
+```typescript
+export const TEST_USERS = {
+  PRIMARY: {
+    id: '00000000-0000-0000-0000-000000000001',
+    email: 'test-owner@familyhub.test',
+    firstName: 'Test',
+    lastName: 'Owner',
+  },
+  MEMBER: {
+    id: '00000000-0000-0000-0000-000000000002',
+    email: 'test-member@familyhub.test',
+    firstName: 'Test',
+    lastName: 'Member',
+  },
+  NO_FAMILY: {
+    id: '00000000-0000-0000-0000-000000000003',
+    email: 'test-nofamily@familyhub.test',
+    firstName: 'Test',
+    lastName: 'NoFamily',
+  },
+};
+```
+
+### Using the graphqlClient Fixture
+
+The `graphqlClient` fixture is pre-configured with test authentication headers:
+
+```typescript
+import { test, expect } from '../fixtures/auth.fixture';
+import { createFamilyViaAPI } from '../support/api-helpers';
+
+test('should create family via real API', async ({ graphqlClient }) => {
+  // graphqlClient automatically includes X-Test-User-Id and X-Test-User-Email headers
+  const family = await createFamilyViaAPI(graphqlClient, 'My Family');
+
+  expect(family.id).toBeDefined();
+  expect(family.name).toBe('My Family');
+});
+```
+
+### Switching Users in Tests
+
+Use the `switchUser` fixture to change the authenticated user mid-test:
+
+```typescript
+test('should allow switching test users', async ({ graphqlClient, switchUser }) => {
+  // Start as PRIMARY user
+  const primaryFamily = await graphqlClient.query(GET_FAMILY);
+
+  // Switch to MEMBER user
+  switchUser(TEST_USERS.MEMBER);
+  const memberFamily = await graphqlClient.query(GET_FAMILY);
+
+  // Switch to user without family
+  switchUser(TEST_USERS.NO_FAMILY);
+  const noFamily = await graphqlClient.query(GET_FAMILY);
+  expect(noFamily.family).toBeNull();
+});
+```
+
+### Complete Example: Email Verification Test
+
+```typescript
+import { test, expect } from '../fixtures/auth.fixture';
+import { MailHogClient } from '../support/email-helpers';
+import { createFamilyViaAPI, inviteFamilyMembersViaAPI } from '../support/api-helpers';
+
+test.describe('Invitation Email Verification', () => {
+  let mailHog: MailHogClient;
+
+  test.beforeEach(async () => {
+    mailHog = new MailHogClient();
+    await mailHog.clearEmails();
+  });
+
+  test('should send invitation email via real API', async ({ graphqlClient }) => {
+    // Create family (real API call)
+    const family = await createFamilyViaAPI(graphqlClient, 'Test Family');
+
+    // Send invitation (triggers real email)
+    const result = await inviteFamilyMembersViaAPI(
+      graphqlClient,
+      family.id,
+      [{ email: 'invitee@example.com', role: 'MEMBER' }]
+    );
+
+    expect(result.successfulInvitations).toHaveLength(1);
+
+    // Verify email arrived in MailHog
+    const email = await mailHog.waitForEmail(
+      (e) => e.To[0].Mailbox === 'invitee',
+      10000
+    );
+    expect(email).not.toBeNull();
+    expect(email.Content.Headers.Subject[0]).toContain('invited you');
+  });
+});
+```
+
+### Running Tests with Test Mode
+
+**Local Development:**
+
+The `global-setup.ts` automatically sets `FAMILYHUB_TEST_MODE=true` when starting the API:
+
+```bash
+npm run e2e
+```
+
+**Manual Testing:**
+
+```bash
+# Start API with test mode
+FAMILYHUB_TEST_MODE=true dotnet run --project src/api/FamilyHub.Api --environment Test
+
+# Test with curl
+curl -X POST http://localhost:5002/graphql \
+  -H "Content-Type: application/json" \
+  -H "X-Test-User-Id: 00000000-0000-0000-0000-000000000001" \
+  -H "X-Test-User-Email: test-owner@familyhub.test" \
+  -d '{"query": "{ family { id name } }"}'
+```
+
+**CI Environment:**
+
+In GitHub Actions, set the environment variable when starting the API:
+
+```yaml
+- name: Start API with test mode
+  run: |
+    cd src/api/FamilyHub.Api
+    FAMILYHUB_TEST_MODE=true dotnet run --environment Test &
+```
+
+### Key Differences from OAuth Mocking
+
+| Aspect | OAuth Mocking | Test Mode |
+|--------|---------------|-----------|
+| Backend | Mocked responses | Real API calls |
+| Database | No changes | Real writes |
+| Events | Not triggered | Real domain events |
+| Emails | Not sent | Sent to MailHog |
+| Speed | Fast | Slightly slower |
+| Confidence | Lower | Higher (tests real flow) |
+
+**Use Test Mode when:**
+
+- Testing complete event chains
+- Verifying email delivery
+- Testing database constraints
+- Testing real business logic
+
+**Use OAuth Mocking when:**
+
+- Testing frontend-only behavior
+- Need fast unit-style UI tests
+- Backend not required
+
+---
 
 ### GraphQL Fixture (Request Interception)
 
@@ -893,6 +1257,6 @@ jobs:
 
 ---
 
-**Last Updated:** 2026-01-09
-**Version:** 1.0.0
+**Last Updated:** 2026-01-19
+**Version:** 2.1.0 (E2E Test Strategy documented - Issue #92)
 **Zero-Retry Policy:** Enabled (retries: 0)

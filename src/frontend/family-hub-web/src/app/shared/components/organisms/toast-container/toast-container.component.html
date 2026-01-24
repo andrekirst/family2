@@ -1,0 +1,41 @@
+<!-- Toast Container (fixed top-right) -->
+<div
+  class="fixed top-4 right-4 z-50 flex flex-col gap-3 max-h-screen overflow-y-auto pointer-events-none"
+  aria-live="assertive"
+  aria-atomic="true"
+>
+  @for (toast of toastService.toasts(); track toast.id) {
+    <!-- Individual Toast -->
+    <div
+      [@slideIn]
+      [attr.role]="'alert'"
+      [attr.aria-live]="'assertive'"
+      [class]="getToastClasses(toast.type)"
+      class="pointer-events-auto"
+    >
+      <!-- Icon -->
+      <div class="flex-shrink-0 mt-0.5">
+        <app-icon
+          [name]="getIconName(toast.type)"
+          [class]="getIconColorClass(toast.type)"
+          size="md"
+        />
+      </div>
+
+      <!-- Message -->
+      <div class="flex-1 text-sm font-medium">
+        {{ toast.message }}
+      </div>
+
+      <!-- Close Button -->
+      <button
+        type="button"
+        (click)="dismiss(toast.id)"
+        class="flex-shrink-0 p-1 rounded hover:bg-black hover:bg-opacity-10 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current"
+        [attr.aria-label]="'Dismiss notification'"
+      >
+        <app-icon name="x" class="text-current" size="sm" />
+      </button>
+    </div>
+  }
+</div>

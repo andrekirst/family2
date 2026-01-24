@@ -1,5 +1,6 @@
 using DotNet.Testcontainers.Builders;
 using FamilyHub.Modules.Auth.Persistence;
+using FamilyHub.Modules.Family.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
@@ -8,9 +9,13 @@ namespace FamilyHub.Tests.Integration.Infrastructure;
 
 /// <summary>
 /// Shared PostgreSQL container fixture for integration tests.
-/// Each test class gets a fresh container with applied migrations.
+/// Each test class gets a fresh container with both Auth and Family schemas applied.
 /// Uses Testcontainers to provide a real PostgreSQL 16 instance with automatic cleanup.
 /// </summary>
+/// <remarks>
+/// PHASE 5 STATE: Creates both Auth schema (auth.*) and Family schema (family.*)
+/// to support tests that require entities from both modules (e.g., TimestampInterceptorTests).
+/// </remarks>
 public sealed class PostgreSqlContainerFixture : IAsyncLifetime
 {
     private PostgreSqlContainer? _container;
@@ -22,7 +27,7 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
         ?? throw new InvalidOperationException("Container not started");
 
     /// <summary>
-    /// Starts the PostgreSQL container and applies EF Core migrations.
+    /// Starts the PostgreSQL container and applies both Auth and Family schemas.
     /// Called once per test collection before any tests run.
     /// </summary>
     public async Task InitializeAsync()
@@ -40,8 +45,9 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
         // Start PostgreSQL container (60-80s first run, 10-20s cached)
         await _container.StartAsync();
 
-        // Apply EF Core migrations to create schema
-        await ApplyMigrationsAsync();
+        // Apply both schemas (Auth first, then Family)
+        await ApplyAuthSchemaAsync();
+        await ApplyFamilySchemaAsync();
     }
 
     /// <summary>
@@ -57,35 +63,37 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Applies all pending EF Core migrations to the test database.
-    /// Uses production configuration to avoid assembly loading issues.
+    /// Applies the Auth schema (auth.*) to the test database.
+    /// Uses EnsureCreatedAsync() to create schema based on current model.
     /// </summary>
-    private async Task ApplyMigrationsAsync()
+    private async Task ApplyAuthSchemaAsync()
     {
-        // Create a temporary service provider with test database configuration
-        var services = new ServiceCollection();
+        var options = new DbContextOptionsBuilder<AuthDbContext>()
+            .UseNpgsql(ConnectionString)
+            .UseSnakeCaseNamingConvention()
+            .Options;
 
-        // Configure DbContext with migrations
-        // CRITICAL: Must specify MigrationsAssembly or EF Core won't find the migration files
-        services.AddDbContext<AuthDbContext>(options =>
-            options.UseNpgsql(ConnectionString, npgsqlOptions =>
-                {
-                    npgsqlOptions.MigrationsAssembly(typeof(AuthDbContext).Assembly.GetName().Name);
-                })
-                .UseSnakeCaseNamingConvention());
-
-        await using var serviceProvider = services.BuildServiceProvider();
-        await using var scope = serviceProvider.CreateAsyncScope();
-
-        var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-
-        // Apply migrations (production-like behavior)
-        // This ensures we test the actual migration files that will run in production
-        //
-        // NOTE: Using EnsureCreated() instead of MigrateAsync() as a workaround for
-        // EF Core migration discovery issues in test environment. EnsureCreated() creates
-        // the schema based on the current model, which is sufficient for integration tests.
-        // The migration files are still tested via the dotnet ef migrations commands.
+        await using var dbContext = new AuthDbContext(options);
         await dbContext.Database.EnsureCreatedAsync();
+    }
+
+    /// <summary>
+    /// Applies the Family schema (family.*) to the test database.
+    /// Uses SQL script approach because EnsureCreatedAsync() won't work
+    /// after AuthDbContext has already marked the database as "created".
+    /// </summary>
+    private async Task ApplyFamilySchemaAsync()
+    {
+        var options = new DbContextOptionsBuilder<FamilyDbContext>()
+            .UseNpgsql(ConnectionString)
+            .UseSnakeCaseNamingConvention()
+            .Options;
+
+        await using var dbContext = new FamilyDbContext(options);
+
+        // Generate and execute creation script directly
+        // This works even after EnsureCreated() thinks the database exists
+        var script = dbContext.Database.GenerateCreateScript();
+        await dbContext.Database.ExecuteSqlRawAsync(script);
     }
 }

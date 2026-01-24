@@ -6,7 +6,7 @@ namespace FamilyHub.SharedKernel.Presentation.GraphQL.Errors;
 /// Represents a business logic error.
 /// Maps from BusinessException.
 /// </summary>
-public sealed class BusinessError : BaseError
+public sealed class BusinessError : BaseError, IDefaultMutationError
 {
     /// <summary>
     /// Gets or initializes the business error code.

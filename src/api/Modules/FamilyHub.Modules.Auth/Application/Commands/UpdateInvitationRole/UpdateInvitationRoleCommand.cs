@@ -1,6 +1,6 @@
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
-using MediatR;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 
@@ -12,6 +12,6 @@ namespace FamilyHub.Modules.Auth.Application.Commands.UpdateInvitationRole;
 public record UpdateInvitationRoleCommand(
     InvitationId InvitationId,
     FamilyRole NewRole
-) : IRequest<FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>>,
+) : ICommand<FamilyHub.SharedKernel.Domain.Result<UpdateInvitationRoleResult>>,
     IRequireFamilyContext,
     IRequireOwnerOrAdminRole;

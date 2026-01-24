@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FamilyService } from '../../../family/services/family.service';
+import { GraphQLService } from '../../../../core/services/graphql.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { SpinnerComponent } from '../../../../shared/components/atoms/spinner/spinner.component';
 
 @Component({
@@ -44,6 +46,8 @@ export class CallbackComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly familyService = inject(FamilyService);
+  private readonly graphqlService = inject(GraphQLService);
+  private readonly toastService = inject(ToastService);
 
   error: string | null = null;
 
@@ -63,6 +67,21 @@ export class CallbackComponent implements OnInit {
 
       // Complete OAuth flow
       await this.authService.completeLogin(code, state);
+
+      // Check for pending invitation token
+      const pendingToken = sessionStorage.getItem('pending_invitation_token');
+      if (pendingToken) {
+        try {
+          await this.acceptPendingInvitation(pendingToken);
+          sessionStorage.removeItem('pending_invitation_token');
+          this.router.navigate(['/dashboard']);
+          return; // Early exit - skip normal post-login flow
+        } catch (error) {
+          console.error('Failed to accept pending invitation:', error);
+          sessionStorage.removeItem('pending_invitation_token');
+          // Continue with normal flow
+        }
+      }
 
       // Load family data after successful login
       await this.familyService.loadCurrentFamily();
@@ -87,5 +106,60 @@ export class CallbackComponent implements OnInit {
 
   retry(): void {
     this.router.navigate(['/login']);
+  }
+
+  /**
+   * Accepts a pending invitation after successful authentication.
+   * Called when user accepted invitation while unauthenticated.
+   */
+  private async acceptPendingInvitation(token: string): Promise<void> {
+    const mutation = `
+      mutation AcceptInvitation($input: AcceptInvitationInput!) {
+        acceptInvitation(input: $input) {
+          familyId
+          familyName
+          role
+          errors {
+            __typename
+            ... on ValidationError {
+              message
+              field
+            }
+            ... on BusinessError {
+              message
+              code
+            }
+            ... on ValueObjectError {
+              message
+            }
+            ... on UnauthorizedError {
+              message
+            }
+          }
+        }
+      }
+    `;
+
+    const response = await this.graphqlService.mutate<{
+      acceptInvitation: {
+        familyId: string;
+        familyName: string;
+        role: string;
+        errors: { __typename: string; message: string }[];
+      };
+    }>(mutation, {
+      input: { token },
+    });
+
+    // Check for errors
+    if (response.acceptInvitation.errors?.length > 0) {
+      throw new Error(response.acceptInvitation.errors[0].message);
+    }
+
+    // Show success toast
+    this.toastService.success(`Welcome to ${response.acceptInvitation.familyName}!`);
+
+    // Reload family data
+    await this.familyService.loadCurrentFamily();
   }
 }

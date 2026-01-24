@@ -5,10 +5,10 @@ using FamilyHub.Modules.Auth.Domain.Specifications;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Infrastructure.Extensions;
 using FamilyHub.Modules.Family.Application.Abstractions;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using IdentityModel.Client;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -31,7 +31,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
     IUnitOfWork unitOfWork,
     IHttpClientFactory httpClientFactory,
     ILogger<CompleteZitadelLoginCommandHandler> logger)
-    : IRequestHandler<CompleteZitadelLoginCommand, CompleteZitadelLoginResult>
+    : ICommandHandler<CompleteZitadelLoginCommand, CompleteZitadelLoginResult>
 {
     private readonly ZitadelSettings _settings = settings.Value;
     private readonly JwtSecurityTokenHandler _jwtHandler = new();

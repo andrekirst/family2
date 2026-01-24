@@ -1,8 +1,8 @@
 using System.Reflection;
 using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 using FamilyHub.Modules.Family.Domain.Aggregates;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FluentValidation;
-using MediatR;
 
 namespace FamilyHub.Tests.Architecture;
 
@@ -22,11 +22,11 @@ public sealed class CqrsPatternTests
     ];
 
     /// <summary>
-    /// Commands should implement IRequest or IRequest{TResponse} from MediatR.
-    /// This ensures proper command handling infrastructure.
+    /// Commands should implement ICommand or ICommand{TResponse}.
+    /// This ensures proper command handling infrastructure and type-safe CQRS patterns.
     /// </summary>
     [Fact]
-    public void Commands_ShouldImplement_IRequest()
+    public void Commands_ShouldImplement_ICommand()
     {
         // Arrange
         var allTypes = AllModuleAssemblies
@@ -46,22 +46,22 @@ public sealed class CqrsPatternTests
 
         // Act & Assert
         var violatingTypes = commandTypes
-            .Where(t => !ImplementsIRequest(t))
+            .Where(t => !ImplementsICommand(t))
             .Select(t => t.FullName)
             .ToList();
 
         violatingTypes.Should().BeEmpty(
-            because: $"All command classes should implement MediatR's IRequest or IRequest<TResponse>. " +
-                     $"This enables the mediator pattern for command handling. " +
+            because: $"All command classes should implement ICommand or ICommand<TResponse>. " +
+                     $"This enables type-safe CQRS pattern enforcement. " +
                      $"Violating types: {string.Join(", ", violatingTypes)}");
     }
 
     /// <summary>
-    /// Queries should implement IRequest or IRequest{TResponse} from MediatR.
-    /// This ensures proper query handling infrastructure.
+    /// Queries should implement IQuery or IQuery{TResponse}.
+    /// This ensures proper query handling infrastructure and type-safe CQRS patterns.
     /// </summary>
     [Fact]
-    public void Queries_ShouldImplement_IRequest()
+    public void Queries_ShouldImplement_IQuery()
     {
         // Arrange
         var allTypes = AllModuleAssemblies
@@ -81,44 +81,75 @@ public sealed class CqrsPatternTests
 
         // Act & Assert
         var violatingTypes = queryTypes
-            .Where(t => !ImplementsIRequest(t))
+            .Where(t => !ImplementsIQuery(t))
             .Select(t => t.FullName)
             .ToList();
 
         violatingTypes.Should().BeEmpty(
-            because: $"All query classes should implement MediatR's IRequest or IRequest<TResponse>. " +
-                     $"This enables the mediator pattern for query handling. " +
+            because: $"All query classes should implement IQuery or IQuery<TResponse>. " +
+                     $"This enables type-safe CQRS pattern enforcement. " +
                      $"Violating types: {string.Join(", ", violatingTypes)}");
     }
 
     /// <summary>
-    /// Command and Query handlers should implement IRequestHandler.
+    /// Command handlers should implement ICommandHandler.
     /// This ensures handlers can be discovered and invoked by MediatR.
     /// </summary>
     [Fact]
-    public void CommandHandlers_ShouldImplement_IRequestHandler()
+    public void CommandHandlers_ShouldImplement_ICommandHandler()
     {
         // Arrange
         var allTypes = AllModuleAssemblies
             .SelectMany(a => Types.InAssembly(a).GetTypes())
             .ToList();
 
-        // Find handler classes
+        // Find command handler classes
         var handlerTypes = allTypes
             .Where(t => t.IsClass &&
                         !t.IsAbstract &&
-                        (t.Name.EndsWith("CommandHandler") || t.Name.EndsWith("QueryHandler")))
+                        t.Name.EndsWith("CommandHandler"))
             .ToList();
 
         // Act & Assert
         var violatingTypes = handlerTypes
-            .Where(t => !ImplementsIRequestHandler(t))
+            .Where(t => !ImplementsICommandHandler(t))
             .Select(t => t.FullName)
             .ToList();
 
         violatingTypes.Should().BeEmpty(
-            because: $"All command and query handlers should implement MediatR's IRequestHandler<TRequest, TResponse>. " +
-                     $"This enables automatic handler discovery and invocation. " +
+            because: $"All command handlers should implement ICommandHandler<TCommand, TResponse>. " +
+                     $"This enables type-safe CQRS pattern enforcement. " +
+                     $"Violating types: {string.Join(", ", violatingTypes)}");
+    }
+
+    /// <summary>
+    /// Query handlers should implement IQueryHandler.
+    /// This ensures handlers can be discovered and invoked by MediatR.
+    /// </summary>
+    [Fact]
+    public void QueryHandlers_ShouldImplement_IQueryHandler()
+    {
+        // Arrange
+        var allTypes = AllModuleAssemblies
+            .SelectMany(a => Types.InAssembly(a).GetTypes())
+            .ToList();
+
+        // Find query handler classes
+        var handlerTypes = allTypes
+            .Where(t => t.IsClass &&
+                        !t.IsAbstract &&
+                        t.Name.EndsWith("QueryHandler"))
+            .ToList();
+
+        // Act & Assert
+        var violatingTypes = handlerTypes
+            .Where(t => !ImplementsIQueryHandler(t))
+            .Select(t => t.FullName)
+            .ToList();
+
+        violatingTypes.Should().BeEmpty(
+            because: $"All query handlers should implement IQueryHandler<TQuery, TResponse>. " +
+                     $"This enables type-safe CQRS pattern enforcement. " +
                      $"Violating types: {string.Join(", ", violatingTypes)}");
     }
 
@@ -155,24 +186,45 @@ public sealed class CqrsPatternTests
     }
 
     /// <summary>
-    /// Helper method to check if a type implements IRequest or IRequest{TResponse}.
+    /// Helper method to check if a type implements ICommand or ICommand{TResponse}.
     /// </summary>
-    private static bool ImplementsIRequest(Type type)
+    private static bool ImplementsICommand(Type type)
     {
         return type.GetInterfaces().Any(i =>
-            i == typeof(IRequest) ||
-            (i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>)));
+            i == typeof(ICommand) ||
+            (i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommand<>)));
     }
 
     /// <summary>
-    /// Helper method to check if a type implements IRequestHandler.
+    /// Helper method to check if a type implements IQuery or IQuery{TResponse}.
     /// </summary>
-    private static bool ImplementsIRequestHandler(Type type)
+    private static bool ImplementsIQuery(Type type)
+    {
+        return type.GetInterfaces().Any(i =>
+            i == typeof(IQuery) ||
+            (i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQuery<>)));
+    }
+
+    /// <summary>
+    /// Helper method to check if a type implements ICommandHandler.
+    /// </summary>
+    private static bool ImplementsICommandHandler(Type type)
     {
         return type.GetInterfaces().Any(i =>
             i.IsGenericType &&
-            (i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>) ||
-             i.GetGenericTypeDefinition() == typeof(IRequestHandler<>)));
+            (i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>) ||
+             i.GetGenericTypeDefinition() == typeof(ICommandHandler<>)));
+    }
+
+    /// <summary>
+    /// Helper method to check if a type implements IQueryHandler.
+    /// </summary>
+    private static bool ImplementsIQueryHandler(Type type)
+    {
+        return type.GetInterfaces().Any(i =>
+            i.IsGenericType &&
+            (i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>) ||
+             i.GetGenericTypeDefinition() == typeof(IQueryHandler<>)));
     }
 
     /// <summary>

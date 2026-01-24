@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Family.Domain.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.Modules.Family.Domain.ValueObjects;
@@ -38,8 +39,9 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         // Create family owner
         var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
@@ -55,16 +57,16 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
             "Welcome to the family!");
 
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None); // Use FamilyUnitOfWork for Family entities
 
         // Create invitee user (with temporary family, AcceptInvitation will update)
         var tempFamily = FamilyAggregate.Create(FamilyName.From("Temp Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None); // Use FamilyUnitOfWork for Family entities
 
         var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", tempFamily.Id);
         await userRepo.AddAsync(invitee, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await unitOfWork.SaveChangesAsync(CancellationToken.None); // Use Auth UnitOfWork for User entities
 
         var client = CreateAuthenticatedClient(inviteeEmail.Value, invitee.Id);
 
@@ -117,8 +119,9 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
@@ -131,11 +134,11 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
             owner.Id);
 
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         var tempFamily = FamilyAggregate.Create(FamilyName.From("Temp Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", tempFamily.Id);
         await userRepo.AddAsync(invitee, CancellationToken.None);
@@ -259,8 +262,9 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
@@ -277,11 +281,11 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         expiresAtProperty.SetValue(invitation, DateTime.UtcNow.AddDays(-1));
 
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         var tempFamily = FamilyAggregate.Create(FamilyName.From("Temp Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", tempFamily.Id);
         await userRepo.AddAsync(invitee, CancellationToken.None);
@@ -340,8 +344,9 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
@@ -354,13 +359,13 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
             owner.Id);
 
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         // Authenticate as user with different email
         var differentEmail = Email.From("different@example.com");
         var tempFamily = FamilyAggregate.Create(FamilyName.From("Wrong User Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         var wrongUser = User.CreateFromOAuth(differentEmail, "ext-wrong", "zitadel", tempFamily.Id);
         await userRepo.AddAsync(wrongUser, CancellationToken.None);
@@ -420,6 +425,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
@@ -434,10 +440,11 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         // Accept invitation first
         var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", owner.FamilyId);
         await userRepo.AddAsync(invitee, CancellationToken.None);
+        await unitOfWork.SaveChangesAsync(CancellationToken.None);
         invitation.Accept(invitee.Id);
 
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         var client = CreateAuthenticatedClient(inviteeEmail.Value, invitee.Id);
 
@@ -488,8 +495,9 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var (userRepo, familyService, unitOfWork) = TestServices.ResolveRepositoryServices(scope);
-        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>(); // For test setup
+        var familyRepo = scope.ServiceProvider.GetRequiredService<IFamilyRepository>();
         var invitationRepo = scope.ServiceProvider.GetRequiredService<IFamilyMemberInvitationRepository>();
+        var familyUnitOfWork = scope.ServiceProvider.GetRequiredService<IFamilyUnitOfWork>();
 
         var owner = await TestDataFactory.CreateUserAsync(userRepo, familyService, unitOfWork, "owner");
 
@@ -505,11 +513,11 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         invitation.Cancel(owner.Id);
 
         await invitationRepo.AddAsync(invitation, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         var tempFamily = FamilyAggregate.Create(FamilyName.From("Temp Family"), UserId.New());
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
         var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", tempFamily.Id);
         await userRepo.AddAsync(invitee, CancellationToken.None);

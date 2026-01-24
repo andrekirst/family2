@@ -48,4 +48,22 @@ public interface IUserLookupService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if a user with this email is in the family; otherwise, false.</returns>
     Task<bool> IsEmailMemberOfFamilyAsync(FamilyId familyId, Email email, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the FamilyId that a user with the given email belongs to, if any.
+    /// Used for cross-family validation (preventing users from being invited to multiple families).
+    /// </summary>
+    /// <param name="email">The email address to look up.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The FamilyId if user exists and has a family; otherwise, null.</returns>
+    Task<FamilyId?> GetFamilyIdByEmailAsync(Email email, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the email address of a user by their user ID.
+    /// Used by Family module event handlers for email generation.
+    /// </summary>
+    /// <param name="userId">The user ID to look up.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The user's email address if found; otherwise, null.</returns>
+    Task<Email?> GetUserEmailAsync(UserId userId, CancellationToken cancellationToken = default);
 }

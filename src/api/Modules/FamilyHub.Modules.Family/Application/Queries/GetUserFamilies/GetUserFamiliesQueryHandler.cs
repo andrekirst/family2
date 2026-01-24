@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Application.Abstractions;
-using MediatR;
+using FamilyHub.SharedKernel.Application.CQRS;
 
 namespace FamilyHub.Modules.Family.Application.Queries.GetUserFamilies;
 
@@ -14,7 +14,7 @@ namespace FamilyHub.Modules.Family.Application.Queries.GetUserFamilies;
 public sealed class GetUserFamiliesQueryHandler(
     IFamilyRepository familyRepository,
     IUserLookupService userLookupService)
-    : IRequestHandler<GetUserFamiliesQuery, GetUserFamiliesResult>
+    : IQueryHandler<GetUserFamiliesQuery, GetUserFamiliesResult>
 {
     /// <summary>
     /// Handles the GetUserFamiliesQuery by retrieving all families for the specified user.

@@ -3,7 +3,10 @@ import { Router } from '@angular/router';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FamilyWizardPageComponent } from './family-wizard-page.component';
 import { FamilyService } from '../../services/family.service';
+import { InvitationService } from '../../services/invitation.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { WizardComponent } from '../../../../shared/components/organisms/wizard/wizard.component';
+import { ConfirmInvitesDialogComponent } from '../../../../shared/components/organisms/confirm-invites-dialog/confirm-invites-dialog.component';
 import { FamilyNameStepData } from '../../components/family-name-step/family-name-step.component';
 import { signal, WritableSignal } from '@angular/core';
 import { By } from '@angular/platform-browser';
@@ -12,32 +15,53 @@ describe('FamilyWizardPageComponent', () => {
   let component: FamilyWizardPageComponent;
   let fixture: ComponentFixture<FamilyWizardPageComponent>;
   let mockFamilyService: jasmine.SpyObj<FamilyService>;
+  let mockInvitationService: jasmine.SpyObj<InvitationService>;
+  let mockToastService: jasmine.SpyObj<ToastService>;
   let mockRouter: jasmine.SpyObj<Router>;
   let hasFamilySignal: WritableSignal<boolean>;
   let errorSignal: WritableSignal<string | null>;
   let isLoadingSignal: WritableSignal<boolean>;
+  let currentFamilySignal: WritableSignal<{ id: string; name: string } | null>;
 
   beforeEach(async () => {
     // Create writable signals
     hasFamilySignal = signal(false);
     errorSignal = signal(null);
     isLoadingSignal = signal(false);
+    currentFamilySignal = signal(null);
 
     // Create mock FamilyService with signals
-    mockFamilyService = jasmine.createSpyObj('FamilyService', ['createFamily'], {
-      hasFamily: hasFamilySignal,
-      error: errorSignal,
-      isLoading: isLoadingSignal,
-      currentFamily: signal(null),
-    });
+    mockFamilyService = jasmine.createSpyObj(
+      'FamilyService',
+      ['createFamily', 'loadCurrentFamily'],
+      {
+        hasFamily: hasFamilySignal,
+        error: errorSignal,
+        isLoading: isLoadingSignal,
+        currentFamily: currentFamilySignal,
+      }
+    );
+
+    // Create mock InvitationService
+    mockInvitationService = jasmine.createSpyObj('InvitationService', [
+      'inviteFamilyMembersByEmail',
+    ]);
+    mockInvitationService.inviteFamilyMembersByEmail.and.returnValue(
+      Promise.resolve({ successCount: 0, errors: [] })
+    );
+
+    // Create mock ToastService
+    mockToastService = jasmine.createSpyObj('ToastService', ['success', 'error', 'warning']);
 
     // Create mock Router
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [FamilyWizardPageComponent, WizardComponent],
+      imports: [FamilyWizardPageComponent, WizardComponent, ConfirmInvitesDialogComponent],
       providers: [
         { provide: FamilyService, useValue: mockFamilyService },
+        { provide: InvitationService, useValue: mockInvitationService },
+        { provide: ToastService, useValue: mockToastService },
         { provide: Router, useValue: mockRouter },
         provideNoopAnimations(), // Required for testing components with animations
       ],
@@ -54,9 +78,11 @@ describe('FamilyWizardPageComponent', () => {
 
   describe('Wizard Configuration', () => {
     it('should configure wizard with family name step', () => {
-      expect(component.wizardSteps.length).toBe(1);
+      expect(component.wizardSteps.length).toBe(2);
       expect(component.wizardSteps[0].id).toBe('family-name');
       expect(component.wizardSteps[0].title).toBe('Family Name');
+      expect(component.wizardSteps[1].id).toBe('invite-members');
+      expect(component.wizardSteps[1].title).toBe('Invite Family Members');
     });
 
     it('should have validation function for family name step', () => {

@@ -1,6 +1,6 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Specifications;
-using MediatR;
+using FamilyHub.SharedKernel.Application.CQRS;
 
 namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 
@@ -13,7 +13,7 @@ namespace FamilyHub.Modules.Auth.Application.Queries.GetPendingInvitations;
 public sealed class GetPendingInvitationsQueryHandler(
     IUserContext userContext,
     IFamilyMemberInvitationRepository invitationRepository)
-    : IRequestHandler<GetPendingInvitationsQuery, GetPendingInvitationsResult>
+    : IQueryHandler<GetPendingInvitationsQuery, GetPendingInvitationsResult>
 {
     /// <inheritdoc />
     public async Task<GetPendingInvitationsResult> Handle(

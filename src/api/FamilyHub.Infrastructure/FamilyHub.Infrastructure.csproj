@@ -2,7 +2,11 @@
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" />
     <PackageReference Include="HotChocolate.Execution" />
+    <PackageReference Include="HotChocolate.Subscriptions.Redis" />
+    <PackageReference Include="HotChocolate.Types" />
+    <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -12,11 +16,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="RabbitMQ.Client" />
-    <PackageReference Include="Polly.Core" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="MimeKit" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Polly.Core" />
+    <PackageReference Include="RabbitMQ.Client" />
+    <PackageReference Include="RazorLight" />
+    <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +33,13 @@
   <ItemGroup>
     <InternalsVisibleTo Include="FamilyHub.Tests.Unit" />
     <InternalsVisibleTo Include="FamilyHub.Tests.Integration" />
+  </ItemGroup>
+
+  <!-- Copy email templates to output directory -->
+  <ItemGroup>
+    <None Include="Email\Templates\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

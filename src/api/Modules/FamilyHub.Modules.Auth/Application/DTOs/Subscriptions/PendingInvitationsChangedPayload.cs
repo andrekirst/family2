@@ -1,7 +1,7 @@
-namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+namespace FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 
 /// <summary>
-/// GraphQL subscription payload for pending invitations changes.
+/// Subscription payload for pending invitations changes.
 /// Published when an invitation is created, updated, accepted, or canceled.
 /// </summary>
 public sealed record PendingInvitationsChangedPayload
@@ -20,5 +20,5 @@ public sealed record PendingInvitationsChangedPayload
     /// The invitation that changed.
     /// Null for REMOVED events (invitation accepted/canceled).
     /// </summary>
-    public PendingInvitationType? Invitation { get; init; }
+    public PendingInvitationDto? Invitation { get; init; }
 }

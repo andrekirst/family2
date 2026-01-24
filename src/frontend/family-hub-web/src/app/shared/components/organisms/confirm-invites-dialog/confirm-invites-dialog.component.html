@@ -1,0 +1,70 @@
+<app-modal [isOpen]="isOpen" title="Confirm Invitations" [closeable]="false" (closeModal)="onCancel()">
+  <div class="space-y-4">
+    <!-- Invitation Summary -->
+    <div>
+      <p class="text-sm text-gray-700">
+        You are about to send
+        <span class="font-semibold text-gray-900">{{ invitations.length }}</span>
+        invitation{{ invitations.length === 1 ? '' : 's' }} to join
+        <span class="font-semibold text-gray-900">{{ familyName }}</span
+        >:
+      </p>
+    </div>
+
+    <!-- Invitations List -->
+    <div class="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
+      <div class="space-y-2">
+        @for (invite of invitations; track invite.email) {
+          <div class="flex items-center justify-between py-2 px-3 bg-white rounded border border-gray-200">
+            <!-- Email -->
+            <span class="text-sm font-medium text-gray-900 truncate flex-1 mr-3">
+              {{ invite.email }}
+            </span>
+
+            <!-- Role Badge -->
+            <span [class]="getRoleBadgeClasses(invite.role)">
+              {{ invite.role }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Email Preview -->
+    <app-email-preview [familyName]="familyName" [personalMessage]="personalMessage" />
+
+    <!-- Warning Message -->
+    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r">
+      <div class="flex items-start gap-3">
+        <div class="flex-shrink-0 mt-0.5">
+          <svg
+            class="w-5 h-5 text-blue-600"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-medium text-blue-800">
+            Invitations will be sent immediately and cannot be undone.
+          </p>
+          <p class="text-sm text-blue-700 mt-1">
+            Each recipient will receive an email with a unique invitation link valid for 14 days.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-3 pt-2">
+      <app-button variant="secondary" (clicked)="onCancel()"> Cancel </app-button>
+      <app-button variant="primary" (clicked)="onConfirm()"> Send Invitations </app-button>
+    </div>
+  </div>
+</app-modal>
