@@ -27,23 +27,17 @@ namespace FamilyHub.Infrastructure.Messaging;
 /// <item><description>Structured logging to Seq for observability</description></item>
 /// </list>
 /// </remarks>
-public sealed partial class RedisSubscriptionPublisher : IRedisSubscriptionPublisher
+/// <remarks>
+/// Initializes a new instance of the <see cref="RedisSubscriptionPublisher"/> class.
+/// </remarks>
+/// <param name="topicEventSender">Hot Chocolate's topic event sender for Redis PubSub.</param>
+/// <param name="logger">Logger for structured logging to Seq.</param>
+public sealed partial class RedisSubscriptionPublisher(
+    ITopicEventSender topicEventSender,
+    ILogger<RedisSubscriptionPublisher> logger) : IRedisSubscriptionPublisher
 {
-    private readonly ITopicEventSender _topicEventSender;
-    private readonly ILogger<RedisSubscriptionPublisher> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RedisSubscriptionPublisher"/> class.
-    /// </summary>
-    /// <param name="topicEventSender">Hot Chocolate's topic event sender for Redis PubSub.</param>
-    /// <param name="logger">Logger for structured logging to Seq.</param>
-    public RedisSubscriptionPublisher(
-        ITopicEventSender topicEventSender,
-        ILogger<RedisSubscriptionPublisher> logger)
-    {
-        _topicEventSender = topicEventSender;
-        _logger = logger;
-    }
+    private readonly ITopicEventSender _topicEventSender = topicEventSender;
+    private readonly ILogger<RedisSubscriptionPublisher> _logger = logger;
 
     /// <inheritdoc />
     public async Task PublishAsync<TMessage>(

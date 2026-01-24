@@ -2,10 +2,10 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Abstractions;
+using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
-using FamilyHub.SharedKernel.Application.CQRS;
 using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Modules.Auth.Application.Commands.AcceptInvitation;

@@ -1,9 +1,10 @@
-namespace FamilyHub.Modules.Family.Persistence.Configurations;
 
 using FamilyHub.Modules.Family.Domain;
 using FamilyHub.SharedKernel.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace FamilyHub.Modules.Family.Persistence.Configurations;
 
 internal sealed class EmailOutboxConfiguration : IEntityTypeConfiguration<EmailOutbox>
 {

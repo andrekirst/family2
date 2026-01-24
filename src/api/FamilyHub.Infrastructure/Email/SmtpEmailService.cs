@@ -1,4 +1,3 @@
-namespace FamilyHub.Infrastructure.Email;
 
 using FamilyHub.Infrastructure.Email.Models;
 using MailKit.Net.Smtp;
@@ -8,6 +7,7 @@ using MimeKit;
 using Polly;
 using Polly.Retry;
 
+namespace FamilyHub.Infrastructure.Email;
 /// <summary>
 /// SMTP email service implementation using MimeKit.
 /// </summary>

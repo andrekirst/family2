@@ -128,7 +128,7 @@ public static class FamilyModuleServiceRegistration
         return builder
             .RegisterDbContextFactory<FamilyDbContext>() // Required for DataLoaders
             .AddType<Presentation.GraphQL.Types.FamilyType>() // Register FamilyType explicitly
-            // Query extensions - extend Query type with family-related queries
+                                                              // Query extensions - extend Query type with family-related queries
             .AddTypeExtension<Presentation.GraphQL.Queries.FamilyQueries>()
             // Mutation extensions - extend Mutation type with family-related mutations
             .AddTypeExtension<Presentation.GraphQL.Mutations.InvitationMutations>();

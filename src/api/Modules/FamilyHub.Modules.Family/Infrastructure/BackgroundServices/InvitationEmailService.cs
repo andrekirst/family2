@@ -1,4 +1,3 @@
-namespace FamilyHub.Modules.Family.Infrastructure.BackgroundServices;
 
 using FamilyHub.Infrastructure.Email;
 using FamilyHub.Infrastructure.Email.Models;
@@ -9,29 +8,24 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+namespace FamilyHub.Modules.Family.Infrastructure.BackgroundServices;
 /// <summary>
 /// Background service that processes outbox events and sends invitation emails.
 /// Follows the OutboxEventPublisher pattern.
 /// </summary>
-public sealed partial class InvitationEmailService : BackgroundService
+/// <remarks>
+/// Initializes a new instance of the <see cref="InvitationEmailService"/> class.
+/// </remarks>
+/// <param name="serviceProvider">The service provider for creating scoped dependencies.</param>
+/// <param name="logger">The logger instance.</param>
+public sealed partial class InvitationEmailService(
+    IServiceProvider serviceProvider,
+    ILogger<InvitationEmailService> logger) : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<InvitationEmailService> _logger;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly ILogger<InvitationEmailService> _logger = logger;
     private readonly TimeSpan _pollingInterval = TimeSpan.FromSeconds(5);
     private const int BatchSize = 50;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="InvitationEmailService"/> class.
-    /// </summary>
-    /// <param name="serviceProvider">The service provider for creating scoped dependencies.</param>
-    /// <param name="logger">The logger instance.</param>
-    public InvitationEmailService(
-        IServiceProvider serviceProvider,
-        ILogger<InvitationEmailService> logger)
-    {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -70,13 +64,19 @@ public sealed partial class InvitationEmailService : BackgroundService
         var pendingEmails = await emailOutboxRepo
             .GetPendingEmailsAsync(BatchSize, cancellationToken);
 
-        if (pendingEmails.Count == 0) return;
+        if (pendingEmails.Count == 0)
+        {
+            return;
+        }
 
         LogProcessingEmails(pendingEmails.Count);
 
         foreach (var emailOutbox in pendingEmails)
         {
-            if (cancellationToken.IsCancellationRequested) break;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
 
             await SendEmailAsync(
                 emailOutbox,
@@ -102,13 +102,19 @@ public sealed partial class InvitationEmailService : BackgroundService
 
         var retriableEmails = failedEmails.Where(e => e.CanRetry()).ToList();
 
-        if (retriableEmails.Count == 0) return;
+        if (retriableEmails.Count == 0)
+        {
+            return;
+        }
 
         LogRetryingEmails(retriableEmails.Count);
 
         foreach (var emailOutbox in retriableEmails)
         {
-            if (cancellationToken.IsCancellationRequested) break;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
 
             await SendEmailAsync(
                 emailOutbox,

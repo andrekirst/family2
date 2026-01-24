@@ -1,18 +1,14 @@
-namespace FamilyHub.Modules.Family.Persistence.Repositories;
 
 using FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Family.Domain.Enums;
 using FamilyHub.SharedKernel.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
-internal sealed class EmailOutboxRepository : IEmailOutboxRepository
-{
-    private readonly FamilyDbContext _context;
+namespace FamilyHub.Modules.Family.Persistence.Repositories;
 
-    public EmailOutboxRepository(FamilyDbContext context)
-    {
-        _context = context;
-    }
+internal sealed class EmailOutboxRepository(FamilyDbContext context) : IEmailOutboxRepository
+{
+    private readonly FamilyDbContext _context = context;
 
     public async Task<EmailOutbox?> GetByIdAsync(
         EmailOutboxId id,

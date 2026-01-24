@@ -242,7 +242,7 @@ public sealed class MailHogClient : IDisposable
     /// </example>
     public string? ExtractInvitationToken(MailHogMessage email)
     {
-        string htmlBody = email.Content.Body;
+        var htmlBody = email.Content.Body;
 
         // If MIME parts exist, extract HTML body from the appropriate part
         if (email.MIME?.Parts != null && email.MIME.Parts.Any())
@@ -271,7 +271,7 @@ public sealed class MailHogClient : IDisposable
     /// <returns>List of URLs</returns>
     public List<string> ExtractUrls(MailHogMessage email)
     {
-        string htmlBody = email.Content.Body;
+        var htmlBody = email.Content.Body;
 
         // If MIME parts exist, extract HTML body from the appropriate part
         if (email.MIME?.Parts != null && email.MIME.Parts.Any())
@@ -300,7 +300,7 @@ public sealed class MailHogClient : IDisposable
     /// <returns>Plain text body</returns>
     public string GetPlainTextBody(MailHogMessage email)
     {
-        string htmlBody = email.Content.Body;
+        var htmlBody = email.Content.Body;
 
         // If MIME parts exist, extract HTML body from the appropriate part
         if (email.MIME?.Parts != null && email.MIME.Parts.Any())

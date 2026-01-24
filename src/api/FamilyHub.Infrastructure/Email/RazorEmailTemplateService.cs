@@ -1,28 +1,22 @@
-namespace FamilyHub.Infrastructure.Email;
 
 using Microsoft.Extensions.Logging;
 using RazorLight;
 
+namespace FamilyHub.Infrastructure.Email;
 /// <summary>
 /// Razor template rendering service for emails.
 /// </summary>
-public sealed partial class RazorEmailTemplateService : IEmailTemplateService
+/// <remarks>
+/// Initializes a new instance of the <see cref="RazorEmailTemplateService"/> class.
+/// </remarks>
+/// <param name="razorEngine">The Razor template engine.</param>
+/// <param name="logger">The logger instance.</param>
+public sealed partial class RazorEmailTemplateService(
+    IRazorLightEngine razorEngine,
+    ILogger<RazorEmailTemplateService> logger) : IEmailTemplateService
 {
-    private readonly IRazorLightEngine _razorEngine;
-    private readonly ILogger<RazorEmailTemplateService> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RazorEmailTemplateService"/> class.
-    /// </summary>
-    /// <param name="razorEngine">The Razor template engine.</param>
-    /// <param name="logger">The logger instance.</param>
-    public RazorEmailTemplateService(
-        IRazorLightEngine razorEngine,
-        ILogger<RazorEmailTemplateService> logger)
-    {
-        _razorEngine = razorEngine;
-        _logger = logger;
-    }
+    private readonly IRazorLightEngine _razorEngine = razorEngine;
+    private readonly ILogger<RazorEmailTemplateService> _logger = logger;
 
     /// <inheritdoc />
     public async Task<string> RenderTemplateAsync<TModel>(

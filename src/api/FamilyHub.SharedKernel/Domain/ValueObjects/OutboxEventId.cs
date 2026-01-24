@@ -1,7 +1,7 @@
-namespace FamilyHub.SharedKernel.ValueObjects;
 
 using Vogen;
 
+namespace FamilyHub.SharedKernel.ValueObjects;
 /// <summary>
 /// Unique identifier for an OutboxEvent entity.
 /// </summary>

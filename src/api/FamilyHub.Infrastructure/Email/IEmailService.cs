@@ -1,7 +1,7 @@
-namespace FamilyHub.Infrastructure.Email;
 
 using FamilyHub.Infrastructure.Email.Models;
 
+namespace FamilyHub.Infrastructure.Email;
 /// <summary>
 /// Interface for sending emails via various providers.
 /// </summary>

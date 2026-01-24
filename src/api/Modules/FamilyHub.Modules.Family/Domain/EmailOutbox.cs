@@ -1,9 +1,9 @@
-namespace FamilyHub.Modules.Family.Domain;
 
 using FamilyHub.Modules.Family.Domain.Enums;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.SharedKernel.ValueObjects;
 
+namespace FamilyHub.Modules.Family.Domain;
 /// <summary>
 /// Tracks email delivery attempts and status.
 /// </summary>
@@ -142,8 +142,15 @@ public sealed class EmailOutbox : Entity<EmailOutboxId>
     /// <returns>True if the email can be retried; otherwise, false.</returns>
     public bool CanRetry()
     {
-        if (Status != EmailStatus.Failed) return false;
-        if (RetryCount >= 10) return false;
+        if (Status != EmailStatus.Failed)
+        {
+            return false;
+        }
+
+        if (RetryCount >= 10)
+        {
+            return false;
+        }
 
         // Exponential backoff: 1m, 2m, 5m, 15m, 1h, 5h, 15h (caps at 15h)
         var delays = new[] { 1, 2, 5, 15, 60, 300, 900 };

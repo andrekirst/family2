@@ -46,23 +46,17 @@ namespace FamilyHub.Modules.Auth.Application.Services;
 /// );
 /// </code>
 /// </remarks>
-public sealed class SubscriptionEventPublisher
+/// <remarks>
+/// Initializes a new instance of the <see cref="SubscriptionEventPublisher"/> class.
+/// </remarks>
+/// <param name="redisPublisher">The Redis subscription publisher.</param>
+/// <param name="logger">The logger.</param>
+public sealed class SubscriptionEventPublisher(
+    IRedisSubscriptionPublisher redisPublisher,
+    ILogger<SubscriptionEventPublisher> logger)
 {
-    private readonly IRedisSubscriptionPublisher _redisPublisher;
-    private readonly ILogger<SubscriptionEventPublisher> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SubscriptionEventPublisher"/> class.
-    /// </summary>
-    /// <param name="redisPublisher">The Redis subscription publisher.</param>
-    /// <param name="logger">The logger.</param>
-    public SubscriptionEventPublisher(
-        IRedisSubscriptionPublisher redisPublisher,
-        ILogger<SubscriptionEventPublisher> logger)
-    {
-        _redisPublisher = redisPublisher;
-        _logger = logger;
-    }
+    private readonly IRedisSubscriptionPublisher _redisPublisher = redisPublisher;
+    private readonly ILogger<SubscriptionEventPublisher> _logger = logger;
 
     /// <summary>
     /// Publishes a "family member added" subscription message.

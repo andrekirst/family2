@@ -95,7 +95,10 @@ public sealed class SmtpEmailServiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task SendEmailAsync_WithHtmlOnly_SendsSuccessfully()
     {
-        if (!_smtpAvailable) return;
+        if (!_smtpAvailable)
+        {
+            return;
+        }
 
         // Arrange
         var emailMessage = new EmailMessage
@@ -116,7 +119,10 @@ public sealed class SmtpEmailServiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task SendEmailAsync_WithSpecialCharacters_SendsSuccessfully()
     {
-        if (!_smtpAvailable) return;
+        if (!_smtpAvailable)
+        {
+            return;
+        }
 
         // Arrange
         var emailMessage = new EmailMessage
@@ -137,7 +143,10 @@ public sealed class SmtpEmailServiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task SendEmailAsync_WithLongSubject_SendsSuccessfully()
     {
-        if (!_smtpAvailable) return;
+        if (!_smtpAvailable)
+        {
+            return;
+        }
 
         // Arrange
         var longSubject = new string('A', 200); // 200 character subject
@@ -159,7 +168,10 @@ public sealed class SmtpEmailServiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task SendEmailAsync_WithLargeHtmlBody_SendsSuccessfully()
     {
-        if (!_smtpAvailable) return;
+        if (!_smtpAvailable)
+        {
+            return;
+        }
 
         // Arrange
         var largeBody = "<html><body>" + new string('X', 50000) + "</body></html>"; // 50KB body
@@ -222,7 +234,10 @@ public sealed class SmtpEmailServiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task SendEmailAsync_MultipleEmails_AllSendSuccessfully()
     {
-        if (!_smtpAvailable) return;
+        if (!_smtpAvailable)
+        {
+            return;
+        }
 
         // Arrange
         var emailCount = 5;
@@ -251,7 +266,10 @@ public sealed class SmtpEmailServiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task SendEmailAsync_ConcurrentEmails_AllSendSuccessfully()
     {
-        if (!_smtpAvailable) return;
+        if (!_smtpAvailable)
+        {
+            return;
+        }
 
         // Arrange
         var emailCount = 3;
@@ -286,7 +304,10 @@ public sealed class SmtpEmailServiceIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task SendEmailAsync_AfterDispose_ThrowsObjectDisposedException()
     {
-        if (!_smtpAvailable) return;
+        if (!_smtpAvailable)
+        {
+            return;
+        }
 
         // Arrange
         var settings = new SmtpSettings

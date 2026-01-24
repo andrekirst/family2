@@ -1,11 +1,11 @@
-namespace FamilyHub.Infrastructure.Email;
 
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using RazorLight;
-using System.Reflection;
 
+namespace FamilyHub.Infrastructure.Email;
 /// <summary>
 /// Service collection extensions for email infrastructure.
 /// </summary>

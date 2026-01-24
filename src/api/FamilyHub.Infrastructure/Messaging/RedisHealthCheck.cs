@@ -6,18 +6,13 @@ namespace FamilyHub.Infrastructure.Messaging;
 /// <summary>
 /// Health check for Redis connectivity.
 /// </summary>
-public sealed class RedisHealthCheck : IHealthCheck
+/// <remarks>
+/// Initializes a new instance of the <see cref="RedisHealthCheck"/> class.
+/// </remarks>
+/// <param name="connectionMultiplexer">The Redis connection multiplexer.</param>
+public sealed class RedisHealthCheck(IConnectionMultiplexer connectionMultiplexer) : IHealthCheck
 {
-    private readonly IConnectionMultiplexer _connectionMultiplexer;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RedisHealthCheck"/> class.
-    /// </summary>
-    /// <param name="connectionMultiplexer">The Redis connection multiplexer.</param>
-    public RedisHealthCheck(IConnectionMultiplexer connectionMultiplexer)
-    {
-        _connectionMultiplexer = connectionMultiplexer;
-    }
+    private readonly IConnectionMultiplexer _connectionMultiplexer = connectionMultiplexer;
 
     /// <inheritdoc />
     public async Task<HealthCheckResult> CheckHealthAsync(

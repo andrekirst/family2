@@ -174,13 +174,17 @@ internal sealed class GraphQlMigrationHostedService(IServiceProvider serviceProv
     {
         // Quick check without lock for performance
         if (_schemasCreated)
+        {
             return;
+        }
 
         lock (Lock)
         {
             // Double-check after acquiring lock
             if (_schemasCreated)
+            {
                 return;
+            }
 
             _schemasCreated = true;
         }

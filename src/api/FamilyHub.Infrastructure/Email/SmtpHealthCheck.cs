@@ -1,24 +1,19 @@
-namespace FamilyHub.Infrastructure.Email;
 
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
+namespace FamilyHub.Infrastructure.Email;
 /// <summary>
 /// Health check for SMTP connectivity.
 /// </summary>
-public sealed class SmtpHealthCheck : IHealthCheck
+/// <remarks>
+/// Initializes a new instance of the <see cref="SmtpHealthCheck"/> class.
+/// </remarks>
+/// <param name="settings">The SMTP configuration settings.</param>
+public sealed class SmtpHealthCheck(IOptions<SmtpSettings> settings) : IHealthCheck
 {
-    private readonly SmtpSettings _settings;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SmtpHealthCheck"/> class.
-    /// </summary>
-    /// <param name="settings">The SMTP configuration settings.</param>
-    public SmtpHealthCheck(IOptions<SmtpSettings> settings)
-    {
-        _settings = settings.Value;
-    }
+    private readonly SmtpSettings _settings = settings.Value;
 
     /// <inheritdoc />
     public async Task<HealthCheckResult> CheckHealthAsync(

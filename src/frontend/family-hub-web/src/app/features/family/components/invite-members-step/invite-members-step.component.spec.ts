@@ -611,7 +611,11 @@ describe('InviteMembersStepComponent', () => {
     });
 
     it('should render email counter', () => {
-      const counter = fixture.debugElement.query(By.css('span[class*="text-"]'));
+      // Find all spans in the header flex container - the counter is the second one
+      const headerDiv = fixture.debugElement.query(By.css('.flex.justify-between.items-center'));
+      const spans = headerDiv.queryAll(By.css('span'));
+      // The counter is the second span (index 1)
+      const counter = spans[1];
       expect(counter.nativeElement.textContent).toContain('1 of 20 emails');
     });
 
