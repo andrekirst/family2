@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TestBed } from '@angular/core/testing';
 import { Apollo } from 'apollo-angular';
 import { of, throwError, Subject } from 'rxjs';
@@ -263,14 +264,7 @@ describe('FamilyEventsService', () => {
 
   describe('unsubscribeAll', () => {
     it('should unsubscribe from all subscriptions', () => {
-      const mockMemberSubscription = {
-        unsubscribe: jasmine.createSpy('unsubscribe'),
-      };
-
-      const mockInvitationSubscription = {
-        unsubscribe: jasmine.createSpy('unsubscribe'),
-      };
-
+       
       apolloMock.subscribe.and.returnValues(of({}) as any, of({}) as any);
 
       service.subscribeFamilyMembers('family-id');

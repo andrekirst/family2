@@ -37,7 +37,7 @@ export interface InvitationItem {
  *   [familyName]="familyService.currentFamily()?.name ?? ''"
  *   [personalMessage]="pendingInviteData()?.message"
  *   (confirm)="onConfirmSendInvitations()"
- *   (cancel)="onCancelSendInvitations()"
+ *   (cancelled)="onCancelSendInvitations()"
  * />
  * ```
  *
@@ -103,7 +103,7 @@ export class ConfirmInvitesDialogComponent {
   /**
    * Event emitted when user cancels
    */
-  @Output() cancel = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
 
   /**
    * Gets Tailwind CSS classes for role badge
@@ -134,6 +134,6 @@ export class ConfirmInvitesDialogComponent {
    * Handles cancel button click
    */
   onCancel(): void {
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 }

@@ -8,7 +8,9 @@ import { signal } from '@angular/core';
 describe('FamilyService', () => {
   let service: FamilyService;
   let graphqlService: jasmine.SpyObj<GraphQLService>;
-  let familyEventsService: jasmine.SpyObj<FamilyEventsService>;
+  // Injected for DI but not directly used in current tests
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _familyEventsService: jasmine.SpyObj<FamilyEventsService>;
 
   beforeEach(() => {
     const graphqlSpy = jasmine.createSpyObj('GraphQLService', ['query', 'mutate']);
@@ -33,7 +35,7 @@ describe('FamilyService', () => {
 
     service = TestBed.inject(FamilyService);
     graphqlService = TestBed.inject(GraphQLService) as jasmine.SpyObj<GraphQLService>;
-    familyEventsService = TestBed.inject(
+    _familyEventsService = TestBed.inject(
       FamilyEventsService
     ) as jasmine.SpyObj<FamilyEventsService>;
   });

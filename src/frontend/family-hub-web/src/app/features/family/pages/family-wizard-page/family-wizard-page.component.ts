@@ -115,7 +115,7 @@ export interface WizardCompleteEvent {
       [familyName]="familyService.currentFamily()?.name ?? ''"
       [personalMessage]="pendingInviteData()?.message"
       (confirm)="onConfirmSendInvitations()"
-      (cancel)="onCancelSendInvitations()"
+      (cancelled)="onCancelSendInvitations()"
     />
   `,
   styles: [],

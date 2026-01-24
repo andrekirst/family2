@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, computed, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormGroup,
@@ -276,9 +276,9 @@ export class InviteMembersStepComponent implements OnInit {
     // Force emit to notify wizard of structural change (bypass deduplication)
     // This triggers wizard's markForCheck() which schedules change detection
     const formValue = this.emailForm.getRawValue();
-    const validInvitations = (formValue.invitations as any[])
-      .filter((inv: any) => inv.email.trim() !== '')
-      .map((inv: any) => ({
+    const validInvitations = (formValue.invitations as { email: string; role: string }[])
+      .filter((inv) => inv.email.trim() !== '')
+      .map((inv) => ({
         email: inv.email.trim(),
         role: inv.role as UserRole,
       }));
@@ -322,9 +322,9 @@ export class InviteMembersStepComponent implements OnInit {
     // Force emit to notify wizard of structural change (bypass deduplication)
     // This triggers wizard's markForCheck() which schedules change detection
     const formValue = this.emailForm.getRawValue();
-    const validInvitations = (formValue.invitations as any[])
-      .filter((inv: any) => inv.email.trim() !== '')
-      .map((inv: any) => ({
+    const validInvitations = (formValue.invitations as { email: string; role: string }[])
+      .filter((inv) => inv.email.trim() !== '')
+      .map((inv) => ({
         email: inv.email.trim(),
         role: inv.role as UserRole,
       }));
@@ -399,9 +399,9 @@ export class InviteMembersStepComponent implements OnInit {
     const formValue = this.emailForm.getRawValue();
 
     // Filter out empty emails and trim
-    const validInvitations = (formValue.invitations as any[])
-      .filter((inv: any) => inv.email.trim() !== '')
-      .map((inv: any) => ({
+    const validInvitations = (formValue.invitations as { email: string; role: string }[])
+      .filter((inv) => inv.email.trim() !== '')
+      .map((inv) => ({
         email: inv.email.trim(),
         role: inv.role as UserRole,
       }));

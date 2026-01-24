@@ -102,13 +102,15 @@ export function createApollo(): ApolloClientOptions {
         fields: {
           // Merge strategy for invitation lists
           pendingInvitations: {
-            merge(existing = [], incoming) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            merge(_existing = [], incoming) {
               return incoming;
             },
           },
           // Merge strategy for family member lists
           familyMembers: {
-            merge(existing = [], incoming) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            merge(_existing = [], incoming) {
               return incoming;
             },
           },

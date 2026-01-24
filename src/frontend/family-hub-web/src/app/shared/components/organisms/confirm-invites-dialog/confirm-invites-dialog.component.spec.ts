@@ -110,12 +110,12 @@ describe('ConfirmInvitesDialogComponent', () => {
     expect(component.confirm.emit).toHaveBeenCalled();
   });
 
-  it('should emit cancel event when cancel button is clicked', () => {
-    spyOn(component.cancel, 'emit');
+  it('should emit cancelled event when cancel button is clicked', () => {
+    spyOn(component.cancelled, 'emit');
 
     component.onCancel();
 
-    expect(component.cancel.emit).toHaveBeenCalled();
+    expect(component.cancelled.emit).toHaveBeenCalled();
   });
 
   it('should pass familyName to email preview component', () => {
