@@ -1,7 +1,7 @@
 using FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Family.Domain.Enums;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Persistence;
-using FamilyHub.Modules.Family.Persistence.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.ValueObjects;
 using FamilyHub.Tests.Integration.Infrastructure;

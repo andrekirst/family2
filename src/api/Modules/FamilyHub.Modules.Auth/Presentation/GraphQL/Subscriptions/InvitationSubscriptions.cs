@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 using FamilyHub.Modules.Auth.Domain.Repositories;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using HotChocolate;
 using HotChocolate.Subscriptions;

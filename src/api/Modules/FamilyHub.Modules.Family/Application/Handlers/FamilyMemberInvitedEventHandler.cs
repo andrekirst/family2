@@ -4,7 +4,6 @@ using FamilyHub.Modules.Family.Domain;
 using FamilyHub.Modules.Family.Domain.Abstractions;
 using FamilyHub.Modules.Family.Domain.Events;
 using FamilyHub.Modules.Family.Domain.Repositories;
-using FamilyHub.Modules.Family.Persistence.Repositories;
 using FamilyHub.SharedKernel.Application.Abstractions;
 using FamilyHub.SharedKernel.ValueObjects;
 using MediatR;

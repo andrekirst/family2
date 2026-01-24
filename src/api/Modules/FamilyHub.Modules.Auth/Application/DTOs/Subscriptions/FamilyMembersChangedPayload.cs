@@ -1,7 +1,7 @@
-namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+namespace FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 
 /// <summary>
-/// GraphQL subscription payload for family members changes.
+/// Subscription payload for family members changes.
 /// Published when a member joins, leaves, or is updated.
 /// </summary>
 public sealed record FamilyMembersChangedPayload
@@ -20,5 +20,5 @@ public sealed record FamilyMembersChangedPayload
     /// The family member that changed.
     /// Null for REMOVED events (member data already deleted).
     /// </summary>
-    public FamilyMemberType? Member { get; init; }
+    public FamilyMemberDto? Member { get; init; }
 }

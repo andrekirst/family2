@@ -1,12 +1,11 @@
 using System.Text;
 using System.Text.Json;
-using FamilyHub.Infrastructure.GraphQL.Types;
 using FamilyHub.Infrastructure.Messaging;
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Subscriptions;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using HotChocolate.Subscriptions;
@@ -73,19 +72,16 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = familyId,
             ChangeType = ChangeType.ADDED,
-            Member = new FamilyMemberType
+            Member = new FamilyMemberDto
             {
                 Id = Guid.NewGuid(),
                 Email = "newmember@example.com",
                 EmailVerified = true,
-                Role = UserRoleType.MEMBER,
+                Role = "member",
                 JoinedAt = DateTime.UtcNow,
                 IsOwner = false,
-                AuditInfo = new AuditInfoType
-                {
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                }
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             }
         };
 
@@ -158,19 +154,16 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
             {
                 FamilyId = familyId,
                 ChangeType = ChangeType.ADDED,
-                Member = new FamilyMemberType
+                Member = new FamilyMemberDto
                 {
                     Id = Guid.NewGuid(),
                     Email = $"member{i}@example.com",
                     EmailVerified = true,
-                    Role = UserRoleType.MEMBER,
+                    Role = "member",
                     JoinedAt = DateTime.UtcNow,
                     IsOwner = false,
-                    AuditInfo = new AuditInfoType
-                    {
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    }
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 }
             };
             await _publisher.PublishAsync(topicName, message);
@@ -196,19 +189,16 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = familyId,
             ChangeType = ChangeType.ADDED,
-            Member = new FamilyMemberType
+            Member = new FamilyMemberDto
             {
                 Id = userId,
                 Email = "test@example.com",
                 EmailVerified = true,
-                Role = UserRoleType.ADMIN,
+                Role = "admin",
                 JoinedAt = DateTime.UtcNow,
                 IsOwner = false,
-                AuditInfo = new AuditInfoType
-                {
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                }
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             }
         };
 
@@ -240,7 +230,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         receivedPayload.Member.Should().NotBeNull();
         receivedPayload.Member!.Id.Should().Be(userId);
         receivedPayload.Member.Email.Should().Be("test@example.com");
-        receivedPayload.Member.Role.Should().Be(UserRoleType.ADMIN);
+        receivedPayload.Member.Role.Should().Be("admin");
 
         // Cleanup
         await subscriber.UnsubscribeAsync(RedisChannel.Literal(topicName));
@@ -386,19 +376,16 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = familyId.Value,
             ChangeType = ChangeType.ADDED,
-            Member = new FamilyMemberType
+            Member = new FamilyMemberDto
             {
                 Id = Guid.NewGuid(),
                 Email = "newmember@example.com",
                 EmailVerified = true,
-                Role = UserRoleType.MEMBER,
+                Role = "member",
                 JoinedAt = DateTime.UtcNow,
                 IsOwner = false,
-                AuditInfo = new AuditInfoType
-                {
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                }
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             }
         };
 
@@ -497,12 +484,12 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = familyId.Value,
             ChangeType = ChangeType.ADDED,
-            Invitation = new PendingInvitationType
+            Invitation = new PendingInvitationDto
             {
                 Id = Guid.NewGuid(),
                 Email = "invitee@example.com",
-                Role = UserRoleType.MEMBER,
-                Status = InvitationStatusType.PENDING,
+                Role = "member",
+                Status = "pending",
                 InvitedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddDays(14)
             }
@@ -554,12 +541,12 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = familyId.Value,
             ChangeType = ChangeType.ADDED,
-            Invitation = new PendingInvitationType
+            Invitation = new PendingInvitationDto
             {
                 Id = Guid.NewGuid(),
                 Email = "invitee@example.com",
-                Role = UserRoleType.MEMBER,
-                Status = InvitationStatusType.PENDING,
+                Role = "member",
+                Status = "pending",
                 InvitedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddDays(14)
             }
@@ -611,12 +598,12 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = familyId.Value,
             ChangeType = ChangeType.ADDED,
-            Invitation = new PendingInvitationType
+            Invitation = new PendingInvitationDto
             {
                 Id = Guid.NewGuid(),
                 Email = "invitee@example.com",
-                Role = UserRoleType.MEMBER,
-                Status = InvitationStatusType.PENDING,
+                Role = "member",
+                Status = "pending",
                 InvitedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddDays(14)
             }
@@ -730,19 +717,16 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = Guid.NewGuid(),
             ChangeType = ChangeType.ADDED,
-            Member = new FamilyMemberType
+            Member = new FamilyMemberDto
             {
                 Id = Guid.NewGuid(),
                 Email = "test@example.com",
                 EmailVerified = true,
-                Role = UserRoleType.MEMBER,
+                Role = "member",
                 JoinedAt = DateTime.UtcNow,
                 IsOwner = false,
-                AuditInfo = new AuditInfoType
-                {
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                }
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             }
         };
 
@@ -771,19 +755,16 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = familyId,
             ChangeType = ChangeType.ADDED,
-            Member = new FamilyMemberType
+            Member = new FamilyMemberDto
             {
                 Id = Guid.NewGuid(),
                 Email = "test@example.com",
                 EmailVerified = true,
-                Role = UserRoleType.MEMBER,
+                Role = "member",
                 JoinedAt = DateTime.UtcNow,
                 IsOwner = false,
-                AuditInfo = new AuditInfoType
-                {
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                }
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             }
         };
 
@@ -863,19 +844,16 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
             {
                 FamilyId = familyId,
                 ChangeType = ChangeType.ADDED,
-                Member = new FamilyMemberType
+                Member = new FamilyMemberDto
                 {
                     Id = Guid.NewGuid(),
                     Email = $"member{i}@example.com",
                     EmailVerified = true,
-                    Role = UserRoleType.MEMBER,
+                    Role = "member",
                     JoinedAt = DateTime.UtcNow,
                     IsOwner = false,
-                    AuditInfo = new AuditInfoType
-                    {
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    }
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 }
             };
             await _publisher.PublishAsync(topicName, message);
@@ -905,19 +883,16 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = familyId,
             ChangeType = ChangeType.ADDED,
-            Member = new FamilyMemberType
+            Member = new FamilyMemberDto
             {
                 Id = Guid.NewGuid(),
                 Email = "test@example.com",
                 EmailVerified = true,
-                Role = UserRoleType.MEMBER,
+                Role = "member",
                 JoinedAt = DateTime.UtcNow,
                 IsOwner = false,
-                AuditInfo = new AuditInfoType
-                {
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                }
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             }
         };
 
@@ -959,12 +934,12 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         {
             FamilyId = familyId,
             ChangeType = ChangeType.REMOVED,
-            Invitation = new PendingInvitationType
+            Invitation = new PendingInvitationDto
             {
                 Id = Guid.NewGuid(),
                 Email = "invitee@example.com",
-                Role = UserRoleType.MEMBER,
-                Status = InvitationStatusType.PENDING,
+                Role = "member",
+                Status = "pending",
                 InvitedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddDays(14)
             }

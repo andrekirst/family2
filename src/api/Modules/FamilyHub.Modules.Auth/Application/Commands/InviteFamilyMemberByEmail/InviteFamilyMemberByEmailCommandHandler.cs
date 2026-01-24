@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Application.CQRS;
@@ -92,15 +93,12 @@ public sealed partial class InviteFamilyMemberByEmailCommandHandler(
         // 7. Publish subscription event for real-time UI updates
         await subscriptionPublisher.PublishInvitationAddedAsync(
             invitation.FamilyId,
-            new Presentation.GraphQL.Types.PendingInvitationType
+            new PendingInvitationDto
             {
                 Id = invitation.Id.Value,
                 Email = invitation.Email.Value,
-                Role = invitation.Role == FamilyRole.Owner ? Presentation.GraphQL.Types.UserRoleType.OWNER :
-                       invitation.Role == FamilyRole.Admin ? Presentation.GraphQL.Types.UserRoleType.ADMIN :
-                       invitation.Role == FamilyRole.Child ? Presentation.GraphQL.Types.UserRoleType.CHILD :
-                       Presentation.GraphQL.Types.UserRoleType.MEMBER,
-                Status = Presentation.GraphQL.Types.InvitationStatusType.PENDING,
+                Role = invitation.Role.Value,
+                Status = invitation.Status.Value,
                 InvitedById = currentUserId.Value,
                 InvitedAt = invitation.CreatedAt,
                 ExpiresAt = invitation.ExpiresAt,

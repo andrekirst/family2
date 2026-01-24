@@ -1,8 +1,7 @@
-
-using FamilyHub.Modules.Family.Domain;
 using FamilyHub.SharedKernel.ValueObjects;
 
-namespace FamilyHub.Modules.Family.Persistence.Repositories;
+namespace FamilyHub.Modules.Family.Domain.Repositories;
+
 /// <summary>
 /// Repository for managing EmailOutbox entities.
 /// </summary>

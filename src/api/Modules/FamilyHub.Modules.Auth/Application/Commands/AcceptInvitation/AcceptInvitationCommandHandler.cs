@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Abstractions;
@@ -83,22 +84,16 @@ public sealed partial class AcceptInvitationCommandHandler(
         // Publish family member ADDED event
         await subscriptionPublisher.PublishFamilyMemberAddedAsync(
             invitation.FamilyId,
-            new Presentation.GraphQL.Types.FamilyMemberType
+            new FamilyMemberDto
             {
                 Id = currentUser.Id.Value,
                 Email = currentUser.Email.Value,
                 EmailVerified = currentUser.EmailVerified,
-                Role = invitation.Role == FamilyRole.Owner ? Presentation.GraphQL.Types.UserRoleType.OWNER :
-                       invitation.Role == FamilyRole.Admin ? Presentation.GraphQL.Types.UserRoleType.ADMIN :
-                       invitation.Role == FamilyRole.Child ? Presentation.GraphQL.Types.UserRoleType.CHILD :
-                       Presentation.GraphQL.Types.UserRoleType.MEMBER,
+                Role = invitation.Role.Value,
                 JoinedAt = DateTime.UtcNow,
                 IsOwner = invitation.Role == FamilyRole.Owner,
-                AuditInfo = new FamilyHub.Infrastructure.GraphQL.Types.AuditInfoType
-                {
-                    CreatedAt = currentUser.CreatedAt,
-                    UpdatedAt = currentUser.UpdatedAt
-                }
+                CreatedAt = currentUser.CreatedAt,
+                UpdatedAt = currentUser.UpdatedAt
             },
             cancellationToken
         );

@@ -1,8 +1,8 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
+using FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Subscriptions;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;

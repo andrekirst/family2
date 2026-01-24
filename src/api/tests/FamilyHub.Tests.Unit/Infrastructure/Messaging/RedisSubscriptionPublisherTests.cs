@@ -1,5 +1,5 @@
 using FamilyHub.Infrastructure.Messaging;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 using FluentAssertions;
 using HotChocolate.Subscriptions;
 using Microsoft.Extensions.Logging;

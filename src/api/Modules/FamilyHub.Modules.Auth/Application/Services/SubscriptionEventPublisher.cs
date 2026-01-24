@@ -1,5 +1,5 @@
 using FamilyHub.Infrastructure.Messaging;
-using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -66,7 +66,7 @@ public sealed class SubscriptionEventPublisher(
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task PublishFamilyMemberAddedAsync(
         FamilyId familyId,
-        FamilyMemberType member,
+        FamilyMemberDto member,
         CancellationToken cancellationToken = default)
     {
         var payload = new FamilyMembersChangedPayload
@@ -119,7 +119,7 @@ public sealed class SubscriptionEventPublisher(
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task PublishInvitationAddedAsync(
         FamilyId familyId,
-        PendingInvitationType invitation,
+        PendingInvitationDto invitation,
         CancellationToken cancellationToken = default)
     {
         var payload = new PendingInvitationsChangedPayload

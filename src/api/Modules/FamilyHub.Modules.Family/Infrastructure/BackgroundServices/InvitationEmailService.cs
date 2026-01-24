@@ -2,7 +2,7 @@
 using FamilyHub.Infrastructure.Email;
 using FamilyHub.Infrastructure.Email.Models;
 using FamilyHub.Modules.Family.Domain;
-using FamilyHub.Modules.Family.Persistence.Repositories;
+using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
