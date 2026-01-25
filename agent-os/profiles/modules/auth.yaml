@@ -1,0 +1,57 @@
+# Auth Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: Auth
+  namespace: FamilyHub.Modules.Auth
+  schema: auth
+  status: implemented
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.Auth/**
+  frontend: src/frontend/family-hub-web/src/app/auth/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/Auth/**
+    integration: tests/FamilyHub.Tests.Integration/Auth/**
+    e2e: src/frontend/family-hub-web/e2e/auth/**
+
+domain:
+  entities:
+    - User
+    - Family
+    - FamilyMemberInvitation
+
+  valueObjects:
+    - UserId
+    - Email
+    - FamilyId
+    - FamilyName
+    - InvitationToken
+    - InvitationStatus
+
+  events:
+    - UserCreatedEvent
+    - FamilyCreatedEvent
+    - FamilyMemberInvitedEvent
+    - FamilyMemberJoinedEvent
+    - InvitationAcceptedEvent
+    - InvitationDeclinedEvent
+
+graphql:
+  mutations:
+    - CreateFamily
+    - InviteFamilyMember
+    - AcceptInvitation
+    - DeclineInvitation
+    - CancelInvitation
+  queries:
+    - GetCurrentUser
+    - GetFamily
+    - GetFamilyMembers
+    - GetPendingInvitations
+
+relatedDocs:
+  - docs/authentication/OAUTH_INTEGRATION_GUIDE.md
+  - docs/authentication/ZITADEL-SETUP-GUIDE.md
+  - docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md
+  - docs/architecture/ADR-006-EMAIL-ONLY-AUTHENTICATION.md

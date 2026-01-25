@@ -1,0 +1,104 @@
+# Feature Specification Template
+# Copy to agent-os/specs/active/{feature-name}.spec.yaml
+
+apiVersion: agent-os/v1
+kind: FeatureSpec
+metadata:
+  name: '{feature-name}'
+  module: '{module}'
+  issue: '#{issue-number}'
+  phase: '{phase}'
+  status: pending # pending | in_progress | completed
+
+spec:
+  description: |
+    {Brief description of what this feature does and why it's needed}
+
+  acceptance:
+    - '{Acceptance criterion 1}'
+    - '{Acceptance criterion 2}'
+    - '{Acceptance criterion 3}'
+
+  domain:
+    aggregates:
+      - name: '{AggregateRoot}'
+        properties:
+          - name: id
+            type: '{EntityId}'
+            required: true
+          - name: '{property}'
+            type: '{VogenType}'
+            required: true
+
+    valueObjects:
+      - name: '{ValueObjectName}'
+        baseType: '{string|Guid|int}'
+        validation: '{validation-rules}'
+
+    events:
+      - name: '{Entity}CreatedEvent'
+        triggers: '{what-triggers-this}'
+        handlers:
+          - '{HandlerName}'
+
+  api:
+    mutations:
+      - name: '{MutationName}'
+        input:
+          - field: '{fieldName}'
+            type: '{type}'
+            required: true
+        returns: '{ReturnType}'
+        command: '{MutationName}Command'
+
+    queries:
+      - name: '{QueryName}'
+        parameters: []
+        returns: '{ReturnType}'
+
+  ui:
+    pages:
+      - route: '/{route}'
+        component: '{PageComponent}'
+
+    components:
+      - name: '{ComponentName}'
+        type: '{atom|molecule|organism}'
+        location: 'components/{type}/{name}/'
+
+  testing:
+    unit:
+      - target: '{CommandHandler}'
+        scenarios:
+          - 'happy-path: valid input creates entity'
+          - 'validation: invalid input throws exception'
+
+    integration:
+      - target: '{Repository}'
+        scenarios:
+          - 'persistence: entity is saved to database'
+          - 'retrieval: entity can be retrieved by id'
+
+    e2e:
+      - flow: '{user-flow-name}'
+        steps:
+          - 'Navigate to {page}'
+          - 'Fill form with {data}'
+          - 'Submit and verify {outcome}'
+
+  dependencies:
+    blocking: []
+    optional: []
+
+  eventChains:
+    triggers: [] # Events this feature emits
+    handlers: [] # Events this feature handles
+
+  security:
+    rls: true # Requires Row-Level Security
+    roles: [] # Required roles (empty = authenticated user)
+
+progress:
+  percentage: 0
+  lastUpdated: '{timestamp}'
+  completedItems: []

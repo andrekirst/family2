@@ -1,0 +1,45 @@
+# Testing Layer Profile
+extends: ../shared/base.yaml
+
+layer:
+  name: Testing
+  paths:
+    - tests/**
+    - src/frontend/family-hub-web/e2e/**
+
+standards:
+  - testing/unit-testing
+  - testing/playwright-e2e
+
+patterns:
+  unitTest:
+    framework: xUnit
+    assertions: FluentAssertions
+    mocking: NSubstitute
+    autoData: AutoNSubstituteData
+    location: tests/FamilyHub.Tests.Unit/{Module}/
+
+  integrationTest:
+    framework: xUnit
+    containers: Testcontainers
+    database: PostgreSQL
+    location: tests/FamilyHub.Tests.Integration/{Module}/
+
+  e2eTest:
+    framework: Playwright
+    browsers: [chromium, firefox, webkit]
+    retries: 0
+    apiFirst: true
+    location: src/frontend/family-hub-web/e2e/
+
+  naming:
+    unit: '{ClassName}Tests.cs'
+    integration: '{Feature}IntegrationTests.cs'
+    e2e: '{feature}.spec.ts'
+
+fileTypes:
+  - '*Tests.cs'
+  - '*.spec.ts'
+
+tools:
+  - playwright

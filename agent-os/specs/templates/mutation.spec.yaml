@@ -1,0 +1,69 @@
+# Mutation Specification Template
+# For defining a single GraphQL mutation following ADR-003
+
+apiVersion: agent-os/v1
+kind: MutationSpec
+metadata:
+  name: '{MutationName}'
+  module: '{module}'
+  feature: '{parent-feature-spec}'
+
+spec:
+  description: '{What this mutation does}'
+
+  input:
+    name: '{MutationName}Input'
+    fields:
+      - name: '{fieldName}'
+        type: '{primitiveType}'
+        required: true
+        validation: '{validation-description}'
+      - name: '{optionalField}'
+        type: '{primitiveType}'
+        required: false
+
+  command:
+    name: '{MutationName}Command'
+    valueObjects:
+      - field: '{fieldName}'
+        type: '{VogenType}'
+
+  handler:
+    repository: 'I{Entity}Repository'
+    operations:
+      - type: '{create|update|delete}'
+        aggregate: '{AggregateRoot}'
+    events:
+      - '{Entity}CreatedEvent'
+
+  result:
+    name: '{MutationName}Result'
+    fields:
+      - name: id
+        type: '{IdType}'
+      - name: '{field}'
+        type: '{type}'
+
+  payload:
+    name: '{MutationName}Payload'
+    fields:
+      - name: '{entityName}'
+        type: '{EntityType}'
+
+  tests:
+    unit:
+      - scenario: 'valid command creates entity'
+        given: 'valid input values'
+        when: 'handler processes command'
+        then: 'entity is created and event emitted'
+
+      - scenario: 'invalid input throws validation error'
+        given: 'invalid input (empty required field)'
+        when: 'handler processes command'
+        then: 'ValidationException is thrown'
+
+    integration:
+      - scenario: 'mutation persists entity to database'
+        given: 'authenticated user'
+        when: 'mutation is called with valid input'
+        then: 'entity exists in database'

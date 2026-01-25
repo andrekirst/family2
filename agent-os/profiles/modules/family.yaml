@@ -1,0 +1,41 @@
+# Family Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: Family
+  namespace: FamilyHub.Modules.Family
+  schema: family
+  status: partial # 30% implemented
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.Family/**
+  frontend: src/frontend/family-hub-web/src/app/family/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/Family/**
+    integration: tests/FamilyHub.Tests.Integration/Family/**
+    e2e: src/frontend/family-hub-web/e2e/family/**
+
+domain:
+  entities:
+    - FamilyProfile
+    - FamilySettings
+
+  valueObjects:
+    - FamilyId
+    - FamilyProfileId
+
+  events:
+    - FamilyProfileUpdatedEvent
+    - FamilySettingsChangedEvent
+
+graphql:
+  mutations:
+    - UpdateFamilyProfile
+    - UpdateFamilySettings
+  queries:
+    - GetFamilyProfile
+    - GetFamilySettings
+
+relatedDocs:
+  - docs/architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md
+  - docs/architecture/ADR-007-FAMILY-DBCONTEXT-SEPARATION-STRATEGY.md

@@ -1,0 +1,46 @@
+# Frontend Layer Profile
+extends: ../shared/base.yaml
+
+layer:
+  name: Frontend
+  paths:
+    - src/frontend/family-hub-web/**
+
+standards:
+  - frontend/angular-components
+  - frontend/apollo-graphql
+  - testing/playwright-e2e
+
+patterns:
+  componentStructure: |
+    src/app/
+    ├── components/
+    │   ├── atoms/
+    │   ├── molecules/
+    │   └── organisms/
+    ├── pages/
+    ├── services/
+    ├── guards/
+    └── interceptors/
+
+  namingConventions:
+    components: '{name}.component.ts'
+    services: '{name}.service.ts'
+    guards: '{name}.guard.ts'
+    tests: '{name}.spec.ts'
+
+  componentRules:
+    - Always use standalone: true
+    - Use Angular Signals for state
+    - Follow atomic design hierarchy
+    - Use inject() for dependencies
+
+fileTypes:
+  - '*.ts'
+  - '*.html'
+  - '*.scss'
+  - '*.css'
+
+tools:
+  - context7
+  - playwright

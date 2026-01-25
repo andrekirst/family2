@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "project": "Family Hub",
+  "created": "2026-01-25",
+  "skills": {
+    "backend": [
+      {
+        "name": "graphql-mutation",
+        "file": "backend/graphql-mutation.md",
+        "description": "Create GraphQL mutation with ADR-003 pattern"
+      }
+    ],
+    "frontend": [
+      {
+        "name": "angular-component",
+        "file": "frontend/angular-component.md",
+        "description": "Create standalone Angular component"
+      }
+    ],
+    "database": [
+      {
+        "name": "ef-migration",
+        "file": "database/ef-migration.md",
+        "description": "Create EF Core migration with RLS"
+      }
+    ],
+    "testing": [
+      {
+        "name": "playwright-test",
+        "file": "testing/playwright-test.md",
+        "description": "Create Playwright E2E test"
+      }
+    ],
+    "workflows": [
+      {
+        "name": "feature-implementation",
+        "file": "workflows/feature-implementation.md",
+        "description": "Complete feature implementation workflow"
+      }
+    ]
+  },
+  "moduleAware": ["graphql-mutation", "ef-migration", "playwright-test", "feature-implementation"],
+  "agentOsIntegration": {
+    "standardsPath": "agent-os/standards",
+    "profilesPath": "agent-os/profiles/modules"
+  }
+}

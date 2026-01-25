@@ -1,0 +1,58 @@
+# Finance Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: Finance
+  namespace: FamilyHub.Modules.Finance
+  schema: finance
+  status: planned # Phase 3
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.Finance/**
+  frontend: src/frontend/family-hub-web/src/app/finance/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/Finance/**
+    integration: tests/FamilyHub.Tests.Integration/Finance/**
+    e2e: src/frontend/family-hub-web/e2e/finance/**
+
+domain:
+  entities:
+    - Budget
+    - Expense
+    - Income
+    - Bill
+
+  valueObjects:
+    - BudgetId
+    - ExpenseId
+    - IncomeId
+    - BillId
+    - Amount
+    - Category
+
+  events:
+    - BudgetCreatedEvent
+    - ExpenseTrackedEvent
+    - BudgetExceededEvent
+    - BillDueEvent
+
+graphql:
+  mutations:
+    - CreateBudget
+    - TrackExpense
+    - RecordIncome
+    - AddBill
+  queries:
+    - GetBudgets
+    - GetExpenses
+    - GetBudgetSummary
+    - GetUpcomingBills
+
+eventChains:
+  triggers:
+    - BudgetExceededEvent -> Communication
+    - BillDueEvent -> Task, Communication
+  handlers: []
+
+relatedDocs:
+  - docs/architecture/event-chains-reference.md

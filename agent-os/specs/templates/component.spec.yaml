@@ -1,0 +1,73 @@
+# Component Specification Template
+# For defining Angular standalone components following project patterns
+
+apiVersion: agent-os/v1
+kind: ComponentSpec
+metadata:
+  name: '{ComponentName}'
+  module: '{module}'
+  feature: '{parent-feature-spec}'
+
+spec:
+  description: '{What this component does}'
+
+  type: '{atom|molecule|organism|template|page}'
+
+  location: 'src/app/{module}/components/{type}/{component-name}/'
+
+  inputs:
+    - name: '{inputName}'
+      type: '{TypeScript type}'
+      required: true
+      description: '{what this input does}'
+
+  outputs:
+    - name: '{outputName}'
+      type: 'EventEmitter<{PayloadType}>'
+      description: '{when this event fires}'
+
+  signals:
+    - name: '{signalName}'
+      type: '{signal|computed|effect}'
+      description: '{what this signal tracks}'
+
+  graphql:
+    queries:
+      - name: '{QueryName}'
+        variables: ['{variableName}']
+    mutations:
+      - name: '{MutationName}'
+        input: '{InputType}'
+
+  dependencies:
+    components:
+      - '{ChildComponentName}'
+    services:
+      - '{ServiceName}'
+
+  styling:
+    framework: 'tailwind'
+    responsive: true
+    darkMode: false
+
+  accessibility:
+    ariaLabel: '{accessible label}'
+    keyboardNavigation: true
+
+  tests:
+    unit:
+      - scenario: 'renders with default inputs'
+        given: 'component instantiated'
+        when: 'rendered'
+        then: 'displays expected content'
+
+      - scenario: 'handles user interaction'
+        given: 'component rendered'
+        when: 'user clicks button'
+        then: 'output event emitted'
+
+    integration:
+      - scenario: 'loads data from GraphQL'
+        given: 'component mounted'
+        when: 'query executes'
+        then: 'data displayed correctly'

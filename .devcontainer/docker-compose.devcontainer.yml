@@ -1,0 +1,33 @@
+# DevContainer Docker Compose Extension
+# Adds development container to Family Hub infrastructure
+
+version: '3.9'
+
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu-22.04
+    container_name: familyhub-devcontainer
+    volumes:
+      - ..:/workspace:cached
+      - devcontainer-dotnet:/root/.dotnet
+      - devcontainer-npm:/root/.npm
+      - devcontainer-nuget:/root/.nuget
+    command: sleep infinity
+    networks:
+      - familyhub-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  devcontainer-dotnet:
+  devcontainer-npm:
+  devcontainer-nuget:
+
+networks:
+  familyhub-network:
+    external: true

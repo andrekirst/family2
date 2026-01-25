@@ -1,0 +1,57 @@
+# Shopping Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: Shopping
+  namespace: FamilyHub.Modules.Shopping
+  schema: shopping
+  status: planned # Phase 2
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.Shopping/**
+  frontend: src/frontend/family-hub-web/src/app/shopping/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/Shopping/**
+    integration: tests/FamilyHub.Tests.Integration/Shopping/**
+    e2e: src/frontend/family-hub-web/e2e/shopping/**
+
+domain:
+  entities:
+    - ShoppingList
+    - ShoppingItem
+    - Store
+
+  valueObjects:
+    - ShoppingListId
+    - ShoppingItemId
+    - StoreId
+    - ItemName
+    - Quantity
+
+  events:
+    - ShoppingListCreatedEvent
+    - ShoppingItemAddedEvent
+    - ShoppingItemPurchasedEvent
+    - ShoppingListCompletedEvent
+
+graphql:
+  mutations:
+    - CreateShoppingList
+    - AddShoppingItem
+    - MarkItemPurchased
+    - CompleteShoppingList
+  queries:
+    - GetShoppingLists
+    - GetShoppingListById
+    - GetActiveShoppingLists
+
+eventChains:
+  triggers:
+    - ShoppingItemAddedEvent -> Communication
+  handlers:
+    - PrescriptionIssuedEvent -> AddMedicationToList
+    - MealPlanCreatedEvent -> AddIngredientsToList
+    - GroceryLowEvent -> AddItemToList
+
+relatedDocs:
+  - docs/architecture/event-chains-reference.md

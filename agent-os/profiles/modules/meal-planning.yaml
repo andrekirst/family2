@@ -1,0 +1,56 @@
+# Meal Planning Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: MealPlanning
+  namespace: FamilyHub.Modules.MealPlanning
+  schema: meal
+  status: planned # Phase 3
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.MealPlanning/**
+  frontend: src/frontend/family-hub-web/src/app/meals/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/MealPlanning/**
+    integration: tests/FamilyHub.Tests.Integration/MealPlanning/**
+    e2e: src/frontend/family-hub-web/e2e/meals/**
+
+domain:
+  entities:
+    - MealPlan
+    - Recipe
+    - Ingredient
+    - DietaryRestriction
+
+  valueObjects:
+    - MealPlanId
+    - RecipeId
+    - IngredientId
+    - RecipeName
+    - ServingSize
+
+  events:
+    - MealPlanCreatedEvent
+    - MealPlanUpdatedEvent
+    - RecipeAddedEvent
+
+graphql:
+  mutations:
+    - CreateMealPlan
+    - UpdateMealPlan
+    - AddRecipe
+    - SetDietaryRestrictions
+  queries:
+    - GetMealPlans
+    - GetMealPlanById
+    - GetRecipes
+    - SearchRecipes
+
+eventChains:
+  triggers:
+    - MealPlanCreatedEvent -> Shopping, Calendar
+  handlers:
+    - GroceryLowEvent -> AdjustMealPlan
+
+relatedDocs:
+  - docs/architecture/event-chains-reference.md
