@@ -2,12 +2,38 @@
   "version": "1.0.0",
   "project": "Family Hub",
   "created": "2026-01-25",
+  "updated": "2026-01-25",
   "skills": {
     "backend": [
       {
         "name": "graphql-mutation",
         "file": "backend/graphql-mutation.md",
         "description": "Create GraphQL mutation with ADR-003 pattern"
+      },
+      {
+        "name": "vogen-value-object",
+        "file": "backend/vogen-value-object.md",
+        "description": "Create Vogen value object with validation"
+      },
+      {
+        "name": "domain-event",
+        "file": "backend/domain-event.md",
+        "description": "Define and publish domain events"
+      },
+      {
+        "name": "command-handler",
+        "file": "backend/command-handler.md",
+        "description": "Create MediatR command handler"
+      },
+      {
+        "name": "graphql-query",
+        "file": "backend/graphql-query.md",
+        "description": "Create GraphQL query with handler"
+      },
+      {
+        "name": "repository",
+        "file": "backend/repository.md",
+        "description": "Create repository interface and implementation"
       }
     ],
     "frontend": [
@@ -15,6 +41,21 @@
         "name": "angular-component",
         "file": "frontend/angular-component.md",
         "description": "Create standalone Angular component"
+      },
+      {
+        "name": "apollo-query",
+        "file": "frontend/apollo-query.md",
+        "description": "Create typed Apollo GraphQL query"
+      },
+      {
+        "name": "apollo-mutation",
+        "file": "frontend/apollo-mutation.md",
+        "description": "Create typed Apollo GraphQL mutation"
+      },
+      {
+        "name": "route-guard",
+        "file": "frontend/route-guard.md",
+        "description": "Create authentication/authorization guard"
       }
     ],
     "database": [
@@ -22,6 +63,16 @@
         "name": "ef-migration",
         "file": "database/ef-migration.md",
         "description": "Create EF Core migration with RLS"
+      },
+      {
+        "name": "rls-policy",
+        "file": "database/rls-policy.md",
+        "description": "Create Row-Level Security policy"
+      },
+      {
+        "name": "entity-config",
+        "file": "database/entity-config.md",
+        "description": "Create EF Core entity configuration"
       }
     ],
     "testing": [
@@ -29,6 +80,21 @@
         "name": "playwright-test",
         "file": "testing/playwright-test.md",
         "description": "Create Playwright E2E test"
+      },
+      {
+        "name": "unit-test",
+        "file": "testing/unit-test.md",
+        "description": "Create xUnit unit test with FluentAssertions"
+      },
+      {
+        "name": "integration-test",
+        "file": "testing/integration-test.md",
+        "description": "Create integration test with real DbContext"
+      },
+      {
+        "name": "component-test",
+        "file": "testing/component-test.md",
+        "description": "Create Angular component test"
       }
     ],
     "workflows": [
@@ -39,7 +105,21 @@
       }
     ]
   },
-  "moduleAware": ["graphql-mutation", "ef-migration", "playwright-test", "feature-implementation"],
+  "moduleAware": [
+    "graphql-mutation",
+    "vogen-value-object",
+    "domain-event",
+    "command-handler",
+    "graphql-query",
+    "repository",
+    "ef-migration",
+    "rls-policy",
+    "entity-config",
+    "playwright-test",
+    "unit-test",
+    "integration-test",
+    "feature-implementation"
+  ],
   "agentOsIntegration": {
     "standardsPath": "agent-os/standards",
     "profilesPath": "agent-os/profiles/modules"
