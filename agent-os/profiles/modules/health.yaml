@@ -1,0 +1,59 @@
+# Health Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: Health
+  namespace: FamilyHub.Modules.Health
+  schema: health
+  status: planned # Phase 2
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.Health/**
+  frontend: src/frontend/family-hub-web/src/app/health/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/Health/**
+    integration: tests/FamilyHub.Tests.Integration/Health/**
+    e2e: src/frontend/family-hub-web/e2e/health/**
+
+domain:
+  entities:
+    - DoctorAppointment
+    - Prescription
+    - HealthRecord
+    - Vaccination
+
+  valueObjects:
+    - AppointmentId
+    - PrescriptionId
+    - HealthRecordId
+    - DoctorName
+    - Medication
+    - Dosage
+
+  events:
+    - DoctorAppointmentScheduledEvent
+    - PrescriptionIssuedEvent
+    - PrescriptionRefillDueEvent
+    - VaccinationRecordedEvent
+
+graphql:
+  mutations:
+    - ScheduleDoctorAppointment
+    - RecordPrescription
+    - RecordVaccination
+    - UpdateHealthRecord
+  queries:
+    - GetDoctorAppointments
+    - GetPrescriptions
+    - GetHealthRecords
+    - GetVaccinations
+
+eventChains:
+  triggers:
+    - DoctorAppointmentScheduledEvent -> Calendar, Task, Communication
+    - PrescriptionIssuedEvent -> Shopping, Task, Communication
+    - PrescriptionRefillDueEvent -> Shopping, Task, Communication
+  handlers: []
+
+relatedDocs:
+  - docs/architecture/event-chains-reference.md

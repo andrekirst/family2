@@ -1,0 +1,58 @@
+# Calendar Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: Calendar
+  namespace: FamilyHub.Modules.Calendar
+  schema: calendar
+  status: planned # Phase 1
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.Calendar/**
+  frontend: src/frontend/family-hub-web/src/app/calendar/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/Calendar/**
+    integration: tests/FamilyHub.Tests.Integration/Calendar/**
+    e2e: src/frontend/family-hub-web/e2e/calendar/**
+
+domain:
+  entities:
+    - CalendarEvent
+    - Appointment
+    - RecurringEvent
+
+  valueObjects:
+    - EventId
+    - AppointmentId
+    - EventTitle
+    - EventTime
+    - RecurrencePattern
+
+  events:
+    - EventCreatedEvent
+    - EventUpdatedEvent
+    - EventDeletedEvent
+    - AppointmentScheduledEvent
+    - AppointmentCancelledEvent
+
+graphql:
+  mutations:
+    - CreateEvent
+    - UpdateEvent
+    - DeleteEvent
+    - ScheduleAppointment
+    - CancelAppointment
+  queries:
+    - GetEvents
+    - GetEventById
+    - GetUpcomingAppointments
+
+eventChains:
+  triggers:
+    - AppointmentScheduledEvent -> Task, Communication
+  handlers:
+    - DoctorAppointmentScheduledEvent -> CreateCalendarEvent
+    - SchoolEventCreatedEvent -> CreateCalendarEvent
+
+relatedDocs:
+  - docs/architecture/event-chains-reference.md

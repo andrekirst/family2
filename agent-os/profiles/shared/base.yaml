@@ -1,0 +1,59 @@
+# Family Hub Base Profile
+# All other profiles inherit from this
+
+project:
+  name: Family Hub
+  type: modular-monolith
+  phase: Phase 0 - Foundation
+  repository: https://github.com/andrekirst/family2
+
+techStack:
+  backend:
+    framework: .NET Core 10
+    language: C# 14
+    graphql: Hot Chocolate 14.1.0
+    orm: EF Core 10
+    database: PostgreSQL 16
+    cqrs: MediatR 12.4.1
+    valueObjects: Vogen 8.0+
+    messageBroker: RabbitMQ
+    resilience: Polly v8
+
+  frontend:
+    framework: Angular 21
+    language: TypeScript 5.x
+    styling: Tailwind CSS 3.x
+    graphql: Apollo Client 3.x
+    state: Angular Signals
+    testing: Playwright 1.48+
+    rxjs: 7.8
+
+  authentication:
+    provider: Zitadel
+    flow: OAuth 2.0 PKCE
+
+  infrastructure:
+    containerization: Docker
+    orchestration: Kubernetes
+    ci: GitHub Actions
+    coverage: Codecov
+
+standards:
+  - backend/graphql-input-command
+  - backend/vogen-value-objects
+  - backend/domain-events
+  - database/ef-core-migrations
+  - database/rls-policies
+  - frontend/angular-components
+  - frontend/apollo-graphql
+  - testing/unit-testing
+  - testing/playwright-e2e
+  - architecture/ddd-modules
+  - architecture/event-chains
+
+documentation:
+  root: CLAUDE.md
+  backend: src/api/CLAUDE.md
+  frontend: src/frontend/CLAUDE.md
+  database: database/CLAUDE.md
+  architecture: docs/architecture/CLAUDE.md

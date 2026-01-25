@@ -1,0 +1,48 @@
+# Agent OS Standards Index
+# Family Hub - Extracted from CLAUDE.md documentation
+
+architecture:
+  ddd-modules:
+    description: DDD module structure with 8 bounded contexts
+  event-chains:
+    description: Automated cross-domain workflows (flagship feature)
+
+backend:
+  domain-events:
+    description: MediatR domain events with RabbitMQ integration
+  graphql-input-command:
+    description: ADR-003 pattern separating Input DTOs from Commands
+  vogen-value-objects:
+    description: Vogen 8.0+ value objects with EF Core integration
+
+database:
+  ef-core-migrations:
+    description: One DbContext per module with schema separation
+  rls-policies:
+    description: PostgreSQL Row-Level Security for multi-tenancy
+
+frontend:
+  angular-components:
+    description: Standalone components with atomic design
+  apollo-graphql:
+    description: Apollo Client with typed GraphQL operations
+
+global:
+  tech-stack:
+    description: Project tech stack overview
+
+testing:
+  playwright-e2e:
+    description: API-first E2E testing with zero retry policy
+  unit-testing:
+    description: xUnit with FluentAssertions and NSubstitute
+
+tools:
+  serena-symbolic-navigation:
+    description: Pattern for code exploration using Serena's symbolic tools
+  serena-symbolic-editing:
+    description: Pattern for code modification using Serena's symbolic editing
+  serena-memories:
+    description: Pattern for memory usage complementing Agent OS profiles
+  sequential-thinking:
+    description: Pattern for structured reasoning through complex problems

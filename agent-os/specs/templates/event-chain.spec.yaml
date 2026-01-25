@@ -1,0 +1,74 @@
+# Event Chain Specification Template
+# For defining cross-domain automated workflows (Family Hub's flagship feature)
+
+apiVersion: agent-os/v1
+kind: EventChainSpec
+metadata:
+  name: '{EventChainName}'
+  description: '{What this automation does}'
+  trigger: '{TriggerEventName}'
+
+spec:
+  # The event that starts this chain
+  triggerEvent:
+    name: '{TriggerEventName}'
+    module: '{source-module}'
+    payload:
+      - field: '{fieldName}'
+        type: '{type}'
+
+  # Chain of automated actions
+  chain:
+    - step: 1
+      name: '{StepName}'
+      module: '{target-module}'
+      action:
+        type: '{command|event|notification}'
+        name: '{ActionName}'
+      mapping:
+        - from: 'trigger.{fieldName}'
+          to: 'action.{parameterName}'
+      conditions:
+        - '{when this step should execute}'
+
+    - step: 2
+      name: '{NextStepName}'
+      module: '{another-module}'
+      action:
+        type: '{command|event|notification}'
+        name: '{ActionName}'
+      dependsOn: [1]
+
+  # Error handling
+  errorHandling:
+    strategy: '{continue|stop|compensate}'
+    notifications:
+      - type: 'user-notification'
+        when: 'on-failure'
+
+  # Monitoring
+  observability:
+    tracing: true
+    metrics:
+      - name: 'chain_completion_rate'
+        type: 'counter'
+      - name: 'chain_execution_time'
+        type: 'histogram'
+
+  # Example use cases
+  examples:
+    - name: '{ExampleName}'
+      trigger: '{What triggers this}'
+      expectedOutcome: '{What happens as a result}'
+
+  tests:
+    integration:
+      - scenario: 'chain executes successfully'
+        given: 'trigger event emitted'
+        when: 'chain processes'
+        then: 'all steps completed'
+
+      - scenario: 'chain handles step failure'
+        given: 'trigger event emitted'
+        when: 'step 2 fails'
+        then: 'error handling activates'

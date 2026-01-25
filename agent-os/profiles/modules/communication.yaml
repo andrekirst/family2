@@ -1,0 +1,60 @@
+# Communication Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: Communication
+  namespace: FamilyHub.Modules.Communication
+  schema: communication
+  status: planned # Cross-cutting, Phase 1
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.Communication/**
+  frontend: src/frontend/family-hub-web/src/app/notifications/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/Communication/**
+    integration: tests/FamilyHub.Tests.Integration/Communication/**
+    e2e: src/frontend/family-hub-web/e2e/notifications/**
+
+domain:
+  entities:
+    - Notification
+    - NotificationPreference
+    - Message
+
+  valueObjects:
+    - NotificationId
+    - MessageId
+    - NotificationType
+    - NotificationChannel
+
+  events:
+    - NotificationSentEvent
+    - NotificationReadEvent
+    - MessageSentEvent
+
+graphql:
+  mutations:
+    - SendNotification
+    - MarkNotificationRead
+    - UpdateNotificationPreferences
+    - SendMessage
+  queries:
+    - GetNotifications
+    - GetUnreadCount
+    - GetNotificationPreferences
+    - GetMessages
+
+eventChains:
+  triggers:
+    - NotificationSentEvent -> (external: email, push)
+  handlers:
+    # Handles events from ALL other modules
+    - DoctorAppointmentScheduledEvent -> ScheduleReminder
+    - TaskCreatedEvent -> SendTaskNotification
+    - TaskOverdueEvent -> SendOverdueReminder
+    - BudgetExceededEvent -> SendBudgetAlert
+    - BillDueEvent -> SendBillReminder
+    - FamilyMemberInvitedEvent -> SendInvitationEmail
+
+relatedDocs:
+  - docs/architecture/event-chains-reference.md

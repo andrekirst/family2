@@ -1,0 +1,51 @@
+# Infrastructure Layer Profile
+extends: ../shared/base.yaml
+
+layer:
+  name: Infrastructure
+  paths:
+    - infrastructure/**
+    - .github/**
+    - .devcontainer/**
+
+patterns:
+  dockerCompose:
+    location: infrastructure/docker/docker-compose.yml
+    services:
+      - postgres (PostgreSQL 16)
+      - rabbitmq (RabbitMQ 3.12)
+      - redis (Redis 7)
+      - zitadel (Zitadel v2.47.0)
+      - seq (Seq logging)
+      - mailhog (Email testing)
+
+  kubernetes:
+    location: infrastructure/kubernetes/
+    namespace: familyhub
+
+  cicd:
+    platform: GitHub Actions
+    workflows:
+      - ci.yml (build, test, lint)
+      - claude.yml (AI assistance)
+      - claude-code-review.yml (PR review)
+      - performance.yml (k6 load testing)
+
+  ports:
+    frontend: 4200
+    backend: 7000
+    postgres: 5432
+    rabbitmq: 5672
+    rabbitmqAdmin: 15672
+    zitadel: 8080
+    seq: 5341
+    mailhog: 8025
+
+fileTypes:
+  - '*.yml'
+  - '*.yaml'
+  - Dockerfile
+  - '*.sh'
+
+tools:
+  - context7

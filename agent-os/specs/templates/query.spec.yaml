@@ -1,0 +1,61 @@
+# Query Specification Template
+# For defining a single GraphQL query
+
+apiVersion: agent-os/v1
+kind: QuerySpec
+metadata:
+  name: '{QueryName}'
+  module: '{module}'
+  feature: '{parent-feature-spec}'
+
+spec:
+  description: '{What data this query returns}'
+
+  parameters:
+    - name: '{parameterName}'
+      type: '{primitiveType}'
+      required: false
+      description: '{filter/pagination purpose}'
+
+  query:
+    name: '{QueryName}Query'
+    handler: '{QueryName}QueryHandler'
+
+  repository:
+    interface: 'I{Entity}Repository'
+    method: '{GetAllAsync|GetByIdAsync|GetByFilterAsync}'
+
+  result:
+    type: '{single|collection|paginated}'
+    entity: '{EntityType}'
+    projection:
+      - field: '{fieldName}'
+        type: '{type}'
+
+  caching:
+    enabled: false
+    duration: '{duration in seconds}'
+    key: '{cache-key-pattern}'
+
+  authorization:
+    requiresAuth: true
+    roles: []
+    rlsFiltered: true
+
+  tests:
+    unit:
+      - scenario: 'returns expected data'
+        given: 'data exists in repository'
+        when: 'query executes'
+        then: 'correct data returned'
+
+      - scenario: 'handles empty result'
+        given: 'no data matches filter'
+        when: 'query executes'
+        then: 'empty collection returned'
+
+    integration:
+      - scenario: 'query applies RLS filter'
+        given: 'authenticated user'
+        when: 'query executes'
+        then: 'only family data returned'

@@ -1,0 +1,60 @@
+# Task Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: Task
+  namespace: FamilyHub.Modules.Task
+  schema: task
+  status: planned # Phase 1
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.Task/**
+  frontend: src/frontend/family-hub-web/src/app/tasks/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/Task/**
+    integration: tests/FamilyHub.Tests.Integration/Task/**
+    e2e: src/frontend/family-hub-web/e2e/tasks/**
+
+domain:
+  entities:
+    - Task
+    - TaskList
+    - Assignment
+
+  valueObjects:
+    - TaskId
+    - TaskListId
+    - AssignmentId
+    - TaskTitle
+    - TaskPriority
+    - TaskStatus
+
+  events:
+    - TaskCreatedEvent
+    - TaskCompletedEvent
+    - TaskAssignedEvent
+    - TaskOverdueEvent
+
+graphql:
+  mutations:
+    - CreateTask
+    - UpdateTask
+    - CompleteTask
+    - AssignTask
+    - CreateTaskList
+  queries:
+    - GetTasks
+    - GetTaskById
+    - GetTaskLists
+    - GetAssignedTasks
+
+eventChains:
+  triggers:
+    - TaskCreatedEvent -> Communication
+    - TaskOverdueEvent -> Communication
+  handlers:
+    - DoctorAppointmentScheduledEvent -> CreatePreparationTask
+    - PrescriptionIssuedEvent -> CreatePickupTask
+
+relatedDocs:
+  - docs/architecture/event-chains-reference.md

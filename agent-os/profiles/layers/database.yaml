@@ -1,0 +1,45 @@
+# Database Layer Profile
+extends: ../shared/base.yaml
+
+layer:
+  name: Database
+  paths:
+    - src/api/**/Persistence/**
+    - src/api/**/Migrations/**
+    - infrastructure/docker/init-scripts/**
+
+standards:
+  - database/ef-core-migrations
+  - database/rls-policies
+
+patterns:
+  schemaPerModule:
+    auth: auth
+    family: family
+    calendar: calendar
+    task: task
+    shopping: shopping
+    health: health
+    meal: meal
+    finance: finance
+    communication: communication
+
+  migrationCommand: |
+    dotnet ef migrations add {MigrationName} \
+      --context {Module}DbContext \
+      --project Modules/FamilyHub.Modules.{Module} \
+      --startup-project FamilyHub.Api \
+      --output-dir Persistence/Migrations
+
+  rlsPolicy: |
+    ALTER TABLE {schema}.{table} ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY {table}_isolation_policy ON {schema}.{table}
+      USING ({column} = current_setting('app.current_{type}_id')::uuid);
+
+fileTypes:
+  - '*.sql'
+  - '*DbContext.cs'
+  - '*Configuration.cs'
+
+tools:
+  - serena

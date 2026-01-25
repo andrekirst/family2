@@ -6,7 +6,7 @@
 
 **Tech Stack:** .NET Core 10 (C# 14, Hot Chocolate GraphQL) | Angular v21 (TypeScript, Tailwind) | PostgreSQL 16 (RLS) | RabbitMQ | Zitadel OAuth | Docker Compose→Kubernetes | Vogen 8.0+
 
-**Phase:** Phase 0 - Foundation & Tooling (IN PROGRESS). OAuth integration completed. Frontend OAuth completed. Next: Family Member Invites, then Phase 1 Core MVP.
+**Phase:** Phase 0 - Foundation & Tooling (IN PROGRESS). OAuth integration completed. Frontend OAuth completed. Family Member Invites completed (#97). Agent OS integration in progress (#98). Next: Phase 1 Core MVP.
 
 **Architecture:** Modular Monolith (Phase 1-4) → Microservices (Phase 5+). See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
 
@@ -65,6 +65,16 @@
 - **[docs/architecture/CLAUDE.md](docs/architecture/CLAUDE.md)** - ADRs, domain model, event chains
 - **[docs/development/CLAUDE.md](docs/development/CLAUDE.md)** - Coding standards, workflows, patterns
 - **[docs/security/CLAUDE.md](docs/security/CLAUDE.md)** - Threat model, OWASP, RLS
+
+### Agent OS (Spec-Driven Development)
+
+→ **[docs/agent-os/README.md](docs/agent-os/README.md)** - Machine-readable context profiles
+
+- When: Loading module context, creating feature specs, following skills
+- Covers: DDD module profiles, standards, spec templates, Claude Code skills
+- **Profiles:** `agent-os/profiles/` (8 modules + 5 layers)
+- **Standards:** `agent-os/standards/` (extracted patterns)
+- **Skills:** `.claude/skills/` (implementation guides)
 
 ---
 
@@ -171,5 +181,5 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 ---
 
-**Last Updated:** 2026-01-09
-**Version:** 5.0.0 (Folder-specific CLAUDE.md refactoring)
+**Last Updated:** 2026-01-25
+**Version:** 5.1.0 (Agent OS integration)

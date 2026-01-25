@@ -1,0 +1,55 @@
+# Backend Layer Profile
+extends: ../shared/base.yaml
+
+layer:
+  name: Backend
+  paths:
+    - src/api/**
+    - tests/FamilyHub.Tests.Unit/**
+    - tests/FamilyHub.Tests.Integration/**
+
+standards:
+  - backend/graphql-input-command
+  - backend/vogen-value-objects
+  - backend/domain-events
+  - database/ef-core-migrations
+  - testing/unit-testing
+  - tools/serena-symbolic-navigation
+  - tools/serena-symbolic-editing
+  - tools/serena-memories
+
+patterns:
+  moduleStructure: |
+    Modules/FamilyHub.Modules.{Module}/
+    ├── Domain/
+    │   ├── Entities/
+    │   ├── ValueObjects/
+    │   ├── Events/
+    │   └── Repositories/
+    ├── Application/
+    │   ├── Commands/
+    │   ├── Queries/
+    │   ├── Handlers/
+    │   └── Validators/
+    ├── Persistence/
+    │   ├── Configurations/
+    │   ├── Repositories/
+    │   └── Migrations/
+    └── Presentation/
+        ├── GraphQL/
+        └── DTOs/
+
+  namingConventions:
+    commands: '{Action}{Entity}Command'
+    handlers: '{Action}{Entity}CommandHandler'
+    queries: 'Get{Entity}Query'
+    inputs: '{Action}{Entity}Input'
+    events: '{Entity}{Action}Event'
+
+fileTypes:
+  - '*.cs'
+  - '*.csproj'
+
+tools:
+  - serena
+  - context7
