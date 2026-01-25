@@ -14,6 +14,9 @@ standards:
   - backend/domain-events
   - database/ef-core-migrations
   - testing/unit-testing
+  - tools/serena-symbolic-navigation
+  - tools/serena-symbolic-editing
+  - tools/serena-memories
 
 patterns:
   moduleStructure: |

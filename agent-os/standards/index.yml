@@ -36,3 +36,13 @@ testing:
     description: API-first E2E testing with zero retry policy
   unit-testing:
     description: xUnit with FluentAssertions and NSubstitute
+
+tools:
+  serena-symbolic-navigation:
+    description: Pattern for code exploration using Serena's symbolic tools
+  serena-symbolic-editing:
+    description: Pattern for code modification using Serena's symbolic editing
+  serena-memories:
+    description: Pattern for memory usage complementing Agent OS profiles
+  sequential-thinking:
+    description: Pattern for structured reasoning through complex problems

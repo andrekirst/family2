@@ -103,6 +103,23 @@
         "file": "workflows/feature-implementation.md",
         "description": "Complete feature implementation workflow"
       }
+    ],
+    "tools": [
+      {
+        "name": "serena-exploration",
+        "file": "tools/serena-exploration.md",
+        "description": "Explore codebase using Serena symbolic tools"
+      },
+      {
+        "name": "sequential-planning",
+        "file": "tools/sequential-planning.md",
+        "description": "Plan complex tasks using Sequential Thinking"
+      },
+      {
+        "name": "memory-context-load",
+        "file": "tools/memory-context-load.md",
+        "description": "Load session context from Serena memories"
+      }
     ]
   },
   "moduleAware": [
@@ -118,7 +135,8 @@
     "playwright-test",
     "unit-test",
     "integration-test",
-    "feature-implementation"
+    "feature-implementation",
+    "serena-exploration"
   ],
   "agentOsIntegration": {
     "standardsPath": "agent-os/standards",
