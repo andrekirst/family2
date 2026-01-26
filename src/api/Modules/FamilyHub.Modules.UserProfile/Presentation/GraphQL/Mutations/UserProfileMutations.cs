@@ -71,7 +71,9 @@ public sealed class UserProfileMutations : IRequireAuthentication
             ProfileId = result.Value.ProfileId.Value,
             DisplayName = result.Value.DisplayName.Value,
             UpdatedAt = result.Value.UpdatedAt,
-            IsNewProfile = result.Value.IsNewProfile
+            IsNewProfile = result.Value.IsNewProfile,
+            RequiresApproval = result.Value.RequiresApproval,
+            PendingChangesCount = result.Value.PendingChangesCount
         };
     }
 }

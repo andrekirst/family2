@@ -168,4 +168,14 @@ public sealed record UpdateUserProfileDto
     /// Whether a new profile was created.
     /// </summary>
     public required bool IsNewProfile { get; init; }
+
+    /// <summary>
+    /// Whether the update requires parent approval (true for child users).
+    /// </summary>
+    public bool RequiresApproval { get; init; }
+
+    /// <summary>
+    /// Number of pending change requests created (for child users).
+    /// </summary>
+    public int PendingChangesCount { get; init; }
 }

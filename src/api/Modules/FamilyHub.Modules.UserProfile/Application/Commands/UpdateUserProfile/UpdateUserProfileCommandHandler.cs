@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FamilyHub.Modules.UserProfile.Application.Abstractions;
 using FamilyHub.Modules.UserProfile.Application.Services.EventSourcing;
+using FamilyHub.Modules.UserProfile.Domain.Aggregates;
 using FamilyHub.Modules.UserProfile.Domain.Repositories;
 using FamilyHub.Modules.UserProfile.Persistence;
 using FamilyHub.SharedKernel.Application.Abstractions;
@@ -15,9 +16,11 @@ namespace FamilyHub.Modules.UserProfile.Application.Commands.UpdateUserProfile;
 /// Creates a new profile if one doesn't exist, or updates the existing profile.
 /// Records all changes as events for audit trail.
 /// Triggers Zitadel sync when display name changes.
+/// For child users, changes require parent approval instead of being applied directly.
 /// </summary>
 /// <param name="userContext">The current authenticated user context.</param>
 /// <param name="profileRepository">Repository for user profiles.</param>
+/// <param name="changeRequestRepository">Repository for profile change requests.</param>
 /// <param name="dbContext">Database context for persistence.</param>
 /// <param name="eventRecorder">Service for recording profile change events.</param>
 /// <param name="zitadelSyncService">Service for synchronizing with Zitadel.</param>
@@ -25,6 +28,7 @@ namespace FamilyHub.Modules.UserProfile.Application.Commands.UpdateUserProfile;
 public sealed partial class UpdateUserProfileCommandHandler(
     IUserContext userContext,
     IUserProfileRepository profileRepository,
+    IProfileChangeRequestRepository changeRequestRepository,
     UserProfileDbContext dbContext,
     IProfileEventRecorder eventRecorder,
     IZitadelSyncService zitadelSyncService,
@@ -43,6 +47,13 @@ public sealed partial class UpdateUserProfileCommandHandler(
     {
         var userId = userContext.UserId;
         LogUpdatingProfileForUser(userId.Value);
+
+        // Child users' profile changes require parent approval
+        if (userContext.IsChild)
+        {
+            LogChildUserProfileUpdate(userId.Value);
+            return await HandleChildProfileUpdateAsync(request, cancellationToken);
+        }
 
         // Try to find existing profile
         var profile = await profileRepository.GetByUserIdAsync(userId, cancellationToken);
@@ -316,4 +327,171 @@ public sealed partial class UpdateUserProfileCommandHandler(
 
     [LoggerMessage(LogLevel.Warning, "Zitadel sync failed for profile {profileId}: {error}")]
     partial void LogZitadelSyncFailed(Guid profileId, string error);
+
+    [LoggerMessage(LogLevel.Information, "Child user {userId} requesting profile update - changes require parent approval")]
+    partial void LogChildUserProfileUpdate(Guid userId);
+
+    [LoggerMessage(LogLevel.Information, "Created {count} change request(s) for child profile {profileId}")]
+    partial void LogChangeRequestsCreated(int count, Guid profileId);
+
+    /// <summary>
+    /// Handles profile updates for child users.
+    /// Instead of applying changes directly, creates change requests that require parent approval.
+    /// </summary>
+    private async Task<DomainResult> HandleChildProfileUpdateAsync(
+        UpdateUserProfileCommand request,
+        CancellationToken cancellationToken)
+    {
+        var userId = userContext.UserId;
+        var familyId = userContext.FamilyId;
+
+        // Get or create the profile (child must have a profile to request changes)
+        var profile = await profileRepository.GetByUserIdAsync(userId, cancellationToken);
+
+        if (profile == null)
+        {
+            // Child's first profile creation - this is allowed without approval
+            // The initial profile is just a placeholder, parents can review later
+            profile = Domain.Aggregates.UserProfile.Create(userId, request.DisplayName);
+            await profileRepository.AddAsync(profile, cancellationToken);
+            await eventRecorder.RecordCreatedAsync(profile, userId, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return DomainResult.Success(new UpdateUserProfileResult
+            {
+                ProfileId = profile.Id,
+                DisplayName = profile.DisplayName,
+                UpdatedAt = profile.UpdatedAt,
+                IsNewProfile = true,
+                RequiresApproval = false,
+                PendingChangesCount = 0
+            });
+        }
+
+        // Create change requests for each modified field
+        var changeRequests = new List<ProfileChangeRequest>();
+
+        // Display Name change
+        if (profile.DisplayName != request.DisplayName)
+        {
+            var existingRequest = await changeRequestRepository.GetPendingByProfileAndFieldAsync(
+                profile.Id, nameof(ProfileStateDto.DisplayName), cancellationToken);
+
+            if (existingRequest == null)
+            {
+                changeRequests.Add(ProfileChangeRequest.Create(
+                    profile.Id,
+                    userId,
+                    familyId,
+                    nameof(ProfileStateDto.DisplayName),
+                    profile.DisplayName.Value,
+                    request.DisplayName.Value));
+            }
+        }
+
+        // Birthday change
+        if (request.Birthday.HasValue && profile.Birthday != request.Birthday)
+        {
+            var existingRequest = await changeRequestRepository.GetPendingByProfileAndFieldAsync(
+                profile.Id, nameof(ProfileStateDto.Birthday), cancellationToken);
+
+            if (existingRequest == null)
+            {
+                changeRequests.Add(ProfileChangeRequest.Create(
+                    profile.Id,
+                    userId,
+                    familyId,
+                    nameof(ProfileStateDto.Birthday),
+                    profile.Birthday?.Value.ToString("yyyy-MM-dd"),
+                    request.Birthday.Value.Value.ToString("yyyy-MM-dd")));
+            }
+        }
+
+        // Pronouns change
+        if (request.Pronouns.HasValue && profile.Pronouns != request.Pronouns)
+        {
+            var existingRequest = await changeRequestRepository.GetPendingByProfileAndFieldAsync(
+                profile.Id, nameof(ProfileStateDto.Pronouns), cancellationToken);
+
+            if (existingRequest == null)
+            {
+                changeRequests.Add(ProfileChangeRequest.Create(
+                    profile.Id,
+                    userId,
+                    familyId,
+                    nameof(ProfileStateDto.Pronouns),
+                    profile.Pronouns?.Value,
+                    request.Pronouns.Value.Value));
+            }
+        }
+
+        // Preferences change (stored as JSON)
+        if (request.Preferences != null)
+        {
+            var oldJson = SerializePreferences(profile.Preferences);
+            var newJson = SerializePreferences(request.Preferences);
+
+            if (oldJson != newJson)
+            {
+                var existingRequest = await changeRequestRepository.GetPendingByProfileAndFieldAsync(
+                    profile.Id, "Preferences", cancellationToken);
+
+                if (existingRequest == null)
+                {
+                    changeRequests.Add(ProfileChangeRequest.Create(
+                        profile.Id,
+                        userId,
+                        familyId,
+                        "Preferences",
+                        oldJson,
+                        newJson!));
+                }
+            }
+        }
+
+        // FieldVisibility change (stored as JSON)
+        if (request.FieldVisibility != null)
+        {
+            var oldJson = SerializeFieldVisibility(profile.FieldVisibility);
+            var newJson = SerializeFieldVisibility(request.FieldVisibility);
+
+            if (oldJson != newJson)
+            {
+                var existingRequest = await changeRequestRepository.GetPendingByProfileAndFieldAsync(
+                    profile.Id, "FieldVisibility", cancellationToken);
+
+                if (existingRequest == null)
+                {
+                    changeRequests.Add(ProfileChangeRequest.Create(
+                        profile.Id,
+                        userId,
+                        familyId,
+                        "FieldVisibility",
+                        oldJson,
+                        newJson!));
+                }
+            }
+        }
+
+        // Add all change requests to the repository
+        foreach (var changeRequest in changeRequests)
+        {
+            await changeRequestRepository.AddAsync(changeRequest, cancellationToken);
+        }
+
+        // Persist changes
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        LogChangeRequestsCreated(changeRequests.Count, profile.Id.Value);
+
+        return DomainResult.Success(new UpdateUserProfileResult
+        {
+            ProfileId = profile.Id,
+            DisplayName = profile.DisplayName,
+            UpdatedAt = profile.UpdatedAt,
+            IsNewProfile = false,
+            RequiresApproval = changeRequests.Count > 0,
+            PendingChangesCount = changeRequests.Count
+        });
+    }
 }

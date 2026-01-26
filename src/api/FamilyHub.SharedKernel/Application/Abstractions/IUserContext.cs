@@ -44,4 +44,15 @@ public interface IUserContext
     /// Returns true if the current user has the Owner or Admin role.
     /// </summary>
     bool IsOwnerOrAdmin => IsOwner || IsAdmin;
+
+    /// <summary>
+    /// Returns true if the current user has the Child role.
+    /// Child users have limited permissions and their profile changes require parent approval.
+    /// </summary>
+    bool IsChild => Role == FamilyRole.Child;
+
+    /// <summary>
+    /// Returns true if the current user has the Member role.
+    /// </summary>
+    bool IsMember => Role == FamilyRole.Member;
 }

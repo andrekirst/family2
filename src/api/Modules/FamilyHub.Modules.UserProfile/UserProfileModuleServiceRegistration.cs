@@ -59,6 +59,7 @@ public static class UserProfileModuleServiceRegistration
 
         // Repositories
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+        services.AddScoped<IProfileChangeRequestRepository, ProfileChangeRequestRepository>();
 
         // Event Sourcing - Audit trail and state reconstruction
         services.AddScoped<IProfileEventStore, ProfileEventStore>();
@@ -116,7 +117,9 @@ public static class UserProfileModuleServiceRegistration
         return builder
             .RegisterDbContextFactory<UserProfileDbContext>()
             .AddTypeExtension<UserProfileQueries>()
-            .AddTypeExtension<UserProfileMutations>();
+            .AddTypeExtension<UserProfileMutations>()
+            .AddTypeExtension<ProfileChangeRequestQueries>()
+            .AddTypeExtension<ProfileChangeRequestMutations>();
     }
 
     /// <summary>

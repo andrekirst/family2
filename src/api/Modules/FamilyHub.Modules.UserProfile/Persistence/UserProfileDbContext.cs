@@ -1,3 +1,4 @@
+using FamilyHub.Modules.UserProfile.Domain.Aggregates;
 using FamilyHub.Modules.UserProfile.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using UserProfileAggregate = FamilyHub.Modules.UserProfile.Domain.Aggregates.UserProfile;
@@ -40,6 +41,12 @@ public class UserProfileDbContext : DbContext
     /// Profile events for event sourcing and audit trail.
     /// </summary>
     public DbSet<ProfileEventEntity> ProfileEvents => Set<ProfileEventEntity>();
+
+    /// <summary>
+    /// Profile change requests pending approval.
+    /// Child users' profile changes require parent/admin approval.
+    /// </summary>
+    public DbSet<ProfileChangeRequest> ProfileChangeRequests => Set<ProfileChangeRequest>();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)

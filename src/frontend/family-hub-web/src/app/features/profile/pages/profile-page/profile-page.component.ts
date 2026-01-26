@@ -1,14 +1,17 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MainLayoutComponent } from '../../../../shared/layout/main-layout/main-layout.component';
 import { ProfileService } from '../../services/profile.service';
+import { ProfileChangeRequestService } from '../../services/profile-change-request.service';
 import { PersonalInfoTabComponent } from '../../components/personal-info-tab/personal-info-tab.component';
 import { PreferencesTabComponent } from '../../components/preferences-tab/preferences-tab.component';
 import { PrivacyTabComponent } from '../../components/privacy-tab/privacy-tab.component';
 import { AccountSecurityTabComponent } from '../../components/account-security-tab/account-security-tab.component';
+import { ApprovalQueueComponent } from '../../components/approval-queue/approval-queue.component';
+import { PendingChangesIndicatorComponent } from '../../components/pending-changes-indicator/pending-changes-indicator.component';
 import { IconComponent } from '../../../../shared/components/atoms/icon/icon.component';
 
-type TabId = 'personal' | 'preferences' | 'privacy' | 'security';
+type TabId = 'personal' | 'preferences' | 'privacy' | 'security' | 'approvals';
 
 interface Tab {
   id: TabId;
@@ -18,11 +21,15 @@ interface Tab {
 
 /**
  * Profile page with tabbed interface.
- * Displays user profile information across 4 tabs:
+ * Displays user profile information across 5 tabs:
  * - Personal Info: Display name, birthday, pronouns
  * - Preferences: Language, timezone, date format
  * - Privacy: Field visibility settings
  * - Account Security: Zitadel account links
+ * - Approvals: Review pending profile changes from children (Owner/Admin only)
+ *
+ * Also shows a pending changes indicator at the top for child users
+ * who have profile changes awaiting parent approval.
  *
  * @example
  * Route: /profile
@@ -38,6 +45,8 @@ interface Tab {
     PreferencesTabComponent,
     PrivacyTabComponent,
     AccountSecurityTabComponent,
+    ApprovalQueueComponent,
+    PendingChangesIndicatorComponent,
     IconComponent,
   ],
   template: `
@@ -48,6 +57,9 @@ interface Tab {
           <h1 class="text-2xl font-bold text-gray-900">Profile Settings</h1>
           <p class="mt-1 text-gray-600">Manage your personal information and preferences.</p>
         </div>
+
+        <!-- Pending Changes Indicator (for child users) -->
+        <app-pending-changes-indicator></app-pending-changes-indicator>
 
         <!-- Success Message -->
         @if (successMessage()) {
@@ -107,6 +119,14 @@ interface Tab {
               >
                 <app-icon [name]="tab.icon" size="sm" customClass="mr-2"></app-icon>
                 {{ tab.label }}
+                @if (tab.id === 'approvals' && pendingApprovalCount() > 0) {
+                  <span
+                    class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
+                    aria-label="{{ pendingApprovalCount() }} pending approvals"
+                  >
+                    {{ pendingApprovalCount() }}
+                  </span>
+                }
               </button>
             }
           </nav>
@@ -129,6 +149,14 @@ interface Tab {
               >
                 <app-icon [name]="tab.icon" size="sm" customClass="mr-2"></app-icon>
                 {{ tab.label }}
+                @if (tab.id === 'approvals' && pendingApprovalCount() > 0) {
+                  <span
+                    class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
+                    aria-label="{{ pendingApprovalCount() }} pending approvals"
+                  >
+                    {{ pendingApprovalCount() }}
+                  </span>
+                }
               </button>
             }
           </nav>
@@ -165,6 +193,11 @@ interface Tab {
                     <app-account-security-tab></app-account-security-tab>
                   </div>
                 }
+                @case ('approvals') {
+                  <div id="tabpanel-approvals" role="tabpanel" aria-labelledby="tab-approvals">
+                    <app-approval-queue></app-approval-queue>
+                  </div>
+                }
               }
             }
           </div>
@@ -175,16 +208,24 @@ interface Tab {
 })
 export class ProfilePageComponent implements OnInit {
   readonly profileService = inject(ProfileService);
+  readonly changeRequestService = inject(ProfileChangeRequestService);
 
   /**
    * Available tabs configuration.
+   * Includes Approvals tab for Owner/Admin users to review child profile changes.
    */
   readonly tabs: Tab[] = [
     { id: 'personal', label: 'Personal Info', icon: 'user' },
     { id: 'preferences', label: 'Preferences', icon: 'settings' },
     { id: 'privacy', label: 'Privacy', icon: 'shield' },
     { id: 'security', label: 'Account Security', icon: 'lock' },
+    { id: 'approvals', label: 'Approvals', icon: 'check-circle' },
   ];
+
+  /**
+   * Pending approval count for badge display.
+   */
+  readonly pendingApprovalCount = computed(() => this.changeRequestService.pendingCount());
 
   /**
    * Currently active tab.
