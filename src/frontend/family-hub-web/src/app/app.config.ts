@@ -6,6 +6,7 @@ import { provideApollo } from 'apollo-angular';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { initializeFamily } from './core/initializers/family.initializer';
+import { initializeProfile } from './core/initializers/profile.initializer';
 import { createApollo } from './core/graphql/apollo-config';
 
 export const appConfig: ApplicationConfig = {
@@ -20,6 +21,12 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initializeFamily,
+      multi: true,
+    },
+    // Eager profile data loading before routing (runs after family)
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeProfile,
       multi: true,
     },
   ],

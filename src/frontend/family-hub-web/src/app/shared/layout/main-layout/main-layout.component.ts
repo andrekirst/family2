@@ -40,6 +40,12 @@ export class MainLayoutComponent {
       route: '/family/manage',
       active: false,
     },
+    {
+      label: 'Profile',
+      icon: 'user',
+      route: '/profile',
+      active: false,
+    },
   ];
 
   /**
