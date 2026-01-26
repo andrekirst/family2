@@ -1,0 +1,31 @@
+# User Profile Module Profile
+extends: ../layers/backend.yaml
+
+module:
+  name: UserProfile
+  namespace: FamilyHub.Modules.UserProfile
+  schema: user_profile
+  status: foundation # Module setup only, no entities yet
+
+paths:
+  backend: src/api/Modules/FamilyHub.Modules.UserProfile/**
+  frontend: src/frontend/family-hub-web/src/app/profile/**
+  tests:
+    unit: tests/FamilyHub.Tests.Unit/UserProfile/**
+    integration: tests/FamilyHub.Tests.Integration/UserProfile/**
+    e2e: src/frontend/family-hub-web/e2e/profile/**
+
+domain:
+  entities: [] # No entities in foundation issue - will be added in subsequent issues
+
+  valueObjects: [] # Will include UserProfileId, DisplayName, etc.
+
+  events: [] # Will include UserProfileUpdatedEvent, etc.
+
+graphql:
+  mutations: [] # Will include UpdateProfile, UpdateSettings, etc.
+  queries: [] # Will include GetUserProfile, GetUserSettings, etc.
+
+relatedDocs:
+  - docs/architecture/domain-model-microservices-map.md
+  - docs/product-strategy/FEATURE_BACKLOG.md

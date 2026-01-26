@@ -11,6 +11,7 @@ using FamilyHub.Modules.Auth.Infrastructure.Configuration;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.DataLoaders;
 using FamilyHub.Modules.Family;
 using FamilyHub.Modules.Family.Presentation.GraphQL.DataLoaders;
+using FamilyHub.Modules.UserProfile;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -48,6 +49,7 @@ try
     // Module registrations
     builder.Services.AddAuthModule(builder.Configuration);
     builder.Services.AddFamilyModule(builder.Configuration);
+    builder.Services.AddUserProfileModule(builder.Configuration);
 
     // TEST MODE: Enable header-based authentication for E2E tests
     // When enabled, bypasses JWT validation and uses X-Test-User-Id / X-Test-User-Email headers
@@ -143,6 +145,7 @@ try
     // Only namespace container types (AuthType, InvitationsType) require explicit registration
     graphqlBuilder.AddAuthModuleGraphQlTypes();
     graphqlBuilder.AddFamilyModuleGraphQlTypes();
+    graphqlBuilder.AddUserProfileModuleGraphQlTypes();
 
     // Register DataLoaders for N+1 query prevention
     // BatchDataLoaders: 1:1 mapping (e.g., UserId -> User)
@@ -257,6 +260,9 @@ try
 
     // Family module middleware - placeholder for future expansion
     app.UseFamilyModule();
+
+    // UserProfile module middleware - placeholder for future expansion
+    app.UseUserProfileModule();
 
     // GraphQL endpoint
     app.MapGraphQL();

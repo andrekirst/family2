@@ -24,6 +24,7 @@
     <ProjectReference Include="..\FamilyHub.Infrastructure\FamilyHub.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\FamilyHub.Modules.Auth\FamilyHub.Modules.Auth.csproj" />
     <ProjectReference Include="..\Modules\FamilyHub.Modules.Family\FamilyHub.Modules.Family.csproj" />
+    <ProjectReference Include="..\Modules\FamilyHub.Modules.UserProfile\FamilyHub.Modules.UserProfile.csproj" />
   </ItemGroup>
 
 </Project>
