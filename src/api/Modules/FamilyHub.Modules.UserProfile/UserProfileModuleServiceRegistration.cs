@@ -1,12 +1,15 @@
 using FamilyHub.Infrastructure.Persistence.Extensions;
 using FamilyHub.Modules.UserProfile.Application.Abstractions;
+using FamilyHub.Modules.UserProfile.Application.Services;
 using FamilyHub.Modules.UserProfile.Application.Services.EventSourcing;
 using FamilyHub.Modules.UserProfile.Domain.Repositories;
+using FamilyHub.Modules.UserProfile.Infrastructure.Services;
 using FamilyHub.Modules.UserProfile.Infrastructure.Zitadel;
 using FamilyHub.Modules.UserProfile.Persistence;
 using FamilyHub.Modules.UserProfile.Persistence.Repositories;
 using FamilyHub.Modules.UserProfile.Presentation.GraphQL.Mutations;
 using FamilyHub.Modules.UserProfile.Presentation.GraphQL.Queries;
+using FamilyHub.SharedKernel.Application.Abstractions;
 using FamilyHub.SharedKernel.Application.Behaviors;
 using FluentValidation;
 using HotChocolate.Execution.Configuration;
@@ -65,6 +68,14 @@ public static class UserProfileModuleServiceRegistration
         services.AddScoped<IProfileEventStore, ProfileEventStore>();
         services.AddScoped<IProfileEventReplayService, ProfileEventReplayService>();
         services.AddScoped<IProfileEventRecorder, ProfileEventRecorder>();
+
+        // Event Chain Services - Cross-module integration
+        // ICalendarService: Stub until Calendar module is implemented (Phase 2)
+        services.AddScoped<ICalendarService, CalendarServiceStub>();
+        // ICacheInvalidationService: Cache coherency across modules
+        services.AddScoped<ICacheInvalidationService, CacheInvalidationService>();
+        // IProfileEventPublisher: RabbitMQ event publishing for cross-module communication
+        services.AddScoped<IProfileEventPublisher, ProfileEventPublisher>();
 
         // Zitadel Sync Services - Bidirectional profile synchronization
         services.AddMemoryCache(); // Required for token caching

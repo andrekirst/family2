@@ -91,6 +91,7 @@ public class UserProfile : AggregateRoot<UserProfileId>
 
     /// <summary>
     /// Updates the display name.
+    /// Emits DisplayNameChangedEvent for event chain processing (cache invalidation, real-time updates).
     /// </summary>
     public void UpdateDisplayName(DisplayName displayName)
     {
@@ -99,15 +100,27 @@ public class UserProfile : AggregateRoot<UserProfileId>
             return;
         }
 
+        var oldDisplayName = DisplayName;
         DisplayName = displayName;
+
+        // Generic event for backwards compatibility
         AddDomainEvent(new UserProfileUpdatedEvent(
             eventVersion: 1,
             profileId: Id,
             updatedField: nameof(DisplayName)));
+
+        // Specific event for event chain processing
+        AddDomainEvent(new DisplayNameChangedEvent(
+            eventVersion: 1,
+            profileId: Id,
+            userId: UserId,
+            oldDisplayName: oldDisplayName,
+            newDisplayName: displayName));
     }
 
     /// <summary>
     /// Updates the birthday.
+    /// Emits BirthdaySetEvent for event chain processing (calendar integration).
     /// </summary>
     public void UpdateBirthday(Birthday? birthday)
     {
@@ -117,10 +130,23 @@ public class UserProfile : AggregateRoot<UserProfileId>
         }
 
         Birthday = birthday;
+
+        // Generic event for backwards compatibility
         AddDomainEvent(new UserProfileUpdatedEvent(
             eventVersion: 1,
             profileId: Id,
             updatedField: nameof(Birthday)));
+
+        // Specific event for event chain processing (only if birthday is set, not cleared)
+        if (birthday.HasValue)
+        {
+            AddDomainEvent(new BirthdaySetEvent(
+                eventVersion: 1,
+                profileId: Id,
+                userId: UserId,
+                birthday: birthday.Value,
+                displayName: DisplayName));
+        }
     }
 
     /// <summary>
@@ -142,14 +168,42 @@ public class UserProfile : AggregateRoot<UserProfileId>
 
     /// <summary>
     /// Updates the profile preferences.
+    /// Emits PreferencesUpdatedEvent for event chain processing (future notifications integration).
     /// </summary>
     public void UpdatePreferences(ProfilePreferences preferences)
     {
-        Preferences = preferences ?? ProfilePreferences.Default();
+        var oldPreferences = Preferences;
+        var newPreferences = preferences ?? ProfilePreferences.Default();
+
+        // Skip if no change
+        if (oldPreferences.Language == newPreferences.Language &&
+            oldPreferences.Timezone == newPreferences.Timezone &&
+            oldPreferences.DateFormat == newPreferences.DateFormat)
+        {
+            return;
+        }
+
+        Preferences = newPreferences;
+
+        // Generic event for backwards compatibility
         AddDomainEvent(new UserProfileUpdatedEvent(
             eventVersion: 1,
             profileId: Id,
             updatedField: nameof(Preferences)));
+
+        // Specific event for event chain processing (only if language or timezone changed)
+        if (oldPreferences.Language != newPreferences.Language ||
+            oldPreferences.Timezone != newPreferences.Timezone)
+        {
+            AddDomainEvent(new PreferencesUpdatedEvent(
+                eventVersion: 1,
+                profileId: Id,
+                userId: UserId,
+                oldLanguage: oldPreferences.Language,
+                newLanguage: newPreferences.Language,
+                oldTimezone: oldPreferences.Timezone,
+                newTimezone: newPreferences.Timezone));
+        }
     }
 
     /// <summary>
