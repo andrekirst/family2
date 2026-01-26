@@ -1,5 +1,9 @@
 using FamilyHub.Infrastructure.Persistence.Extensions;
+using FamilyHub.Modules.UserProfile.Domain.Repositories;
 using FamilyHub.Modules.UserProfile.Persistence;
+using FamilyHub.Modules.UserProfile.Persistence.Repositories;
+using FamilyHub.Modules.UserProfile.Presentation.GraphQL.Mutations;
+using FamilyHub.Modules.UserProfile.Presentation.GraphQL.Queries;
 using FamilyHub.SharedKernel.Application.Behaviors;
 using FluentValidation;
 using HotChocolate.Execution.Configuration;
@@ -50,11 +54,8 @@ public static class UserProfileModuleServiceRegistration
                 .AddTimestampInterceptor(sp);
         });
 
-        // Repositories will be added here when entities are implemented
-        // Example: services.AddScoped<IUserProfileRepository, UserProfileRepository>();
-
-        // Application Services will be added here when business logic is implemented
-        // Example: services.AddScoped<IUserProfileService, UserProfileService>();
+        // Repositories
+        services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 
         // MediatR - Command/Query handlers
         services.AddMediatR(cfg =>
@@ -99,11 +100,9 @@ public static class UserProfileModuleServiceRegistration
         ILoggerFactory? loggerFactory = null)
     {
         return builder
-            .RegisterDbContextFactory<UserProfileDbContext>(); // Required for DataLoaders
-            // GraphQL types will be registered here when implemented
-            // Example: .AddType<Presentation.GraphQL.Types.UserProfileType>()
-            // Example: .AddTypeExtension<Presentation.GraphQL.Queries.UserProfileQueries>()
-            // Example: .AddTypeExtension<Presentation.GraphQL.Mutations.UserProfileMutations>()
+            .RegisterDbContextFactory<UserProfileDbContext>()
+            .AddTypeExtension<UserProfileQueries>()
+            .AddTypeExtension<UserProfileMutations>();
     }
 
     /// <summary>

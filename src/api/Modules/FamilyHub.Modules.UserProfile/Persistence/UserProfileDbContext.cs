@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using UserProfileAggregate = FamilyHub.Modules.UserProfile.Domain.Aggregates.UserProfile;
 
 namespace FamilyHub.Modules.UserProfile.Persistence;
 
@@ -29,8 +30,10 @@ public class UserProfileDbContext : DbContext
     {
     }
 
-    // DbSets will be added here when entities are implemented
-    // Example: public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
+    /// <summary>
+    /// User profiles in the system.
+    /// </summary>
+    public DbSet<UserProfileAggregate> Profiles => Set<UserProfileAggregate>();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
