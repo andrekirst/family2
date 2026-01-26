@@ -1,3 +1,4 @@
+using FamilyHub.Modules.UserProfile.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using UserProfileAggregate = FamilyHub.Modules.UserProfile.Domain.Aggregates.UserProfile;
 
@@ -34,6 +35,11 @@ public class UserProfileDbContext : DbContext
     /// User profiles in the system.
     /// </summary>
     public DbSet<UserProfileAggregate> Profiles => Set<UserProfileAggregate>();
+
+    /// <summary>
+    /// Profile events for event sourcing and audit trail.
+    /// </summary>
+    public DbSet<ProfileEventEntity> ProfileEvents => Set<ProfileEventEntity>();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)

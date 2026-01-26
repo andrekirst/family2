@@ -1,4 +1,5 @@
 using FamilyHub.Infrastructure.Persistence.Extensions;
+using FamilyHub.Modules.UserProfile.Application.Services.EventSourcing;
 using FamilyHub.Modules.UserProfile.Domain.Repositories;
 using FamilyHub.Modules.UserProfile.Persistence;
 using FamilyHub.Modules.UserProfile.Persistence.Repositories;
@@ -56,6 +57,11 @@ public static class UserProfileModuleServiceRegistration
 
         // Repositories
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+
+        // Event Sourcing - Audit trail and state reconstruction
+        services.AddScoped<IProfileEventStore, ProfileEventStore>();
+        services.AddScoped<IProfileEventReplayService, ProfileEventReplayService>();
+        services.AddScoped<IProfileEventRecorder, ProfileEventRecorder>();
 
         // MediatR - Command/Query handlers
         services.AddMediatR(cfg =>

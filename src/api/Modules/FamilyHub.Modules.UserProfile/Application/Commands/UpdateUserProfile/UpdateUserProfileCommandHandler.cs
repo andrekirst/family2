@@ -1,3 +1,5 @@
+using System.Text.Json;
+using FamilyHub.Modules.UserProfile.Application.Services.EventSourcing;
 using FamilyHub.Modules.UserProfile.Domain.Repositories;
 using FamilyHub.Modules.UserProfile.Persistence;
 using FamilyHub.SharedKernel.Application.Abstractions;
@@ -10,18 +12,26 @@ namespace FamilyHub.Modules.UserProfile.Application.Commands.UpdateUserProfile;
 /// <summary>
 /// Handler for UpdateUserProfileCommand.
 /// Creates a new profile if one doesn't exist, or updates the existing profile.
+/// Records all changes as events for audit trail.
 /// </summary>
 /// <param name="userContext">The current authenticated user context.</param>
 /// <param name="profileRepository">Repository for user profiles.</param>
 /// <param name="dbContext">Database context for persistence.</param>
+/// <param name="eventRecorder">Service for recording profile change events.</param>
 /// <param name="logger">Logger for structured logging.</param>
 public sealed partial class UpdateUserProfileCommandHandler(
     IUserContext userContext,
     IUserProfileRepository profileRepository,
     UserProfileDbContext dbContext,
+    IProfileEventRecorder eventRecorder,
     ILogger<UpdateUserProfileCommandHandler> logger)
     : ICommandHandler<UpdateUserProfileCommand, DomainResult>
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false
+    };
     /// <inheritdoc />
     public async Task<DomainResult> Handle(
         UpdateUserProfileCommand request,
@@ -40,36 +50,42 @@ public sealed partial class UpdateUserProfileCommandHandler(
             LogCreatingNewProfile(userId.Value, request.DisplayName.Value);
             profile = Domain.Aggregates.UserProfile.Create(userId, request.DisplayName);
             await profileRepository.AddAsync(profile, cancellationToken);
+
+            // Record creation event for audit trail
+            await eventRecorder.RecordCreatedAsync(profile, userId, cancellationToken);
         }
         else
         {
-            // Update existing profile (profile is guaranteed non-null in this branch)
+            // Ensure events exist for backward compatibility (creates synthetic event if needed)
+            await eventRecorder.EnsureEventsExistAsync(profile!, userId, cancellationToken);
+
+            // Update existing profile with event recording
             LogUpdatingExistingProfile(profile!.Id.Value, request.DisplayName.Value);
-            profile.UpdateDisplayName(request.DisplayName);
+            await UpdateDisplayNameWithEvent(profile, request.DisplayName, userId, cancellationToken);
         }
 
-        // Update optional fields
+        // Update optional fields with event recording
         if (request.Birthday.HasValue)
         {
-            profile.UpdateBirthday(request.Birthday);
+            await UpdateBirthdayWithEvent(profile, request.Birthday, userId, cancellationToken);
         }
 
         if (request.Pronouns.HasValue)
         {
-            profile.UpdatePronouns(request.Pronouns);
+            await UpdatePronounsWithEvent(profile, request.Pronouns, userId, cancellationToken);
         }
 
         if (request.Preferences != null)
         {
-            profile.UpdatePreferences(request.Preferences);
+            await UpdatePreferencesWithEvent(profile, request.Preferences, userId, cancellationToken);
         }
 
         if (request.FieldVisibility != null)
         {
-            profile.UpdateFieldVisibility(request.FieldVisibility);
+            await UpdateFieldVisibilityWithEvent(profile, request.FieldVisibility, userId, cancellationToken);
         }
 
-        // Persist changes
+        // Persist changes (both state and events are saved atomically)
         await dbContext.SaveChangesAsync(cancellationToken);
 
         LogProfileUpdatedSuccessfully(profile.Id.Value);
@@ -81,6 +97,155 @@ public sealed partial class UpdateUserProfileCommandHandler(
             UpdatedAt = profile.UpdatedAt,
             IsNewProfile = isNewProfile
         });
+    }
+
+    private async Task UpdateDisplayNameWithEvent(
+        Domain.Aggregates.UserProfile profile,
+        Domain.ValueObjects.DisplayName newDisplayName,
+        SharedKernel.Domain.ValueObjects.UserId changedBy,
+        CancellationToken cancellationToken)
+    {
+        if (profile.DisplayName == newDisplayName)
+        {
+            return;
+        }
+
+        var oldValue = profile.DisplayName.Value;
+        profile.UpdateDisplayName(newDisplayName);
+
+        await eventRecorder.RecordFieldUpdateAsync(
+            profile.Id,
+            changedBy,
+            nameof(ProfileStateDto.DisplayName),
+            oldValue,
+            newDisplayName.Value,
+            cancellationToken);
+    }
+
+    private async Task UpdateBirthdayWithEvent(
+        Domain.Aggregates.UserProfile profile,
+        Domain.ValueObjects.Birthday? newBirthday,
+        SharedKernel.Domain.ValueObjects.UserId changedBy,
+        CancellationToken cancellationToken)
+    {
+        if (profile.Birthday == newBirthday)
+        {
+            return;
+        }
+
+        var oldValue = profile.Birthday?.Value.ToString("yyyy-MM-dd");
+        profile.UpdateBirthday(newBirthday);
+
+        await eventRecorder.RecordFieldUpdateAsync(
+            profile.Id,
+            changedBy,
+            nameof(ProfileStateDto.Birthday),
+            oldValue,
+            newBirthday?.Value.ToString("yyyy-MM-dd"),
+            cancellationToken);
+    }
+
+    private async Task UpdatePronounsWithEvent(
+        Domain.Aggregates.UserProfile profile,
+        Domain.ValueObjects.Pronouns? newPronouns,
+        SharedKernel.Domain.ValueObjects.UserId changedBy,
+        CancellationToken cancellationToken)
+    {
+        if (profile.Pronouns == newPronouns)
+        {
+            return;
+        }
+
+        var oldValue = profile.Pronouns?.Value;
+        profile.UpdatePronouns(newPronouns);
+
+        await eventRecorder.RecordFieldUpdateAsync(
+            profile.Id,
+            changedBy,
+            nameof(ProfileStateDto.Pronouns),
+            oldValue,
+            newPronouns?.Value,
+            cancellationToken);
+    }
+
+    private async Task UpdatePreferencesWithEvent(
+        Domain.Aggregates.UserProfile profile,
+        Domain.ValueObjects.ProfilePreferences newPreferences,
+        SharedKernel.Domain.ValueObjects.UserId changedBy,
+        CancellationToken cancellationToken)
+    {
+        var oldPreferences = profile.Preferences;
+        profile.UpdatePreferences(newPreferences);
+
+        // Serialize preferences for comparison and storage
+        var oldJson = SerializePreferences(oldPreferences);
+        var newJson = SerializePreferences(newPreferences);
+
+        if (oldJson != newJson)
+        {
+            await eventRecorder.RecordFieldUpdateAsync(
+                profile.Id,
+                changedBy,
+                "Preferences",
+                oldJson,
+                newJson,
+                cancellationToken);
+        }
+    }
+
+    private async Task UpdateFieldVisibilityWithEvent(
+        Domain.Aggregates.UserProfile profile,
+        Domain.ValueObjects.ProfileFieldVisibility newVisibility,
+        SharedKernel.Domain.ValueObjects.UserId changedBy,
+        CancellationToken cancellationToken)
+    {
+        var oldVisibility = profile.FieldVisibility;
+        profile.UpdateFieldVisibility(newVisibility);
+
+        // Serialize visibility for comparison and storage
+        var oldJson = SerializeFieldVisibility(oldVisibility);
+        var newJson = SerializeFieldVisibility(newVisibility);
+
+        if (oldJson != newJson)
+        {
+            await eventRecorder.RecordFieldUpdateAsync(
+                profile.Id,
+                changedBy,
+                "FieldVisibility",
+                oldJson,
+                newJson,
+                cancellationToken);
+        }
+    }
+
+    private static string? SerializePreferences(Domain.ValueObjects.ProfilePreferences? preferences)
+    {
+        if (preferences == null)
+        {
+            return null;
+        }
+
+        return JsonSerializer.Serialize(new
+        {
+            language = preferences.Language,
+            timezone = preferences.Timezone,
+            dateFormat = preferences.DateFormat
+        }, JsonOptions);
+    }
+
+    private static string? SerializeFieldVisibility(Domain.ValueObjects.ProfileFieldVisibility? visibility)
+    {
+        if (visibility == null)
+        {
+            return null;
+        }
+
+        return JsonSerializer.Serialize(new
+        {
+            birthdayVisibility = visibility.BirthdayVisibility.Value,
+            pronounsVisibility = visibility.PronounsVisibility.Value,
+            preferencesVisibility = visibility.PreferencesVisibility.Value
+        }, JsonOptions);
     }
 
     [LoggerMessage(LogLevel.Information, "Updating profile for user {userId}")]

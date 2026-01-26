@@ -70,6 +70,56 @@ namespace FamilyHub.Modules.UserProfile.Persistence.Migrations
                     b.ToTable("profiles", "user_profile");
                 });
 
+            modelBuilder.Entity("FamilyHub.Modules.UserProfile.Persistence.Entities.ProfileEventEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ChangedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("changed_by");
+
+                    b.Property<string>("EventData")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("event_data");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("event_type");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("profile_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_profile_events");
+
+                    b.HasIndex("OccurredAt")
+                        .HasDatabaseName("ix_profile_events_occurred_at");
+
+                    b.HasIndex("ProfileId", "EventType")
+                        .HasDatabaseName("ix_profile_events_profile_type");
+
+                    b.HasIndex("ProfileId", "Version")
+                        .IsUnique()
+                        .HasDatabaseName("ix_profile_events_profile_version");
+
+                    b.ToTable("profile_events", "user_profile");
+                });
+
             modelBuilder.Entity("FamilyHub.Modules.UserProfile.Domain.Aggregates.UserProfile", b =>
                 {
                     b.OwnsOne("FamilyHub.Modules.UserProfile.Domain.ValueObjects.ProfileFieldVisibility", "FieldVisibility", b1 =>
