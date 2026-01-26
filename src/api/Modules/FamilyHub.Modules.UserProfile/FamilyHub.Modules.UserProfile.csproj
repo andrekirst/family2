@@ -13,7 +13,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Vogen" />
   </ItemGroup>
 
@@ -23,6 +26,7 @@
     <ProjectReference Include="..\..\FamilyHub.SourceGenerators\FamilyHub.SourceGenerators.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\FamilyHub.Modules.Auth\FamilyHub.Modules.Auth.csproj" />
   </ItemGroup>
 
 </Project>

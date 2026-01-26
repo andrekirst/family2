@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FamilyHub.Modules.UserProfile.Application.Abstractions;
 using FamilyHub.Modules.UserProfile.Application.Services.EventSourcing;
 using FamilyHub.Modules.UserProfile.Domain.Repositories;
 using FamilyHub.Modules.UserProfile.Persistence;
@@ -13,17 +14,20 @@ namespace FamilyHub.Modules.UserProfile.Application.Commands.UpdateUserProfile;
 /// Handler for UpdateUserProfileCommand.
 /// Creates a new profile if one doesn't exist, or updates the existing profile.
 /// Records all changes as events for audit trail.
+/// Triggers Zitadel sync when display name changes.
 /// </summary>
 /// <param name="userContext">The current authenticated user context.</param>
 /// <param name="profileRepository">Repository for user profiles.</param>
 /// <param name="dbContext">Database context for persistence.</param>
 /// <param name="eventRecorder">Service for recording profile change events.</param>
+/// <param name="zitadelSyncService">Service for synchronizing with Zitadel.</param>
 /// <param name="logger">Logger for structured logging.</param>
 public sealed partial class UpdateUserProfileCommandHandler(
     IUserContext userContext,
     IUserProfileRepository profileRepository,
     UserProfileDbContext dbContext,
     IProfileEventRecorder eventRecorder,
+    IZitadelSyncService zitadelSyncService,
     ILogger<UpdateUserProfileCommandHandler> logger)
     : ICommandHandler<UpdateUserProfileCommand, DomainResult>
 {
@@ -43,6 +47,7 @@ public sealed partial class UpdateUserProfileCommandHandler(
         // Try to find existing profile
         var profile = await profileRepository.GetByUserIdAsync(userId, cancellationToken);
         var isNewProfile = profile == null;
+        var displayNameChanged = false;
 
         if (isNewProfile)
         {
@@ -53,14 +58,20 @@ public sealed partial class UpdateUserProfileCommandHandler(
 
             // Record creation event for audit trail
             await eventRecorder.RecordCreatedAsync(profile, userId, cancellationToken);
+
+            // New profile needs to sync to Zitadel
+            displayNameChanged = true;
         }
         else
         {
             // Ensure events exist for backward compatibility (creates synthetic event if needed)
             await eventRecorder.EnsureEventsExistAsync(profile!, userId, cancellationToken);
 
+            // Track if display name is changing for Zitadel sync
+            displayNameChanged = profile!.DisplayName != request.DisplayName;
+
             // Update existing profile with event recording
-            LogUpdatingExistingProfile(profile!.Id.Value, request.DisplayName.Value);
+            LogUpdatingExistingProfile(profile.Id.Value, request.DisplayName.Value);
             await UpdateDisplayNameWithEvent(profile, request.DisplayName, userId, cancellationToken);
         }
 
@@ -90,6 +101,12 @@ public sealed partial class UpdateUserProfileCommandHandler(
 
         LogProfileUpdatedSuccessfully(profile.Id.Value);
 
+        // Trigger Zitadel sync if display name changed
+        if (displayNameChanged)
+        {
+            await SyncDisplayNameToZitadelAsync(profile, userId, cancellationToken);
+        }
+
         return DomainResult.Success(new UpdateUserProfileResult
         {
             ProfileId = profile.Id,
@@ -97,6 +114,37 @@ public sealed partial class UpdateUserProfileCommandHandler(
             UpdatedAt = profile.UpdatedAt,
             IsNewProfile = isNewProfile
         });
+    }
+
+    /// <summary>
+    /// Syncs the display name to Zitadel asynchronously.
+    /// Updates the profile's sync status based on the result.
+    /// </summary>
+    private async Task SyncDisplayNameToZitadelAsync(
+        Domain.Aggregates.UserProfile profile,
+        SharedKernel.Domain.ValueObjects.UserId userId,
+        CancellationToken cancellationToken)
+    {
+        LogSyncingToZitadel(profile.Id.Value, profile.DisplayName.Value);
+
+        var syncResult = await zitadelSyncService.PushDisplayNameAsync(
+            userId,
+            profile.DisplayName,
+            cancellationToken);
+
+        if (syncResult.IsSuccess)
+        {
+            profile.MarkSynced();
+            LogZitadelSyncSucceeded(profile.Id.Value);
+        }
+        else
+        {
+            profile.MarkSyncFailed();
+            LogZitadelSyncFailed(profile.Id.Value, syncResult.Error);
+        }
+
+        // Save sync status update
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task UpdateDisplayNameWithEvent(
@@ -259,4 +307,13 @@ public sealed partial class UpdateUserProfileCommandHandler(
 
     [LoggerMessage(LogLevel.Information, "Profile {profileId} updated successfully")]
     partial void LogProfileUpdatedSuccessfully(Guid profileId);
+
+    [LoggerMessage(LogLevel.Information, "Syncing display name to Zitadel for profile {profileId}: {displayName}")]
+    partial void LogSyncingToZitadel(Guid profileId, string displayName);
+
+    [LoggerMessage(LogLevel.Information, "Zitadel sync succeeded for profile {profileId}")]
+    partial void LogZitadelSyncSucceeded(Guid profileId);
+
+    [LoggerMessage(LogLevel.Warning, "Zitadel sync failed for profile {profileId}: {error}")]
+    partial void LogZitadelSyncFailed(Guid profileId, string error);
 }

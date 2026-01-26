@@ -66,4 +66,13 @@ public interface IUserLookupService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The user's email address if found; otherwise, null.</returns>
     Task<Email?> GetUserEmailAsync(UserId userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the external user ID (Zitadel ID) for a user.
+    /// Used by UserProfile module for Zitadel synchronization.
+    /// </summary>
+    /// <param name="userId">The internal user ID to look up.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The external user ID if found; otherwise, null.</returns>
+    Task<string?> GetExternalUserIdAsync(UserId userId, CancellationToken cancellationToken = default);
 }

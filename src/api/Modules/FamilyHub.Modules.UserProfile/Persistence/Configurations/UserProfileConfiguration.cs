@@ -101,6 +101,19 @@ public class UserProfileConfiguration : IEntityTypeConfiguration<Domain.Aggregat
                 .IsRequired();
         });
 
+        // Zitadel sync status tracking
+        builder.Property(p => p.SyncStatus)
+            .HasConversion(new SyncStatus.EfCoreValueConverter())
+            .HasColumnName("sync_status")
+            .HasMaxLength(20)
+            .HasDefaultValue(SyncStatus.Pending)
+            .IsRequired();
+
+        // Last synced timestamp (nullable - null means never synced)
+        builder.Property(p => p.LastSyncedAt)
+            .HasColumnName("last_synced_at")
+            .IsRequired(false);
+
         // Audit fields (managed by TimestampInterceptor)
         builder.Property(p => p.CreatedAt)
             .HasColumnName("created_at")

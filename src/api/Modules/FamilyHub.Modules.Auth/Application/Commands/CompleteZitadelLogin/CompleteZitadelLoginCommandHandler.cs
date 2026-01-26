@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.Events;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.Specifications;
 using FamilyHub.Modules.Auth.Infrastructure.Configuration;
@@ -9,6 +10,7 @@ using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
 using IdentityModel.Client;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -17,12 +19,14 @@ namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
 /// <summary>
 /// Handler for CompleteZitadelLoginCommand.
 /// Exchanges authorization code for tokens and creates/syncs user.
+/// Raises UserLoggedInEvent for profile synchronization.
 /// </summary>
 /// <param name="settings">Zitadel OAuth configuration settings.</param>
 /// <param name="userRepository">Repository for user data access.</param>
 /// <param name="familyService">Service for family operations.</param>
 /// <param name="unitOfWork">Unit of work for database transactions.</param>
 /// <param name="httpClientFactory">Factory for creating HTTP clients.</param>
+/// <param name="mediator">MediatR for publishing domain events.</param>
 /// <param name="logger">Logger for structured logging.</param>
 public sealed partial class CompleteZitadelLoginCommandHandler(
     IOptions<ZitadelSettings> settings,
@@ -30,6 +34,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
     IFamilyService familyService,
     IUnitOfWork unitOfWork,
     IHttpClientFactory httpClientFactory,
+    IMediator mediator,
     ILogger<CompleteZitadelLoginCommandHandler> logger)
     : ICommandHandler<CompleteZitadelLoginCommand, CompleteZitadelLoginResult>
 {
@@ -67,9 +72,22 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
 
         // 3. Get or create user (with auto-created family if new user)
         var email = Email.From(emailClaim!);
-        var user = await GetOrCreateUserAsync(sub!, email, idToken, cancellationToken);
+        var (user, isNewUser) = await GetOrCreateUserAsync(sub!, email, idToken, cancellationToken);
+
+        // Extract display name from ID token for sync
+        var displayNameFromProvider = idToken.Claims.GetTokenValueByClaimType("name")
+                                      ?? idToken.Claims.GetTokenValueByClaimType("preferred_username");
 
         LogUserAuthenticatedViaZitadelOauthUseridUseridEmailEmail(logger, user.Id.Value, email.Value);
+
+        // Publish login event for profile sync
+        await mediator.Publish(new UserLoggedInEvent(
+            user.Id,
+            sub!,
+            "zitadel",
+            displayNameFromProvider,
+            email,
+            isNewUser), cancellationToken);
 
         // 4. Return result with Zitadel's ID token (JWT with user identity claims)
         // ID token can be validated by backend JWT middleware, access token cannot
@@ -112,7 +130,8 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
     /// <summary>
     /// Gets existing user or creates new user from OAuth provider with personal family.
     /// </summary>
-    private async Task<User> GetOrCreateUserAsync(
+    /// <returns>A tuple of the user and whether they were newly created.</returns>
+    private async Task<(User User, bool IsNewUser)> GetOrCreateUserAsync(
         string zitadelUserId,
         Email email,
         JwtSecurityToken idToken,
@@ -126,7 +145,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
         if (user != null)
         {
             LogFoundExistingUserUseridUserid(logger, user.Id.Value);
-            return user;
+            return (user, false);
         }
 
         // Extract display name from ID token for family name
@@ -161,7 +180,7 @@ public sealed partial class CompleteZitadelLoginCommandHandler(
         LogCreatedNewUserFromZitadelOauthUseridUseridEmailEmail(logger, user.Id.Value, email.Value);
         LogCreatedPersonalFamilyFamilyidFamilynameForUserUserid(logger, familyDto.Id.Value, familyName.Value, user.Id.Value);
 
-        return user;
+        return (user, true);
     }
 
     [LoggerMessage(LogLevel.Error, "Failed to exchange authorization code: {error} - {errorDescription}")]

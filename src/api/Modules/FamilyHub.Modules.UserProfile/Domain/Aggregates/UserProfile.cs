@@ -43,6 +43,17 @@ public class UserProfile : AggregateRoot<UserProfileId>
     public ProfileFieldVisibility FieldVisibility { get; private set; } = ProfileFieldVisibility.Default();
 
     /// <summary>
+    /// Timestamp of the last successful synchronization with Zitadel.
+    /// Null if never synced.
+    /// </summary>
+    public DateTime? LastSyncedAt { get; private set; }
+
+    /// <summary>
+    /// Current synchronization status with Zitadel identity provider.
+    /// </summary>
+    public SyncStatus SyncStatus { get; private set; } = SyncStatus.Pending;
+
+    /// <summary>
     /// Private constructor for EF Core materialization.
     /// </summary>
     private UserProfile() : base(UserProfileId.From(Guid.Empty))
@@ -187,5 +198,54 @@ public class UserProfile : AggregateRoot<UserProfileId>
     public int? CalculateAge()
     {
         return Birthday?.CalculateAge();
+    }
+
+    /// <summary>
+    /// Marks the profile as successfully synchronized with Zitadel.
+    /// </summary>
+    public void MarkSynced()
+    {
+        SyncStatus = SyncStatus.Synced;
+        LastSyncedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Marks the profile sync as failed.
+    /// </summary>
+    public void MarkSyncFailed()
+    {
+        SyncStatus = SyncStatus.Failed;
+    }
+
+    /// <summary>
+    /// Marks the profile as having pending changes to push to Zitadel.
+    /// </summary>
+    public void MarkPendingPush()
+    {
+        SyncStatus = SyncStatus.PendingPush;
+    }
+
+    /// <summary>
+    /// Marks the profile as needing to pull updates from Zitadel.
+    /// </summary>
+    public void MarkPendingPull()
+    {
+        SyncStatus = SyncStatus.PendingPull;
+    }
+
+    /// <summary>
+    /// Updates the display name from Zitadel during sync.
+    /// This method does not mark the profile as pending push since the change originates from Zitadel.
+    /// </summary>
+    /// <param name="displayName">The display name from Zitadel.</param>
+    public void UpdateDisplayNameFromZitadel(DisplayName displayName)
+    {
+        if (DisplayName == displayName)
+        {
+            return;
+        }
+
+        DisplayName = displayName;
+        // Note: No domain event raised for Zitadel-originated changes to avoid sync loops
     }
 }
