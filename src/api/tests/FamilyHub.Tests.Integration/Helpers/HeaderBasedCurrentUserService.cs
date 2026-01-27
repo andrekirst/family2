@@ -62,6 +62,47 @@ public sealed class HeaderBasedCurrentUserService(IHttpContextAccessor httpConte
         return string.IsNullOrEmpty(header) ? null : Email.From(header);
     }
 
+    /// <inheritdoc />
+    public FamilyId? GetFamilyId() => TryGetFamilyId();
+
+    /// <inheritdoc />
+    public UserId? TryGetUserId()
+    {
+        var header = GetUserIdHeader();
+
+        if (string.IsNullOrEmpty(header))
+        {
+            return null;
+        }
+
+        if (!Guid.TryParse(header, out var guid))
+        {
+            return null;
+        }
+
+        return UserId.From(guid);
+    }
+
+    /// <inheritdoc />
+    public FamilyId? TryGetFamilyId()
+    {
+        var header = httpContextAccessor.HttpContext?.Request.Headers[TestFamilyIdHeader].FirstOrDefault();
+
+        if (string.IsNullOrEmpty(header))
+        {
+            return null;
+        }
+
+        if (!Guid.TryParse(header, out var guid))
+        {
+            return null;
+        }
+
+        return FamilyId.From(guid);
+    }
+
     private string? GetUserIdHeader()
         => httpContextAccessor.HttpContext?.Request.Headers[TestUserIdHeader].FirstOrDefault();
+
+    private const string TestFamilyIdHeader = "X-Test-Family-Id";
 }

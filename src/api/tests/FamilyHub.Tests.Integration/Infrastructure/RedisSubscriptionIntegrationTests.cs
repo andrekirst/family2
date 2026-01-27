@@ -5,6 +5,7 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.DTOs.Subscriptions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Subscriptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
@@ -356,10 +357,10 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
 
-        var user = User.CreateFromOAuth(
+        var user = User.CreateWithPassword(
             Email.From("member@example.com"),
-            "external-user-id",
-            "oauth-provider",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             familyId
         );
 
@@ -416,10 +417,10 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var userFamilyId = FamilyId.New(); // Different family!
         var currentUserId = UserId.New();
 
-        var user = User.CreateFromOAuth(
+        var user = User.CreateWithPassword(
             Email.From("member@example.com"),
-            "external-user-id",
-            "oauth-provider",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             userFamilyId // User is NOT in target family
         );
 
@@ -463,10 +464,10 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
 
-        var user = User.CreateFromOAuth(
+        var user = User.CreateWithPassword(
             Email.From("owner@example.com"),
-            "external-user-id",
-            "oauth-provider",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             familyId
         );
         user.UpdateRole(FamilyRole.Owner); // Owner role
@@ -520,10 +521,10 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
 
-        var user = User.CreateFromOAuth(
+        var user = User.CreateWithPassword(
             Email.From("admin@example.com"),
-            "external-user-id",
-            "oauth-provider",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             familyId
         );
         user.UpdateRole(FamilyRole.Admin); // Admin role
@@ -577,10 +578,10 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
 
-        var user = User.CreateFromOAuth(
+        var user = User.CreateWithPassword(
             Email.From("member@example.com"),
-            "external-user-id",
-            "oauth-provider",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             familyId
         );
         user.UpdateRole(FamilyRole.Member); // Member role (not Owner/Admin)

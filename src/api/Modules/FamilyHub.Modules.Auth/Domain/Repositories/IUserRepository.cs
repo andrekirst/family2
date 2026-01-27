@@ -20,32 +20,6 @@ public interface IUserRepository : ISpecificationRepository<User, UserId>
     Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets a user by their external OAuth provider ID.
-    /// </summary>
-    /// <param name="externalProvider">The OAuth provider name (e.g., "zitadel").</param>
-    /// <param name="externalUserId">The user ID from the external provider.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The user if found; otherwise, null.</returns>
-    [Obsolete("Use FindOneAsync with UserByExternalProviderSpecification.")]
-    Task<User?> GetByExternalProviderAsync(
-        string externalProvider,
-        string externalUserId,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets a user by their external user ID and provider.
-    /// </summary>
-    /// <param name="externalUserId">The user ID from the external provider.</param>
-    /// <param name="externalProvider">The OAuth provider name (e.g., "zitadel").</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The user if found; otherwise, null.</returns>
-    [Obsolete("Use FindOneAsync with UserByExternalProviderSpecification.")]
-    Task<User?> GetByExternalUserIdAsync(
-        string externalUserId,
-        string externalProvider,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Checks if a user with the given email already exists.
     /// </summary>
     /// <param name="email">The email address to check.</param>
@@ -62,4 +36,27 @@ public interface IUserRepository : ISpecificationRepository<User, UserId>
     /// <returns>List of users in the family.</returns>
     [Obsolete("Use FindAllAsync with UsersByFamilySpecification.")]
     Task<List<User>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates an existing user asynchronously with SaveChanges.
+    /// </summary>
+    /// <param name="user">The user to update.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task UpdateAsync(User user, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a user by their password reset token.
+    /// </summary>
+    /// <param name="token">The password reset token.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The user if found with a valid token; otherwise, null.</returns>
+    Task<User?> GetByPasswordResetTokenAsync(string token, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a user by their email verification token.
+    /// </summary>
+    /// <param name="token">The email verification token.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The user if found with a valid token; otherwise, null.</returns>
+    Task<User?> GetByEmailVerificationTokenAsync(string token, CancellationToken cancellationToken = default);
 }

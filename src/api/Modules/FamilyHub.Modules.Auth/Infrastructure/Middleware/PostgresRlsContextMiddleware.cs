@@ -8,24 +8,26 @@ using Npgsql;
 namespace FamilyHub.Modules.Auth.Infrastructure.Middleware;
 
 /// <summary>
-/// Middleware that sets the PostgreSQL session variable 'app.current_user_id'
+/// Middleware that sets PostgreSQL session variables 'app.current_user_id' and 'app.current_family_id'
 /// for Row-Level Security (RLS) policies.
 ///
 /// EXECUTION ORDER:
 /// 1. Authentication middleware populates User (ClaimsPrincipal)
-/// 2. This middleware extracts user ID from JWT claims
-/// 3. Sets PostgreSQL session variable for RLS policies
+/// 2. This middleware extracts user ID and family ID from JWT claims
+/// 3. Sets PostgreSQL session variables for RLS policies
 /// 4. GraphQL/MediatR request processing occurs
-/// 5. PostgreSQL enforces RLS based on session variable
+/// 5. PostgreSQL enforces RLS based on session variables
 ///
 /// ARCHITECTURE DECISION:
-/// - Uses 'sub' claim from JWT (Zitadel's standard user identifier claim)
-/// - Session variable is transaction-scoped (true parameter in set_config)
+/// - Uses 'sub' claim from JWT for user identifier
+/// - Uses custom 'family_id' claim from JWT for family scoping
+/// - Session variables are transaction-scoped (true parameter in set_config)
 /// - Automatically cleared after each request (no cleanup needed)
-/// - Runs on every request, even unauthenticated (RLS handles NULL user_id gracefully)
+/// - Runs on every request, even unauthenticated (RLS handles NULL gracefully)
 ///
 /// SECURITY:
 /// - RLS policies will deny access if current_user_id() returns NULL (unauthenticated)
+/// - Family-scoped tables use current_family_id() for multi-tenant isolation
 /// - SQL injection prevented by parameterized queries
 /// - Transaction-scoped variables prevent cross-request leakage
 ///
@@ -39,7 +41,13 @@ public partial class PostgresRlsContextMiddleware(
     ILogger<PostgresRlsContextMiddleware> logger)
 {
     /// <summary>
-    /// Processes the HTTP request, setting the PostgreSQL session variable for RLS.
+    /// Custom claim type for family ID in JWT tokens.
+    /// Must match the claim type used in TokenService when generating tokens.
+    /// </summary>
+    private const string FamilyIdClaimType = "family_id";
+
+    /// <summary>
+    /// Processes the HTTP request, setting PostgreSQL session variables for RLS.
     /// </summary>
     /// <param name="context">The HTTP context for the current request.</param>
     /// <param name="dbContext">The Auth database context for PostgreSQL connection access.</param>
@@ -48,7 +56,10 @@ public partial class PostgresRlsContextMiddleware(
     {
         // Extract user ID from JWT claims (if authenticated)
         var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? context.User.FindFirst("sub")?.Value; // Zitadel uses 'sub' claim
+            ?? context.User.FindFirst("sub")?.Value;
+
+        // Extract family ID from custom claim (if present)
+        var familyIdClaim = context.User.FindFirst(FamilyIdClaimType)?.Value;
 
         if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
         {
@@ -63,20 +74,35 @@ public partial class PostgresRlsContextMiddleware(
                     await connection.OpenAsync();
                 }
 
-                // Set the session variable for RLS policies
+                // Set user_id session variable for RLS policies
                 // The 'true' parameter makes it transaction-scoped (cleared after transaction)
-                await using var cmd = connection.CreateCommand();
-                cmd.CommandText = "SELECT set_config('app.current_user_id', @userId, true)";
-
-                var parameter = new NpgsqlParameter("@userId", System.Data.DbType.String)
+                await using (var cmd = connection.CreateCommand())
                 {
-                    Value = userId.ToString()
-                };
-                cmd.Parameters.Add(parameter);
+                    cmd.CommandText = "SELECT set_config('app.current_user_id', @userId, true)";
+                    cmd.Parameters.Add(new NpgsqlParameter("@userId", System.Data.DbType.String)
+                    {
+                        Value = userId.ToString()
+                    });
+                    await cmd.ExecuteNonQueryAsync();
+                }
 
-                await cmd.ExecuteNonQueryAsync();
+                // Set family_id session variable if present in JWT claims
+                if (!string.IsNullOrEmpty(familyIdClaim) && Guid.TryParse(familyIdClaim, out var familyId))
+                {
+                    await using var familyCmd = connection.CreateCommand();
+                    familyCmd.CommandText = "SELECT set_config('app.current_family_id', @familyId, true)";
+                    familyCmd.Parameters.Add(new NpgsqlParameter("@familyId", System.Data.DbType.String)
+                    {
+                        Value = familyId.ToString()
+                    });
+                    await familyCmd.ExecuteNonQueryAsync();
 
-                LogRlsContextSet(userId, context.Request.Path);
+                    LogRlsContextSetWithFamily(userId, familyId, context.Request.Path);
+                }
+                else
+                {
+                    LogRlsContextSet(userId, context.Request.Path);
+                }
             }
             catch (Exception ex)
             {
@@ -98,6 +124,9 @@ public partial class PostgresRlsContextMiddleware(
 
     [LoggerMessage(LogLevel.Debug, "PostgreSQL RLS context set for user {UserId} (Request: {RequestPath})")]
     partial void LogRlsContextSet(Guid userId, PathString requestPath);
+
+    [LoggerMessage(LogLevel.Debug, "PostgreSQL RLS context set for user {UserId} with family {FamilyId} (Request: {RequestPath})")]
+    partial void LogRlsContextSetWithFamily(Guid userId, Guid familyId, PathString requestPath);
 
     [LoggerMessage(LogLevel.Error, "Failed to set PostgreSQL RLS context for user {UserId}. Request will proceed but RLS policies will deny unauthorized access.")]
     partial void LogRlsContextSetFailed(Guid userId, Exception exception);

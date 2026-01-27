@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -7,6 +8,7 @@ namespace FamilyHub.Modules.Auth.Persistence.Configurations;
 
 /// <summary>
 /// Entity Framework Core configuration for the User entity.
+/// Supports local email/password authentication with future social provider support.
 /// </summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
@@ -15,14 +17,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("users", "auth");
 
-        // Primary key with Vogen value converter
+        #region Primary Key & Core Properties
+
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id)
             .HasConversion(new UserId.EfCoreValueConverter())
             .HasColumnName("id")
             .IsRequired();
 
-        // Email with Vogen value converter
         builder.Property(u => u.Email)
             .HasConversion(new Email.EfCoreValueConverter())
             .HasColumnName("email")
@@ -33,7 +35,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsUnique()
             .HasDatabaseName("ix_users_email");
 
-        // Email verification
+        #endregion
+
+        #region Email Verification
+
         builder.Property(u => u.EmailVerified)
             .HasColumnName("email_verified")
             .HasDefaultValue(false)
@@ -43,29 +48,84 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("email_verified_at")
             .IsRequired(false);
 
-        // External OAuth provider (required - all users authenticate via OAuth)
-        builder.Property(u => u.ExternalUserId)
-            .HasColumnName("external_user_id")
-            .HasMaxLength(255)
+        builder.Property(u => u.EmailVerificationToken)
+            .HasColumnName("email_verification_token")
+            .HasMaxLength(128)
+            .IsRequired(false);
+
+        builder.Property(u => u.EmailVerificationTokenExpiresAt)
+            .HasColumnName("email_verification_token_expires_at")
+            .IsRequired(false);
+
+        #endregion
+
+        #region Password Authentication
+
+        builder.Property(u => u.PasswordHash)
+            .HasConversion(new PasswordHash.EfCoreValueConverter())
+            .HasColumnName("password_hash")
+            .HasMaxLength(256)
+            .IsRequired(false); // Null for social-only accounts (future)
+
+        builder.Property(u => u.FailedLoginAttempts)
+            .HasColumnName("failed_login_attempts")
+            .HasDefaultValue(0)
             .IsRequired();
 
-        builder.Property(u => u.ExternalProvider)
-            .HasColumnName("external_provider")
+        builder.Property(u => u.LockoutEndTime)
+            .HasColumnName("lockout_end_time")
+            .IsRequired(false);
+
+        #endregion
+
+        #region Password Reset
+
+        builder.Property(u => u.PasswordResetToken)
+            .HasColumnName("password_reset_token")
+            .HasMaxLength(128)
+            .IsRequired(false);
+
+        builder.Property(u => u.PasswordResetTokenExpiresAt)
+            .HasColumnName("password_reset_token_expires_at")
+            .IsRequired(false);
+
+        builder.Property(u => u.PasswordResetCode)
+            .HasColumnName("password_reset_code")
+            .HasMaxLength(6)
+            .IsRequired(false);
+
+        builder.Property(u => u.PasswordResetCodeExpiresAt)
+            .HasColumnName("password_reset_code_expires_at")
+            .IsRequired(false);
+
+        #endregion
+
+        #region Family & Role
+
+        builder.Property(u => u.FamilyId)
+            .HasConversion(new FamilyId.EfCoreValueConverter())
+            .HasColumnName("family_id")
+            .IsRequired();
+
+        builder.HasIndex(u => u.FamilyId)
+            .HasDatabaseName("ix_users_family_id");
+
+        builder.Property(u => u.Role)
+            .HasConversion(new FamilyRole.EfCoreValueConverter())
+            .HasColumnName("role")
             .HasMaxLength(50)
             .IsRequired();
 
-        builder.HasIndex(u => new { u.ExternalProvider, u.ExternalUserId })
-            .HasDatabaseName("ix_users_external_provider_user_id")
-            .IsUnique();
+        #endregion
 
-        // Soft delete
+        #region Soft Delete & Audit
+
         builder.Property(u => u.DeletedAt)
             .HasColumnName("deleted_at")
             .IsRequired(false);
 
         builder.HasQueryFilter(u => u.DeletedAt == null);
 
-        // Audit fields
         builder.Property(u => u.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -76,28 +136,25 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        // Family relationship - User belongs to one Family
-        // PHASE 5 STATE: FamilyId references family.families.id (cross-schema, no FK constraint)
-        // Application-level validation via IUserLookupService maintains consistency
-        // NOTE: FamilyId uses Guid.Empty to represent "no family" rather than null
-        // (Vogen value types cannot be null; future refactoring could use FamilyId? for cleaner semantics)
-        builder.Property(u => u.FamilyId)
-            .HasConversion(new FamilyId.EfCoreValueConverter())
-            .HasColumnName("family_id")
-            .IsRequired();
+        #endregion
 
-        builder.HasIndex(u => u.FamilyId)
-            .HasDatabaseName("ix_users_family_id");
+        #region Navigation Properties
 
-        // Role with Vogen value converter
-        builder.Property(u => u.Role)
-            .HasConversion(new FamilyRole.EfCoreValueConverter())
-            .HasColumnName("role")
-            .HasMaxLength(50)
-            .IsRequired();
+        // One-to-many: User -> RefreshTokens
+        builder.HasMany(u => u.RefreshTokens)
+            .WithOne()
+            .HasForeignKey(rt => rt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
+        // One-to-many: User -> ExternalLogins
+        builder.HasMany(u => u.ExternalLogins)
+            .WithOne(el => el.User)
+            .HasForeignKey(el => el.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // Ignore domain events collection (handled by base class)
+        #endregion
+
+        // Ignore domain events collection
         builder.Ignore(u => u.DomainEvents);
     }
 }

@@ -100,8 +100,8 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         await invitationRepo.AddAsync(invitationB);
         await familyUnitOfWork.SaveChangesAsync();
 
-        // Setup authentication for User A (with external user ID for authorization)
-        var client = CreateAuthenticatedClient(userA.Email.Value, userA.Id, userA.ExternalUserId);
+        // Setup authentication for User A
+        var client = CreateAuthenticatedClient(userA.Email.Value, userA.Id);
 
         var query = """
         query {
@@ -463,7 +463,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         emails1.Should().ContainSingle().Which.Should().Be("f1@test.com");
 
         // Act & Assert - User 2 sees only Family 2's invitations (2 of them)
-        var client2 = CreateAuthenticatedClient(user2.Email.Value, user2.Id, user2.ExternalUserId);
+        var client2 = CreateAuthenticatedClient(user2.Email.Value, user2.Id);
         var response2 = await client2.PostAsJsonAsync("/graphql", new { query });
         response2.StatusCode.Should().Be(HttpStatusCode.OK);
         var pending2 = await ParsePendingInvitationsResponse(response2);
@@ -473,7 +473,7 @@ public sealed class InvitationsPendingQueryTests(PostgreSqlContainerFixture cont
         emails2.Should().Contain("f2b@test.com");
 
         // Act & Assert - User 3 sees only Family 3's invitation
-        var client3 = CreateAuthenticatedClient(user3.Email.Value, user3.Id, user3.ExternalUserId);
+        var client3 = CreateAuthenticatedClient(user3.Email.Value, user3.Id);
         var response3 = await client3.PostAsJsonAsync("/graphql", new { query });
         response3.StatusCode.Should().Be(HttpStatusCode.OK);
         var pending3 = await ParsePendingInvitationsResponse(response3);

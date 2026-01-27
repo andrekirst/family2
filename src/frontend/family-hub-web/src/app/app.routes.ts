@@ -16,12 +16,36 @@ export const routes: Routes = [
     title: 'Sign In - Family Hub',
   },
   {
-    path: 'auth/callback',
+    path: 'register',
     loadComponent: () =>
-      import('./features/auth/components/callback/callback.component').then(
-        (m) => m.CallbackComponent
+      import('./features/auth/components/register/register.component').then(
+        (m) => m.RegisterComponent
       ),
-    title: 'Authenticating - Family Hub',
+    title: 'Create Account - Family Hub',
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/components/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent
+      ),
+    title: 'Reset Password - Family Hub',
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/components/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent
+      ),
+    title: 'Set New Password - Family Hub',
+  },
+  {
+    path: 'verify-email',
+    loadComponent: () =>
+      import('./features/auth/components/verify-email/verify-email.component').then(
+        (m) => m.VerifyEmailComponent
+      ),
+    title: 'Verify Email - Family Hub',
   },
   // Profile setup (first-login) - must complete before accessing app
   {

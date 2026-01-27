@@ -4,6 +4,7 @@ using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Subscriptions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyHub.Tests.Unit.Builders;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -39,13 +40,12 @@ public class InvitationSubscriptionsTests
         // Arrange
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
-        var user = User.CreateFromOAuth(
-            Email.From("member@example.com"),
-            "external-user-id",
-            "oauth-provider",
-            familyId);
+        var user = new UserBuilder()
+            .WithEmail("member@example.com")
+            .WithFamilyId(familyId)
+            .Build();
 
-        // User is a member of the family (via familyId in CreateFromOAuth)
+        // User is a member of the family
 
         userContext.UserId.Returns(currentUserId);
         userRepository.GetByIdAsync(currentUserId, Arg.Any<CancellationToken>())
@@ -87,11 +87,10 @@ public class InvitationSubscriptionsTests
         // Arrange
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
-        var user = User.CreateFromOAuth(
-            Email.From("nonmember@example.com"),
-            "external-user-id",
-            "oauth-provider",
-            FamilyId.New());
+        var user = new UserBuilder()
+            .WithEmail("nonmember@example.com")
+            .WithFamilyId(FamilyId.New())
+            .Build();
 
         // User is NOT a member of any family (different familyId)
         userContext.UserId.Returns(currentUserId);
@@ -177,11 +176,10 @@ public class InvitationSubscriptionsTests
         // Arrange
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
-        var user = User.CreateFromOAuth(
-            Email.From("owner@example.com"),
-            "external-user-id",
-            "oauth-provider",
-            familyId);
+        var user = new UserBuilder()
+            .WithEmail("owner@example.com")
+            .WithFamilyId(familyId)
+            .Build();
 
         // User is OWNER of the family
         user.UpdateRole(FamilyRole.Owner);
@@ -226,11 +224,10 @@ public class InvitationSubscriptionsTests
         // Arrange
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
-        var user = User.CreateFromOAuth(
-            Email.From("admin@example.com"),
-            "external-user-id",
-            "oauth-provider",
-            familyId);
+        var user = new UserBuilder()
+            .WithEmail("admin@example.com")
+            .WithFamilyId(familyId)
+            .Build();
 
         // User is ADMIN of the family
         user.UpdateRole(FamilyRole.Admin);
@@ -275,11 +272,10 @@ public class InvitationSubscriptionsTests
         // Arrange
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
-        var user = User.CreateFromOAuth(
-            Email.From("member@example.com"),
-            "external-user-id",
-            "oauth-provider",
-            familyId);
+        var user = new UserBuilder()
+            .WithEmail("member@example.com")
+            .WithFamilyId(familyId)
+            .Build();
 
         // User is MEMBER (not OWNER or ADMIN)
         user.UpdateRole(FamilyRole.Member);
@@ -323,11 +319,10 @@ public class InvitationSubscriptionsTests
         // Arrange
         var familyId = FamilyId.New();
         var currentUserId = UserId.New();
-        var user = User.CreateFromOAuth(
-            Email.From("nonmember@example.com"),
-            "external-user-id",
-            "oauth-provider",
-            FamilyId.New());
+        var user = new UserBuilder()
+            .WithEmail("nonmember@example.com")
+            .WithFamilyId(FamilyId.New())
+            .Build();
 
         // User is NOT a member of any family (different familyId)
         userContext.UserId.Returns(currentUserId);

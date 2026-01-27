@@ -11,6 +11,7 @@ public sealed class TestCurrentUserService : ICurrentUserService
 {
     private static readonly AsyncLocal<UserId?> UserId = new();
     private static readonly AsyncLocal<Email?> UserEmail = new();
+    private static readonly AsyncLocal<FamilyId?> FamilyId = new();
 
     /// <summary>
     /// Sets the current user ID for this async context.
@@ -23,12 +24,18 @@ public sealed class TestCurrentUserService : ICurrentUserService
     public static void SetUserEmail(Email email) => UserEmail.Value = email;
 
     /// <summary>
+    /// Sets the current family ID for this async context.
+    /// </summary>
+    public static void SetFamilyId(FamilyId familyId) => FamilyId.Value = familyId;
+
+    /// <summary>
     /// Clears the current user ID for this async context.
     /// </summary>
     public static void ClearUserId()
     {
         UserId.Value = null;
         UserEmail.Value = null;
+        FamilyId.Value = null;
     }
 
     /// <summary>
@@ -49,6 +56,21 @@ public sealed class TestCurrentUserService : ICurrentUserService
     /// Gets the current user email from the async context.
     /// </summary>
     public Email? GetUserEmail() => UserEmail.Value;
+
+    /// <summary>
+    /// Gets the current family ID from the async context.
+    /// </summary>
+    public FamilyId? GetFamilyId() => FamilyId.Value;
+
+    /// <summary>
+    /// Tries to get the user ID without throwing exceptions.
+    /// </summary>
+    public UserId? TryGetUserId() => UserId.Value;
+
+    /// <summary>
+    /// Tries to get the family ID without throwing exceptions.
+    /// </summary>
+    public FamilyId? TryGetFamilyId() => FamilyId.Value;
 
     /// <summary>
     /// Checks if the current user is authenticated (has a user ID set).

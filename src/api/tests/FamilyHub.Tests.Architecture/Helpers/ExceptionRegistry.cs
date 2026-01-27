@@ -116,7 +116,7 @@ public static class ExceptionRegistry
             Reason: "Command handler creates Family aggregate - core Family functionality",
             Ticket: "ADR-005",
             PlannedRemoval: "Phase 4 - Move to Family module application layer"),
-        ["FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin.CompleteZitadelLoginCommandHandler"] = new ExceptionReason(
+        ["FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin.CreateFamilyCommandHandler"] = new ExceptionReason(
             Phase: "Phase 3",
             Reason: "Login handler accesses Family memberships for user context",
             Ticket: "ADR-005",

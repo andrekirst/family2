@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Persistence;
@@ -74,10 +75,10 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         _familyContext.ChangeTracker.Clear();
 
         // Create user with reference to family (in auth schema)
-        var user = User.CreateFromOAuth(
+        var user = User.CreateWithPassword(
             Email.From($"crosscontext-{Guid.NewGuid():N}@example.com"),
-            $"zitadel-{Guid.NewGuid():N}",
-            "zitadel",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             family.Id);
 
         await _authContext.Users.AddAsync(user);
@@ -111,10 +112,10 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         _familyContext.ChangeTracker.Clear();
 
         // Create user with original family reference
-        var user = User.CreateFromOAuth(
+        var user = User.CreateWithPassword(
             Email.From($"update-family-{Guid.NewGuid():N}@example.com"),
-            $"zitadel-{Guid.NewGuid():N}",
-            "zitadel",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             originalFamily.Id);
 
         await _authContext.Users.AddAsync(user);
@@ -159,10 +160,10 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         _familyContext.ChangeTracker.Clear();
 
         // Create inviter user
-        var inviter = User.CreateFromOAuth(
+        var inviter = User.CreateWithPassword(
             Email.From($"inviter-{Guid.NewGuid():N}@example.com"),
-            $"zitadel-{Guid.NewGuid():N}",
-            "zitadel",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             family.Id);
 
         await _authContext.Users.AddAsync(inviter);
@@ -205,10 +206,10 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         UserId.New();
         var tempFamilyId = FamilyId.New(); // Temp value for user creation
 
-        var owner = User.CreateFromOAuth(
+        var owner = User.CreateWithPassword(
             Email.From($"owner-{Guid.NewGuid():N}@example.com"),
-            $"zitadel-{Guid.NewGuid():N}",
-            "zitadel",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             tempFamilyId);
 
         await _authContext.Users.AddAsync(owner);
@@ -245,16 +246,16 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         // Arrange - Create original owner and new owner
         var tempFamilyId = FamilyId.New();
 
-        var originalOwner = User.CreateFromOAuth(
+        var originalOwner = User.CreateWithPassword(
             Email.From($"original-owner-{Guid.NewGuid():N}@example.com"),
-            $"zitadel-{Guid.NewGuid():N}",
-            "zitadel",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             tempFamilyId);
 
-        var newOwner = User.CreateFromOAuth(
+        var newOwner = User.CreateWithPassword(
             Email.From($"new-owner-{Guid.NewGuid():N}@example.com"),
-            $"zitadel-{Guid.NewGuid():N}",
-            "zitadel",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             tempFamilyId);
 
         await _authContext.Users.AddRangeAsync(originalOwner, newOwner);
@@ -328,10 +329,10 @@ public sealed class CrossDbContextConsistencyTests(DualSchemaPostgreSqlContainer
         UserId.New();
         var familyId = FamilyId.New();
 
-        var user = User.CreateFromOAuth(
+        var user = User.CreateWithPassword(
             Email.From($"concurrent-{Guid.NewGuid():N}@example.com"),
-            $"zitadel-{Guid.NewGuid():N}",
-            "zitadel",
+            PasswordHash.FromHash("TestPasswordHash123!"),
+            
             familyId);
 
         await _authContext.Users.AddAsync(user);

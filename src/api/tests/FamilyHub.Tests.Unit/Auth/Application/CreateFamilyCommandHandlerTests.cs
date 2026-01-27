@@ -4,6 +4,7 @@ using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
+using FamilyHub.Tests.Unit.Builders;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -25,11 +26,9 @@ public sealed class CreateFamilyCommandHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var logger = Substitute.For<ILogger<CreateFamilyCommandHandler>>();
 
-        var user = User.CreateFromOAuth(
-            Email.From("test@example.com"),
-            "zitadel-123",
-            "zitadel",
-            FamilyId.New());
+        var user = new UserBuilder()
+            .WithEmail("test@example.com")
+            .Build();
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(user.Id);
@@ -53,11 +52,9 @@ public sealed class CreateFamilyCommandHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var logger = Substitute.For<ILogger<CreateFamilyCommandHandler>>();
 
-        var user = User.CreateFromOAuth(
-            Email.From("test@example.com"),
-            "zitadel-123",
-            "zitadel",
-            FamilyId.New());
+        var user = new UserBuilder()
+            .WithEmail("test@example.com")
+            .Build();
 
         var familyName = "Smith Family";
         var command = new CreateFamilyCommand(FamilyName.From(familyName));

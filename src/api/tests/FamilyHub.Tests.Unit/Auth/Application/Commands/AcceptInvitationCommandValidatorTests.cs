@@ -7,6 +7,7 @@ using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.Specifications;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyHub.Tests.Unit.Builders;
 using FamilyHub.Tests.Unit.Fixtures;
 using FluentAssertions;
 using NSubstitute;
@@ -38,7 +39,7 @@ public sealed class AcceptInvitationCommandValidatorTests
             familyId, email, FamilyRole.Member, invitedByUserId);
 
         var familyDto = CreateFamilyDto(familyId, "Test Family", invitedByUserId);
-        var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
         // Mock
@@ -75,7 +76,7 @@ public sealed class AcceptInvitationCommandValidatorTests
             familyId, email, FamilyRole.Member, invitedByUserId);
 
         var familyDto = CreateFamilyDto(familyId, "Test Family", invitedByUserId);
-        var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
         // Mock
@@ -261,7 +262,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId, invitationEmail, FamilyRole.Member, invitedByUserId);
 
-        var user = User.CreateFromOAuth(userEmail, "ext-123", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(userEmail).WithFamilyId(familyId).Build();
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
         // Mock
@@ -301,7 +302,7 @@ public sealed class AcceptInvitationCommandValidatorTests
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId, email, FamilyRole.Member, invitedByUserId);
 
-        var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
         // Mock - family does not exist (IFamilyService returns null)

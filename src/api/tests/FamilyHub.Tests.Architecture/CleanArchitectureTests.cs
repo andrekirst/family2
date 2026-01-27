@@ -1,5 +1,5 @@
 using System.Reflection;
-using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
+using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 
 namespace FamilyHub.Tests.Architecture;
@@ -11,7 +11,7 @@ namespace FamilyHub.Tests.Architecture;
 /// </summary>
 public sealed class CleanArchitectureTests
 {
-    private static readonly Assembly AuthModuleAssembly = typeof(CompleteZitadelLoginCommand).Assembly;
+    private static readonly Assembly AuthModuleAssembly = typeof(CreateFamilyCommand).Assembly;
     private static readonly Assembly FamilyModuleAssembly = typeof(Family).Assembly;
 
     /// <summary>

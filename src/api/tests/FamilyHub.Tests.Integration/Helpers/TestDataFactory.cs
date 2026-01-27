@@ -1,6 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Family.Application.Abstractions;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Interfaces;
@@ -54,10 +55,9 @@ public static class TestDataFactory
         var tempFamilyDto = tempFamilyResult.Value;
 
         // Create user with temp family ID
-        var user = User.CreateFromOAuth(
+        var user = User.CreateWithPassword(
             Email.From(email),
-            $"zitadel-{emailPrefix}-{testId}",
-            "zitadel",
+            PasswordHash.FromHash("TestPasswordHash123!"),
             tempFamilyDto.Id
         );
 

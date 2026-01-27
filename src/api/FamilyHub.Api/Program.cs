@@ -165,41 +165,37 @@ try
     // graphqlBuilder.AddFinanceModuleGraphQLTypes();
     // graphqlBuilder.AddCommunicationModuleGraphQLTypes();
 
-    // JWT Authentication configuration (Zitadel OAuth)
-    var zitadelSettings = builder.Configuration.GetSection(ZitadelSettings.SectionName).Get<ZitadelSettings>()
-        ?? throw new InvalidOperationException("Zitadel settings are not configured");
+    // JWT Authentication configuration (Local symmetric key)
+    var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
+        ?? throw new InvalidOperationException("JWT settings are not configured");
 
-    // TODO Use IValidateOptions to validate settings
-    if (!zitadelSettings.IsValid())
+    if (!jwtSettings.IsValid())
     {
-        throw new InvalidOperationException("Zitadel settings are incomplete. Please check appsettings.json.");
+        throw new InvalidOperationException("JWT settings are incomplete. SecretKey must be at least 32 characters.");
     }
 
     // Clear default claim type mappings to use short claim names (sub, email, etc.)
     JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
+    var signingKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSettings.SecretKey));
+
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
-            // Zitadel OIDC authority for automatic JWKS discovery
-            options.Authority = zitadelSettings.Authority;
-            options.Audience = zitadelSettings.Audience;
-
-            // Allow HTTP for development (Zitadel on localhost:8080)
+            // No authority - we use a symmetric signing key
             options.RequireHttpsMetadata = false;
 
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
-                ValidIssuer = zitadelSettings.Authority,
+                ValidIssuer = jwtSettings.Issuer,
                 ValidateAudience = true,
-                ValidAudience = zitadelSettings.Audience,
+                ValidAudience = jwtSettings.Audience,
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.FromMinutes(5), // Allow 5-minute clock skew
                 ValidateIssuerSigningKey = true,
-                // Signing keys automatically fetched from Zitadel's JWKS endpoint
-                // (/.well-known/openid-configuration → jwks_uri)
-                NameClaimType = "sub", // Zitadel's user ID claim
+                IssuerSigningKey = signingKey,
+                NameClaimType = "sub", // User ID claim
                 RoleClaimType = "role" // Role claims
             };
 

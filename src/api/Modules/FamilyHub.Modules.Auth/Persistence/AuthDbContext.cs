@@ -22,6 +22,21 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
     public DbSet<User> Users => Set<User>();
 
     /// <summary>
+    /// Gets the refresh tokens for JWT authentication.
+    /// </summary>
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    /// <summary>
+    /// Gets the external login providers linked to users.
+    /// </summary>
+    public DbSet<ExternalLogin> ExternalLogins => Set<ExternalLogin>();
+
+    /// <summary>
+    /// Gets the authentication audit logs.
+    /// </summary>
+    public DbSet<AuthAuditLog> AuthAuditLogs => Set<AuthAuditLog>();
+
+    /// <summary>
     /// Gets the outbox events for reliable domain event publishing.
     /// </summary>
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
@@ -33,7 +48,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
         modelBuilder.HasDefaultSchema("auth");
 
         // Apply all configurations from this assembly (auto-discovery)
-        // Auth-only: UserConfiguration, OutboxEventConfiguration
+        // Auth: UserConfiguration, RefreshTokenConfiguration, ExternalLoginConfiguration, AuthAuditLogConfiguration, OutboxEventConfiguration
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthDbContext).Assembly);
 
         base.OnModelCreating(modelBuilder);

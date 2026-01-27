@@ -47,6 +47,14 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     }
 
     /// <inheritdoc />
+    public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        context.Users.Update(user);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public void Remove(User user)
     {
         ArgumentNullException.ThrowIfNull(user);
@@ -129,6 +137,24 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
 
     #endregion
 
+    #region Password Reset and Email Verification Methods
+
+    /// <inheritdoc />
+    public async Task<User?> GetByPasswordResetTokenAsync(string token, CancellationToken cancellationToken = default)
+    {
+        return await context.Users
+            .FirstOrDefaultAsync(u => u.PasswordResetToken == token, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<User?> GetByEmailVerificationTokenAsync(string token, CancellationToken cancellationToken = default)
+    {
+        return await context.Users
+            .FirstOrDefaultAsync(u => u.EmailVerificationToken == token, cancellationToken);
+    }
+
+    #endregion
+
     #region Legacy Methods (Obsolete)
 
     /// <inheritdoc />
@@ -137,42 +163,6 @@ public sealed class UserRepository(AuthDbContext context) : IUserRepository
     {
         return await context.Users
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use FindOneAsync with UserByExternalProviderSpecification.")]
-    public async Task<User?> GetByExternalProviderAsync(
-        string externalProvider,
-        string externalUserId,
-        CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(externalProvider))
-        {
-            throw new ArgumentException("External provider cannot be null or whitespace.", nameof(externalProvider));
-        }
-
-        if (string.IsNullOrWhiteSpace(externalUserId))
-        {
-            throw new ArgumentException("External user ID cannot be null or whitespace.", nameof(externalUserId));
-        }
-
-        return await context.Users
-            .FirstOrDefaultAsync(
-                u => u.ExternalProvider == externalProvider && u.ExternalUserId == externalUserId,
-                cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use FindOneAsync with UserByExternalProviderSpecification.")]
-    public async Task<User?> GetByExternalUserIdAsync(
-        string externalUserId,
-        string externalProvider,
-        CancellationToken cancellationToken = default)
-    {
-        // Delegate to GetByExternalProviderAsync with reversed parameter order
-#pragma warning disable CS0618 // Type or member is obsolete
-        return await GetByExternalProviderAsync(externalProvider, externalUserId, cancellationToken);
-#pragma warning restore CS0618
     }
 
     /// <inheritdoc />

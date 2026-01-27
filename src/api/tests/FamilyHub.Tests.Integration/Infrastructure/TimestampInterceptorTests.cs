@@ -1,5 +1,6 @@
 using FamilyHub.Infrastructure.Persistence.Interceptors;
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Family.Persistence;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
@@ -121,7 +122,7 @@ public class TimestampInterceptorTests(PostgreSqlContainerFixture containerFixtu
         _familyContext.Families.Add(family);
         await _familyContext.SaveChangesAsync();
 
-        var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel", family.Id);
+        var user = User.CreateWithPassword(Email.From("test@example.com"), PasswordHash.FromHash("TestPasswordHash123!"), family.Id);
 
         // Act - User is in AuthDbContext
         _authContext.Users.Add(user);
@@ -144,7 +145,7 @@ public class TimestampInterceptorTests(PostgreSqlContainerFixture containerFixtu
         _familyContext.Families.Add(userFamily);
         await _familyContext.SaveChangesAsync();
 
-        var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext123", "zitadel", userFamily.Id);
+        var user = User.CreateWithPassword(Email.From("test@example.com"), PasswordHash.FromHash("TestPasswordHash123!"), userFamily.Id);
         var family1 = FamilyAggregate.Create(FamilyName.From("Family 1"), user.Id);
         var family2 = FamilyAggregate.Create(FamilyName.From("Family 2"), user.Id);
 

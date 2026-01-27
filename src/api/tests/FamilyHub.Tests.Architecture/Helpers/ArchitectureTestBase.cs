@@ -1,5 +1,5 @@
 using System.Reflection;
-using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
+using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.SharedKernel.Domain;
 using FamilyHub.Tests.Architecture.Fixtures.Violations.CleanArchitecture.Domain;
@@ -15,10 +15,10 @@ public abstract class ArchitectureTestBase
     #region Production Assemblies
 
     /// <summary>
-    /// Auth module assembly (from CompleteZitadelLoginCommand).
+    /// Auth module assembly (from CreateFamilyCommand).
     /// </summary>
     protected static readonly Assembly AuthModuleAssembly =
-        typeof(CompleteZitadelLoginCommand).Assembly;
+        typeof(CreateFamilyCommand).Assembly;
 
     /// <summary>
     /// Family module assembly (from Family aggregate).

@@ -4,6 +4,7 @@ using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Application.Behaviors;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Application.Abstractions.Authorization;
+using FamilyHub.Tests.Unit.Builders;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FluentAssertions;
 using MediatR;
@@ -149,7 +150,7 @@ public sealed class AuthorizationBehaviorTests
         var email = Email.From("owner@example.com");
         var familyId = FamilyId.From(Guid.NewGuid());
 
-        var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
@@ -199,7 +200,7 @@ public sealed class AuthorizationBehaviorTests
         var email = Email.From("member@example.com");
         var familyId = FamilyId.From(Guid.NewGuid());
 
-        var user = User.CreateFromOAuth(email, "ext-456", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
         user.UpdateRole(FamilyRole.Member);
 
         userContext.User.Returns(user);
@@ -253,7 +254,7 @@ public sealed class AuthorizationBehaviorTests
         var email = Email.From("admin@example.com");
         var familyId = FamilyId.From(Guid.NewGuid());
 
-        var user = User.CreateFromOAuth(email, "ext-789", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
         user.UpdateRole(FamilyRole.Admin);
 
         userContext.User.Returns(user);
@@ -301,7 +302,7 @@ public sealed class AuthorizationBehaviorTests
         var email = Email.From("member@example.com");
         var familyId = FamilyId.From(Guid.NewGuid());
 
-        var user = User.CreateFromOAuth(email, "ext-999", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
         user.UpdateRole(FamilyRole.Member);
 
         userContext.User.Returns(user);
@@ -351,7 +352,7 @@ public sealed class AuthorizationBehaviorTests
         var email = Email.From("owner@example.com");
         var familyId = FamilyId.From(Guid.NewGuid());
 
-        var user = User.CreateFromOAuth(email, "ext-111", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);
@@ -399,7 +400,7 @@ public sealed class AuthorizationBehaviorTests
         var email = Email.From("admin@example.com");
         var familyId = FamilyId.From(Guid.NewGuid());
 
-        var user = User.CreateFromOAuth(email, "ext-222", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
         user.UpdateRole(FamilyRole.Admin);
 
         userContext.User.Returns(user);
@@ -447,7 +448,7 @@ public sealed class AuthorizationBehaviorTests
         var email = Email.From("member@example.com");
         var familyId = FamilyId.From(Guid.NewGuid());
 
-        var user = User.CreateFromOAuth(email, "ext-333", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
         user.UpdateRole(FamilyRole.Member);
 
         userContext.User.Returns(user);
@@ -530,7 +531,7 @@ public sealed class AuthorizationBehaviorTests
         var email = Email.From("test@example.com");
         var familyId = FamilyId.From(Guid.NewGuid());
 
-        var user = User.CreateFromOAuth(email, "ext-444", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
 
         userContext.User.Returns(user);
         userContext.UserId.Returns(userId);

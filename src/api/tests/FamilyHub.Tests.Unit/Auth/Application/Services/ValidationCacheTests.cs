@@ -1,6 +1,7 @@
 using FamilyHub.Modules.Auth.Application.Services;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
+using FamilyHub.Tests.Unit.Builders;
 using FluentAssertions;
 using FamilyAggregate = FamilyHub.Modules.Family.Domain.Aggregates.Family;
 using FamilyMemberInvitationAggregate = FamilyHub.Modules.Family.Domain.Aggregates.FamilyMemberInvitation;
@@ -198,7 +199,7 @@ public sealed class ValidationCacheTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
         var family = FamilyAggregate.Create(FamilyName.From("Test Family"), userId);
-        var user = User.CreateFromOAuth(Email.From("test@example.com"), "ext-123", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail("test@example.com").WithFamilyId(familyId).Build();
 
         cache.Set($"Family:{familyId.Value}", family);
         cache.Set($"User:{userId.Value}", user);
@@ -239,7 +240,7 @@ public sealed class ValidationCacheTests
         var email = Email.From("test@example.com");
 
         var family = FamilyAggregate.Create(FamilyName.From("Test Family"), userId);
-        var user = User.CreateFromOAuth(email, "ext-123", "zitadel", familyId);
+        var user = new UserBuilder().WithEmail(email).WithFamilyId(familyId).Build();
         var invitation = FamilyMemberInvitationAggregate.CreateEmailInvitation(
             familyId, email, FamilyRole.Member, invitedByUserId);
 

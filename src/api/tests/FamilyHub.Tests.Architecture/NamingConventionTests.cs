@@ -1,5 +1,5 @@
 using System.Reflection;
-using FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
+using FamilyHub.Modules.Auth.Application.Commands.CreateFamily;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.SharedKernel.Application.CQRS;
 using FamilyHub.SharedKernel.Domain;
@@ -12,7 +12,7 @@ namespace FamilyHub.Tests.Architecture;
 /// </summary>
 public sealed class NamingConventionTests
 {
-    private static readonly Assembly AuthModuleAssembly = typeof(CompleteZitadelLoginCommand).Assembly;
+    private static readonly Assembly AuthModuleAssembly = typeof(CreateFamilyCommand).Assembly;
     private static readonly Assembly FamilyModuleAssembly = typeof(Family).Assembly;
     private static readonly Assembly SharedKernelAssembly = typeof(AggregateRoot<>).Assembly;
 

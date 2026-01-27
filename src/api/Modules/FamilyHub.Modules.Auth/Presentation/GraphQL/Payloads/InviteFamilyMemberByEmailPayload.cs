@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Presentation.GraphQL.Types;
+using FamilyHub.SharedKernel.Presentation.GraphQL;
 
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 

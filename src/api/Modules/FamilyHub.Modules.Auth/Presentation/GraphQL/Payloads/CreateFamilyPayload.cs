@@ -1,3 +1,5 @@
+using FamilyHub.SharedKernel.Presentation.GraphQL;
+
 namespace FamilyHub.Modules.Auth.Presentation.GraphQL.Payloads;
 
 /// <summary>

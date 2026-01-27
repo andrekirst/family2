@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Family.Domain.Abstractions;
 using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.Modules.Family.Domain.Specifications;
@@ -64,7 +65,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await familyUnitOfWork.SaveChangesAsync(CancellationToken.None); // Use FamilyUnitOfWork for Family entities
 
-        var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", tempFamily.Id);
+        var invitee = User.CreateWithPassword(inviteeEmail, PasswordHash.FromHash("TestPasswordHash123!"), tempFamily.Id);
         await userRepo.AddAsync(invitee, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None); // Use Auth UnitOfWork for User entities
 
@@ -140,7 +141,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", tempFamily.Id);
+        var invitee = User.CreateWithPassword(inviteeEmail, PasswordHash.FromHash("TestPasswordHash123!"), tempFamily.Id);
         await userRepo.AddAsync(invitee, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -287,7 +288,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", tempFamily.Id);
+        var invitee = User.CreateWithPassword(inviteeEmail, PasswordHash.FromHash("TestPasswordHash123!"), tempFamily.Id);
         await userRepo.AddAsync(invitee, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -367,7 +368,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        var wrongUser = User.CreateFromOAuth(differentEmail, "ext-wrong", "zitadel", tempFamily.Id);
+        var wrongUser = User.CreateWithPassword(differentEmail, PasswordHash.FromHash("TestPasswordHash123!"), tempFamily.Id);
         await userRepo.AddAsync(wrongUser, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -438,7 +439,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
             owner.Id);
 
         // Accept invitation first
-        var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", owner.FamilyId);
+        var invitee = User.CreateWithPassword(inviteeEmail, PasswordHash.FromHash("TestPasswordHash123!"), owner.FamilyId);
         await userRepo.AddAsync(invitee, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
         invitation.Accept(invitee.Id);
@@ -519,7 +520,7 @@ public sealed class AcceptInvitationMutationTests(PostgreSqlContainerFixture con
         await familyRepo.AddAsync(tempFamily, CancellationToken.None);
         await familyUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        var invitee = User.CreateFromOAuth(inviteeEmail, $"ext-invitee-{testId}", "zitadel", tempFamily.Id);
+        var invitee = User.CreateWithPassword(inviteeEmail, PasswordHash.FromHash("TestPasswordHash123!"), tempFamily.Id);
         await userRepo.AddAsync(invitee, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 

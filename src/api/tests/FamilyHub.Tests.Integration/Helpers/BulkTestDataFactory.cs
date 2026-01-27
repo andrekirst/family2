@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.Modules.Auth.Persistence;
 using FamilyHub.Modules.Family.Domain.Aggregates;
 using FamilyHub.Modules.Family.Persistence;
@@ -50,10 +51,9 @@ public static class BulkTestDataFactory
             var familyUsers = new List<User>();
             for (var j = 0; j < usersPerFamily; j++)
             {
-                var user = User.CreateFromOAuth(
+                var user = User.CreateWithPassword(
                     Email.From($"user{i}-{j}-{Guid.NewGuid():N}@test.example.com"),
-                    $"zitadel-{Guid.NewGuid():N}",
-                    "zitadel",
+                    PasswordHash.FromHash("TestPasswordHash123!"),
                     family.Id);
 
                 familyUsers.Add(user);
@@ -96,10 +96,9 @@ public static class BulkTestDataFactory
         var members = new List<User>();
         for (var i = 0; i < memberCount; i++)
         {
-            var user = User.CreateFromOAuth(
+            var user = User.CreateWithPassword(
                 Email.From($"member{i}-{Guid.NewGuid():N}@test.example.com"),
-                $"zitadel-{Guid.NewGuid():N}",
-                "zitadel",
+                PasswordHash.FromHash("TestPasswordHash123!"),
                 family.Id);
             members.Add(user);
         }
@@ -178,10 +177,9 @@ public static class BulkTestDataFactory
                 FamilyName.From($"User {i}'s Family"),
                 userId);
 
-            var user = User.CreateFromOAuth(
+            var user = User.CreateWithPassword(
                 Email.From($"user{i}-{Guid.NewGuid():N}@test.example.com"),
-                $"zitadel-{Guid.NewGuid():N}",
-                "zitadel",
+                PasswordHash.FromHash("TestPasswordHash123!"),
                 family.Id);
 
             allUsers.Add(user);

@@ -1,83 +1,183 @@
+/**
+ * User model representing the authenticated user.
+ */
 export interface User {
   id: string;
   email: string;
   emailVerified: boolean;
+  familyId?: string;
   createdAt: Date;
 }
 
+/**
+ * Authentication state for the application.
+ */
 export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
   accessToken: string | null;
+  refreshToken: string | null;
   expiresAt: Date | null;
 }
 
-export interface GetZitadelAuthUrlResponse {
-  auth: {
-    url: {
-      authorizationUrl: string;
-      codeVerifier: string;
-      state: string;
-    };
-  };
-}
-
 /**
- * Backend GraphQL response structure (matches backend schema)
+ * Result of register mutation.
  */
-interface CompleteZitadelLoginUserGQL {
-  id: string;
+export interface RegisterResult {
+  userId: string;
   email: string;
-  emailVerified: boolean;
-  auditInfo: {
-    createdAt: string;
-  };
+  emailVerificationRequired: boolean;
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 /**
- * Error types from Hot Chocolate Mutation Conventions (discriminated union)
+ * Result of login mutation.
  */
-interface ValidationError {
-  __typename: 'ValidationError';
-  message: string;
-  field: string;
+export interface LoginResult {
+  userId: string;
+  email: string;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  familyId?: string;
+  emailVerified: boolean;
 }
 
-interface BusinessError {
-  __typename: 'BusinessError';
-  message: string;
+/**
+ * Result of token refresh mutation.
+ */
+export interface RefreshTokenResult {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
+/**
+ * Result of password validation query.
+ */
+export interface PasswordValidationResult {
+  isValid: boolean;
+  score: number;
+  strength: string;
+  errors: string[];
+  suggestions: string[];
+}
+
+/**
+ * Error structure from GraphQL payloads.
+ */
+export interface PayloadError {
   code: string;
-}
-
-interface ValueObjectError {
-  __typename: 'ValueObjectError';
   message: string;
 }
 
-interface UnauthorizedError {
-  __typename: 'UnauthorizedError';
-  message: string;
+/**
+ * Generic GraphQL mutation response with errors.
+ */
+export interface MutationResponse<T> {
+  data?: T;
+  errors?: PayloadError[];
 }
 
-interface InternalServerError {
-  __typename: 'InternalServerError';
-  message: string;
+// ============================================
+// GraphQL Response Types
+// ============================================
+
+export interface RegisterMutationResponse {
+  register: {
+    userId?: string;
+    email?: string;
+    emailVerificationRequired?: boolean;
+    accessToken?: string;
+    refreshToken?: string;
+    errors?: PayloadError[];
+  };
 }
 
-type MutationError =
-  | ValidationError
-  | BusinessError
-  | ValueObjectError
-  | UnauthorizedError
-  | InternalServerError;
+export interface LoginMutationResponse {
+  login: {
+    userId?: string;
+    email?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    expiresIn?: number;
+    familyId?: string;
+    emailVerified?: boolean;
+    errors?: PayloadError[];
+  };
+}
 
-export interface CompleteZitadelLoginResponse {
-  completeZitadelLogin: {
-    authenticationResult: {
-      user: CompleteZitadelLoginUserGQL;
-      accessToken: string;
-      expiresAt: string;
-    } | null;
-    errors: MutationError[];
+export interface LogoutMutationResponse {
+  logout: {
+    success?: boolean;
+    revokedSessionCount?: number;
+    errors?: PayloadError[];
+  };
+}
+
+export interface RefreshTokenMutationResponse {
+  refreshToken: {
+    accessToken?: string;
+    refreshToken?: string;
+    expiresIn?: number;
+    errors?: PayloadError[];
+  };
+}
+
+export interface RequestPasswordResetMutationResponse {
+  requestPasswordReset: {
+    success?: boolean;
+    message?: string;
+    errors?: PayloadError[];
+  };
+}
+
+export interface ResetPasswordMutationResponse {
+  resetPassword: {
+    success?: boolean;
+    errors?: PayloadError[];
+  };
+}
+
+export interface ResetPasswordWithCodeMutationResponse {
+  resetPasswordWithCode: {
+    success?: boolean;
+    errors?: PayloadError[];
+  };
+}
+
+export interface VerifyEmailMutationResponse {
+  verifyEmail: {
+    success?: boolean;
+    message?: string;
+    errors?: PayloadError[];
+  };
+}
+
+export interface ResendVerificationEmailMutationResponse {
+  resendVerificationEmail: {
+    success?: boolean;
+    message?: string;
+    errors?: PayloadError[];
+  };
+}
+
+export interface ChangePasswordMutationResponse {
+  changePassword: {
+    success?: boolean;
+    errors?: PayloadError[];
+  };
+}
+
+export interface ValidatePasswordQueryResponse {
+  auth: {
+    validatePassword: {
+      isValid: boolean;
+      score: number;
+      strength: string;
+      errors: string[];
+      suggestions: string[];
+    };
   };
 }

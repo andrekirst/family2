@@ -23,7 +23,7 @@ namespace FamilyHub.Modules.Auth.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.Family", b =>
+            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.AuthAuditLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -35,19 +35,40 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
+                    b.Property<string>("Details")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("details");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Email")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("EventType")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("name");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("event_type");
 
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_id");
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("failure_reason");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("boolean")
+                        .HasColumnName("success");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -55,24 +76,35 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("user_agent");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id")
-                        .HasName("pk_families");
+                        .HasName("pk_auth_audit_logs");
 
-                    b.HasIndex("OwnerId")
-                        .HasDatabaseName("ix_families_owner_id");
+                    b.HasIndex("EventType")
+                        .HasDatabaseName("ix_auth_audit_logs_event_type");
 
-                    b.ToTable("families", "auth");
+                    b.HasIndex("OccurredAt")
+                        .HasDatabaseName("ix_auth_audit_logs_occurred_at");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_auth_audit_logs_user_id");
+
+                    b.ToTable("auth_audit_logs", "auth");
                 });
 
-            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.FamilyMemberInvitation", b =>
+            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.ExternalLogin", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
-                        .HasColumnName("invitation_id");
-
-                    b.Property<DateTime?>("AcceptedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("accepted_at");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -80,51 +112,37 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<string>("DisplayCode")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("character varying(8)")
-                        .HasColumnName("display_code");
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
 
-                    b.Property<string>("Email")
+                    b.Property<DateTime>("LinkedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("linked_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("provider_display_name");
+
+                    b.Property<string>("ProviderEmail")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("provider_email");
+
+                    b.Property<string>("ProviderUserId")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
-                        .HasColumnName("email");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
-                    b.Property<Guid>("FamilyId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("family_id");
-
-                    b.Property<Guid>("InvitedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("invited_by_user_id");
-
-                    b.Property<string>("Message")
-                        .HasColumnType("text")
-                        .HasColumnName("message");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("role");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("token");
+                        .HasColumnName("provider_user_id");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -132,26 +150,21 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id")
-                        .HasName("pk_family_member_invitations");
+                        .HasName("pk_external_logins");
 
-                    b.HasIndex("ExpiresAt")
-                        .HasDatabaseName("ix_family_member_invitations_expires_at");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_external_logins_user_id");
 
-                    b.HasIndex("FamilyId")
-                        .HasDatabaseName("ix_family_member_invitations_family_id");
-
-                    b.HasIndex("InvitedByUserId")
-                        .HasDatabaseName("ix_family_member_invitations_invited_by_user_id");
-
-                    b.HasIndex("Token")
+                    b.HasIndex("Provider", "ProviderUserId")
                         .IsUnique()
-                        .HasDatabaseName("ix_family_member_invitations_token");
+                        .HasDatabaseName("ix_external_logins_provider_user_id");
 
-                    b.HasIndex("FamilyId", "Status")
-                        .HasDatabaseName("ix_family_member_invitations_family_id_status");
-
-                    b.ToTable("family_member_invitations", "auth");
+                    b.ToTable("external_logins", "auth");
                 });
 
             modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.OutboxEvent", b =>
@@ -227,6 +240,78 @@ namespace FamilyHub.Modules.Auth.Migrations
                     b.ToTable("outbox_events", "auth");
                 });
 
+            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("DeviceInfo")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("device_info");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<bool>("IsRevoked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_revoked");
+
+                    b.Property<Guid?>("ReplacedByTokenId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("replaced_by_token_id");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_refresh_tokens");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_refresh_tokens_expires_at")
+                        .HasFilter("is_revoked = false");
+
+                    b.HasIndex("TokenHash")
+                        .HasDatabaseName("ix_refresh_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_refresh_tokens_user_id");
+
+                    b.ToTable("refresh_tokens", "auth");
+                });
+
             modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -249,6 +334,15 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .HasColumnType("character varying(320)")
                         .HasColumnName("email");
 
+                    b.Property<string>("EmailVerificationToken")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("email_verification_token");
+
+                    b.Property<DateTime?>("EmailVerificationTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("email_verification_token_expires_at");
+
                     b.Property<bool>("EmailVerified")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -259,21 +353,42 @@ namespace FamilyHub.Modules.Auth.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("email_verified_at");
 
-                    b.Property<string>("ExternalProvider")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("external_provider");
-
-                    b.Property<string>("ExternalUserId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("external_user_id");
+                    b.Property<int>("FailedLoginAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("failed_login_attempts");
 
                     b.Property<Guid>("FamilyId")
                         .HasColumnType("uuid")
                         .HasColumnName("family_id");
+
+                    b.Property<DateTime?>("LockoutEndTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lockout_end_time");
+
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("PasswordResetCode")
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("password_reset_code");
+
+                    b.Property<DateTime?>("PasswordResetCodeExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("password_reset_code_expires_at");
+
+                    b.Property<string>("PasswordResetToken")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("password_reset_token");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("password_reset_token_expires_at");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -297,43 +412,36 @@ namespace FamilyHub.Modules.Auth.Migrations
                     b.HasIndex("FamilyId")
                         .HasDatabaseName("ix_users_family_id");
 
-                    b.HasIndex("ExternalProvider", "ExternalUserId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_users_external_provider_user_id");
-
                     b.ToTable("users", "auth");
                 });
 
-            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.FamilyMemberInvitation", b =>
+            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.ExternalLogin", b =>
                 {
-                    b.HasOne("FamilyHub.Modules.Auth.Domain.Family", null)
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("FamilyHub.Modules.Auth.Domain.User", "User")
+                        .WithMany("ExternalLogins")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_family_member_invitations_families_family_id");
+                        .HasConstraintName("fk_external_logins_users_user_id");
 
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.RefreshToken", b =>
+                {
                     b.HasOne("FamilyHub.Modules.Auth.Domain.User", null)
-                        .WithMany()
-                        .HasForeignKey("InvitedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_family_member_invitations_users_invited_by_user_id");
+                        .HasConstraintName("fk_refresh_tokens_users_user_id");
                 });
 
             modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.User", b =>
                 {
-                    b.HasOne("FamilyHub.Modules.Auth.Domain.Family", null)
-                        .WithMany("Members")
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_users_families_family_id");
-                });
+                    b.Navigation("ExternalLogins");
 
-            modelBuilder.Entity("FamilyHub.Modules.Auth.Domain.Family", b =>
-                {
-                    b.Navigation("Members");
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }

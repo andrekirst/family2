@@ -70,6 +70,8 @@ public static class AuthModuleServiceRegistration
 
         // Repositories (Auth module)
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IAuthAuditLogRepository, AuthAuditLogRepository>();
         services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
 
         // PHASE 5: IUserLookupService for cross-module queries
@@ -80,10 +82,23 @@ public static class AuthModuleServiceRegistration
         // Repository implementations moved to Family module with FamilyDbContext
         // See FamilyModuleServiceRegistration for new registrations
 
-        // Zitadel OAuth Configuration
-        services.Configure<ZitadelSettings>(configuration.GetSection(ZitadelSettings.SectionName));
+        // Password Policy Configuration
+        services.Configure<PasswordPolicyOptions>(configuration.GetSection(PasswordPolicyOptions.SectionName));
+
+        // JWT Settings Configuration
+        services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+
+        // Lockout Policy Configuration
+        services.Configure<LockoutPolicyOptions>(configuration.GetSection(LockoutPolicyOptions.SectionName));
+
+        // Auth Email Settings Configuration
+        services.Configure<AuthEmailSettings>(configuration.GetSection(AuthEmailSettings.SectionName));
 
         // Infrastructure Services
+        services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthEmailService, AuthEmailService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         // User Context - Scoped service holding authenticated user context for current request

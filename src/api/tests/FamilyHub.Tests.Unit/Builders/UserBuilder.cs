@@ -1,4 +1,5 @@
 using FamilyHub.Modules.Auth.Domain;
+using FamilyHub.Modules.Auth.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 
 namespace FamilyHub.Tests.Unit.Builders;
@@ -10,8 +11,7 @@ namespace FamilyHub.Tests.Unit.Builders;
 public sealed class UserBuilder
 {
     private Email _email = Email.From("test@example.com");
-    private string _externalUserId = $"zitadel_{Guid.NewGuid():N}";
-    private string _externalProvider = "zitadel";
+    private PasswordHash _passwordHash = PasswordHash.FromHash("TestPasswordHash123!");
     private FamilyId _familyId = FamilyId.New();
 
     /// <summary>
@@ -42,28 +42,28 @@ public sealed class UserBuilder
     }
 
     /// <summary>
-    /// Sets the external user ID (from OAuth provider).
+    /// Sets the password hash for the user.
     /// </summary>
-    public UserBuilder WithExternalUserId(string externalUserId)
+    public UserBuilder WithPasswordHash(PasswordHash passwordHash)
     {
-        _externalUserId = externalUserId;
+        _passwordHash = passwordHash;
         return this;
     }
 
     /// <summary>
-    /// Sets the external provider name.
+    /// Sets the password hash for the user from a string.
     /// </summary>
-    public UserBuilder WithExternalProvider(string externalProvider)
+    public UserBuilder WithPasswordHash(string passwordHash)
     {
-        _externalProvider = externalProvider;
+        _passwordHash = PasswordHash.FromHash(passwordHash);
         return this;
     }
 
     /// <summary>
-    /// Builds the User entity using the CreateFromOAuth factory method.
+    /// Builds the User entity using the CreateWithPassword factory method.
     /// </summary>
     public User Build()
     {
-        return User.CreateFromOAuth(_email, _externalUserId, _externalProvider, _familyId);
+        return User.CreateWithPassword(_email, _passwordHash, _familyId);
     }
 }
