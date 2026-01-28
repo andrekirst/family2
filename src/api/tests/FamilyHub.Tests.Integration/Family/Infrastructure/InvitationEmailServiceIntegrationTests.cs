@@ -113,7 +113,7 @@ public sealed class InvitationEmailServiceIntegrationTests(FamilyPostgreSqlConta
         // Assert
         var updatedEmail = await repository.GetByIdAsync(emailOutbox.Id);
         updatedEmail.Should().NotBeNull();
-        updatedEmail!.Status.Should().Be(EmailStatus.Sent);
+        updatedEmail!.Status.Should().Be(EmailStatus.SENT);
         updatedEmail.SentAt.Should().NotBeNull();
         updatedEmail.SentAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
@@ -169,7 +169,7 @@ public sealed class InvitationEmailServiceIntegrationTests(FamilyPostgreSqlConta
         // Assert
         var allEmails = await _context.EmailOutbox.ToListAsync();
         allEmails.Should().HaveCount(5);
-        allEmails.Should().OnlyContain(e => e.Status == EmailStatus.Sent);
+        allEmails.Should().OnlyContain(e => e.Status == EmailStatus.SENT);
         allEmails.Should().OnlyContain(e => e.SentAt != null);
     }
 
@@ -222,7 +222,7 @@ public sealed class InvitationEmailServiceIntegrationTests(FamilyPostgreSqlConta
         // Assert
         var failedEmail = await repository.GetByIdAsync(emailOutbox.Id);
         failedEmail.Should().NotBeNull();
-        failedEmail!.Status.Should().Be(EmailStatus.Failed);
+        failedEmail!.Status.Should().Be(EmailStatus.FAILED);
         failedEmail.RetryCount.Should().Be(1);
         failedEmail.ErrorMessage.Should().Be("Email sending failed");
         failedEmail.LastAttemptAt.Should().NotBeNull();
@@ -281,7 +281,7 @@ public sealed class InvitationEmailServiceIntegrationTests(FamilyPostgreSqlConta
         // Assert
         var retriedEmail = await repository.GetByIdAsync(emailOutbox.Id);
         retriedEmail.Should().NotBeNull();
-        retriedEmail!.Status.Should().Be(EmailStatus.Sent);
+        retriedEmail!.Status.Should().Be(EmailStatus.SENT);
         retriedEmail.SentAt.Should().NotBeNull();
     }
 
@@ -336,7 +336,7 @@ public sealed class InvitationEmailServiceIntegrationTests(FamilyPostgreSqlConta
         // Assert
         var permanentlyFailedEmail = await repository.GetByIdAsync(emailOutbox.Id);
         permanentlyFailedEmail.Should().NotBeNull();
-        permanentlyFailedEmail!.Status.Should().Be(EmailStatus.PermanentlyFailed);
+        permanentlyFailedEmail!.Status.Should().Be(EmailStatus.PERMANENTLY_FAILED);
         permanentlyFailedEmail.RetryCount.Should().Be(10);
         permanentlyFailedEmail.SentAt.Should().BeNull();
     }
@@ -379,10 +379,10 @@ public sealed class InvitationEmailServiceIntegrationTests(FamilyPostgreSqlConta
 
         // Assert
         var sentEmails = await _context.EmailOutbox
-            .Where(e => e.Status == EmailStatus.Sent)
+            .Where(e => e.Status == EmailStatus.SENT)
             .CountAsync();
         var stillPendingEmails = await _context.EmailOutbox
-            .Where(e => e.Status == EmailStatus.Pending)
+            .Where(e => e.Status == EmailStatus.PENDING)
             .CountAsync();
 
         sentEmails.Should().Be(batchSize);

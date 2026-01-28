@@ -65,7 +65,6 @@ public sealed class PasswordService : IPasswordService
         }
 
         var errors = new List<string>();
-        var suggestions = new List<string>();
 
         // Check minimum length
         if (password.Length < _policyOptions.MinimumLength)
@@ -128,13 +127,20 @@ public sealed class PasswordService : IPasswordService
         return specialChars.Contains(c);
     }
 
-    private int CalculateStrengthScore(string password)
+    private static int CalculateStrengthScore(string password)
     {
         var score = 0;
 
         // Length bonus
-        if (password.Length >= 12) score++;
-        if (password.Length >= 16) score++;
+        if (password.Length >= 12)
+        {
+            score++;
+        }
+
+        if (password.Length >= 16)
+        {
+            score++;
+        }
 
         // Character variety bonus
         var hasUpper = password.Any(char.IsUpper);
@@ -143,14 +149,21 @@ public sealed class PasswordService : IPasswordService
         var hasSpecial = password.Any(IsSpecialCharacter);
 
         var varietyCount = new[] { hasUpper, hasLower, hasDigit, hasSpecial }.Count(x => x);
-        if (varietyCount >= 3) score++;
-        if (varietyCount == 4) score++;
+        if (varietyCount >= 3)
+        {
+            score++;
+        }
+
+        if (varietyCount == 4)
+        {
+            score++;
+        }
 
         // Cap at 4
         return Math.Min(score, 4);
     }
 
-    private List<string> GenerateSuggestions(string password)
+    private static List<string> GenerateSuggestions(string password)
     {
         var suggestions = new List<string>();
 

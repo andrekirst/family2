@@ -44,7 +44,7 @@ public sealed class NodeSubscriptionPublisher : INodeSubscriptionPublisher
         where TNode : class
     {
         var typeName = GetTypeName<TNode>();
-        return PublishNodeChangedAsync(typeName, internalId, NodeChangeType.Created, cancellationToken);
+        return PublishNodeChangedAsync(typeName, internalId, NodeChangeType.CREATED, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -52,7 +52,7 @@ public sealed class NodeSubscriptionPublisher : INodeSubscriptionPublisher
         where TNode : class
     {
         var typeName = GetTypeName<TNode>();
-        return PublishNodeChangedAsync(typeName, internalId, NodeChangeType.Updated, cancellationToken);
+        return PublishNodeChangedAsync(typeName, internalId, NodeChangeType.UPDATED, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -60,7 +60,7 @@ public sealed class NodeSubscriptionPublisher : INodeSubscriptionPublisher
         where TNode : class
     {
         var typeName = GetTypeName<TNode>();
-        return PublishNodeChangedAsync(typeName, internalId, NodeChangeType.Deleted, cancellationToken);
+        return PublishNodeChangedAsync(typeName, internalId, NodeChangeType.DELETED, cancellationToken);
     }
 
     /// <inheritdoc />

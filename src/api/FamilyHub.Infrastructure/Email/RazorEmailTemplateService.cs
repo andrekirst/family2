@@ -15,9 +15,6 @@ public sealed partial class RazorEmailTemplateService(
     IRazorLightEngine razorEngine,
     ILogger<RazorEmailTemplateService> logger) : IEmailTemplateService
 {
-    private readonly IRazorLightEngine _razorEngine = razorEngine;
-    private readonly ILogger<RazorEmailTemplateService> _logger = logger;
-
     /// <inheritdoc />
     public async Task<string> RenderTemplateAsync<TModel>(
         string templateName,
@@ -29,7 +26,7 @@ public sealed partial class RazorEmailTemplateService(
             LogRenderingTemplate(templateName);
 
             var templateKey = $"{templateName}.cshtml";
-            var result = await _razorEngine.CompileRenderAsync(templateKey, model);
+            var result = await razorEngine.CompileRenderAsync(templateKey, model);
 
             LogTemplateRendered(templateName);
             return result;

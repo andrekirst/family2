@@ -99,7 +99,7 @@ public sealed class GraphQlTestFactory(PostgreSqlContainerFixture containerFixtu
 
             // Add FamilyDbContext with test container connection string
             // Changed from AddPooledDbContextFactory to AddDbContext to support IMediator and ILogger injection
-            services.AddDbContext<FamilyDbContext>((sp, options) =>
+            services.AddDbContext<FamilyDbContext>((_, options) =>
                 options.UseNpgsql(containerFixture.ConnectionString, npgsqlOptions =>
                     {
                         npgsqlOptions.MigrationsAssembly(typeof(FamilyDbContext).Assembly.GetName().Name);

@@ -14,7 +14,7 @@ namespace FamilyHub.SharedKernel.Presentation.GraphQL.Subscriptions;
 /// </list>
 /// </para>
 /// <para>
-/// For <see cref="NodeChangeType.Deleted"/> events, clients should use the
+/// For <see cref="NodeChangeType.DELETED"/> events, clients should use the
 /// <see cref="NodeId"/> to remove the entity from their local cache.
 /// </para>
 /// </remarks>

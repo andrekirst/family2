@@ -27,12 +27,7 @@ public sealed class CurrentUserService(
     public UserId GetUserId()
     {
         var userId = TryGetUserId();
-        if (userId is null)
-        {
-            throw new UnauthorizedAccessException("User is not authenticated. No user ID claim found in JWT token.");
-        }
-
-        return userId.Value;
+        return userId ?? throw new UnauthorizedAccessException("User is not authenticated. No user ID claim found in JWT token.");
     }
 
     /// <inheritdoc />
@@ -42,12 +37,7 @@ public sealed class CurrentUserService(
 
         // Verify user exists in database
         var exists = await userRepository.ExistsAsync(userId, cancellationToken);
-        if (!exists)
-        {
-            throw new UnauthorizedAccessException($"User with ID '{userId.Value}' not found in database.");
-        }
-
-        return userId;
+        return !exists ? throw new UnauthorizedAccessException($"User with ID '{userId.Value}' not found in database.") : userId;
     }
 
     /// <inheritdoc />
@@ -59,12 +49,7 @@ public sealed class CurrentUserService(
             ?? httpContextAccessor.HttpContext?.User
             .FindFirst(JwtRegisteredClaimNames.Email)?.Value;
 
-        if (string.IsNullOrEmpty(emailClaim))
-        {
-            return null;
-        }
-
-        return Email.From(emailClaim);
+        return string.IsNullOrEmpty(emailClaim) ? null : Email.From(emailClaim);
     }
 
     /// <inheritdoc />

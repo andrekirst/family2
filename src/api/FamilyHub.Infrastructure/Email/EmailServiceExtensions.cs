@@ -31,13 +31,10 @@ public static class EmailServiceExtensions
             "Email",
             "Templates");
 
-        services.AddSingleton<IRazorLightEngine>(sp =>
-        {
-            return new RazorLightEngineBuilder()
-                .UseFileSystemProject(templatePath)
-                .UseMemoryCachingProvider()
-                .Build();
-        });
+        services.AddSingleton<IRazorLightEngine>(_ => new RazorLightEngineBuilder()
+            .UseFileSystemProject(templatePath)
+            .UseMemoryCachingProvider()
+            .Build());
 
         // Register services
         services.AddScoped<IEmailTemplateService, RazorEmailTemplateService>();

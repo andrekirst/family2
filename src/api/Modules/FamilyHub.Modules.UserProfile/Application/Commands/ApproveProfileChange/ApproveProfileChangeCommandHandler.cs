@@ -145,7 +145,10 @@ public sealed partial class ApproveProfileChangeCommandHandler(
         try
         {
             var data = JsonSerializer.Deserialize<PreferencesDto>(json, JsonOptions);
-            if (data == null) return null;
+            if (data == null)
+            {
+                return null;
+            }
 
             return ProfilePreferences.Create(
                 data.Language,
@@ -163,7 +166,10 @@ public sealed partial class ApproveProfileChangeCommandHandler(
         try
         {
             var data = JsonSerializer.Deserialize<FieldVisibilityDto>(json, JsonOptions);
-            if (data == null) return null;
+            if (data == null)
+            {
+                return null;
+            }
 
             return ProfileFieldVisibility.Create(
                 VisibilityLevel.From(data.BirthdayVisibility ?? "family"),

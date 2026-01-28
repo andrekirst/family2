@@ -8,70 +8,70 @@ public enum AuthAuditEventType
     /// <summary>
     /// Successful login attempt.
     /// </summary>
-    Login = 1,
+    LOGIN = 1,
 
     /// <summary>
     /// User logged out.
     /// </summary>
-    Logout = 2,
+    LOGOUT = 2,
 
     /// <summary>
     /// Failed login attempt (wrong password, unknown email, etc.).
     /// </summary>
-    FailedLogin = 3,
+    FAILED_LOGIN = 3,
 
     /// <summary>
     /// User changed their password.
     /// </summary>
-    PasswordChange = 4,
+    PASSWORD_CHANGE = 4,
 
     /// <summary>
     /// Password was reset via email link or code.
     /// </summary>
-    PasswordReset = 5,
+    PASSWORD_RESET = 5,
 
     /// <summary>
     /// Access token was refreshed using refresh token.
     /// </summary>
-    TokenRefresh = 6,
+    TOKEN_REFRESH = 6,
 
     /// <summary>
     /// Email was verified via verification link.
     /// </summary>
-    EmailVerification = 7,
+    EMAIL_VERIFICATION = 7,
 
     /// <summary>
     /// Account was locked due to too many failed attempts.
     /// </summary>
-    AccountLockout = 8,
+    ACCOUNT_LOCKOUT = 8,
 
     /// <summary>
     /// Account lockout period expired.
     /// </summary>
-    AccountUnlock = 9,
+    ACCOUNT_UNLOCK = 9,
 
     /// <summary>
     /// New user registered.
     /// </summary>
-    Registration = 10,
+    REGISTRATION = 10,
 
     /// <summary>
     /// User registration failed (e.g., email already exists).
     /// </summary>
-    RegistrationFailed = 14,
+    REGISTRATION_FAILED = 14,
 
     /// <summary>
     /// Password reset was requested.
     /// </summary>
-    PasswordResetRequested = 11,
+    PASSWORD_RESET_REQUESTED = 11,
 
     /// <summary>
     /// Refresh token was revoked.
     /// </summary>
-    TokenRevoked = 12,
+    TOKEN_REVOKED = 12,
 
     /// <summary>
     /// All sessions were logged out (logout all devices).
     /// </summary>
-    LogoutAllDevices = 13
+    LOGOUT_ALL_DEVICES = 13
 }

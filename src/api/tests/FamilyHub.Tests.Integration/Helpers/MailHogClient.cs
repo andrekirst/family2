@@ -245,9 +245,9 @@ public sealed class MailHogClient : IDisposable
         var htmlBody = email.Content.Body;
 
         // If MIME parts exist, extract HTML body from the appropriate part
-        if (email.MIME?.Parts != null && email.MIME.Parts.Any())
+        if (email.Mime?.Parts != null && email.Mime.Parts.Any())
         {
-            var htmlPart = email.MIME.Parts.FirstOrDefault(part =>
+            var htmlPart = email.Mime.Parts.FirstOrDefault(part =>
                 part.Headers.TryGetValue("Content-Type", out var contentType) &&
                 contentType.Any(ct => ct.Contains("text/html", StringComparison.OrdinalIgnoreCase)));
 
@@ -274,9 +274,9 @@ public sealed class MailHogClient : IDisposable
         var htmlBody = email.Content.Body;
 
         // If MIME parts exist, extract HTML body from the appropriate part
-        if (email.MIME?.Parts != null && email.MIME.Parts.Any())
+        if (email.Mime?.Parts != null && email.Mime.Parts.Any())
         {
-            var htmlPart = email.MIME.Parts.FirstOrDefault(part =>
+            var htmlPart = email.Mime.Parts.FirstOrDefault(part =>
                 part.Headers.TryGetValue("Content-Type", out var contentType) &&
                 contentType.Any(ct => ct.Contains("text/html", StringComparison.OrdinalIgnoreCase)));
 
@@ -303,10 +303,10 @@ public sealed class MailHogClient : IDisposable
         var htmlBody = email.Content.Body;
 
         // If MIME parts exist, extract HTML body from the appropriate part
-        if (email.MIME?.Parts != null && email.MIME.Parts.Any())
+        if (email.Mime?.Parts != null && email.Mime.Parts.Any())
         {
             // Find the HTML part (Content-Type: text/html)
-            var htmlPart = email.MIME.Parts.FirstOrDefault(part =>
+            var htmlPart = email.Mime.Parts.FirstOrDefault(part =>
                 part.Headers.TryGetValue("Content-Type", out var contentType) &&
                 contentType.Any(ct => ct.Contains("text/html", StringComparison.OrdinalIgnoreCase)));
 
@@ -344,10 +344,7 @@ public sealed class MailHogClient : IDisposable
         return plainText.Trim();
     }
 
-    public void Dispose()
-    {
-        _httpClient?.Dispose();
-    }
+    public void Dispose() => _httpClient?.Dispose();
 }
 
 #region MailHog API DTOs
@@ -366,12 +363,12 @@ public record MailHogResponse(
 /// MailHog email message structure
 /// </summary>
 public record MailHogMessage(
-    [property: JsonPropertyName("ID")] string ID,
+    [property: JsonPropertyName("ID")] string Id,
     [property: JsonPropertyName("From")] MailHogAddress From,
     [property: JsonPropertyName("To")] List<MailHogAddress> To,
     [property: JsonPropertyName("Content")] MailHogContent Content,
     [property: JsonPropertyName("Created")] string Created,
-    [property: JsonPropertyName("MIME")] MailHogMIME? MIME,
+    [property: JsonPropertyName("MIME")] MailHogMime? Mime,
     [property: JsonPropertyName("Raw")] MailHogRaw Raw
 );
 
@@ -391,24 +388,24 @@ public record MailHogContent(
     [property: JsonPropertyName("Headers")] Dictionary<string, string[]> Headers,
     [property: JsonPropertyName("Body")] string Body,
     [property: JsonPropertyName("Size")] int Size,
-    [property: JsonPropertyName("MIME")] object? MIME
+    [property: JsonPropertyName("MIME")] object? Mime
 );
 
 /// <summary>
 /// MailHog MIME structure
 /// </summary>
-public record MailHogMIME(
-    [property: JsonPropertyName("Parts")] List<MailHogMIMEPart>? Parts
+public record MailHogMime(
+    [property: JsonPropertyName("Parts")] List<MailHogMimePart>? Parts
 );
 
 /// <summary>
 /// MailHog MIME part structure
 /// </summary>
-public record MailHogMIMEPart(
+public record MailHogMimePart(
     [property: JsonPropertyName("Headers")] Dictionary<string, string[]> Headers,
     [property: JsonPropertyName("Body")] string Body,
     [property: JsonPropertyName("Size")] int Size,
-    [property: JsonPropertyName("MIME")] object? MIME
+    [property: JsonPropertyName("MIME")] object? Mime
 );
 
 /// <summary>

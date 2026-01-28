@@ -12,15 +12,15 @@ public enum NodeChangeType
     /// <summary>
     /// A new entity was created.
     /// </summary>
-    Created,
+    CREATED,
 
     /// <summary>
     /// An existing entity was updated.
     /// </summary>
-    Updated,
+    UPDATED,
 
     /// <summary>
     /// An entity was deleted.
     /// </summary>
-    Deleted
+    DELETED
 }

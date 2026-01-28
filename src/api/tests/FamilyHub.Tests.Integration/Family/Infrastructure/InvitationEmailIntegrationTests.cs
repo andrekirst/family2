@@ -528,9 +528,9 @@ public sealed class InvitationEmailIntegrationTests(PostgreSqlContainerFixture c
         email!.Content.Body.Should().NotBeNullOrWhiteSpace("email should have content");
 
         // Check for MIME multipart (HTML + plain text)
-        if (email.MIME?.Parts != null)
+        if (email.Mime?.Parts != null)
         {
-            email.MIME.Parts.Should().HaveCountGreaterThan(0,
+            email.Mime.Parts.Should().HaveCountGreaterThan(0,
                 "email should have MIME parts for HTML and plain text");
         }
     }

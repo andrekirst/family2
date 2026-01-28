@@ -195,16 +195,16 @@ public sealed record AuthResult
 
     private static string GetDefaultMessage(AuthErrorCode errorCode) => errorCode switch
     {
-        AuthErrorCode.InvalidCredentials => "Invalid email or password.",
-        AuthErrorCode.AccountLocked => "Account is temporarily locked due to too many failed login attempts.",
-        AuthErrorCode.EmailNotVerified => "Please verify your email address before logging in.",
-        AuthErrorCode.EmailAlreadyExists => "An account with this email already exists.",
-        AuthErrorCode.InvalidToken => "The token is invalid or has expired.",
-        AuthErrorCode.InvalidCode => "The code is invalid or has expired.",
-        AuthErrorCode.PasswordTooWeak => "Password does not meet security requirements.",
-        AuthErrorCode.PasswordMismatch => "Current password is incorrect.",
-        AuthErrorCode.UserNotFound => "User not found.",
-        AuthErrorCode.EmailAlreadyVerified => "Email is already verified.",
+        AuthErrorCode.INVALID_CREDENTIALS => "Invalid email or password.",
+        AuthErrorCode.ACCOUNT_LOCKED => "Account is temporarily locked due to too many failed login attempts.",
+        AuthErrorCode.EMAIL_NOT_VERIFIED => "Please verify your email address before logging in.",
+        AuthErrorCode.EMAIL_ALREADY_EXISTS => "An account with this email already exists.",
+        AuthErrorCode.INVALID_TOKEN => "The token is invalid or has expired.",
+        AuthErrorCode.INVALID_CODE => "The code is invalid or has expired.",
+        AuthErrorCode.PASSWORD_TOO_WEAK => "Password does not meet security requirements.",
+        AuthErrorCode.PASSWORD_MISMATCH => "Current password is incorrect.",
+        AuthErrorCode.USER_NOT_FOUND => "User not found.",
+        AuthErrorCode.EMAIL_ALREADY_VERIFIED => "Email is already verified.",
         _ => "An error occurred during authentication."
     };
 }
@@ -227,37 +227,37 @@ public sealed record AuthenticatedUser
 public enum AuthErrorCode
 {
     /// <summary>Invalid email or password.</summary>
-    InvalidCredentials,
+    INVALID_CREDENTIALS,
 
     /// <summary>Account is locked due to too many failed attempts.</summary>
-    AccountLocked,
+    ACCOUNT_LOCKED,
 
     /// <summary>Email address has not been verified.</summary>
-    EmailNotVerified,
+    EMAIL_NOT_VERIFIED,
 
     /// <summary>An account with this email already exists.</summary>
-    EmailAlreadyExists,
+    EMAIL_ALREADY_EXISTS,
 
     /// <summary>The token is invalid or expired.</summary>
-    InvalidToken,
+    INVALID_TOKEN,
 
     /// <summary>The reset code is invalid or expired.</summary>
-    InvalidCode,
+    INVALID_CODE,
 
     /// <summary>Password does not meet requirements.</summary>
-    PasswordTooWeak,
+    PASSWORD_TOO_WEAK,
 
     /// <summary>Current password is incorrect.</summary>
-    PasswordMismatch,
+    PASSWORD_MISMATCH,
 
     /// <summary>User not found.</summary>
-    UserNotFound,
+    USER_NOT_FOUND,
 
     /// <summary>Email is already verified.</summary>
-    EmailAlreadyVerified,
+    EMAIL_ALREADY_VERIFIED,
 
     /// <summary>An unknown error occurred.</summary>
-    Unknown
+    UNKNOWN
 }
 
 /// <summary>

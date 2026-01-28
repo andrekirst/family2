@@ -91,7 +91,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
 
         // Subscribe to Redis topic
         var subscriber = _redis.GetSubscriber();
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (_, value) =>
         {
             receivedMessage = value!;
             messageReceived.SetResult(true);
@@ -136,7 +136,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var allMessagesReceived = new TaskCompletionSource<bool>();
 
         var subscriber = _redis.GetSubscriber();
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (_, value) =>
         {
             lock (receivedMessages)
             {
@@ -207,7 +207,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var messageReceived = new TaskCompletionSource<bool>();
 
         var subscriber = _redis.GetSubscriber();
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (_, value) =>
         {
             receivedMessage = value!;
             messageReceived.SetResult(true);
@@ -255,7 +255,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
 
         // Subscribe to family-B topic
         var subscriber = _redis.GetSubscriber();
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicB), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicB), (_, value) =>
         {
             receivedMessage = value!;
             messageReceived.SetResult(true);
@@ -295,7 +295,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var subscriber = _redis.GetSubscriber();
 
         // Subscribe to both topics
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicA), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicA), (_, value) =>
         {
             lock (receivedMessagesA)
             {
@@ -307,7 +307,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
             }
         });
 
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicB), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicB), (_, value) =>
         {
             lock (receivedMessagesB)
             {
@@ -776,14 +776,14 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var subscriber = _redis.GetSubscriber();
 
         // Subscribe with a faulty handler (throws exception)
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (_, _) =>
         {
             faultySubscriberCalled = true;
             throw new InvalidOperationException("Simulated subscriber error");
         });
 
         // Subscribe with a healthy handler
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (_, value) =>
         {
             healthySubscriberMessage = value!;
             healthySubscriberReceived.TrySetResult(true);
@@ -816,7 +816,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var subscriber = _redis.GetSubscriber();
 
         // Faulty subscriber that throws on every other message
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (_, _) =>
         {
             Interlocked.Increment(ref faultySubscriberCallCount);
             if (faultySubscriberCallCount % 2 == 0)
@@ -826,7 +826,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         });
 
         // Healthy subscriber that collects all messages
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (_, value) =>
         {
             lock (receivedByHealthySubscriber)
             {
@@ -901,7 +901,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var messageReceived = new TaskCompletionSource<bool>();
 
         var subscriber = _redis.GetSubscriber();
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (_, value) =>
         {
             receivedMessage = value!;
             messageReceived.SetResult(true);
@@ -950,7 +950,7 @@ public sealed class RedisSubscriptionIntegrationTests(RedisContainerFixture fixt
         var messageReceived = new TaskCompletionSource<bool>();
 
         var subscriber = _redis.GetSubscriber();
-        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (channel, value) =>
+        await subscriber.SubscribeAsync(RedisChannel.Literal(topicName), (_, value) =>
         {
             receivedMessage = value!;
             messageReceived.SetResult(true);

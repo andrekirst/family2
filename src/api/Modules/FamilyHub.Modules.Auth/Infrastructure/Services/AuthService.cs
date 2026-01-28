@@ -1,8 +1,8 @@
 using FamilyHub.Modules.Auth.Application.Abstractions;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
+using FamilyHub.Modules.Auth.Domain.Specifications;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
-using FamilyHub.Modules.Family.Domain.Repositories;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,7 +12,7 @@ namespace FamilyHub.Modules.Auth.Infrastructure.Services;
 /// <summary>
 /// Authentication service orchestrating registration, login, password management.
 /// </summary>
-public sealed class AuthService : IAuthService
+public sealed partial class AuthService : IAuthService
 {
     private readonly IPasswordService _passwordService;
     private readonly ITokenService _tokenService;
@@ -44,13 +44,14 @@ public sealed class AuthService : IAuthService
     }
 
     /// <inheritdoc />
+    [Obsolete("Obsolete")]
     public async Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
         // Validate password strength
         var strengthResult = _passwordService.ValidateStrength(request.Password);
         if (!strengthResult.IsValid)
         {
-            return AuthResult.Failed(AuthErrorCode.PasswordTooWeak, string.Join(" ", strengthResult.Errors));
+            return AuthResult.Failed(AuthErrorCode.PASSWORD_TOO_WEAK, string.Join(" ", strengthResult.Errors));
         }
 
         // Check if email already exists
@@ -58,9 +59,9 @@ public sealed class AuthService : IAuthService
         var existingUser = await _userRepository.GetByEmailAsync(email, cancellationToken);
         if (existingUser != null)
         {
-            await LogAuditEventAsync(null, email, AuthAuditEventType.RegistrationFailed,
+            await LogAuditEventAsync(null, email, AuthAuditEventType.REGISTRATION_FAILED,
                 request.IpAddress, request.DeviceInfo, false, "Email already exists", cancellationToken);
-            return AuthResult.Failed(AuthErrorCode.EmailAlreadyExists);
+            return AuthResult.Failed(AuthErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         // Create personal family for the user
@@ -83,10 +84,10 @@ public sealed class AuthService : IAuthService
         var tokens = await _tokenService.GenerateTokenPairAsync(user, request.DeviceInfo, request.IpAddress, cancellationToken);
 
         // Log successful registration
-        await LogAuditEventAsync(user.Id, email, AuthAuditEventType.Registration,
+        await LogAuditEventAsync(user.Id, email, AuthAuditEventType.REGISTRATION,
             request.IpAddress, request.DeviceInfo, true, null, cancellationToken);
 
-        _logger.LogInformation("User registered successfully: {Email}", email.Value);
+        LogUserRegisteredSuccessfullyEmail(email.Value);
 
         // TODO: Send verification email via IEmailService
         // await _emailService.SendVerificationEmailAsync(user, cancellationToken);
@@ -104,23 +105,24 @@ public sealed class AuthService : IAuthService
     public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         var email = Email.From(request.Email);
-        var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
+        var specification = new UserByEmailSpecification(email);
+        var user = await _userRepository.FindOneAsync(specification, cancellationToken);
 
         if (user == null)
         {
             // Log failed attempt but don't reveal if email exists
-            await LogAuditEventAsync(null, email, AuthAuditEventType.FailedLogin,
+            await LogAuditEventAsync(null, email, AuthAuditEventType.FAILED_LOGIN,
                 request.IpAddress, request.DeviceInfo, false, "User not found", cancellationToken);
-            return AuthResult.Failed(AuthErrorCode.InvalidCredentials);
+            return AuthResult.Failed(AuthErrorCode.INVALID_CREDENTIALS);
         }
 
         // Check if account is locked
         user.CheckAndClearExpiredLockout();
         if (user.IsLockedOut)
         {
-            await LogAuditEventAsync(user.Id, email, AuthAuditEventType.FailedLogin,
+            await LogAuditEventAsync(user.Id, email, AuthAuditEventType.FAILED_LOGIN,
                 request.IpAddress, request.DeviceInfo, false, "Account locked", cancellationToken);
-            return AuthResult.Failed(AuthErrorCode.AccountLocked);
+            return AuthResult.Failed(AuthErrorCode.ACCOUNT_LOCKED);
         }
 
         // Verify password
@@ -131,18 +133,18 @@ public sealed class AuthService : IAuthService
             await _userRepository.UpdateAsync(user, cancellationToken);
 
             var reason = user.IsLockedOut ? "Account locked after failed attempts" : "Invalid password";
-            var eventType = user.IsLockedOut ? AuthAuditEventType.AccountLockout : AuthAuditEventType.FailedLogin;
+            var eventType = user.IsLockedOut ? AuthAuditEventType.ACCOUNT_LOCKOUT : AuthAuditEventType.FAILED_LOGIN;
 
             await LogAuditEventAsync(user.Id, email, eventType,
                 request.IpAddress, request.DeviceInfo, false, reason, cancellationToken);
 
             if (user.IsLockedOut)
             {
-                _logger.LogWarning("Account locked due to failed login attempts: {Email}", email.Value);
-                return AuthResult.Failed(AuthErrorCode.AccountLocked);
+                LogAccountLockedDueToFailedLoginAttemptsEmail(email.Value);
+                return AuthResult.Failed(AuthErrorCode.ACCOUNT_LOCKED);
             }
 
-            return AuthResult.Failed(AuthErrorCode.InvalidCredentials);
+            return AuthResult.Failed(AuthErrorCode.INVALID_CREDENTIALS);
         }
 
         // Reset failed login attempts on successful login
@@ -153,10 +155,10 @@ public sealed class AuthService : IAuthService
         var tokens = await _tokenService.GenerateTokenPairAsync(user, request.DeviceInfo, request.IpAddress, cancellationToken);
 
         // Log successful login
-        await LogAuditEventAsync(user.Id, email, AuthAuditEventType.Login,
+        await LogAuditEventAsync(user.Id, email, AuthAuditEventType.LOGIN,
             request.IpAddress, request.DeviceInfo, true, null, cancellationToken);
 
-        _logger.LogInformation("User logged in successfully: {Email}", email.Value);
+        LogUserLoggedInSuccessfullyEmail(email.Value);
 
         var authenticatedUser = new AuthenticatedUser
         {
@@ -173,8 +175,9 @@ public sealed class AuthService : IAuthService
         var result = await _tokenService.RevokeTokenAsync(refreshToken, cancellationToken);
         if (result)
         {
-            _logger.LogInformation("User logged out successfully");
+            LogUserLoggedOutSuccessfully();
         }
+
         return result;
     }
 
@@ -182,7 +185,7 @@ public sealed class AuthService : IAuthService
     public async Task<int> LogoutAllDevicesAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         var count = await _tokenService.RevokeAllUserTokensAsync(userId, cancellationToken);
-        _logger.LogInformation("User logged out from all devices. Sessions revoked: {Count}", count);
+        LogUserLoggedOutFromAllDevicesSessionsRevokedCount(count);
         return count;
     }
 
@@ -192,22 +195,22 @@ public sealed class AuthService : IAuthService
         var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
         if (user == null)
         {
-            return AuthResult.Failed(AuthErrorCode.UserNotFound);
+            return AuthResult.Failed(AuthErrorCode.USER_NOT_FOUND);
         }
 
         // Verify current password
         if (user.PasswordHash == null || !_passwordService.VerifyPassword(user.PasswordHash.Value, request.CurrentPassword))
         {
-            await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.PasswordChange,
+            await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.PASSWORD_CHANGE,
                 null, null, false, "Invalid current password", cancellationToken);
-            return AuthResult.Failed(AuthErrorCode.PasswordMismatch);
+            return AuthResult.Failed(AuthErrorCode.PASSWORD_MISMATCH);
         }
 
         // Validate new password strength
         var strengthResult = _passwordService.ValidateStrength(request.NewPassword);
         if (!strengthResult.IsValid)
         {
-            return AuthResult.Failed(AuthErrorCode.PasswordTooWeak, string.Join(" ", strengthResult.Errors));
+            return AuthResult.Failed(AuthErrorCode.PASSWORD_TOO_WEAK, string.Join(" ", strengthResult.Errors));
         }
 
         // Update password
@@ -218,10 +221,10 @@ public sealed class AuthService : IAuthService
         // Revoke all refresh tokens (force re-login on all devices)
         await _tokenService.RevokeAllUserTokensAsync(user.Id, cancellationToken);
 
-        await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.PasswordChange,
+        await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.PASSWORD_CHANGE,
             null, null, true, null, cancellationToken);
 
-        _logger.LogInformation("Password changed for user: {UserId}", user.Id.Value);
+        LogPasswordChangedForUserUserid(user.Id.Value);
 
         return AuthResult.Succeeded();
     }
@@ -230,12 +233,13 @@ public sealed class AuthService : IAuthService
     public async Task<AuthResult> RequestPasswordResetAsync(RequestPasswordResetRequest request, CancellationToken cancellationToken = default)
     {
         var email = Email.From(request.Email);
-        var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
+        var specification = new UserByEmailSpecification(email);
+        var user = await _userRepository.FindOneAsync(specification, cancellationToken);
 
         // Always return success to prevent email enumeration
         if (user == null)
         {
-            _logger.LogDebug("Password reset requested for non-existent email: {Email}", request.Email);
+            LogPasswordResetRequestedForNonExistentEmailEmail(request.Email);
             return AuthResult.Succeeded();
         }
 
@@ -257,10 +261,10 @@ public sealed class AuthService : IAuthService
         // else
         //     await _emailService.SendPasswordResetLinkAsync(user, cancellationToken);
 
-        await LogAuditEventAsync(user.Id, email, AuthAuditEventType.PasswordResetRequested,
+        await LogAuditEventAsync(user.Id, email, AuthAuditEventType.PASSWORD_RESET_REQUESTED,
             null, null, true, null, cancellationToken);
 
-        _logger.LogInformation("Password reset requested for user: {Email}", email.Value);
+        LogPasswordResetRequestedForUserEmail(email.Value);
 
         return AuthResult.Succeeded();
     }
@@ -272,14 +276,14 @@ public sealed class AuthService : IAuthService
         var user = await _userRepository.GetByPasswordResetTokenAsync(request.Token, cancellationToken);
         if (user == null || !user.ValidatePasswordResetToken(request.Token))
         {
-            return AuthResult.Failed(AuthErrorCode.InvalidToken);
+            return AuthResult.Failed(AuthErrorCode.INVALID_TOKEN);
         }
 
         // Validate new password strength
         var strengthResult = _passwordService.ValidateStrength(request.NewPassword);
         if (!strengthResult.IsValid)
         {
-            return AuthResult.Failed(AuthErrorCode.PasswordTooWeak, string.Join(" ", strengthResult.Errors));
+            return AuthResult.Failed(AuthErrorCode.PASSWORD_TOO_WEAK, string.Join(" ", strengthResult.Errors));
         }
 
         // Update password and clear reset tokens
@@ -290,10 +294,10 @@ public sealed class AuthService : IAuthService
         // Revoke all refresh tokens
         await _tokenService.RevokeAllUserTokensAsync(user.Id, cancellationToken);
 
-        await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.PasswordReset,
+        await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.PASSWORD_RESET,
             null, null, true, null, cancellationToken);
 
-        _logger.LogInformation("Password reset completed for user: {UserId}", user.Id.Value);
+        LogPasswordResetCompletedForUserUserid(user.Id.Value);
 
         return AuthResult.Succeeded();
     }
@@ -302,18 +306,19 @@ public sealed class AuthService : IAuthService
     public async Task<AuthResult> ResetPasswordWithCodeAsync(ResetPasswordWithCodeRequest request, CancellationToken cancellationToken = default)
     {
         var email = Email.From(request.Email);
-        var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
+        var specification = new UserByEmailSpecification(email);
+        var user = await _userRepository.FindOneAsync(specification, cancellationToken);
 
         if (user == null || !user.ValidatePasswordResetCode(request.Code))
         {
-            return AuthResult.Failed(AuthErrorCode.InvalidCode);
+            return AuthResult.Failed(AuthErrorCode.INVALID_CODE);
         }
 
         // Validate new password strength
         var strengthResult = _passwordService.ValidateStrength(request.NewPassword);
         if (!strengthResult.IsValid)
         {
-            return AuthResult.Failed(AuthErrorCode.PasswordTooWeak, string.Join(" ", strengthResult.Errors));
+            return AuthResult.Failed(AuthErrorCode.PASSWORD_TOO_WEAK, string.Join(" ", strengthResult.Errors));
         }
 
         // Update password and clear reset tokens
@@ -324,10 +329,10 @@ public sealed class AuthService : IAuthService
         // Revoke all refresh tokens
         await _tokenService.RevokeAllUserTokensAsync(user.Id, cancellationToken);
 
-        await LogAuditEventAsync(user.Id, email, AuthAuditEventType.PasswordReset,
+        await LogAuditEventAsync(user.Id, email, AuthAuditEventType.PASSWORD_RESET,
             null, null, true, null, cancellationToken);
 
-        _logger.LogInformation("Password reset with code completed for user: {UserId}", user.Id.Value);
+        LogPasswordResetWithCodeCompletedForUserUserid(user.Id.Value);
 
         return AuthResult.Succeeded();
     }
@@ -338,26 +343,26 @@ public sealed class AuthService : IAuthService
         var user = await _userRepository.GetByEmailVerificationTokenAsync(token, cancellationToken);
         if (user == null)
         {
-            return AuthResult.Failed(AuthErrorCode.InvalidToken);
+            return AuthResult.Failed(AuthErrorCode.INVALID_TOKEN);
         }
 
         if (user.EmailVerified)
         {
-            return AuthResult.Failed(AuthErrorCode.EmailAlreadyVerified);
+            return AuthResult.Failed(AuthErrorCode.EMAIL_ALREADY_VERIFIED);
         }
 
         var success = user.VerifyEmailWithToken(token);
         if (!success)
         {
-            return AuthResult.Failed(AuthErrorCode.InvalidToken);
+            return AuthResult.Failed(AuthErrorCode.INVALID_TOKEN);
         }
 
         await _userRepository.UpdateAsync(user, cancellationToken);
 
-        await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.EmailVerification,
+        await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.EMAIL_VERIFICATION,
             null, null, true, null, cancellationToken);
 
-        _logger.LogInformation("Email verified for user: {UserId}", user.Id.Value);
+        LogEmailVerifiedForUserUserid(user.Id.Value);
 
         return AuthResult.Succeeded();
     }
@@ -368,12 +373,12 @@ public sealed class AuthService : IAuthService
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user == null)
         {
-            return AuthResult.Failed(AuthErrorCode.UserNotFound);
+            return AuthResult.Failed(AuthErrorCode.USER_NOT_FOUND);
         }
 
         if (user.EmailVerified)
         {
-            return AuthResult.Failed(AuthErrorCode.EmailAlreadyVerified);
+            return AuthResult.Failed(AuthErrorCode.EMAIL_ALREADY_VERIFIED);
         }
 
         user.GenerateEmailVerificationToken();
@@ -382,7 +387,7 @@ public sealed class AuthService : IAuthService
         // TODO: Send verification email via IEmailService
         // await _emailService.SendVerificationEmailAsync(user, cancellationToken);
 
-        _logger.LogInformation("Verification email resent for user: {UserId}", userId.Value);
+        LogVerificationEmailResentForUserUserid(userId.Value);
 
         return AuthResult.Succeeded();
     }
@@ -394,16 +399,16 @@ public sealed class AuthService : IAuthService
         var result = await _tokenService.RefreshTokensAsync(refreshToken, null, cancellationToken);
         if (result == null)
         {
-            _logger.LogWarning("Token refresh failed: invalid or expired refresh token");
-            return AuthResult.Failed(AuthErrorCode.InvalidToken);
+            LogTokenRefreshFailedInvalidOrExpiredRefreshToken();
+            return AuthResult.Failed(AuthErrorCode.INVALID_TOKEN);
         }
 
         // Get the user to include full details in the response
         var user = await _userRepository.GetByIdAsync(result.UserId, cancellationToken);
         if (user == null)
         {
-            _logger.LogWarning("Token refresh failed: user not found for ID {UserId}", result.UserId.Value);
-            return AuthResult.Failed(AuthErrorCode.UserNotFound);
+            LogTokenRefreshFailedUserNotFoundForIdUserid(result.UserId.Value);
+            return AuthResult.Failed(AuthErrorCode.USER_NOT_FOUND);
         }
 
         var authenticatedUser = new AuthenticatedUser
@@ -412,10 +417,10 @@ public sealed class AuthService : IAuthService
             EmailVerified = user.EmailVerified
         };
 
-        await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.TokenRefresh,
+        await LogAuditEventAsync(user.Id, user.Email, AuthAuditEventType.TOKEN_REFRESH,
             null, null, true, null, cancellationToken);
 
-        _logger.LogDebug("Token refreshed for user: {UserId}", user.Id.Value);
+        LogTokenRefreshedForUserUserid(user.Id.Value);
 
         return AuthResult.Succeeded(result.Tokens, user.Id, user.Email, authenticatedUser);
     }
@@ -441,6 +446,51 @@ public sealed class AuthService : IAuthService
 
         await _auditLogRepository.AddAsync(auditLog, cancellationToken);
     }
+
+    [LoggerMessage(LogLevel.Information, "User registered successfully: {email}")]
+    partial void LogUserRegisteredSuccessfullyEmail(string email);
+
+    [LoggerMessage(LogLevel.Warning, "Account locked due to failed login attempts: {email}")]
+    partial void LogAccountLockedDueToFailedLoginAttemptsEmail(string email);
+
+    [LoggerMessage(LogLevel.Information, "User logged in successfully: {email}")]
+    partial void LogUserLoggedInSuccessfullyEmail(string email);
+
+    [LoggerMessage(LogLevel.Information, "User logged out successfully")]
+    partial void LogUserLoggedOutSuccessfully();
+
+    [LoggerMessage(LogLevel.Information, "User logged out from all devices. Sessions revoked: {count}")]
+    partial void LogUserLoggedOutFromAllDevicesSessionsRevokedCount(int count);
+
+    [LoggerMessage(LogLevel.Information, "Password changed for user: {userId}")]
+    partial void LogPasswordChangedForUserUserid(Guid userId);
+
+    [LoggerMessage(LogLevel.Debug, "Password reset requested for non-existent email: {email}")]
+    partial void LogPasswordResetRequestedForNonExistentEmailEmail(string email);
+
+    [LoggerMessage(LogLevel.Information, "Password reset requested for user: {email}")]
+    partial void LogPasswordResetRequestedForUserEmail(string email);
+
+    [LoggerMessage(LogLevel.Information, "Password reset completed for user: {userId}")]
+    partial void LogPasswordResetCompletedForUserUserid(Guid userId);
+
+    [LoggerMessage(LogLevel.Information, "Password reset with code completed for user: {userId}")]
+    partial void LogPasswordResetWithCodeCompletedForUserUserid(Guid userId);
+
+    [LoggerMessage(LogLevel.Information, "Email verified for user: {userId}")]
+    partial void LogEmailVerifiedForUserUserid(Guid userId);
+
+    [LoggerMessage(LogLevel.Information, "Verification email resent for user: {userId}")]
+    partial void LogVerificationEmailResentForUserUserid(Guid userId);
+
+    [LoggerMessage(LogLevel.Warning, "Token refresh failed: invalid or expired refresh token")]
+    partial void LogTokenRefreshFailedInvalidOrExpiredRefreshToken();
+
+    [LoggerMessage(LogLevel.Warning, "Token refresh failed: user not found for ID {userId}")]
+    partial void LogTokenRefreshFailedUserNotFoundForIdUserid(Guid userId);
+
+    [LoggerMessage(LogLevel.Debug, "Token refreshed for user: {userId}")]
+    partial void LogTokenRefreshedForUserUserid(Guid userId);
 }
 
 /// <summary>

@@ -23,7 +23,7 @@ internal sealed class EmailOutboxRepository(FamilyDbContext context) : IEmailOut
         CancellationToken cancellationToken = default)
     {
         return await _context.EmailOutbox
-            .Where(e => e.Status == EmailStatus.Pending)
+            .Where(e => e.Status == EmailStatus.PENDING)
             .OrderBy(e => e.CreatedAt)
             .Take(batchSize)
             .ToListAsync(cancellationToken);
@@ -34,7 +34,7 @@ internal sealed class EmailOutboxRepository(FamilyDbContext context) : IEmailOut
         CancellationToken cancellationToken = default)
     {
         return await _context.EmailOutbox
-            .Where(e => e.Status == EmailStatus.Failed)
+            .Where(e => e.Status == EmailStatus.FAILED)
             .OrderBy(e => e.CreatedAt)
             .Take(batchSize)
             .ToListAsync(cancellationToken);

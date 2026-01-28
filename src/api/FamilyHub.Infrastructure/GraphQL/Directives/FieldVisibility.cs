@@ -24,17 +24,17 @@ public enum FieldVisibility
     /// Field is only visible to the profile owner.
     /// The most restrictive visibility level.
     /// </summary>
-    Owner,
+    OWNER,
 
     /// <summary>
     /// Field is visible to family members and the profile owner.
     /// This is the default for sensitive personal information.
     /// </summary>
-    Family,
+    FAMILY,
 
     /// <summary>
     /// Field is visible to all authenticated users.
     /// Used for publicly shareable information.
     /// </summary>
-    Public
+    PUBLIC
 }

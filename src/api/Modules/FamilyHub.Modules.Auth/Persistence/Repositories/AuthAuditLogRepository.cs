@@ -44,7 +44,7 @@ public sealed class AuthAuditLogRepository : IAuthAuditLogRepository
     {
         return await _context.AuthAuditLogs
             .Where(a => a.Email == email &&
-                        a.EventType == AuthAuditEventType.FailedLogin &&
+                        a.EventType == AuthAuditEventType.FAILED_LOGIN &&
                         a.OccurredAt >= since)
             .CountAsync(cancellationToken);
     }

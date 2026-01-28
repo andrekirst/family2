@@ -76,7 +76,7 @@ public sealed class EmailOutboxRepositoryIntegrationTests(FamilyPostgreSqlContai
         retrieved!.To.Should().Be("test@example.com");
         retrieved.ToName.Should().Be("Test User");
         retrieved.Subject.Should().Be("Test Subject");
-        retrieved.Status.Should().Be(EmailStatus.Pending);
+        retrieved.Status.Should().Be(EmailStatus.PENDING);
     }
 
     [Fact]
@@ -402,7 +402,7 @@ public sealed class EmailOutboxRepositoryIntegrationTests(FamilyPostgreSqlContai
         // Assert
         var retrieved = await _repository.GetByIdAsync(emailOutbox.Id);
         retrieved.Should().NotBeNull();
-        retrieved!.Status.Should().Be(EmailStatus.Sent);
+        retrieved!.Status.Should().Be(EmailStatus.SENT);
         retrieved.SentAt.Should().NotBeNull();
     }
 
@@ -429,7 +429,7 @@ public sealed class EmailOutboxRepositoryIntegrationTests(FamilyPostgreSqlContai
         // Assert
         var retrieved = await _repository.GetByIdAsync(emailOutbox.Id);
         retrieved.Should().NotBeNull();
-        retrieved!.Status.Should().Be(EmailStatus.Failed);
+        retrieved!.Status.Should().Be(EmailStatus.FAILED);
         retrieved.ErrorMessage.Should().Be("SMTP connection timeout");
         retrieved.RetryCount.Should().Be(1);
         retrieved.LastAttemptAt.Should().NotBeNull();
@@ -461,7 +461,7 @@ public sealed class EmailOutboxRepositoryIntegrationTests(FamilyPostgreSqlContai
         // Assert
         var retrieved = await _repository.GetByIdAsync(emailOutbox.Id);
         retrieved.Should().NotBeNull();
-        retrieved!.Status.Should().Be(EmailStatus.Sent);
+        retrieved!.Status.Should().Be(EmailStatus.SENT);
         retrieved.SentAt.Should().NotBeNull();
         retrieved.SentAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
@@ -520,7 +520,7 @@ public sealed class EmailOutboxRepositoryIntegrationTests(FamilyPostgreSqlContai
         // Assert
         var retrieved = await _repository.GetByIdAsync(emailOutbox.Id);
         retrieved.Should().NotBeNull();
-        retrieved!.Status.Should().Be(EmailStatus.PermanentlyFailed);
+        retrieved!.Status.Should().Be(EmailStatus.PERMANENTLY_FAILED);
         retrieved.RetryCount.Should().Be(10);
     }
 

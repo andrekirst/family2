@@ -111,7 +111,7 @@ public sealed class TokenService : ITokenService
         var refreshTokenExpires = now.Add(refreshTokenLifetime);
 
         // Create new refresh token entity
-        var newRefreshTokenEntity = Domain.RefreshToken.Create(
+        var newRefreshTokenEntity = RefreshToken.Create(
             user.Id,
             newRefreshTokenHash,
             refreshTokenLifetime,

@@ -99,7 +99,7 @@ public sealed class EmailOutbox : Entity<EmailOutboxId>
             Subject = subject,
             HtmlBody = htmlBody,
             TextBody = textBody,
-            Status = EmailStatus.Pending,
+            Status = EmailStatus.PENDING,
             RetryCount = 0
         };
     }
@@ -109,7 +109,7 @@ public sealed class EmailOutbox : Entity<EmailOutboxId>
     /// </summary>
     public void MarkAsSent()
     {
-        Status = EmailStatus.Sent;
+        Status = EmailStatus.SENT;
         SentAt = DateTime.UtcNow;
         LastAttemptAt = DateTime.UtcNow;
         ErrorMessage = null;
@@ -128,11 +128,11 @@ public sealed class EmailOutbox : Entity<EmailOutboxId>
 
         if (RetryCount >= 10) // Max retries
         {
-            Status = EmailStatus.PermanentlyFailed;
+            Status = EmailStatus.PERMANENTLY_FAILED;
         }
         else
         {
-            Status = EmailStatus.Failed;
+            Status = EmailStatus.FAILED;
         }
     }
 
@@ -142,7 +142,7 @@ public sealed class EmailOutbox : Entity<EmailOutboxId>
     /// <returns>True if the email can be retried; otherwise, false.</returns>
     public bool CanRetry()
     {
-        if (Status != EmailStatus.Failed)
+        if (Status != EmailStatus.FAILED)
         {
             return false;
         }

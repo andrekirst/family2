@@ -82,7 +82,7 @@ public sealed class UserProfileObjectType : ObjectType<UserProfileAggregate>
         descriptor
             .Field(p => p.Birthday)
             .Type<DateType>()
-            .Directive(new VisibleDirective { To = FieldVisibility.Family })
+            .Directive(new VisibleDirective { To = FieldVisibility.FAMILY })
             .Resolve(ctx => ctx.Parent<UserProfileAggregate>().Birthday?.Value);
 
         // Calculated age - visible to family members (derived from birthday)
@@ -90,15 +90,22 @@ public sealed class UserProfileObjectType : ObjectType<UserProfileAggregate>
             .Field("age")
             .Type<IntType>()
             .Description("Calculated age based on birthday.")
-            .Directive(new VisibleDirective { To = FieldVisibility.Family })
+            .Directive(new VisibleDirective { To = FieldVisibility.FAMILY })
             .Resolve(ctx =>
             {
                 var birthday = ctx.Parent<UserProfileAggregate>().Birthday?.Value;
-                if (birthday is null) return null;
+                if (birthday is null)
+                {
+                    return null;
+                }
 
                 var today = DateOnly.FromDateTime(DateTime.UtcNow);
                 var age = today.Year - birthday.Value.Year;
-                if (birthday.Value > today.AddYears(-age)) age--;
+                if (birthday.Value > today.AddYears(-age))
+                {
+                    age--;
+                }
+
                 return age;
             });
 
@@ -106,20 +113,20 @@ public sealed class UserProfileObjectType : ObjectType<UserProfileAggregate>
         descriptor
             .Field(p => p.Pronouns)
             .Type<StringType>()
-            .Directive(new VisibleDirective { To = FieldVisibility.Public })
+            .Directive(new VisibleDirective { To = FieldVisibility.PUBLIC })
             .Resolve(ctx => ctx.Parent<UserProfileAggregate>().Pronouns?.Value);
 
         // Preferences - visible only to profile owner
         descriptor
             .Field(p => p.Preferences)
             .Type<NonNullType<ProfilePreferencesObjectType>>()
-            .Directive(new VisibleDirective { To = FieldVisibility.Owner });
+            .Directive(new VisibleDirective { To = FieldVisibility.OWNER });
 
         // Field visibility settings - visible only to profile owner
         descriptor
             .Field(p => p.FieldVisibility)
             .Type<NonNullType<ProfileFieldVisibilityObjectType>>()
-            .Directive(new VisibleDirective { To = FieldVisibility.Owner });
+            .Directive(new VisibleDirective { To = FieldVisibility.OWNER });
 
         // Audit info
         descriptor

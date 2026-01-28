@@ -81,7 +81,7 @@ public sealed class VisibilityContext : IVisibilityContext
         }
 
         // For PUBLIC visibility, any authenticated user can see
-        if (directiveVisibility == FieldVisibility.Public)
+        if (directiveVisibility == FieldVisibility.PUBLIC)
         {
             return Task.FromResult(true);
         }
@@ -93,13 +93,13 @@ public sealed class VisibilityContext : IVisibilityContext
         var isOwner = ownerUserId.HasValue && CurrentUserId == ownerUserId.Value;
 
         // OWNER visibility - only the profile owner can see
-        if (directiveVisibility == FieldVisibility.Owner)
+        if (directiveVisibility == FieldVisibility.OWNER)
         {
             return Task.FromResult(isOwner);
         }
 
         // FAMILY visibility - owner OR same family
-        if (directiveVisibility == FieldVisibility.Family)
+        if (directiveVisibility == FieldVisibility.FAMILY)
         {
             if (isOwner)
             {

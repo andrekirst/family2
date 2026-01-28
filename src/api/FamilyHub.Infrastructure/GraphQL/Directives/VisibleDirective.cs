@@ -62,5 +62,5 @@ public sealed class VisibleDirective
     /// <summary>
     /// The visibility level for the field.
     /// </summary>
-    public FieldVisibility To { get; set; } = FieldVisibility.Family;
+    public FieldVisibility To { get; set; } = FieldVisibility.FAMILY;
 }
