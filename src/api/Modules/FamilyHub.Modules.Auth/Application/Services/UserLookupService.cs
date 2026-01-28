@@ -28,7 +28,13 @@ public sealed class UserLookupService(AuthDbContext context) : IUserLookupServic
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
-        return user?.FamilyId;
+        // Return null if user not found OR if user has no family (Guid.Empty is the default value)
+        if (user == null || user.FamilyId.Value == Guid.Empty)
+        {
+            return null;
+        }
+
+        return user.FamilyId;
     }
 
     /// <inheritdoc />
@@ -55,7 +61,13 @@ public sealed class UserLookupService(AuthDbContext context) : IUserLookupServic
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 
-        return user?.FamilyId;
+        // Return null if user not found OR if user has no family (Guid.Empty is the default value)
+        if (user == null || user.FamilyId.Value == Guid.Empty)
+        {
+            return null;
+        }
+
+        return user.FamilyId;
     }
 
     /// <inheritdoc />

@@ -207,15 +207,23 @@ public static class AuthModuleServiceRegistration
             .RegisterDbContextFactory<AuthDbContext>()
             // Core entity types (must be registered before their extensions)
             .AddType<Presentation.GraphQL.Types.UserType>()
+            .AddType<Presentation.GraphQL.Types.UserObjectType>()
             .AddTypeExtension<Presentation.GraphQL.Types.UserTypeExtensions>()
             .AddTypeExtension<Presentation.GraphQL.Types.FamilyTypeExtensions>()
             // Namespace container types - provide GraphQL schema organization
             // query { auth { ... } invitations { ... } }
             .AddType<Presentation.GraphQL.Types.AuthType>()
             .AddType<Presentation.GraphQL.Types.InvitationsType>()
+            // NEW: Namespace container types for nested schema structure
+            // mutation { auth { login } } mutation { account { acceptInvitation } }
+            .AddType<Presentation.GraphQL.Namespaces.AuthMutationsType>()
+            .AddType<Presentation.GraphQL.Namespaces.AccountMutationsType>()
             // Extensions for namespace container types
             .AddTypeExtension<Presentation.GraphQL.Types.AuthTypeExtensions>()
             .AddTypeExtension<Presentation.GraphQL.Types.InvitationsTypeExtensions>()
+            // NEW: Extensions that add mutations to namespace types
+            .AddTypeExtension<Presentation.GraphQL.Namespaces.AuthMutationsExtensions>()
+            .AddTypeExtension<Presentation.GraphQL.Namespaces.AccountMutationsExtensions>()
             // Query extensions - extend Query type with authentication-related queries
             .AddTypeExtension<Presentation.GraphQL.Queries.HealthQueries>()
             .AddTypeExtension<Presentation.GraphQL.Queries.UserQueries>()
@@ -223,7 +231,8 @@ public static class AuthModuleServiceRegistration
             .AddTypeExtension<Presentation.GraphQL.Queries.InvitationsQueryExtension>()
             .AddTypeExtension<Presentation.GraphQL.Queries.InvitationQueries>()
             .AddTypeExtension<Presentation.GraphQL.Queries.RolesQueries>()
-            // Mutation extensions - extend Mutation type with authentication-related mutations
+            // Legacy mutation extensions - extend Mutation type directly (to be deprecated)
+            // These will be removed once frontend is updated to use namespaced mutations
             .AddTypeExtension<Presentation.GraphQL.Mutations.AuthMutations>()
             .AddTypeExtension<Presentation.GraphQL.Mutations.FamilyMutations>()
             .AddTypeExtension<Presentation.GraphQL.Mutations.InvitationMutations>()

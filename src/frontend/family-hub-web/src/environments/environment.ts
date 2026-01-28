@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  graphqlEndpoint: 'https://localhost:7208/graphql',
-  graphqlWsEndpoint: 'wss://localhost:7208/graphql', // WebSocket endpoint for GraphQL subscriptions
+  graphqlEndpoint: 'http://localhost:5002/graphql/',
+  graphqlWsEndpoint: 'ws://localhost:5002/graphql/', // WebSocket endpoint for GraphQL subscriptions
 };

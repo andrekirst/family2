@@ -8,15 +8,31 @@ import {
 } from '../models/profile.models';
 
 /**
+ * Error types for updateUserProfile mutation.
+ * Backend uses Hot Chocolate's [UseMutationConvention] with [DefaultMutationErrors]
+ * which generates an errors array containing these union types.
+ */
+type UpdateUserProfileError =
+  | { __typename: 'BusinessError'; message: string; code: string }
+  | { __typename: 'ValidationError'; message: string; field: string }
+  | { __typename: 'UnauthorizedError'; message: string }
+  | { __typename: 'InternalServerError'; message: string }
+  | { __typename: 'ValueObjectError'; message: string };
+
+/**
  * GraphQL response type for updateUserProfile mutation.
- * Backend returns UpdateUserProfileDto with limited fields.
+ * Mutation convention generates an OBJECT payload with DTO field and errors array.
+ * Note: DTO field name keeps 'Dto' suffix (UpdateUserProfileDto → updateUserProfileDto).
  */
 interface UpdateUserProfileMutationResponse {
   updateUserProfile: {
-    profileId: string;
-    displayName: string;
-    updatedAt: string;
-    isNewProfile: boolean;
+    updateUserProfileDto: {
+      profileId: string;
+      displayName: string;
+      updatedAt: string;
+      isNewProfile: boolean;
+    } | null;
+    errors: UpdateUserProfileError[];
   };
 }
 
@@ -99,34 +115,38 @@ export class ProfileService {
     this.profileState.update((s) => ({ ...s, isLoading: true, error: null }));
 
     try {
+      // Namespaced query: query { account { myProfile { ... } } }
+      // This follows the nested namespace structure for domain organization.
       const query = `
         query GetMyProfile {
-          myProfile {
-            id
-            userId
-            displayName
-            birthday
-            age
-            pronouns
-            preferences {
-              language
-              timezone
-              dateFormat
+          account {
+            myProfile {
+              id
+              userId
+              displayName
+              birthday
+              age
+              pronouns
+              preferences {
+                language
+                timezone
+                dateFormat
+              }
+              fieldVisibility {
+                birthdayVisibility
+                pronounsVisibility
+                preferencesVisibility
+              }
+              createdAt
+              updatedAt
             }
-            fieldVisibility {
-              birthdayVisibility
-              pronounsVisibility
-              preferencesVisibility
-            }
-            createdAt
-            updatedAt
           }
         }
       `;
 
-      const response = await this.graphqlService.query<GetMyProfileResponse>(query);
+      const response = await this.graphqlService.query<{ account: GetMyProfileResponse }>(query);
 
-      const profile = response.myProfile;
+      const profile = response.account.myProfile;
       const isSetupComplete =
         profile !== null && profile.displayName !== null && profile.displayName.trim().length > 0;
 
@@ -157,18 +177,50 @@ export class ProfileService {
       const mutation = `
         mutation UpdateUserProfile($input: UpdateUserProfileInput!) {
           updateUserProfile(input: $input) {
-            profileId
-            displayName
-            updatedAt
-            isNewProfile
+            updateUserProfileDto {
+              profileId
+              displayName
+              updatedAt
+              isNewProfile
+            }
+            errors {
+              __typename
+              ... on BusinessError {
+                message
+                code
+              }
+              ... on ValidationError {
+                message
+                field
+              }
+              ... on UnauthorizedError {
+                message
+              }
+              ... on InternalServerError {
+                message
+              }
+              ... on ValueObjectError {
+                message
+              }
+            }
           }
         }
       `;
 
-      await this.graphqlService.mutate<UpdateUserProfileMutationResponse>(mutation, { input });
+      const response = await this.graphqlService.mutate<UpdateUserProfileMutationResponse>(
+        mutation,
+        { input }
+      );
 
-      // Reload full profile to get all updated fields
-      // This ensures we have the complete profile including calculated age
+      // Check for mutation convention errors in payload
+      const payload = response.updateUserProfile;
+      if (payload.errors && payload.errors.length > 0) {
+        const errorMessage = payload.errors.map((e) => e.message).join('; ');
+        throw new Error(errorMessage);
+      }
+
+      // Success case - DTO data available
+      // Reload full profile to get all updated fields including calculated age
       await this.loadProfile();
 
       return true;

@@ -2,7 +2,7 @@
 
 **Purpose:** Guide to architectural decisions, domain model, event chains, and system design patterns in Family Hub.
 
-**Key Resources:** 12 ADRs, Domain Model, Event Chains Reference, Multi-Tenancy Strategy
+**Key Resources:** 13 ADRs, Domain Model, Event Chains Reference, Multi-Tenancy Strategy
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### Architecture Decision Records (ADRs)
 
-Family Hub has **12 ADRs** documenting critical architectural decisions:
+Family Hub has **13 ADRs** documenting critical architectural decisions:
 
 **Core Architecture:**
 
@@ -29,6 +29,7 @@ Family Hub has **12 ADRs** documenting critical architectural decisions:
 4. **[ADR-010: Performance Testing](ADR-010-PERFORMANCE-TESTING-STRATEGY.md)** - k6-based performance testing
 5. **[ADR-011: DataLoader Pattern](ADR-011-DATALOADER-PATTERN.md)** - Hot Chocolate DataLoader for N+1 prevention
 6. **[ADR-012: Architecture Testing](ADR-012-ARCHITECTURE-TESTING-STRATEGY.md)** - NetArchTest for architecture validation
+7. **[ADR-013: GraphQL Schema Refactoring](ADR-013-GRAPHQL-SCHEMA-REFACTORING.md)** - Nested namespaces, Relay patterns, unified errors
 
 ---
 
@@ -380,6 +381,21 @@ CREATE POLICY family_isolation_policy ON auth.users
 
 ---
 
+### ADR-013: GraphQL Schema Refactoring
+
+**Decision:** Adopt nested namespaces, Relay patterns, unified error handling, and entity-centric subscriptions.
+
+**Rationale:**
+
+- Nested namespaces organize queries/mutations by domain (auth, account, family)
+- Relay Node interface enables global ID resolution and cache normalization
+- HotChocolate mutation conventions unify error handling across all mutations
+- Entity-centric subscriptions (`nodeChanged(id)`) provide flexible real-time updates
+
+**Status:** Implemented (January 2026)
+
+---
+
 ## When to Create New ADR
 
 Create an ADR when making decisions about:
@@ -448,4 +464,4 @@ Create an ADR when making decisions about:
 - [ ] Domain model diagram accurate
 - [ ] Event chain examples match reference
 - [ ] Module count and names correct (8 modules)
-- [ ] All 12 ADRs listed with correct links
+- [ ] All 13 ADRs listed with correct links

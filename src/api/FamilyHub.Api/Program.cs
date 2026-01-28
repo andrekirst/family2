@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Mime;
 using AspNetCoreRateLimit;
 using FamilyHub.Infrastructure.Email;
+using FamilyHub.Infrastructure.GraphQL.Directives;
 using FamilyHub.Infrastructure.GraphQL.Filters;
 using FamilyHub.Infrastructure.GraphQL.Interceptors;
 using FamilyHub.Infrastructure.Messaging;
@@ -146,6 +147,28 @@ try
     graphqlBuilder.AddAuthModuleGraphQlTypes();
     graphqlBuilder.AddFamilyModuleGraphQlTypes();
     graphqlBuilder.AddUserProfileModuleGraphQlTypes();
+
+    // Root type extensions for nested namespace structure
+    // These provide: query { auth, account, family, node, nodes }
+    //                mutation { auth, account, family }
+    graphqlBuilder
+        .AddTypeExtension<FamilyHub.Api.GraphQL.RootQueryExtensions>()
+        .AddTypeExtension<FamilyHub.Api.GraphQL.RootMutationExtensions>();
+
+    // @visible directive for field-level visibility control
+    // Enables: field @visible(to: FAMILY) to restrict field access based on viewer relationship
+    builder.Services.AddVisibilityDirectiveServices();
+    graphqlBuilder.AddVisibleDirective();
+
+    // Entity-centric subscriptions for real-time updates on Node types
+    // Enables: subscription { nodeChanged(nodeId: ID!) { ... } }
+    graphqlBuilder.AddTypeExtension<FamilyHub.Infrastructure.GraphQL.Subscriptions.NodeSubscriptions>();
+    builder.Services.AddScoped<FamilyHub.SharedKernel.Presentation.GraphQL.Subscriptions.INodeSubscriptionPublisher,
+        FamilyHub.Infrastructure.GraphQL.Subscriptions.NodeSubscriptionPublisher>();
+
+    // Register NodeResolver for Relay Node resolution
+    builder.Services.AddScoped<FamilyHub.SharedKernel.Presentation.GraphQL.Relay.INodeResolver,
+        FamilyHub.SharedKernel.Presentation.GraphQL.Relay.NodeResolver>();
 
     // Register DataLoaders for N+1 query prevention
     // BatchDataLoaders: 1:1 mapping (e.g., UserId -> User)

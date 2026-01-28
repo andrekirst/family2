@@ -16,10 +16,13 @@ export interface Family {
 }
 
 /**
- * GraphQL response type for family query (root level).
+ * GraphQL response type for family query (namespaced).
+ * Structure: query { family { current { ... } } }
  */
 interface GetCurrentFamilyResponse {
-  family: Family | null;
+  family: {
+    current: Family | null;
+  };
 }
 
 /**
@@ -153,14 +156,18 @@ export class FamilyService {
     this.error.set(null);
 
     try {
+      // Namespaced query: query { family { current { ... } } }
+      // This follows the nested namespace structure for domain organization.
       const query = `
         query GetCurrentFamily {
           family {
-            id
-            name
-            auditInfo {
-              createdAt
-              updatedAt
+            current {
+              id
+              name
+              auditInfo {
+                createdAt
+                updatedAt
+              }
             }
           }
         }
@@ -169,7 +176,7 @@ export class FamilyService {
       const response = await this.graphqlService.query<GetCurrentFamilyResponse>(query);
 
       // Set current family (or null if user has no families)
-      this.currentFamily.set(response.family);
+      this.currentFamily.set(response.family.current);
     } catch (err) {
       this.handleError(err, 'Failed to load family');
     } finally {

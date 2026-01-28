@@ -40,7 +40,8 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
                 id="email"
                 type="email"
                 placeholder="Enter your email address"
-                [(ngModel)]="email"
+                [ngModel]="email()"
+                (ngModelChange)="email.set($event)"
                 name="email"
                 [required]="true"
                 autocomplete="email"
@@ -57,7 +58,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
                   id="password"
                   [type]="showPassword() ? 'text' : 'password'"
                   placeholder="Create a strong password"
-                  [(ngModel)]="password"
+                  [ngModel]="password()"
                   (ngModelChange)="onPasswordChange($event)"
                   name="password"
                   [required]="true"
@@ -98,7 +99,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
               </div>
 
               <!-- Password Strength Meter -->
-              @if (password && passwordValidation()) {
+              @if (password() && passwordValidation()) {
                 <div class="mt-2">
                   <div class="flex items-center justify-between mb-1">
                     <span class="text-xs text-gray-500">Password strength:</span>
@@ -184,7 +185,8 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
                   id="confirmPassword"
                   [type]="showConfirmPassword() ? 'text' : 'password'"
                   placeholder="Confirm your password"
-                  [(ngModel)]="confirmPassword"
+                  [ngModel]="confirmPassword()"
+                  (ngModelChange)="confirmPassword.set($event)"
                   name="confirmPassword"
                   [required]="true"
                   autocomplete="new-password"
@@ -222,7 +224,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
                   }
                 </button>
               </div>
-              @if (confirmPassword && password !== confirmPassword) {
+              @if (confirmPassword() && password() !== confirmPassword()) {
                 <p class="mt-1 text-xs text-red-600">Passwords do not match</p>
               }
             </div>
@@ -231,7 +233,8 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
               <input
                 id="terms"
                 type="checkbox"
-                [(ngModel)]="acceptTerms"
+                [ngModel]="acceptTerms()"
+                (ngModelChange)="acceptTerms.set($event)"
                 name="terms"
                 class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
               />
@@ -289,10 +292,11 @@ export class RegisterComponent implements OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly passwordChange$ = new Subject<string>();
 
-  email = '';
-  password = '';
-  confirmPassword = '';
-  acceptTerms = false;
+  // Form fields as signals for proper reactivity with computed()
+  email = signal('');
+  password = signal('');
+  confirmPassword = signal('');
+  acceptTerms = signal(false);
   showPassword = signal(false);
   showConfirmPassword = signal(false);
   isLoading = signal(false);
@@ -304,11 +308,11 @@ export class RegisterComponent implements OnDestroy {
   canSubmit = computed(() => {
     const validation = this.passwordValidation();
     return (
-      this.email.trim().length > 0 &&
-      this.password.length > 0 &&
-      this.confirmPassword.length > 0 &&
-      this.password === this.confirmPassword &&
-      this.acceptTerms &&
+      this.email().trim().length > 0 &&
+      this.password().length > 0 &&
+      this.confirmPassword().length > 0 &&
+      this.password() === this.confirmPassword() &&
+      this.acceptTerms() &&
       validation?.isValid === true &&
       !this.isLoading()
     );
@@ -342,6 +346,7 @@ export class RegisterComponent implements OnDestroy {
   }
 
   onPasswordChange(password: string): void {
+    this.password.set(password);
     this.passwordChange$.next(password);
   }
 
@@ -379,7 +384,7 @@ export class RegisterComponent implements OnDestroy {
       this.isLoading.set(true);
       this.errorMessage.set(null);
 
-      await this.authService.register(this.email.trim(), this.password, this.confirmPassword);
+      await this.authService.register(this.email().trim(), this.password(), this.confirmPassword());
 
       // Navigate to dashboard on success
       // Note: If email verification is required, the dashboard or a guard will handle that

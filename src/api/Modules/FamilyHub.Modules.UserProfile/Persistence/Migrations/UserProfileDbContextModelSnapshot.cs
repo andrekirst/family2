@@ -128,22 +128,10 @@ namespace FamilyHub.Modules.UserProfile.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("display_name");
 
-                    b.Property<DateTime?>("LastSyncedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_synced_at");
-
                     b.Property<string>("Pronouns")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("pronouns");
-
-                    b.Property<string>("SyncStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("pending")
-                        .HasColumnName("sync_status");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()

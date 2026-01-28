@@ -1,45 +1,44 @@
-using FamilyHub.Modules.Family.Application.Abstractions;
-using FamilyHub.SharedKernel.Application.Abstractions;
+using FamilyHub.Modules.Family.Application.Queries.GetUserFamily;
+using FamilyHub.SharedKernel.Domain.ValueObjects;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
 namespace FamilyHub.Modules.Family.Presentation.GraphQL.Queries;
 
 /// <summary>
 /// GraphQL queries for family operations.
-/// Uses SharedKernel.IUserContext abstraction for authenticated user context.
+/// Dispatches to MediatR handlers to ensure UserContextEnrichmentBehavior runs.
 /// </summary>
 [ExtendObjectType("Query")]
 public sealed class FamilyQueries
 {
     /// <summary>
     /// Gets the current authenticated user's family.
-    /// Returns null if the user is not found.
-    /// Uses HotChocolate projections for automatic field selection optimization.
+    /// Returns null if the user has no family.
+    /// Dispatches to MediatR to trigger UserContextEnrichmentBehavior.
     /// </summary>
     [Authorize]
     [GraphQLDescription("Get the current user's family")]
     [UseProjection]
     public async Task<Domain.Aggregates.Family?> Family(
-        [Service] IUserContext userContext,
-        [Service] IFamilyService familyService,
+        [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userId = userContext.UserId;
+        // Dispatch to MediatR - this triggers UserContextEnrichmentBehavior
+        // which populates IUserContext before the handler runs
+        var result = await mediator.Send<GetUserFamilyResult?>(new GetUserFamilyQuery(), cancellationToken);
 
-        // Get family via service
-        var familyDto = await familyService.GetFamilyByUserIdAsync(userId, cancellationToken);
-        if (familyDto == null)
+        if (result == null)
         {
             return null;
         }
 
         // Reconstitute aggregate for GraphQL type resolution
-        // TODO: Consider returning DTO directly with dedicated GraphQL type mapping
         return Domain.Aggregates.Family.Reconstitute(
-            familyDto.Id,
-            familyDto.Name,
-            familyDto.OwnerId,
-            familyDto.CreatedAt,
-            familyDto.UpdatedAt);
+            result.FamilyId,
+            FamilyName.From(result.Name),
+            result.OwnerId,
+            result.CreatedAt,
+            result.UpdatedAt);
     }
 }

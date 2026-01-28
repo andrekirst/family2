@@ -7,6 +7,7 @@ using FamilyHub.Modules.UserProfile.Infrastructure.Services;
 using FamilyHub.Modules.UserProfile.Persistence;
 using FamilyHub.Modules.UserProfile.Persistence.Repositories;
 using FamilyHub.Modules.UserProfile.Presentation.GraphQL.Mutations;
+using FamilyHub.Modules.UserProfile.Presentation.GraphQL.Namespaces;
 using FamilyHub.Modules.UserProfile.Presentation.GraphQL.Queries;
 using FamilyHub.SharedKernel.Application.Abstractions;
 using FamilyHub.SharedKernel.Application.Behaviors;
@@ -120,9 +121,26 @@ public static class UserProfileModuleServiceRegistration
     {
         return builder
             .RegisterDbContextFactory<UserProfileDbContext>()
+            // Core entity types
+            .AddType<Presentation.GraphQL.Types.UserProfileObjectType>()
+            .AddType<Presentation.GraphQL.Types.ProfileChangeRequestObjectType>()
+            .AddType<Presentation.GraphQL.Types.ChangeRequestStatusEnumType>()
+            // NEW: Namespace container types for nested schema structure
+            // mutation { account { profile { updateProfile, approveChange, rejectChange } } }
+            .AddType<ProfileMutationsType>()
+            // query { account { profile { myProfile, changeRequests } } }
+            .AddType<ProfileQueriesType>()
+            // NEW: Extensions that add mutations to namespace types
+            .AddTypeExtension<ProfileMutationsExtensions>()
+            // NEW: Query extensions for namespaced structure
+            // query { account { myProfile { ... } } }
+            .AddTypeExtension<Presentation.GraphQL.Namespaces.AccountQueriesExtensions>()
+            // Query extensions (legacy - extend Query type directly)
             .AddTypeExtension<UserProfileQueries>()
-            .AddTypeExtension<UserProfileMutations>()
             .AddTypeExtension<ProfileChangeRequestQueries>()
+            // Legacy mutation extensions - extend Mutation type directly (to be deprecated)
+            // These will be removed once frontend is updated to use namespaced mutations
+            .AddTypeExtension<UserProfileMutations>()
             .AddTypeExtension<ProfileChangeRequestMutations>();
     }
 

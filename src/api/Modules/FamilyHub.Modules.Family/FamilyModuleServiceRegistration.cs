@@ -128,9 +128,21 @@ public static class FamilyModuleServiceRegistration
         return builder
             .RegisterDbContextFactory<FamilyDbContext>() // Required for DataLoaders
             .AddType<Presentation.GraphQL.Types.FamilyType>() // Register FamilyType explicitly
-                                                              // Query extensions - extend Query type with family-related queries
+            .AddType<Presentation.GraphQL.Types.InvitationObjectType>() // Invitation Node type
+            .AddType<Presentation.GraphQL.Types.InvitationStatusEnumType>() // Invitation status enum
+            // NEW: Namespace container types for nested schema structure
+            // mutation { family { inviteMemberByEmail, inviteMembers } }
+            .AddType<Presentation.GraphQL.Namespaces.FamilyMutationsType>()
+            // query { family { current, members } }
+            .AddType<Presentation.GraphQL.Namespaces.FamilyQueriesType>()
+            // NEW: Extensions that add mutations to namespace types
+            .AddTypeExtension<Presentation.GraphQL.Namespaces.FamilyMutationsExtensions>()
+            // NEW: Extensions that add queries to namespace types
+            .AddTypeExtension<Presentation.GraphQL.Namespaces.FamilyQueriesExtensions>()
+            // Query extensions - extend Query type with family-related queries (legacy)
             .AddTypeExtension<Presentation.GraphQL.Queries.FamilyQueries>()
-            // Mutation extensions - extend Mutation type with family-related mutations
+            // Legacy mutation extensions - extend Mutation type directly (to be deprecated)
+            // These will be removed once frontend is updated to use namespaced mutations
             .AddTypeExtension<Presentation.GraphQL.Mutations.InvitationMutations>();
     }
 

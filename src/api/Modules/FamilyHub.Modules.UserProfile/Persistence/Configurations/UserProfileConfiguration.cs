@@ -18,6 +18,9 @@ public class UserProfileConfiguration : IEntityTypeConfiguration<Domain.Aggregat
         builder.ToTable("profiles", "user_profile");
 
         // Primary key with Vogen value converter
+        // NOTE: No custom ValueComparer or HasSentinel needed for Vogen types.
+        // EF Core handles Vogen value converters correctly by default.
+        // (Auth module uses identical pattern with UserId and works fine.)
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id)
             .HasConversion(new UserProfileId.EfCoreValueConverter())
