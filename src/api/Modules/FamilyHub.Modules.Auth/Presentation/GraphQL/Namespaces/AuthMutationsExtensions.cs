@@ -40,7 +40,6 @@ public sealed class AuthMutationsExtensions
     /// Creates user, personal family, and sends verification email.
     /// </summary>
     [GraphQLDescription("Register a new user account with email and password.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     [Error<ConflictError>]
@@ -69,7 +68,6 @@ public sealed class AuthMutationsExtensions
     /// Returns JWT access token and refresh token on success.
     /// </summary>
     [GraphQLDescription("Login with email and password.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     [Error<UnauthorizedError>]
@@ -98,7 +96,6 @@ public sealed class AuthMutationsExtensions
     /// </summary>
     [Authorize]
     [GraphQLDescription("Log out and optionally revoke refresh token.")]
-    [UseMutationConvention]
     [Error<BusinessError>]
     public async Task<LogoutResult> Logout(
         string? refreshToken,
@@ -122,7 +119,6 @@ public sealed class AuthMutationsExtensions
     /// </summary>
     [Authorize]
     [GraphQLDescription("Log out from all devices.")]
-    [UseMutationConvention]
     [Error<BusinessError>]
     public async Task<LogoutResult> LogoutAllDevices(
         [Service] IMediator mediator,
@@ -145,7 +141,6 @@ public sealed class AuthMutationsExtensions
     /// Implements token rotation - old refresh token is revoked.
     /// </summary>
     [GraphQLDescription("Refresh access token using refresh token.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     public async Task<RefreshTokenResult> RefreshToken(
@@ -171,7 +166,6 @@ public sealed class AuthMutationsExtensions
     /// </summary>
     [Authorize]
     [GraphQLDescription("Change password for the authenticated user.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     public async Task<ChangePasswordResult> ChangePassword(
@@ -199,7 +193,6 @@ public sealed class AuthMutationsExtensions
     /// Sends reset link or code to the user's email.
     /// </summary>
     [GraphQLDescription("Request a password reset link or code.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     public async Task<RequestPasswordResetResult> RequestPasswordReset(
@@ -225,7 +218,6 @@ public sealed class AuthMutationsExtensions
     /// Reset password using a token from email link.
     /// </summary>
     [GraphQLDescription("Reset password using token from email link.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     public async Task<ResetPasswordResult> ResetPassword(
@@ -252,7 +244,6 @@ public sealed class AuthMutationsExtensions
     /// Reset password using a 6-digit code (mobile flow).
     /// </summary>
     [GraphQLDescription("Reset password using 6-digit code from email.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     public async Task<ResetPasswordWithCodeResult> ResetPasswordWithCode(
@@ -280,7 +271,6 @@ public sealed class AuthMutationsExtensions
     /// Verify user's email address using token from email link.
     /// </summary>
     [GraphQLDescription("Verify email address using token.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     public async Task<VerifyEmailResult> VerifyEmail(
@@ -306,7 +296,6 @@ public sealed class AuthMutationsExtensions
     /// </summary>
     [Authorize]
     [GraphQLDescription("Resend email verification link.")]
-    [UseMutationConvention]
     [Error<BusinessError>]
     public async Task<ResendVerificationEmailResult> ResendVerificationEmail(
         [Service] IMediator mediator,

@@ -2,6 +2,7 @@ using FamilyHub.Infrastructure.GraphQL.Types;
 using FamilyHub.Modules.Auth.Domain;
 using FamilyHub.Modules.Auth.Domain.Repositories;
 using FamilyHub.Modules.Auth.Domain.ValueObjects;
+using FamilyHub.Modules.Auth.Presentation.GraphQL.Mappers;
 using FamilyHub.SharedKernel.Domain.ValueObjects;
 using FamilyHub.SharedKernel.Presentation.GraphQL.Relay;
 using HotChocolate;
@@ -35,17 +36,12 @@ public sealed class UserObjectType : ObjectType<User>
         descriptor.Name("User");
         descriptor.Description("A registered user in the Family Hub system.");
 
-        // Implement Relay Node interface
-        descriptor
-            .ImplementsNode()
-            .IdField(u => u.Id.Value)
-            .ResolveNode(async (ctx, id) =>
-            {
-                var repository = ctx.Service<IUserRepository>();
-                return await repository.GetByIdAsync(UserId.From(id), ctx.RequestAborted);
-            });
+        // NOTE: Relay Node interface temporarily disabled due to HotChocolate IdField expression validation
+        // issue with Vogen value objects. The pattern .IdField(u => u.Id.Value) is rejected as
+        // "not a property-expression or method-call-expression". Fix tracked in issue #XXX.
+        // Users can still query by ID using regular query fields.
 
-        // Override the ID field to return global ID
+        // Global ID field (Relay-compatible format)
         descriptor
             .Field("id")
             .Type<NonNullType<IdType>>()
@@ -80,10 +76,11 @@ public sealed class UserObjectType : ObjectType<User>
             .Description("The ID of the family this user belongs to.")
             .Resolve(ctx => GlobalIdSerializer.Serialize("Family", ctx.Parent<User>().FamilyId.Value));
 
-        // User's role in the family
+        // User's role in the family - map Vogen FamilyRole to GraphQL UserRoleType enum
         descriptor
-            .Field(u => u.Role)
-            .Type<NonNullType<EnumType<FamilyRole>>>();
+            .Field("role")
+            .Type<NonNullType<EnumType<UserRoleType>>>()
+            .Resolve(ctx => ctx.Parent<User>().Role.AsRoleType());
 
         // Audit info
         descriptor

@@ -97,40 +97,8 @@ public sealed class InvitationMutations : IRequireOwnerOrAdminRole
         };
     }
 
-    /// <summary>
-    /// Accepts a family invitation using a token.
-    /// Only requires authentication (not Owner/Admin) - allows invitees to join.
-    /// Explicit [Authorize] overrides class-level IRequireOwnerOrAdminRole.
-    /// </summary>
-    [Authorize] // Override: User must be authenticated (but doesn't need Owner/Admin role)
-    [DefaultMutationErrors]
-    [UseMutationConvention]
-    public async Task<AcceptedInvitationDto> AcceptInvitation(
-        AcceptInvitationInput input,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        var command = new AcceptInvitationCommand(
-            Token: InvitationToken.From(input.Token)
-        );
-
-        // Explicit type parameter needed because C# can't infer TResponse through ICommand<T> : IRequest<T>
-        var result = await mediator.Send<FamilyHub.SharedKernel.Domain.Result<AcceptInvitationResult>>(command, cancellationToken);
-
-        if (!result.IsSuccess)
-        {
-            // FIXED: Throw BusinessException with proper error code instead of generic Exception
-            throw new BusinessException("ACCEPT_INVITATION_FAILED", result.Error);
-        }
-
-        // Map result → return DTO directly
-        return new AcceptedInvitationDto
-        {
-            FamilyId = result.Value.FamilyId.Value,
-            FamilyName = result.Value.FamilyName.Value,
-            Role = result.Value.Role.AsRoleType()
-        };
-    }
+    // NOTE: AcceptInvitation mutation moved to AccountMutationsExtensions.cs (namespaced pattern)
+    // Access via: mutation { account { acceptInvitation(...) } }
 }
 
 /// <summary>

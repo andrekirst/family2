@@ -13,7 +13,12 @@ public sealed class AuthQueriesType : ObjectType<AuthQueries>
         descriptor.Name("AuthQueries");
         descriptor.Description("Authentication-related queries.");
 
-        // Fields are added via extensions
-        descriptor.BindFieldsImplicitly();
+        // Placeholder field - actual queries to be added via extensions
+        // NOTE: GraphQL object types require at least one field
+        descriptor
+            .Field("_placeholder")
+            .Type<NonNullType<StringType>>()
+            .Description("Placeholder field. Authentication queries coming soon.")
+            .Resolve(_ => "Auth queries namespace - queries to be implemented");
     }
 }

@@ -41,17 +41,11 @@ public sealed class UserProfileObjectType : ObjectType<UserProfileAggregate>
 
         descriptor.BindFieldsExplicitly();
 
-        // Implement Relay Node interface
-        descriptor
-            .ImplementsNode()
-            .IdField(p => p.Id.Value)
-            .ResolveNode(async (ctx, id) =>
-            {
-                var repository = ctx.Service<IUserProfileRepository>();
-                return await repository.GetByIdAsync(UserProfileId.From(id), ctx.RequestAborted);
-            });
+        // NOTE: Relay Node interface temporarily disabled due to HotChocolate IdField expression validation
+        // issue with Vogen value objects. The pattern .IdField(p => p.Id.Value) is rejected as
+        // "not a property-expression or method-call-expression". Fix tracked in issue #XXX.
 
-        // Override the ID field to return global ID
+        // Global ID field (Relay-compatible format)
         descriptor
             .Field("id")
             .Type<NonNullType<IdType>>()
@@ -183,16 +177,29 @@ public sealed class ProfileFieldVisibilityObjectType : ObjectType<Domain.ValueOb
         descriptor.Name("ProfileFieldVisibility");
         descriptor.Description("Visibility settings for profile fields.");
 
+        // Map Vogen VisibilityLevel to GraphQL VisibilityLevelType enum
         descriptor
-            .Field(p => p.BirthdayVisibility)
-            .Type<NonNullType<EnumType<Domain.ValueObjects.VisibilityLevel>>>();
+            .Field("birthdayVisibility")
+            .Type<NonNullType<EnumType<VisibilityLevelType>>>()
+            .Resolve(ctx => MapVisibilityLevel(ctx.Parent<Domain.ValueObjects.ProfileFieldVisibility>().BirthdayVisibility));
 
         descriptor
-            .Field(p => p.PronounsVisibility)
-            .Type<NonNullType<EnumType<Domain.ValueObjects.VisibilityLevel>>>();
+            .Field("pronounsVisibility")
+            .Type<NonNullType<EnumType<VisibilityLevelType>>>()
+            .Resolve(ctx => MapVisibilityLevel(ctx.Parent<Domain.ValueObjects.ProfileFieldVisibility>().PronounsVisibility));
 
         descriptor
-            .Field(p => p.PreferencesVisibility)
-            .Type<NonNullType<EnumType<Domain.ValueObjects.VisibilityLevel>>>();
+            .Field("preferencesVisibility")
+            .Type<NonNullType<EnumType<VisibilityLevelType>>>()
+            .Resolve(ctx => MapVisibilityLevel(ctx.Parent<Domain.ValueObjects.ProfileFieldVisibility>().PreferencesVisibility));
     }
+
+    private static VisibilityLevelType MapVisibilityLevel(Domain.ValueObjects.VisibilityLevel level) =>
+        level.Value.ToLowerInvariant() switch
+        {
+            "hidden" => VisibilityLevelType.HIDDEN,
+            "family" => VisibilityLevelType.FAMILY,
+            "public" => VisibilityLevelType.PUBLIC,
+            _ => throw new InvalidOperationException($"Unknown visibility level: {level.Value}")
+        };
 }

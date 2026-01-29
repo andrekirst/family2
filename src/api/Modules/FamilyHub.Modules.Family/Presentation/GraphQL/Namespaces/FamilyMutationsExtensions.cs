@@ -37,7 +37,6 @@ public sealed class FamilyMutationsExtensions : IRequireOwnerOrAdminRole
     /// Requires OWNER or ADMIN role.
     /// </summary>
     [GraphQLDescription("Invite a family member via email. Sends invitation email with token.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     [Error<ConflictError>]
@@ -72,7 +71,6 @@ public sealed class FamilyMutationsExtensions : IRequireOwnerOrAdminRole
     /// Requires OWNER or ADMIN role.
     /// </summary>
     [GraphQLDescription("Invite multiple family members in batch. Supports partial success.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     public async Task<InviteFamilyMembersResult> InviteMembers(

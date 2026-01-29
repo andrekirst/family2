@@ -218,6 +218,10 @@ public static class AuthModuleServiceRegistration
             // mutation { auth { login } } mutation { account { acceptInvitation } }
             .AddType<Presentation.GraphQL.Namespaces.AuthMutationsType>()
             .AddType<Presentation.GraphQL.Namespaces.AccountMutationsType>()
+            // Query namespace container types
+            // query { auth { ... } } query { account { ... } }
+            .AddType<Presentation.GraphQL.Namespaces.AuthQueriesType>()
+            .AddType<Presentation.GraphQL.Namespaces.AccountQueriesType>()
             // Extensions for namespace container types
             .AddTypeExtension<Presentation.GraphQL.Types.AuthTypeExtensions>()
             .AddTypeExtension<Presentation.GraphQL.Types.InvitationsTypeExtensions>()

@@ -34,7 +34,6 @@ public sealed class AccountMutationsExtensions
     /// </summary>
     [Authorize]
     [GraphQLDescription("Accept a family invitation using the token from the invitation email.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     [Error<NotFoundError>]

@@ -39,7 +39,6 @@ public sealed class ProfileMutationsExtensions
     /// </summary>
     [Authorize]
     [GraphQLDescription("Update the current user's profile. For children, changes may require parental approval.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     public async Task<UpdateProfileResult> UpdateProfile(
@@ -93,7 +92,6 @@ public sealed class ProfileMutationsExtensions
     /// </summary>
     [Authorize]
     [GraphQLDescription("Approve a pending profile change request. Requires Owner/Admin role.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     [Error<NotFoundError>]
@@ -129,7 +127,6 @@ public sealed class ProfileMutationsExtensions
     /// </summary>
     [Authorize]
     [GraphQLDescription("Reject a pending profile change request. Requires Owner/Admin role.")]
-    [UseMutationConvention]
     [Error<ValidationError>]
     [Error<BusinessError>]
     [Error<NotFoundError>]

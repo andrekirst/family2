@@ -39,17 +39,11 @@ public sealed class ProfileChangeRequestObjectType : ObjectType<ChangeRequestAgg
 
         descriptor.BindFieldsExplicitly();
 
-        // Implement Relay Node interface
-        descriptor
-            .ImplementsNode()
-            .IdField(r => r.Id.Value)
-            .ResolveNode(async (ctx, id) =>
-            {
-                var repository = ctx.Service<IProfileChangeRequestRepository>();
-                return await repository.GetByIdAsync(ChangeRequestId.From(id), ctx.RequestAborted);
-            });
+        // NOTE: Relay Node interface temporarily disabled due to HotChocolate IdField expression validation
+        // issue with Vogen value objects. The pattern .IdField(r => r.Id.Value) is rejected as
+        // "not a property-expression or method-call-expression". Fix tracked in issue #XXX.
 
-        // Override the ID field to return global ID
+        // Global ID field (Relay-compatible format)
         descriptor
             .Field("id")
             .Type<NonNullType<IdType>>()

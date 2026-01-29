@@ -13,7 +13,12 @@ public sealed class ProfileQueriesType : ObjectType<ProfileQueries>
         descriptor.Name("ProfileQueries");
         descriptor.Description("Profile-related queries (my profile, user profiles, change requests).");
 
-        // Fields are added via extensions
-        descriptor.BindFieldsImplicitly();
+        // Placeholder field - actual queries to be added via extensions
+        // NOTE: GraphQL object types require at least one field
+        descriptor
+            .Field("_placeholder")
+            .Type<NonNullType<StringType>>()
+            .Description("Placeholder field. Profile queries coming soon.")
+            .Resolve(_ => "Profile queries namespace - queries to be implemented");
     }
 }

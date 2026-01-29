@@ -36,17 +36,11 @@ public sealed class InvitationObjectType : ObjectType<InvitationAggregate>
 
         descriptor.BindFieldsExplicitly();
 
-        // Implement Relay Node interface
-        descriptor
-            .ImplementsNode()
-            .IdField(i => i.Id.Value)
-            .ResolveNode(async (ctx, id) =>
-            {
-                var repository = ctx.Service<IFamilyMemberInvitationRepository>();
-                return await repository.GetByIdAsync(InvitationId.From(id), ctx.RequestAborted);
-            });
+        // NOTE: Relay Node interface temporarily disabled due to HotChocolate IdField expression validation
+        // issue with Vogen value objects. The pattern .IdField(i => i.Id.Value) is rejected as
+        // "not a property-expression or method-call-expression". Fix tracked in issue #XXX.
 
-        // Override the ID field to return global ID
+        // Global ID field (Relay-compatible format)
         descriptor
             .Field("id")
             .Type<NonNullType<IdType>>()
@@ -74,11 +68,12 @@ public sealed class InvitationObjectType : ObjectType<InvitationAggregate>
             .Description("Email address of the invited person.")
             .Resolve(ctx => ctx.Parent<InvitationAggregate>().Email.Value);
 
-        // Role to be assigned
+        // Role to be assigned - map Vogen FamilyRole to GraphQL FamilyRoleType enum
         descriptor
-            .Field(i => i.Role)
-            .Type<NonNullType<EnumType<FamilyRole>>>()
-            .Description("Role that will be assigned when the invitation is accepted.");
+            .Field("role")
+            .Type<NonNullType<EnumType<FamilyRoleType>>>()
+            .Description("Role that will be assigned when the invitation is accepted.")
+            .Resolve(ctx => MapFamilyRole(ctx.Parent<InvitationAggregate>().Role));
 
         // Status
         descriptor
@@ -140,6 +135,16 @@ public sealed class InvitationObjectType : ObjectType<InvitationAggregate>
                 };
             });
     }
+
+    private static FamilyRoleType MapFamilyRole(FamilyRole role) =>
+        role.Value.ToLowerInvariant() switch
+        {
+            "owner" => FamilyRoleType.OWNER,
+            "admin" => FamilyRoleType.ADMIN,
+            "member" => FamilyRoleType.MEMBER,
+            "child" => FamilyRoleType.CHILD,
+            _ => throw new InvalidOperationException($"Unknown family role: {role.Value}")
+        };
 }
 
 /// <summary>

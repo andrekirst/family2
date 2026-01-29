@@ -149,11 +149,54 @@ try
     graphqlBuilder.AddUserProfileModuleGraphQlTypes();
 
     // Root type extensions for nested namespace structure
-    // These provide: query { auth, account, family, node, nodes }
-    //                mutation { auth, account, family }
+    // These provide: query { auth, me, health, node, nodes }
+    //                mutation { auth, family }
     graphqlBuilder
         .AddTypeExtension<FamilyHub.Api.GraphQL.RootQueryExtensions>()
         .AddTypeExtension<FamilyHub.Api.GraphQL.RootMutationExtensions>();
+
+    // Me namespace types (consolidated user-centric queries)
+    // Provides: query { me { profile, family, pendingInvitations } }
+    graphqlBuilder
+        .AddType<FamilyHub.Api.GraphQL.Namespaces.MeQueriesType>()
+        .AddTypeExtension<FamilyHub.Api.GraphQL.Namespaces.MeQueriesExtensions>();
+
+    // Union type for family state (Family | NoFamilyReason variants)
+    graphqlBuilder
+        .AddType<FamilyHub.Api.GraphQL.Types.FamilyOrReasonUnionType>()
+        .AddType<FamilyHub.Api.GraphQL.Types.NotCreatedReasonType>()
+        .AddType<FamilyHub.Api.GraphQL.Types.InvitePendingReasonType>()
+        .AddType<FamilyHub.Api.GraphQL.Types.LeftFamilyReasonType>();
+
+    // Family extensions for role-based profile access
+    // Extends Family type with: profile(userId: ID!) for cross-member profile queries
+    graphqlBuilder
+        .AddTypeExtension<FamilyHub.Api.GraphQL.Extensions.MeFamilyExtensions>();
+
+    // Health namespace types (liveness + detailed checks)
+    // Provides: query { health { liveness, details } }
+    graphqlBuilder
+        .AddType<FamilyHub.Api.GraphQL.Namespaces.HealthQueriesType>()
+        .AddTypeExtension<FamilyHub.Api.GraphQL.Namespaces.HealthQueriesExtensions>()
+        .AddType<FamilyHub.Api.GraphQL.Types.HealthLivenessType>()
+        .AddType<FamilyHub.Api.GraphQL.Types.HealthDetailsType>()
+        .AddType<FamilyHub.Api.GraphQL.Types.DependencyHealthType>();
+
+    // Member lifecycle subscription types (real-time family updates)
+    // Provides: subscription { memberProfileChanged, memberJoined, memberLeft, memberRoleChanged }
+    graphqlBuilder
+        .AddTypeExtension<FamilyHub.Api.GraphQL.Subscriptions.MemberLifecycleSubscriptions>()
+        .AddType<FamilyHub.Api.GraphQL.Subscriptions.MemberProfileChangedPayloadType>()
+        .AddType<FamilyHub.Api.GraphQL.Subscriptions.MemberJoinedPayloadType>()
+        .AddType<FamilyHub.Api.GraphQL.Subscriptions.MemberLeftPayloadType>()
+        .AddType<FamilyHub.Api.GraphQL.Subscriptions.MemberRoleChangedPayloadType>();
+
+    // Cross-module coordinator and visibility services
+    // Used by Me namespace to aggregate data from Auth, Family, and UserProfile modules
+    builder.Services.AddScoped<FamilyHub.Api.Application.Services.IMeQueryCoordinator,
+        FamilyHub.Api.Application.Services.MeQueryCoordinator>();
+    builder.Services.AddScoped<FamilyHub.Api.Application.Services.IRoleBasedVisibilityService,
+        FamilyHub.Api.Application.Services.RoleBasedVisibilityService>();
 
     // @visible directive for field-level visibility control
     // Enables: field @visible(to: FAMILY) to restrict field access based on viewer relationship
