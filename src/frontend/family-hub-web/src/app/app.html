@@ -1,0 +1,22 @@
+<!-- Navbar (only shown when authenticated) -->
+@if (auth.isAuthenticated()) {
+  <div class="navbar bg-base-100 shadow-lg">
+    <div class="navbar-start">
+      <a routerLink="/dashboard" class="btn btn-ghost text-xl">Family Hub</a>
+    </div>
+    <div class="navbar-center hidden lg:flex">
+      <ul class="menu menu-horizontal px-1">
+        <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+        <li><a routerLink="/family" routerLinkActive="active">Family</a></li>
+        <li><a routerLink="/events" routerLinkActive="active">Event Chains</a></li>
+        <li><a routerLink="/profile" routerLinkActive="active">Profile</a></li>
+      </ul>
+    </div>
+    <div class="navbar-end">
+      <button class="btn btn-ghost" (click)="onLogout()">Logout</button>
+    </div>
+  </div>
+}
+
+<!-- Main Content -->
+<router-outlet></router-outlet>
