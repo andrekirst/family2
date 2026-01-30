@@ -91,7 +91,14 @@ app.UseCors("AllowAngularApp");
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Serve static files (Angular frontend from wwwroot/)
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapGraphQL();
 app.MapGet("/health", () => Results.Ok(new { Status = "Healthy" }));
+
+// Fallback to index.html for Angular routing (SPA)
+app.MapFallbackToFile("index.html");
 
 app.Run();
