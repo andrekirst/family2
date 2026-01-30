@@ -1,90 +1,17 @@
-# Family Hub - Frontend (Angular v21 / TypeScript 5.9.3) EditorConfig
-# Inherits from: ../../../.editorconfig
-# Version: 1.0.0
-
+# Editor configuration, see https://editorconfig.org
 root = true
 
-###############################
-# All Files - Match Prettier
-###############################
 [*]
 charset = utf-8
 indent_style = space
 indent_size = 2
 insert_final_newline = true
 trim_trailing_whitespace = true
-end_of_line = lf
-max_line_length = 100
 
-###############################
-# TypeScript Files
-###############################
 [*.ts]
 quote_type = single
 ij_typescript_use_double_quotes = false
-ij_typescript_use_semicolon = true
-ij_typescript_force_semicolon_style = true
-ij_typescript_indent_size = 2
-ij_typescript_continuation_indent_size = 2
-ij_typescript_space_after_colon = true
-ij_typescript_space_before_colon = false
-ij_typescript_spaces_within_imports = true
-ij_typescript_arrow_function_parentheses = always
-ij_typescript_trailing_comma = es5
 
-###############################
-# JavaScript Files
-###############################
-[*.{js,mjs,cjs}]
-quote_type = single
-indent_size = 2
-max_line_length = 100
-
-###############################
-# HTML Templates
-###############################
-[*.html]
-indent_size = 2
-max_line_length = 100
-ij_html_quote_style = double
-
-###############################
-# SCSS/CSS Files
-###############################
-[*.{scss,css}]
-indent_size = 2
-max_line_length = 100
-
-###############################
-# JSON Files
-###############################
-[*.json]
-indent_size = 2
-insert_final_newline = true
-
-###############################
-# Markdown Files
-###############################
 [*.md]
-indent_size = 4
 max_line_length = off
 trim_trailing_whitespace = false
-
-###############################
-# Configuration Files
-###############################
-[{package.json,tsconfig.json,angular.json,.prettierrc,.eslintrc}]
-indent_size = 2
-
-###############################
-# Exclusions - Generated/Build Files
-###############################
-
-[**/node_modules/**]
-generated_code = true
-
-[**/dist/**]
-generated_code = true
-
-[**/.angular/**]
-generated_code = true

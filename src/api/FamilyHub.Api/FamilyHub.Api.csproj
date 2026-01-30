@@ -1,29 +1,38 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <ItemGroup>
-    <PackageReference Include="AspNetCoreRateLimit" />
-    <PackageReference Include="HotChocolate.AspNetCore" />
-    <PackageReference Include="HotChocolate.AspNetCore.Authorization" />
-    <PackageReference Include="HotChocolate.Data.EntityFramework" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Quartz" />
-    <PackageReference Include="Quartz.AspNetCore" />
-    <PackageReference Include="Quartz.Serialization.Json" />
-    <PackageReference Include="Serilog.AspNetCore" />
-    <PackageReference Include="Serilog.Sinks.Seq" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
-  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FamilyHub.SharedKernel\FamilyHub.SharedKernel.csproj" />
-    <ProjectReference Include="..\FamilyHub.Infrastructure\FamilyHub.Infrastructure.csproj" />
-    <ProjectReference Include="..\Modules\FamilyHub.Modules.Auth\FamilyHub.Modules.Auth.csproj" />
-    <ProjectReference Include="..\Modules\FamilyHub.Modules.Family\FamilyHub.Modules.Family.csproj" />
+    <!-- GraphQL -->
+    <PackageReference Include="HotChocolate.AspNetCore" Version="14.1.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="14.1.0" />
+
+    <!-- CQRS -->
+    <PackageReference Include="MediatR" Version="12.4.1" />
+
+    <!-- Validation -->
+    <PackageReference Include="FluentValidation" Version="11.11.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+
+    <!-- EF Core -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0-preview.2.25163.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0-preview.2.25163.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-preview.1" />
+
+    <!-- Value Objects -->
+    <PackageReference Include="Vogen" Version="6.0.0" PrivateAssets="all" />
+
+    <!-- Security -->
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0-preview.1.25120.3" />
   </ItemGroup>
 
 </Project>

@@ -1,56 +1,56 @@
-# Build stage
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-WORKDIR /src
+# Multi-stage build: Frontend + Backend in single container
+# Build from repository root: docker build -f src/api/FamilyHub.Api/Dockerfile .
 
-# Copy solution file
-COPY ["FamilyHub.sln", "./"]
+# ============================================
+# Stage 1: Build Angular Frontend
+# ============================================
+FROM node:22-alpine AS frontend-build
 
-# Copy project files
-COPY ["FamilyHub.Api/FamilyHub.Api.csproj", "FamilyHub.Api/"]
-COPY ["FamilyHub.SharedKernel/FamilyHub.SharedKernel.csproj", "FamilyHub.SharedKernel/"]
-COPY ["FamilyHub.Infrastructure/FamilyHub.Infrastructure.csproj", "FamilyHub.Infrastructure/"]
-COPY ["Modules/FamilyHub.Modules.Auth/FamilyHub.Modules.Auth.csproj", "Modules/FamilyHub.Modules.Auth/"]
-
-# Restore dependencies
-RUN dotnet restore "FamilyHub.Api/FamilyHub.Api.csproj"
-
-# Copy all source files
-COPY . .
-
-# Build and publish
-WORKDIR "/src/FamilyHub.Api"
-RUN dotnet build "FamilyHub.Api.csproj" -c Release -o /app/build
-RUN dotnet publish "FamilyHub.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
-# Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup --system --gid 1000 familyhub \
-    && adduser --system --uid 1000 --ingroup familyhub --shell /bin/sh familyhub
+# Copy frontend source
+COPY src/frontend/family-hub-web/package*.json ./
+RUN npm ci
 
-# Copy published app
-COPY --from=build /app/publish .
+COPY src/frontend/family-hub-web/ ./
 
-# Set ownership
-RUN chown -R familyhub:familyhub /app
+# Build for production
+RUN npm run build
 
-# Switch to non-root user
-USER familyhub
+# ============================================
+# Stage 2: Build .NET Backend
+# ============================================
+FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS backend-build
 
-# Expose ports
+WORKDIR /app
+
+# Copy csproj and restore dependencies
+COPY src/api/FamilyHub.Api/FamilyHub.Api.csproj ./
+RUN dotnet restore
+
+# Copy source and build
+COPY src/api/FamilyHub.Api/ ./
+RUN dotnet publish -c Release -o /app/publish
+
+# ============================================
+# Stage 3: Final Runtime Image
+# ============================================
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview AS runtime
+
+WORKDIR /app
+
+# Copy backend from build stage
+COPY --from=backend-build /app/publish .
+
+# Copy frontend build to wwwroot (ASP.NET Core will serve it)
+COPY --from=frontend-build /app/dist/family-hub-web/browser ./wwwroot
+
+# Expose port
 EXPOSE 8080
-EXPOSE 8081
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl --fail http://localhost:8080/health || exit 1
+# Set environment
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://+:8080
 
-# Set environment variables
-ENV ASPNETCORE_URLS=http://+:8080 \
-    ASPNETCORE_ENVIRONMENT=Production \
-    DOTNET_RUNNING_IN_CONTAINER=true
-
-# Entry point
+# Run the application
 ENTRYPOINT ["dotnet", "FamilyHub.Api.dll"]

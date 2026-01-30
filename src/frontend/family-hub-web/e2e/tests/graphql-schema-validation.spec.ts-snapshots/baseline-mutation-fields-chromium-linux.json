@@ -1,9 +1,0 @@
-[
-  "acceptInvitation",
-  "cancelInvitation",
-  "completeZitadelLogin",
-  "createFamily",
-  "inviteFamilyMemberByEmail",
-  "inviteFamilyMembers",
-  "updateInvitationRole"
-]

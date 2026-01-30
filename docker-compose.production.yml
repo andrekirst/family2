@@ -1,0 +1,75 @@
+# Family Hub - Production Docker Compose
+# Single container deployment with PostgreSQL
+#
+# Usage:
+#   docker-compose -f docker-compose.production.yml up -d
+#
+# Access:
+#   - Application: http://localhost:8080
+#   - GraphQL Playground: http://localhost:8080/graphql
+
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: familyhub-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-familyhub}
+      POSTGRES_USER: ${POSTGRES_USER:-familyhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe123!}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - familyhub-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U familyhub']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Family Hub Application (Backend + Frontend)
+  app:
+    build:
+      context: .
+      dockerfile: src/api/FamilyHub.Api/Dockerfile
+    container_name: familyhub-app
+    environment:
+      # ASP.NET Core Configuration
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+
+      # Database (ASP.NET Core binding: ConnectionStrings__DefaultConnection)
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-familyhub};Username=${POSTGRES_USER:-familyhub};Password=${POSTGRES_PASSWORD:-ChangeMe123!}
+
+      # JWT (ASP.NET Core binding: Jwt__Secret, etc.)
+      Jwt__Issuer: FamilyHub
+      Jwt__Audience: FamilyHub
+      Jwt__Secret: ${JWT_SECRET:-your-secret-key-must-be-at-least-32-characters-long-change-this}
+      Jwt__AccessTokenExpirationMinutes: 15
+      Jwt__RefreshTokenExpirationDays: 7
+
+      # Email (ASP.NET Core binding: Email__SmtpHost, etc.)
+      Email__SmtpHost: ${SMTP_HOST:-smtp.gmail.com}
+      Email__SmtpPort: ${SMTP_PORT:-587}
+      Email__SmtpUser: ${SMTP_USER}
+      Email__SmtpPassword: ${SMTP_PASSWORD}
+      Email__FromEmail: ${FROM_EMAIL:-noreply@familyhub.local}
+      Email__FromName: ${FROM_NAME:-Family Hub}
+    ports:
+      - '8080:8080'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - familyhub-network
+    restart: unless-stopped
+
+networks:
+  familyhub-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
