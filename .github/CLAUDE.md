@@ -1,8 +1,12 @@
 # GitHub Workflow Guide
 
+> **⚠️ PROJECT RESTART (February 2026):** All implementation code has been removed. GitHub Actions workflows have been deleted. Issue templates and PR templates remain active for strategic foundation contributions. See README.md for full context.
+
 **Purpose:** Guide for creating issues, pull requests, managing labels, and following contribution workflows in Family Hub.
 
 **Key Resources:** Issue templates, PR template, CONTRIBUTING.md, 60+ labels
+
+**Note:** GitHub Actions workflows (.github/workflows/) have been removed during the project restart. Workflows can be recreated from Git tag `v0.1-phase0-archive` when implementation resumes.
 
 ---
 

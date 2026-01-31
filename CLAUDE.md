@@ -1,16 +1,20 @@
 # Family Hub - Claude Code Guide
 
+> **⚠️ PROJECT RESTART (February 2026):** This project has undergone an architectural restart. All implementation code has been removed. This guide now references a strategic foundation template. See README.md for full context. Previous implementation preserved in Git tag `v0.1-phase0-archive`.
+
 ## Critical Context
 
-**Family Hub** is a privacy-first, cloud-based family organization platform focused on intelligent **event chain automation** (automatic cross-domain workflows that no competitor offers).
+**Family Hub** is a privacy-first family organization platform concept focused on intelligent **event chain automation** (automatic cross-domain workflows that no competitor offers).
 
-**Tech Stack:** .NET Core 10 (C# 14, Hot Chocolate GraphQL) | Angular v21 (TypeScript, Tailwind) | PostgreSQL 16 (RLS) | RabbitMQ | Zitadel OAuth | Docker Compose→Kubernetes | Vogen 8.0+
+**Current State:** Strategic foundation template with comprehensive documentation, domain models, and development guides. No runnable code.
 
-**Phase:** Phase 0 - Foundation & Tooling (IN PROGRESS). OAuth integration completed. Frontend OAuth completed. Family Member Invites completed (#97). Agent OS integration in progress (#98). Next: Phase 1 Core MVP.
+**Tech Stack (Planned):** .NET Core (C#, Hot Chocolate GraphQL) | Angular (TypeScript, Tailwind) | PostgreSQL (RLS) | OAuth 2.0 / OIDC | Docker → Kubernetes
 
-**Architecture:** Modular Monolith (Phase 1-4) → Microservices (Phase 5+). See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
+**Phase:** Phase 0 - Restart & Redesign. Architecture being reconsidered. Implementation timeline TBD.
 
-**Development:** Single developer + Claude Code AI (60-80% boilerplate). DDD with 8 modules. Event-driven (RabbitMQ). 10-14 months to MVP.
+**Architecture Strategy:** Modular Monolith First → Eventual Microservices. See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
+
+**Development:** Strategic foundation created with Claude Code AI assistance. Domain modeling, architecture, and comprehensive documentation.
 
 ---
 
@@ -20,31 +24,31 @@
 
 ### Backend Development
 
-→ **[src/api/CLAUDE.md](src/api/CLAUDE.md)** - .NET, C#, GraphQL, DDD patterns
+→ **[docs/guides/BACKEND_DEVELOPMENT.md](docs/guides/BACKEND_DEVELOPMENT.md)** - .NET, C#, GraphQL, DDD patterns
 
-- When: Implementing commands, queries, domain logic, migrations
-- Covers: EF Core, Vogen, GraphQL Input→Command, Domain events, Testing
+- When: Planning backend architecture, domain logic, GraphQL APIs
+- Covers: EF Core, Vogen, GraphQL Input→Command, Domain events, Testing patterns
 
 ### Frontend Development
 
-→ **[src/frontend/CLAUDE.md](src/frontend/CLAUDE.md)** - Angular, TypeScript, Playwright
+→ **[docs/guides/FRONTEND_DEVELOPMENT.md](docs/guides/FRONTEND_DEVELOPMENT.md)** - Angular, TypeScript, component architecture
 
-- When: Building components, pages, E2E tests, OAuth integration
+- When: Planning frontend architecture, components, pages, E2E tests
 - Covers: Component architecture, Apollo GraphQL, Playwright, OAuth PKCE
 
 ### Database Work
 
-→ **[database/CLAUDE.md](database/CLAUDE.md)** - PostgreSQL, EF Core migrations, RLS
+→ **[docs/guides/DATABASE_DEVELOPMENT.md](docs/guides/DATABASE_DEVELOPMENT.md)** - PostgreSQL, EF Core migrations, RLS
 
-- When: Creating migrations, schema changes, RLS policies
-- Covers: Migration workflows, schema design, debugging
+- When: Planning database schema, migrations, RLS policies
+- Covers: Migration workflows, schema design, RLS patterns
 
 ### Infrastructure & DevOps
 
-→ **[infrastructure/CLAUDE.md](infrastructure/CLAUDE.md)** - Docker, K8s, CI/CD
+→ **[docs/guides/INFRASTRUCTURE_DEVELOPMENT.md](docs/guides/INFRASTRUCTURE_DEVELOPMENT.md)** - Docker, K8s, CI/CD
 
-- When: Docker Compose changes, deployment, observability
-- Covers: Local setup, K8s deployment, CI/CD pipelines
+- When: Planning infrastructure, deployment, observability
+- Covers: Docker setup, K8s deployment patterns, CI/CD pipelines
 
 ### GitHub Workflow
 
@@ -68,66 +72,27 @@
 
 ### Agent OS (Spec-Driven Development)
 
-→ **[docs/agent-os/README.md](docs/agent-os/README.md)** - Machine-readable context profiles
+→ **[agent-os/](agent-os/)** - Spec-driven development infrastructure
 
-- When: Loading module context, creating feature specs, following skills
+- When: Loading module context, creating feature specs, following patterns
 - Covers: DDD module profiles, standards, spec templates, Claude Code skills
 - **Profiles:** `agent-os/profiles/` (8 modules + 5 layers)
 - **Standards:** `agent-os/standards/` (extracted patterns)
+- **Specs:** `agent-os/specs/` (machine-readable feature specs)
 - **Skills:** `.claude/skills/` (implementation guides)
-
----
-
-## Quick Start
-
-### Local Development Setup
-
-```bash
-# 1. Clone repository
-git clone https://github.com/andrekirst/family2.git
-cd family2
-
-# 2. Start infrastructure (Docker Compose)
-cd infrastructure/docker
-docker-compose up -d
-
-# 3. Start backend
-cd ../../src/api
-dotnet run --project FamilyHub.Api
-
-# 4. Start frontend (new terminal)
-cd ../frontend/family-hub-web
-npm install && npm start
-```
-
-**Full Guide:** [docs/development/LOCAL_DEVELOPMENT_SETUP.md](docs/development/LOCAL_DEVELOPMENT_SETUP.md)
-
-### Feature Implementation Workflow
-
-```
-1. User requests feature
-2. Ask clarifying questions (AskUserQuestion)
-3. Spawn feature-dev:code-explorer (find existing patterns)
-4. Spawn feature-dev:code-architect (design following patterns)
-5. Implement following EXACT patterns from subagents
-6. Generate tests following existing test patterns
-```
-
-**Full Workflow:** [docs/development/CLAUDE_CODE_GUIDE.md](docs/development/CLAUDE_CODE_GUIDE.md)
 
 ---
 
 ## Documentation Index
 
-**Complete documentation:** [docs/INDEX.md](docs/INDEX.md) - 83 files across 11 folders
+**Complete documentation:** [docs/INDEX.md](docs/INDEX.md) - Strategic foundation documentation
 
 **Key Documents:**
 
-- **Architecture:** [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md), [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md)
-- **Development:** [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md), [WORKFLOWS.md](docs/development/WORKFLOWS.md), [PATTERNS.md](docs/development/PATTERNS.md)
-- **Product:** [FEATURE_BACKLOG.md](docs/product-strategy/FEATURE_BACKLOG.md), [implementation-roadmap.md](docs/product-strategy/implementation-roadmap.md)
-- **Testing:** [TESTING_WITH_PLAYWRIGHT.md](docs/development/TESTING_WITH_PLAYWRIGHT.md)
-- **Troubleshooting:** [DEBUGGING_GUIDE.md](docs/development/DEBUGGING_GUIDE.md)
+- **Architecture:** [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-003](docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md), [domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md), [event-chains-reference.md](docs/architecture/event-chains-reference.md)
+- **Development:** [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md), [WORKFLOWS.md](docs/development/WORKFLOWS.md), [PATTERNS.md](docs/development/PATTERNS.md), [CLAUDE_CODE_GUIDE.md](docs/development/CLAUDE_CODE_GUIDE.md)
+- **Product:** [FEATURE_BACKLOG.md](docs/product-strategy/FEATURE_BACKLOG.md), [implementation-roadmap.md](docs/product-strategy/implementation-roadmap.md), [PRODUCT_STRATEGY.md](docs/product-strategy/PRODUCT_STRATEGY.md)
+- **Development Guides:** [Backend](docs/guides/BACKEND_DEVELOPMENT.md), [Frontend](docs/guides/FRONTEND_DEVELOPMENT.md), [Database](docs/guides/DATABASE_DEVELOPMENT.md), [Infrastructure](docs/guides/INFRASTRUCTURE_DEVELOPMENT.md)
 
 ---
 
@@ -172,14 +137,14 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 **When user says...**
 
-- **"add GraphQL mutation"** → Load [src/api/CLAUDE.md](src/api/CLAUDE.md) → GraphQL Input→Command pattern
-- **"create component"** → Load [src/frontend/CLAUDE.md](src/frontend/CLAUDE.md) → Component architecture
-- **"create migration"** → Load [database/CLAUDE.md](database/CLAUDE.md) → EF Core migrations
-- **"debug PostgreSQL"** → Load [database/CLAUDE.md](database/CLAUDE.md) → RLS troubleshooting
-- **"write E2E test"** → Load [src/frontend/CLAUDE.md](src/frontend/CLAUDE.md) → Playwright patterns
-- **"extract module"** → Load [docs/development/MODULE_EXTRACTION_QUICKSTART.md](docs/development/MODULE_EXTRACTION_QUICKSTART.md)
+- **"plan GraphQL API"** → Load [docs/guides/BACKEND_DEVELOPMENT.md](docs/guides/BACKEND_DEVELOPMENT.md) → GraphQL Input→Command pattern
+- **"plan component architecture"** → Load [docs/guides/FRONTEND_DEVELOPMENT.md](docs/guides/FRONTEND_DEVELOPMENT.md) → Component architecture
+- **"plan database schema"** → Load [docs/guides/DATABASE_DEVELOPMENT.md](docs/guides/DATABASE_DEVELOPMENT.md) → Schema design, RLS patterns
+- **"plan infrastructure"** → Load [docs/guides/INFRASTRUCTURE_DEVELOPMENT.md](docs/guides/INFRASTRUCTURE_DEVELOPMENT.md) → Docker, K8s patterns
+- **"review domain model"** → Load [docs/architecture/domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md)
+- **"review event chains"** → Load [docs/architecture/event-chains-reference.md](docs/architecture/event-chains-reference.md)
 
 ---
 
-**Last Updated:** 2026-01-25
-**Version:** 5.1.0 (Agent OS integration)
+**Last Updated:** 2026-02-01
+**Version:** 6.0.0 (Strategic Foundation - Post Restart)

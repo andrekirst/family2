@@ -1,8 +1,10 @@
 # Documentation Navigation Guide
 
-**Purpose:** Central navigation hub for Family Hub's 54 documentation files organized across 9 thematic folders.
+> **⚠️ PROJECT RESTART (February 2026):** All implementation code has been removed. This guide now references strategic foundation documentation (~45-50 files). See INDEX.md for full documentation map. Previous implementation preserved in Git tag `v0.1-phase0-archive`.
 
-**Total Content:** 310,000+ words of planning, architecture, and implementation documentation.
+**Purpose:** Central navigation hub for Family Hub's strategic foundation documentation organized across 6 thematic folders + Agent OS.
+
+**Total Content:** 280,000+ words of strategic planning, architecture, and domain modeling.
 
 ---
 
@@ -11,11 +13,12 @@
 **New to Family Hub?**
 Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
-**Developers:**
+**Developers (Planning):**
 
 - [Coding Standards](development/CODING_STANDARDS.md)
-- [Implementation Workflow](development/IMPLEMENTATION_WORKFLOW.md)
 - [Architecture Overview](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
+- [Domain Model](architecture/domain-model-microservices-map.md)
+- [Backend Development Guide](guides/BACKEND_DEVELOPMENT.md)
 
 **Product/Business:**
 
@@ -25,7 +28,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 
 ---
 
-## Documentation Structure (9 Folders)
+## Documentation Structure (6 Folders + Agent OS)
 
 ### Development Documentation
 
@@ -36,10 +39,20 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 - [CODING_STANDARDS.md](development/CODING_STANDARDS.md) - Comprehensive coding standards
 - [PATTERNS.md](development/PATTERNS.md) - DDD patterns and examples
 - [WORKFLOWS.md](development/WORKFLOWS.md) - Database, testing, GraphQL workflows
-- [LOCAL_DEVELOPMENT_SETUP.md](development/LOCAL_DEVELOPMENT_SETUP.md) - Setup guide
-- [TESTING_WITH_PLAYWRIGHT.md](development/TESTING_WITH_PLAYWRIGHT.md) - E2E testing
-- [DEBUGGING_GUIDE.md](development/DEBUGGING_GUIDE.md) - Troubleshooting
 - [MODULE_EXTRACTION_QUICKSTART.md](development/MODULE_EXTRACTION_QUICKSTART.md) - Bounded context extraction
+- [CLAUDE_CODE_GUIDE.md](development/CLAUDE_CODE_GUIDE.md) - AI-assisted development
+- [API_STANDARDS.md](development/API_STANDARDS.md) - API standards
+
+### Development Guides
+
+→ **[docs/guides/](guides/)** - Domain-specific development guides
+
+**Key Documents:**
+
+- [BACKEND_DEVELOPMENT.md](guides/BACKEND_DEVELOPMENT.md) - .NET, C#, GraphQL, DDD
+- [FRONTEND_DEVELOPMENT.md](guides/FRONTEND_DEVELOPMENT.md) - Angular, TypeScript
+- [DATABASE_DEVELOPMENT.md](guides/DATABASE_DEVELOPMENT.md) - PostgreSQL, migrations
+- [INFRASTRUCTURE_DEVELOPMENT.md](guides/INFRASTRUCTURE_DEVELOPMENT.md) - Docker, K8s
 
 ### Architecture Documentation
 

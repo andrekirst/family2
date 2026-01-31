@@ -1,17 +1,15 @@
-# Family Hub
+# Family Hub - Strategic Foundation & Template
 
-> An intelligent family organization platform with automated event chains to reduce mental load and save time.
+> **⚠️ PROJECT RESTART (February 2026):** This project has undergone an architectural restart. All previous implementation code has been removed. What remains is a strategic foundation template with comprehensive documentation, domain models, and development guides. The previous implementation is preserved in Git tag `v0.1-phase0-archive`.
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![.NET](https://img.shields.io/badge/.NET-10-purple.svg)](https://dotnet.microsoft.com/)
-[![Angular](https://img.shields.io/badge/Angular-21-red.svg)](https://angular.io/)
-[![Status](https://img.shields.io/badge/Status-Planning-orange.svg)](https://github.com/andrekirst/family2)
+[![Status](https://img.shields.io/badge/Status-Foundation-orange.svg)](https://github.com/andrekirst/family2)
 
 ---
 
 ## What is Family Hub?
 
-Family Hub is a comprehensive family organization platform that goes beyond simple calendars and to-do lists. It uses **event chain automation** to automatically coordinate across different aspects of family life, reducing the mental load of managing a household.
+Family Hub is a comprehensive family organization platform concept that goes beyond simple calendars and to-do lists. It uses **event chain automation** to automatically coordinate across different aspects of family life, reducing the mental load of managing a household.
 
 ### The Problem
 
@@ -51,9 +49,33 @@ All of this happens automatically. You only schedule the appointment.
 
 ---
 
-## Key Features
+## Current Status: Strategic Foundation Template
 
-### Core Features (Phase 1-2)
+**This repository contains:**
+
+✓ **Strategic Documentation:** Product strategy, market analysis, UX/design concepts
+✓ **Domain Model:** Comprehensive domain-driven design specifications
+✓ **Event Chains:** Detailed event chain automation concepts
+✓ **Architecture ADRs:** 5 foundational architecture decision records
+✓ **Agent OS Infrastructure:** Spec-driven development profiles and standards
+✓ **Development Guides:** Claude Code integration and patterns (10 CLAUDE.md guides)
+
+**What is NOT included:**
+
+✗ No runnable code (backend, frontend, database schemas)
+✗ No infrastructure configurations
+✗ No test suites
+✗ No deployment pipelines
+
+**Reason for Restart:** The initial architecture needed redesign. This strategic foundation preserves the valuable conceptual work while enabling a fresh architectural approach.
+
+**Previous Implementation:** Preserved in Git tag [`v0.1-phase0-archive`](https://github.com/andrekirst/family2/tree/v0.1-phase0-archive) for reference.
+
+---
+
+## Planned Features
+
+### Core Features (Future Phase 1-2)
 
 - **Shared Family Calendar:** Events visible to all family members
 - **Task Management:** Create, assign, and track tasks
@@ -62,25 +84,7 @@ All of this happens automatically. You only schedule the appointment.
 - **Notifications:** In-app and push notifications for reminders
 - **Event Chain Automation:** Cross-domain workflows (flagship feature)
 
-## ✅ Completed Features
-
-### Phase 1 - Foundation (In Progress)
-
-**Family Management:**
-
-- ✅ **Family Creation** (#15) - Users can create family groups with authentication
-  - GraphQL mutation: `createFamily`
-  - Business rule: One family per user enforced
-  - Complete test coverage (94% - 48/51 tests passing)
-  - Implemented: 2025-12-30
-
-**In Development:**
-
-- Family invitation system
-- Role-based permissions
-- Family settings management
-
-### Advanced Features (Phase 3-4)
+### Advanced Features (Future Phase 3-4)
 
 - **Meal Planning:** Weekly meal plans with recipes
 - **Recipe Management:** Store and organize family recipes
@@ -88,7 +92,7 @@ All of this happens automatically. You only schedule the appointment.
 - **Recurring Events/Tasks:** Daily, weekly, monthly automation
 - **Search:** Global search across all data
 
-### Future Features (Phase 5-6)
+### Future Features (Future Phase 5-6)
 
 - **Mobile Apps:** iOS and Android native apps
 - **Offline Mode:** Work without internet connection
@@ -98,44 +102,45 @@ All of this happens automatically. You only schedule the appointment.
 
 ---
 
-## Technology Stack
+## Conceptual Technology Stack
 
-### Backend
+The following technologies are **planned** for future implementation:
 
-- **.NET Core 10** with C# 14
+### Backend (Conceptual)
+
+- **.NET Core** with C#
 - **Hot Chocolate GraphQL** for unified API
-- **PostgreSQL 16** for data persistence
-- **Redis 7** for caching and event bus
-- **Zitadel** for authentication (OAuth 2.0 / OIDC)
+- **PostgreSQL** for data persistence
+- **Redis** for caching and event bus
+- **OAuth 2.0 / OIDC** for authentication
 
-### Frontend
+### Frontend (Conceptual)
 
-- **Angular v21** with TypeScript
+- **Angular** with TypeScript
 - **Tailwind CSS** for styling
 - **Apollo Client** for GraphQL
 - **RxJS** for reactive programming
 
-### Infrastructure
+### Infrastructure (Conceptual)
 
 - **Kubernetes** for container orchestration
 - **Docker** for containerization
 - **Prometheus + Grafana** for monitoring
-- **Seq / ELK** for centralized logging
 - **GitHub Actions** for CI/CD
 
-### Architecture
+### Architecture Strategy
 
-- **Modular Monolith (Phase 0-4):** 8 DDD bounded contexts in single deployment ([ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md))
-- **Microservices (Phase 5+):** Extract modules using Strangler Fig pattern
-- **Event-Driven:** In-process RabbitMQ (Phase 1-4), Network-based (Phase 5+)
+- **Modular Monolith First:** Start with a modular monolith for faster iteration ([ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md))
+- **Eventual Microservices:** Extract modules using Strangler Fig pattern ([ADR-005](docs/architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md))
+- **Event-Driven:** Async communication between modules
 - **CQRS Pattern:** For complex queries
-- **Module Extraction Pattern:** Follow [ADR-005](docs/architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md) for extracting bounded contexts
+- **Domain-Driven Design:** Clear bounded contexts
 
 ---
 
-## Architecture Overview
+## Architecture Overview (Conceptual)
 
-### Bounded Contexts (Microservices)
+### Bounded Contexts
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -144,26 +149,26 @@ All of this happens automatically. You only schedule the appointment.
 │                                                                   │
 │  ┌──────────────┐         ┌──────────────┐                      │
 │  │   Auth       │────────▶│  Calendar    │                      │
-│  │   Service    │         │   Service    │                      │
+│  │   Context    │         │   Context    │                      │
 │  └──────────────┘         └──────────────┘                      │
 │                                  │                               │
 │  ┌──────────────┐         ┌──────────────┐                      │
 │  │   Task       │────────▶│  Shopping    │                      │
-│  │   Service    │         │   Service    │                      │
+│  │   Context    │         │   Context    │                      │
 │  └──────────────┘         └──────────────┘                      │
 │                                  │                               │
 │  ┌──────────────┐         ┌──────────────┐                      │
 │  │   Health     │────────▶│ Meal Planning│                      │
-│  │   Service    │         │   Service    │                      │
+│  │   Context    │         │   Context    │                      │
 │  └──────────────┘         └──────────────┘                      │
 │                                  │                               │
 │  ┌──────────────┐         ┌──────────────┐                      │
 │  │   Finance    │────────▶│Communication │                      │
-│  │   Service    │         │   Service    │                      │
+│  │   Context    │         │   Context    │                      │
 │  └──────────────┘         └──────────────┘                      │
 │                                                                   │
 │  ┌─────────────────────────────────────────┐                   │
-│  │         Event Bus (Redis Pub/Sub)        │                   │
+│  │         Event Bus (Async Messaging)      │                   │
 │  └─────────────────────────────────────────┘                   │
 │                                                                   │
 └─────────────────────────────────────────────────────────────────┘
@@ -171,154 +176,147 @@ All of this happens automatically. You only schedule the appointment.
 
 ---
 
-## Project Status
+## Documentation
 
-**Current Phase:** Planning and Documentation
-**Target Launch:** MVP in 6 months (Phase 1-2)
-**Development Model:** Single developer with AI assistance (Claude Code)
+Comprehensive strategic and technical documentation is preserved in the `/docs` folder:
 
-### Roadmap
+### Strategic Documentation
 
-| Phase | Focus | Timeline | Status |
-|-------|-------|----------|--------|
-| **Phase 0** | Foundation & Tooling | Weeks 1-4 | Planned |
-| **Phase 1** | Core MVP (Auth, Calendar, Tasks) | Weeks 5-12 | Planned |
-| **Phase 2** | Health Integration & Event Chains | Weeks 13-18 | Planned |
-| **Phase 3** | Meal Planning & Finance | Weeks 19-26 | Planned |
-| **Phase 4** | Advanced Features (Recurrence) | Weeks 27-34 | Planned |
-| **Phase 5** | Production Hardening | Weeks 35-44 | Planned |
-| **Phase 6** | Mobile Apps & Extended Features | Weeks 45-52+ | Planned |
+1. **[Product Strategy](/docs/product-strategy/PRODUCT_STRATEGY.md)**
+   - Vision, mission, and goals
+   - Target market and personas
+   - Competitive analysis
 
-**Estimated Timeline:** 12-18 months (part-time development)
+2. **[Feature Backlog](/docs/product-strategy/FEATURE_BACKLOG.md)**
+   - Prioritized feature list
+   - User stories and acceptance criteria
+
+3. **[Implementation Roadmap](/docs/product-strategy/implementation-roadmap.md)**
+   - Phase-by-phase development plan
+   - Deliverables and success criteria
+
+4. **[Risk Register](/docs/product-strategy/risk-register.md)**
+   - Identified risks with mitigation strategies
+   - Risk scoring and monitoring
+
+### Architecture Documentation
+
+1. **[Domain Model & Microservices Map](/docs/architecture/domain-model-microservices-map.md)**
+   - Bounded context definitions
+   - Domain entities and aggregates
+   - Integration points
+
+2. **[Event Chains Reference](/docs/architecture/event-chains-reference.md)**
+   - Detailed event chain specifications
+   - Cross-domain workflows
+
+3. **[Architecture Decision Records (ADRs)](/docs/architecture/)**
+   - ADR-001: Modular Monolith First
+   - ADR-002: OAuth with Zitadel
+   - ADR-003: GraphQL Input-Command Pattern
+   - ADR-005: Family Module Extraction Pattern
+
+### Development Guides
+
+1. **[Backend Development Guide](/docs/guides/BACKEND_DEVELOPMENT.md)**
+   - .NET, C#, GraphQL, DDD patterns
+
+2. **[Frontend Development Guide](/docs/guides/FRONTEND_DEVELOPMENT.md)**
+   - Angular, TypeScript, component architecture
+
+3. **[Database Development Guide](/docs/guides/DATABASE_DEVELOPMENT.md)**
+   - PostgreSQL, migrations, schema design
+
+4. **[Infrastructure Development Guide](/docs/guides/INFRASTRUCTURE_DEVELOPMENT.md)**
+   - Docker, Kubernetes, CI/CD
+
+5. **[Claude Code Guide](/CLAUDE.md)**
+   - AI-assisted development workflows
+   - Integration with Claude Code
+
+### Market & Business
+
+- **[Market Research](/docs/market-business/)**
+  - Competitor analysis
+  - Market sizing
+  - Business model
+
+### UX & Design
+
+- **[UX Design Documentation](/docs/ux-design/)**
+  - User personas
+  - User journeys
+  - Wireframes and mockups
+
+### Security
+
+- **[Security Documentation](/docs/security/)**
+  - Threat model
+  - OWASP compliance
+  - RLS (Row-Level Security) concepts
 
 ---
 
-## Documentation
+## Agent OS: Spec-Driven Development
 
-Comprehensive business analysis and technical documentation is available in the `/docs` folder:
+This project uses **Agent OS** for spec-driven development with Claude Code:
 
-1. **[Domain Model & Microservices Map](/docs/domain-model-microservices-map.md)**
-   - Bounded context definitions
-   - Domain entities and aggregates
-   - Event chains and integration points
-   - GraphQL API schemas
+- **[Agent OS Overview](/agent-os/)** - DDD module profiles, standards, and specs
+- **[Profiles](/agent-os/profiles/)** - 8 module profiles + 5 layer profiles
+- **[Standards](/agent-os/standards/)** - Extracted architectural patterns
+- **[Specs](/agent-os/specs/)** - Machine-readable feature specifications
+- **[Skills](/.claude/skills/)** - Claude Code implementation guides
 
-2. **[Implementation Roadmap](/docs/implementation-roadmap.md)**
-   - Phase-by-phase development plan
-   - Deliverables and success criteria
-   - Technology decision points
-   - Cost estimation
-
-3. **[Risk Register](/docs/risk-register.md)**
-   - 35 identified risks with mitigation strategies
-   - Risk scoring and monitoring
-   - Contingency plans
-
-4. **[Documentation Index](/docs/README.md)**
-   - Complete documentation overview
+This infrastructure enables rapid, consistent feature development following DDD and established patterns.
 
 ---
 
 ## Getting Started
 
-**Note:** The project is currently in the planning phase. Development will begin with Phase 0 (Foundation & Tooling).
+### For Contributors/Developers
 
-### Prerequisites (Planned)
+1. **Review Strategic Documentation:**
 
-- .NET Core 10 SDK
-- Node.js 20+ and npm
-- Docker Desktop or Minikube
-- PostgreSQL 16
-- Redis 7
-- Zitadel instance
+   ```bash
+   # Read product strategy
+   cat docs/product-strategy/PRODUCT_STRATEGY.md
 
-### Installation (Coming Soon)
+   # Review domain model
+   cat docs/architecture/domain-model-microservices-map.md
 
-```bash
-# Clone the repository
-git clone https://github.com/andrekirst/family2.git
-cd family2
+   # Understand event chains
+   cat docs/architecture/event-chains-reference.md
+   ```
 
-# Start infrastructure (Docker Compose)
-docker-compose up -d
+2. **Explore Architecture Decisions:**
 
-# Run backend services
-dotnet run --project src/FamilyHub.ApiGateway
+   ```bash
+   # Read ADRs
+   ls docs/architecture/ADR-*.md
+   ```
 
-# Run frontend
-cd src/FamilyHub.Web
-npm install
-npm start
-```
+3. **Review Agent OS Infrastructure:**
 
----
+   ```bash
+   # Explore module profiles
+   ls agent-os/profiles/modules/
 
-## Contributing
+   # Review extracted standards
+   ls agent-os/standards/
+   ```
 
-This is currently a solo project with AI assistance. Contributions will be welcome after the MVP launch (Phase 2).
+4. **Read Development Guides:**
+   - [CLAUDE.md](/CLAUDE.md) - Project overview and guide navigation
+   - [docs/guides/](/docs/guides/) - Domain-specific development guides
 
-### Planned Contribution Areas
+### For Future Implementation
 
-- Feature development
-- Bug fixes
-- Documentation improvements
-- Testing
-- Localization (i18n)
+When implementation resumes, developers will:
 
----
-
-## Development
-
-### Timestamp Management
-
-Family Hub uses automatic timestamp management via EF Core interceptor:
-
-- **CreatedAt/UpdatedAt:** Set automatically by `TimestampInterceptor` on save operations
-- **Domain methods:** Do NOT manually set `CreatedAt` or `UpdatedAt` - the interceptor handles this
-- **Business timestamps:** Domain-specific timestamps like `EmailVerifiedAt`, `DeletedAt` remain manual (domain logic)
-- **Testing:** Use `FakeTimeProvider` for deterministic time control in tests
-- **Database safety net:** PostgreSQL `CURRENT_TIMESTAMP` defaults provide fallback if interceptor fails
-
-**Example:**
-
-```csharp
-// ✅ CORRECT: No manual timestamp management
-public void UpdateName(FamilyName newName)
-{
-    Name = newName;
-    // UpdatedAt is set automatically by TimestampInterceptor
-}
-
-// ❌ INCORRECT: Don't manually set infrastructure timestamps
-public void UpdateName(FamilyName newName)
-{
-    Name = newName;
-    UpdatedAt = DateTime.UtcNow; // ← Don't do this!
-}
-
-// ✅ CORRECT: Business timestamps are explicit
-public void Delete()
-{
-    DeletedAt = DateTime.UtcNow; // Business logic - keep manual
-    // UpdatedAt still handled by interceptor
-}
-```
-
-See [ADR-004](docs/architecture/ADR-004-TIMESTAMP-INTERCEPTOR-PATTERN.md) for complete rationale and implementation details.
-
----
-
-## License
-
-This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
-
-**What this means:**
-
-- You can use, modify, and distribute this software freely
-- If you modify and deploy it as a network service, you must make your source code available
-- This protects against proprietary forks while keeping the project open
-
-See [LICENSE](LICENSE) for full details.
+1. **Choose Architecture:** Use ADRs as foundation, adapt as needed
+2. **Leverage Agent OS:** Use profiles and standards for consistent patterns
+3. **Follow Guides:** CLAUDE.md guides provide domain-specific best practices
+4. **Build Incrementally:** Use feature backlog and roadmap for prioritization
 
 ---
 
@@ -335,28 +333,8 @@ See [LICENSE](LICENSE) for full details.
 
 1. **Showcase DDD/Event-Driven Architecture:** Real-world implementation of modern patterns
 2. **Demonstrate Microservices:** Properly bounded contexts with clear integration
-3. **AI-Assisted Development:** Document the effectiveness of Claude Code for solo development
+3. **AI-Assisted Development:** Document the effectiveness of Claude Code for development
 4. **Open Source:** Contribute to the community and enable self-hosting
-
----
-
-## Success Metrics
-
-### MVP Success (End of Phase 2)
-
-- 5-10 daily active families
-- 20+ calendar events created per week
-- 30+ tasks completed per week
-- Event chain success rate >98%
-- Average event chain latency <5 seconds
-
-### Production Success (End of Phase 5)
-
-- 50+ monthly active families
-- System uptime >99.5%
-- p95 response time <2 seconds
-- Zero critical security vulnerabilities
-- User NPS >40
 
 ---
 
@@ -398,79 +376,72 @@ This is the power of event chain automation.
 
 This project embraces AI-assisted development with Claude Code:
 
-- 60-80% of boilerplate code generated by AI
-- 70% of unit tests automated
-- 80% of documentation AI-assisted
-- Human developer focuses on domain logic and architecture
+- Strategic foundation created collaboratively with AI
+- Domain modeling and architecture designed iteratively
+- Comprehensive documentation maintained throughout
+- Human developer focuses on domain logic and strategic decisions
 
-### MVP-First Approach
+### Foundation-First Approach
 
-- Deliver value incrementally
-- Validate assumptions early
-- Ruthless prioritization
-- Technical debt awareness
+- Comprehensive strategic planning before implementation
+- Domain model clarity before code
+- Architecture decisions documented as ADRs
+- Agent OS infrastructure for consistent patterns
 
 ### Quality Over Speed
 
-- Comprehensive testing (unit, integration, E2E)
+- Comprehensive planning and documentation
 - Security by design
-- Performance monitoring from day one
-- Documentation as code evolves
+- Domain-driven design principles
+- Event-driven architecture patterns
+
+---
+
+## License
+
+This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
+
+**What this means:**
+
+- You can use, modify, and distribute this software freely
+- If you modify and deploy it as a network service, you must make your source code available
+- This protects against proprietary forks while keeping the project open
+
+See [LICENSE](LICENSE) for full details.
+
+---
+
+## Contributing
+
+This is currently a strategic foundation template. Contributions to documentation, domain modeling, and architectural planning are welcome.
+
+### Contribution Areas
+
+- Domain model refinement
+- Architecture decision reviews
+- Documentation improvements
+- Event chain specifications
+- UX/design concepts
+- Market analysis
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
 ## Support
 
-### During Development (Phase 0-5)
-
-- GitHub Issues for bug reports
-- GitHub Discussions for feature requests
-- Email: [TBD]
-
-### Post-Launch (Phase 6+)
-
-- Community Discord server
-- User documentation and tutorials
-- Video walkthroughs
-- FAQ and troubleshooting guides
+- **GitHub Issues:** Bug reports and feature requests
+- **GitHub Discussions:** Strategic discussions and questions
+- **Documentation:** Comprehensive guides in `/docs`
 
 ---
 
 ## Acknowledgments
 
-- **Zitadel Team** for the excellent open-source identity platform
-- **Hot Chocolate Team** for the powerful GraphQL framework
-- **Claude Code (Anthropic)** for AI-assisted development
+- **Claude Code (Anthropic)** for AI-assisted strategic planning and documentation
 - **DDD Community** for domain-driven design patterns
-- **Family Beta Testers** (coming soon!)
-
----
-
-## Roadmap Highlights
-
-### Q1 2026 (Weeks 1-13)
-
-- Phase 0: Development environment setup
-- Phase 1: MVP with auth, calendar, and tasks
-- First family beta testers onboarded
-
-### Q2 2026 (Weeks 14-26)
-
-- Phase 2: Health integration and event chains
-- Phase 3: Meal planning and finance tracking
-- 10 families using the platform
-
-### Q3 2026 (Weeks 27-39)
-
-- Phase 4: Advanced features (recurrence, search)
-- Phase 5: Production hardening and security audit
-- Beta testing with 20+ families
-
-### Q4 2026 (Weeks 40-52+)
-
-- Phase 6: Mobile apps and AI features
-- Public beta launch
-- 50+ families using Family Hub
+- **Event Sourcing Community** for event-driven architecture patterns
+- **Open Source Community** for inspiration and tools
 
 ---
 
@@ -484,30 +455,30 @@ This project embraces AI-assisted development with Claude Code:
 
 ## Frequently Asked Questions
 
-### Why not use existing tools like Google Calendar + Todoist?
+### Why was the project restarted?
 
-Existing tools require manual coordination. Family Hub automates the connections between different aspects of family life, saving time and mental energy.
+The initial architecture needed redesign. Rather than accumulating technical debt, we chose to restart with a clean slate while preserving all strategic documentation and conceptual work.
 
-### Is my family's data secure?
+### What happened to the previous implementation?
 
-Yes. Data is encrypted at rest and in transit. You can self-host for complete control. Security audits will be conducted before public launch.
+All previous implementation code is preserved in Git tag [`v0.1-phase0-archive`](https://github.com/andrekirst/family2/tree/v0.1-phase0-archive) and can be referenced or restored at any time.
 
-### How much does it cost?
+### Can I use this as a template for my own project?
 
-Free during beta. Post-launch: Freemium model (free for up to 5 family members, paid for larger groups or premium features). Self-hosting is always free.
+Yes! The strategic foundation, domain models, architecture ADRs, and Agent OS infrastructure can serve as a template for similar projects. The AGPL-3.0 license allows free use with proper attribution.
 
-### Can I contribute?
+### When will implementation resume?
 
-Not yet, but contributions will be welcome after MVP launch (Phase 2). Watch the repo for updates.
+Timeline to be determined. The current focus is on refining the strategic foundation and architecture before implementation.
 
-### What if the project is abandoned?
+### Is the strategic documentation still valuable?
 
-The AGPL-3.0 license ensures the code remains open. The community can fork and continue development. Phase boundaries enable clean handoff points.
+Absolutely. The product strategy, domain model, event chains, and architecture decisions represent months of strategic planning and remain highly valuable for future implementation.
 
-### Is it production-ready?
+### Can I contribute to the strategic foundation?
 
-No, currently in planning phase. Production readiness targeted for Q3 2026 (Phase 5 completion).
+Yes! Contributions to documentation, domain modeling, architecture decisions, and planning are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-**Star this repo to follow development progress!**
+**Star this repo to follow the project's evolution!**
