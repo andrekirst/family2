@@ -36,8 +36,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ClockSkew = TimeSpan.FromMinutes(5),
-            RoleClaimType = "family_role" // Custom claim from Keycloak
+            ClockSkew = TimeSpan.FromMinutes(5)
         };
 
         options.Events = new JwtBearerEvents

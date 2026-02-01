@@ -291,8 +291,6 @@ export class AuthService {
         email: payload.email,
         name: payload.name,
         emailVerified: payload.email_verified,
-        familyId: payload.family_id,
-        familyRole: payload.family_role,
       };
     } catch (error) {
       console.error('Failed to decode ID token:', error);

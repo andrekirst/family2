@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 namespace FamilyHub.Api.Common.Middleware;
 
 /// <summary>
-/// Middleware to set PostgreSQL Row-Level Security (RLS) session variables from JWT claims
+/// Middleware to set PostgreSQL Row-Level Security (RLS) session variables from database
+/// Looks up user by JWT sub claim, then uses database as single source of truth
 /// This enforces multi-tenant data isolation at the database level
 /// </summary>
 public class PostgresRlsMiddleware
@@ -24,10 +25,7 @@ public class PostgresRlsMiddleware
             // Extract user ID from JWT 'sub' claim (Keycloak user ID)
             var externalUserId = context.User.FindFirst("sub")?.Value;
 
-            // Extract family ID from custom JWT claim (if present)
-            var familyId = context.User.FindFirst("family_id")?.Value;
-
-            // Get internal user ID from database
+            // Look up user in database to get internal ID and family context
             if (!string.IsNullOrEmpty(externalUserId))
             {
                 var user = await dbContext.Users
@@ -40,19 +38,12 @@ public class PostgresRlsMiddleware
                         "SELECT set_config('app.current_user_id', {0}, false)",
                         user.Id.ToString());
 
-                    // Set app.current_family_id if user has a family
+                    // Set app.current_family_id if user has a family (from database)
                     if (user.FamilyId.HasValue)
                     {
                         await dbContext.Database.ExecuteSqlRawAsync(
                             "SELECT set_config('app.current_family_id', {0}, false)",
                             user.FamilyId.Value.ToString());
-                    }
-                    else if (!string.IsNullOrEmpty(familyId))
-                    {
-                        // Use family_id from JWT if available (backup)
-                        await dbContext.Database.ExecuteSqlRawAsync(
-                            "SELECT set_config('app.current_family_id', {0}, false)",
-                            familyId);
                     }
                 }
             }

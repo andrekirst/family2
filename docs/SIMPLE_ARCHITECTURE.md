@@ -146,19 +146,29 @@ public class AppDbContext : DbContext
 3. Frontend exchanges code for tokens (PKCE) → Gets JWT
 4. Frontend stores JWT in localStorage
 5. Frontend sends GraphQL requests with Authorization header
-6. Backend validates JWT → Extracts claims → Sets RLS variables
-7. PostgreSQL enforces RLS policies → Returns only user's data
+6. Backend validates JWT → Extracts sub claim → Looks up user in database
+7. Backend sets RLS variables from database (user.Id, user.FamilyId)
+8. PostgreSQL enforces RLS policies → Returns only user's data
 ```
 
-### JWT Claims
+### JWT Claims (Standard OIDC Only)
 
-Custom claims from Keycloak:
+**Keycloak provides only standard OIDC claims**:
 
-- `family_id` - User's family UUID
-- `family_role` - User's role (family-owner, family-admin, family-member, family-child)
-- `sub` - Keycloak user ID (maps to User.ExternalUserId)
-- `email` - User's email
-- `email_verified` - Email verification status
+- `sub` - Keycloak user ID (maps to User.ExternalUserId in database)
+- `email` - User's email address
+- `name` - User's display name
+- `email_verified` - Email verification status (boolean)
+- `exp` - Token expiration timestamp
+- `iat` - Token issued at timestamp
+- `iss` - Issuer (Keycloak realm URL)
+- `aud` - Audience (familyhub-web)
+
+**Family context comes from PostgreSQL**:
+
+- `user.FamilyId` - Stored in database, queried via GraphQL
+- Roles - Managed in database or Keycloak realm roles (not custom attributes)
+- No custom JWT claims needed
 
 ---
 

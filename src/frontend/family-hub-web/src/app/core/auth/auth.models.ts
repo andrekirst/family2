@@ -4,14 +4,13 @@
 
 /**
  * User profile information from JWT ID token
+ * Family context is fetched from GraphQL API, not stored in JWT
  */
 export interface UserProfile {
   userId: string;
   email: string;
   name: string;
   emailVerified: boolean;
-  familyId?: string;
-  familyRole?: string;
 }
 
 /**
@@ -26,15 +25,13 @@ export interface AuthTokens {
 }
 
 /**
- * Decoded JWT token payload
+ * Decoded JWT token payload (standard OIDC claims only)
  */
 export interface JwtPayload {
   sub: string;
   email: string;
   name: string;
   email_verified: boolean;
-  family_id?: string;
-  family_role?: string;
   exp: number;
   iat: number;
   iss: string;
