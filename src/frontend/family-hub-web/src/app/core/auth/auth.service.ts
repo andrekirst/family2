@@ -125,18 +125,28 @@ export class AuthService {
       if (profile) {
         this.userProfile.set(profile);
         this.isAuthenticated.set(true);
+
+        // Log success for debugging
+        console.log('✅ OAuth login successful!', {
+          email: profile.email,
+          name: profile.name,
+          userId: profile.userId,
+          emailVerified: profile.emailVerified,
+        });
       }
 
       // Clean up session storage
       sessionStorage.removeItem('code_verifier');
       sessionStorage.removeItem('state');
 
-      // Redirect to intended destination
+      // Redirect to intended destination with success indicator
       const redirectUrl = sessionStorage.getItem('post_login_redirect') || '/dashboard';
       sessionStorage.removeItem('post_login_redirect');
       sessionStorage.removeItem('redirect_url');
 
-      this.router.navigate([redirectUrl]);
+      this.router.navigate([redirectUrl], {
+        queryParams: { login: 'success' },
+      });
     } catch (error) {
       console.error('Token exchange failed:', error);
       this.clearTokens();
