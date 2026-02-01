@@ -76,10 +76,8 @@ builder.Services.AddCors(options =>
 builder.Services
     .AddGraphQLServer()
     .AddAuthorization()
-    .AddQueryType(q => q.Name("Query"))
-    .AddMutationType(m => m.Name("Mutation"))
-    .AddTypeExtension<AuthQueries>()
-    .AddTypeExtension<AuthMutations>()
+    .AddQueryType<AuthQueries>()
+    .AddMutationType<AuthMutations>()
     .AddTypeExtension<FamilyQueries>()
     .AddTypeExtension<FamilyMutations>();
 
