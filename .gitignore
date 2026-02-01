@@ -94,10 +94,6 @@ artifacts/
 *.userosscache
 *.sln.docstates
 
-# Entity Framework migrations (keep schema, ignore auto-generated)
-**/Migrations/*.Designer.cs
-**/Migrations/*.designer.cs
-
 ###############################################################################
 # Node.js / Angular (Frontend - Phase 1)
 ###############################################################################

@@ -144,9 +144,8 @@ export class AuthService {
       sessionStorage.removeItem('post_login_redirect');
       sessionStorage.removeItem('redirect_url');
 
-      this.router.navigate([redirectUrl], {
-        queryParams: { login: 'success' },
-      });
+      // Navigate using navigateByUrl with query params
+      this.router.navigateByUrl(`${redirectUrl}?login=success`);
     } catch (error) {
       console.error('Token exchange failed:', error);
       this.clearTokens();
