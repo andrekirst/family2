@@ -21,49 +21,57 @@ export const authGuard: CanActivateFn = (route, state) => {
 
 /**
  * Route guard requiring family owner role
- * Redirects to dashboard with error if insufficient permissions
+ * TODO: Implement by fetching user family data from GraphQL API
+ * For now, just checks authentication
  */
 export const familyOwnerGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const userProfile = authService.userProfile();
-  if (userProfile?.familyRole === 'family-owner') {
-    return true;
+  if (!authService.isAuthenticated()) {
+    sessionStorage.setItem('redirect_url', state.url);
+    return router.parseUrl('/login');
   }
 
-  return router.parseUrl('/dashboard?error=insufficient_permissions');
+  // TODO: Query GraphQL for user's family role and check if owner
+  // For now, allow all authenticated users
+  return true;
 };
 
 /**
  * Route guard requiring family admin or owner role
+ * TODO: Implement by fetching user family data from GraphQL API
+ * For now, just checks authentication
  */
 export const familyAdminGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const userProfile = authService.userProfile();
-  const allowedRoles = ['family-owner', 'family-admin'];
-
-  if (userProfile?.familyRole && allowedRoles.includes(userProfile.familyRole)) {
-    return true;
+  if (!authService.isAuthenticated()) {
+    sessionStorage.setItem('redirect_url', state.url);
+    return router.parseUrl('/login');
   }
 
-  return router.parseUrl('/dashboard?error=insufficient_permissions');
+  // TODO: Query GraphQL for user's family role and check if admin/owner
+  // For now, allow all authenticated users
+  return true;
 };
 
 /**
  * Route guard requiring user to belong to a family
- * Redirects to family creation if user doesn't have a family
+ * TODO: Implement by fetching user family data from GraphQL API
+ * For now, just checks authentication
  */
 export const familyMemberGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const userProfile = authService.userProfile();
-  if (userProfile?.familyId) {
-    return true;
+  if (!authService.isAuthenticated()) {
+    sessionStorage.setItem('redirect_url', state.url);
+    return router.parseUrl('/login');
   }
 
-  return router.parseUrl('/family/create?error=no_family');
+  // TODO: Query GraphQL for user's family membership
+  // For now, allow all authenticated users
+  return true;
 };
