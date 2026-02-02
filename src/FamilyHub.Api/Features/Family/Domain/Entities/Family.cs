@@ -1,7 +1,6 @@
 using FamilyHub.Api.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
-using FamilyHub.Api.Features.Family.Domain.Events;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Family.Domain.Entities;
@@ -46,35 +45,4 @@ public sealed class Family : AggregateRoot<FamilyId>
     /// Navigation property to all family members
     /// </summary>
     public ICollection<User> Members { get; private set; } = new List<User>();
-
-    /// <summary>
-    /// Factory method to create a new family with an owner.
-    /// Raises FamilyCreatedEvent.
-    /// </summary>
-    public static Family Create(FamilyName name, UserId ownerId)
-    {
-        var family = new Family
-        {
-            Id = FamilyId.New(),
-            Name = name,
-            OwnerId = ownerId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        family.RaiseDomainEvent(new FamilyCreatedEvent(
-            family.Id,
-            family.Name,
-            family.OwnerId,
-            DateTime.UtcNow
-        ));
-
-        return family;
-    }
-
-    // Future domain methods (add when implementing corresponding features):
-    // - AddMember(User user) - When implementing "Invite family member" feature
-    // - RemoveMember(User user) - When implementing "Remove member" feature
-    // - Rename(FamilyName newName) - When implementing "Rename family" feature
-    // - TransferOwnership(UserId newOwnerId) - When implementing "Transfer ownership" feature
 }

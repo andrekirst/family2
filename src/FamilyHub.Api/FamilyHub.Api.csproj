@@ -23,5 +23,10 @@
     <PackageReference Include="WolverineFx" Version="5.11.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Family\Application\EventHandlers\" />
+    <Folder Include="Features\Family\Domain\Events\" />
+  </ItemGroup>
+
 
 </Project>
