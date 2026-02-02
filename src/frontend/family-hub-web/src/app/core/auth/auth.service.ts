@@ -257,12 +257,12 @@ export class AuthService {
    * Store OAuth tokens in localStorage
    */
   private storeTokens(tokens: AuthTokens): void {
-    localStorage.setItem(this.STORAGE_ACCESS_TOKEN, tokens.accessToken);
-    localStorage.setItem(this.STORAGE_ID_TOKEN, tokens.idToken);
-    localStorage.setItem(this.STORAGE_REFRESH_TOKEN, tokens.refreshToken);
+    localStorage.setItem(this.STORAGE_ACCESS_TOKEN, tokens.access_token);
+    localStorage.setItem(this.STORAGE_ID_TOKEN, tokens.id_token);
+    localStorage.setItem(this.STORAGE_REFRESH_TOKEN, tokens.refresh_token);
 
     // Calculate expiration time
-    const expiresAt = Math.floor(Date.now() / 1000) + tokens.expiresIn;
+    const expiresAt = Math.floor(Date.now() / 1000) + tokens.expires_in;
     localStorage.setItem(this.STORAGE_EXPIRES_AT, expiresAt.toString());
   }
 

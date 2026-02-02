@@ -14,14 +14,14 @@ export interface UserProfile {
 }
 
 /**
- * OAuth tokens from Keycloak
+ * OAuth tokens from Keycloak (snake_case as returned by OAuth server)
  */
 export interface AuthTokens {
-  accessToken: string;
-  idToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  tokenType: string;
+  access_token: string;
+  id_token: string;
+  refresh_token: string;
+  expires_in: number;
+  token_type: string;
 }
 
 /**
