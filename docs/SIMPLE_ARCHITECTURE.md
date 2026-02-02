@@ -14,23 +14,28 @@ Family Hub uses a **simplified single-project architecture** for Phase 0 to enab
 
 ## Project Structure
 
+> **Note:** Solution file is co-located with the API project at `src/FamilyHub.Api/FamilyHub.sln`.
+
 ```
-FamilyHub.sln
-├── src/FamilyHub.Api/              # Single API project
-│   ├── Features/                    # Feature-based organization
-│   │   ├── Auth/
-│   │   │   ├── Models/              # Entities and DTOs
-│   │   │   ├── Services/            # Business logic
-│   │   │   ├── GraphQL/             # GraphQL resolvers
-│   │   │   └── Data/                # EF Core configurations
-│   │   └── Family/
-│   │       └── [same structure]
-│   ├── Common/                      # Shared code
-│   │   ├── Database/                # AppDbContext
-│   │   ├── Authentication/          # JWT setup
-│   │   └── Middleware/              # RLS, CORS, etc.
-│   ├── Migrations/                  # EF Core migrations
-│   └── Program.cs                   # Startup configuration
+repository-root/
+├── src/
+│   └── FamilyHub.Api/              # Single API project
+│       ├── FamilyHub.sln           # Solution file (co-located)
+│       ├── FamilyHub.Api.csproj
+│       ├── Features/               # Feature-based organization
+│       │   ├── Auth/
+│       │   │   ├── Models/         # Entities and DTOs
+│       │   │   ├── Services/       # Business logic
+│       │   │   ├── GraphQL/        # GraphQL resolvers
+│       │   │   └── Data/           # EF Core configurations
+│       │   └── Family/
+│       │       └── [same structure]
+│       ├── Common/                 # Shared code
+│       │   ├── Database/           # AppDbContext
+│       │   ├── Authentication/     # JWT setup
+│       │   └── Middleware/         # RLS, CORS, etc.
+│       ├── Migrations/             # EF Core migrations
+│       └── Program.cs              # Startup configuration
 ├── tests/
 │   ├── FamilyHub.UnitTests/        # Unit tests
 │   └── FamilyHub.IntegrationTests/ # Integration tests

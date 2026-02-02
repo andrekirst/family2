@@ -3,15 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.Api", "FamilyHub.Api.csproj", "{9CB99B3D-C117-4887-976C-DDF5FE7C7049}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.Api", "src\FamilyHub.Api\FamilyHub.Api.csproj", "{9CB99B3D-C117-4887-976C-DDF5FE7C7049}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.UnitTests", "..\..\tests\FamilyHub.UnitTests\FamilyHub.UnitTests.csproj", "{D97939BC-A74F-49E7-BC4F-37F04CC40FBF}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.UnitTests", "tests\FamilyHub.UnitTests\FamilyHub.UnitTests.csproj", "{D97939BC-A74F-49E7-BC4F-37F04CC40FBF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.IntegrationTests", "tests\FamilyHub.IntegrationTests\FamilyHub.IntegrationTests.csproj", "{537B52CC-2362-4205-AA51-4DC77491A324}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyHub.IntegrationTests", "..\..\tests\FamilyHub.IntegrationTests\FamilyHub.IntegrationTests.csproj", "{537B52CC-2362-4205-AA51-4DC77491A324}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,10 +58,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{9CB99B3D-C117-4887-976C-DDF5FE7C7049} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{D97939BC-A74F-49E7-BC4F-37F04CC40FBF} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
-		{537B52CC-2362-4205-AA51-4DC77491A324} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal
