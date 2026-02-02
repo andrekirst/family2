@@ -1,4 +1,7 @@
-using FamilyHub.Api.Features.Auth.Models;
+using FamilyHub.Api.Common.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
+using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,18 +18,29 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // Table mapping to auth schema
         builder.ToTable("users", "auth");
 
-        // Primary key
+        // Primary key with Vogen converter
         builder.HasKey(u => u.Id);
+        builder.Property(u => u.Id)
+            .HasConversion(
+                id => id.Value,
+                value => UserId.From(value))
+            .ValueGeneratedOnAdd();
 
-        // Email - unique, required
+        // Email - unique, required (Vogen value object)
         builder.Property(u => u.Email)
+            .HasConversion(
+                email => email.Value,
+                value => Email.From(value))
             .HasMaxLength(320)
             .IsRequired();
         builder.HasIndex(u => u.Email)
             .IsUnique();
 
-        // Name - required
+        // Name - required (Vogen value object)
         builder.Property(u => u.Name)
+            .HasConversion(
+                name => name.Value,
+                value => UserName.From(value))
             .HasMaxLength(200)
             .IsRequired();
 
@@ -34,8 +48,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Username)
             .HasMaxLength(100);
 
-        // External OAuth provider fields
+        // External OAuth provider fields (Vogen value object)
         builder.Property(u => u.ExternalUserId)
+            .HasConversion(
+                externalId => externalId.Value,
+                value => ExternalUserId.From(value))
             .HasMaxLength(255)
             .IsRequired();
         builder.HasIndex(u => u.ExternalUserId)
@@ -46,8 +63,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasDefaultValue("KEYCLOAK");
 
-        // Family relationship
+        // Family relationship (Vogen value object - nullable)
         builder.Property(u => u.FamilyId)
+            .HasConversion(
+                familyId => familyId.HasValue ? familyId.Value.Value : (Guid?)null,
+                value => value.HasValue ? FamilyId.From(value.Value) : null)
             .IsRequired(false);
         builder.HasIndex(u => u.FamilyId);
 

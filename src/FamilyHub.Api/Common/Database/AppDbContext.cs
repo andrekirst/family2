@@ -1,17 +1,27 @@
-using FamilyHub.Api.Features.Auth.Models;
+using FamilyHub.Api.Common.Domain;
+using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using FamilyEntity = FamilyHub.Api.Features.Family.Models.Family;
+using Wolverine;
 
 namespace FamilyHub.Api.Common.Database;
 
 /// <summary>
 /// Application database context for Family Hub
 /// Uses PostgreSQL with schema separation for organization
+/// Publishes domain events after successful persistence
 /// </summary>
 public class AppDbContext : DbContext
 {
+    private readonly IMessageBus? _messageBus;
+
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
+    }
+
+    public AppDbContext(DbContextOptions<AppDbContext> options, IMessageBus messageBus) : base(options)
+    {
+        _messageBus = messageBus;
     }
 
     /// <summary>
@@ -22,7 +32,7 @@ public class AppDbContext : DbContext
     /// <summary>
     /// Family households
     /// </summary>
-    public DbSet<FamilyEntity> Families { get; set; }
+    public DbSet<Family> Families { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,38 +46,74 @@ public class AppDbContext : DbContext
     }
 
     /// <summary>
-    /// Override SaveChanges to automatically update UpdatedAt timestamps
+    /// Override SaveChanges to automatically update UpdatedAt timestamps.
+    /// Note: Aggregates (User, Family) manage their own timestamps via domain methods.
     /// </summary>
     public override int SaveChanges()
     {
-        UpdateTimestamps();
+        UpdateNonAggregateTimestamps();
         return base.SaveChanges();
     }
 
     /// <summary>
     /// Override SaveChangesAsync to automatically update UpdatedAt timestamps
+    /// and publish domain events after successful persistence.
+    /// Note: Aggregates (User, Family) manage their own timestamps via domain methods.
     /// </summary>
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        UpdateTimestamps();
-        return base.SaveChangesAsync(cancellationToken);
-    }
+        UpdateNonAggregateTimestamps();
 
-    private void UpdateTimestamps()
-    {
-        var entries = ChangeTracker.Entries()
-            .Where(e => e.State == EntityState.Modified);
+        // Collect domain events from all aggregate root types before saving
+        var aggregateEntries = ChangeTracker.Entries()
+            .Where(e => e.Entity.GetType().BaseType?.IsGenericType == true &&
+                       e.Entity.GetType().BaseType.GetGenericTypeDefinition() == typeof(AggregateRoot<>))
+            .ToList();
 
-        foreach (var entry in entries)
+        var domainEvents = new List<IDomainEvent>();
+        foreach (var entry in aggregateEntries)
         {
-            if (entry.Entity is User user)
+            var domainEventsProperty = entry.Entity.GetType().GetProperty("DomainEvents");
+            if (domainEventsProperty != null)
             {
-                user.UpdatedAt = DateTime.UtcNow;
-            }
-            else if (entry.Entity is FamilyEntity family)
-            {
-                family.UpdatedAt = DateTime.UtcNow;
+                var events = domainEventsProperty.GetValue(entry.Entity) as IEnumerable<IDomainEvent>;
+                if (events != null)
+                {
+                    domainEvents.AddRange(events);
+                }
             }
         }
+
+        // Save changes first
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        // Publish domain events after successful save (only if message bus is available)
+        if (_messageBus is not null)
+        {
+            foreach (var domainEvent in domainEvents)
+            {
+                await _messageBus.PublishAsync(domainEvent);
+            }
+        }
+
+        // Clear domain events from aggregates
+        foreach (var entry in aggregateEntries)
+        {
+            var clearMethod = entry.Entity.GetType().GetMethod("ClearDomainEvents");
+            clearMethod?.Invoke(entry.Entity, null);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Update timestamps for non-aggregate entities.
+    /// Aggregates manage their own timestamps via domain methods.
+    /// </summary>
+    private void UpdateNonAggregateTimestamps()
+    {
+        // Currently no non-aggregate entities with timestamps
+        // This method reserved for future use
+        // Note: User and Family (aggregates) manage their own UpdatedAt via domain methods
     }
 }

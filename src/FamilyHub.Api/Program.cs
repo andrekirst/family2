@@ -1,12 +1,18 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Database;
+using FamilyHub.Api.Common.Infrastructure.Messaging;
 using FamilyHub.Api.Common.Middleware;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.GraphQL;
-using FamilyHub.Api.Features.Auth.Services;
+using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.GraphQL;
-using FamilyHub.Api.Features.Family.Services;
+using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Wolverine;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +22,23 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+// Configure Wolverine for CQRS with in-process messaging
+builder.Host.UseWolverine(opts =>
+{
+    opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
+
+    // Local queue for in-process messaging (Phase 0-4)
+    // Will be upgraded to RabbitMQ in Phase 5+ for microservices
+    opts.LocalQueue("default");
+});
+
+// Register command and query bus abstractions
+builder.Services.AddScoped<global::FamilyHub.Api.Common.Application.ICommandBus, WolverineCommandBus>();
+builder.Services.AddScoped<global::FamilyHub.Api.Common.Application.IQueryBus, WolverineQueryBus>();
+
+// Register FluentValidation validators from assembly
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // Configure JWT Bearer authentication with Keycloak
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -56,9 +79,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Register application services
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<FamilyService>();
+// Register repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
 
 // Configure CORS for Angular frontend
 builder.Services.AddCors(options =>
