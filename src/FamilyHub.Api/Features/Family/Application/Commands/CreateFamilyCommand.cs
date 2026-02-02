@@ -11,10 +11,3 @@ public sealed record CreateFamilyCommand(
     FamilyName Name,
     UserId OwnerId
 ) : ICommand<CreateFamilyResult>;
-
-/// <summary>
-/// Result of family creation command.
-/// </summary>
-public sealed record CreateFamilyResult(
-    FamilyId FamilyId
-);

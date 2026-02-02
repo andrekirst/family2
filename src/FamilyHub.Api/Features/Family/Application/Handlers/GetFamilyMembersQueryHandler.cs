@@ -21,13 +21,13 @@ public static class GetFamilyMembersQueryHandler
         var user = await userRepository.GetByExternalIdAsync(query.ExternalUserId, ct);
         if (user?.FamilyId == null)
         {
-            return new List<UserDto>();
+            return [];
         }
 
         var family = await familyRepository.GetByIdWithMembersAsync(user.FamilyId.Value, ct);
         if (family is null)
         {
-            return new List<UserDto>();
+            return [];
         }
 
         return family.Members.Select(UserMapper.ToDto).ToList();

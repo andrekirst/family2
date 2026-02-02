@@ -9,7 +9,7 @@ public abstract class AggregateRoot<TId> where TId : struct
 {
     public TId Id { get; protected set; }
 
-    private readonly List<IDomainEvent> _domainEvents = new();
+    private readonly List<IDomainEvent> _domainEvents = [];
 
     /// <summary>
     /// Domain events raised by this aggregate during its lifecycle.

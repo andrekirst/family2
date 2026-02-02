@@ -8,15 +8,8 @@ namespace FamilyHub.Api.Common.Middleware;
 /// Looks up user by JWT sub claim, then uses database as single source of truth
 /// This enforces multi-tenant data isolation at the database level
 /// </summary>
-public class PostgresRlsMiddleware
+public class PostgresRlsMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public PostgresRlsMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
     public async Task InvokeAsync(HttpContext context, AppDbContext dbContext)
     {
         // Only set RLS variables if user is authenticated
@@ -49,6 +42,6 @@ public class PostgresRlsMiddleware
             }
         }
 
-        await _next(context);
+        await next(context);
     }
 }

@@ -8,16 +8,10 @@ namespace FamilyHub.IntegrationTests;
 /// Integration tests for GraphQL API
 /// Tests the full HTTP pipeline including authentication, GraphQL, and database
 /// </summary>
-public class GraphQLApiTests : IClassFixture<WebApplicationFactory<Program>>
+public class GraphQLApiTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly HttpClient _client;
-
-    public GraphQLApiTests(WebApplicationFactory<Program> factory)
-    {
-        _factory = factory;
-        _client = factory.CreateClient();
-    }
+    private readonly WebApplicationFactory<Program> _factory = factory;
+    private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
     public async Task HealthEndpoint_ReturnsHealthy()

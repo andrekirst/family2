@@ -34,8 +34,8 @@ builder.Host.UseWolverine(opts =>
 });
 
 // Register command and query bus abstractions
-builder.Services.AddScoped<global::FamilyHub.Api.Common.Application.ICommandBus, WolverineCommandBus>();
-builder.Services.AddScoped<global::FamilyHub.Api.Common.Application.IQueryBus, WolverineQueryBus>();
+builder.Services.AddScoped<FamilyHub.Api.Common.Application.ICommandBus, WolverineCommandBus>();
+builder.Services.AddScoped<IQueryBus, WolverineQueryBus>();
 
 // Register FluentValidation validators from assembly
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();

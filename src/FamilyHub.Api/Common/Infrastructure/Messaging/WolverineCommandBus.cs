@@ -6,17 +6,10 @@ namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 /// Wolverine implementation of ICommandBus.
 /// Adapts Wolverine's IMessageBus to our domain abstraction.
 /// </summary>
-public sealed class WolverineCommandBus : global::FamilyHub.Api.Common.Application.ICommandBus
+public sealed class WolverineCommandBus(IMessageBus messageBus) : Application.ICommandBus
 {
-    private readonly IMessageBus _messageBus;
-
-    public WolverineCommandBus(IMessageBus messageBus)
+    public async Task<TResult> SendAsync<TResult>(Application.ICommand<TResult> command, CancellationToken ct = default)
     {
-        _messageBus = messageBus;
-    }
-
-    public async Task<TResult> SendAsync<TResult>(global::FamilyHub.Api.Common.Application.ICommand<TResult> command, CancellationToken ct = default)
-    {
-        return await _messageBus.InvokeAsync<TResult>(command, ct);
+        return await messageBus.InvokeAsync<TResult>(command, ct);
     }
 }

@@ -14,11 +14,3 @@ public sealed record RegisterUserCommand(
     bool EmailVerified,
     string? Username = null
 ) : ICommand<RegisterUserResult>;
-
-/// <summary>
-/// Result of user registration command.
-/// </summary>
-public sealed record RegisterUserResult(
-    UserId UserId,
-    bool IsNewUser
-);
