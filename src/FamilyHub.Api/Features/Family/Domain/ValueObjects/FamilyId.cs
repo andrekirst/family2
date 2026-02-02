@@ -17,7 +17,9 @@ public readonly partial struct FamilyId
     private static Validation Validate(Guid value)
     {
         if (value == Guid.Empty)
+        {
             return Validation.Invalid("Family ID cannot be empty");
+        }
 
         return Validation.Ok;
     }

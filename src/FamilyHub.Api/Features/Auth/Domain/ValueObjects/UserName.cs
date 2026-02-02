@@ -12,13 +12,19 @@ public readonly partial struct UserName
     private static Validation Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return Validation.Invalid("User name is required");
+        }
 
         if (value.Length < 2)
+        {
             return Validation.Invalid("User name must be at least 2 characters");
+        }
 
         if (value.Length > 200)
+        {
             return Validation.Invalid("User name too long (max 200 characters)");
+        }
 
         return Validation.Ok;
     }

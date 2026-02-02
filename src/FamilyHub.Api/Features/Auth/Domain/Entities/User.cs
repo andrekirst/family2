@@ -144,7 +144,9 @@ public sealed class User : AggregateRoot<UserId>
     public void AssignToFamily(FamilyId familyId)
     {
         if (FamilyId is not null)
+        {
             throw new DomainException("User is already assigned to a family");
+        }
 
         FamilyId = familyId;
         UpdatedAt = DateTime.UtcNow;
@@ -163,7 +165,9 @@ public sealed class User : AggregateRoot<UserId>
     public void RemoveFromFamily()
     {
         if (FamilyId is null)
+        {
             throw new DomainException("User is not assigned to any family");
+        }
 
         var previousFamilyId = FamilyId.Value;
         FamilyId = null;

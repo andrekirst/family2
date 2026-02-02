@@ -17,7 +17,9 @@ public readonly partial struct UserId
     private static Validation Validate(Guid value)
     {
         if (value == Guid.Empty)
+        {
             return Validation.Invalid("User ID cannot be empty");
+        }
 
         return Validation.Ok;
     }

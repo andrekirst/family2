@@ -81,7 +81,9 @@ public sealed class Family : AggregateRoot<FamilyId>
     public void AddMember(Auth.Domain.Entities.User user)
     {
         if (Members.Any(m => m.Id == user.Id))
+        {
             throw new DomainException($"User {user.Id.Value} is already a member of this family");
+        }
 
         // Update the user's family assignment (raises UserFamilyAssignedEvent)
         user.AssignToFamily(Id);
@@ -106,11 +108,15 @@ public sealed class Family : AggregateRoot<FamilyId>
     public void RemoveMember(Auth.Domain.Entities.User user)
     {
         if (user.Id == OwnerId)
+        {
             throw new DomainException("Cannot remove the family owner");
+        }
 
         var member = Members.FirstOrDefault(m => m.Id == user.Id);
         if (member is null)
+        {
             throw new DomainException($"User {user.Id.Value} is not a member of this family");
+        }
 
         Members.Remove(member);
         UpdatedAt = DateTime.UtcNow;
@@ -138,7 +144,9 @@ public sealed class Family : AggregateRoot<FamilyId>
     public void TransferOwnership(UserId newOwnerId)
     {
         if (!Members.Any(m => m.Id == newOwnerId))
+        {
             throw new DomainException("New owner must be a family member");
+        }
 
         OwnerId = newOwnerId;
         UpdatedAt = DateTime.UtcNow;
