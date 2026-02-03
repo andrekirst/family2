@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:7000/graphql',
+  apiUrl: 'http://localhost:5152/graphql',
   keycloak: {
     issuer: 'http://localhost:8080/realms/FamilyHub',
     clientId: 'familyhub-web',
