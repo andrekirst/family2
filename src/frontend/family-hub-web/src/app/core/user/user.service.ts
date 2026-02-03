@@ -11,10 +11,7 @@ export interface CurrentUser {
   name: string;
   emailVerified: boolean;
   isActive: boolean;
-  family?: {
-    id: string;
-    name: string;
-  } | null;
+  familyId?: string | null;
 }
 
 // GraphQL response types
@@ -23,7 +20,7 @@ interface RegisterUserResponse {
 }
 
 interface GetCurrentUserResponse {
-  getCurrentUser: CurrentUser;
+  currentUser: CurrentUser;
 }
 
 /**
@@ -102,11 +99,11 @@ export class UserService {
         })
         .toPromise();
 
-      if (!result?.data?.getCurrentUser) {
+      if (!result?.data?.currentUser) {
         return null;
       }
 
-      const user = result.data.getCurrentUser;
+      const user = result.data.currentUser;
       this.currentUser.set(user);
       return user;
     } finally {

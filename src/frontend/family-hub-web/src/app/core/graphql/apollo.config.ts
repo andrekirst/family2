@@ -18,21 +18,24 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
 
       // Auth link: Add Bearer token to GraphQL requests
       // IMPORTANT: Apollo doesn't use Angular's HttpClient, so we must manually attach the token
-      const authLink = setContext((_: any, { headers }: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const authLink = setContext((_operation: any, prevContext: any) => {
         const token = localStorage.getItem('access_token');
         return {
           headers: {
-            ...(headers || {}),
+            ...prevContext.headers,
             authorization: token ? `Bearer ${token}` : '',
           },
         };
       });
 
       // Error link: Handle GraphQL errors globally
-      const errorLink = onError((errorResponse: any) => {
-        const { graphQLErrors, networkError } = errorResponse;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorLink = onError((errorOptions: any) => {
+        const { graphQLErrors, networkError } = errorOptions;
 
         if (graphQLErrors) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           graphQLErrors.forEach((error: any) => {
             console.error(`[GraphQL error]: ${error.message}`);
 
@@ -54,8 +57,8 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
 
       // Combine links: auth → error → http
       const link = ApolloLink.from([
-        authLink,
-        errorLink,
+        authLink as unknown as ApolloLink,
+        errorLink as unknown as ApolloLink,
         httpLink.create({ uri: environment.apiUrl }),
       ]);
 

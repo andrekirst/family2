@@ -30,16 +30,13 @@ export const REGISTER_USER_MUTATION = gql`
  */
 export const GET_CURRENT_USER_QUERY = gql`
   query GetCurrentUser {
-    getCurrentUser {
+    currentUser {
       id
       email
       name
       emailVerified
       isActive
-      family {
-        id
-        name
-      }
+      familyId
     }
   }
 `;
