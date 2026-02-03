@@ -2,9 +2,11 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
+import { UserService } from '../../core/user/user.service';
 
 /**
  * Dashboard component - main landing page after authentication
+ * Displays user profile and family membership from backend
  */
 @Component({
   selector: 'app-dashboard',
@@ -46,12 +48,19 @@ import { AuthService } from '../../core/auth/auth.service';
 
       <!-- Main content -->
       <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        @if (userProfile()) {
+        @if (isLoading()) {
           <div class="bg-white shadow rounded-lg p-6">
-            <h2 class="text-xl font-semibold text-gray-900">Welcome, {{ userProfile()!.name }}!</h2>
-            <p class="mt-2 text-gray-600">{{ userProfile()!.email }}</p>
+            <div class="animate-pulse">
+              <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+              <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        } @else if (currentUser()) {
+          <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900">Welcome, {{ currentUser()!.name }}!</h2>
+            <p class="mt-2 text-gray-600">{{ currentUser()!.email }}</p>
 
-            @if (userProfile()!.emailVerified) {
+            @if (currentUser()!.emailVerified) {
               <span
                 class="mt-2 inline-block px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded"
               >
@@ -65,16 +74,34 @@ import { AuthService } from '../../core/auth/auth.service';
               </span>
             }
 
-            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h3 class="text-lg font-medium text-gray-900">Welcome to Family Hub!</h3>
-              <p class="mt-1 text-sm text-gray-600">
-                You're successfully authenticated. Family features will be available soon.
-              </p>
-              <p class="mt-2 text-xs text-gray-500">
-                Note: Family context is stored in the database and will be fetched via GraphQL
-                queries.
-              </p>
-            </div>
+            <!-- Family membership display -->
+            @if (currentUser()!.family) {
+              <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="text-lg font-medium text-gray-900">
+                  Family: {{ currentUser()!.family!.name }}
+                </h3>
+                <p class="mt-1 text-sm text-gray-600">
+                  You're part of {{ currentUser()!.family!.name }}. Manage your family below.
+                </p>
+                <button class="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                  View Family
+                </button>
+              </div>
+            } @else {
+              <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h3 class="text-lg font-medium text-gray-900">No Family Yet</h3>
+                <p class="mt-1 text-sm text-gray-600">
+                  Create your family to start organizing your life together.
+                </p>
+                <button class="mt-3 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600">
+                  Create Family
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="bg-red-50 border-l-4 border-red-500 p-4">
+            <p class="text-red-700">Failed to load user data. Please try logging in again.</p>
           </div>
         }
       </main>
@@ -83,13 +110,23 @@ import { AuthService } from '../../core/auth/auth.service';
 })
 export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
+  private userService = inject(UserService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  userProfile = this.authService.userProfile;
+  // Use backend user data instead of Keycloak token
+  currentUser = this.userService.currentUser;
+  isLoading = this.userService.isLoading;
   showSuccessMessage = signal(false);
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    // Fetch user data from backend
+    try {
+      await this.userService.fetchCurrentUser();
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+
     // Check for login success query parameter
     this.route.queryParams.subscribe((params) => {
       if (params['login'] === 'success') {
@@ -109,6 +146,7 @@ export class DashboardComponent implements OnInit {
   }
 
   logout(): void {
+    this.userService.clearUser(); // Clear backend user state
     this.authService.logout();
   }
 }
