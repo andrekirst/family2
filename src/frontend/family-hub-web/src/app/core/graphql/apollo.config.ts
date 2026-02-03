@@ -21,10 +21,17 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const authLink = setContext((_operation: any, prevContext: any) => {
         const token = localStorage.getItem('access_token');
+
+        // Only add Authorization header if token exists
+        // Sending an empty Authorization header causes AUTH_NOT_AUTHENTICATED errors
+        if (!token) {
+          return prevContext;
+        }
+
         return {
           headers: {
             ...prevContext.headers,
-            authorization: token ? `Bearer ${token}` : '',
+            authorization: `Bearer ${token}`,
           },
         };
       });
