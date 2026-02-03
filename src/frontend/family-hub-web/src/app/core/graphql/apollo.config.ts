@@ -18,26 +18,28 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
 
       // Auth link: Add Bearer token to GraphQL requests
       // IMPORTANT: Apollo doesn't use Angular's HttpClient, so we must manually attach the token
-      const authLink = setContext((_, { headers }) => {
+      const authLink = setContext((_: any, { headers }: any) => {
         const token = localStorage.getItem('access_token');
         return {
           headers: {
-            ...headers,
+            ...(headers || {}),
             authorization: token ? `Bearer ${token}` : '',
           },
         };
       });
 
       // Error link: Handle GraphQL errors globally
-      const errorLink = onError(({ graphQLErrors, networkError }) => {
+      const errorLink = onError((errorResponse: any) => {
+        const { graphQLErrors, networkError } = errorResponse;
+
         if (graphQLErrors) {
-          graphQLErrors.forEach(({ message, extensions }) => {
-            console.error(`[GraphQL error]: ${message}`);
+          graphQLErrors.forEach((error: any) => {
+            console.error(`[GraphQL error]: ${error.message}`);
 
             // Redirect to login if unauthorized
             if (
-              extensions?.['code'] === 'AUTH_NOT_AUTHENTICATED' ||
-              extensions?.['code'] === 'AUTH_NOT_AUTHORIZED'
+              error.extensions?.['code'] === 'AUTH_NOT_AUTHENTICATED' ||
+              error.extensions?.['code'] === 'AUTH_NOT_AUTHORIZED'
             ) {
               console.warn('Unauthorized - redirecting to login');
               window.location.href = '/login';

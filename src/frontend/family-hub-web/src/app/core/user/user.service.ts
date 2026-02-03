@@ -17,6 +17,15 @@ export interface CurrentUser {
   } | null;
 }
 
+// GraphQL response types
+interface RegisterUserResponse {
+  registerUser: CurrentUser;
+}
+
+interface GetCurrentUserResponse {
+  currentUser: CurrentUser;
+}
+
 /**
  * Service managing backend user state.
  * Separate from AuthService (which manages OAuth/tokens).
@@ -48,7 +57,7 @@ export class UserService {
 
     try {
       const result = await this.apollo
-        .mutate({
+        .mutate<RegisterUserResponse>({
           mutation: REGISTER_USER_MUTATION,
         })
         .toPromise();
@@ -57,7 +66,7 @@ export class UserService {
         throw new Error('Failed to register user with backend');
       }
 
-      const user = result.data.registerUser as CurrentUser;
+      const user = result.data.registerUser;
       this.currentUser.set(user);
       return user;
     } finally {
@@ -76,7 +85,7 @@ export class UserService {
 
     try {
       const result = await this.apollo
-        .query({
+        .query<GetCurrentUserResponse>({
           query: GET_CURRENT_USER_QUERY,
           fetchPolicy: 'network-only', // Always fetch fresh data
         })
@@ -86,7 +95,7 @@ export class UserService {
         return null;
       }
 
-      const user = result.data.currentUser as CurrentUser;
+      const user = result.data.currentUser;
       this.currentUser.set(user);
       return user;
     } finally {
