@@ -23,7 +23,7 @@ interface RegisterUserResponse {
 }
 
 interface GetCurrentUserResponse {
-  currentUser: CurrentUser;
+  getCurrentUser: CurrentUser;
 }
 
 /**
@@ -59,6 +59,17 @@ export class UserService {
       const result = await this.apollo
         .mutate<RegisterUserResponse>({
           mutation: REGISTER_USER_MUTATION,
+          variables: {
+            input: {
+              // Note: Backend extracts real values from JWT claims
+              // These are placeholder values to satisfy GraphQL schema
+              email: '',
+              name: '',
+              externalUserId: '',
+              externalProvider: 'KEYCLOAK',
+              emailVerified: false,
+            },
+          },
         })
         .toPromise();
 
@@ -91,11 +102,11 @@ export class UserService {
         })
         .toPromise();
 
-      if (!result?.data?.currentUser) {
+      if (!result?.data?.getCurrentUser) {
         return null;
       }
 
-      const user = result.data.currentUser;
+      const user = result.data.getCurrentUser;
       this.currentUser.set(user);
       return user;
     } finally {

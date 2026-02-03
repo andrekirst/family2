@@ -3,15 +3,15 @@ import { gql } from 'apollo-angular';
 /**
  * Register or update user in backend after OAuth login.
  *
- * IMPORTANT: No input variables needed!
  * Backend extracts user data from JWT claims (sub, email, name, email_verified).
+ * Input fields are required by GraphQL schema but values come from JWT.
  *
  * This mutation should be called once after successful OAuth callback
  * to ensure the user exists in the backend database.
  */
 export const REGISTER_USER_MUTATION = gql`
-  mutation RegisterUser {
-    registerUser {
+  mutation RegisterUser($input: RegisterUserRequestInput!) {
+    registerUser(input: $input) {
       id
       email
       name
@@ -30,7 +30,7 @@ export const REGISTER_USER_MUTATION = gql`
  */
 export const GET_CURRENT_USER_QUERY = gql`
   query GetCurrentUser {
-    currentUser {
+    getCurrentUser {
       id
       email
       name
