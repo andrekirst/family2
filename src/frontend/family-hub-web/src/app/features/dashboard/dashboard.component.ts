@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UserService } from '../../core/user/user.service';
+import { CreateFamilyDialogComponent } from '../family/components/create-family-dialog/create-family-dialog.component';
 
 /**
  * Dashboard component - main landing page after authentication
@@ -11,7 +12,7 @@ import { UserService } from '../../core/user/user.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, CreateFamilyDialogComponent],
   template: `
     <div class="min-h-screen bg-gray-50">
       <!-- Success Alert -->
@@ -93,7 +94,10 @@ import { UserService } from '../../core/user/user.service';
                 <p class="mt-1 text-sm text-gray-600">
                   Create your family to start organizing your life together.
                 </p>
-                <button class="mt-3 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600">
+                <button
+                  (click)="openCreateFamilyDialog()"
+                  class="mt-3 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600"
+                >
                   Create Family
                 </button>
               </div>
@@ -105,6 +109,14 @@ import { UserService } from '../../core/user/user.service';
           </div>
         }
       </main>
+
+      <!-- Create Family Dialog -->
+      @if (showCreateFamilyDialog()) {
+        <app-create-family-dialog
+          (familyCreated)="onFamilyCreated()"
+          (dialogClosed)="onDialogClosed()"
+        />
+      }
     </div>
   `,
 })
@@ -118,11 +130,20 @@ export class DashboardComponent implements OnInit {
   currentUser = this.userService.currentUser;
   isLoading = this.userService.isLoading;
   showSuccessMessage = signal(false);
+  showCreateFamilyDialog = signal(false);
 
   async ngOnInit(): Promise<void> {
     // Fetch user data from backend
     try {
       await this.userService.fetchCurrentUser();
+
+      // Show dialog if user has no family (optional, after delay)
+      if (this.currentUser() && !this.currentUser()!.family) {
+        // Small delay for better UX (user sees dashboard first)
+        setTimeout(() => {
+          this.showCreateFamilyDialog.set(true);
+        }, 500);
+      }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
     }
@@ -148,5 +169,19 @@ export class DashboardComponent implements OnInit {
   logout(): void {
     this.userService.clearUser(); // Clear backend user state
     this.authService.logout();
+  }
+
+  openCreateFamilyDialog(): void {
+    this.showCreateFamilyDialog.set(true);
+  }
+
+  onFamilyCreated(): void {
+    this.showCreateFamilyDialog.set(false);
+    // Refresh user data to get updated family info
+    this.userService.fetchCurrentUser();
+  }
+
+  onDialogClosed(): void {
+    this.showCreateFamilyDialog.set(false);
   }
 }
