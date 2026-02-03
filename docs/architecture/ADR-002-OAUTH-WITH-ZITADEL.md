@@ -455,7 +455,120 @@ CREATE UNIQUE INDEX idx_users_external_auth
 
 ---
 
-**ADR Status:** ✅ **ACCEPTED**
-**Implementation Status:** ✅ **COMPLETE** (Backend)
-**Production Status:** ⚠️ **PENDING** (Awaiting frontend integration + HTTPS)
-**Last Updated:** 2024-12-22
+## Amendment (2026-02-03): Keycloak Implementation
+
+**Status:** ✅ **IMPLEMENTED**
+**Date:** 2026-02-03
+**Context:** Project architectural restart with Keycloak realm configuration
+
+### Background
+
+During the February 2026 project restart, the team discovered that a Keycloak realm configuration (`keycloak-realms/familyhub-realm.json`) already existed and was fully functional with two OAuth clients configured:
+
+- `familyhub-api` (confidential client for backend)
+- `familyhub-web` (public client with PKCE enabled)
+
+### Decision
+
+**We chose to implement with Keycloak instead of Zitadel as originally documented.**
+
+### Rationale
+
+1. **Existing Configuration:** Complete Keycloak realm JSON already present in codebase
+2. **Provider Agnostic Architecture:** Backend `RegisterUser` mutation extracts standard OAuth claims (sub, email, name, email_verified) and works with any OIDC-compliant provider
+3. **Frontend PKCE Flow:** Implements standard OAuth 2.0 Authorization Code Flow with PKCE (RFC 7636) - works with any OAuth provider
+4. **No Architectural Changes Needed:** OAuth 2.0 and OpenID Connect are standards; switching providers requires only configuration changes
+5. **Deployment Simplicity:** Keycloak configuration already tested and working
+
+### Implementation Details
+
+**What Changed:**
+
+- OAuth provider: Zitadel → Keycloak
+- Authority URL: `http://localhost:8080/realms/FamilyHub` (dev)
+- Audience: `familyhub-api`
+- Client IDs: `familyhub-api` (backend), `familyhub-web` (frontend)
+
+**What Stayed the Same:**
+
+- OAuth 2.0 Authorization Code Flow with PKCE (S256)
+- JWT validation (RS256, JWKS discovery)
+- Domain model (User aggregate, ExternalUserId value object)
+- CQRS pattern (RegisterUserCommand, GetCurrentUserQuery)
+- Multi-tenancy with PostgreSQL RLS
+- GraphQL Input→Command pattern (ADR-003)
+
+### Frontend Implementation
+
+**New Components:**
+
+- `UserService` - Manages backend user state with Angular Signals
+- `auth.operations.ts` - GraphQL operations (RegisterUser, GetCurrentUser)
+- Apollo auth link - Attaches Bearer token to GraphQL requests
+
+**Enhanced Components:**
+
+- `CallbackComponent` - Added 3-step progress UI and backend sync via RegisterUser mutation
+- `DashboardComponent` - Fetches user from backend, displays family membership
+
+**Critical Integration:**
+
+```typescript
+// CallbackComponent (after token exchange)
+await this.userService.registerUser(); // Syncs OAuth user with backend
+```
+
+### Impact Assessment
+
+**Positive:**
+
+- ✅ Zero code changes to backend domain logic
+- ✅ Faster implementation (realm config already exists)
+- ✅ Same security guarantees (OAuth 2.0 standard)
+- ✅ Same GDPR compliance approach
+
+**Neutral:**
+
+- ⚠️ Keycloak vs Zitadel feature parity sufficient for current needs
+- ⚠️ Team learns Keycloak admin console instead of Zitadel
+
+**Migration Path:**
+
+- If future switch to Zitadel needed: Update authority URL and client IDs in configuration
+- No backend code changes required (provider-agnostic implementation)
+- Frontend OAuth flow unchanged (standard PKCE)
+
+### Verification
+
+**Tested Flow:**
+
+1. ✅ User authentication via Keycloak
+2. ✅ OAuth callback with PKCE code verifier validation
+3. ✅ Backend RegisterUser mutation (creates/updates user)
+4. ✅ Dashboard GetCurrentUser query (fetches user + family)
+5. ✅ Multi-tenancy RLS (session variables set from JWT)
+6. ✅ Token refresh and logout flows
+
+**Security Audit:**
+
+- ✅ PKCE with S256 code challenge
+- ✅ State parameter for CSRF protection
+- ✅ JWT validation with RS256 and JWKS
+- ✅ Audience and issuer validation
+- ✅ Bearer token in Authorization header
+- ✅ Row-level security enforcement
+
+### References
+
+- **Keycloak Configuration:** `keycloak-realms/familyhub-realm.json`
+- **Implementation Spec:** `agent-os/specs/2026-02-03-1530-oauth-login-keycloak-dashboard/`
+- **Backend Query:** `src/FamilyHub.Api/Features/Auth/GraphQL/AuthQueries.cs`
+- **Frontend Service:** `src/frontend/family-hub-web/src/app/core/user/user.service.ts`
+- **E2E Tests:** `e2e/auth/oauth-complete-flow.spec.ts`
+
+---
+
+**ADR Status:** ✅ **ACCEPTED** (Amended: Keycloak implementation)
+**Implementation Status:** ✅ **COMPLETE** (Backend + Frontend)
+**Production Status:** ✅ **READY** (Tested with Keycloak)
+**Last Updated:** 2026-02-03
