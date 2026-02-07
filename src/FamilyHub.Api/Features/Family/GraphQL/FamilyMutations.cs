@@ -1,6 +1,7 @@
 using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Family.Application.Commands;
 using FamilyHub.Api.Features.Family.Application.Mappers;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
@@ -14,7 +15,9 @@ namespace FamilyHub.Api.Features.Family.GraphQL;
 /// <summary>
 /// GraphQL mutations for family management operations.
 /// Uses Input → Command pattern per ADR-003.
+/// Extends AuthMutations (the root mutation type).
 /// </summary>
+[ExtendObjectType(typeof(AuthMutations))]
 public class FamilyMutations
 {
     /// <summary>

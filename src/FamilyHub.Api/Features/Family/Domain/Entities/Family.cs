@@ -1,6 +1,7 @@
 using FamilyHub.Api.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
+using FamilyHub.Api.Features.Family.Domain.Events;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Family.Domain.Entities;
@@ -15,6 +16,34 @@ public sealed class Family : AggregateRoot<FamilyId>
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor
     private Family() { }
 #pragma warning restore CS8618
+
+    /// <summary>
+    /// Factory method to create a new Family aggregate.
+    /// Raises FamilyCreatedEvent for downstream processing.
+    /// </summary>
+    /// <param name="name">Family name (e.g., "Smith Family")</param>
+    /// <param name="ownerId">User ID of the family creator/owner</param>
+    /// <returns>New Family aggregate with domain event raised</returns>
+    public static Family Create(FamilyName name, UserId ownerId)
+    {
+        var family = new Family
+        {
+            Id = FamilyId.New(),
+            Name = name,
+            OwnerId = ownerId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        family.RaiseDomainEvent(new FamilyCreatedEvent(
+            family.Id,
+            family.Name,
+            family.OwnerId,
+            family.CreatedAt
+        ));
+
+        return family;
+    }
 
     /// <summary>
     /// Family name (e.g., "Smith Family")
