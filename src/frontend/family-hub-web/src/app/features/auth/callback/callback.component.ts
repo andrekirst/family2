@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserService } from '../../../core/user/user.service';
 import { CommonModule } from '@angular/common';
@@ -50,6 +50,7 @@ import { CommonModule } from '@angular/common';
 })
 export class CallbackComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private authService = inject(AuthService);
   private userService = inject(UserService);
 
@@ -77,13 +78,13 @@ export class CallbackComponent implements OnInit {
         await this.authService.handleCallback(code, state);
         this.step.set(2);
 
-        // Step 2: Sync user with backend database (NEW!)
-        // This calls the RegisterUser GraphQL mutation with the JWT token
+        // Step 2: Sync user with backend database
         await this.userService.registerUser();
         this.step.set(3);
 
-        // Step 3: Navigation handled by authService (redirect to dashboard)
-        // The authService already navigates in handleCallback
+        // Step 3: Navigate to intended destination (after registration completes)
+        const redirectUrl = this.authService.consumePostLoginRedirect();
+        await this.router.navigateByUrl(`${redirectUrl}?login=success`);
       } catch (err: any) {
         this.error = err.message || 'Failed to complete authentication';
         console.error('Callback error:', err);

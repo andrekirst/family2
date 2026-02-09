@@ -24,8 +24,5 @@
     <ProjectReference Include="..\..\src\FamilyHub.Api\FamilyHub.Api.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\Family\Domain\" />
-  </ItemGroup>
 
 </Project>

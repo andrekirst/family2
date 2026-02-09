@@ -47,11 +47,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
             ?? "http://localhost:8080/realms/FamilyHub";
         var keycloakAudience = builder.Configuration["Keycloak:Audience"]
-            ?? "familyhub-web";
+            ?? "account"; // Keycloak default audience
 
         options.Authority = keycloakAuthority;
         options.Audience = keycloakAudience;
         options.RequireHttpsMetadata = false; // Development only - set to true in production
+        options.MapInboundClaims = false; // Use original JWT claim names (sub, email, etc.)
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -62,19 +63,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromMinutes(5)
         };
 
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = context =>
-            {
-                Console.WriteLine($"Token validated for user: {context.Principal?.FindFirst("email")?.Value}");
-                return Task.CompletedTask;
-            }
-        };
     });
 
 builder.Services.AddAuthorization();

@@ -18,26 +18,38 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
 
       // Auth link: Add Bearer token to GraphQL requests
       // IMPORTANT: Apollo doesn't use Angular's HttpClient, so we must manually attach the token
-      const authLink = setContext((_, { headers }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const authLink = setContext((_operation: any, prevContext: any) => {
         const token = localStorage.getItem('access_token');
+
+        // Only add Authorization header if token exists
+        // Sending an empty Authorization header causes AUTH_NOT_AUTHENTICATED errors
+        if (!token) {
+          return prevContext;
+        }
+
         return {
           headers: {
-            ...headers,
-            authorization: token ? `Bearer ${token}` : '',
+            ...prevContext.headers,
+            authorization: `Bearer ${token}`,
           },
         };
       });
 
       // Error link: Handle GraphQL errors globally
-      const errorLink = onError(({ graphQLErrors, networkError }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorLink = onError((errorOptions: any) => {
+        const { graphQLErrors, networkError } = errorOptions;
+
         if (graphQLErrors) {
-          graphQLErrors.forEach(({ message, extensions }) => {
-            console.error(`[GraphQL error]: ${message}`);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          graphQLErrors.forEach((error: any) => {
+            console.error(`[GraphQL error]: ${error.message}`);
 
             // Redirect to login if unauthorized
             if (
-              extensions?.['code'] === 'AUTH_NOT_AUTHENTICATED' ||
-              extensions?.['code'] === 'AUTH_NOT_AUTHORIZED'
+              error.extensions?.['code'] === 'AUTH_NOT_AUTHENTICATED' ||
+              error.extensions?.['code'] === 'AUTH_NOT_AUTHORIZED'
             ) {
               console.warn('Unauthorized - redirecting to login');
               window.location.href = '/login';
@@ -52,8 +64,8 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
 
       // Combine links: auth → error → http
       const link = ApolloLink.from([
-        authLink,
-        errorLink,
+        authLink as unknown as ApolloLink,
+        errorLink as unknown as ApolloLink,
         httpLink.create({ uri: environment.apiUrl }),
       ]);
 

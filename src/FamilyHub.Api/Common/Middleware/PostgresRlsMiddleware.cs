@@ -1,4 +1,5 @@
 using FamilyHub.Api.Common.Database;
+using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Middleware;
@@ -21,8 +22,10 @@ public class PostgresRlsMiddleware(RequestDelegate next)
             // Look up user in database to get internal ID and family context
             if (!string.IsNullOrEmpty(externalUserId))
             {
+                // Convert string to value object for EF Core query
+                var externalUserIdVO = ExternalUserId.From(externalUserId);
                 var user = await dbContext.Users
-                    .FirstOrDefaultAsync(u => u.ExternalUserId == externalUserId);
+                    .FirstOrDefaultAsync(u => u.ExternalUserId == externalUserIdVO);
 
                 if (user != null)
                 {

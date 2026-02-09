@@ -1,0 +1,54 @@
+<div class="dialog-overlay" (click)="onDismiss()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>Create Your Family</h2>
+      <button class="close-button" (click)="onDismiss()" aria-label="Close">×</button>
+    </div>
+
+    <div class="dialog-body">
+      <p>Get started by creating your family. You can invite members later.</p>
+
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="family-name">Family Name</label>
+          <input
+            id="family-name"
+            type="text"
+            data-testid="family-name-input"
+            [ngModel]="familyName()"
+            (ngModelChange)="familyName.set($event)"
+            [disabled]="isLoading()"
+            name="familyName"
+            placeholder="e.g., Smith Family"
+            class="form-control"
+          />
+        </div>
+
+        @if (errorMessage()) {
+          <div class="error-message" role="alert">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <div class="dialog-actions">
+          <button
+            type="button"
+            (click)="onDismiss()"
+            [disabled]="isLoading()"
+            class="btn btn-secondary"
+          >
+            Skip for Now
+          </button>
+          <button
+            type="submit"
+            data-testid="create-family-button"
+            [disabled]="isLoading()"
+            class="btn btn-primary"
+          >
+            {{ isLoading() ? 'Creating...' : 'Create Family' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
