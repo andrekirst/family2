@@ -3,6 +3,7 @@ using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Email;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
 using FamilyHub.Api.Common.Middleware;
+using FamilyHub.Api.Common.Services;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
@@ -74,6 +75,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
 builder.Services.AddScoped<IFamilyMemberRepository, FamilyMemberRepository>();
 builder.Services.AddScoped<IFamilyInvitationRepository, FamilyInvitationRepository>();
+
+builder.Services.AddFamilyServices();
 
 // Register application services
 builder.Services.AddScoped<FamilyAuthorizationService>();

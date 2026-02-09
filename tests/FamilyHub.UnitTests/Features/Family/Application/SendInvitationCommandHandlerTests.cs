@@ -2,7 +2,7 @@ using FamilyHub.Api.Common.Domain;
 using FamilyHub.Api.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Application.Commands;
-using FamilyHub.Api.Features.Family.Application.Handlers;
+using FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 using FamilyHub.Api.Features.Family.Application.Services;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;

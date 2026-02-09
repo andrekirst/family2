@@ -4,7 +4,7 @@ using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Application.Commands;
-using FamilyHub.Api.Features.Family.Application.Handlers;
+using FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;

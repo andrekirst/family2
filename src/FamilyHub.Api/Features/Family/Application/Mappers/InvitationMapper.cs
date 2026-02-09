@@ -14,8 +14,8 @@ public static class InvitationMapper
         {
             Id = invitation.Id.Value,
             FamilyId = invitation.FamilyId.Value,
-            FamilyName = invitation.Family?.Name.Value ?? "",
-            InvitedByName = invitation.InvitedByUser?.Name.Value ?? "",
+            FamilyName = invitation.Family.Name.Value,
+            InvitedByName = invitation.InvitedByUser.Name.Value,
             InviteeEmail = invitation.InviteeEmail.Value,
             Role = invitation.Role.Value,
             Status = invitation.Status.Value,

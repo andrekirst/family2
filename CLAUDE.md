@@ -1,20 +1,60 @@
 # Family Hub - Claude Code Guide
 
-> **⚠️ PROJECT RESTART (February 2026):** This project has undergone an architectural restart. All implementation code has been removed. This guide now references a strategic foundation template. See README.md for full context. Previous implementation preserved in Git tag `v0.1-phase0-archive`.
-
 ## Critical Context
 
-**Family Hub** is a privacy-first family organization platform concept focused on intelligent **event chain automation** (automatic cross-domain workflows that no competitor offers).
+**Family Hub** is a privacy-first family organization platform focused on intelligent **event chain automation** (automatic cross-domain workflows that no competitor offers).
 
-**Current State:** Strategic foundation template with comprehensive documentation, domain models, and development guides. No runnable code.
+**Current State:** Active development with working Auth and Family modules. Backend API, frontend SPA, and test suite all operational.
 
-**Tech Stack (Planned):** .NET Core (C#, Hot Chocolate GraphQL) | Angular (TypeScript, Tailwind) | PostgreSQL (RLS) | OAuth 2.0 / OIDC | Docker → Kubernetes
+**Tech Stack:** .NET 9 (C#, Hot Chocolate GraphQL, Wolverine, Vogen) | Angular 19 (TypeScript, Tailwind, Apollo) | PostgreSQL | Keycloak (OAuth 2.0 / OIDC) | Docker
 
-**Phase:** Phase 0 - Restart & Redesign. Architecture being reconsidered. Implementation timeline TBD.
+**Phase:** Phase 1 - MVP. Family creation and invitation system implemented.
 
-**Architecture Strategy:** Modular Monolith First → Eventual Microservices. See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
+**Architecture Strategy:** Modular Monolith (feature-folder layout). See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
 
-**Development:** Strategic foundation created with Claude Code AI assistance. Domain modeling, architecture, and comprehensive documentation.
+**Message Bus:** Wolverine (NOT MediatR). Handlers are static classes with `Handle()` methods, auto-discovered via parameter injection.
+
+---
+
+## Current Implementation Status
+
+### Auth Module (`src/FamilyHub.Api/Features/Auth/`)
+
+- User registration + login via Keycloak OIDC
+- `GetCurrentUser` query with role-based permissions
+- Domain events: `UserRegisteredEvent`, `UserFamilyAssignedEvent`, `UserFamilyRemovedEvent`
+- `IUserService` + `ClaimNames` for JWT claim extraction
+
+### Family Module (`src/FamilyHub.Api/Features/Family/`)
+
+- **Aggregates:** `Family`, `FamilyInvitation`
+- **Entities:** `FamilyMember`
+- **Value Objects:** `FamilyId`, `FamilyName`, `FamilyRole`, `FamilyMemberId`, `InvitationId`, `InvitationToken`, `InvitationStatus`
+- **Commands:** CreateFamily, SendInvitation, AcceptInvitation, AcceptInvitationById, DeclineInvitation, DeclineInvitationById, RevokeInvitation
+- **Queries:** GetMyFamily, GetFamilyMembers
+- **Permission system:** `FamilyRole.GetPermissions()` returns `string[]` (Owner > Admin > Member hierarchy)
+- **Authorization:** `FamilyAuthorizationService` for backend enforcement
+- **Subfolder layout:** `Commands/{Name}/Command.cs, Handler.cs, MutationType.cs, Validator.cs`
+
+### Frontend (`src/frontend/family-hub-web/`)
+
+- Angular 19 with signals-based architecture
+- `FamilyPermissionService` (computed signals) in `core/permissions/`
+- Components: create-family-dialog, family-settings, invite-member, members-list, pending-invitations, invitation-accept
+- Apollo GraphQL client with typed operations
+
+### Tests (`tests/FamilyHub.UnitTests/`)
+
+- 81 tests passing (xUnit + FluentAssertions)
+- Fake repository pattern (inner classes implementing interfaces, in-memory state)
+- Domain tests: FamilyAggregate, FamilyInvitation, FamilyMember, FamilyRole
+- Handler tests: CreateFamily, SendInvitation, AcceptInvitation, AcceptInvitationById, GetCurrentUser
+
+### Known Gaps
+
+- `RegisterUser` mutation does not return permissions (only `GetCurrentUser` does)
+- No NSubstitute yet (planned migration from fake repos)
+- Permission caching not implemented (refetch after state change is current pattern)
 
 ---
 
@@ -26,8 +66,9 @@
 
 → **[docs/guides/BACKEND_DEVELOPMENT.md](docs/guides/BACKEND_DEVELOPMENT.md)** - .NET, C#, GraphQL, DDD patterns
 
-- When: Planning backend architecture, domain logic, GraphQL APIs
-- Covers: EF Core, Vogen, GraphQL Input→Command, Domain events, Testing patterns
+- When: Implementing backend features, domain logic, GraphQL APIs
+- Covers: Wolverine handlers, Vogen VOs, GraphQL Input→Command, Domain events, Testing patterns
+- Sub-guides in `docs/guides/backend/` for handler patterns, authorization, testing, GraphQL, EF Core, Vogen, domain events
 
 ### Frontend Development
 
@@ -113,7 +154,7 @@
 ```
 <type>(<scope>): <summary> (#<issue>)
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 ```
 
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
@@ -146,5 +187,5 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 ---
 
-**Last Updated:** 2026-02-01
-**Version:** 6.0.0 (Strategic Foundation - Post Restart)
+**Last Updated:** 2026-02-09
+**Version:** 7.0.0 (Active Development - Auth + Family Modules)

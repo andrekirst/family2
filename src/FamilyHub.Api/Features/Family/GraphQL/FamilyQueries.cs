@@ -1,16 +1,13 @@
-using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.GraphQL;
-using FamilyHub.Api.Features.Auth.Models;
-using FamilyHub.Api.Features.Family.Application.Handlers;
 using FamilyHub.Api.Features.Family.Application.Mappers;
-using FamilyHub.Api.Features.Family.Application.Queries;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Models;
 using HotChocolate.Authorization;
 using System.Security.Claims;
+using FamilyHub.Api.Common.Services;
+using FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 
 namespace FamilyHub.Api.Features.Family.GraphQL;
 
@@ -23,45 +20,6 @@ namespace FamilyHub.Api.Features.Family.GraphQL;
 public class FamilyQueries
 {
     /// <summary>
-    /// Get the current user's family.
-    /// </summary>
-    [Authorize]
-    public async Task<FamilyDto?> GetMyFamily(
-        ClaimsPrincipal claimsPrincipal,
-        [Service] IQueryBus queryBus,
-        CancellationToken ct)
-    {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(externalUserIdString))
-        {
-            return null;
-        }
-
-        var externalUserId = ExternalUserId.From(externalUserIdString);
-        var query = new GetMyFamilyQuery(externalUserId);
-
-        return await queryBus.QueryAsync<FamilyDto?>(query, ct);
-    }
-
-    /// <summary>
-    /// Get all members of the current user's family.
-    /// </summary>
-    [Authorize]
-    public async Task<List<UserDto>> GetMyFamilyMembers(
-        ClaimsPrincipal claimsPrincipal,
-        [Service] IQueryBus queryBus,
-        CancellationToken ct)
-    {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
-
-        var externalUserId = ExternalUserId.From(externalUserIdString);
-        var query = new GetFamilyMembersQuery(externalUserId);
-
-        return await queryBus.QueryAsync<List<UserDto>>(query, ct);
-    }
-
-    /// <summary>
     /// Get pending invitations for the current user's family.
     /// </summary>
     [Authorize]
@@ -69,9 +27,10 @@ public class FamilyQueries
         ClaimsPrincipal claimsPrincipal,
         [Service] IUserRepository userRepository,
         [Service] IFamilyInvitationRepository invitationRepository,
+        [Service] IUserService userService,
         CancellationToken ct)
     {
-        var user = await GetCurrentUser(claimsPrincipal, userRepository, ct);
+        var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, ct);
 
         if (user.FamilyId is null)
         {
@@ -90,16 +49,17 @@ public class FamilyQueries
         ClaimsPrincipal claimsPrincipal,
         [Service] IUserRepository userRepository,
         [Service] IFamilyMemberRepository memberRepository,
-        CancellationToken ct)
+        [Service] IUserService userService,
+        CancellationToken cancellationToken)
     {
-        var user = await GetCurrentUser(claimsPrincipal, userRepository, ct);
+        var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, cancellationToken);
 
         if (user.FamilyId is null)
         {
             return [];
         }
 
-        var members = await memberRepository.GetByFamilyIdAsync(user.FamilyId.Value, ct);
+        var members = await memberRepository.GetByFamilyIdAsync(user.FamilyId.Value, cancellationToken);
         return members.Select(FamilyMemberMapper.ToDto).ToList();
     }
 
@@ -112,11 +72,12 @@ public class FamilyQueries
         ClaimsPrincipal claimsPrincipal,
         [Service] IUserRepository userRepository,
         [Service] IFamilyInvitationRepository invitationRepository,
-        CancellationToken ct)
+        [Service] IUserService userService,
+        CancellationToken cancellationToken)
     {
-        var user = await GetCurrentUser(claimsPrincipal, userRepository, ct);
+        var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, cancellationToken);
 
-        var invitations = await invitationRepository.GetPendingByEmailAsync(user.Email, ct);
+        var invitations = await invitationRepository.GetPendingByEmailAsync(user.Email, cancellationToken);
         return invitations.Select(InvitationMapper.ToDto).ToList();
     }
 
@@ -127,29 +88,11 @@ public class FamilyQueries
     public async Task<InvitationDto?> GetInvitationByToken(
         string token,
         [Service] IFamilyInvitationRepository invitationRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var tokenHash = SendInvitationCommandHandler.ComputeSha256Hash(token);
-        var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), ct);
+        var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken);
 
-        if (invitation is null)
-        {
-            return null;
-        }
-
-        return InvitationMapper.ToDto(invitation);
-    }
-
-    private static async Task<Auth.Domain.Entities.User> GetCurrentUser(
-        ClaimsPrincipal claimsPrincipal,
-        IUserRepository userRepository,
-        CancellationToken ct)
-    {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
-
-        var externalUserId = ExternalUserId.From(externalUserIdString);
-        return await userRepository.GetByExternalIdAsync(externalUserId, ct)
-            ?? throw new UnauthorizedAccessException("User not found");
+        return invitation is null ? null : InvitationMapper.ToDto(invitation);
     }
 }

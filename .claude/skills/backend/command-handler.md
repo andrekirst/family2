@@ -1,154 +1,75 @@
 ---
 name: command-handler
-description: Create MediatR command handler with validation
+description: Create Wolverine command handler with validation
 category: backend
 module-aware: true
 inputs:
-  - commandName: PascalCase command name (e.g., CreateFamilyCommand)
-  - module: DDD module name
-  - resultType: Return type (e.g., CreateFamilyResult)
+  - commandName: PascalCase command name (e.g., SendInvitationCommand)
+  - module: Feature module name (e.g., Family, Auth)
+  - resultType: Return type (e.g., SendInvitationResult)
 ---
 
 # Command Handler Skill
 
-Create a MediatR command with handler and FluentValidation validator.
+Create a Wolverine command with a static handler class and FluentValidation validator.
 
-## Context
+## Folder Layout
 
-Load module profile: `agent-os/profiles/modules/{module}.yaml`
+Each command lives in its own subfolder:
 
-## Steps
+```
+src/FamilyHub.Api/Features/{Module}/Application/Commands/{CommandName}/
+  {CommandName}Command.cs
+  {CommandName}CommandHandler.cs
+  {CommandName}CommandValidator.cs
+  {CommandName}Result.cs
+  MutationType.cs
+```
 
-### 1. Create Command
-
-**Location:** `Modules/FamilyHub.Modules.{Module}/Application/Commands/{CommandName}/{CommandName}.cs`
+## Command
 
 ```csharp
-using MediatR;
-using FamilyHub.Modules.{Module}.Domain.ValueObjects;
-
-namespace FamilyHub.Modules.{Module}.Application.Commands.{CommandName};
-
-public sealed record {CommandName}(
-    // Use Vogen value objects, not primitives
+public sealed record {CommandName}Command(
     {ValueObject1} Field1,
     {ValueObject2} Field2
-) : IRequest<{ResultType}>;
+) : ICommand<{ResultType}>;
 ```
 
-### 2. Create Result Type
-
-**Location:** `Modules/FamilyHub.Modules.{Module}/Application/Commands/{CommandName}/{ResultType}.cs`
+## Handler (Static Class)
 
 ```csharp
-namespace FamilyHub.Modules.{Module}.Application.Commands.{CommandName};
-
-public sealed record {ResultType}(
-    {EntityId} Id,
-    // Other result fields
-    DateTime CreatedAt
-);
-```
-
-### 3. Create Command Handler
-
-**Location:** `Modules/FamilyHub.Modules.{Module}/Application/Commands/{CommandName}/{CommandName}Handler.cs`
-
-```csharp
-using MediatR;
-using FamilyHub.Modules.{Module}.Domain.Repositories;
-
-namespace FamilyHub.Modules.{Module}.Application.Commands.{CommandName};
-
-public sealed class {CommandName}Handler
-    : IRequestHandler<{CommandName}, {ResultType}>
+public static class {CommandName}CommandHandler
 {
-    private readonly I{Entity}Repository _repository;
-    private readonly ILogger<{CommandName}Handler> _logger;
-
-    public {CommandName}Handler(
+    public static async Task<{ResultType}> Handle(
+        {CommandName}Command command,
         I{Entity}Repository repository,
-        ILogger<{CommandName}Handler> logger)
+        CancellationToken ct)
     {
-        _repository = repository;
-        _logger = logger;
-    }
-
-    public async Task<{ResultType}> Handle(
-        {CommandName} command,
-        CancellationToken cancellationToken)
-    {
-        // Create entity using factory method
         var entity = {Entity}.Create(command.Field1, command.Field2);
-
-        // Persist
-        await _repository.AddAsync(entity, cancellationToken);
-
-        _logger.LogInformation(
-            "{Entity} created with Id {Id}",
-            nameof({Entity}),
-            entity.Id);
-
-        return new {ResultType}(
-            entity.Id,
-            entity.CreatedAt
-        );
+        await repository.AddAsync(entity, ct);
+        await repository.SaveChangesAsync(ct);
+        return new {ResultType}(entity.Id);
     }
 }
 ```
 
-### 4. Create Validator
+Key: Static class, static Handle(), dependencies as parameters, no DI registration.
 
-**Location:** `Modules/FamilyHub.Modules.{Module}/Application/Commands/{CommandName}/{CommandName}Validator.cs`
+## Validator
 
 ```csharp
-using FluentValidation;
-
-namespace FamilyHub.Modules.{Module}.Application.Commands.{CommandName};
-
-public sealed class {CommandName}Validator
-    : AbstractValidator<{CommandName}>
+public class {CommandName}CommandValidator : AbstractValidator<{CommandName}Command>
 {
-    public {CommandName}Validator()
+    public {CommandName}CommandValidator()
     {
-        RuleFor(x => x.Field1)
-            .NotEmpty()
-            .WithMessage("Field1 is required.");
-
-        RuleFor(x => x.Field2)
-            .NotEmpty()
-            .WithMessage("Field2 is required.");
+        RuleFor(x => x.Field1.Value).NotEmpty();
     }
-}
-```
-
-## Example: CreateFamily
-
-**Command:**
-
-```csharp
-public sealed record CreateFamilyCommand(
-    FamilyName Name
-) : IRequest<CreateFamilyResult>;
-```
-
-**Handler:**
-
-```csharp
-public async Task<CreateFamilyResult> Handle(
-    CreateFamilyCommand command,
-    CancellationToken cancellationToken)
-{
-    var family = Family.Create(command.Name);
-    await _repository.AddAsync(family, cancellationToken);
-    return new CreateFamilyResult(family.Id, family.Name);
 }
 ```
 
 ## Validation
 
-- [ ] Command uses Vogen value objects (not primitives)
-- [ ] Handler uses repository interface
-- [ ] Entity created via factory method
-- [ ] FluentValidation validator created
-- [ ] All files in same folder under Commands/{CommandName}/
+- [ ] Command implements `ICommand<TResult>`
+- [ ] Handler is `public static class` with static `Handle()`
+- [ ] Dependencies are method parameters (not constructor)
+- [ ] All files in subfolder `Commands/{CommandName}/`

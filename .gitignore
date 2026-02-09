@@ -332,6 +332,9 @@ docs/.jekyll-cache/
 # .claude/settings.json - Project-wide hooks (DO commit for team consistency)
 # .claude/settings.local.json - User-local overrides (DO NOT commit - personal settings)
 .claude/settings.local.json
+
+# Workaround: dotnet format on .NET 10 can create bin\Debug with literal backslash on Linux
+**/bin\\Debug/
 .claude/cache/
 
 # Claude Code plans (keep in Git for collaboration)

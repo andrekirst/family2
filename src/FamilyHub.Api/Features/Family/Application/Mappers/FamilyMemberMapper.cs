@@ -14,8 +14,8 @@ public static class FamilyMemberMapper
         {
             Id = member.Id.Value,
             UserId = member.UserId.Value,
-            UserName = member.User?.Name.Value ?? "",
-            UserEmail = member.User?.Email.Value ?? "",
+            UserName = member.User?.Name.Value ?? string.Empty,
+            UserEmail = member.User?.Email.Value ?? string.Empty,
             Role = member.Role.Value,
             JoinedAt = member.JoinedAt,
             IsActive = member.IsActive
