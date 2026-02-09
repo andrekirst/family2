@@ -1,9 +1,10 @@
-import { Component, signal, ViewChild } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MembersListComponent } from '../members-list/members-list.component';
 import { PendingInvitationsComponent } from '../pending-invitations/pending-invitations.component';
 import { InviteMemberComponent } from '../invite-member/invite-member.component';
+import { FamilyPermissionService } from '../../../../core/permissions/family-permission.service';
 
 @Component({
   selector: 'app-family-settings',
@@ -32,12 +33,14 @@ import { InviteMemberComponent } from '../invite-member/invite-member.component'
             </a>
             <h1 class="text-2xl font-bold text-gray-900">Family Settings</h1>
           </div>
-          <button
-            (click)="openInviteDialog()"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-          >
-            Invite Member
-          </button>
+          @if (permissions.canInvite()) {
+            <button
+              (click)="openInviteDialog()"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            >
+              Invite Member
+            </button>
+          }
         </div>
       </header>
 
@@ -55,16 +58,18 @@ import { InviteMemberComponent } from '../invite-member/invite-member.component'
             >
               Members
             </button>
-            <button
-              (click)="activeTab.set('invitations')"
-              class="pb-3 px-1 text-sm font-medium border-b-2"
-              [class.border-blue-500]="activeTab() === 'invitations'"
-              [class.text-blue-600]="activeTab() === 'invitations'"
-              [class.border-transparent]="activeTab() !== 'invitations'"
-              [class.text-gray-500]="activeTab() !== 'invitations'"
-            >
-              Pending Invitations
-            </button>
+            @if (permissions.canInvite()) {
+              <button
+                (click)="activeTab.set('invitations')"
+                class="pb-3 px-1 text-sm font-medium border-b-2"
+                [class.border-blue-500]="activeTab() === 'invitations'"
+                [class.text-blue-600]="activeTab() === 'invitations'"
+                [class.border-transparent]="activeTab() !== 'invitations'"
+                [class.text-gray-500]="activeTab() !== 'invitations'"
+              >
+                Pending Invitations
+              </button>
+            }
           </nav>
         </div>
 
@@ -89,6 +94,8 @@ import { InviteMemberComponent } from '../invite-member/invite-member.component'
   `,
 })
 export class FamilySettingsComponent {
+  permissions = inject(FamilyPermissionService);
+
   @ViewChild('membersList') membersList?: MembersListComponent;
   @ViewChild('pendingInvitations') pendingInvitations?: PendingInvitationsComponent;
 

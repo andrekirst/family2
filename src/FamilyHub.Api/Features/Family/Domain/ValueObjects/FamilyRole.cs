@@ -31,4 +31,21 @@ public readonly partial struct FamilyRole
     }
 
     public bool CanInvite() => Value is "Owner" or "Admin";
+    public bool CanRevokeInvitation() => Value is "Owner" or "Admin";
+    public bool CanRemoveMembers() => Value is "Owner" or "Admin";
+    public bool CanEditFamily() => Value is "Owner" or "Admin";
+    public bool CanDeleteFamily() => Value is "Owner";
+    public bool CanManageRoles() => Value is "Owner";
+
+    public List<string> GetPermissions()
+    {
+        var permissions = new List<string>();
+        if (CanInvite()) permissions.Add("family:invite");
+        if (CanRevokeInvitation()) permissions.Add("family:revoke-invitation");
+        if (CanRemoveMembers()) permissions.Add("family:remove-members");
+        if (CanEditFamily()) permissions.Add("family:edit");
+        if (CanDeleteFamily()) permissions.Add("family:delete");
+        if (CanManageRoles()) permissions.Add("family:manage-roles");
+        return permissions;
+    }
 }

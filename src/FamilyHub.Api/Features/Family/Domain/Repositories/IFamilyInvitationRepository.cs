@@ -13,6 +13,7 @@ public interface IFamilyInvitationRepository
     Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken tokenHash, CancellationToken ct = default);
     Task<List<FamilyInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
     Task<FamilyInvitation?> GetByEmailAndFamilyAsync(Email email, FamilyId familyId, CancellationToken ct = default);
+    Task<List<FamilyInvitation>> GetPendingByEmailAsync(Email email, CancellationToken ct = default);
     Task AddAsync(FamilyInvitation invitation, CancellationToken ct = default);
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

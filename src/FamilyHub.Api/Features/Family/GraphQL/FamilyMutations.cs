@@ -128,6 +128,49 @@ public class FamilyMutations
     }
 
     /// <summary>
+    /// Accept a family invitation by ID (from the dashboard, without the email token).
+    /// Verifies that the accepting user's email matches the invitation's invitee email.
+    /// </summary>
+    [Authorize]
+    public async Task<AcceptInvitationResultDto> AcceptInvitationById(
+        Guid invitationId,
+        ClaimsPrincipal claimsPrincipal,
+        [Service] ICommandBus commandBus,
+        [Service] IUserRepository userRepository,
+        CancellationToken ct)
+    {
+        var user = await GetCurrentUser(claimsPrincipal, userRepository, ct);
+
+        var command = new AcceptInvitationByIdCommand(InvitationId.From(invitationId), user.Id);
+        var result = await commandBus.SendAsync<AcceptInvitationResult>(command, ct);
+
+        return new AcceptInvitationResultDto
+        {
+            FamilyId = result.FamilyId.Value,
+            FamilyMemberId = result.FamilyMemberId.Value,
+            Success = true
+        };
+    }
+
+    /// <summary>
+    /// Decline a family invitation by ID (from the dashboard, without the email token).
+    /// Verifies that the declining user's email matches the invitation's invitee email.
+    /// </summary>
+    [Authorize]
+    public async Task<bool> DeclineInvitationById(
+        Guid invitationId,
+        ClaimsPrincipal claimsPrincipal,
+        [Service] ICommandBus commandBus,
+        [Service] IUserRepository userRepository,
+        CancellationToken ct)
+    {
+        var user = await GetCurrentUser(claimsPrincipal, userRepository, ct);
+
+        var command = new DeclineInvitationByIdCommand(InvitationId.From(invitationId), user.Id);
+        return await commandBus.SendAsync<bool>(command, ct);
+    }
+
+    /// <summary>
     /// Revoke a pending family invitation (Owner/Admin only).
     /// </summary>
     [Authorize]

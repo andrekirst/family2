@@ -15,13 +15,13 @@ using FluentAssertions;
 namespace FamilyHub.UnitTests.Features.Family.Application;
 
 /// <summary>
-/// Unit tests for AcceptInvitationCommandHandler.
-/// Tests token lookup, expiration, duplicate membership checks, and happy path.
+/// Unit tests for AcceptInvitationByIdCommandHandler.
+/// Tests ID lookup, email verification, expiration, duplicate membership, and happy path.
 /// Uses in-memory fake repositories (no Moq).
 /// </summary>
-public class AcceptInvitationCommandHandlerTests
+public class AcceptInvitationByIdCommandHandlerTests
 {
-    private const string PlaintextToken = "test-plaintext-token-for-acceptance";
+    private const string InviteeEmailAddress = "invitee@example.com";
 
     [Fact]
     public async Task Handle_ShouldAcceptInvitationAndReturnResult()
@@ -30,7 +30,7 @@ public class AcceptInvitationCommandHandlerTests
         var (command, invitationRepo, memberRepo, userRepo) = CreateHappyPathScenario();
 
         // Act
-        var result = await AcceptInvitationCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+        var result = await AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -45,7 +45,7 @@ public class AcceptInvitationCommandHandlerTests
         var (command, invitationRepo, memberRepo, userRepo) = CreateHappyPathScenario();
 
         // Act
-        await AcceptInvitationCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+        await AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
 
         // Assert
         memberRepo.AddedMembers.Should().HaveCount(1);
@@ -61,53 +61,57 @@ public class AcceptInvitationCommandHandlerTests
         var (command, invitationRepo, memberRepo, userRepo) = CreateHappyPathScenario();
 
         // Act
-        var result = await AcceptInvitationCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+        var result = await AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
 
         // Assert
         userRepo.StoredUser!.FamilyId.Should().Be(result.FamilyId);
     }
 
     [Fact]
-    public async Task Handle_ShouldCallSaveChanges()
+    public async Task Handle_ShouldThrow_WhenInvitationNotFound()
     {
-        // Arrange
-        var (command, invitationRepo, memberRepo, userRepo) = CreateHappyPathScenario();
+        // Arrange — no invitation found for ID
+        var user = CreateTestUser();
+        var memberRepo = new FakeFamilyMemberRepository();
+        var invitationRepo = new FakeFamilyInvitationRepository(existingById: null);
+        var userRepo = new FakeUserRepository(user);
+        var command = new AcceptInvitationByIdCommand(InvitationId.New(), user.Id);
 
-        // Act
-        await AcceptInvitationCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
-
-        // Assert
-        invitationRepo.SaveChangesCalled.Should().BeTrue();
+        // Act & Assert
+        var act = () => AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+        await act.Should().ThrowAsync<DomainException>()
+            .WithMessage("Invitation not found");
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenTokenInvalid()
+    public async Task Handle_ShouldThrow_WhenEmailMismatch()
     {
-        // Arrange — no invitation found for token
-        var user = CreateTestUser();
+        // Arrange — user has a different email than the invitation
+        var invitation = CreateTestInvitation();
+        var differentUser = CreateTestUser(email: "different@example.com");
         var memberRepo = new FakeFamilyMemberRepository();
-        var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: null);
-        var userRepo = new FakeUserRepository(user);
-        var command = new AcceptInvitationCommand("invalid-token", user.Id);
+        var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
+        var userRepo = new FakeUserRepository(differentUser);
+        var command = new AcceptInvitationByIdCommand(invitation.Id, differentUser.Id);
 
         // Act & Assert
-        var act = () => AcceptInvitationCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+        var act = () => AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
         await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("Invalid invitation token");
+            .WithMessage("This invitation was sent to a different email address");
     }
 
     [Fact]
     public async Task Handle_ShouldThrow_WhenUserNotFound()
     {
-        // Arrange — user doesn't exist
+        // Arrange
         var invitation = CreateTestInvitation();
         var memberRepo = new FakeFamilyMemberRepository();
-        var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
+        var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
         var userRepo = new FakeUserRepository(user: null);
-        var command = new AcceptInvitationCommand(PlaintextToken, UserId.New());
+        var command = new AcceptInvitationByIdCommand(invitation.Id, UserId.New());
 
         // Act & Assert
-        var act = () => AcceptInvitationCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+        var act = () => AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("User not found");
     }
@@ -121,12 +125,12 @@ public class AcceptInvitationCommandHandlerTests
         var invitation = CreateTestInvitation(familyId: familyId);
         var existingMember = FamilyMember.Create(familyId, user.Id, FamilyRole.Member);
         var memberRepo = new FakeFamilyMemberRepository(existingMember: existingMember);
-        var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
+        var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
         var userRepo = new FakeUserRepository(user);
-        var command = new AcceptInvitationCommand(PlaintextToken, user.Id);
+        var command = new AcceptInvitationByIdCommand(invitation.Id, user.Id);
 
         // Act & Assert
-        var act = () => AcceptInvitationCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+        var act = () => AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("You are already a member of this family");
     }
@@ -138,12 +142,12 @@ public class AcceptInvitationCommandHandlerTests
         var user = CreateTestUser();
         var invitation = CreateExpiredInvitation();
         var memberRepo = new FakeFamilyMemberRepository();
-        var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
+        var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
         var userRepo = new FakeUserRepository(user);
-        var command = new AcceptInvitationCommand(PlaintextToken, user.Id);
+        var command = new AcceptInvitationByIdCommand(invitation.Id, user.Id);
 
         // Act & Assert
-        var act = () => AcceptInvitationCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+        var act = () => AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("Invitation has expired");
     }
@@ -156,37 +160,50 @@ public class AcceptInvitationCommandHandlerTests
         var invitation = CreateTestInvitation();
         invitation.Accept(UserId.New()); // accept by someone else first
         var memberRepo = new FakeFamilyMemberRepository();
-        var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
+        var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
         var userRepo = new FakeUserRepository(user);
-        var command = new AcceptInvitationCommand(PlaintextToken, user.Id);
+        var command = new AcceptInvitationByIdCommand(invitation.Id, user.Id);
 
         // Act & Assert
-        var act = () => AcceptInvitationCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+        var act = () => AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("Cannot accept invitation in status 'Accepted'");
     }
 
+    [Fact]
+    public async Task Handle_ShouldCallSaveChanges()
+    {
+        // Arrange
+        var (command, invitationRepo, memberRepo, userRepo) = CreateHappyPathScenario();
+
+        // Act
+        await AcceptInvitationByIdCommandHandler.Handle(command, invitationRepo, memberRepo, userRepo, CancellationToken.None);
+
+        // Assert
+        invitationRepo.SaveChangesCalled.Should().BeTrue();
+    }
+
     // --- Helpers ---
 
-    private static (AcceptInvitationCommand Command, FakeFamilyInvitationRepository InvitationRepo, FakeFamilyMemberRepository MemberRepo, FakeUserRepository UserRepo) CreateHappyPathScenario()
+    private static (AcceptInvitationByIdCommand Command, FakeFamilyInvitationRepository InvitationRepo, FakeFamilyMemberRepository MemberRepo, FakeUserRepository UserRepo) CreateHappyPathScenario()
     {
         var user = CreateTestUser();
         var invitation = CreateTestInvitation();
         var memberRepo = new FakeFamilyMemberRepository();
-        var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
+        var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
         var userRepo = new FakeUserRepository(user);
-        var command = new AcceptInvitationCommand(PlaintextToken, user.Id);
+        var command = new AcceptInvitationByIdCommand(invitation.Id, user.Id);
 
         return (command, invitationRepo, memberRepo, userRepo);
     }
 
-    private static User CreateTestUser()
+    private static User CreateTestUser(string email = InviteeEmailAddress)
     {
-        var email = Email.From("invitee@example.com");
+        var emailVO = Email.From(email);
         var name = UserName.From("Invitee User");
-        var externalId = ExternalUserId.From("invitee-external-id");
+        var externalId = ExternalUserId.From("invitee-external-id-" + Guid.NewGuid().ToString()[..8]);
 
-        var user = User.Register(email, name, externalId, emailVerified: true);
+        var user = User.Register(emailVO, name, externalId, emailVerified: true);
         user.ClearDomainEvents();
 
         return user;
@@ -200,14 +217,14 @@ public class AcceptInvitationCommandHandlerTests
 
     private static FamilyInvitation CreateTestInvitation(FamilyId? familyId = null)
     {
-        var tokenHash = ComputeSha256Hash(PlaintextToken);
+        var tokenHash = ComputeSha256Hash("test-token-" + Guid.NewGuid());
         return FamilyInvitation.Create(
             familyId ?? FamilyId.New(),
             UserId.New(),
-            Email.From("invitee@example.com"),
+            Email.From(InviteeEmailAddress),
             FamilyRole.Member,
             InvitationToken.From(tokenHash),
-            PlaintextToken);
+            "dummy-token");
     }
 
     private static FamilyInvitation CreateExpiredInvitation()
@@ -223,7 +240,7 @@ public class AcceptInvitationCommandHandlerTests
 
     // --- Fake Repositories ---
 
-    private class FakeFamilyMemberRepository : IFamilyMemberRepository
+    internal class FakeFamilyMemberRepository : IFamilyMemberRepository
     {
         private readonly FamilyMember? _existingMember;
 
@@ -250,22 +267,22 @@ public class AcceptInvitationCommandHandlerTests
             Task.FromResult(1);
     }
 
-    private class FakeFamilyInvitationRepository : IFamilyInvitationRepository
+    internal class FakeFamilyInvitationRepository : IFamilyInvitationRepository
     {
-        private readonly FamilyInvitation? _existingByTokenHash;
+        private readonly FamilyInvitation? _existingById;
 
         public bool SaveChangesCalled { get; private set; }
 
-        public FakeFamilyInvitationRepository(FamilyInvitation? existingByTokenHash = null)
+        public FakeFamilyInvitationRepository(FamilyInvitation? existingById = null)
         {
-            _existingByTokenHash = existingByTokenHash;
+            _existingById = existingById;
         }
 
         public Task<FamilyInvitation?> GetByIdAsync(InvitationId id, CancellationToken ct = default) =>
-            Task.FromResult<FamilyInvitation?>(null);
+            Task.FromResult(_existingById);
 
         public Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken tokenHash, CancellationToken ct = default) =>
-            Task.FromResult(_existingByTokenHash);
+            Task.FromResult<FamilyInvitation?>(null);
 
         public Task<List<FamilyInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default) =>
             Task.FromResult(new List<FamilyInvitation>());
@@ -286,7 +303,7 @@ public class AcceptInvitationCommandHandlerTests
         }
     }
 
-    private class FakeUserRepository : IUserRepository
+    internal class FakeUserRepository : IUserRepository
     {
         private readonly User? _user;
 

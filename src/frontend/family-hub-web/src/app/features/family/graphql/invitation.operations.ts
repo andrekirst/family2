@@ -70,6 +70,38 @@ export const GET_INVITATION_BY_TOKEN = gql`
   }
 `;
 
+export const GET_MY_PENDING_INVITATIONS = gql`
+  query GetMyPendingInvitations {
+    myPendingInvitations {
+      id
+      familyId
+      familyName
+      invitedByName
+      inviteeEmail
+      role
+      status
+      createdAt
+      expiresAt
+    }
+  }
+`;
+
+export const ACCEPT_INVITATION_BY_ID = gql`
+  mutation AcceptInvitationById($invitationId: UUID!) {
+    acceptInvitationById(invitationId: $invitationId) {
+      familyId
+      familyMemberId
+      success
+    }
+  }
+`;
+
+export const DECLINE_INVITATION_BY_ID = gql`
+  mutation DeclineInvitationById($invitationId: UUID!) {
+    declineInvitationById(invitationId: $invitationId)
+  }
+`;
+
 export const GET_FAMILY_MEMBERS = gql`
   query GetFamilyMembersWithRoles {
     familyMembersWithRoles {

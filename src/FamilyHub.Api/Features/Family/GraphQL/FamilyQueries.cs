@@ -1,6 +1,7 @@
 using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Auth.Models;
 using FamilyHub.Api.Features.Family.Application.Handlers;
 using FamilyHub.Api.Features.Family.Application.Mappers;
@@ -16,7 +17,9 @@ namespace FamilyHub.Api.Features.Family.GraphQL;
 /// <summary>
 /// GraphQL queries for family data.
 /// Uses CQRS pattern with query bus.
+/// Extends AuthQueries (the root query type).
 /// </summary>
+[ExtendObjectType(typeof(AuthQueries))]
 public class FamilyQueries
 {
     /// <summary>
@@ -98,6 +101,23 @@ public class FamilyQueries
 
         var members = await memberRepository.GetByFamilyIdAsync(user.FamilyId.Value, ct);
         return members.Select(FamilyMemberMapper.ToDto).ToList();
+    }
+
+    /// <summary>
+    /// Get pending invitations for the current user's email address.
+    /// Used by the dashboard to show invitations the user can accept/decline.
+    /// </summary>
+    [Authorize]
+    public async Task<List<InvitationDto>> GetMyPendingInvitations(
+        ClaimsPrincipal claimsPrincipal,
+        [Service] IUserRepository userRepository,
+        [Service] IFamilyInvitationRepository invitationRepository,
+        CancellationToken ct)
+    {
+        var user = await GetCurrentUser(claimsPrincipal, userRepository, ct);
+
+        var invitations = await invitationRepository.GetPendingByEmailAsync(user.Email, ct);
+        return invitations.Select(InvitationMapper.ToDto).ToList();
     }
 
     /// <summary>

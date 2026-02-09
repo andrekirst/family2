@@ -43,6 +43,16 @@ public sealed class FamilyInvitationRepository(AppDbContext context) : IFamilyIn
             .FirstOrDefaultAsync(fi => fi.InviteeEmail == email && fi.FamilyId == familyId && fi.Status == InvitationStatus.Pending, ct);
     }
 
+    public async Task<List<FamilyInvitation>> GetPendingByEmailAsync(Email email, CancellationToken ct = default)
+    {
+        return await context.FamilyInvitations
+            .Include(fi => fi.Family)
+            .Include(fi => fi.InvitedByUser)
+            .Where(fi => fi.InviteeEmail == email && fi.Status == InvitationStatus.Pending && fi.ExpiresAt > DateTime.UtcNow)
+            .OrderByDescending(fi => fi.CreatedAt)
+            .ToListAsync(ct);
+    }
+
     public async Task AddAsync(FamilyInvitation invitation, CancellationToken ct = default)
     {
         await context.FamilyInvitations.AddAsync(invitation, ct);

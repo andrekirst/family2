@@ -18,6 +18,7 @@ export const REGISTER_USER_MUTATION = gql`
       emailVerified
       isActive
       familyId
+      permissions
     }
   }
 `;
@@ -38,6 +39,7 @@ export const GET_CURRENT_USER_QUERY = gql`
       emailVerified
       isActive
       familyId
+      permissions
     }
   }
 `;

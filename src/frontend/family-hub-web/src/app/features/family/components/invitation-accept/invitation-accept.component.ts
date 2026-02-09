@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { UserService } from '../../../../core/user/user.service';
 import { InvitationService } from '../../services/invitation.service';
 import { InvitationDto } from '../../models/invitation.models';
 
@@ -131,6 +132,7 @@ export class InvitationAcceptComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private userService = inject(UserService);
   private invitationService = inject(InvitationService);
 
   invitation = signal<InvitationDto | null>(null);
@@ -182,9 +184,11 @@ export class InvitationAcceptComponent implements OnInit {
   accept(): void {
     this.isProcessing.set(true);
     this.invitationService.acceptInvitation({ token: this.token }).subscribe({
-      next: (result) => {
+      next: async (result) => {
         if (result?.success) {
           this.actionResult.set('accepted');
+          // Refresh user data so dashboard sees updated familyId
+          await this.userService.fetchCurrentUser();
           // Redirect to dashboard after short delay
           setTimeout(() => {
             this.router.navigate(['/dashboard']);
@@ -194,8 +198,12 @@ export class InvitationAcceptComponent implements OnInit {
         }
         this.isProcessing.set(false);
       },
-      error: () => {
-        this.error.set('An error occurred while accepting the invitation');
+      error: (err) => {
+        const message =
+          err?.graphQLErrors?.[0]?.message ||
+          err?.message ||
+          'An error occurred while accepting the invitation';
+        this.error.set(message);
         this.isProcessing.set(false);
       },
     });

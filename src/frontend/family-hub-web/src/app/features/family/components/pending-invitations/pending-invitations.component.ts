@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InvitationService } from '../../services/invitation.service';
 import { InvitationDto } from '../../models/invitation.models';
+import { FamilyPermissionService } from '../../../../core/permissions/family-permission.service';
 
 @Component({
   selector: 'app-pending-invitations',
@@ -26,13 +27,15 @@ import { InvitationDto } from '../../models/invitation.models';
                 {{ invitation.expiresAt | date: 'mediumDate' }}
               </p>
             </div>
-            <button
-              (click)="revokeInvitation(invitation.id)"
-              [disabled]="revoking() === invitation.id"
-              class="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 disabled:opacity-50"
-            >
-              {{ revoking() === invitation.id ? 'Revoking...' : 'Revoke' }}
-            </button>
+            @if (permissions.canRevokeInvitation()) {
+              <button
+                (click)="revokeInvitation(invitation.id)"
+                [disabled]="revoking() === invitation.id"
+                class="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 disabled:opacity-50"
+              >
+                {{ revoking() === invitation.id ? 'Revoking...' : 'Revoke' }}
+              </button>
+            }
           </div>
         }
       }
@@ -41,6 +44,7 @@ import { InvitationDto } from '../../models/invitation.models';
 })
 export class PendingInvitationsComponent implements OnInit {
   private invitationService = inject(InvitationService);
+  permissions = inject(FamilyPermissionService);
 
   invitations = signal<InvitationDto[]>([]);
   isLoading = signal(true);

@@ -211,6 +211,9 @@ public class SendInvitationCommandHandlerTests
         public Task<FamilyInvitation?> GetByEmailAndFamilyAsync(Email email, FamilyId familyId, CancellationToken ct = default) =>
             Task.FromResult(_existingByEmail);
 
+        public Task<List<FamilyInvitation>> GetPendingByEmailAsync(Email email, CancellationToken ct = default) =>
+            Task.FromResult(new List<FamilyInvitation>());
+
         public Task AddAsync(FamilyInvitation invitation, CancellationToken ct = default)
         {
             AddedInvitations.Add(invitation);
