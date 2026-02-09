@@ -82,9 +82,12 @@ import { CreateFamilyDialogComponent } from '../family/components/create-family-
                 <p class="mt-1 text-sm text-gray-600">
                   You're part of a family. Manage your family below.
                 </p>
-                <button class="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                  View Family
-                </button>
+                <a
+                  routerLink="/family/settings"
+                  class="mt-3 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Family Settings
+                </a>
               </div>
             } @else {
               <div class="mt-6 p-4 bg-gray-50 rounded-lg">

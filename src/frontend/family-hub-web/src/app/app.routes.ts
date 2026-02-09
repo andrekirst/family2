@@ -3,6 +3,8 @@ import { authGuard } from './core/auth/auth.guard';
 import { LoginComponent } from './features/auth/login/login.component';
 import { CallbackComponent } from './features/auth/callback/callback.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
+import { FamilySettingsComponent } from './features/family/components/family-settings/family-settings.component';
+import { InvitationAcceptComponent } from './features/family/components/invitation-accept/invitation-accept.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -12,5 +14,14 @@ export const routes: Routes = [
     path: 'dashboard',
     component: DashboardComponent,
     canActivate: [authGuard],
+  },
+  {
+    path: 'family/settings',
+    component: FamilySettingsComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'invitation/accept',
+    component: InvitationAcceptComponent,
   },
 ];

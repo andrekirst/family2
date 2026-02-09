@@ -5,6 +5,7 @@ using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Application.Commands;
 using FamilyHub.Api.Features.Family.Application.Handlers;
+using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FluentAssertions;
@@ -28,7 +29,7 @@ public class CreateFamilyCommandHandlerTests
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
 
         // Act
-        var result = await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, CancellationToken.None);
+        var result = await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -45,7 +46,7 @@ public class CreateFamilyCommandHandlerTests
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
 
         // Act
-        var result = await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, CancellationToken.None);
+        var result = await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
 
         // Assert
         user.FamilyId.Should().NotBeNull();
@@ -62,7 +63,7 @@ public class CreateFamilyCommandHandlerTests
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
 
         // Act
-        await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, CancellationToken.None);
+        await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
 
         // Assert
         familyRepo.AddedFamilies.Should().HaveCount(1);
@@ -81,7 +82,7 @@ public class CreateFamilyCommandHandlerTests
         var command = new CreateFamilyCommand(FamilyName.From("New Family"), user.Id);
 
         // Act & Assert
-        var act = () => CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, CancellationToken.None);
+        var act = () => CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("User already owns a family");
     }
@@ -96,7 +97,7 @@ public class CreateFamilyCommandHandlerTests
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), userId);
 
         // Act & Assert
-        var act = () => CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, CancellationToken.None);
+        var act = () => CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("User not found");
     }
@@ -111,7 +112,7 @@ public class CreateFamilyCommandHandlerTests
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
 
         // Act
-        await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, CancellationToken.None);
+        await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
 
         // Assert
         familyRepo.SaveChangesCalled.Should().BeTrue();
@@ -165,6 +166,30 @@ public class CreateFamilyCommandHandlerTests
 
         public Task UpdateAsync(FamilyEntity family, CancellationToken ct = default) =>
             Task.CompletedTask;
+
+        public Task<int> SaveChangesAsync(CancellationToken ct = default)
+        {
+            SaveChangesCalled = true;
+            return Task.FromResult(1);
+        }
+    }
+
+    private class FakeFamilyMemberRepository : IFamilyMemberRepository
+    {
+        public List<FamilyMember> AddedMembers { get; } = [];
+        public bool SaveChangesCalled { get; private set; }
+
+        public Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default) =>
+            Task.FromResult<FamilyMember?>(null);
+
+        public Task<List<FamilyMember>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default) =>
+            Task.FromResult(new List<FamilyMember>());
+
+        public Task AddAsync(FamilyMember member, CancellationToken ct = default)
+        {
+            AddedMembers.Add(member);
+            return Task.CompletedTask;
+        }
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default)
         {

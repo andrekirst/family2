@@ -71,7 +71,12 @@ public sealed class Family : AggregateRoot<FamilyId>
     public User Owner { get; private set; } = null!;
 
     /// <summary>
-    /// Navigation property to all family members
+    /// Navigation property to all family members (User entities via FamilyId FK)
     /// </summary>
     public ICollection<User> Members { get; private set; } = new List<User>();
+
+    /// <summary>
+    /// Navigation property to family membership records with roles
+    /// </summary>
+    public ICollection<FamilyMember> FamilyMembers { get; private set; } = new List<FamilyMember>();
 }

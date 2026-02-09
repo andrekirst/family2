@@ -1,5 +1,6 @@
 using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Database;
+using FamilyHub.Api.Common.Email;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
 using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
@@ -7,6 +8,7 @@ using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.GraphQL;
+using FamilyHub.Api.Features.Family.Application.Services;
 using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -70,6 +72,15 @@ builder.Services.AddAuthorization();
 // Register repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
+builder.Services.AddScoped<IFamilyMemberRepository, FamilyMemberRepository>();
+builder.Services.AddScoped<IFamilyInvitationRepository, FamilyInvitationRepository>();
+
+// Register application services
+builder.Services.AddScoped<FamilyAuthorizationService>();
+
+// Configure email service
+builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("Email"));
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
 // Configure CORS for Angular frontend
 builder.Services.AddCors(options =>

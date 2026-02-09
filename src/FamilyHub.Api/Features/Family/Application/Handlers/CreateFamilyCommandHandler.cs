@@ -1,14 +1,16 @@
 using FamilyHub.Api.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Commands;
+using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
+using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyEntity = FamilyHub.Api.Features.Family.Domain.Entities.Family;
 
 namespace FamilyHub.Api.Features.Family.Application.Handlers;
 
 /// <summary>
 /// Handler for CreateFamilyCommand.
-/// Creates a new family and assigns the owner as a member.
+/// Creates a new family, assigns the owner as a member, and creates a FamilyMember record.
 /// Publishes FamilyCreatedEvent for downstream event chain processing.
 /// </summary>
 public static class CreateFamilyCommandHandler
@@ -17,6 +19,7 @@ public static class CreateFamilyCommandHandler
         CreateFamilyCommand command,
         IFamilyRepository familyRepository,
         IUserRepository userRepository,
+        IFamilyMemberRepository familyMemberRepository,
         CancellationToken ct)
     {
         // Validate: user shouldn't already own a family
@@ -35,6 +38,10 @@ public static class CreateFamilyCommandHandler
 
         // Add family to repository
         await familyRepository.AddAsync(family, ct);
+
+        // Create FamilyMember record with Owner role
+        var ownerMember = FamilyMember.Create(family.Id, command.OwnerId, FamilyRole.Owner);
+        await familyMemberRepository.AddAsync(ownerMember, ct);
 
         // Assign user to family (raises UserFamilyAssignedEvent)
         user.AssignToFamily(family.Id);

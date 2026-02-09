@@ -34,6 +34,16 @@ public class AppDbContext : DbContext
     /// </summary>
     public DbSet<Family> Families { get; set; }
 
+    /// <summary>
+    /// Family membership records with roles
+    /// </summary>
+    public DbSet<FamilyMember> FamilyMembers { get; set; }
+
+    /// <summary>
+    /// Family invitations with lifecycle tracking
+    /// </summary>
+    public DbSet<FamilyInvitation> FamilyInvitations { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
