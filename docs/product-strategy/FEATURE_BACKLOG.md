@@ -34,25 +34,21 @@ We use RICE scoring to prioritize features:
 ### Prioritization Criteria
 
 1. **User Impact** (35%)
-
    - Solves critical user pain point
    - Frequency of use
    - Value delivered
 
 2. **Technical Complexity** (25%)
-
    - Implementation effort for single developer
    - Microservices architecture consideration
    - Technical dependencies
 
 3. **Competitive Differentiation** (20%)
-
    - Unique to Family Hub
    - Better than competition
    - Strategic importance
 
 4. **Development Time** (15%)
-
    - Time to market
    - MVP viability
    - Iteration potential
@@ -97,14 +93,13 @@ We use RICE scoring to prioritize features:
 
 #### 1. Family Management & Authentication
 
-| Feature                      | Description                                | RICE Score | Effort  | Priority |
-| ---------------------------- | ------------------------------------------ | ---------- | ------- | -------- |
+| Feature                                                | Description                                                | RICE Score | Effort  | Priority |
+| ------------------------------------------------------ | ---------------------------------------------------------- | ---------- | ------- | -------- |
 | **User Registration & Auth** ✅ COMPLETED (2026-01-13) | Email/password auth via Zitadel (Backend + Frontend OAuth) | 45.0       | 2 weeks | P0       |
-| **Family Creation** ✅ COMPLETED (2025-12-30) #15 | Create family group, generate invite codes | 50.0       | 1 week  | P0       |
-| **Family Member Invites (Wizard)** ✅ COMPLETED (2026-01-24) #81 | Optional Step 2: Invite members after family creation | 45.0 | 2 weeks | P0 |
-| **Family Member Invites (Management)** ✅ COMPLETED (2026-01-24) #81 | Invite members from family management UI | 40.0 | 1 week | P0 |
-| **User Profiles**            | Name, avatar, role, preferences            | 36.0       | 1 week  | P0       |
-| **Family Settings**          | Timezone, language, notification prefs     | 30.0       | 1 week  | P1       |
+| **Family Creation** ✅ COMPLETED (2026-02-09) #15      | Create family group, generate invite codes                 | 50.0       | 1 week  | P0       |
+| **Family Member Invites (Management)**                 | Invite members from family management UI                   | 40.0       | 1 week  | P0       |
+| **User Profiles**                                      | Name, avatar, role, preferences                            | 36.0       | 1 week  | P0       |
+| **Family Settings**                                    | Timezone, language, notification prefs                     | 30.0       | 1 week  | P1       |
 
 **Domain Total: 7 weeks**
 
