@@ -1,5 +1,4 @@
 import { Injectable, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { UserProfile, AuthTokens, JwtPayload } from './auth.models';
@@ -24,10 +23,7 @@ export class AuthService {
   private readonly STORAGE_REFRESH_TOKEN = 'refresh_token';
   private readonly STORAGE_EXPIRES_AT = 'expires_at';
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {
+  constructor(private http: HttpClient) {
     this.checkAuthStatus();
   }
 
@@ -135,22 +131,25 @@ export class AuthService {
         });
       }
 
-      // Clean up session storage
+      // Clean up PKCE session storage
       sessionStorage.removeItem('code_verifier');
       sessionStorage.removeItem('state');
-
-      // Redirect to intended destination with success indicator
-      const redirectUrl = sessionStorage.getItem('post_login_redirect') || '/dashboard';
-      sessionStorage.removeItem('post_login_redirect');
-      sessionStorage.removeItem('redirect_url');
-
-      // Navigate using navigateByUrl with query params
-      this.router.navigateByUrl(`${redirectUrl}?login=success`);
     } catch (error) {
       console.error('Token exchange failed:', error);
       this.clearTokens();
       throw error;
     }
+  }
+
+  /**
+   * Consume and clear the stored post-login redirect URL.
+   * Returns the redirect path (defaults to '/dashboard' if none stored).
+   */
+  consumePostLoginRedirect(): string {
+    const redirectUrl = sessionStorage.getItem('post_login_redirect') || '/dashboard';
+    sessionStorage.removeItem('post_login_redirect');
+    sessionStorage.removeItem('redirect_url');
+    return redirectUrl;
   }
 
   /**
