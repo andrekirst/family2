@@ -45,7 +45,7 @@ public class {Entity} : AggregateRoot
     public static {Entity} Create({VogenType} param)
     {
         var entity = new {Entity} { ... };
-        entity.AddDomainEvent(new {Entity}CreatedEvent(...));
+        entity.RaiseDomainEvent(new {Entity}CreatedEvent(...));
         return entity;
     }
 }
@@ -60,8 +60,10 @@ public sealed record {Entity}CreatedEvent(
     {EntityId} Id,
     // Event properties
     DateTime CreatedAt
-) : INotification;
+);
 ```
+
+**Note:** Domain events are plain records (no MediatR `INotification`). They are raised via `RaiseDomainEvent()` on aggregates and cleared with `ClearDomainEvents()`.
 
 ### 2.4 Repository Interface
 
@@ -75,50 +77,81 @@ public interface I{Entity}Repository
 }
 ```
 
-## Phase 3: Application Layer
+## Phase 3: Application Layer (Subfolder-per-Command)
 
 ### 3.1 Commands
 
+Each command gets its own subfolder under `Application/Commands/{Name}/`:
+
 ```
-Invoke skill: backend/graphql-mutation
-- mutationName: Create{Entity}
-- module: {module}
-- fields: [list of fields]
+Commands/{Name}/
+├── {Name}Command.cs        # Record with command data
+├── {Name}CommandHandler.cs  # Wolverine static handler
+├── {Name}CommandValidator.cs # FluentValidation (if needed)
+├── {Name}Result.cs          # Result type (if needed)
+└── MutationType.cs          # Hot Chocolate mutation type
+```
+
+**Wolverine handler pattern** (static class, auto-discovered):
+
+```csharp
+public static class {Name}CommandHandler
+{
+    public static async Task<{Result}> Handle(
+        {Name}Command command,
+        I{Entity}Repository repository,
+        // Other dependencies injected as parameters
+        CancellationToken ct)
+    {
+        // Implementation
+    }
+}
 ```
 
 ### 3.2 Queries
 
+Each query gets its own subfolder under `Application/Queries/{Name}/`:
+
 ```
-Invoke skill: backend/graphql-query
-- queryName: Get{Entity}
-- module: {module}
+Queries/{Name}/
+├── {Name}Query.cs           # Record with query parameters
+├── {Name}QueryHandler.cs    # Wolverine static handler
+└── QueryType.cs             # Hot Chocolate query type
 ```
 
 ### 3.3 Validators (if needed)
 
 ```csharp
-public class Create{Entity}CommandValidator
-    : AbstractValidator<Create{Entity}Command>
+public class {Name}CommandValidator
+    : AbstractValidator<{Name}Command>
 {
-    public Create{Entity}CommandValidator()
+    public {Name}CommandValidator()
     {
         // Validation rules
     }
 }
 ```
 
+### 3.4 Permissions Check
+
+If the feature involves authorized actions:
+
+- Add permission methods to the relevant Role VO (e.g., `FamilyRole.CanDoAction()`)
+- Add permission string to `GetPermissions()` using format `{module}:{action}`
+- Use `FamilyAuthorizationService` (or equivalent) for backend enforcement
+
 ## Phase 4: Persistence Layer
 
 ### 4.1 EF Core Configuration
 
-Create `Persistence/Configurations/{Entity}Configuration.cs`:
+Create `Data/{Entity}Configuration.cs`:
 
 ```csharp
 public class {Entity}Configuration : IEntityTypeConfiguration<{Entity}>
 {
     public void Configure(EntityTypeBuilder<{Entity}> builder)
     {
-        builder.ToTable("{entities}", "{module}");
+        builder.ToTable("{entities}");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id)
             .HasConversion(new {EntityId}.EfCoreValueConverter());
@@ -128,7 +161,7 @@ public class {Entity}Configuration : IEntityTypeConfiguration<{Entity}>
 
 ### 4.2 Repository Implementation
 
-Create `Persistence/Repositories/{Entity}Repository.cs`
+Create `Infrastructure/Repositories/{Entity}Repository.cs`
 
 ### 4.3 Migration
 
@@ -138,15 +171,25 @@ Invoke skill: database/ef-migration
 - module: {module}
 ```
 
-## Phase 5: Presentation Layer
+## Phase 5: Presentation Layer (GraphQL)
 
-### 5.1 GraphQL Types
+### 5.1 Mutations
 
-Create `Presentation/GraphQL/Types/{Entity}Type.cs`
+Add to `GraphQL/{Module}Mutations.cs`:
 
-### 5.2 Mutations/Queries
+```csharp
+[MutationType]
+public static class {Module}Mutations
+{
+    // Wolverine dispatches to handler automatically
+}
+```
 
-Already created by mutation/query skills.
+Or use `MutationType.cs` inside each command subfolder for auto-registration.
+
+### 5.2 Queries
+
+Add to `GraphQL/{Module}Queries.cs` or use `QueryType.cs` inside each query subfolder.
 
 ## Phase 6: Frontend
 
@@ -155,13 +198,14 @@ Already created by mutation/query skills.
 ```
 Invoke skill: frontend/angular-component
 - componentName: {entity}-form
-- atomicLevel: organisms
 - hasGraphQL: true
 ```
 
+Use `inject()` for all dependency injection (not constructor injection).
+
 ### 6.2 GraphQL Operations
 
-Create in `src/app/{module}/graphql/`:
+Create in `src/app/features/{module}/graphql/`:
 
 ```typescript
 const CREATE_{ENTITY} = gql`
@@ -171,7 +215,15 @@ const CREATE_{ENTITY} = gql`
 `;
 ```
 
-### 6.3 Routes
+### 6.3 Permission-Gated UI
+
+If the feature has authorized actions:
+
+- Inject the relevant permission service (e.g., `FamilyPermissionService`)
+- Wrap restricted UI elements in `@if (permissions.canDoAction())`
+- Pattern: **HIDE** unauthorized actions (never disable+tooltip)
+
+### 6.4 Routes
 
 Add to module routing.
 
@@ -179,11 +231,11 @@ Add to module routing.
 
 ### 7.1 Unit Tests
 
-For each handler:
+For each handler — use **fake repository pattern** (inner classes implementing interfaces):
 
 ```
 Invoke skill: testing/unit-test
-- className: Create{Entity}CommandHandler
+- className: {Name}CommandHandler
 - module: {module}
 ```
 
@@ -200,44 +252,46 @@ Invoke skill: testing/playwright-test
 ### 8.1 Build Check
 
 ```bash
-dotnet build
-npm run build
+dotnet build src/FamilyHub.Api/FamilyHub.Api.csproj
+cd src/frontend/family-hub-web && ng build
 ```
 
 ### 8.2 Test Check
 
 ```bash
-dotnet test
-npm test
-npx playwright test
+dotnet test tests/FamilyHub.UnitTests/FamilyHub.UnitTests.csproj --verbosity normal
 ```
 
 ### 8.3 Manual Verification
 
 1. Start infrastructure: `docker-compose up -d`
-2. Start backend: `dotnet run`
-3. Start frontend: `npm start`
+2. Start backend: `dotnet run --project src/FamilyHub.Api/FamilyHub.Api.csproj`
+3. Start frontend: `cd src/frontend/family-hub-web && ng serve`
 4. Test feature manually
 
 ## Phase 9: Commit
 
 ```bash
-git add .
-git commit -m "feat({module}): implement {feature-name} (#issueNumber)
+git add [specific files]
+git commit -m "feat({module}): implement {feature-name} (#{issueNumber})
 
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```
 
 ## Checklist
 
 - [ ] Value objects created with validation
 - [ ] Entity follows aggregate pattern
-- [ ] Domain events emitted
-- [ ] Command/Query handlers complete
-- [ ] EF Core configuration correct
-- [ ] Migration applied
+- [ ] Domain events raised (not MediatR INotification)
+- [ ] Wolverine command/query handlers (static classes)
+- [ ] Subfolder-per-command layout followed
+- [ ] EF Core configuration in `Data/` folder
+- [ ] Repository in `Infrastructure/Repositories/`
 - [ ] GraphQL types and operations added
-- [ ] Frontend component created
-- [ ] Unit tests pass
-- [ ] E2E tests pass
+- [ ] Permission methods added (if authorized action)
+- [ ] Frontend permission service updated (if authorized action)
+- [ ] UI hides unauthorized actions (never disable)
+- [ ] Frontend uses `inject()` for DI
+- [ ] Unit tests with fake repositories pass
+- [ ] Build succeeds (backend + frontend)
 - [ ] Manual verification complete

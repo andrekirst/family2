@@ -1,15 +1,17 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Calendar.Application.Commands;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Calendar.Application.Handlers;
 
-public static class CreateCalendarEventCommandHandler
+public sealed class CreateCalendarEventCommandHandler(
+    ICalendarEventRepository repository)
+    : ICommandHandler<CreateCalendarEventCommand, CreateCalendarEventResult>
 {
-    public static async Task<CreateCalendarEventResult> Handle(
+    public async ValueTask<CreateCalendarEventResult> Handle(
         CreateCalendarEventCommand command,
-        ICalendarEventRepository repository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var calendarEvent = CalendarEvent.Create(
             command.FamilyId,
@@ -32,8 +34,8 @@ public static class CreateCalendarEventCommandHandler
             });
         }
 
-        await repository.AddAsync(calendarEvent, ct);
-        await repository.SaveChangesAsync(ct);
+        await repository.AddAsync(calendarEvent, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
 
         return new CreateCalendarEventResult(calendarEvent.Id);
     }

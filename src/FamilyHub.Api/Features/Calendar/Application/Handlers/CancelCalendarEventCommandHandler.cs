@@ -1,21 +1,23 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Domain;
 using FamilyHub.Api.Features.Calendar.Application.Commands;
 using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Calendar.Application.Handlers;
 
-public static class CancelCalendarEventCommandHandler
+public sealed class CancelCalendarEventCommandHandler(
+    ICalendarEventRepository repository)
+    : ICommandHandler<CancelCalendarEventCommand, CancelCalendarEventResult>
 {
-    public static async Task<CancelCalendarEventResult> Handle(
+    public async ValueTask<CancelCalendarEventResult> Handle(
         CancelCalendarEventCommand command,
-        ICalendarEventRepository repository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var calendarEvent = await repository.GetByIdAsync(command.CalendarEventId, ct)
+        var calendarEvent = await repository.GetByIdAsync(command.CalendarEventId, cancellationToken)
             ?? throw new DomainException("Calendar event not found");
 
         calendarEvent.Cancel();
-        await repository.SaveChangesAsync(ct);
+        await repository.SaveChangesAsync(cancellationToken);
 
         return new CancelCalendarEventResult(true);
     }

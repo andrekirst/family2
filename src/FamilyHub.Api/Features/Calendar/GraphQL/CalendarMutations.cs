@@ -1,7 +1,7 @@
 using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
-using FamilyHub.Api.Features.Auth.GraphQL;
+using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Calendar.Application.Commands;
 using FamilyHub.Api.Features.Calendar.Application.Mappers;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
@@ -14,7 +14,7 @@ using System.Security.Claims;
 
 namespace FamilyHub.Api.Features.Calendar.GraphQL;
 
-[ExtendObjectType(typeof(AuthMutations))]
+[ExtendObjectType(typeof(CalendarMutation))]
 public class CalendarMutations
 {
     [Authorize]

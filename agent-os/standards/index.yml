@@ -1,41 +1,47 @@
 # Agent OS Standards Index
-# Family Hub - Extracted from CLAUDE.md documentation
+# Family Hub - Extracted from codebase patterns
 
 architecture:
   ddd-modules:
-    description: DDD module structure with 8 bounded contexts
+    description: DDD module structure with bounded contexts (feature-folder layout)
   event-chains:
     description: Automated cross-domain workflows (flagship feature)
 
 backend:
   domain-events:
-    description: MediatR domain events with RabbitMQ integration
+    description: Domain events as plain records, raised via RaiseDomainEvent() on aggregates
   graphql-input-command:
-    description: ADR-003 pattern separating Input DTOs from Commands
+    description: ADR-003 pattern separating Input DTOs from Commands with subfolder-per-command layout
+  permission-system:
+    description: Role-based permissions with VO methods, string format, defense-in-depth enforcement
+  secure-token-pattern:
+    description: SHA256 hash in DB, plaintext only in events, lookup by hash
+  user-context:
+    description: IUserService + ClaimNames pattern for JWT claim extraction
   vogen-value-objects:
-    description: Vogen 8.0+ value objects with EF Core integration
+    description: Vogen value objects with EfCoreValueConverter for type safety
 
 database:
   ef-core-migrations:
-    description: One DbContext per module with schema separation
+    description: EF Core migrations with Data/ folder for configurations
   rls-policies:
     description: PostgreSQL Row-Level Security for multi-tenancy
 
 frontend:
   angular-components:
-    description: Standalone components with atomic design
+    description: Standalone components with inject() DI and computed signals
   apollo-graphql:
     description: Apollo Client with typed GraphQL operations
 
 global:
   tech-stack:
-    description: Project tech stack overview
+    description: '.NET 9, Wolverine, Hot Chocolate, Angular 19, Keycloak, PostgreSQL'
 
 testing:
   playwright-e2e:
     description: API-first E2E testing with zero retry policy
   unit-testing:
-    description: xUnit with FluentAssertions and NSubstitute
+    description: xUnit + FluentAssertions with fake repository pattern (NSubstitute migration planned)
 
 tools:
   serena-symbolic-navigation:

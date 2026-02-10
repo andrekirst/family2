@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Events;
 
 namespace FamilyHub.Api.Features.Auth.Application.EventHandlers;
@@ -6,11 +7,12 @@ namespace FamilyHub.Api.Features.Auth.Application.EventHandlers;
 /// Handler for UserFamilyAssignedEvent.
 /// Triggers family membership workflows and notifications.
 /// </summary>
-public static class UserFamilyAssignedEventHandler
+public sealed class UserFamilyAssignedEventHandler(ILogger<UserFamilyAssignedEventHandler> logger)
+    : IDomainEventHandler<UserFamilyAssignedEvent>
 {
-    public static Task Handle(
+    public ValueTask Handle(
         UserFamilyAssignedEvent @event,
-        ILogger logger)
+        CancellationToken cancellationToken)
     {
         logger.LogInformation(
             "User assigned to family: UserId={UserId}, FamilyId={FamilyId}",
@@ -21,6 +23,6 @@ public static class UserFamilyAssignedEventHandler
         // TODO: Grant user access to family calendar/tasks
         // TODO: Create default user-specific tasks for family
 
-        return Task.CompletedTask;
+        return default;
     }
 }
