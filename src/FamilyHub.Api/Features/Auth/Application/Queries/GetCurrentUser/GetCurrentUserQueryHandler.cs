@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Application.Mappers;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Models;
@@ -9,12 +10,13 @@ namespace FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
 /// Handler for GetCurrentUserQuery.
 /// Retrieves a user by their external OAuth ID and populates role-based permissions.
 /// </summary>
-public static class GetCurrentUserQueryHandler
+public sealed class GetCurrentUserQueryHandler(
+    IUserRepository userRepository,
+    IFamilyMemberRepository familyMemberRepository)
+    : IQueryHandler<GetCurrentUserQuery, UserDto?>
 {
-    public static async Task<UserDto?> Handle(
+    public async ValueTask<UserDto?> Handle(
         GetCurrentUserQuery query,
-        IUserRepository userRepository,
-        IFamilyMemberRepository familyMemberRepository,
         CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByExternalIdAsync(query.ExternalUserId, cancellationToken);

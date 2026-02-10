@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateLastLogin;
@@ -6,21 +7,20 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateLastLogin;
 /// Handler for UpdateLastLoginCommand.
 /// Updates a user's last login timestamp.
 /// </summary>
-public static class UpdateLastLoginCommandHandler
+public sealed class UpdateLastLoginCommandHandler(IUserRepository userRepository)
+    : ICommandHandler<UpdateLastLoginCommand, bool>
 {
-    public static async Task<bool> Handle(
+    public async ValueTask<bool> Handle(
         UpdateLastLoginCommand command,
-        IUserRepository userRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByExternalIdAsync(command.ExternalUserId, ct);
+        var user = await userRepository.GetByExternalIdAsync(command.ExternalUserId, cancellationToken);
         if (user is null)
         {
             return false;
         }
 
         user.UpdateLastLogin(command.LoginTime);
-        await userRepository.SaveChangesAsync(ct);
 
         return true;
     }

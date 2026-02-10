@@ -1,6 +1,9 @@
 using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Email;
+using FamilyHub.Api.Common.Infrastructure;
+using FamilyHub.Api.Common.Infrastructure.Behaviors;
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
 using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Common.Services;
@@ -8,14 +11,13 @@ using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
-using FamilyHub.Api.Features.Family.GraphQL;
 using FamilyHub.Api.Features.Family.Application.Services;
 using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
 using FluentValidation;
+using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Wolverine;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,22 +25,33 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Host=localhost;Port=5432;Database=familyhub;Username=familyhub;Password=familyhub";
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
-// Configure Wolverine for CQRS with in-process messaging
-builder.Host.UseWolverine(opts =>
+// Mediator (source-generated, compile-time handler discovery)
+builder.Services.AddMediator(options =>
 {
-    opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
-
-    // Local queue for in-process messaging (Phase 0-4)
-    // Will be upgraded to RabbitMQ in Phase 5+ for microservices
-    opts.LocalQueue("default");
+    options.ServiceLifetime = ServiceLifetime.Scoped;
+    options.Assemblies = [typeof(Program).Assembly];
+    options.PipelineBehaviors =
+    [
+        typeof(DomainEventPublishingBehavior<,>),  // outermost
+        typeof(LoggingBehavior<,>),
+        typeof(ValidationBehavior<,>),
+        typeof(TransactionBehavior<,>),             // innermost before handler
+    ];
 });
 
-// Register command and query bus abstractions
-builder.Services.AddScoped<FamilyHub.Api.Common.Application.ICommandBus, WolverineCommandBus>();
-builder.Services.AddScoped<IQueryBus, WolverineQueryBus>();
+// Infrastructure services
+builder.Services.AddScoped<IDomainEventCollector, DomainEventCollector>();
+builder.Services.AddScoped<DomainEventInterceptor>();
+builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
+builder.Services.AddScoped<ICommandBus, MediatorCommandBus>();
+builder.Services.AddScoped<IQueryBus, MediatorQueryBus>();
+
+// Configure DbContext with interceptor
+builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+{
+    options.UseNpgsql(connectionString);
+    options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
+});
 
 // Register FluentValidation validators from assembly
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -101,10 +114,10 @@ builder.Services.AddCors(options =>
 builder.Services
     .AddGraphQLServer()
     .AddAuthorization()
+    .AddErrorFilter<ValidationExceptionErrorFilter>()
     .AddQueryType<AuthQueries>()
     .AddMutationType<AuthMutations>()
-    .AddTypeExtension<FamilyQueries>()
-    .AddTypeExtension<FamilyMutations>();
+    .AddTypeExtensionsFromAssembly(typeof(Program).Assembly);
 
 var app = builder.Build();
 

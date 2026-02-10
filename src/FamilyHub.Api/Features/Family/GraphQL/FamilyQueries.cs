@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.Security;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Family.Application.Mappers;
@@ -7,7 +8,6 @@ using FamilyHub.Api.Features.Family.Models;
 using HotChocolate.Authorization;
 using System.Security.Claims;
 using FamilyHub.Api.Common.Services;
-using FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 
 namespace FamilyHub.Api.Features.Family.GraphQL;
 
@@ -90,7 +90,7 @@ public class FamilyQueries
         [Service] IFamilyInvitationRepository invitationRepository,
         CancellationToken cancellationToken)
     {
-        var tokenHash = SendInvitationCommandHandler.ComputeSha256Hash(token);
+        var tokenHash = SecureTokenHelper.ComputeSha256Hash(token);
         var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken);
 
         return invitation is null ? null : InvitationMapper.ToDto(invitation);

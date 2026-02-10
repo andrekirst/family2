@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 
@@ -6,17 +7,16 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 /// <summary>
 /// Handler for RegisterUserCommand.
 /// Registers a new user or updates existing user from OAuth provider.
-/// Wolverine discovers this handler by convention (static Handle method).
 /// </summary>
-public static class RegisterUserCommandHandler
+public sealed class RegisterUserCommandHandler(IUserRepository userRepository)
+    : ICommandHandler<RegisterUserCommand, RegisterUserResult>
 {
-    public static async Task<RegisterUserResult> Handle(
+    public async ValueTask<RegisterUserResult> Handle(
         RegisterUserCommand command,
-        IUserRepository userRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         // Check if user already exists by external ID
-        var existingUser = await userRepository.GetByExternalIdAsync(command.ExternalUserId, ct);
+        var existingUser = await userRepository.GetByExternalIdAsync(command.ExternalUserId, cancellationToken);
 
         if (existingUser is not null)
         {
@@ -24,13 +24,11 @@ public static class RegisterUserCommandHandler
             existingUser.UpdateProfile(command.Email, command.Name, command.EmailVerified);
             existingUser.UpdateLastLogin(DateTime.UtcNow);
 
-            await userRepository.SaveChangesAsync(ct);
-
             return new RegisterUserResult(existingUser.Id, IsNewUser: false);
         }
 
         // Check for duplicate email
-        var emailExists = await userRepository.GetByEmailAsync(command.Email, ct);
+        var emailExists = await userRepository.GetByEmailAsync(command.Email, cancellationToken);
         if (emailExists is not null)
         {
             throw new InvalidOperationException($"User with email {command.Email.Value} already exists");
@@ -45,8 +43,7 @@ public static class RegisterUserCommandHandler
             command.Username
         );
 
-        await userRepository.AddAsync(newUser, ct);
-        await userRepository.SaveChangesAsync(ct);
+        await userRepository.AddAsync(newUser, cancellationToken);
 
         return new RegisterUserResult(newUser.Id, IsNewUser: true);
     }

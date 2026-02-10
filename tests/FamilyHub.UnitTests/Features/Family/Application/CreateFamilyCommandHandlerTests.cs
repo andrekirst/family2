@@ -3,7 +3,6 @@ using FamilyHub.Api.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
-using FamilyHub.Api.Features.Family.Application.Commands;
 using FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
@@ -24,12 +23,11 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var user = CreateTestUser();
-        var userRepo = new FakeUserRepository(user);
-        var familyRepo = new FakeFamilyRepository();
+        var (handler, _, _, _) = CreateHandler(user);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
 
         // Act
-        var result = await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
+        var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -41,12 +39,11 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var user = CreateTestUser();
-        var userRepo = new FakeUserRepository(user);
-        var familyRepo = new FakeFamilyRepository();
+        var (handler, _, _, _) = CreateHandler(user);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
 
         // Act
-        var result = await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
+        var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         user.FamilyId.Should().NotBeNull();
@@ -58,12 +55,11 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var user = CreateTestUser();
-        var userRepo = new FakeUserRepository(user);
-        var familyRepo = new FakeFamilyRepository();
+        var (handler, familyRepo, _, _) = CreateHandler(user);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
 
         // Act
-        await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
+        await handler.Handle(command, CancellationToken.None);
 
         // Assert
         familyRepo.AddedFamilies.Should().HaveCount(1);
@@ -76,13 +72,12 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var user = CreateTestUser();
-        var userRepo = new FakeUserRepository(user);
         var existingFamily = FamilyEntity.Create(FamilyName.From("Existing Family"), user.Id);
-        var familyRepo = new FakeFamilyRepository(existingFamilyForOwner: existingFamily);
+        var (handler, _, _, _) = CreateHandler(user, existingFamilyForOwner: existingFamily);
         var command = new CreateFamilyCommand(FamilyName.From("New Family"), user.Id);
 
         // Act & Assert
-        var act = () => CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
+        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("User already owns a family");
     }
@@ -92,30 +87,13 @@ public class CreateFamilyCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        var userRepo = new FakeUserRepository(user: null);
-        var familyRepo = new FakeFamilyRepository();
+        var (handler, _, _, _) = CreateHandler(user: null);
         var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), userId);
 
         // Act & Assert
-        var act = () => CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
+        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("User not found");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldCallSaveChanges()
-    {
-        // Arrange
-        var user = CreateTestUser();
-        var userRepo = new FakeUserRepository(user);
-        var familyRepo = new FakeFamilyRepository();
-        var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
-
-        // Act
-        await CreateFamilyCommandHandler.Handle(command, familyRepo, userRepo, new FakeFamilyMemberRepository(), CancellationToken.None);
-
-        // Assert
-        familyRepo.SaveChangesCalled.Should().BeTrue();
     }
 
     // --- Helpers ---
@@ -132,6 +110,17 @@ public class CreateFamilyCommandHandlerTests
         return user;
     }
 
+    private static (CreateFamilyCommandHandler Handler, FakeFamilyRepository FamilyRepo, FakeUserRepository UserRepo, FakeFamilyMemberRepository MemberRepo) CreateHandler(
+        User? user,
+        FamilyEntity? existingFamilyForOwner = null)
+    {
+        var userRepo = new FakeUserRepository(user);
+        var familyRepo = new FakeFamilyRepository(existingFamilyForOwner: existingFamilyForOwner);
+        var memberRepo = new FakeFamilyMemberRepository();
+        var handler = new CreateFamilyCommandHandler(familyRepo, userRepo, memberRepo);
+        return (handler, familyRepo, userRepo, memberRepo);
+    }
+
     // --- Fake Repositories ---
 
     private class FakeFamilyRepository : IFamilyRepository
@@ -139,7 +128,6 @@ public class CreateFamilyCommandHandlerTests
         private readonly FamilyEntity? _existingFamilyForOwner;
 
         public List<FamilyEntity> AddedFamilies { get; } = [];
-        public bool SaveChangesCalled { get; private set; }
 
         public FakeFamilyRepository(FamilyEntity? existingFamilyForOwner = null)
         {
@@ -167,17 +155,13 @@ public class CreateFamilyCommandHandlerTests
         public Task UpdateAsync(FamilyEntity family, CancellationToken ct = default) =>
             Task.CompletedTask;
 
-        public Task<int> SaveChangesAsync(CancellationToken ct = default)
-        {
-            SaveChangesCalled = true;
-            return Task.FromResult(1);
-        }
+        public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
+            Task.FromResult(1);
     }
 
     private class FakeFamilyMemberRepository : IFamilyMemberRepository
     {
         public List<FamilyMember> AddedMembers { get; } = [];
-        public bool SaveChangesCalled { get; private set; }
 
         public Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default) =>
             Task.FromResult<FamilyMember?>(null);
@@ -191,11 +175,8 @@ public class CreateFamilyCommandHandlerTests
             return Task.CompletedTask;
         }
 
-        public Task<int> SaveChangesAsync(CancellationToken ct = default)
-        {
-            SaveChangesCalled = true;
-            return Task.FromResult(1);
-        }
+        public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
+            Task.FromResult(1);
     }
 
     private class FakeUserRepository : IUserRepository

@@ -6,13 +6,13 @@
 
 **Current State:** Active development with working Auth and Family modules. Backend API, frontend SPA, and test suite all operational.
 
-**Tech Stack:** .NET 9 (C#, Hot Chocolate GraphQL, Wolverine, Vogen) | Angular 19 (TypeScript, Tailwind, Apollo) | PostgreSQL | Keycloak (OAuth 2.0 / OIDC) | Docker
+**Tech Stack:** .NET 9 (C#, Hot Chocolate GraphQL, martinothamar/Mediator, Vogen) | Angular 19 (TypeScript, Tailwind, Apollo) | PostgreSQL | Keycloak (OAuth 2.0 / OIDC) | Docker
 
 **Phase:** Phase 1 - MVP. Family creation and invitation system implemented.
 
 **Architecture Strategy:** Modular Monolith (feature-folder layout). See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
 
-**Message Bus:** Wolverine (NOT MediatR). Handlers are static classes with `Handle()` methods, auto-discovered via parameter injection.
+**Mediator:** martinothamar/Mediator (source-generated, compile-time discovery). Interface-based handlers (`ICommandHandler<T,R>`, `IQueryHandler<T,R>`) with `ValueTask<T>` returns. Pipeline behaviors: DomainEventPublishing → Logging → Validation → Transaction.
 
 ---
 
@@ -45,7 +45,7 @@
 
 ### Tests (`tests/FamilyHub.UnitTests/`)
 
-- 81 tests passing (xUnit + FluentAssertions)
+- 77 tests passing (xUnit + FluentAssertions)
 - Fake repository pattern (inner classes implementing interfaces, in-memory state)
 - Domain tests: FamilyAggregate, FamilyInvitation, FamilyMember, FamilyRole
 - Handler tests: CreateFamily, SendInvitation, AcceptInvitation, AcceptInvitationById, GetCurrentUser
@@ -67,7 +67,7 @@
 → **[docs/guides/BACKEND_DEVELOPMENT.md](docs/guides/BACKEND_DEVELOPMENT.md)** - .NET, C#, GraphQL, DDD patterns
 
 - When: Implementing backend features, domain logic, GraphQL APIs
-- Covers: Wolverine handlers, Vogen VOs, GraphQL Input→Command, Domain events, Testing patterns
+- Covers: Mediator handlers, pipeline behaviors, Vogen VOs, GraphQL Input→Command, Domain events, Testing patterns
 - Sub-guides in `docs/guides/backend/` for handler patterns, authorization, testing, GraphQL, EF Core, Vogen, domain events
 
 ### Frontend Development
@@ -187,5 +187,5 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 ---
 
-**Last Updated:** 2026-02-09
-**Version:** 7.0.0 (Active Development - Auth + Family Modules)
+**Last Updated:** 2026-02-10
+**Version:** 8.0.0 (Active Development - Auth + Family Modules, Mediator migration)

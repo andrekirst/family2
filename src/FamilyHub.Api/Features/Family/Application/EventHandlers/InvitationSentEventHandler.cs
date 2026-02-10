@@ -1,9 +1,9 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Email;
 using FamilyHub.Api.Common.Email.Templates;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Events;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
-using Microsoft.Extensions.Configuration;
 
 namespace FamilyHub.Api.Features.Family.Application.EventHandlers;
 
@@ -11,18 +11,19 @@ namespace FamilyHub.Api.Features.Family.Application.EventHandlers;
 /// Handles InvitationSentEvent by sending the invitation email.
 /// Uses the plaintext token from the event to build the acceptance URL.
 /// </summary>
-public static class InvitationSentEventHandler
+public sealed class InvitationSentEventHandler(
+    IEmailService emailService,
+    IFamilyRepository familyRepository,
+    IUserRepository userRepository,
+    IConfiguration configuration)
+    : IDomainEventHandler<InvitationSentEvent>
 {
-    public static async Task Handle(
+    public async ValueTask Handle(
         InvitationSentEvent @event,
-        IEmailService emailService,
-        IFamilyRepository familyRepository,
-        IUserRepository userRepository,
-        IConfiguration configuration,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var family = await familyRepository.GetByIdAsync(@event.FamilyId, ct);
-        var inviter = await userRepository.GetByIdAsync(@event.InvitedByUserId, ct);
+        var family = await familyRepository.GetByIdAsync(@event.FamilyId, cancellationToken);
+        var inviter = await userRepository.GetByIdAsync(@event.InvitedByUserId, cancellationToken);
 
         var familyName = family?.Name.Value ?? "Unknown Family";
         var inviterName = inviter?.Name.Value ?? "A family member";
@@ -41,6 +42,6 @@ public static class InvitationSentEventHandler
             $"You've been invited to join {familyName} on Family Hub",
             htmlBody,
             textBody,
-            ct);
+            cancellationToken);
     }
 }

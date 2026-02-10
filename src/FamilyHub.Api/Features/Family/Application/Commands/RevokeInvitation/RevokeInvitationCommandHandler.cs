@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Domain;
 using FamilyHub.Api.Features.Family.Application.Services;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
@@ -8,26 +9,25 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.RevokeInvitation;
 /// Handler for RevokeInvitationCommand.
 /// Validates authorization and revokes a pending invitation.
 /// </summary>
-public static class RevokeInvitationCommandHandler
+public sealed class RevokeInvitationCommandHandler(
+    FamilyAuthorizationService authService,
+    IFamilyInvitationRepository invitationRepository)
+    : ICommandHandler<RevokeInvitationCommand, bool>
 {
-    public static async Task<bool> Handle(
+    public async ValueTask<bool> Handle(
         RevokeInvitationCommand command,
-        FamilyAuthorizationService authService,
-        IFamilyInvitationRepository invitationRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, ct)
+        var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken)
             ?? throw new DomainException("Invitation not found");
 
         // Authorization: only Owner/Admin of the family can revoke
-        if (!await authService.CanInviteAsync(command.RevokedBy, invitation.FamilyId, ct))
+        if (!await authService.CanInviteAsync(command.RevokedBy, invitation.FamilyId, cancellationToken))
         {
             throw new DomainException("You do not have permission to revoke invitations for this family");
         }
 
         invitation.Revoke();
-
-        await invitationRepository.SaveChangesAsync(ct);
 
         return true;
     }

@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Application.Mappers;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Models;
@@ -9,21 +10,22 @@ namespace FamilyHub.Api.Features.Family.Application.Queries.GetFamilyMembers;
 /// Handler for GetFamilyMembersQuery.
 /// Retrieves all members of the current user's family.
 /// </summary>
-public static class GetFamilyMembersQueryHandler
+public sealed class GetFamilyMembersQueryHandler(
+    IUserRepository userRepository,
+    IFamilyRepository familyRepository)
+    : IQueryHandler<GetFamilyMembersQuery, List<UserDto>>
 {
-    public static async Task<List<UserDto>> Handle(
+    public async ValueTask<List<UserDto>> Handle(
         GetFamilyMembersQuery query,
-        IUserRepository userRepository,
-        IFamilyRepository familyRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByExternalIdAsync(query.ExternalUserId, ct);
+        var user = await userRepository.GetByExternalIdAsync(query.ExternalUserId, cancellationToken);
         if (user?.FamilyId == null)
         {
             return [];
         }
 
-        var family = await familyRepository.GetByIdWithMembersAsync(user.FamilyId.Value, ct);
+        var family = await familyRepository.GetByIdWithMembersAsync(user.FamilyId.Value, cancellationToken);
         return family is null ? [] : family.Members.Select(UserMapper.ToDto).ToList();
     }
 }

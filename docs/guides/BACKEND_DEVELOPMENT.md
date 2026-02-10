@@ -2,7 +2,7 @@
 
 **Purpose:** Index for Family Hub's .NET backend development documentation.
 
-**Tech Stack:** .NET Core 10, C# 14, **Wolverine** (not MediatR), Hot Chocolate GraphQL 14.1, EF Core 10, PostgreSQL 16, Vogen 8.0+, FluentValidation
+**Tech Stack:** .NET Core 10, C# 14, **martinothamar/Mediator** (source-generated, compile-time discovery), Hot Chocolate GraphQL 14.1, EF Core 10, PostgreSQL 16, Vogen 8.0+, FluentValidation
 
 ---
 
@@ -14,7 +14,7 @@ src/FamilyHub.Api/
     Application/           # ICommand, IQuery, ICommandBus, IQueryBus
     Database/              # AppDbContext, migrations
     Domain/                # AggregateRoot, DomainEvent, shared value objects
-    Infrastructure/        # WolverineCommandBus, ClaimNames
+    Infrastructure/        # MediatorCommandBus, Behaviors, ClaimNames
     Middleware/             # PostgresRlsMiddleware
     Services/              # IUserService
     Email/                 # IEmailService, SmtpEmailService, templates
@@ -60,7 +60,7 @@ src/FamilyHub.Api/
 
 | Guide | When to Use |
 |-------|------------|
-| [Handler Patterns](backend/handler-patterns.md) | Adding commands, queries, or handlers. Understanding Wolverine static handler convention. |
+| [Handler Patterns](backend/handler-patterns.md) | Adding commands, queries, or handlers. Interface-based handlers with Mediator. |
 | [Authorization Patterns](backend/authorization-patterns.md) | Implementing permission checks, understanding FamilyRole, defense-in-depth strategy. |
 | [Testing Patterns](backend/testing-patterns.md) | Writing unit tests, creating fake repositories, testing domain entities and handlers. |
 | [GraphQL Patterns](backend/graphql-patterns.md) | Adding GraphQL mutations/queries, Input-to-Command mapping, Hot Chocolate conventions. |
@@ -86,13 +86,15 @@ dotnet test tests/FamilyHub.UnitTests/FamilyHub.UnitTests.csproj --verbosity nor
 
 ### Key Conventions
 
-- **Handlers:** Static classes, static `Handle()` method, Wolverine auto-discovers.
+- **Handlers:** Sealed classes implementing `ICommandHandler<T,R>` or `IQueryHandler<T,R>` with constructor DI and `ValueTask<T>` returns.
 - **Commands:** `ICommand<TResult>` records with Vogen value objects.
 - **Queries:** `IQuery<TResult>` records with Vogen value objects.
+- **Pipeline:** `DomainEventPublishing → Logging → Validation → Transaction → Handler` (behaviors registered in `Program.cs`).
 - **GraphQL:** `MutationType` / `QueryType` per command/query, extends root types with `[ExtendObjectType]`.
 - **Value Objects:** `[ValueObject<T>(conversions: Conversions.EfCoreValueConverter)]` on all domain types.
 - **Tests:** xUnit + FluentAssertions, fake repository inner classes (no mocking framework).
-- **Events:** `sealed record` extending `DomainEvent`, raised via `RaiseDomainEvent()`, published after `SaveChangesAsync`.
+- **Events:** `sealed record` extending `DomainEvent`, raised via `RaiseDomainEvent()`, published post-commit via `DomainEventPublishingBehavior`.
+- **Transactions:** Handlers do NOT call `SaveChangesAsync()` — centralized in `TransactionBehavior`.
 
 ### Common Tasks
 
@@ -121,5 +123,5 @@ dotnet test tests/FamilyHub.UnitTests/FamilyHub.UnitTests.csproj --verbosity nor
 
 ---
 
-**Last Updated:** 2026-02-09
-**Version:** 7.0.0 (Split into focused sub-guides)
+**Last Updated:** 2026-02-10
+**Version:** 8.0.0 (Migrated from Wolverine to martinothamar/Mediator)

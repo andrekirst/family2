@@ -1,7 +1,6 @@
 using FamilyHub.Api.Common.Domain;
 using FamilyHub.Api.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
-using FamilyHub.Api.Features.Family.Application.Commands;
 using FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 using FamilyHub.Api.Features.Family.Application.Services;
 using FamilyHub.Api.Features.Family.Domain.Entities;
@@ -28,10 +27,11 @@ public class SendInvitationCommandHandlerTests
         var memberRepo = new FakeFamilyMemberRepository(existingMember: inviterMember);
         var invitationRepo = new FakeFamilyInvitationRepository();
         var authService = new FamilyAuthorizationService(memberRepo);
+        var handler = new SendInvitationCommandHandler(authService, invitationRepo);
         var command = new SendInvitationCommand(familyId, inviterId, Email.From("newmember@example.com"), FamilyRole.Member);
 
         // Act
-        var result = await SendInvitationCommandHandler.Handle(command, authService, invitationRepo, memberRepo, CancellationToken.None);
+        var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -48,10 +48,11 @@ public class SendInvitationCommandHandlerTests
         var memberRepo = new FakeFamilyMemberRepository(existingMember: inviterMember);
         var invitationRepo = new FakeFamilyInvitationRepository();
         var authService = new FamilyAuthorizationService(memberRepo);
+        var handler = new SendInvitationCommandHandler(authService, invitationRepo);
         var command = new SendInvitationCommand(familyId, inviterId, Email.From("newmember@example.com"), FamilyRole.Member);
 
         // Act
-        await SendInvitationCommandHandler.Handle(command, authService, invitationRepo, memberRepo, CancellationToken.None);
+        await handler.Handle(command, CancellationToken.None);
 
         // Assert
         invitationRepo.AddedInvitations.Should().HaveCount(1);
@@ -64,25 +65,6 @@ public class SendInvitationCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldCallSaveChanges()
-    {
-        // Arrange
-        var familyId = FamilyId.New();
-        var inviterId = UserId.New();
-        var inviterMember = FamilyMember.Create(familyId, inviterId, FamilyRole.Owner);
-        var memberRepo = new FakeFamilyMemberRepository(existingMember: inviterMember);
-        var invitationRepo = new FakeFamilyInvitationRepository();
-        var authService = new FamilyAuthorizationService(memberRepo);
-        var command = new SendInvitationCommand(familyId, inviterId, Email.From("newmember@example.com"), FamilyRole.Member);
-
-        // Act
-        await SendInvitationCommandHandler.Handle(command, authService, invitationRepo, memberRepo, CancellationToken.None);
-
-        // Assert
-        invitationRepo.SaveChangesCalled.Should().BeTrue();
-    }
-
-    [Fact]
     public async Task Handle_ShouldThrow_WhenUserLacksPermission()
     {
         // Arrange — user is a Member (cannot invite)
@@ -92,10 +74,11 @@ public class SendInvitationCommandHandlerTests
         var memberRepo = new FakeFamilyMemberRepository(existingMember: regularMember);
         var invitationRepo = new FakeFamilyInvitationRepository();
         var authService = new FamilyAuthorizationService(memberRepo);
+        var handler = new SendInvitationCommandHandler(authService, invitationRepo);
         var command = new SendInvitationCommand(familyId, inviterId, Email.From("newmember@example.com"), FamilyRole.Member);
 
         // Act & Assert
-        var act = () => SendInvitationCommandHandler.Handle(command, authService, invitationRepo, memberRepo, CancellationToken.None);
+        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("You do not have permission to send invitations for this family");
     }
@@ -109,10 +92,11 @@ public class SendInvitationCommandHandlerTests
         var memberRepo = new FakeFamilyMemberRepository(existingMember: null);
         var invitationRepo = new FakeFamilyInvitationRepository();
         var authService = new FamilyAuthorizationService(memberRepo);
+        var handler = new SendInvitationCommandHandler(authService, invitationRepo);
         var command = new SendInvitationCommand(familyId, inviterId, Email.From("newmember@example.com"), FamilyRole.Member);
 
         // Act & Assert
-        var act = () => SendInvitationCommandHandler.Handle(command, authService, invitationRepo, memberRepo, CancellationToken.None);
+        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("You do not have permission to send invitations for this family");
     }
@@ -131,10 +115,11 @@ public class SendInvitationCommandHandlerTests
             "dummy-token");
         var invitationRepo = new FakeFamilyInvitationRepository(existingByEmail: existingInvitation);
         var authService = new FamilyAuthorizationService(memberRepo);
+        var handler = new SendInvitationCommandHandler(authService, invitationRepo);
         var command = new SendInvitationCommand(familyId, inviterId, Email.From("duplicate@example.com"), FamilyRole.Member);
 
         // Act & Assert
-        var act = () => SendInvitationCommandHandler.Handle(command, authService, invitationRepo, memberRepo, CancellationToken.None);
+        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("An invitation has already been sent to this email for this family");
     }
@@ -149,10 +134,11 @@ public class SendInvitationCommandHandlerTests
         var memberRepo = new FakeFamilyMemberRepository(existingMember: adminMember);
         var invitationRepo = new FakeFamilyInvitationRepository();
         var authService = new FamilyAuthorizationService(memberRepo);
+        var handler = new SendInvitationCommandHandler(authService, invitationRepo);
         var command = new SendInvitationCommand(familyId, inviterId, Email.From("newmember@example.com"), FamilyRole.Member);
 
         // Act
-        var result = await SendInvitationCommandHandler.Handle(command, authService, invitationRepo, memberRepo, CancellationToken.None);
+        var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -189,7 +175,6 @@ public class SendInvitationCommandHandlerTests
         private readonly FamilyInvitation? _existingByTokenHash;
 
         public List<FamilyInvitation> AddedInvitations { get; } = [];
-        public bool SaveChangesCalled { get; private set; }
 
         public FakeFamilyInvitationRepository(
             FamilyInvitation? existingByEmail = null,
@@ -220,10 +205,7 @@ public class SendInvitationCommandHandlerTests
             return Task.CompletedTask;
         }
 
-        public Task<int> SaveChangesAsync(CancellationToken ct = default)
-        {
-            SaveChangesCalled = true;
-            return Task.FromResult(1);
-        }
+        public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
+            Task.FromResult(1);
     }
 }

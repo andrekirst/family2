@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
@@ -8,12 +9,13 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.DeclineInvitationBy
 /// Handler for DeclineInvitationByIdCommand.
 /// Looks up invitation by ID, verifies email match, and declines it.
 /// </summary>
-public static class DeclineInvitationByIdCommandHandler
+public sealed class DeclineInvitationByIdCommandHandler(
+    IFamilyInvitationRepository invitationRepository,
+    IUserRepository userRepository)
+    : ICommandHandler<DeclineInvitationByIdCommand, bool>
 {
-    public static async Task<bool> Handle(
+    public async ValueTask<bool> Handle(
         DeclineInvitationByIdCommand command,
-        IFamilyInvitationRepository invitationRepository,
-        IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
         var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken)
@@ -29,8 +31,6 @@ public static class DeclineInvitationByIdCommandHandler
         }
 
         invitation.Decline();
-
-        await invitationRepository.SaveChangesAsync(cancellationToken);
 
         return true;
     }
