@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Events;
 
 namespace FamilyHub.Api.Features.Auth.Application.EventHandlers;
@@ -5,13 +6,13 @@ namespace FamilyHub.Api.Features.Auth.Application.EventHandlers;
 /// <summary>
 /// Handler for UserRegisteredEvent.
 /// Triggers welcome workflows and onboarding tasks.
-/// Wolverine discovers this handler by convention (static Handle method).
 /// </summary>
-public static class UserRegisteredEventHandler
+public sealed class UserRegisteredEventHandler(ILogger<UserRegisteredEventHandler> logger)
+    : IDomainEventHandler<UserRegisteredEvent>
 {
-    public static Task Handle(
+    public ValueTask Handle(
         UserRegisteredEvent @event,
-        ILogger logger)
+        CancellationToken cancellationToken)
     {
         logger.LogInformation(
             "User registered: UserId={UserId}, Email={Email}, Name={Name}, EmailVerified={EmailVerified}",
@@ -24,6 +25,6 @@ public static class UserRegisteredEventHandler
         // TODO: Create onboarding tasks for new users
         // TODO: Initialize default user preferences
 
-        return Task.CompletedTask;
+        return default;
     }
 }

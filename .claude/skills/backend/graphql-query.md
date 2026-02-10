@@ -1,169 +1,70 @@
 ---
 name: graphql-query
-description: Create GraphQL query with MediatR query handler
+description: Create Hot Chocolate GraphQL query with Wolverine dispatch
 category: backend
 module-aware: true
 inputs:
-  - queryName: PascalCase query name (e.g., GetFamily)
+  - queryName: PascalCase query name (e.g., GetMyFamily)
   - module: DDD module name
-  - returnType: Return type (single entity or collection)
 ---
 
 # GraphQL Query Skill
 
-Create a GraphQL query with MediatR query handler following CQRS pattern.
+Create a Hot Chocolate query that dispatches to a Wolverine query handler.
 
-## Context
+## Query Record
 
-Load module profile: `agent-os/profiles/modules/{module}.yaml`
-
-## Steps
-
-### 1. Create Query
-
-**Location:** `Modules/FamilyHub.Modules.{Module}/Application/Queries/{QueryName}/{QueryName}Query.cs`
+Location: `Features/{Module}/Application/Queries/{QueryName}/{QueryName}Query.cs`
 
 ```csharp
-using MediatR;
-using FamilyHub.Modules.{Module}.Domain.ValueObjects;
-
-namespace FamilyHub.Modules.{Module}.Application.Queries.{QueryName};
-
 public sealed record {QueryName}Query(
-    {EntityId} Id
-) : IRequest<{QueryName}Result?>;
+    ExternalUserId ExternalUserId
+) : IQuery<{Result}Dto?>;
 ```
 
-### 2. Create Query Result
+## Query Handler (Static)
 
-**Location:** `Modules/FamilyHub.Modules.{Module}/Application/Queries/{QueryName}/{QueryName}Result.cs`
-
-```csharp
-namespace FamilyHub.Modules.{Module}.Application.Queries.{QueryName};
-
-public sealed record {QueryName}Result(
-    {EntityId} Id,
-    {PropertyType} Property1,
-    DateTime CreatedAt
-);
-```
-
-### 3. Create Query Handler
-
-**Location:** `Modules/FamilyHub.Modules.{Module}/Application/Queries/{QueryName}/{QueryName}QueryHandler.cs`
+Location: `Features/{Module}/Application/Queries/{QueryName}/{QueryName}QueryHandler.cs`
 
 ```csharp
-using MediatR;
-using FamilyHub.Modules.{Module}.Domain.Repositories;
-
-namespace FamilyHub.Modules.{Module}.Application.Queries.{QueryName};
-
-public sealed class {QueryName}QueryHandler
-    : IRequestHandler<{QueryName}Query, {QueryName}Result?>
+public static class {QueryName}QueryHandler
 {
-    private readonly I{Entity}Repository _repository;
-
-    public {QueryName}QueryHandler(I{Entity}Repository repository)
-    {
-        _repository = repository;
-    }
-
-    public async Task<{QueryName}Result?> Handle(
+    public static async Task<{Result}Dto?> Handle(
         {QueryName}Query query,
-        CancellationToken cancellationToken)
+        IUserRepository userRepository,
+        I{Entity}Repository entityRepository,
+        CancellationToken ct)
     {
-        var entity = await _repository.GetByIdAsync(query.Id, cancellationToken);
-
-        if (entity is null)
-            return null;
-
-        return new {QueryName}Result(
-            entity.Id,
-            entity.Property1,
-            entity.CreatedAt
-        );
+        // Query logic
     }
 }
 ```
 
-### 4. Create GraphQL Query Method
+## QueryType (per-query)
 
-**Location:** `Modules/FamilyHub.Modules.{Module}/Presentation/GraphQL/Queries/{Entity}Queries.cs`
+Location: `Features/{Module}/Application/Queries/{QueryName}/QueryType.cs`
 
 ```csharp
-using HotChocolate;
-using HotChocolate.Authorization;
-using MediatR;
-
-namespace FamilyHub.Modules.{Module}.Presentation.GraphQL.Queries;
-
-[ExtendObjectType("Query")]
-public class {Entity}Queries
+[ExtendObjectType(typeof(AuthQueries))]
+public class QueryType
 {
     [Authorize]
-    public async Task<{QueryName}Result?> {QueryName}(
-        Guid id,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+    public async Task<{Result}Dto?> {QueryName}(
+        ClaimsPrincipal claimsPrincipal,
+        [Service] IQueryBus queryBus,
+        CancellationToken ct)
     {
-        var query = new {QueryName}Query({EntityId}.From(id));
-        return await mediator.Send(query, cancellationToken);
+        var externalUserId = ExternalUserId.From(
+            claimsPrincipal.FindFirst(ClaimNames.Sub)!.Value);
+        return await queryBus.QueryAsync(
+            new {QueryName}Query(externalUserId), ct);
     }
-}
-```
-
-## Collection Query Example
-
-**Query:**
-
-```csharp
-public sealed record GetFamiliesQuery(
-    int Skip = 0,
-    int Take = 10
-) : IRequest<IReadOnlyList<GetFamiliesResult>>;
-```
-
-**Handler:**
-
-```csharp
-public async Task<IReadOnlyList<GetFamiliesResult>> Handle(
-    GetFamiliesQuery query,
-    CancellationToken cancellationToken)
-{
-    var families = await _repository.GetAllAsync(
-        query.Skip,
-        query.Take,
-        cancellationToken);
-
-    return families.Select(f => new GetFamiliesResult(
-        f.Id,
-        f.Name,
-        f.CreatedAt
-    )).ToList();
-}
-```
-
-**GraphQL:**
-
-```csharp
-[Authorize]
-[UseFiltering]
-[UseSorting]
-public async Task<IReadOnlyList<GetFamiliesResult>> GetFamilies(
-    int skip = 0,
-    int take = 10,
-    [Service] IMediator mediator,
-    CancellationToken cancellationToken)
-{
-    var query = new GetFamiliesQuery(skip, take);
-    return await mediator.Send(query, cancellationToken);
 }
 ```
 
 ## Validation
 
-- [ ] Query created in Application/Queries/{QueryName}/
-- [ ] Query handler returns null for not found (not exception)
-- [ ] GraphQL query method created in Presentation/GraphQL/Queries/
-- [ ] Authorization attribute added
-- [ ] Primitive→Vogen mapping in GraphQL layer
+- [ ] Query implements IQuery<TResult>
+- [ ] Handler is static class with static Handle()
+- [ ] QueryType extends AuthQueries
+- [ ] Dispatches via IQueryBus.QueryAsync()

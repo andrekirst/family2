@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Common.Database;
 /// <summary>
 /// Design-time factory for AppDbContext.
 /// Used by EF Core tools (migrations) to create DbContext without running full application startup.
-/// Avoids Roslyn version conflicts with Vogen/Wolverine during design-time operations.
+/// Avoids Roslyn version conflicts with Vogen during design-time operations.
 /// </summary>
 public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
@@ -19,8 +19,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 
         optionsBuilder.UseNpgsql(connectionString);
 
-        // Return AppDbContext WITHOUT IMessageBus (design-time only)
-        // This avoids loading Wolverine and its dependencies during migrations
+        // Return AppDbContext for design-time only (no DI container)
         return new AppDbContext(optionsBuilder.Options);
     }
 }

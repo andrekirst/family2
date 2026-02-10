@@ -1,65 +1,75 @@
-# Unit Testing (xUnit)
+# Unit Testing
 
-Use xUnit with FluentAssertions and NSubstitute.
+xUnit + FluentAssertions with fake repository pattern.
 
-## Test Structure
+## Static Handler Testing
 
 ```csharp
-public class CreateFamilyCommandHandlerTests
-{
-    private readonly IFamilyRepository _repository;
-    private readonly CreateFamilyCommandHandler _handler;
+var result = await CreateFamilyCommandHandler.Handle(
+    command, familyRepo, userRepo, memberRepo, CancellationToken.None);
 
-    public CreateFamilyCommandHandlerTests()
+result.Should().NotBeNull();
+result.FamilyId.Value.Should().NotBe(Guid.Empty);
+```
+
+## Fake Repository Pattern
+
+Inner classes implementing repository interfaces with in-memory state:
+
+```csharp
+private class FakeFamilyRepository : IFamilyRepository
+{
+    public List<Family> AddedFamilies { get; } = [];
+    public bool SaveChangesCalled { get; private set; }
+
+    public Task AddAsync(Family family, CancellationToken ct = default)
     {
-        _repository = Substitute.For<IFamilyRepository>();
-        _handler = new CreateFamilyCommandHandler(_repository);
+        AddedFamilies.Add(family);
+        return Task.CompletedTask;
     }
 
-    [Fact]
-    public async Task Handle_ValidCommand_CreatesFamily()
+    public Task<int> SaveChangesAsync(CancellationToken ct = default)
     {
-        // Arrange
-        var command = new CreateFamilyCommand(FamilyName.From("Smith"));
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.FamilyId.Should().NotBeEmpty();
-        await _repository.Received(1).AddAsync(
-            Arg.Is<Family>(f => f.Name.Value == "Smith"),
-            Arg.Any<CancellationToken>());
+        SaveChangesCalled = true;
+        return Task.FromResult(1);
     }
 }
 ```
 
-## AutoData Pattern
+## Testing Authorization
+
+Pass real authorization service backed by fakes:
 
 ```csharp
-public class AutoNSubstituteDataAttribute : AutoDataAttribute
-{
-    public AutoNSubstituteDataAttribute()
-        : base(() => new Fixture().Customize(new AutoNSubstituteCustomization()))
-    { }
-}
+var memberRepo = new FakeFamilyMemberRepository(existingMember: regularMember);
+var authService = new FamilyAuthorizationService(memberRepo);
 
-[Theory, AutoNSubstituteData]
-public async Task Handle_ValidCommand_CreatesFamily(
-    [Frozen] IFamilyRepository repository,
-    CreateFamilyCommandHandler handler,
-    CreateFamilyCommand command)
-{
-    var result = await handler.Handle(command, CancellationToken.None);
+var act = () => SendInvitationCommandHandler.Handle(
+    command, authService, invitationRepo, memberRepo, CancellationToken.None);
+await act.Should().ThrowAsync<DomainException>();
+```
 
-    result.FamilyId.Should().NotBeEmpty();
-}
+## Domain Event Testing
+
+```csharp
+var family = Family.Create(FamilyName.From("Smith"), UserId.New());
+family.DomainEvents.Should().ContainSingle()
+    .Which.Should().BeOfType<FamilyCreatedEvent>();
+```
+
+## Testing Expired Entities
+
+Use reflection for time-dependent logic:
+
+```csharp
+typeof(FamilyInvitation).GetProperty("ExpiresAt")!
+    .SetValue(invitation, DateTime.UtcNow.AddDays(-1));
 ```
 
 ## Rules
 
-- Use FluentAssertions for readable assertions
-- Use NSubstitute for mocking
+- FluentAssertions for all assertions (never xUnit Assert)
+- Fake repositories as inner classes (NSubstitute migration planned)
 - Arrange-Act-Assert pattern
-- One assertion concept per test
-- Location: `tests/FamilyHub.Tests.Unit/{Module}/`
+- Call static `Handler.Handle()` directly with fakes
+- Location: `tests/FamilyHub.UnitTests/Features/{Module}/`

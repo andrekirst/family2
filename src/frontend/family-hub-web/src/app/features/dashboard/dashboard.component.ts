@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UserService } from '../../core/user/user.service';
+import { InvitationService } from '../family/services/invitation.service';
+import { InvitationDto } from '../family/models/invitation.models';
 import { CreateFamilyDialogComponent } from '../family/components/create-family-dialog/create-family-dialog.component';
 
 /**
  * Dashboard component - main landing page after authentication
- * Displays user profile and family membership from backend
+ * Displays user profile, pending invitations, and family membership from backend
  */
 @Component({
   selector: 'app-dashboard',
@@ -82,23 +84,94 @@ import { CreateFamilyDialogComponent } from '../family/components/create-family-
                 <p class="mt-1 text-sm text-gray-600">
                   You're part of a family. Manage your family below.
                 </p>
-                <button class="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                  View Family
-                </button>
+                <a
+                  routerLink="/family/settings"
+                  class="mt-3 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Family Settings
+                </a>
               </div>
             } @else {
-              <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h3 class="text-lg font-medium text-gray-900">No Family Yet</h3>
-                <p class="mt-1 text-sm text-gray-600">
-                  Create your family to start organizing your life together.
-                </p>
-                <button
-                  (click)="openCreateFamilyDialog()"
-                  class="mt-3 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600"
-                >
-                  Create Family
-                </button>
-              </div>
+              <!-- Pending Invitations Section -->
+              @if (loadingInvitations()) {
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <div class="animate-pulse">
+                    <div class="h-5 bg-gray-200 rounded w-1/4 mb-3"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+              } @else if (pendingInvitations().length > 0) {
+                <div class="mt-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-3">Pending Invitations</h3>
+                  <div class="space-y-3">
+                    @for (invitation of pendingInvitations(); track invitation.id) {
+                      <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-start justify-between">
+                          <div>
+                            <p class="font-medium text-gray-900">
+                              Join {{ invitation.familyName }}
+                            </p>
+                            <p class="text-sm text-gray-600 mt-1">
+                              Invited by <strong>{{ invitation.invitedByName }}</strong>
+                            </p>
+                            <div class="flex gap-4 mt-2 text-xs text-gray-500">
+                              <span>Role: {{ invitation.role }}</span>
+                              <span>Expires: {{ invitation.expiresAt | date: 'mediumDate' }}</span>
+                            </div>
+                          </div>
+                          <div class="flex gap-2 flex-shrink-0 ml-4">
+                            <button
+                              (click)="declinePendingInvitation(invitation.id)"
+                              [disabled]="processingInvitation() === invitation.id"
+                              class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                            >
+                              Decline
+                            </button>
+                            <button
+                              (click)="acceptPendingInvitation(invitation.id)"
+                              [disabled]="processingInvitation() === invitation.id"
+                              class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              {{
+                                processingInvitation() === invitation.id
+                                  ? 'Processing...'
+                                  : 'Accept'
+                              }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Still show create family option below invitations -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h3 class="text-lg font-medium text-gray-900">Or Create Your Own Family</h3>
+                  <p class="mt-1 text-sm text-gray-600">
+                    Start a new family instead of joining an existing one.
+                  </p>
+                  <button
+                    (click)="openCreateFamilyDialog()"
+                    class="mt-3 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600"
+                  >
+                    Create Family
+                  </button>
+                </div>
+              } @else {
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h3 class="text-lg font-medium text-gray-900">No Family Yet</h3>
+                  <p class="mt-1 text-sm text-gray-600">
+                    Create your family to start organizing your life together.
+                  </p>
+                  <button
+                    (click)="openCreateFamilyDialog()"
+                    class="mt-3 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600"
+                  >
+                    Create Family
+                  </button>
+                </div>
+              }
             }
           </div>
         } @else {
@@ -121,6 +194,7 @@ import { CreateFamilyDialogComponent } from '../family/components/create-family-
 export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private userService = inject(UserService);
+  private invitationService = inject(InvitationService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -130,17 +204,19 @@ export class DashboardComponent implements OnInit {
   showSuccessMessage = signal(false);
   showCreateFamilyDialog = signal(false);
 
+  // Pending invitations state
+  pendingInvitations = signal<InvitationDto[]>([]);
+  loadingInvitations = signal(false);
+  processingInvitation = signal<string | null>(null);
+
   async ngOnInit(): Promise<void> {
     // Fetch user data from backend
     try {
       await this.userService.fetchCurrentUser();
 
-      // Show dialog if user has no family (optional, after delay)
+      // If user has no family, check for pending invitations
       if (this.currentUser() && !this.currentUser()!.familyId) {
-        // Small delay for better UX (user sees dashboard first)
-        setTimeout(() => {
-          this.showCreateFamilyDialog.set(true);
-        }, 500);
+        this.loadPendingInvitations();
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
@@ -161,6 +237,47 @@ export class DashboardComponent implements OnInit {
           });
         }, 3000);
       }
+    });
+  }
+
+  private loadPendingInvitations(): void {
+    this.loadingInvitations.set(true);
+    this.invitationService.getMyPendingInvitations().subscribe({
+      next: (invitations) => {
+        this.pendingInvitations.set(invitations);
+        this.loadingInvitations.set(false);
+      },
+      error: () => {
+        this.loadingInvitations.set(false);
+      },
+    });
+  }
+
+  acceptPendingInvitation(invitationId: string): void {
+    this.processingInvitation.set(invitationId);
+    this.invitationService.acceptInvitationById(invitationId).subscribe({
+      next: async () => {
+        // Refresh user data to get updated familyId
+        await this.userService.fetchCurrentUser();
+        this.processingInvitation.set(null);
+      },
+      error: () => {
+        this.processingInvitation.set(null);
+      },
+    });
+  }
+
+  declinePendingInvitation(invitationId: string): void {
+    this.processingInvitation.set(invitationId);
+    this.invitationService.declineInvitationById(invitationId).subscribe({
+      next: () => {
+        // Remove from local list
+        this.pendingInvitations.update((list) => list.filter((inv) => inv.id !== invitationId));
+        this.processingInvitation.set(null);
+      },
+      error: () => {
+        this.processingInvitation.set(null);
+      },
     });
   }
 

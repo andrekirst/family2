@@ -10,7 +10,7 @@ export interface CreateFamilyInput {
 export interface FamilyDto {
   id: string;
   name: string;
-  ownerId: string;
+  owner: { id: string; name: string };
   createdAt: string;
   memberCount: number;
 }
@@ -23,12 +23,12 @@ export class FamilyService {
 
   createFamily(input: CreateFamilyInput) {
     return this.apollo
-      .mutate<{ createFamily: FamilyDto }>({
+      .mutate<{ family: { create: FamilyDto } }>({
         mutation: CREATE_FAMILY,
         variables: { input },
       })
       .pipe(
-        map((result) => result.data?.createFamily),
+        map((result) => result.data?.family?.create),
         catchError((error) => {
           console.error('Failed to create family:', error);
           return of(null);

@@ -1,7 +1,14 @@
 using FamilyHub.Api.Common.Application;
+using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
+using FamilyHub.Api.Common.Infrastructure.Security;
+using FamilyHub.Api.Common.Services;
+using FamilyHub.Api.Features.Auth.Application.Queries.GetUserById;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Models;
-using FamilyHub.Api.Features.Family.Application.Queries;
+using FamilyHub.Api.Features.Family.Application.Mappers;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
+using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Models;
 using HotChocolate.Authorization;
 using System.Security.Claims;
@@ -9,47 +16,113 @@ using System.Security.Claims;
 namespace FamilyHub.Api.Features.Family.GraphQL;
 
 /// <summary>
-/// GraphQL queries for family data.
-/// Uses CQRS pattern with query bus.
+/// Extends InvitationsQuery with family invitation resolvers.
 /// </summary>
-public class FamilyQueries
+[ExtendObjectType(typeof(InvitationsQuery))]
+public class InvitationsQueryExtension
 {
     /// <summary>
-    /// Get the current user's family.
+    /// Get pending invitations for the current user's family (admin/family view).
     /// </summary>
     [Authorize]
-    public async Task<FamilyDto?> GetMyFamily(
+    public async Task<List<InvitationDto>> GetPendings(
         ClaimsPrincipal claimsPrincipal,
-        [Service] IQueryBus queryBus,
+        [Service] IUserRepository userRepository,
+        [Service] IFamilyInvitationRepository invitationRepository,
+        [Service] IUserService userService,
         CancellationToken ct)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(externalUserIdString))
+        var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, ct);
+
+        if (user.FamilyId is null)
         {
-            return null;
+            return [];
         }
 
-        var externalUserId = ExternalUserId.From(externalUserIdString);
-        var query = new GetMyFamilyQuery(externalUserId);
-
-        return await queryBus.QueryAsync<FamilyDto?>(query, ct);
+        var invitations = await invitationRepository.GetPendingByFamilyIdAsync(user.FamilyId.Value, ct);
+        return invitations.Select(InvitationMapper.ToDto).ToList();
     }
 
     /// <summary>
-    /// Get all members of the current user's family.
+    /// Get invitation details by token (public query for the acceptance page).
     /// </summary>
-    [Authorize]
-    public async Task<List<UserDto>> GetMyFamilyMembers(
-        ClaimsPrincipal claimsPrincipal,
-        [Service] IQueryBus queryBus,
-        CancellationToken ct)
+    public async Task<InvitationDto?> GetByToken(
+        string token,
+        [Service] IFamilyInvitationRepository invitationRepository,
+        CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
+        var tokenHash = SecureTokenHelper.ComputeSha256Hash(token);
+        var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken);
 
-        var externalUserId = ExternalUserId.From(externalUserIdString);
-        var query = new GetFamilyMembersQuery(externalUserId);
+        return invitation is null ? null : InvitationMapper.ToDto(invitation);
+    }
+}
 
-        return await queryBus.QueryAsync<List<UserDto>>(query, ct);
+/// <summary>
+/// Extends MeInvitationsQuery with the current user's pending invitations.
+/// </summary>
+[ExtendObjectType(typeof(MeInvitationsQuery))]
+public class MeInvitationsQueryExtension
+{
+    /// <summary>
+    /// Get pending invitations for the current user's email address.
+    /// </summary>
+    public async Task<List<InvitationDto>> GetPendings(
+        ClaimsPrincipal claimsPrincipal,
+        [Service] IUserRepository userRepository,
+        [Service] IFamilyInvitationRepository invitationRepository,
+        [Service] IUserService userService,
+        CancellationToken cancellationToken)
+    {
+        var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, cancellationToken);
+
+        var invitations = await invitationRepository.GetPendingByEmailAsync(user.Email, cancellationToken);
+        return invitations.Select(InvitationMapper.ToDto).ToList();
+    }
+}
+
+/// <summary>
+/// Extends FamilyDto with a resolved owner field.
+/// Replaces the raw OwnerId GUID with the full UserDto object.
+/// </summary>
+[ExtendObjectType(typeof(FamilyDto))]
+public class FamilyOwnerResolverExtension
+{
+    public async Task<UserDto?> GetOwner(
+        [Parent] FamilyDto parent,
+        [Service] IQueryBus queryBus,
+        CancellationToken cancellationToken)
+    {
+        var userId = UserId.From(parent.OwnerId);
+        var query = new GetUserByIdQuery(userId);
+        return await queryBus.QueryAsync(query, cancellationToken);
+    }
+}
+
+/// <summary>
+/// Extends FamilyDto with family member role resolver.
+/// </summary>
+[ExtendObjectType(typeof(FamilyDto))]
+public class FamilyMembersQueryExtension
+{
+    /// <summary>
+    /// Get family members with roles for the current user's family.
+    /// </summary>
+    public async Task<List<FamilyMemberDto>> GetWithRoles(
+        ClaimsPrincipal claimsPrincipal,
+        [Service] IUserRepository userRepository,
+        [Service] IFamilyMemberRepository memberRepository,
+        [Service] IUserService userService,
+        CancellationToken cancellationToken)
+    {
+        var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, cancellationToken);
+
+        if (user.FamilyId is null)
+        {
+            return [];
+        }
+
+        var members = await memberRepository.GetByFamilyIdAsync(user.FamilyId.Value, cancellationToken);
+        return members.Select(FamilyMemberMapper.ToDto).ToList();
     }
 }

@@ -20,13 +20,14 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageReference Include="Vogen" Version="8.0.4" />
-    <PackageReference Include="WolverineFx" Version="5.11.0" />
+    <PackageReference Include="MailKit" Version="4.10.0" />
+    <PackageReference Include="Mediator.Abstractions" Version="3.0.*" />
+    <PackageReference Include="Mediator.SourceGenerator" Version="3.0.*">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\Family\Application\EventHandlers\" />
-    <Folder Include="Features\Family\Domain\Events\" />
-  </ItemGroup>
 
 
 </Project>
