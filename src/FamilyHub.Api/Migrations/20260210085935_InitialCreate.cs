@@ -12,10 +12,57 @@ namespace FamilyHub.Api.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
+                name: "calendar");
+
+            migrationBuilder.EnsureSchema(
                 name: "family");
 
             migrationBuilder.EnsureSchema(
                 name: "auth");
+
+            migrationBuilder.CreateTable(
+                name: "calendar_events",
+                schema: "calendar",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FamilyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    Location = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsAllDay = table.Column<bool>(type: "boolean", nullable: false),
+                    Type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    IsCancelled = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_calendar_events", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "calendar_event_attendees",
+                schema: "calendar",
+                columns: table => new
+                {
+                    CalendarEventId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_calendar_event_attendees", x => new { x.CalendarEventId, x.UserId });
+                    table.ForeignKey(
+                        name: "FK_calendar_event_attendees_calendar_events_CalendarEventId",
+                        column: x => x.CalendarEventId,
+                        principalSchema: "calendar",
+                        principalTable: "calendar_events",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
             migrationBuilder.CreateTable(
                 name: "families",
@@ -64,6 +111,18 @@ namespace FamilyHub.Api.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_calendar_events_CreatedBy_StartTime",
+                schema: "calendar",
+                table: "calendar_events",
+                columns: new[] { "CreatedBy", "StartTime" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_calendar_events_FamilyId_StartTime",
+                schema: "calendar",
+                table: "calendar_events",
+                columns: new[] { "FamilyId", "StartTime" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_families_OwnerId",
                 schema: "family",
                 table: "families",
@@ -98,51 +157,23 @@ namespace FamilyHub.Api.Migrations
                 principalTable: "users",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
-
-            // Enable Row-Level Security (RLS) policies for multi-tenant data isolation
-            migrationBuilder.Sql(@"
-                -- Enable RLS on users table
-                ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
-
-                -- Policy: Users can see their own record
-                CREATE POLICY user_self_policy ON auth.users
-                    USING (""Id""::text = current_setting('app.current_user_id', true));
-
-                -- Policy: Users can see members of their family
-                CREATE POLICY user_family_policy ON auth.users
-                    USING (
-                        ""FamilyId"" IS NOT NULL
-                        AND ""FamilyId""::text = current_setting('app.current_family_id', true)
-                    );
-
-                -- Enable RLS on families table
-                ALTER TABLE family.families ENABLE ROW LEVEL SECURITY;
-
-                -- Policy: Family owner can see their family
-                CREATE POLICY family_owner_policy ON family.families
-                    USING (""OwnerId""::text = current_setting('app.current_user_id', true));
-
-                -- Policy: Family members can see their family
-                CREATE POLICY family_member_policy ON family.families
-                    USING (""Id""::text = current_setting('app.current_family_id', true));
-            ");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop RLS policies before dropping tables
-            migrationBuilder.Sql(@"
-                DROP POLICY IF EXISTS user_self_policy ON auth.users;
-                DROP POLICY IF EXISTS user_family_policy ON auth.users;
-                DROP POLICY IF EXISTS family_owner_policy ON family.families;
-                DROP POLICY IF EXISTS family_member_policy ON family.families;
-            ");
-
             migrationBuilder.DropForeignKey(
                 name: "FK_families_users_OwnerId",
                 schema: "family",
                 table: "families");
+
+            migrationBuilder.DropTable(
+                name: "calendar_event_attendees",
+                schema: "calendar");
+
+            migrationBuilder.DropTable(
+                name: "calendar_events",
+                schema: "calendar");
 
             migrationBuilder.DropTable(
                 name: "users",

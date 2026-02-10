@@ -5,6 +5,9 @@ using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
+using FamilyHub.Api.Features.Calendar.Domain.Repositories;
+using FamilyHub.Api.Features.Calendar.GraphQL;
+using FamilyHub.Api.Features.Calendar.Infrastructure.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.GraphQL;
 using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
@@ -70,6 +73,7 @@ builder.Services.AddAuthorization();
 // Register repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
+builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
 
 // Configure CORS for Angular frontend
 builder.Services.AddCors(options =>
@@ -90,7 +94,9 @@ builder.Services
     .AddQueryType<AuthQueries>()
     .AddMutationType<AuthMutations>()
     .AddTypeExtension<FamilyQueries>()
-    .AddTypeExtension<FamilyMutations>();
+    .AddTypeExtension<FamilyMutations>()
+    .AddTypeExtension<CalendarQueries>()
+    .AddTypeExtension<CalendarMutations>();
 
 var app = builder.Build();
 

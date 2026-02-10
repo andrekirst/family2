@@ -1,5 +1,6 @@
 using FamilyHub.Api.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
@@ -33,6 +34,16 @@ public class AppDbContext : DbContext
     /// Family households
     /// </summary>
     public DbSet<Family> Families { get; set; }
+
+    /// <summary>
+    /// Calendar events
+    /// </summary>
+    public DbSet<CalendarEvent> CalendarEvents { get; set; }
+
+    /// <summary>
+    /// Calendar event attendees (join table)
+    /// </summary>
+    public DbSet<CalendarEventAttendee> CalendarEventAttendees { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

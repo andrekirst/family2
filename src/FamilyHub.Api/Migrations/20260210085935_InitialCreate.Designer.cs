@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FamilyHub.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260201212643_InitialCreate")]
+    [Migration("20260210085935_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -26,7 +26,7 @@ namespace FamilyHub.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FamilyHub.Api.Features.Auth.Models.User", b =>
+            modelBuilder.Entity("FamilyHub.Api.Features.Auth.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,7 +97,81 @@ namespace FamilyHub.Api.Migrations
                     b.ToTable("users", "auth");
                 });
 
-            modelBuilder.Entity("FamilyHub.Api.Features.Family.Models.Family", b =>
+            modelBuilder.Entity("FamilyHub.Api.Features.Calendar.Domain.Entities.CalendarEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsAllDay")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsCancelled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy", "StartTime");
+
+                    b.HasIndex("FamilyId", "StartTime");
+
+                    b.ToTable("calendar_events", "calendar");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Calendar.Domain.Entities.CalendarEventAttendee", b =>
+                {
+                    b.Property<Guid>("CalendarEventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("CalendarEventId", "UserId");
+
+                    b.ToTable("calendar_event_attendees", "calendar");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.Family", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -128,9 +202,9 @@ namespace FamilyHub.Api.Migrations
                     b.ToTable("families", "family");
                 });
 
-            modelBuilder.Entity("FamilyHub.Api.Features.Auth.Models.User", b =>
+            modelBuilder.Entity("FamilyHub.Api.Features.Auth.Domain.Entities.User", b =>
                 {
-                    b.HasOne("FamilyHub.Api.Features.Family.Models.Family", "Family")
+                    b.HasOne("FamilyHub.Api.Features.Family.Domain.Entities.Family", "Family")
                         .WithMany("Members")
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -138,9 +212,20 @@ namespace FamilyHub.Api.Migrations
                     b.Navigation("Family");
                 });
 
-            modelBuilder.Entity("FamilyHub.Api.Features.Family.Models.Family", b =>
+            modelBuilder.Entity("FamilyHub.Api.Features.Calendar.Domain.Entities.CalendarEventAttendee", b =>
                 {
-                    b.HasOne("FamilyHub.Api.Features.Auth.Models.User", "Owner")
+                    b.HasOne("FamilyHub.Api.Features.Calendar.Domain.Entities.CalendarEvent", "CalendarEvent")
+                        .WithMany("Attendees")
+                        .HasForeignKey("CalendarEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CalendarEvent");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.Family", b =>
+                {
+                    b.HasOne("FamilyHub.Api.Features.Auth.Domain.Entities.User", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -149,7 +234,12 @@ namespace FamilyHub.Api.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("FamilyHub.Api.Features.Family.Models.Family", b =>
+            modelBuilder.Entity("FamilyHub.Api.Features.Calendar.Domain.Entities.CalendarEvent", b =>
+                {
+                    b.Navigation("Attendees");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.Family", b =>
                 {
                     b.Navigation("Members");
                 });
