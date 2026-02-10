@@ -1,6 +1,6 @@
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 
-namespace FamilyHub.Api.Features.Auth.Application.Commands;
+namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 
 /// <summary>
 /// Result of user registration command.

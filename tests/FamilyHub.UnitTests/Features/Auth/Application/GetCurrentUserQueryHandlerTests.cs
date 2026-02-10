@@ -1,6 +1,6 @@
 using FamilyHub.Api.Common.Domain.ValueObjects;
-using FamilyHub.Api.Features.Auth.Application.Handlers;
 using FamilyHub.Api.Features.Auth.Application.Queries;
+using FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;

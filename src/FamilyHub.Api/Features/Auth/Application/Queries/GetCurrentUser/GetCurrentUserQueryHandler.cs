@@ -1,11 +1,9 @@
 using FamilyHub.Api.Features.Auth.Application.Mappers;
-using FamilyHub.Api.Features.Auth.Application.Queries;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Models;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
-using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 
-namespace FamilyHub.Api.Features.Auth.Application.Handlers;
+namespace FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
 
 /// <summary>
 /// Handler for GetCurrentUserQuery.
@@ -17,16 +15,16 @@ public static class GetCurrentUserQueryHandler
         GetCurrentUserQuery query,
         IUserRepository userRepository,
         IFamilyMemberRepository familyMemberRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByExternalIdAsync(query.ExternalUserId, ct);
+        var user = await userRepository.GetByExternalIdAsync(query.ExternalUserId, cancellationToken);
         if (user is null) return null;
 
         var dto = UserMapper.ToDto(user);
 
         if (user.FamilyId is not null)
         {
-            var member = await familyMemberRepository.GetByUserAndFamilyAsync(user.Id, user.FamilyId.Value, ct);
+            var member = await familyMemberRepository.GetByUserAndFamilyAsync(user.Id, user.FamilyId.Value, cancellationToken);
             if (member is not null)
             {
                 dto.Permissions = member.Role.GetPermissions();

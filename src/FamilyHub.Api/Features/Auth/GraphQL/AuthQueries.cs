@@ -4,6 +4,8 @@ using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Models;
 using HotChocolate.Authorization;
 using System.Security.Claims;
+using FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
+using FamilyHub.Api.Features.Auth.Application.Queries.GetUserById;
 
 namespace FamilyHub.Api.Features.Auth.GraphQL;
 

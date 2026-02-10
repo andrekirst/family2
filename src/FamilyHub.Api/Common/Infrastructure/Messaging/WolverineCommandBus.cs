@@ -8,8 +8,8 @@ namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 /// </summary>
 public sealed class WolverineCommandBus(IMessageBus messageBus) : Application.ICommandBus
 {
-    public async Task<TResult> SendAsync<TResult>(Application.ICommand<TResult> command, CancellationToken ct = default)
+    public async Task<TResult> SendAsync<TResult>(Application.ICommand<TResult> command, CancellationToken cancellationToken = default)
     {
-        return await messageBus.InvokeAsync<TResult>(command, ct);
+        return await messageBus.InvokeAsync<TResult>(command, cancellationToken);
     }
 }

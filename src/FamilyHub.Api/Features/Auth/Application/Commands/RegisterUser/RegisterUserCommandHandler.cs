@@ -1,8 +1,7 @@
-using FamilyHub.Api.Features.Auth.Application.Commands;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 
-namespace FamilyHub.Api.Features.Auth.Application.Handlers;
+namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 
 /// <summary>
 /// Handler for RegisterUserCommand.

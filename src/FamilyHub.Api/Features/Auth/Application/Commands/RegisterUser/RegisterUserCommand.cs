@@ -2,7 +2,7 @@ using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 
-namespace FamilyHub.Api.Features.Auth.Application.Commands;
+namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 
 /// <summary>
 /// Command to register a new user or update existing user from OAuth provider.

@@ -1,7 +1,6 @@
-using FamilyHub.Api.Features.Auth.Application.Commands;
 using FluentValidation;
 
-namespace FamilyHub.Api.Features.Auth.Application.Validators;
+namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateLastLogin;
 
 /// <summary>
 /// Validator for UpdateLastLoginCommand.
