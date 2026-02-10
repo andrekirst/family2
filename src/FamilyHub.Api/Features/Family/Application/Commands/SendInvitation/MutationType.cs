@@ -1,9 +1,9 @@
 using System.Security.Claims;
 using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Domain.ValueObjects;
+using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Common.Services;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
-using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Family.Application.Mappers;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -12,7 +12,7 @@ using HotChocolate.Authorization;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 
-[ExtendObjectType(typeof(AuthMutations))]
+[ExtendObjectType(typeof(FamilyMutation))]
 public class MutationType
 {
     /// <summary>
@@ -20,7 +20,7 @@ public class MutationType
     /// Requires Owner or Admin role in the family.
     /// </summary>
     [Authorize]
-    public async Task<InvitationDto> SendInvitation(
+    public async Task<InvitationDto> Invite(
         SendInvitationRequest input,
         ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,

@@ -26,20 +26,22 @@ export const REGISTER_USER_MUTATION = gql`
 /**
  * Fetch current user profile with family membership.
  *
- * Used by dashboard and protected routes to get user data from backend.
+ * Uses hierarchical query: me { profile { ... } }
  *
  * Returns null if user not found (e.g., JWT valid but user not in database).
  */
 export const GET_CURRENT_USER_QUERY = gql`
-  query GetCurrentUser {
-    currentUser {
-      id
-      email
-      name
-      emailVerified
-      isActive
-      familyId
-      permissions
+  query GetMyProfile {
+    me {
+      profile {
+        id
+        email
+        name
+        emailVerified
+        isActive
+        familyId
+        permissions
+      }
     }
   }
 `;

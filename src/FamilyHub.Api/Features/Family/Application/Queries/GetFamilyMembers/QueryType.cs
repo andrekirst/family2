@@ -2,20 +2,18 @@ using System.Security.Claims;
 using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
-using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Auth.Models;
-using HotChocolate.Authorization;
+using FamilyHub.Api.Features.Family.Models;
 
 namespace FamilyHub.Api.Features.Family.Application.Queries.GetFamilyMembers;
 
-[ExtendObjectType(typeof(AuthQueries))]
+[ExtendObjectType(typeof(FamilyDto))]
 public class QueryType
 {
     /// <summary>
     /// Get all members of the current user's family.
     /// </summary>
-    [Authorize]
-    public async Task<List<UserDto>> GetFamilyMembers(
+    public async Task<List<UserDto>> GetMembers(
         ClaimsPrincipal claimsPrincipal,
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

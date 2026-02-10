@@ -8,7 +8,7 @@ using FamilyHub.Api.Common.Infrastructure.Messaging;
 using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Common.Services;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
-using FamilyHub.Api.Features.Auth.GraphQL;
+using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Services;
@@ -115,8 +115,8 @@ builder.Services
     .AddGraphQLServer()
     .AddAuthorization()
     .AddErrorFilter<ValidationExceptionErrorFilter>()
-    .AddQueryType<AuthQueries>()
-    .AddMutationType<AuthMutations>()
+    .AddQueryType<RootQuery>()
+    .AddMutationType<RootMutation>()
     .AddTypeExtensionsFromAssembly(typeof(Program).Assembly);
 
 var app = builder.Build();

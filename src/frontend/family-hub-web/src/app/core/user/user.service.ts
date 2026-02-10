@@ -20,8 +20,8 @@ interface RegisterUserResponse {
   registerUser: CurrentUser;
 }
 
-interface GetCurrentUserResponse {
-  currentUser: CurrentUser;
+interface GetMyProfileResponse {
+  me: { profile: CurrentUser };
 }
 
 /**
@@ -94,17 +94,17 @@ export class UserService {
 
     try {
       const result = await this.apollo
-        .query<GetCurrentUserResponse>({
+        .query<GetMyProfileResponse>({
           query: GET_CURRENT_USER_QUERY,
           fetchPolicy: 'network-only', // Always fetch fresh data
         })
         .toPromise();
 
-      if (!result?.data?.currentUser) {
+      if (!result?.data?.me?.profile) {
         return null;
       }
 
-      const user = result.data.currentUser;
+      const user = result.data.me.profile;
       this.currentUser.set(user);
       return user;
     } finally {

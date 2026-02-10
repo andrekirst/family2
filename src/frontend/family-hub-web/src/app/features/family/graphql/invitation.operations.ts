@@ -2,116 +2,150 @@ import { gql } from 'apollo-angular';
 
 export const SEND_INVITATION = gql`
   mutation SendInvitation($input: SendInvitationRequestInput!) {
-    sendInvitation(input: $input) {
-      id
-      familyId
-      familyName
-      invitedByName
-      inviteeEmail
-      role
-      status
-      createdAt
-      expiresAt
+    family {
+      invite(input: $input) {
+        id
+        familyId
+        familyName
+        invitedByName
+        inviteeEmail
+        role
+        status
+        createdAt
+        expiresAt
+      }
     }
   }
 `;
 
 export const ACCEPT_INVITATION = gql`
   mutation AcceptInvitation($input: AcceptInvitationRequestInput!) {
-    acceptInvitation(input: $input) {
-      familyId
-      familyMemberId
-      success
+    family {
+      invitation {
+        acceptByToken(input: $input) {
+          familyId
+          familyMemberId
+          success
+        }
+      }
     }
   }
 `;
 
 export const DECLINE_INVITATION = gql`
   mutation DeclineInvitation($input: AcceptInvitationRequestInput!) {
-    declineInvitation(input: $input)
+    family {
+      invitation {
+        declineByToken(input: $input)
+      }
+    }
   }
 `;
 
 export const REVOKE_INVITATION = gql`
   mutation RevokeInvitation($invitationId: UUID!) {
-    revokeInvitation(invitationId: $invitationId)
+    family {
+      invitation(id: $invitationId) {
+        revoke
+      }
+    }
   }
 `;
 
 export const GET_PENDING_INVITATIONS = gql`
   query GetPendingInvitations {
-    pendingInvitations {
-      id
-      familyId
-      familyName
-      invitedByName
-      inviteeEmail
-      role
-      status
-      createdAt
-      expiresAt
+    invitations {
+      pendings {
+        id
+        familyId
+        familyName
+        invitedByName
+        inviteeEmail
+        role
+        status
+        createdAt
+        expiresAt
+      }
     }
   }
 `;
 
 export const GET_INVITATION_BY_TOKEN = gql`
   query GetInvitationByToken($token: String!) {
-    invitationByToken(token: $token) {
-      id
-      familyId
-      familyName
-      invitedByName
-      inviteeEmail
-      role
-      status
-      createdAt
-      expiresAt
+    invitations {
+      byToken(token: $token) {
+        id
+        familyId
+        familyName
+        invitedByName
+        inviteeEmail
+        role
+        status
+        createdAt
+        expiresAt
+      }
     }
   }
 `;
 
 export const GET_MY_PENDING_INVITATIONS = gql`
   query GetMyPendingInvitations {
-    myPendingInvitations {
-      id
-      familyId
-      familyName
-      invitedByName
-      inviteeEmail
-      role
-      status
-      createdAt
-      expiresAt
+    me {
+      invitations {
+        pendings {
+          id
+          familyId
+          familyName
+          invitedByName
+          inviteeEmail
+          role
+          status
+          createdAt
+          expiresAt
+        }
+      }
     }
   }
 `;
 
 export const ACCEPT_INVITATION_BY_ID = gql`
   mutation AcceptInvitationById($invitationId: UUID!) {
-    acceptInvitationById(invitationId: $invitationId) {
-      familyId
-      familyMemberId
-      success
+    family {
+      invitation(id: $invitationId) {
+        accept {
+          familyId
+          familyMemberId
+          success
+        }
+      }
     }
   }
 `;
 
 export const DECLINE_INVITATION_BY_ID = gql`
   mutation DeclineInvitationById($invitationId: UUID!) {
-    declineInvitationById(invitationId: $invitationId)
+    family {
+      invitation(id: $invitationId) {
+        decline
+      }
+    }
   }
 `;
 
 export const GET_FAMILY_MEMBERS = gql`
   query GetFamilyMembersWithRoles {
-    familyMembersWithRoles {
-      id
-      userId
-      userName
-      userEmail
-      role
-      joinedAt
-      isActive
+    me {
+      family {
+        withRoles {
+          id
+          userId
+          userName
+          userEmail
+          role
+          joinedAt
+          isActive
+        }
+      }
     }
   }
 `;

@@ -1,25 +1,23 @@
 using FamilyHub.Api.Common.Application;
-using FamilyHub.Api.Features.Auth.Application.Queries;
+using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Models;
-using HotChocolate.Authorization;
-using System.Security.Claims;
 using FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
 using FamilyHub.Api.Features.Auth.Application.Queries.GetUserById;
+using System.Security.Claims;
 
 namespace FamilyHub.Api.Features.Auth.GraphQL;
 
 /// <summary>
-/// GraphQL queries for authentication and user data.
-/// Uses CQRS pattern with query bus.
+/// Extends MeQuery with the current user's profile resolver.
 /// </summary>
-public class AuthQueries
+[ExtendObjectType(typeof(MeQuery))]
+public class MeProfileQueryExtension
 {
     /// <summary>
     /// Get the currently authenticated user's profile.
     /// </summary>
-    [Authorize]
-    public async Task<UserDto?> GetCurrentUser(
+    public async Task<UserDto?> GetProfile(
         ClaimsPrincipal claimsPrincipal,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
@@ -35,12 +33,18 @@ public class AuthQueries
 
         return await queryBus.QueryAsync<UserDto?>(query, ct);
     }
+}
 
+/// <summary>
+/// Extends UsersQuery with user lookup by ID.
+/// </summary>
+[ExtendObjectType(typeof(UsersQuery))]
+public class UsersQueryExtension
+{
     /// <summary>
-    /// Get user by ID (admin only - for now just authenticated).
+    /// Get user by ID.
     /// </summary>
-    [Authorize]
-    public async Task<UserDto?> GetUserById(
+    public async Task<UserDto?> GetById(
         Guid userId,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
