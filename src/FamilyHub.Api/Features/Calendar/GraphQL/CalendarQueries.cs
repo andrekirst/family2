@@ -3,10 +3,12 @@ using FamilyHub.Api.Features.Calendar.Application.Queries;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Models;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.GraphQL;
 using HotChocolate.Authorization;
 
 namespace FamilyHub.Api.Features.Calendar.GraphQL;
 
+[ExtendObjectType(typeof(AuthQueries))]
 public class CalendarQueries
 {
     [Authorize]

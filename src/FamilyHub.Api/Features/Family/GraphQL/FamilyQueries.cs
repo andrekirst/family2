@@ -3,6 +3,7 @@ using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Models;
 using FamilyHub.Api.Features.Family.Application.Queries;
 using FamilyHub.Api.Features.Family.Models;
+using FamilyHub.Api.Features.Auth.GraphQL;
 using HotChocolate.Authorization;
 using System.Security.Claims;
 
@@ -12,6 +13,7 @@ namespace FamilyHub.Api.Features.Family.GraphQL;
 /// GraphQL queries for family data.
 /// Uses CQRS pattern with query bus.
 /// </summary>
+[ExtendObjectType(typeof(AuthQueries))]
 public class FamilyQueries
 {
     /// <summary>
