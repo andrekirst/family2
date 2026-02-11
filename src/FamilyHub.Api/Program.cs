@@ -13,6 +13,8 @@ using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
 using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 using FamilyHub.Api.Features.Calendar.GraphQL;
 using FamilyHub.Api.Features.Calendar.Infrastructure.Repositories;
+using FamilyHub.Api.Features.Calendar.Infrastructure.Services;
+using FamilyHub.Api.Features.Calendar.Models;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Services;
 using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
@@ -97,6 +99,11 @@ builder.Services.AddFamilyServices();
 
 // Register application services
 builder.Services.AddScoped<FamilyAuthorizationService>();
+
+// Configure calendar cleanup background service
+builder.Services.Configure<CalendarCleanupOptions>(
+    builder.Configuration.GetSection(CalendarCleanupOptions.SectionName));
+builder.Services.AddHostedService<CancelledEventCleanupService>();
 
 // Configure email service
 builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("Email"));
