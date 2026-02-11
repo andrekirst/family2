@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CalendarService, CalendarEventDto } from '../../services/calendar.service';
 import { UserService, CurrentUser } from '../../../../core/user/user.service';
+import { InvitationService } from '../../../family/services/invitation.service';
 
 const EVENT_TYPES = ['Personal', 'Medical', 'School', 'Work', 'Social', 'Travel', 'Other'];
 
@@ -229,6 +230,7 @@ const EVENT_TYPES = ['Personal', 'Medical', 'School', 'Work', 'Social', 'Travel'
 export class EventDialogComponent implements OnInit {
   private calendarService = inject(CalendarService);
   private userService = inject(UserService);
+  private invitationService = inject(InvitationService);
 
   @Input() event: CalendarEventDto | null = null;
   @Input() selectedDate: Date | null = null;
@@ -285,11 +287,26 @@ export class EventDialogComponent implements OnInit {
     }
 
     // Load family members for attendee selection
-    // For now, we only have the current user; in a real app, we'd fetch family members
-    const currentUser = this.userService.currentUser();
-    if (currentUser) {
-      this.familyMembers.set([currentUser]);
-    }
+    this.invitationService.getFamilyMembers().subscribe((members) => {
+      // Map FamilyMemberDto → CurrentUser shape for the attendee checkboxes
+      const mapped: CurrentUser[] = members.map((m) => ({
+        id: m.userId,
+        name: m.userName,
+        email: m.userEmail,
+        emailVerified: true,
+        isActive: m.isActive,
+        permissions: [],
+      }));
+      this.familyMembers.set(mapped);
+
+      // Pre-select current user as attendee for new events
+      if (!this.isEditMode()) {
+        const currentUser = this.userService.currentUser();
+        if (currentUser) {
+          this.selectedAttendees.set([currentUser.id]);
+        }
+      }
+    });
   }
 
   onSubmit(): void {
