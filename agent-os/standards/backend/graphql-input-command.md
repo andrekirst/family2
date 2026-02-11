@@ -1,48 +1,70 @@
-# GraphQL Input→Command Pattern
+# GraphQL Input->Command Pattern
 
-Separate Input DTOs (primitives) from MediatR Commands (Vogen). See ADR-003.
+Separate Input DTOs (primitives) from Wolverine Commands (Vogen). See ADR-003.
 
-## Why
-
-Hot Chocolate cannot deserialize Vogen value objects. This creates clean separation between presentation and domain layers.
-
-## GraphQL Input (primitives only)
+## Input (primitives)
 
 ```csharp
-public sealed record CreateFamilyInput
+public sealed record SendInvitationRequest
 {
-    [Required]
-    public required string Name { get; init; }
+    public required string Email { get; init; }
+    public required string Role { get; init; }
 }
 ```
 
-## MediatR Command (Vogen types)
+## Command (Vogen types)
 
 ```csharp
-public sealed record CreateFamilyCommand(
-    FamilyName Name
-) : IRequest<CreateFamilyResult>;
+public sealed record SendInvitationCommand(
+    FamilyId FamilyId,
+    UserId InvitedBy,
+    Email InviteeEmail,
+    FamilyRole Role
+) : ICommand<SendInvitationResult>;
 ```
 
-## Mutation (mapping layer)
+## MutationType (per-command)
+
+Each command has its own `MutationType.cs` in its subfolder. Maps primitives to Vogen, dispatches via `ICommandBus`.
 
 ```csharp
-public async Task<CreateFamilyPayload> CreateFamily(
-    CreateFamilyInput input,
-    [Service] IMediator mediator)
+[ExtendObjectType(typeof(AuthMutations))]
+public class MutationType
 {
-    var command = new CreateFamilyCommand(
-        FamilyName.From(input.Name)  // Primitive → Vogen
-    );
-    var result = await mediator.Send(command);
-    return new CreateFamilyPayload(result);
+    [Authorize]
+    public async Task<InvitationDto> SendInvitation(
+        SendInvitationRequest input,
+        ClaimsPrincipal claimsPrincipal,
+        [Service] ICommandBus commandBus,
+        [Service] IUserService userService,
+        ...)
+    {
+        var user = await userService.GetCurrentUser(...);
+        var command = new SendInvitationCommand(
+            user.FamilyId!.Value, user.Id,
+            Email.From(input.Email.Trim()),
+            FamilyRole.From(input.Role));
+        var result = await commandBus.SendAsync(command, ct);
+        return mapper.ToDto(result);
+    }
 }
+```
+
+## File Organization
+
+```
+Commands/{Name}/
+  {Name}Command.cs
+  {Name}CommandHandler.cs  (static class)
+  {Name}CommandValidator.cs
+  {Name}Result.cs
+  MutationType.cs
 ```
 
 ## Rules
 
-- Input DTOs: `Presentation/DTOs/{Name}Input.cs`
-- Commands: `Application/Commands/{Name}Command.cs`
-- Handlers: `Application/Handlers/{Name}CommandHandler.cs`
-- Never use Vogen types in GraphQL input types
-- Always validate at Vogen boundary (`.From()` throws if invalid)
+- Input DTOs in `Models/` with primitives
+- Commands in `Commands/{Name}/` with Vogen types
+- One MutationType per command (not centralized)
+- Handlers are static classes (Wolverine)
+- Dispatch via `ICommandBus.SendAsync()` (not `IMediator.Send()`)

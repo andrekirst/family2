@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Events;
 
 namespace FamilyHub.Api.Features.Auth.Application.EventHandlers;
@@ -6,11 +7,12 @@ namespace FamilyHub.Api.Features.Auth.Application.EventHandlers;
 /// Handler for UserFamilyRemovedEvent.
 /// Triggers cleanup workflows when user leaves family.
 /// </summary>
-public static class UserFamilyRemovedEventHandler
+public sealed class UserFamilyRemovedEventHandler(ILogger<UserFamilyRemovedEventHandler> logger)
+    : IDomainEventHandler<UserFamilyRemovedEvent>
 {
-    public static Task Handle(
+    public ValueTask Handle(
         UserFamilyRemovedEvent @event,
-        ILogger logger)
+        CancellationToken cancellationToken)
     {
         logger.LogInformation(
             "User removed from family: UserId={UserId}, PreviousFamilyId={PreviousFamilyId}",
@@ -21,6 +23,6 @@ public static class UserFamilyRemovedEventHandler
         // TODO: Notify remaining family members
         // TODO: Clean up user-specific data tied to family
 
-        return Task.CompletedTask;
+        return default;
     }
 }

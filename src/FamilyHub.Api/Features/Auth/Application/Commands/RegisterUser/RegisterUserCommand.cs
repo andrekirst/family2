@@ -1,0 +1,16 @@
+using FamilyHub.Common.Application;
+using FamilyHub.Common.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
+
+namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
+
+/// <summary>
+/// Command to register a new user or update existing user from OAuth provider.
+/// </summary>
+public sealed record RegisterUserCommand(
+    Email Email,
+    UserName Name,
+    ExternalUserId ExternalUserId,
+    bool EmailVerified,
+    string? Username = null
+) : ICommand<RegisterUserResult>;

@@ -1,11 +1,21 @@
 namespace FamilyHub.Common.Domain;
 
 /// <summary>
+/// Interface for entities that raise domain events.
+/// Used by the SaveChanges interceptor to collect events without reflection.
+/// </summary>
+public interface IHasDomainEvents
+{
+    IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
+    void ClearDomainEvents();
+}
+
+/// <summary>
 /// Base class for aggregate roots in the domain model.
 /// Aggregates encapsulate business logic and enforce invariants.
 /// </summary>
 /// <typeparam name="TId">The type of the aggregate's identifier (value object)</typeparam>
-public abstract class AggregateRoot<TId> where TId : struct
+public abstract class AggregateRoot<TId> : IHasDomainEvents where TId : struct
 {
     public TId Id { get; protected set; }
 
@@ -26,7 +36,7 @@ public abstract class AggregateRoot<TId> where TId : struct
     }
 
     /// <summary>
-    /// Clear all domain events. Called by DbContext after publishing events.
+    /// Clear all domain events. Called after events have been collected for publishing.
     /// </summary>
     public void ClearDomainEvents() => _domainEvents.Clear();
 }

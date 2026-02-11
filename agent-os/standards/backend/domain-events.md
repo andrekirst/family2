@@ -1,70 +1,48 @@
 # Domain Events
 
-Use MediatR INotification for domain events. Publish via RabbitMQ for cross-module communication.
+Events extend `DomainEvent` base record. Handlers are Wolverine static classes with `Handle()` method.
 
 ## Event Definition
 
 ```csharp
 public sealed record FamilyCreatedEvent(
     FamilyId FamilyId,
-    FamilyName Name,
+    FamilyName FamilyName,
     UserId OwnerId,
     DateTime CreatedAt
-) : INotification;
+) : DomainEvent;
 ```
 
 ## Publishing (in aggregate)
 
 ```csharp
-public class Family : AggregateRoot
-{
-    public static Family Create(FamilyName name, UserId ownerId)
-    {
-        var family = new Family
-        {
-            Id = FamilyId.New(),
-            Name = name,
-            OwnerId = ownerId
-        };
-
-        family.AddDomainEvent(new FamilyCreatedEvent(
-            family.Id,
-            family.Name,
-            family.OwnerId,
-            DateTime.UtcNow
-        ));
-
-        return family;
-    }
-}
+family.RaiseDomainEvent(new FamilyCreatedEvent(...));
 ```
 
-## Handler
+Use `RaiseDomainEvent()` on aggregates. Cleared with `ClearDomainEvents()`.
+
+## Handler (Wolverine)
+
+Static class, auto-discovered. No `INotificationHandler<T>` interface.
 
 ```csharp
-public sealed class SendWelcomeEmailHandler
-    : INotificationHandler<FamilyCreatedEvent>
+public static class InvitationSentEventHandler
 {
-    public async Task Handle(
-        FamilyCreatedEvent notification,
-        CancellationToken cancellationToken)
+    public static async Task Handle(
+        InvitationSentEvent @event,
+        IEmailService emailService,
+        IFamilyRepository familyRepository,
+        CancellationToken ct)
     {
         // Handle event
     }
 }
 ```
 
-## Cross-Module Events (RabbitMQ)
-
-```csharp
-await _messageBroker.PublishAsync(
-    new FamilyCreatedEvent(family.Id, family.Name, ownerId, DateTime.UtcNow),
-    cancellationToken);
-```
-
 ## Rules
 
-- Events are immutable records
-- Location: `Domain/Events/{Name}Event.cs`
-- Handlers: `Infrastructure/EventHandlers/{Name}Handler.cs`
-- Use past tense: `Created`, `Updated`, `Deleted`
+- Events are sealed records extending `DomainEvent`
+- Location: `Features/{Module}/Domain/Events/{Name}Event.cs`
+- Handlers: `Features/{Module}/Application/EventHandlers/{Name}Handler.cs`
+- Handlers are static classes with `Handle()` method (Wolverine)
+- Use past tense: Created, Sent, Accepted, Declined, Revoked

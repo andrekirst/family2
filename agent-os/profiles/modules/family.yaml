@@ -3,39 +3,202 @@ extends: ../layers/backend.yaml
 
 module:
   name: Family
-  namespace: FamilyHub.Modules.Family
-  schema: family
-  status: partial # 30% implemented
+  namespace: FamilyHub.Api.Features.Family
+  status: active # Auth + Family creation + Invitation system + Permissions
+  description: >
+    Core family management module handling family creation, member management,
+    invitation lifecycle (send/accept/decline/revoke), and role-based permissions.
 
 paths:
-  backend: src/api/Modules/FamilyHub.Modules.Family/**
-  frontend: src/frontend/family-hub-web/src/app/family/**
+  backend: src/FamilyHub.Api/Features/Family/**
+  frontend: src/frontend/family-hub-web/src/app/features/family/**
+  permissions: src/frontend/family-hub-web/src/app/core/permissions/**
   tests:
-    unit: tests/FamilyHub.Tests.Unit/Family/**
-    integration: tests/FamilyHub.Tests.Integration/Family/**
-    e2e: src/frontend/family-hub-web/e2e/family/**
+    unit: tests/FamilyHub.UnitTests/Features/Family/**
+    integration: tests/FamilyHub.IntegrationTests/Features/Family/**
 
 domain:
+  aggregates:
+    - name: Family
+      file: Domain/Entities/Family.cs
+      description: Root aggregate for family unit. Creates members, raises FamilyCreatedEvent.
+
+    - name: FamilyInvitation
+      file: Domain/Entities/FamilyInvitation.cs
+      description: >
+        Invitation aggregate managing full lifecycle (Pending → Accepted/Declined/Revoked/Expired).
+        Uses secure token pattern (SHA256 hash stored, plaintext only in event).
+
   entities:
-    - FamilyProfile
-    - FamilySettings
+    - name: FamilyMember
+      file: Domain/Entities/FamilyMember.cs
+      description: Represents a user's membership in a family with a role.
 
   valueObjects:
-    - FamilyId
-    - FamilyProfileId
+    - name: FamilyId
+      type: Guid
+      file: Domain/ValueObjects/FamilyId.cs
+
+    - name: FamilyName
+      type: string
+      file: Domain/ValueObjects/FamilyName.cs
+
+    - name: FamilyMemberId
+      type: Guid
+      file: Domain/ValueObjects/FamilyMemberId.cs
+
+    - name: FamilyRole
+      type: string
+      file: Domain/ValueObjects/FamilyRole.cs
+      description: >
+        Role hierarchy: Owner > Admin > Member.
+        Permission methods: CanInvite(), CanRevokeInvitation(), CanRemoveMembers(),
+        CanEditFamily(), CanDeleteFamily(), CanManageRoles().
+        GetPermissions() returns List<string> with format "family:{action}".
+
+    - name: InvitationId
+      type: Guid
+      file: Domain/ValueObjects/InvitationId.cs
+
+    - name: InvitationToken
+      type: string
+      file: Domain/ValueObjects/InvitationToken.cs
+      description: SHA256 hash of plaintext token. Lookup by hash for security.
+
+    - name: InvitationStatus
+      type: string
+      file: Domain/ValueObjects/InvitationStatus.cs
+      description: "States: Pending, Accepted, Declined, Revoked, Expired"
 
   events:
-    - FamilyProfileUpdatedEvent
-    - FamilySettingsChangedEvent
+    - FamilyCreatedEvent
+    - InvitationSentEvent
+    - InvitationAcceptedEvent
+    - InvitationDeclinedEvent
+    - InvitationRevokedEvent
+
+  repositories:
+    - IFamilyRepository
+    - IFamilyMemberRepository
+    - IFamilyInvitationRepository
+
+  services:
+    - name: FamilyAuthorizationService
+      file: Application/Services/FamilyAuthorizationService.cs
+      description: Backend permission enforcement (CanInviteAsync, etc.)
+
+application:
+  commands:
+    - name: CreateFamily
+      layout: Commands/CreateFamily/
+      files: [CreateFamilyCommand.cs, CreateFamilyCommandHandler.cs, CreateFamilyCommandValidator.cs, CreateFamilyResult.cs, MutationType.cs]
+
+    - name: SendInvitation
+      layout: Commands/SendInvitation/
+      files: [SendInvitationCommand.cs, SendInvitationCommandHandler.cs, SendInvitationCommandValidator.cs, SendInvitationResult.cs, MutationType.cs]
+
+    - name: AcceptInvitation
+      layout: Commands/AcceptInvitation/
+      files: [AcceptInvitationCommand.cs, AcceptInvitationCommandHandler.cs, MutationType.cs]
+      description: Accept by token (from email link)
+
+    - name: AcceptInvitationById
+      layout: Commands/AcceptInvitationById/
+      files: [AcceptInvitationByIdCommand.cs, AcceptInvitationByIdCommandHandler.cs, MutationType.cs]
+      description: Accept by invitation ID (from logged-in UI)
+
+    - name: DeclineInvitation
+      layout: Commands/DeclineInvitation/
+      files: [DeclineInvitationCommand.cs, DeclineInvitationCommandHandler.cs, MutationType.cs]
+      description: Decline by token (from email link)
+
+    - name: DeclineInvitationById
+      layout: Commands/DeclineInvitationById/
+      files: [DeclineInvitationByIdCommand.cs, DeclineInvitationByIdCommandHandler.cs, MutationType.cs]
+      description: Decline by invitation ID (from logged-in UI)
+
+    - name: RevokeInvitation
+      layout: Commands/RevokeInvitation/
+      files: [RevokeInvitationCommand.cs, RevokeInvitationCommandHandler.cs, MutationType.cs]
+
+  queries:
+    - name: GetMyFamily
+      layout: Queries/GetMyFamily/
+      files: [GetMyFamilyQuery.cs, GetMyFamilyQueryHandler.cs, QueryType.cs]
+
+    - name: GetFamilyMembers
+      layout: Queries/GetFamilyMembers/
+      files: [GetFamilyMembersQuery.cs, GetFamilyMembersQueryHandler.cs, QueryType.cs]
+
+  shared:
+    - name: AcceptInvitationResult
+      file: Commands/Shared/AcceptInvitationResult.cs
+      description: Shared result type for both accept-by-token and accept-by-id
+
+  eventHandlers:
+    - name: InvitationSentEventHandler
+      file: Application/EventHandlers/InvitationSentEventHandler.cs
+      description: Sends invitation email when InvitationSentEvent is raised
+
+  mappers:
+    - FamilyMapper
+    - FamilyMemberMapper
+    - InvitationMapper
 
 graphql:
   mutations:
-    - UpdateFamilyProfile
-    - UpdateFamilySettings
+    - CreateFamily
+    - SendInvitation
+    - AcceptInvitation
+    - AcceptInvitationById
+    - DeclineInvitation
+    - DeclineInvitationById
+    - RevokeInvitation
   queries:
-    - GetFamilyProfile
-    - GetFamilySettings
+    - GetMyFamily
+    - GetFamilyMembers
+  types:
+    file: GraphQL/FamilyMutations.cs, GraphQL/FamilyQueries.cs
+
+frontend:
+  components:
+    - create-family-dialog
+    - family-settings
+    - invite-member
+    - members-list
+    - pending-invitations
+    - invitation-accept
+  services:
+    - family.service.ts
+    - invitation.service.ts
+  permissions:
+    - core/permissions/family-permission.service.ts
+    description: >
+      Computed signals: canInvite, canRevokeInvitation, canRemoveMembers,
+      canEditFamily, canDeleteFamily, canManageRoles.
+      UI pattern: HIDE unauthorized actions (never disable+tooltip).
+
+permissions:
+  format: "family:{action}"
+  values:
+    - family:invite
+    - family:revoke-invitation
+    - family:remove-members
+    - family:edit
+    - family:delete
+    - family:manage-roles
+  roleMatrix:
+    Owner: [invite, revoke-invitation, remove-members, edit, delete, manage-roles]
+    Admin: [invite, revoke-invitation, remove-members, edit]
+    Member: []
+
+patterns:
+  handlerLayout: subfolder-per-command
+  messageBus: wolverine
+  testPattern: fake-repositories
+  permissionFlow: "FamilyRole.GetPermissions() → UserDto.Permissions → GraphQL → FamilyPermissionService"
+  tokenSecurity: "plaintext in event only → SHA256 hash in DB → lookup by hash"
+  uiAuthorization: "hide (not disable)"
 
 relatedDocs:
   - docs/architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md
-  - docs/architecture/ADR-007-FAMILY-DBCONTEXT-SEPARATION-STRATEGY.md

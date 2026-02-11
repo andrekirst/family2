@@ -1,13 +1,14 @@
 using FamilyHub.Api.Common.Database;
-using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Middleware;
 
 /// <summary>
-/// Middleware to set PostgreSQL Row-Level Security (RLS) session variables from database
-/// Looks up user by JWT sub claim, then uses database as single source of truth
-/// This enforces multi-tenant data isolation at the database level
+/// Middleware to set PostgreSQL Row-Level Security (RLS) session variables from database.
+/// Uses a single PL/pgSQL DO block that runs as the connection owner (bypassing RLS)
+/// to look up the user by JWT sub claim and set both session variables atomically.
+/// This avoids a circular dependency where querying auth.users via EF Core would itself
+/// be subject to the RLS policy that requires app.current_user_id to already be set.
 /// </summary>
 public class PostgresRlsMiddleware(RequestDelegate next)
 {
@@ -19,29 +20,36 @@ public class PostgresRlsMiddleware(RequestDelegate next)
             // Extract user ID from JWT 'sub' claim (Keycloak user ID)
             var externalUserId = context.User.FindFirst("sub")?.Value;
 
-            // Look up user in database to get internal ID and family context
-            if (!string.IsNullOrEmpty(externalUserId))
+            // Validate as GUID to guarantee safe SQL embedding (Keycloak sub claims are UUIDs).
+            // Canonical GUID format (hex + hyphens) cannot contain SQL injection characters.
+            if (!string.IsNullOrEmpty(externalUserId) && Guid.TryParse(externalUserId, out var parsedId))
             {
-                // Convert string to value object for EF Core query
-                var externalUserIdVO = ExternalUserId.From(externalUserId);
-                var user = await dbContext.Users
-                    .FirstOrDefaultAsync(u => u.ExternalUserId == externalUserIdVO);
+                var safeExternalUserId = parsedId.ToString();
 
-                if (user != null)
-                {
-                    // Set app.current_user_id for RLS policies
-                    await dbContext.Database.ExecuteSqlRawAsync(
-                        "SELECT set_config('app.current_user_id', {0}, false)",
-                        user.Id.ToString());
-
-                    // Set app.current_family_id if user has a family (from database)
-                    if (user.FamilyId.HasValue)
-                    {
-                        await dbContext.Database.ExecuteSqlRawAsync(
-                            "SELECT set_config('app.current_family_id', {0}, false)",
-                            user.FamilyId.Value.ToString());
-                    }
-                }
+                // Single PL/pgSQL block: lookup user by external ID, set both session variables.
+                // DO blocks execute as the connection owner, bypassing RLS policies.
+                // This avoids the circular dependency where an EF Core query on auth.users
+                // would be filtered by RLS before session variables are set.
+                // EF1002: Safe — value is GUID-validated above (hex + hyphens only).
+#pragma warning disable EF1002
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    $"""
+                    DO $$
+                    DECLARE v_user_id text; v_family_id text;
+                    BEGIN
+                        SELECT "Id"::text, "FamilyId"::text
+                        INTO v_user_id, v_family_id
+                        FROM auth.users
+                        WHERE "ExternalUserId" = '{safeExternalUserId}';
+                        IF v_user_id IS NOT NULL THEN
+                            PERFORM set_config('app.current_user_id', v_user_id, false);
+                            IF v_family_id IS NOT NULL THEN
+                                PERFORM set_config('app.current_family_id', v_family_id, false);
+                            END IF;
+                        END IF;
+                    END $$;
+                    """);
+#pragma warning restore EF1002
             }
         }
 

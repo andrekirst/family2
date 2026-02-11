@@ -11,43 +11,43 @@ namespace FamilyHub.Api.Features.Family.Infrastructure.Repositories;
 /// </summary>
 public sealed class FamilyRepository(AppDbContext context) : IFamilyRepository
 {
-    public async Task<FamilyEntity?> GetByIdAsync(FamilyId id, CancellationToken ct = default)
+    public async Task<FamilyEntity?> GetByIdAsync(FamilyId id, CancellationToken cancellationToken = default)
     {
-        return await context.Families.FindAsync([id], cancellationToken: ct);
+        return await context.Families.FindAsync([id], cancellationToken: cancellationToken);
     }
 
-    public async Task<FamilyEntity?> GetByIdWithMembersAsync(FamilyId id, CancellationToken ct = default)
+    public async Task<FamilyEntity?> GetByIdWithMembersAsync(FamilyId id, CancellationToken cancellationToken = default)
     {
         return await context.Families
             .Include(f => f.Members)
-            .FirstOrDefaultAsync(f => f.Id == id, ct);
+            .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
     }
 
-    public async Task<FamilyEntity?> GetByOwnerIdAsync(UserId ownerId, CancellationToken ct = default)
+    public async Task<FamilyEntity?> GetByOwnerIdAsync(UserId ownerId, CancellationToken cancellationToken = default)
     {
         return await context.Families
-            .FirstOrDefaultAsync(f => f.OwnerId == ownerId, ct);
+            .FirstOrDefaultAsync(f => f.OwnerId == ownerId, cancellationToken);
     }
 
-    public async Task<bool> UserHasFamilyAsync(UserId userId, CancellationToken ct = default)
+    public async Task<bool> UserHasFamilyAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         return await context.Families
-            .AnyAsync(f => f.OwnerId == userId, ct);
+            .AnyAsync(f => f.OwnerId == userId, cancellationToken);
     }
 
-    public async Task AddAsync(FamilyEntity family, CancellationToken ct = default)
+    public async Task AddAsync(FamilyEntity family, CancellationToken cancellationToken = default)
     {
-        await context.Families.AddAsync(family, ct);
+        await context.Families.AddAsync(family, cancellationToken);
     }
 
-    public Task UpdateAsync(FamilyEntity family, CancellationToken ct = default)
+    public Task UpdateAsync(FamilyEntity family, CancellationToken cancellationToken = default)
     {
         context.Families.Update(family);
         return Task.CompletedTask;
     }
 
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await context.SaveChangesAsync(ct);
+        return await context.SaveChangesAsync(cancellationToken);
     }
 }
