@@ -1,10 +1,16 @@
-using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
 using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.GraphQL;
 using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
+using FamilyHub.EventChain.Domain.Repositories;
+using FamilyHub.Api.Features.EventChain.GraphQL;
+using FamilyHub.EventChain.Infrastructure.Orchestrator;
+using FamilyHub.EventChain.Infrastructure.Pipeline;
+using FamilyHub.EventChain.Infrastructure.Registry;
+using FamilyHub.Api.Features.EventChain.Infrastructure.Repositories;
+using FamilyHub.Api.Features.EventChain.Infrastructure.Scheduler;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.GraphQL;
 using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
@@ -34,8 +40,8 @@ builder.Host.UseWolverine(opts =>
 });
 
 // Register command and query bus abstractions
-builder.Services.AddScoped<FamilyHub.Api.Common.Application.ICommandBus, WolverineCommandBus>();
-builder.Services.AddScoped<IQueryBus, WolverineQueryBus>();
+builder.Services.AddScoped<FamilyHub.Common.Application.ICommandBus, WolverineCommandBus>();
+builder.Services.AddScoped<FamilyHub.Common.Application.IQueryBus, WolverineQueryBus>();
 
 // Register FluentValidation validators from assembly
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -71,6 +77,30 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
 
+// Event Chain Engine services
+builder.Services.AddSingleton<IChainRegistry, ChainRegistry>();
+builder.Services.AddScoped<IChainDefinitionRepository, ChainDefinitionRepository>();
+builder.Services.AddScoped<IChainExecutionRepository, ChainExecutionRepository>();
+builder.Services.AddScoped<IChainOrchestrator, ChainOrchestrator>();
+
+// Step execution pipeline (middleware order matters: Logging → CircuitBreaker → Retry → Compensation → ActionHandler)
+builder.Services.AddSingleton<LoggingMiddleware>();
+builder.Services.AddSingleton<CircuitBreakerMiddleware>();
+builder.Services.AddSingleton<RetryMiddleware>();
+builder.Services.AddScoped<CompensationMiddleware>();
+builder.Services.AddScoped<ActionHandlerMiddleware>();
+builder.Services.AddScoped<StepPipeline>(sp => new StepPipeline(new IStepMiddleware[]
+{
+    sp.GetRequiredService<LoggingMiddleware>(),
+    sp.GetRequiredService<CircuitBreakerMiddleware>(),
+    sp.GetRequiredService<RetryMiddleware>(),
+    sp.GetRequiredService<CompensationMiddleware>(),
+    sp.GetRequiredService<ActionHandlerMiddleware>()
+}));
+
+// Chain scheduler background service
+builder.Services.AddHostedService<ChainSchedulerService>();
+
 // Configure CORS for Angular frontend
 builder.Services.AddCors(options =>
 {
@@ -90,7 +120,9 @@ builder.Services
     .AddQueryType<AuthQueries>()
     .AddMutationType<AuthMutations>()
     .AddTypeExtension<FamilyQueries>()
-    .AddTypeExtension<FamilyMutations>();
+    .AddTypeExtension<FamilyMutations>()
+    .AddTypeExtension<ChainQueries>()
+    .AddTypeExtension<ChainMutations>();
 
 var app = builder.Build();
 

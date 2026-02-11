@@ -1,4 +1,4 @@
-using FamilyHub.Api.Features.Family.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands;
 

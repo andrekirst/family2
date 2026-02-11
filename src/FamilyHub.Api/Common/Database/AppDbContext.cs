@@ -1,5 +1,6 @@
-using FamilyHub.Api.Common.Domain;
+using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
@@ -33,6 +34,14 @@ public class AppDbContext : DbContext
     /// Family households
     /// </summary>
     public DbSet<Family> Families { get; set; }
+
+    // Event Chain Engine entities
+    public DbSet<ChainDefinition> ChainDefinitions { get; set; }
+    public DbSet<ChainDefinitionStep> ChainDefinitionSteps { get; set; }
+    public DbSet<ChainExecution> ChainExecutions { get; set; }
+    public DbSet<StepExecution> StepExecutions { get; set; }
+    public DbSet<ChainEntityMapping> ChainEntityMappings { get; set; }
+    public DbSet<ChainScheduledJob> ChainScheduledJobs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

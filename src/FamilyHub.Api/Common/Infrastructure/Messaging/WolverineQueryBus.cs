@@ -1,4 +1,4 @@
-using Wolverine;
+using FamilyHub.Common.Application;
 
 namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 
@@ -6,9 +6,9 @@ namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 /// Wolverine implementation of IQueryBus.
 /// Adapts Wolverine's IMessageBus to our domain abstraction.
 /// </summary>
-public sealed class WolverineQueryBus(IMessageBus messageBus) : Application.IQueryBus
+public sealed class WolverineQueryBus(Wolverine.IMessageBus messageBus) : IQueryBus
 {
-    public async Task<TResult> QueryAsync<TResult>(Application.IQuery<TResult> query, CancellationToken ct = default)
+    public async Task<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken ct = default)
     {
         return await messageBus.InvokeAsync<TResult>(query, ct);
     }

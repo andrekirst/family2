@@ -28,5 +28,10 @@
     <Folder Include="Features\Family\Domain\Events\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FamilyHub.Common\FamilyHub.Common.csproj" />
+    <ProjectReference Include="..\FamilyHub.EventChain.Domain\FamilyHub.EventChain.Domain.csproj" />
+    <ProjectReference Include="..\FamilyHub.EventChain.Infrastructure\FamilyHub.EventChain.Infrastructure.csproj" />
+  </ItemGroup>
 
 </Project>

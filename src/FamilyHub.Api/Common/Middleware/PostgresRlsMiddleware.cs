@@ -1,5 +1,5 @@
 using FamilyHub.Api.Common.Database;
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Middleware;

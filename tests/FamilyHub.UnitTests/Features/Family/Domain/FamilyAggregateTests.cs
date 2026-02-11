@@ -1,4 +1,4 @@
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Events;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FluentAssertions;
