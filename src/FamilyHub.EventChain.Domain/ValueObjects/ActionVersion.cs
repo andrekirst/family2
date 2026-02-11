@@ -6,7 +6,7 @@ namespace FamilyHub.EventChain.Domain.ValueObjects;
 [ValueObject<string>(conversions: Conversions.EfCoreValueConverter)]
 public readonly partial struct ActionVersion
 {
-    private static readonly Regex ValidPattern = new(@"^v\d+(\.\d+)*$", RegexOptions.Compiled);
+    private static readonly Regex ValidPattern = RegexValidPattern();
 
     private static Validation Validate(string value)
     {
@@ -23,5 +23,8 @@ public readonly partial struct ActionVersion
     }
 
     private static string NormalizeInput(string input)
-        => input?.Trim().ToLowerInvariant() ?? string.Empty;
+        => input.Trim().ToLowerInvariant();
+    
+    [GeneratedRegex(@"^v\d+(\.\d+)*$", RegexOptions.Compiled)]
+    private static partial Regex RegexValidPattern();
 }

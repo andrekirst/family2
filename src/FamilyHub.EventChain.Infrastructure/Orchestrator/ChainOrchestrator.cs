@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.EventChain.Infrastructure.Orchestrator;
 
-public sealed class ChainOrchestrator(
+public sealed partial class ChainOrchestrator(
     IChainDefinitionRepository definitionRepository,
     IChainExecutionRepository executionRepository,
     StepPipeline pipeline,
@@ -22,7 +22,7 @@ public sealed class ChainOrchestrator(
 
         if (matchingDefinitions.Count == 0)
         {
-            logger.LogDebug("No chain definitions match event {EventType}", eventType);
+            LogNoChainDefinitionsMatchEventEventtype(logger, eventType);
             return;
         }
 
@@ -58,18 +58,11 @@ public sealed class ChainOrchestrator(
                 // Execute asynchronously (fire and forget for dual dispatch)
                 _ = Task.Run(() => ExecuteChainAsync(execution, definition, ct), ct);
 
-                logger.LogInformation(
-                    "Chain {ChainName} triggered by {EventType}. ExecutionId={ExecutionId}, CorrelationId={CorrelationId}",
-                    definition.Name.Value,
-                    eventType,
-                    execution.Id.Value,
-                    execution.CorrelationId);
+                LogChainChainnameTriggeredByEventtypeExecutionidExecutionidCorrelationidCorrelationid(logger, definition.Name.Value, eventType, execution.Id.Value, execution.CorrelationId);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                logger.LogError(ex,
-                    "Failed to trigger chain {ChainName} for event {EventType}",
-                    definition.Name.Value, eventType);
+                LogFailedToTriggerChainChainnameForEventEventtype(logger, definition.Name.Value, eventType);
             }
         }
     }
@@ -93,15 +86,16 @@ public sealed class ChainOrchestrator(
                 var stepExecution = execution.StepExecutions
                     .FirstOrDefault(s => s.StepAlias == stepDef.Alias.Value);
 
-                if (stepExecution is null) continue;
+                if (stepExecution is null)
+                {
+                    continue;
+                }
 
                 // Evaluate condition
                 if (!context.EvaluateCondition(stepDef.ConditionExpression))
                 {
                     stepExecution.MarkSkipped();
-                    logger.LogInformation(
-                        "Step {StepAlias} skipped (condition not met)",
-                        stepDef.Alias.Value);
+                    LogStepStepaliasSkippedConditionNotMet(logger, stepDef.Alias.Value);
                     continue;
                 }
 
@@ -137,12 +131,10 @@ public sealed class ChainOrchestrator(
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     hasFailures = true;
-                    logger.LogError(ex,
-                        "Step {StepAlias} in chain {ChainName} failed permanently",
-                        stepDef.Alias.Value, definition.Name.Value);
+                    LogStepStepaliasInChainChainnameFailedPermanently(logger, stepDef.Alias.Value, definition.Name.Value);
                     // Continue to next step (partial completion)
                 }
 
@@ -158,9 +150,13 @@ public sealed class ChainOrchestrator(
                     .All(s => s.Status is StepExecutionStatus.Failed or StepExecutionStatus.Skipped);
 
                 if (allFailed)
+                {
                     execution.MarkFailed("All steps failed");
+                }
                 else
+                {
                     execution.MarkPartiallyCompleted();
+                }
             }
             else
             {
@@ -172,9 +168,7 @@ public sealed class ChainOrchestrator(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex,
-                "Chain execution {ExecutionId} failed unexpectedly",
-                execution.Id.Value);
+            LogChainExecutionExecutionidFailedUnexpectedly(logger, execution.Id.Value);
 
             execution.MarkFailed(ex.Message);
             await executionRepository.UpdateAsync(execution, ct);
@@ -185,16 +179,28 @@ public sealed class ChainOrchestrator(
     public async Task ResumeStepAsync(Guid stepExecutionId, CancellationToken ct = default)
     {
         var stepExecution = await executionRepository.GetStepExecutionAsync(stepExecutionId, ct);
-        if (stepExecution is null) return;
+        if (stepExecution is null)
+        {
+            return;
+        }
 
         var execution = await executionRepository.GetByIdWithStepsAsync(stepExecution.ChainExecutionId, ct);
-        if (execution is null) return;
+        if (execution is null)
+        {
+            return;
+        }
 
         var definition = await definitionRepository.GetByIdWithStepsAsync(execution.ChainDefinitionId, ct);
-        if (definition is null) return;
+        if (definition is null)
+        {
+            return;
+        }
 
         var stepDef = definition.Steps.FirstOrDefault(s => s.Alias.Value == stepExecution.StepAlias);
-        if (stepDef is null) return;
+        if (stepDef is null)
+        {
+            return;
+        }
 
         var context = new ChainExecutionContext(execution.Context);
 
@@ -214,13 +220,34 @@ public sealed class ChainOrchestrator(
         {
             await pipeline.ExecuteAsync(pipelineContext, ct);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            logger.LogError(ex, "Resume of step {StepId} failed", stepExecutionId);
+            LogResumeOfStepStepidFailed(logger, stepExecutionId);
         }
 
         execution.UpdateContext(context.ToJson());
         await executionRepository.UpdateAsync(execution, ct);
         await executionRepository.SaveChangesAsync(ct);
     }
+
+    [LoggerMessage(LogLevel.Debug, "No chain definitions match event {eventType}")]
+    static partial void LogNoChainDefinitionsMatchEventEventtype(ILogger<ChainOrchestrator> logger, string eventType);
+
+    [LoggerMessage(LogLevel.Information, "Chain {chainName} triggered by {eventType}. ExecutionId={executionId}, CorrelationId={correlationId}")]
+    static partial void LogChainChainnameTriggeredByEventtypeExecutionidExecutionidCorrelationidCorrelationid(ILogger<ChainOrchestrator> logger, string chainName, string eventType, Guid executionId, Guid correlationId);
+
+    [LoggerMessage(LogLevel.Error, "Failed to trigger chain {chainName} for event {eventType}")]
+    static partial void LogFailedToTriggerChainChainnameForEventEventtype(ILogger<ChainOrchestrator> logger, string chainName, string eventType);
+
+    [LoggerMessage(LogLevel.Information, "Step {stepAlias} skipped (condition not met)")]
+    static partial void LogStepStepaliasSkippedConditionNotMet(ILogger<ChainOrchestrator> logger, string stepAlias);
+
+    [LoggerMessage(LogLevel.Error, "Step {stepAlias} in chain {chainName} failed permanently")]
+    static partial void LogStepStepaliasInChainChainnameFailedPermanently(ILogger<ChainOrchestrator> logger, string stepAlias, string chainName);
+
+    [LoggerMessage(LogLevel.Error, "Chain execution {executionId} failed unexpectedly")]
+    static partial void LogChainExecutionExecutionidFailedUnexpectedly(ILogger<ChainOrchestrator> logger, Guid executionId);
+
+    [LoggerMessage(LogLevel.Error, "Resume of step {stepId} failed")]
+    static partial void LogResumeOfStepStepidFailed(ILogger<ChainOrchestrator> logger, Guid stepId);
 }

@@ -1,5 +1,4 @@
 using FamilyHub.Api.Common.Database;
-using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Infrastructure.Orchestrator;
 using Microsoft.EntityFrameworkCore;
 

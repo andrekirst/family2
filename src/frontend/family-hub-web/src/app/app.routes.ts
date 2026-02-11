@@ -1,33 +1,47 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
-import { LoginComponent } from './features/auth/login/login.component';
-import { CallbackComponent } from './features/auth/callback/callback.component';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { CalendarPageComponent } from './features/calendar/components/calendar-page/calendar-page.component';
-import { FamilySettingsComponent } from './features/family/components/family-settings/family-settings.component';
-import { InvitationAcceptComponent } from './features/family/components/invitation-accept/invitation-accept.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
-  { path: 'callback', component: CallbackComponent },
+
+  // Public routes
   {
-    path: 'dashboard',
-    component: DashboardComponent,
-    canActivate: [authGuard],
+    path: 'login',
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
-    path: 'calendar',
-    component: CalendarPageComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'family/settings',
-    component: FamilySettingsComponent,
-    canActivate: [authGuard],
+    path: 'callback',
+    loadComponent: () =>
+      import('./features/auth/callback/callback.component').then((m) => m.CallbackComponent),
   },
   {
     path: 'invitation/accept',
-    component: InvitationAcceptComponent,
+    loadComponent: () =>
+      import('./features/family/components/invitation-accept/invitation-accept.component').then(
+        (m) => m.InvitationAcceptComponent,
+      ),
+  },
+
+  // Protected routes (group-level authGuard)
+  {
+    path: '',
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'dashboard',
+        loadChildren: () =>
+          import('./features/dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
+      },
+      {
+        path: 'calendar',
+        loadChildren: () =>
+          import('./features/calendar/calendar.routes').then((m) => m.CALENDAR_ROUTES),
+      },
+      {
+        path: 'family',
+        loadChildren: () => import('./features/family/family.routes').then((m) => m.FAMILY_ROUTES),
+      },
+    ],
   },
 ];

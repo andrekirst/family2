@@ -4,6 +4,8 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { provideApolloClient } from './core/graphql/apollo.config';
+import { provideCalendarFeature } from './features/calendar/calendar.providers';
+import { provideFamilyFeature } from './features/family/family.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -11,5 +13,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     ...provideApolloClient(),
+    ...provideCalendarFeature(),
+    ...provideFamilyFeature(),
   ],
 };

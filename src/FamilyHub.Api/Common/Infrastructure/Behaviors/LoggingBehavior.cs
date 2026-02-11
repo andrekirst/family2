@@ -1,12 +1,13 @@
 using System.Diagnostics;
+using FamilyHub.Api.Common.Modules;
 using Mediator;
-using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Api.Common.Infrastructure.Behaviors;
 
 /// <summary>
 /// Pipeline behavior that logs command/query execution with timing.
 /// </summary>
+[PipelinePriority(PipelinePriorities.Logging)]
 public sealed class LoggingBehavior<TMessage, TResponse>(
     ILogger<LoggingBehavior<TMessage, TResponse>> logger)
     : IPipelineBehavior<TMessage, TResponse>

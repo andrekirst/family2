@@ -1,6 +1,5 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
-using FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Infrastructure.Registry;

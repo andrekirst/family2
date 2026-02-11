@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
-public sealed class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddleware> logger) : IStepMiddleware
+public sealed partial class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddleware> logger) : IStepMiddleware
 {
     private static readonly ConcurrentDictionary<string, CircuitState> Circuits = new();
 
@@ -21,13 +21,11 @@ public sealed class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddleware> l
             {
                 // Half-open: allow one request through to test recovery
                 state.IsHalfOpen = true;
-                logger.LogInformation("Circuit breaker half-open for {ActionType}", actionType);
+                LogCircuitBreakerHalfOpenForActiontype(logger, actionType);
             }
             else
             {
-                logger.LogWarning(
-                    "Circuit breaker open for {ActionType}. Skipping step {StepAlias}",
-                    actionType, context.StepExecution.StepAlias);
+                LogCircuitBreakerOpenForActiontypeSkippingStepStepalias(logger, actionType, context.StepExecution.StepAlias);
                 context.ShouldSkip = true;
                 return;
             }
@@ -51,9 +49,7 @@ public sealed class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddleware> l
             {
                 state.IsOpen = true;
                 state.IsHalfOpen = false;
-                logger.LogWarning(
-                    "Circuit breaker opened for {ActionType} after {FailureCount} failures",
-                    actionType, state.FailureCount);
+                LogCircuitBreakerOpenedForActiontypeAfterFailurecountFailures(logger, actionType, state.FailureCount);
             }
 
             throw;
@@ -67,4 +63,13 @@ public sealed class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddleware> l
         public bool IsHalfOpen { get; set; }
         public DateTime LastFailure { get; set; }
     }
+
+    [LoggerMessage(LogLevel.Information, "Circuit breaker half-open for {actionType}")]
+    static partial void LogCircuitBreakerHalfOpenForActiontype(ILogger<CircuitBreakerMiddleware> logger, string actionType);
+
+    [LoggerMessage(LogLevel.Warning, "Circuit breaker open for {actionType}. Skipping step {stepAlias}")]
+    static partial void LogCircuitBreakerOpenForActiontypeSkippingStepStepalias(ILogger<CircuitBreakerMiddleware> logger, string actionType, string stepAlias);
+
+    [LoggerMessage(LogLevel.Warning, "Circuit breaker opened for {actionType} after {failureCount} failures")]
+    static partial void LogCircuitBreakerOpenedForActiontypeAfterFailurecountFailures(ILogger<CircuitBreakerMiddleware> logger, string actionType, int failureCount);
 }

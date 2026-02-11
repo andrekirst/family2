@@ -11,7 +11,9 @@ public readonly partial struct ChainName
             return Validation.Invalid("Chain name cannot be empty");
 
         if (value.Length > 200)
+        {
             return Validation.Invalid("Chain name cannot exceed 200 characters");
+        }
 
         return Validation.Ok;
     }

@@ -1,32 +1,17 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
-using FamilyHub.Api.Common.Email;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.Behaviors;
 using FamilyHub.Api.Common.Infrastructure.GraphQL;
+using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
 using FamilyHub.Api.Common.Middleware;
-using FamilyHub.Api.Common.Services;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
-using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
-using FamilyHub.Api.Features.Calendar.Domain.Repositories;
-using FamilyHub.Api.Features.Calendar.GraphQL;
-using FamilyHub.Api.Features.Calendar.Infrastructure.Repositories;
-using FamilyHub.Api.Features.Calendar.Infrastructure.Services;
-using FamilyHub.Api.Features.Calendar.Models;
-using FamilyHub.EventChain.Domain.Repositories;
-using FamilyHub.EventChain.Infrastructure.Orchestrator;
-using FamilyHub.EventChain.Infrastructure.Pipeline;
-using FamilyHub.EventChain.Infrastructure.Registry;
-using FamilyHub.Api.Features.EventChain.Infrastructure.Repositories;
-using FamilyHub.Api.Features.EventChain.Application.EventHandlers;
-using FamilyHub.Api.Features.EventChain.Infrastructure.Scheduler;
-using FamilyHub.Api.Features.Family.Domain.Repositories;
-using FamilyHub.Api.Features.Family.Application.Services;
-using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
+using FamilyHub.Api.Common.Modules;
+using FamilyHub.Api.Features.Auth;
+using FamilyHub.Api.Features.Calendar;
+using FamilyHub.Api.Features.EventChain;
+using FamilyHub.Api.Features.Family;
 using FluentValidation;
-using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -96,51 +81,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Register repositories
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
-builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
-builder.Services.AddScoped<IFamilyMemberRepository, FamilyMemberRepository>();
-builder.Services.AddScoped<IFamilyInvitationRepository, FamilyInvitationRepository>();
-
-builder.Services.AddFamilyServices();
-
-// Register application services
-builder.Services.AddScoped<FamilyAuthorizationService>();
-
-// Configure calendar cleanup background service
-builder.Services.Configure<CalendarCleanupOptions>(
-    builder.Configuration.GetSection(CalendarCleanupOptions.SectionName));
-builder.Services.AddHostedService<CancelledEventCleanupService>();
-
-// Configure email service
-builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("Email"));
-builder.Services.AddScoped<IEmailService, SmtpEmailService>();
-
-// Event Chain Engine services
-builder.Services.AddSingleton<IChainRegistry, ChainRegistry>();
-builder.Services.AddScoped<IChainDefinitionRepository, ChainDefinitionRepository>();
-builder.Services.AddScoped<IChainExecutionRepository, ChainExecutionRepository>();
-builder.Services.AddScoped<IChainOrchestrator, ChainOrchestrator>();
-builder.Services.AddScoped<IDomainEventObserver, ChainTriggerHandler>();
-
-// Step execution pipeline (middleware order matters: Logging → CircuitBreaker → Retry → Compensation → ActionHandler)
-builder.Services.AddSingleton<LoggingMiddleware>();
-builder.Services.AddSingleton<CircuitBreakerMiddleware>();
-builder.Services.AddSingleton<RetryMiddleware>();
-builder.Services.AddScoped<CompensationMiddleware>();
-builder.Services.AddScoped<ActionHandlerMiddleware>();
-builder.Services.AddScoped<StepPipeline>(sp => new StepPipeline(new IStepMiddleware[]
-{
-    sp.GetRequiredService<LoggingMiddleware>(),
-    sp.GetRequiredService<CircuitBreakerMiddleware>(),
-    sp.GetRequiredService<RetryMiddleware>(),
-    sp.GetRequiredService<CompensationMiddleware>(),
-    sp.GetRequiredService<ActionHandlerMiddleware>()
-}));
-
-// Chain scheduler background service
-builder.Services.AddHostedService<ChainSchedulerService>();
+// Feature Modules (explicit ordering - dependencies flow downward)
+builder.Services.RegisterModule<AuthModule>(builder.Configuration);
+builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
+builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
+builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
 
 // Configure CORS for Angular frontend
 builder.Services.AddCors(options =>

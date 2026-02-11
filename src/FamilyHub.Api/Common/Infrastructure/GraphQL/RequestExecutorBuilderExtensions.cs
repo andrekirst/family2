@@ -1,6 +1,5 @@
 using System.Reflection;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types;
 
 namespace FamilyHub.Api.Common.Infrastructure.GraphQL;
 

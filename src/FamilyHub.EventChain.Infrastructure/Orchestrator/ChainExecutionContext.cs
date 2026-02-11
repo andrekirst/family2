@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace FamilyHub.EventChain.Infrastructure.Orchestrator;
@@ -7,12 +6,15 @@ public sealed class ChainExecutionContext
 {
     private readonly JsonObject _root;
 
+    private const string PropertyTrigger = "trigger";
+    private const string PropertySteps = "steps";
+
     public ChainExecutionContext()
     {
         _root = new JsonObject
         {
-            ["trigger"] = new JsonObject(),
-            ["steps"] = new JsonObject()
+            [PropertyTrigger] = new JsonObject(),
+            [PropertySteps] = new JsonObject()
         };
     }
 
@@ -20,23 +22,23 @@ public sealed class ChainExecutionContext
     {
         _root = JsonNode.Parse(json)?.AsObject() ?? new JsonObject
         {
-            ["trigger"] = new JsonObject(),
-            ["steps"] = new JsonObject()
+            [PropertyTrigger] = new JsonObject(),
+            [PropertySteps] = new JsonObject()
         };
     }
 
     public void SetTriggerData(string triggerPayloadJson)
     {
         var triggerData = JsonNode.Parse(triggerPayloadJson);
-        _root["trigger"] = triggerData;
+        _root[PropertyTrigger] = triggerData;
     }
 
     public void SetStepOutput(string stepAlias, string outputJson)
     {
-        var stepsNode = _root["steps"]?.AsObject() ?? new JsonObject();
+        var stepsNode = _root[PropertySteps]?.AsObject() ?? new JsonObject();
         var outputData = JsonNode.Parse(outputJson);
         stepsNode[stepAlias] = outputData;
-        _root["steps"] = stepsNode;
+        _root[PropertySteps] = stepsNode;
     }
 
     public string? GetValue(string path)
@@ -47,8 +49,11 @@ public sealed class ChainExecutionContext
 
         foreach (var part in parts)
         {
-            current = current?[part];
-            if (current is null) return null;
+            current = current[part];
+            if (current is null)
+            {
+                return null;
+            }
         }
 
         return current.ToJsonString();
@@ -57,7 +62,9 @@ public sealed class ChainExecutionContext
     public bool EvaluateCondition(string? conditionExpression)
     {
         if (string.IsNullOrWhiteSpace(conditionExpression))
+        {
             return true;
+        }
 
         // Simple condition evaluation: {{path}} == value
         var expression = conditionExpression.Trim();
@@ -65,7 +72,9 @@ public sealed class ChainExecutionContext
         // Extract template references: {{steps.create_calendar.calendarEventId}}
         var parts = expression.Split("==", 2, StringSplitOptions.TrimEntries);
         if (parts.Length != 2)
+        {
             return true; // Invalid expression defaults to true
+        }
 
         var left = ResolveValue(parts[0]);
         var right = parts[1].Trim().Trim('"', '\'');
@@ -82,7 +91,10 @@ public sealed class ChainExecutionContext
         {
             var start = result.IndexOf("{{", StringComparison.Ordinal);
             var end = result.IndexOf("}}", start, StringComparison.Ordinal);
-            if (end < 0) break;
+            if (end < 0)
+            {
+                break;
+            }
 
             var path = result.Substring(start + 2, end - start - 2).Trim();
             var value = ResolveValue(path) ?? "null";
@@ -102,8 +114,11 @@ public sealed class ChainExecutionContext
 
         foreach (var part in parts)
         {
-            current = current?[part];
-            if (current is null) return null;
+            current = current[part];
+            if (current is null)
+            {
+                return null;
+            }
         }
 
         return current switch

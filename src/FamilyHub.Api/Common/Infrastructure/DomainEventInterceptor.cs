@@ -1,6 +1,5 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace FamilyHub.Api.Common.Infrastructure;

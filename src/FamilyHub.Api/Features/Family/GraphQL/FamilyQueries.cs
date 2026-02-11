@@ -10,7 +10,6 @@ using FamilyHub.Api.Features.Family.Application.Mappers;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Models;
-using FamilyHub.Api.Features.Auth.GraphQL;
 using HotChocolate.Authorization;
 using System.Security.Claims;
 

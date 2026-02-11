@@ -3,18 +3,13 @@ using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
-public sealed class LoggingMiddleware(ILogger<LoggingMiddleware> logger) : IStepMiddleware
+public sealed partial class LoggingMiddleware(ILogger<LoggingMiddleware> logger) : IStepMiddleware
 {
     public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken ct)
     {
         var sw = Stopwatch.StartNew();
 
-        logger.LogInformation(
-            "Step {StepAlias} ({ActionType}) starting. CorrelationId={CorrelationId}, ChainExecutionId={ChainExecutionId}",
-            context.StepExecution.StepAlias,
-            context.StepExecution.ActionType,
-            context.CorrelationId,
-            context.ChainExecution.Id.Value);
+        LogStepStepaliasActiontypeStartingCorrelationidCorrelationidChainexecutionidChainexecutionid(logger, context.StepExecution.StepAlias, context.StepExecution.ActionType, context.CorrelationId, context.ChainExecution.Id.Value);
 
         try
         {
@@ -23,28 +18,30 @@ public sealed class LoggingMiddleware(ILogger<LoggingMiddleware> logger) : IStep
 
             if (context.ShouldSkip)
             {
-                logger.LogInformation(
-                    "Step {StepAlias} skipped (condition not met). Duration={Duration}ms",
-                    context.StepExecution.StepAlias,
-                    sw.ElapsedMilliseconds);
+                LogStepStepaliasSkippedConditionNotMetDurationDurationMs(logger, context.StepExecution.StepAlias, sw.ElapsedMilliseconds);
             }
             else
             {
-                logger.LogInformation(
-                    "Step {StepAlias} completed successfully. Duration={Duration}ms",
-                    context.StepExecution.StepAlias,
-                    sw.ElapsedMilliseconds);
+                LogStepStepaliasCompletedSuccessfullyDurationDurationMs(logger, context.StepExecution.StepAlias, sw.ElapsedMilliseconds);
             }
         }
         catch (Exception ex)
         {
             sw.Stop();
-            logger.LogError(ex,
-                "Step {StepAlias} failed after {Duration}ms. Error={Error}",
-                context.StepExecution.StepAlias,
-                sw.ElapsedMilliseconds,
-                ex.Message);
+            LogStepStepaliasFailedAfterDurationMsErrorError(logger, context.StepExecution.StepAlias, sw.ElapsedMilliseconds, ex.Message);
             throw;
         }
     }
+
+    [LoggerMessage(LogLevel.Information, "Step {stepAlias} ({actionType}) starting. CorrelationId={correlationId}, ChainExecutionId={chainExecutionId}")]
+    static partial void LogStepStepaliasActiontypeStartingCorrelationidCorrelationidChainexecutionidChainexecutionid(ILogger<LoggingMiddleware> logger, string stepAlias, string actionType, Guid correlationId, Guid chainExecutionId);
+
+    [LoggerMessage(LogLevel.Information, "Step {stepAlias} skipped (condition not met). Duration={duration}ms")]
+    static partial void LogStepStepaliasSkippedConditionNotMetDurationDurationMs(ILogger<LoggingMiddleware> logger, string stepAlias, long duration);
+
+    [LoggerMessage(LogLevel.Information, "Step {stepAlias} completed successfully. Duration={duration}ms")]
+    static partial void LogStepStepaliasCompletedSuccessfullyDurationDurationMs(ILogger<LoggingMiddleware> logger, string stepAlias, long duration);
+
+    [LoggerMessage(LogLevel.Error, "Step {stepAlias} failed after {duration}ms. Error={error}")]
+    static partial void LogStepStepaliasFailedAfterDurationMsErrorError(ILogger<LoggingMiddleware> logger, string stepAlias, long duration, string error);
 }

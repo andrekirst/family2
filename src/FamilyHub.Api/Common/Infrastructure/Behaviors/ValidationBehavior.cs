@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Modules;
 using FluentValidation;
 using Mediator;
 
@@ -7,6 +8,7 @@ namespace FamilyHub.Api.Common.Infrastructure.Behaviors;
 /// Pipeline behavior that runs FluentValidation validators before the handler.
 /// Throws ValidationException if any validators fail.
 /// </summary>
+[PipelinePriority(PipelinePriorities.Validation)]
 public sealed class ValidationBehavior<TMessage, TResponse>(
     IEnumerable<IValidator<TMessage>> validators)
     : IPipelineBehavior<TMessage, TResponse>

@@ -1,7 +1,6 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.EventChain.Infrastructure.Orchestrator;
-using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Api.Features.EventChain.Application.EventHandlers;
 

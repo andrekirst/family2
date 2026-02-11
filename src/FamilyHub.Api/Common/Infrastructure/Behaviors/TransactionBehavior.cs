@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Modules;
 using FamilyHub.Common.Application;
 using Mediator;
 
@@ -7,6 +8,7 @@ namespace FamilyHub.Api.Common.Infrastructure.Behaviors;
 /// Pipeline behavior that calls IUnitOfWork.SaveChangesAsync() after the handler.
 /// This removes the need for individual handlers to call SaveChangesAsync.
 /// </summary>
+[PipelinePriority(PipelinePriorities.Transaction)]
 public sealed class TransactionBehavior<TMessage, TResponse>(IUnitOfWork unitOfWork)
     : IPipelineBehavior<TMessage, TResponse>
     where TMessage : IMessage

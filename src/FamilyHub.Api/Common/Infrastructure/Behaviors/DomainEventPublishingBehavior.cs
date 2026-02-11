@@ -1,6 +1,6 @@
+using FamilyHub.Api.Common.Modules;
 using FamilyHub.Common.Application;
 using Mediator;
-using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Api.Common.Infrastructure.Behaviors;
 
@@ -12,6 +12,7 @@ namespace FamilyHub.Api.Common.Infrastructure.Behaviors;
 /// Publishing is wrapped in try-catch so that failures (e.g. email send)
 /// don't surface as command failures.
 /// </summary>
+[PipelinePriority(PipelinePriorities.DomainEventPublishing)]
 public sealed class DomainEventPublishingBehavior<TMessage, TResponse>(
     IDomainEventCollector collector,
     IMediator mediator,

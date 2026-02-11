@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
-public sealed class CompensationMiddleware(
+public sealed partial class CompensationMiddleware(
     IChainRegistry registry,
     ILogger<CompensationMiddleware> logger) : IStepMiddleware
 {
@@ -19,42 +19,44 @@ public sealed class CompensationMiddleware(
             context.StepExecution.MarkFailed(ex.Message);
 
             // If this step had completed actions that are compensatable, trigger compensation
-            if (context.StepDefinition.IsCompensatable &&
-                context.StepDefinition.CompensationActionType is not null)
+            if (context.StepDefinition is not { IsCompensatable: true, CompensationActionType: not null })
             {
-                try
+                throw;
+            }
+
+            try
+            {
+                LogCompensatingStepStepaliasWithActionCompensationaction(logger, context.StepExecution.StepAlias, context.StepDefinition.CompensationActionType);
+
+                context.StepExecution.MarkCompensating();
+
+                var handler = registry.GetActionHandler(
+                    context.StepDefinition.CompensationActionType,
+                    context.StepDefinition.ActionVersion.Value);
+
+                if (handler is not null)
                 {
-                    logger.LogInformation(
-                        "Compensating step {StepAlias} with action {CompensationAction}",
-                        context.StepExecution.StepAlias,
-                        context.StepDefinition.CompensationActionType);
+                    var compensationContext = new ActionExecutionContext(
+                        context.StepExecution.OutputPayload ?? "{}",
+                        context.ExecutionContext,
+                        context.CorrelationId);
 
-                    context.StepExecution.MarkCompensating();
-
-                    var handler = registry.GetActionHandler(
-                        context.StepDefinition.CompensationActionType,
-                        context.StepDefinition.ActionVersion.Value);
-
-                    if (handler is not null)
-                    {
-                        var compensationContext = new ActionExecutionContext(
-                            context.StepExecution.OutputPayload ?? "{}",
-                            context.ExecutionContext,
-                            context.CorrelationId);
-
-                        await handler.CompensateAsync(compensationContext, ct);
-                        context.StepExecution.MarkCompensated();
-                    }
+                    await handler.CompensateAsync(compensationContext, ct);
+                    context.StepExecution.MarkCompensated();
                 }
-                catch (Exception compensationEx)
-                {
-                    logger.LogError(compensationEx,
-                        "Compensation failed for step {StepAlias}",
-                        context.StepExecution.StepAlias);
-                }
+            }
+            catch (Exception)
+            {
+                LogCompensationFailedForStepStepalias(logger, context.StepExecution.StepAlias);
             }
 
             throw;
         }
     }
+
+    [LoggerMessage(LogLevel.Information, "Compensating step {stepAlias} with action {compensationAction}")]
+    static partial void LogCompensatingStepStepaliasWithActionCompensationaction(ILogger<CompensationMiddleware> logger, string stepAlias, string compensationAction);
+
+    [LoggerMessage(LogLevel.Error, "Compensation failed for step {stepAlias}")]
+    static partial void LogCompensationFailedForStepStepalias(ILogger<CompensationMiddleware> logger, string stepAlias);
 }

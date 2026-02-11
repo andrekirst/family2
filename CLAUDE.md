@@ -10,9 +10,11 @@
 
 **Phase:** Phase 1 - MVP. Family creation and invitation system implemented.
 
-**Architecture Strategy:** Modular Monolith (feature-folder layout). See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
+**Architecture Strategy:** Modular Monolith (feature-folder layout) with IModule pattern for parallel agent development. See [ADR-001](docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md).
 
-**Mediator:** martinothamar/Mediator (source-generated, compile-time discovery). Interface-based handlers (`ICommandHandler<T,R>`, `IQueryHandler<T,R>`) with `ValueTask<T>` returns. Pipeline behaviors: DomainEventPublishing → Logging → Validation → Transaction.
+**Module Registration:** Each feature implements `IModule` with self-contained DI registrations. Modules registered via `builder.Services.RegisterModule<T>(configuration)` in Program.cs. Pipeline behaviors use `[PipelinePriority(N)]` attributes (Core: 100/200/300/400, modules slot between).
+
+**Mediator:** martinothamar/Mediator (source-generated, compile-time discovery). Interface-based handlers (`ICommandHandler<T,R>`, `IQueryHandler<T,R>`) with `ValueTask<T>` returns. Pipeline behaviors: DomainEventPublishing(100) → Logging(200) → Validation(300) → Transaction(400).
 
 ---
 
@@ -20,6 +22,7 @@
 
 ### Auth Module (`src/FamilyHub.Api/Features/Auth/`)
 
+- **Module:** `AuthModule` registers `IUserRepository`, `IUserService`
 - User registration + login via Keycloak OIDC
 - `GetCurrentUser` query with role-based permissions
 - Domain events: `UserRegisteredEvent`, `UserFamilyAssignedEvent`, `UserFamilyRemovedEvent`
@@ -27,6 +30,7 @@
 
 ### Family Module (`src/FamilyHub.Api/Features/Family/`)
 
+- **Module:** `FamilyModule` registers repositories, `FamilyAuthorizationService`, email services
 - **Aggregates:** `Family`, `FamilyInvitation`
 - **Entities:** `FamilyMember`
 - **Value Objects:** `FamilyId`, `FamilyName`, `FamilyRole`, `FamilyMemberId`, `InvitationId`, `InvitationToken`, `InvitationStatus`
@@ -39,16 +43,20 @@
 ### Frontend (`src/frontend/family-hub-web/`)
 
 - Angular 19 with signals-based architecture
+- Lazy-loaded feature routes (`loadChildren` per feature, group-level `authGuard`)
+- Feature providers: `provideCalendarFeature()`, `provideFamilyFeature()`
 - `FamilyPermissionService` (computed signals) in `core/permissions/`
 - Components: create-family-dialog, family-settings, invite-member, members-list, pending-invitations, invitation-accept
 - Apollo GraphQL client with typed operations
 
-### Tests (`tests/FamilyHub.UnitTests/`)
+### Tests (per-module projects)
 
-- 77 tests passing (xUnit + FluentAssertions)
-- Fake repository pattern (inner classes implementing interfaces, in-memory state)
-- Domain tests: FamilyAggregate, FamilyInvitation, FamilyMember, FamilyRole
-- Handler tests: CreateFamily, SendInvitation, AcceptInvitation, AcceptInvitationById, GetCurrentUser
+- **`tests/FamilyHub.TestCommon/`** — Shared fakes: `FakeUserRepository`, `FakeFamilyRepository`, `FakeFamilyMemberRepository`, `FakeFamilyInvitationRepository`
+- **`tests/FamilyHub.Auth.Tests/`** — 15 tests (UserAggregate, GetCurrentUser)
+- **`tests/FamilyHub.Family.Tests/`** — 62 tests (FamilyAggregate, Invitation, Member, Role, CreateFamily, SendInvitation, AcceptInvitation)
+- **`tests/FamilyHub.Calendar.Tests/`** — Placeholder (empty)
+- **`tests/FamilyHub.EventChain.Tests/`** — Placeholder (empty)
+- 77 total tests passing (xUnit + FluentAssertions)
 
 ### Known Gaps
 
@@ -187,5 +195,5 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 ---
 
-**Last Updated:** 2026-02-10
-**Version:** 8.0.0 (Active Development - Auth + Family Modules, Mediator migration)
+**Last Updated:** 2026-02-11
+**Version:** 9.0.0 (IModule pattern, per-module tests, .slnx, lazy-loaded frontend routes)
