@@ -43,9 +43,20 @@ import { CreateFamilyDialogComponent } from '../family/components/create-family-
       <header class="bg-white shadow">
         <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 class="text-2xl font-bold text-gray-900">Family Hub</h1>
-          <button (click)="logout()" class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900">
-            Logout
-          </button>
+          <div class="flex items-center gap-4">
+            @if (currentUser()?.familyId) {
+              <a
+                routerLink="/calendar"
+                class="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                data-testid="calendar-link"
+              >
+                Calendar
+              </a>
+            }
+            <button (click)="logout()" class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900">
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 

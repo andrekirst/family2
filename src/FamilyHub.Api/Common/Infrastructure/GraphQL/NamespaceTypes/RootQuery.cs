@@ -24,4 +24,10 @@ public class RootQuery
     /// </summary>
     [Authorize]
     public UsersQuery Users() => new();
+
+    /// <summary>
+    /// Family-scoped queries (calendar, members, etc.).
+    /// </summary>
+    [Authorize]
+    public FamilyQuery Family() => new();
 }

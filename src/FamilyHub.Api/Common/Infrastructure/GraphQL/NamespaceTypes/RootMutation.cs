@@ -13,4 +13,5 @@ public class RootMutation
     /// </summary>
     [Authorize]
     public FamilyMutation Family() => new();
+
 }

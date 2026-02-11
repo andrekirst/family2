@@ -1,5 +1,6 @@
 using FamilyHub.Api.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,6 +38,16 @@ public class AppDbContext : DbContext, IUnitOfWork
     /// Family invitations with lifecycle tracking
     /// </summary>
     public DbSet<FamilyInvitation> FamilyInvitations { get; set; }
+
+    /// <summary>
+    /// Calendar events
+    /// </summary>
+    public DbSet<CalendarEvent> CalendarEvents { get; set; }
+
+    /// <summary>
+    /// Calendar event attendees (join table)
+    /// </summary>
+    public DbSet<CalendarEventAttendee> CalendarEventAttendees { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
