@@ -99,6 +99,7 @@ We use RICE scoring to prioritize features:
 | **Family Creation** ✅ COMPLETED (2026-02-09) #15      | Create family group, generate invite codes                 | 50.0       | 1 week  | P0       |
 | **Family Member Invites (Management)**                 | Invite members from family management UI                   | 40.0       | 1 week  | P0       |
 | **User Profiles**                                      | Name, avatar, role, preferences                            | 36.0       | 1 week  | P0       |
+| **User Avatar in Sidebar**                             | Display user avatar in sidebar navigation                  | 30.0       | 0.5 weeks | P2     |
 | **Family Settings**                                    | Timezone, language, notification prefs                     | 30.0       | 1 week  | P1       |
 
 **Domain Total: 7 weeks**
