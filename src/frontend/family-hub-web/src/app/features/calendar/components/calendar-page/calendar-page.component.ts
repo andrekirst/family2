@@ -44,7 +44,7 @@ import { EventDialogComponent } from '../event-dialog/event-dialog.component';
 
       <!-- Month Navigation -->
       <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-center gap-4 mb-4">
           <button
             (click)="previousMonth()"
             class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
@@ -63,6 +63,19 @@ import { EventDialogComponent } from '../event-dialog/event-dialog.component';
                 d="M15 19l-7-7 7-7"
               />
             </svg>
+          </button>
+
+          <button
+            (click)="goToToday()"
+            [disabled]="isCurrentMonth()"
+            class="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
+            [ngClass]="{
+              'text-gray-400 cursor-not-allowed': isCurrentMonth(),
+              'text-blue-600 hover:bg-blue-50': !isCurrentMonth(),
+            }"
+            data-testid="today-button"
+          >
+            Today
           </button>
 
           <h2 class="text-xl font-semibold text-gray-900" data-testid="current-month-label">
@@ -152,8 +165,20 @@ export class CalendarPageComponent implements OnInit {
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   });
 
+  isCurrentMonth = computed(() => {
+    const current = this.currentMonth();
+    const now = new Date();
+    return current.getFullYear() === now.getFullYear() && current.getMonth() === now.getMonth();
+  });
+
   async ngOnInit(): Promise<void> {
     await this.loadEvents();
+  }
+
+  goToToday(): void {
+    if (this.isCurrentMonth()) return;
+    this.currentMonth.set(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+    this.loadEvents();
   }
 
   previousMonth(): void {
