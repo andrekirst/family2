@@ -304,16 +304,25 @@ export class EventDialogComponent implements OnInit {
       }
     } else if (this.selectedDate) {
       const date = this.selectedDate;
-      this.startTime.set(
-        this.formatDateTimeLocal(
-          new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0),
-        ),
-      );
-      this.endTime.set(
-        this.formatDateTimeLocal(
-          new Date(date.getFullYear(), date.getMonth(), date.getDate(), 10, 0),
-        ),
-      );
+      const hasTimeInfo = date.getHours() !== 0 || date.getMinutes() !== 0;
+
+      if (hasTimeInfo) {
+        // Week view: use the clicked time, +1 hour for end
+        this.startTime.set(this.formatDateTimeLocal(date));
+        this.endTime.set(this.formatDateTimeLocal(new Date(date.getTime() + 3600000)));
+      } else {
+        // Month view: default 9-10 AM
+        this.startTime.set(
+          this.formatDateTimeLocal(
+            new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0),
+          ),
+        );
+        this.endTime.set(
+          this.formatDateTimeLocal(
+            new Date(date.getFullYear(), date.getMonth(), date.getDate(), 10, 0),
+          ),
+        );
+      }
     }
 
     // Load family members for attendee selection
