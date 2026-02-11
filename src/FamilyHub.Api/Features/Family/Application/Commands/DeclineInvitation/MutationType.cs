@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Common.Services;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;

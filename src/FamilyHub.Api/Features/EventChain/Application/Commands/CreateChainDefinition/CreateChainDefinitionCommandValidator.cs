@@ -1,7 +1,6 @@
 using FluentValidation;
-using FamilyHub.Api.Features.EventChain.Application.Commands;
 
-namespace FamilyHub.Api.Features.EventChain.Application.Validators;
+namespace FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 
 public sealed class CreateChainDefinitionCommandValidator : AbstractValidator<CreateChainDefinitionCommand>
 {

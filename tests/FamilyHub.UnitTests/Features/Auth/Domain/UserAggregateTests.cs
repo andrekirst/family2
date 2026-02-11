@@ -1,8 +1,8 @@
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.Events;
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FluentAssertions;
 using Xunit;
 

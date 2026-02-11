@@ -20,6 +20,7 @@ using FamilyHub.EventChain.Infrastructure.Orchestrator;
 using FamilyHub.EventChain.Infrastructure.Pipeline;
 using FamilyHub.EventChain.Infrastructure.Registry;
 using FamilyHub.Api.Features.EventChain.Infrastructure.Repositories;
+using FamilyHub.Api.Features.EventChain.Application.EventHandlers;
 using FamilyHub.Api.Features.EventChain.Infrastructure.Scheduler;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Services;
@@ -120,6 +121,7 @@ builder.Services.AddSingleton<IChainRegistry, ChainRegistry>();
 builder.Services.AddScoped<IChainDefinitionRepository, ChainDefinitionRepository>();
 builder.Services.AddScoped<IChainExecutionRepository, ChainExecutionRepository>();
 builder.Services.AddScoped<IChainOrchestrator, ChainOrchestrator>();
+builder.Services.AddScoped<IDomainEventObserver, ChainTriggerHandler>();
 
 // Step execution pipeline (middleware order matters: Logging → CircuitBreaker → Retry → Compensation → ActionHandler)
 builder.Services.AddSingleton<LoggingMiddleware>();

@@ -1,7 +1,7 @@
 using FamilyHub.Common.Application;
 using FamilyHub.EventChain.Domain.ValueObjects;
 
-namespace FamilyHub.Api.Features.EventChain.Application.Commands;
+namespace FamilyHub.Api.Features.EventChain.Application.Commands.DeleteChainDefinition;
 
 public sealed record DeleteChainDefinitionCommand(
     ChainDefinitionId Id

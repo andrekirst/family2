@@ -1,4 +1,4 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Mappers;
 using FamilyHub.Api.Features.Family.Domain.Repositories;

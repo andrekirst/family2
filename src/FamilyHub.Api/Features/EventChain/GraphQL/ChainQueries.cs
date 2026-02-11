@@ -1,7 +1,10 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Features.Auth.GraphQL;
+using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.EventChain.Application.Mappers;
-using FamilyHub.Api.Features.EventChain.Application.Queries;
+using FamilyHub.Api.Features.EventChain.Application.Queries.GetChainDefinitions;
+using FamilyHub.Api.Features.EventChain.Application.Queries.GetChainDefinition;
+using FamilyHub.Api.Features.EventChain.Application.Queries.GetChainExecutions;
+using FamilyHub.Api.Features.EventChain.Application.Queries.GetChainExecution;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Enums;
 using FamilyHub.EventChain.Domain.Repositories;
@@ -13,7 +16,7 @@ using HotChocolate.Authorization;
 
 namespace FamilyHub.Api.Features.EventChain.GraphQL;
 
-[ExtendObjectType(typeof(AuthQueries))]
+[ExtendObjectType(typeof(EventChainQuery))]
 public class ChainQueries
 {
     [Authorize]

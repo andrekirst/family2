@@ -4,7 +4,7 @@ using FamilyHub.EventChain.Domain.Enums;
 using FamilyHub.EventChain.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
 
-namespace FamilyHub.Api.Features.EventChain.Application.Queries;
+namespace FamilyHub.Api.Features.EventChain.Application.Queries.GetChainExecutions;
 
 public sealed record GetChainExecutionsQuery(
     FamilyId FamilyId,

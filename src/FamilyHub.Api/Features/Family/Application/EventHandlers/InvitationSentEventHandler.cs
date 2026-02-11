@@ -1,4 +1,4 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Email;
 using FamilyHub.Api.Common.Email.Templates;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;

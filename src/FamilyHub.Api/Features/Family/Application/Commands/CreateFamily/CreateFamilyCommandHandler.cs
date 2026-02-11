@@ -3,6 +3,7 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyEntity = FamilyHub.Api.Features.Family.Domain.Entities.Family;
 

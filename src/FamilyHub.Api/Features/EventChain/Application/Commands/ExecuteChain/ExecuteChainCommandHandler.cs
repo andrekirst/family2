@@ -1,21 +1,22 @@
+using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
-using FamilyHub.Api.Features.EventChain.Application.Commands;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Infrastructure.Orchestrator;
 
-namespace FamilyHub.Api.Features.EventChain.Application.Handlers;
+namespace FamilyHub.Api.Features.EventChain.Application.Commands.ExecuteChain;
 
-public static class ExecuteChainCommandHandler
+public sealed class ExecuteChainCommandHandler(
+    IChainDefinitionRepository definitionRepository,
+    IChainExecutionRepository executionRepository,
+    IChainOrchestrator orchestrator)
+    : ICommandHandler<ExecuteChainCommand, ExecuteChainResult>
 {
-    public static async Task<ExecuteChainResult> Handle(
+    public async ValueTask<ExecuteChainResult> Handle(
         ExecuteChainCommand command,
-        IChainDefinitionRepository definitionRepository,
-        IChainExecutionRepository executionRepository,
-        IChainOrchestrator orchestrator,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var definition = await definitionRepository.GetByIdWithStepsAsync(command.ChainDefinitionId, ct)
+        var definition = await definitionRepository.GetByIdWithStepsAsync(command.ChainDefinitionId, cancellationToken)
             ?? throw new DomainException("Chain definition not found");
 
         var execution = ChainExecution.Start(
@@ -38,11 +39,10 @@ public static class ExecuteChainCommandHandler
             execution.AddStepExecution(stepExecution);
         }
 
-        await executionRepository.AddAsync(execution, ct);
-        await executionRepository.SaveChangesAsync(ct);
+        await executionRepository.AddAsync(execution, cancellationToken);
 
-        // Execute the chain
-        _ = Task.Run(() => orchestrator.ExecuteChainAsync(execution, definition, ct), ct);
+        // Execute the chain asynchronously
+        _ = Task.Run(() => orchestrator.ExecuteChainAsync(execution, definition, cancellationToken), cancellationToken);
 
         return new ExecuteChainResult(execution.Id);
     }

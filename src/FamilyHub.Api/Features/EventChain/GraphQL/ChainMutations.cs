@@ -1,8 +1,13 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.Api.Features.Auth.GraphQL;
-using FamilyHub.Api.Features.EventChain.Application.Commands;
+using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
+using FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
+using FamilyHub.Api.Features.EventChain.Application.Commands.UpdateChainDefinition;
+using FamilyHub.Api.Features.EventChain.Application.Commands.DeleteChainDefinition;
+using FamilyHub.Api.Features.EventChain.Application.Commands.EnableChainDefinition;
+using FamilyHub.Api.Features.EventChain.Application.Commands.DisableChainDefinition;
+using FamilyHub.Api.Features.EventChain.Application.Commands.ExecuteChain;
 using FamilyHub.Api.Features.EventChain.Application.Mappers;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Domain.ValueObjects;
@@ -12,7 +17,7 @@ using System.Security.Claims;
 
 namespace FamilyHub.Api.Features.EventChain.GraphQL;
 
-[ExtendObjectType(typeof(AuthMutations))]
+[ExtendObjectType(typeof(EventChainMutation))]
 public class ChainMutations
 {
     [Authorize]

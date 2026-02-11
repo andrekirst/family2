@@ -2,7 +2,7 @@ using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.EventChain.Domain.ValueObjects;
 
-namespace FamilyHub.Api.Features.EventChain.Application.Commands;
+namespace FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 
 public sealed record CreateChainDefinitionCommand(
     ChainName Name,
@@ -22,5 +22,3 @@ public sealed record CreateStepCommand(
     string InputMappings,
     string? Condition,
     int Order);
-
-public sealed record CreateChainDefinitionResult(ChainDefinitionId ChainDefinitionId);

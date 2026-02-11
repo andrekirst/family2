@@ -1,17 +1,18 @@
-using FamilyHub.Api.Features.EventChain.Application.Commands;
+using FamilyHub.Common.Application;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Infrastructure.Registry;
 
-namespace FamilyHub.Api.Features.EventChain.Application.Handlers;
+namespace FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 
-public static class CreateChainDefinitionCommandHandler
+public sealed class CreateChainDefinitionCommandHandler(
+    IChainDefinitionRepository repository,
+    IChainRegistry registry)
+    : ICommandHandler<CreateChainDefinitionCommand, CreateChainDefinitionResult>
 {
-    public static async Task<CreateChainDefinitionResult> Handle(
+    public async ValueTask<CreateChainDefinitionResult> Handle(
         CreateChainDefinitionCommand command,
-        IChainDefinitionRepository repository,
-        IChainRegistry registry,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         // Validate trigger exists in registry
         if (!registry.IsValidTrigger(command.TriggerEventType))
@@ -48,14 +49,13 @@ public static class CreateChainDefinitionCommandHandler
                 stepCmd.InputMappings,
                 stepCmd.Condition,
                 action.IsCompensatable,
-                null, // compensation action type determined by action descriptor
+                null,
                 stepCmd.Order);
 
             definition.AddStep(step);
         }
 
-        await repository.AddAsync(definition, ct);
-        await repository.SaveChangesAsync(ct);
+        await repository.AddAsync(definition, cancellationToken);
 
         return new CreateChainDefinitionResult(definition.Id);
     }

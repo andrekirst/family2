@@ -1,14 +1,19 @@
+using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.EventChain.Infrastructure.Orchestrator;
+using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Api.Features.EventChain.Application.EventHandlers;
 
-public static class ChainTriggerHandler
+/// <summary>
+/// Observes all domain events to trigger matching chain definitions.
+/// Registered as an IDomainEventObserver and invoked by DomainEventPublishingBehavior.
+/// </summary>
+public sealed class ChainTriggerHandler(
+    IChainOrchestrator orchestrator,
+    ILogger<ChainTriggerHandler> logger) : IDomainEventObserver
 {
-    public static async Task Handle(
-        IDomainEvent @event,
-        IChainOrchestrator orchestrator,
-        ILogger logger)
+    public async Task OnEventPublishedAsync(IDomainEvent @event, CancellationToken ct = default)
     {
         logger.LogDebug(
             "Chain trigger handler received event: {EventType}, EventId={EventId}",

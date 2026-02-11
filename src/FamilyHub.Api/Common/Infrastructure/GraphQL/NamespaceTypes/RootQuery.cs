@@ -30,4 +30,10 @@ public class RootQuery
     /// </summary>
     [Authorize]
     public FamilyQuery Family() => new();
+
+    /// <summary>
+    /// Event Chain Engine queries (definitions, executions, catalog).
+    /// </summary>
+    [Authorize]
+    public EventChainQuery EventChain() => new();
 }

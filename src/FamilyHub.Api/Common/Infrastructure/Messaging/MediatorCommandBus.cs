@@ -1,4 +1,4 @@
-using Mediator;
+using FamilyHub.Common.Application;
 
 namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 
@@ -6,8 +6,8 @@ namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 /// Mediator implementation of ICommandBus.
 /// Adapts Mediator's IMediator.Send to our domain abstraction.
 /// </summary>
-public sealed class MediatorCommandBus(IMediator mediator) : Application.ICommandBus
+public sealed class MediatorCommandBus(Mediator.IMediator mediator) : ICommandBus
 {
-    public ValueTask<TResult> SendAsync<TResult>(Application.ICommand<TResult> command, CancellationToken ct = default)
+    public ValueTask<TResult> SendAsync<TResult>(ICommand<TResult> command, CancellationToken ct = default)
         => mediator.Send(command, ct);
 }

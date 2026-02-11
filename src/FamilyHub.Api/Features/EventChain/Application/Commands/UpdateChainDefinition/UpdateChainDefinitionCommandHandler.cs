@@ -1,20 +1,22 @@
+using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
-using FamilyHub.Api.Features.EventChain.Application.Commands;
+using FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Infrastructure.Registry;
 
-namespace FamilyHub.Api.Features.EventChain.Application.Handlers;
+namespace FamilyHub.Api.Features.EventChain.Application.Commands.UpdateChainDefinition;
 
-public static class UpdateChainDefinitionCommandHandler
+public sealed class UpdateChainDefinitionCommandHandler(
+    IChainDefinitionRepository repository,
+    IChainRegistry registry)
+    : ICommandHandler<UpdateChainDefinitionCommand, UpdateChainDefinitionResult>
 {
-    public static async Task<UpdateChainDefinitionResult> Handle(
+    public async ValueTask<UpdateChainDefinitionResult> Handle(
         UpdateChainDefinitionCommand command,
-        IChainDefinitionRepository repository,
-        IChainRegistry registry,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var definition = await repository.GetByIdWithStepsAsync(command.Id, ct)
+        var definition = await repository.GetByIdWithStepsAsync(command.Id, cancellationToken)
             ?? throw new DomainException("Chain definition not found");
 
         definition.Update(command.Name, command.Description, command.IsEnabled);
@@ -48,8 +50,7 @@ public static class UpdateChainDefinitionCommandHandler
             }
         }
 
-        await repository.UpdateAsync(definition, ct);
-        await repository.SaveChangesAsync(ct);
+        await repository.UpdateAsync(definition, cancellationToken);
 
         return new UpdateChainDefinitionResult(definition.Id);
     }
