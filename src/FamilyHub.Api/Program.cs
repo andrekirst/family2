@@ -62,6 +62,7 @@ builder.Services.AddScoped<IQueryBus, MediatorQueryBus>();
 builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 {
     options.UseNpgsql(connectionString);
+    options.UseSnakeCaseNamingConvention();
     options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
 });
 

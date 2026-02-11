@@ -18,6 +18,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         var connectionString = "Host=localhost;Port=5432;Database=familyhub;Username=familyhub;Password=familyhub";
 
         optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder.UseSnakeCaseNamingConvention();
 
         // Return AppDbContext for design-time only (no DI container)
         return new AppDbContext(optionsBuilder.Options);

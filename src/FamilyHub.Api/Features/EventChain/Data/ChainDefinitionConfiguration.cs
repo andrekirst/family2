@@ -16,74 +16,59 @@ public class ChainDefinitionConfiguration : IEntityTypeConfiguration<ChainDefini
         builder.Property(d => d.Id)
             .HasConversion(
                 id => id.Value,
-                value => ChainDefinitionId.From(value))
-            .HasColumnName("id");
+                value => ChainDefinitionId.From(value));
 
         builder.Property(d => d.FamilyId)
             .HasConversion(
                 familyId => familyId.Value,
                 value => FamilyId.From(value))
-            .HasColumnName("family_id")
             .IsRequired();
 
         builder.Property(d => d.Name)
             .HasConversion(
                 name => name.Value,
                 value => ChainName.From(value))
-            .HasColumnName("name")
             .HasMaxLength(200)
             .IsRequired();
 
-        builder.Property(d => d.Description)
-            .HasColumnName("description");
+        builder.Property(d => d.Description);
 
         builder.Property(d => d.IsEnabled)
-            .HasColumnName("is_enabled")
             .HasDefaultValue(true);
 
         builder.Property(d => d.IsTemplate)
-            .HasColumnName("is_template")
             .HasDefaultValue(false);
 
         builder.Property(d => d.TemplateName)
-            .HasColumnName("template_name")
             .HasMaxLength(100);
 
         builder.Property(d => d.TriggerEventType)
-            .HasColumnName("trigger_event_type")
             .HasMaxLength(500)
             .IsRequired();
 
         builder.Property(d => d.TriggerModule)
-            .HasColumnName("trigger_module")
             .HasMaxLength(100)
             .IsRequired();
 
         builder.Property(d => d.TriggerDescription)
-            .HasColumnName("trigger_description")
             .HasMaxLength(500);
 
         builder.Property(d => d.TriggerOutputSchema)
-            .HasColumnName("trigger_output_schema")
             .HasColumnType("jsonb");
 
         builder.Property(d => d.CreatedByUserId)
             .HasConversion(
                 userId => userId.Value,
                 value => UserId.From(value))
-            .HasColumnName("created_by_user_id")
             .IsRequired();
 
         builder.Property(d => d.Version)
-            .HasColumnName("version")
             .HasDefaultValue(1);
 
         builder.Property(d => d.CreatedAt)
-            .HasColumnName("created_at")
             .HasDefaultValueSql("now()");
 
         builder.Property(d => d.UpdatedAt)
-            .HasColumnName("updated_at")
             .HasDefaultValueSql("now()");
 
         // Indexes

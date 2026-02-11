@@ -17,68 +17,54 @@ public class ChainExecutionConfiguration : IEntityTypeConfiguration<ChainExecuti
         builder.Property(e => e.Id)
             .HasConversion(
                 id => id.Value,
-                value => ChainExecutionId.From(value))
-            .HasColumnName("id");
+                value => ChainExecutionId.From(value));
 
         builder.Property(e => e.ChainDefinitionId)
             .HasConversion(
                 id => id.Value,
                 value => ChainDefinitionId.From(value))
-            .HasColumnName("chain_definition_id")
             .IsRequired();
 
         builder.Property(e => e.FamilyId)
             .HasConversion(
                 id => id.Value,
                 value => FamilyId.From(value))
-            .HasColumnName("family_id")
             .IsRequired();
 
         builder.Property(e => e.CorrelationId)
-            .HasColumnName("correlation_id")
             .HasDefaultValueSql("gen_random_uuid()");
 
         builder.Property(e => e.Status)
-            .HasColumnName("status")
             .HasMaxLength(30)
             .HasConversion<string>()
             .HasDefaultValue(ChainExecutionStatus.Pending);
 
         builder.Property(e => e.TriggerEventType)
-            .HasColumnName("trigger_event_type")
             .HasMaxLength(500)
             .IsRequired();
 
         builder.Property(e => e.TriggerEventId)
-            .HasColumnName("trigger_event_id")
             .IsRequired();
 
         builder.Property(e => e.TriggerPayload)
-            .HasColumnName("trigger_payload")
             .HasColumnType("jsonb")
             .IsRequired();
 
         builder.Property(e => e.Context)
-            .HasColumnName("context")
             .HasColumnType("jsonb")
             .HasDefaultValue("{}");
 
         builder.Property(e => e.CurrentStepIndex)
-            .HasColumnName("current_step_index")
             .HasDefaultValue(0);
 
         builder.Property(e => e.StartedAt)
-            .HasColumnName("started_at")
             .HasDefaultValueSql("now()");
 
-        builder.Property(e => e.CompletedAt)
-            .HasColumnName("completed_at");
+        builder.Property(e => e.CompletedAt);
 
-        builder.Property(e => e.FailedAt)
-            .HasColumnName("failed_at");
+        builder.Property(e => e.FailedAt);
 
-        builder.Property(e => e.ErrorMessage)
-            .HasColumnName("error_message");
+        builder.Property(e => e.ErrorMessage);
 
         // Indexes
         builder.HasIndex(e => e.FamilyId)

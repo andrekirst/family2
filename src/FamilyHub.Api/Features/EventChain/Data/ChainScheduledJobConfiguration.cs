@@ -12,42 +12,32 @@ public class ChainScheduledJobConfiguration : IEntityTypeConfiguration<ChainSche
         builder.ToTable("chain_scheduled_jobs", "event_chain");
 
         builder.HasKey(j => j.Id);
-        builder.Property(j => j.Id)
-            .HasColumnName("id");
+        builder.Property(j => j.Id);
 
         builder.Property(j => j.StepExecutionId)
-            .HasColumnName("step_execution_id")
             .IsRequired();
 
         builder.Property(j => j.ChainExecutionId)
             .HasConversion(
                 id => id.Value,
                 value => ChainExecutionId.From(value))
-            .HasColumnName("chain_execution_id")
             .IsRequired();
 
         builder.Property(j => j.ScheduledAt)
-            .HasColumnName("scheduled_at")
             .IsRequired();
 
-        builder.Property(j => j.PickedUpAt)
-            .HasColumnName("picked_up_at");
+        builder.Property(j => j.PickedUpAt);
 
-        builder.Property(j => j.CompletedAt)
-            .HasColumnName("completed_at");
+        builder.Property(j => j.CompletedAt);
 
-        builder.Property(j => j.FailedAt)
-            .HasColumnName("failed_at");
+        builder.Property(j => j.FailedAt);
 
-        builder.Property(j => j.ErrorMessage)
-            .HasColumnName("error_message");
+        builder.Property(j => j.ErrorMessage);
 
         builder.Property(j => j.RetryCount)
-            .HasColumnName("retry_count")
             .HasDefaultValue(0);
 
         builder.Property(j => j.CreatedAt)
-            .HasColumnName("created_at")
             .HasDefaultValueSql("now()");
 
         // Indexes (critical for scheduler performance)

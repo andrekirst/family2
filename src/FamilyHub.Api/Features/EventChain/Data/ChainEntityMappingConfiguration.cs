@@ -12,37 +12,30 @@ public class ChainEntityMappingConfiguration : IEntityTypeConfiguration<ChainEnt
         builder.ToTable("chain_entity_mappings", "event_chain");
 
         builder.HasKey(m => m.Id);
-        builder.Property(m => m.Id)
-            .HasColumnName("id");
+        builder.Property(m => m.Id);
 
         builder.Property(m => m.ChainExecutionId)
             .HasConversion(
                 id => id.Value,
                 value => ChainExecutionId.From(value))
-            .HasColumnName("chain_execution_id")
             .IsRequired();
 
         builder.Property(m => m.StepAlias)
-            .HasColumnName("step_alias")
             .HasMaxLength(50)
             .IsRequired();
 
         builder.Property(m => m.EntityType)
-            .HasColumnName("entity_type")
             .HasMaxLength(200)
             .IsRequired();
 
         builder.Property(m => m.EntityId)
-            .HasColumnName("entity_id")
             .IsRequired();
 
         builder.Property(m => m.Module)
-            .HasColumnName("module")
             .HasMaxLength(100)
             .IsRequired();
 
         builder.Property(m => m.CreatedAt)
-            .HasColumnName("created_at")
             .HasDefaultValueSql("now()");
 
         // Indexes
