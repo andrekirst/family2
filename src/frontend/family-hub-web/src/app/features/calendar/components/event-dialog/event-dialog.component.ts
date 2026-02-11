@@ -1,16 +1,26 @@
-import { Component, EventEmitter, Input, Output, signal, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  signal,
+  computed,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CalendarService, CalendarEventDto } from '../../services/calendar.service';
 import { UserService, CurrentUser } from '../../../../core/user/user.service';
 import { InvitationService } from '../../../family/services/invitation.service';
+import { ConfirmationDialogComponent } from '../../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 const EVENT_TYPES = ['Personal', 'Medical', 'School', 'Work', 'Social', 'Travel', 'Other'];
 
 @Component({
   selector: 'app-event-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmationDialogComponent],
   template: `
     <div
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
@@ -225,6 +235,21 @@ const EVENT_TYPES = ['Personal', 'Medical', 'School', 'Work', 'Social', 'Travel'
         </div>
       </div>
     </div>
+
+    @if (showCancelConfirmation()) {
+      <app-confirmation-dialog
+        title="Cancel Event"
+        [message]="cancelConfirmationMessage()"
+        confirmLabel="Cancel Event"
+        cancelLabel="Go Back"
+        variant="danger"
+        icon="trash"
+        [isLoading]="isCancelLoading()"
+        (confirmed)="onCancelConfirmed()"
+        (cancelled)="onCancelDismissed()"
+        data-testid="cancel-event-confirmation"
+      />
+    }
   `,
 })
 export class EventDialogComponent implements OnInit {
@@ -254,6 +279,11 @@ export class EventDialogComponent implements OnInit {
   errorMessage = signal<string | null>(null);
   familyMembers = signal<CurrentUser[]>([]);
   isEditMode = signal(false);
+  showCancelConfirmation = signal(false);
+  isCancelLoading = signal(false);
+  cancelConfirmationMessage = computed(
+    () => `Are you sure you want to cancel '${this.title()}'? This action cannot be undone.`,
+  );
 
   ngOnInit(): void {
     if (this.event) {
@@ -274,16 +304,25 @@ export class EventDialogComponent implements OnInit {
       }
     } else if (this.selectedDate) {
       const date = this.selectedDate;
-      this.startTime.set(
-        this.formatDateTimeLocal(
-          new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0),
-        ),
-      );
-      this.endTime.set(
-        this.formatDateTimeLocal(
-          new Date(date.getFullYear(), date.getMonth(), date.getDate(), 10, 0),
-        ),
-      );
+      const hasTimeInfo = date.getHours() !== 0 || date.getMinutes() !== 0;
+
+      if (hasTimeInfo) {
+        // Week view: use the clicked time, +1 hour for end
+        this.startTime.set(this.formatDateTimeLocal(date));
+        this.endTime.set(this.formatDateTimeLocal(new Date(date.getTime() + 3600000)));
+      } else {
+        // Month view: default 9-10 AM
+        this.startTime.set(
+          this.formatDateTimeLocal(
+            new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0),
+          ),
+        );
+        this.endTime.set(
+          this.formatDateTimeLocal(
+            new Date(date.getFullYear(), date.getMonth(), date.getDate(), 10, 0),
+          ),
+        );
+      }
     }
 
     // Load family members for attendee selection
@@ -388,11 +427,17 @@ export class EventDialogComponent implements OnInit {
 
   onCancel(): void {
     if (!this.event) return;
+    this.showCancelConfirmation.set(true);
+  }
 
-    this.isLoading.set(true);
+  onCancelConfirmed(): void {
+    if (!this.event) return;
+
+    this.isCancelLoading.set(true);
     this.calendarService.cancelCalendarEvent(this.event.id).subscribe({
       next: (success) => {
-        this.isLoading.set(false);
+        this.isCancelLoading.set(false);
+        this.showCancelConfirmation.set(false);
         if (success) {
           this.eventCancelled.emit();
         } else {
@@ -400,10 +445,15 @@ export class EventDialogComponent implements OnInit {
         }
       },
       error: () => {
-        this.isLoading.set(false);
+        this.isCancelLoading.set(false);
+        this.showCancelConfirmation.set(false);
         this.errorMessage.set('An error occurred');
       },
     });
+  }
+
+  onCancelDismissed(): void {
+    this.showCancelConfirmation.set(false);
   }
 
   onDismiss(): void {

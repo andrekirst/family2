@@ -1,6 +1,7 @@
 import { Component, computed, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
+import { EVENT_TYPE_COLORS } from '../../models/calendar.models';
 
 export interface CalendarDay {
   date: Date;
@@ -8,16 +9,6 @@ export interface CalendarDay {
   isToday: boolean;
   events: CalendarEventDto[];
 }
-
-const EVENT_TYPE_COLORS: Record<string, string> = {
-  Personal: 'bg-blue-100 text-blue-800 border-blue-200',
-  Medical: 'bg-red-100 text-red-800 border-red-200',
-  School: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  Work: 'bg-purple-100 text-purple-800 border-purple-200',
-  Social: 'bg-green-100 text-green-800 border-green-200',
-  Travel: 'bg-orange-100 text-orange-800 border-orange-200',
-  Other: 'bg-gray-100 text-gray-800 border-gray-200',
-};
 
 @Component({
   selector: 'app-calendar-month-grid',

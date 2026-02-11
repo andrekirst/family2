@@ -4,68 +4,116 @@ import { RouterModule, Router } from '@angular/router';
 import { UserService } from '../../../../core/user/user.service';
 import { CalendarService, CalendarEventDto } from '../../services/calendar.service';
 import { CalendarMonthGridComponent } from '../calendar-month-grid/calendar-month-grid.component';
+import { CalendarWeekGridComponent } from '../calendar-week-grid/calendar-week-grid.component';
+import { CalendarWeekSkeletonComponent } from '../calendar-week-skeleton/calendar-week-skeleton.component';
+import { CalendarViewSwitcherComponent } from '../calendar-view-switcher/calendar-view-switcher.component';
 import { EventDialogComponent } from '../event-dialog/event-dialog.component';
 import { TopBarService } from '../../../../shared/services/top-bar.service';
+import { CalendarViewMode } from '../../models/calendar.models';
+import { getWeekStart, getWeekEnd, formatWeekLabel } from '../../utils/week.utils';
 
 @Component({
   selector: 'app-calendar-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, CalendarMonthGridComponent, EventDialogComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    CalendarMonthGridComponent,
+    CalendarWeekGridComponent,
+    CalendarWeekSkeletonComponent,
+    CalendarViewSwitcherComponent,
+    EventDialogComponent,
+  ],
   template: `
-    <!-- Month Navigation -->
+    <!-- Navigation -->
     <div class="flex items-center justify-between mb-4">
-      <button
-        (click)="previousMonth()"
-        class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
-        data-testid="prev-month"
-      >
-        <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          (click)="previousPeriod()"
+          class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+          data-testid="prev-period"
+        >
+          <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <button
+          (click)="goToToday()"
+          class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          data-testid="today-button"
+        >
+          Today
+        </button>
+        <button
+          (click)="nextPeriod()"
+          class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+          data-testid="next-period"
+        >
+          <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
 
-      <h2 class="text-xl font-semibold text-gray-900" data-testid="current-month-label">
-        {{ monthLabel() }}
+      <h2 class="text-xl font-semibold text-gray-900" data-testid="current-period-label">
+        {{ navigationLabel() }}
       </h2>
 
-      <button
-        (click)="nextMonth()"
-        class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
-        data-testid="next-month"
-      >
-        <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+      <app-calendar-view-switcher
+        [activeView]="viewMode()"
+        (viewChanged)="onViewModeChanged($event)"
+      />
     </div>
 
-    <!-- Loading State -->
-    @if (isLoading()) {
-      <div class="bg-white shadow rounded-lg p-6">
-        <div class="animate-pulse">
-          <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div class="grid grid-cols-7 gap-2">
-            @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track i) {
-              <div class="h-24 bg-gray-200 rounded"></div>
-            }
+    <!-- Month View -->
+    @if (viewMode() === 'month') {
+      @if (isLoading()) {
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="animate-pulse">
+            <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div class="grid grid-cols-7 gap-2">
+              @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track i) {
+                <div class="h-24 bg-gray-200 rounded"></div>
+              }
+            </div>
           </div>
         </div>
-      </div>
-    } @else {
-      <!-- Calendar Grid -->
-      <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
-        <app-calendar-month-grid
-          [monthInput]="currentMonth()"
-          [eventsInput]="events()"
-          (dayClicked)="onDayClicked($event)"
-          (eventClicked)="onEventClicked($event)"
-        />
-      </div>
+      } @else {
+        <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
+          <app-calendar-month-grid
+            [monthInput]="currentMonth()"
+            [eventsInput]="events()"
+            (dayClicked)="onDayClicked($event)"
+            (eventClicked)="onEventClicked($event)"
+          />
+        </div>
+      }
+    }
+
+    <!-- Week View -->
+    @if (viewMode() === 'week') {
+      @if (isLoading()) {
+        <app-calendar-week-skeleton />
+      } @else {
+        <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
+          <app-calendar-week-grid
+            [weekStartInput]="currentWeek()"
+            [eventsInput]="events()"
+            (timeSlotClicked)="onTimeSlotClicked($event)"
+            (eventClicked)="onEventClicked($event)"
+          />
+        </div>
+      }
     }
 
     <!-- Event Dialog -->
@@ -93,7 +141,9 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private topBarService = inject(TopBarService);
 
+  viewMode = signal<CalendarViewMode>('month');
   currentMonth = signal<Date>(new Date());
+  currentWeek = signal<Date>(getWeekStart(new Date()));
   events = signal<CalendarEventDto[]>([]);
   isLoading = signal(false);
   selectedDate = signal<Date | null>(null);
@@ -104,6 +154,15 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     const date = this.currentMonth();
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   });
+
+  weekLabel = computed(() => {
+    const start = this.currentWeek();
+    return formatWeekLabel(start, getWeekEnd(start));
+  });
+
+  navigationLabel = computed(() =>
+    this.viewMode() === 'month' ? this.monthLabel() : this.weekLabel(),
+  );
 
   async ngOnInit(): Promise<void> {
     this.topBarService.setConfig({
@@ -126,6 +185,51 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     this.topBarService.clear();
   }
 
+  onViewModeChanged(mode: CalendarViewMode): void {
+    if (mode === this.viewMode()) return;
+
+    if (mode === 'week') {
+      // Switching month → week: use today if current month contains today, else 1st of month
+      const now = new Date();
+      const cm = this.currentMonth();
+      if (now.getFullYear() === cm.getFullYear() && now.getMonth() === cm.getMonth()) {
+        this.currentWeek.set(getWeekStart(now));
+      } else {
+        this.currentWeek.set(getWeekStart(cm));
+      }
+    } else {
+      // Switching week → month: use the month containing the week's Monday
+      const weekMon = this.currentWeek();
+      this.currentMonth.set(new Date(weekMon.getFullYear(), weekMon.getMonth(), 1));
+    }
+
+    this.viewMode.set(mode);
+    this.loadEvents();
+  }
+
+  previousPeriod(): void {
+    if (this.viewMode() === 'month') {
+      this.previousMonth();
+    } else {
+      this.previousWeek();
+    }
+  }
+
+  nextPeriod(): void {
+    if (this.viewMode() === 'month') {
+      this.nextMonth();
+    } else {
+      this.nextWeek();
+    }
+  }
+
+  goToToday(): void {
+    const now = new Date();
+    this.currentMonth.set(new Date(now.getFullYear(), now.getMonth(), 1));
+    this.currentWeek.set(getWeekStart(now));
+    this.loadEvents();
+  }
+
   previousMonth(): void {
     const current = this.currentMonth();
     this.currentMonth.set(new Date(current.getFullYear(), current.getMonth() - 1, 1));
@@ -138,7 +242,28 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     this.loadEvents();
   }
 
+  previousWeek(): void {
+    const current = this.currentWeek();
+    const prev = new Date(current);
+    prev.setDate(prev.getDate() - 7);
+    this.currentWeek.set(prev);
+    this.loadEvents();
+  }
+
+  nextWeek(): void {
+    const current = this.currentWeek();
+    const next = new Date(current);
+    next.setDate(next.getDate() + 7);
+    this.currentWeek.set(next);
+    this.loadEvents();
+  }
+
   onDayClicked(date: Date): void {
+    this.selectedDate.set(date);
+    this.showCreateDialog.set(true);
+  }
+
+  onTimeSlotClicked(date: Date): void {
     this.selectedDate.set(date);
     this.showCreateDialog.set(true);
   }
@@ -181,13 +306,20 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     const user = this.userService.currentUser();
     if (!user?.familyId) return;
 
-    const current = this.currentMonth();
-    const year = current.getFullYear();
-    const month = current.getMonth();
+    let startDate: Date;
+    let endDate: Date;
 
-    // Fetch a wider range to include events visible in adjacent month days
-    const startDate = new Date(year, month - 1, 20);
-    const endDate = new Date(year, month + 1, 12);
+    if (this.viewMode() === 'month') {
+      const current = this.currentMonth();
+      const year = current.getFullYear();
+      const month = current.getMonth();
+      // Fetch a wider range to include events visible in adjacent month days
+      startDate = new Date(year, month - 1, 20);
+      endDate = new Date(year, month + 1, 12);
+    } else {
+      startDate = this.currentWeek();
+      endDate = getWeekEnd(this.currentWeek());
+    }
 
     this.isLoading.set(true);
 
