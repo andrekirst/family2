@@ -110,6 +110,80 @@ namespace FamilyHub.Api.Migrations
                         onDelete: ReferentialAction.SetNull);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "family_invitations",
+                schema: "family",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FamilyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    InvitedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    InviteeEmail = table.Column<string>(type: "character varying(320)", maxLength: 320, nullable: false),
+                    TokenHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Role = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "Pending"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    AcceptedByUserId = table.Column<Guid>(type: "uuid", nullable: true),
+                    AcceptedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_family_invitations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_family_invitations_families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalSchema: "family",
+                        principalTable: "families",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_family_invitations_users_AcceptedByUserId",
+                        column: x => x.AcceptedByUserId,
+                        principalSchema: "auth",
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_family_invitations_users_InvitedByUserId",
+                        column: x => x.InvitedByUserId,
+                        principalSchema: "auth",
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "family_members",
+                schema: "family",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FamilyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Role = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    JoinedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_family_members", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_family_members_families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalSchema: "family",
+                        principalTable: "families",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_family_members_users_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "auth",
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_calendar_events_CreatedBy_StartTime",
                 schema: "calendar",
@@ -127,6 +201,44 @@ namespace FamilyHub.Api.Migrations
                 schema: "family",
                 table: "families",
                 column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_family_invitations_AcceptedByUserId",
+                schema: "family",
+                table: "family_invitations",
+                column: "AcceptedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_family_invitations_FamilyId_Status",
+                schema: "family",
+                table: "family_invitations",
+                columns: new[] { "FamilyId", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_family_invitations_InvitedByUserId",
+                schema: "family",
+                table: "family_invitations",
+                column: "InvitedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_family_invitations_TokenHash",
+                schema: "family",
+                table: "family_invitations",
+                column: "TokenHash",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_family_members_FamilyId_UserId",
+                schema: "family",
+                table: "family_members",
+                columns: new[] { "FamilyId", "UserId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_family_members_UserId",
+                schema: "family",
+                table: "family_members",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_users_Email",
@@ -170,6 +282,14 @@ namespace FamilyHub.Api.Migrations
             migrationBuilder.DropTable(
                 name: "calendar_event_attendees",
                 schema: "calendar");
+
+            migrationBuilder.DropTable(
+                name: "family_invitations",
+                schema: "family");
+
+            migrationBuilder.DropTable(
+                name: "family_members",
+                schema: "family");
 
             migrationBuilder.DropTable(
                 name: "calendar_events",

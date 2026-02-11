@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FamilyHub.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260210085935_InitialCreate")]
+    [Migration("20260210224821_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -202,6 +202,105 @@ namespace FamilyHub.Api.Migrations
                     b.ToTable("families", "family");
                 });
 
+            modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.FamilyInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("AcceptedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InvitedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("InviteeEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcceptedByUserId");
+
+                    b.HasIndex("InvitedByUserId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("FamilyId", "Status");
+
+                    b.ToTable("family_invitations", "family");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.FamilyMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime>("JoinedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("FamilyId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("family_members", "family");
+                });
+
             modelBuilder.Entity("FamilyHub.Api.Features.Auth.Domain.Entities.User", b =>
                 {
                     b.HasOne("FamilyHub.Api.Features.Family.Domain.Entities.Family", "Family")
@@ -234,6 +333,51 @@ namespace FamilyHub.Api.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.FamilyInvitation", b =>
+                {
+                    b.HasOne("FamilyHub.Api.Features.Auth.Domain.Entities.User", "AcceptedByUser")
+                        .WithMany()
+                        .HasForeignKey("AcceptedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FamilyHub.Api.Features.Family.Domain.Entities.Family", "Family")
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FamilyHub.Api.Features.Auth.Domain.Entities.User", "InvitedByUser")
+                        .WithMany()
+                        .HasForeignKey("InvitedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcceptedByUser");
+
+                    b.Navigation("Family");
+
+                    b.Navigation("InvitedByUser");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.FamilyMember", b =>
+                {
+                    b.HasOne("FamilyHub.Api.Features.Family.Domain.Entities.Family", "Family")
+                        .WithMany("FamilyMembers")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FamilyHub.Api.Features.Auth.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Family");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FamilyHub.Api.Features.Calendar.Domain.Entities.CalendarEvent", b =>
                 {
                     b.Navigation("Attendees");
@@ -241,6 +385,8 @@ namespace FamilyHub.Api.Migrations
 
             modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.Family", b =>
                 {
+                    b.Navigation("FamilyMembers");
+
                     b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
