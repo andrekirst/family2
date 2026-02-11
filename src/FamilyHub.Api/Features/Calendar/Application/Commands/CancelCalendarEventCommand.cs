@@ -1,4 +1,4 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Calendar.Application.Commands;

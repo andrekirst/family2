@@ -1,8 +1,8 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Calendar.Application.Queries;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Models;
-using FamilyHub.Api.Features.Family.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using HotChocolate.Authorization;
 

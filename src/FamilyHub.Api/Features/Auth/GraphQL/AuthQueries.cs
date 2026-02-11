@@ -1,6 +1,6 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Models;
 using FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
 using FamilyHub.Api.Features.Auth.Application.Queries.GetUserById;

@@ -1,4 +1,4 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.DeclineInvitation;
 

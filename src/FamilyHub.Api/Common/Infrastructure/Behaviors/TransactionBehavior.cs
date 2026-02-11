@@ -1,4 +1,4 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using Mediator;
 
 namespace FamilyHub.Api.Common.Infrastructure.Behaviors;

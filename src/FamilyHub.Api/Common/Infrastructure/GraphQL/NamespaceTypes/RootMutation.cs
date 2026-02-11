@@ -14,4 +14,9 @@ public class RootMutation
     [Authorize]
     public FamilyMutation Family() => new();
 
+    /// <summary>
+    /// Event Chain Engine mutations (create, update, delete, execute chains).
+    /// </summary>
+    [Authorize]
+    public EventChainMutation EventChain() => new();
 }

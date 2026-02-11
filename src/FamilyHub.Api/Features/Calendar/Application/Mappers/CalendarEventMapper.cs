@@ -1,4 +1,5 @@
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Models;
 
 namespace FamilyHub.Api.Features.Calendar.Application.Mappers;

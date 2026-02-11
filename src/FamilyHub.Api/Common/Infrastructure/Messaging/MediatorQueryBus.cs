@@ -1,4 +1,4 @@
-using Mediator;
+using FamilyHub.Common.Application;
 
 namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 
@@ -6,8 +6,8 @@ namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 /// Mediator implementation of IQueryBus.
 /// Adapts Mediator's IMediator.Send to our domain abstraction.
 /// </summary>
-public sealed class MediatorQueryBus(IMediator mediator) : Application.IQueryBus
+public sealed class MediatorQueryBus(Mediator.IMediator mediator) : IQueryBus
 {
-    public ValueTask<TResult> QueryAsync<TResult>(Application.IQuery<TResult> query, CancellationToken ct = default)
+    public ValueTask<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken ct = default)
         => mediator.Send(query, ct);
 }

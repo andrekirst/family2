@@ -1,6 +1,6 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Calendar.Models;
-using FamilyHub.Api.Features.Family.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Calendar.Application.Queries;
 

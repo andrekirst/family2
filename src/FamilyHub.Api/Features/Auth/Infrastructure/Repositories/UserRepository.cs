@@ -1,8 +1,7 @@
 using FamilyHub.Api.Common.Database;
-using FamilyHub.Api.Common.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Features.Auth.Infrastructure.Repositories;

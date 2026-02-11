@@ -1,8 +1,8 @@
-using FamilyHub.Api.Common.Domain;
-using FamilyHub.Api.Common.Domain.ValueObjects;
+using FamilyHub.Common.Domain;
+using FamilyHub.Common.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;

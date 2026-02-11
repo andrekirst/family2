@@ -1,6 +1,5 @@
-using FamilyHub.Api.Common.Domain;
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
-using FamilyHub.Api.Features.Family.Domain.ValueObjects;
+using FamilyHub.Common.Domain;
+using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Auth.Domain.Events;
 

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.12" />
@@ -20,7 +21,6 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageReference Include="Vogen" Version="8.0.4" />
-    <PackageReference Include="WolverineFx" Version="5.14.0" />
     <PackageReference Include="MailKit" Version="4.10.0" />
     <PackageReference Include="Mediator.Abstractions" Version="3.0.*" />
     <PackageReference Include="Mediator.SourceGenerator" Version="3.0.*">
@@ -30,5 +30,10 @@
   </ItemGroup>
 
 
+  <ItemGroup>
+    <ProjectReference Include="..\FamilyHub.Common\FamilyHub.Common.csproj" />
+    <ProjectReference Include="..\FamilyHub.EventChain.Domain\FamilyHub.EventChain.Domain.csproj" />
+    <ProjectReference Include="..\FamilyHub.EventChain.Infrastructure\FamilyHub.EventChain.Infrastructure.csproj" />
+  </ItemGroup>
 
 </Project>

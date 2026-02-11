@@ -1,4 +1,4 @@
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 

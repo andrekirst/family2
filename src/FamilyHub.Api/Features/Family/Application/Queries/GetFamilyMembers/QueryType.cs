@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Infrastructure;
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Models;
 using FamilyHub.Api.Features.Family.Models;
 

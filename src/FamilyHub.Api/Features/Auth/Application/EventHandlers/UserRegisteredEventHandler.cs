@@ -1,4 +1,4 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Events;
 
 namespace FamilyHub.Api.Features.Auth.Application.EventHandlers;

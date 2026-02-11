@@ -37,10 +37,10 @@ public class PostgresRlsMiddleware(RequestDelegate next)
                     DO $$
                     DECLARE v_user_id text; v_family_id text;
                     BEGIN
-                        SELECT "Id"::text, "FamilyId"::text
+                        SELECT "id"::text, "family_id"::text
                         INTO v_user_id, v_family_id
                         FROM auth.users
-                        WHERE "ExternalUserId" = '{safeExternalUserId}';
+                        WHERE "external_user_id" = '{safeExternalUserId}';
                         IF v_user_id IS NOT NULL THEN
                             PERFORM set_config('app.current_user_id', v_user_id, false);
                             IF v_family_id IS NOT NULL THEN

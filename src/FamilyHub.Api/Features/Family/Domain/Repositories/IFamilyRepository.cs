@@ -1,5 +1,4 @@
-using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
-using FamilyHub.Api.Features.Family.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyEntity = FamilyHub.Api.Features.Family.Domain.Entities.Family;
 
 namespace FamilyHub.Api.Features.Family.Domain.Repositories;

@@ -1,4 +1,4 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Email;
 using FamilyHub.Api.Common.Infrastructure;
@@ -15,6 +15,13 @@ using FamilyHub.Api.Features.Calendar.GraphQL;
 using FamilyHub.Api.Features.Calendar.Infrastructure.Repositories;
 using FamilyHub.Api.Features.Calendar.Infrastructure.Services;
 using FamilyHub.Api.Features.Calendar.Models;
+using FamilyHub.EventChain.Domain.Repositories;
+using FamilyHub.EventChain.Infrastructure.Orchestrator;
+using FamilyHub.EventChain.Infrastructure.Pipeline;
+using FamilyHub.EventChain.Infrastructure.Registry;
+using FamilyHub.Api.Features.EventChain.Infrastructure.Repositories;
+using FamilyHub.Api.Features.EventChain.Application.EventHandlers;
+using FamilyHub.Api.Features.EventChain.Infrastructure.Scheduler;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Services;
 using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
@@ -55,6 +62,7 @@ builder.Services.AddScoped<IQueryBus, MediatorQueryBus>();
 builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 {
     options.UseNpgsql(connectionString);
+    options.UseSnakeCaseNamingConvention();
     options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
 });
 
@@ -108,6 +116,31 @@ builder.Services.AddHostedService<CancelledEventCleanupService>();
 // Configure email service
 builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("Email"));
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
+// Event Chain Engine services
+builder.Services.AddSingleton<IChainRegistry, ChainRegistry>();
+builder.Services.AddScoped<IChainDefinitionRepository, ChainDefinitionRepository>();
+builder.Services.AddScoped<IChainExecutionRepository, ChainExecutionRepository>();
+builder.Services.AddScoped<IChainOrchestrator, ChainOrchestrator>();
+builder.Services.AddScoped<IDomainEventObserver, ChainTriggerHandler>();
+
+// Step execution pipeline (middleware order matters: Logging → CircuitBreaker → Retry → Compensation → ActionHandler)
+builder.Services.AddSingleton<LoggingMiddleware>();
+builder.Services.AddSingleton<CircuitBreakerMiddleware>();
+builder.Services.AddSingleton<RetryMiddleware>();
+builder.Services.AddScoped<CompensationMiddleware>();
+builder.Services.AddScoped<ActionHandlerMiddleware>();
+builder.Services.AddScoped<StepPipeline>(sp => new StepPipeline(new IStepMiddleware[]
+{
+    sp.GetRequiredService<LoggingMiddleware>(),
+    sp.GetRequiredService<CircuitBreakerMiddleware>(),
+    sp.GetRequiredService<RetryMiddleware>(),
+    sp.GetRequiredService<CompensationMiddleware>(),
+    sp.GetRequiredService<ActionHandlerMiddleware>()
+}));
+
+// Chain scheduler background service
+builder.Services.AddHostedService<ChainSchedulerService>();
 
 // Configure CORS for Angular frontend
 builder.Services.AddCors(options =>

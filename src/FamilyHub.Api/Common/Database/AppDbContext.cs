@@ -1,7 +1,8 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.EventChain.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -48,6 +49,14 @@ public class AppDbContext : DbContext, IUnitOfWork
     /// Calendar event attendees (join table)
     /// </summary>
     public DbSet<CalendarEventAttendee> CalendarEventAttendees { get; set; }
+
+    // Event Chain Engine entities
+    public DbSet<ChainDefinition> ChainDefinitions { get; set; }
+    public DbSet<ChainDefinitionStep> ChainDefinitionSteps { get; set; }
+    public DbSet<ChainExecution> ChainExecutions { get; set; }
+    public DbSet<StepExecution> StepExecutions { get; set; }
+    public DbSet<ChainEntityMapping> ChainEntityMappings { get; set; }
+    public DbSet<ChainScheduledJob> ChainScheduledJobs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

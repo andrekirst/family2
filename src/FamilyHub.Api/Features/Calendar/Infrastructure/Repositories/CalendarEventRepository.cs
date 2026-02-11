@@ -2,7 +2,7 @@ using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
-using FamilyHub.Api.Features.Family.Domain.ValueObjects;
+using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Features.Calendar.Infrastructure.Repositories;

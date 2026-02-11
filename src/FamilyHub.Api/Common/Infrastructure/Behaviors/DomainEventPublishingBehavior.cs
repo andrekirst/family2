@@ -1,4 +1,4 @@
-using FamilyHub.Api.Common.Application;
+using FamilyHub.Common.Application;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +15,7 @@ namespace FamilyHub.Api.Common.Infrastructure.Behaviors;
 public sealed class DomainEventPublishingBehavior<TMessage, TResponse>(
     IDomainEventCollector collector,
     IMediator mediator,
+    IEnumerable<IDomainEventObserver> observers,
     ILogger<DomainEventPublishingBehavior<TMessage, TResponse>> logger)
     : IPipelineBehavior<TMessage, TResponse>
     where TMessage : IMessage
@@ -30,6 +31,7 @@ public sealed class DomainEventPublishingBehavior<TMessage, TResponse>(
 
         foreach (var domainEvent in events)
         {
+            // Publish via Mediator for specific INotificationHandler<T> subscribers
             try
             {
                 if (domainEvent is INotification notification)
@@ -43,6 +45,23 @@ public sealed class DomainEventPublishingBehavior<TMessage, TResponse>(
                     "Error publishing domain event {EventType} ({EventId})",
                     domainEvent.GetType().Name,
                     domainEvent.EventId);
+            }
+
+            // Notify all domain event observers (e.g. chain trigger handler)
+            foreach (var observer in observers)
+            {
+                try
+                {
+                    await observer.OnEventPublishedAsync(domainEvent, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex,
+                        "Error in domain event observer {ObserverType} for {EventType} ({EventId})",
+                        observer.GetType().Name,
+                        domainEvent.GetType().Name,
+                        domainEvent.EventId);
+                }
             }
         }
 

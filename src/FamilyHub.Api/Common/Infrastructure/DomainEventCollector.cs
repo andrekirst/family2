@@ -1,5 +1,5 @@
-using FamilyHub.Api.Common.Application;
-using FamilyHub.Api.Common.Domain;
+using FamilyHub.Common.Application;
+using FamilyHub.Common.Domain;
 
 namespace FamilyHub.Api.Common.Infrastructure;
 

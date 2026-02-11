@@ -1,7 +1,6 @@
-using FamilyHub.Api.Common.Domain.ValueObjects;
-using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
-using FamilyHub.Api.Features.Family.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
