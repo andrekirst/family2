@@ -14,11 +14,11 @@ using System.Security.Claims;
 
 namespace FamilyHub.Api.Features.Calendar.GraphQL;
 
-[ExtendObjectType(typeof(CalendarMutation))]
+[ExtendObjectType(typeof(FamilyCalendarMutation))]
 public class CalendarMutations
 {
     [Authorize]
-    public async Task<CalendarEventDto> CreateCalendarEvent(
+    public async Task<CalendarEventDto> Create(
         CreateCalendarEventRequest input,
         ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
@@ -63,7 +63,7 @@ public class CalendarMutations
     }
 
     [Authorize]
-    public async Task<CalendarEventDto> UpdateCalendarEvent(
+    public async Task<CalendarEventDto> Update(
         Guid id,
         UpdateCalendarEventRequest input,
         ClaimsPrincipal claimsPrincipal,
@@ -104,7 +104,7 @@ public class CalendarMutations
     }
 
     [Authorize]
-    public async Task<bool> CancelCalendarEvent(
+    public async Task<bool> Cancel(
         Guid id,
         ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,

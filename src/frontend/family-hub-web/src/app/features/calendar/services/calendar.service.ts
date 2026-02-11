@@ -60,13 +60,13 @@ export class CalendarService {
 
   getCalendarEvents(familyId: string, startDate: string, endDate: string) {
     return this.apollo
-      .query<{ calendar: { calendarEvents: CalendarEventDto[] } }>({
+      .query<{ family: { calendars: CalendarEventDto[] } }>({
         query: GET_CALENDAR_EVENTS,
         variables: { familyId, startDate, endDate },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((result) => result.data?.calendar?.calendarEvents ?? []),
+        map((result) => result.data?.family?.calendars ?? []),
         catchError((error) => {
           console.error('Failed to fetch calendar events:', error);
           return of([]);
@@ -76,13 +76,13 @@ export class CalendarService {
 
   getCalendarEvent(id: string) {
     return this.apollo
-      .query<{ calendar: { calendarEvent: CalendarEventDto | null } }>({
+      .query<{ family: { calendar: CalendarEventDto | null } }>({
         query: GET_CALENDAR_EVENT,
         variables: { id },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((result) => result.data?.calendar?.calendarEvent ?? null),
+        map((result) => result.data?.family?.calendar ?? null),
         catchError((error) => {
           console.error('Failed to fetch calendar event:', error);
           return of(null);
@@ -92,12 +92,12 @@ export class CalendarService {
 
   createCalendarEvent(input: CreateCalendarEventInput) {
     return this.apollo
-      .mutate<{ calendar: { createCalendarEvent: CalendarEventDto } }>({
+      .mutate<{ family: { calendar: { create: CalendarEventDto } } }>({
         mutation: CREATE_CALENDAR_EVENT,
         variables: { input },
       })
       .pipe(
-        map((result) => result.data?.calendar?.createCalendarEvent ?? null),
+        map((result) => result.data?.family?.calendar?.create ?? null),
         catchError((error) => {
           console.error('Failed to create calendar event:', error);
           return of(null);
@@ -107,12 +107,12 @@ export class CalendarService {
 
   updateCalendarEvent(id: string, input: UpdateCalendarEventInput) {
     return this.apollo
-      .mutate<{ calendar: { updateCalendarEvent: CalendarEventDto } }>({
+      .mutate<{ family: { calendar: { update: CalendarEventDto } } }>({
         mutation: UPDATE_CALENDAR_EVENT,
         variables: { id, input },
       })
       .pipe(
-        map((result) => result.data?.calendar?.updateCalendarEvent ?? null),
+        map((result) => result.data?.family?.calendar?.update ?? null),
         catchError((error) => {
           console.error('Failed to update calendar event:', error);
           return of(null);
@@ -122,12 +122,12 @@ export class CalendarService {
 
   cancelCalendarEvent(id: string) {
     return this.apollo
-      .mutate<{ calendar: { cancelCalendarEvent: boolean } }>({
+      .mutate<{ family: { calendar: { cancel: boolean } } }>({
         mutation: CANCEL_CALENDAR_EVENT,
         variables: { id },
       })
       .pipe(
-        map((result) => result.data?.calendar?.cancelCalendarEvent ?? false),
+        map((result) => result.data?.family?.calendar?.cancel ?? false),
         catchError((error) => {
           console.error('Failed to cancel calendar event:', error);
           return of(false);

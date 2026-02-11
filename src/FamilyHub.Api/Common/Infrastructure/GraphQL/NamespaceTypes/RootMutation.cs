@@ -14,9 +14,4 @@ public class RootMutation
     [Authorize]
     public FamilyMutation Family() => new();
 
-    /// <summary>
-    /// Calendar mutations (create, update, cancel events).
-    /// </summary>
-    [Authorize]
-    public CalendarMutation Calendar() => new();
 }

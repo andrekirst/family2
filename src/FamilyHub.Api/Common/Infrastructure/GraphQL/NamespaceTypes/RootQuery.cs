@@ -26,8 +26,8 @@ public class RootQuery
     public UsersQuery Users() => new();
 
     /// <summary>
-    /// Calendar queries (events, schedules).
+    /// Family-scoped queries (calendar, members, etc.).
     /// </summary>
     [Authorize]
-    public CalendarQuery Calendar() => new();
+    public FamilyQuery Family() => new();
 }

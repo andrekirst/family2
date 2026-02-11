@@ -14,4 +14,10 @@ public class FamilyMutation
     /// </summary>
     [Authorize]
     public FamilyInvitationMutation Invitation(Guid? id = null) => new(id);
+
+    /// <summary>
+    /// Calendar mutations namespace (create, update, cancel events).
+    /// </summary>
+    [Authorize]
+    public FamilyCalendarMutation Calendar() => new();
 }

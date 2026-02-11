@@ -8,11 +8,11 @@ using HotChocolate.Authorization;
 
 namespace FamilyHub.Api.Features.Calendar.GraphQL;
 
-[ExtendObjectType(typeof(CalendarQuery))]
+[ExtendObjectType(typeof(FamilyQuery))]
 public class CalendarQueries
 {
     [Authorize]
-    public async Task<List<CalendarEventDto>> GetCalendarEvents(
+    public async Task<List<CalendarEventDto>> GetCalendars(
         Guid familyId,
         DateTime startDate,
         DateTime endDate,
@@ -28,7 +28,7 @@ public class CalendarQueries
     }
 
     [Authorize]
-    public async Task<CalendarEventDto?> GetCalendarEvent(
+    public async Task<CalendarEventDto?> GetCalendar(
         Guid id,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
