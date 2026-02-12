@@ -108,8 +108,8 @@ We use RICE scoring to prioritize features:
 
 | Feature              | Description                             | RICE Score | Effort    | Priority |
 | -------------------- | --------------------------------------- | ---------- | --------- | -------- |
-| **Calendar View**    | Month/week/day/agenda views             | 48.0       | 2 weeks   | P0       |
-| **Create Events**    | Title, date/time, description, location | 50.0       | 1.5 weeks | P0       |
+| **Calendar View**    | Month ✅/week ✅/day/agenda views       | 48.0       | 2 weeks   | P0       |
+| **Create Events** ✅ | Title, date/time, description, location | 50.0       | 1.5 weeks | P0       |
 | **Event Assignment** | Assign to family members                | 45.0       | 1 week    | P0       |
 | **Event Colors**     | Color code by person/category           | 40.0       | 0.5 weeks | P0       |
 | **Recurring Events** | Daily/weekly/monthly patterns           | 42.0       | 2 weeks   | P1       |
