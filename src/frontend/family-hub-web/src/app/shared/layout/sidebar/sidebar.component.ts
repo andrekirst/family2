@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { SidebarStateService } from '../../services/sidebar-state.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { UserService } from '../../../core/user/user.service';
 import { ICONS } from '../../icons/icons';
 
@@ -64,9 +65,10 @@ interface NavItem {
       <!-- User section -->
       <div class="border-t border-gray-200 p-3 flex-shrink-0 relative">
         <button
-          (click)="onUserClick()"
+          (click)="toggleUserMenu($event)"
           class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors"
           [class.justify-center]="sidebarState.isCollapsed()"
+          [class.bg-gray-100]="showUserMenu()"
           [attr.title]="sidebarState.isCollapsed() ? userName() : null"
           data-testid="sidebar-user"
         >
@@ -75,12 +77,19 @@ interface NavItem {
             <span class="truncate">{{ userName() }}</span>
           }
         </button>
-        @if (showComingSoon()) {
+        @if (showUserMenu()) {
           <div
-            class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-800 text-white text-xs rounded-lg whitespace-nowrap shadow-lg"
-            data-testid="coming-soon-tooltip"
+            class="absolute bottom-full left-2 right-2 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+            data-testid="user-menu"
           >
-            Coming soon
+            <button
+              (click)="logout()"
+              class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              data-testid="logout-button"
+            >
+              <span [innerHTML]="icons.LOGOUT" class="flex-shrink-0"></span>
+              <span>Logout</span>
+            </button>
           </div>
         }
       </div>
@@ -89,11 +98,12 @@ interface NavItem {
 })
 export class SidebarComponent {
   readonly sidebarState = inject(SidebarStateService);
+  private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
 
   readonly icons = ICONS;
-  readonly showComingSoon = signal(false);
+  readonly showUserMenu = signal(false);
 
   readonly navItems: NavItem[] = [
     { path: '/dashboard', label: 'Dashboard', icon: ICONS.HOME, matchPrefix: '/dashboard' },
@@ -109,8 +119,19 @@ export class SidebarComponent {
     return this.router.url.startsWith(prefix);
   }
 
-  onUserClick(): void {
-    this.showComingSoon.set(true);
-    setTimeout(() => this.showComingSoon.set(false), 2000);
+  toggleUserMenu(event: Event): void {
+    event.stopPropagation();
+    this.showUserMenu.update((v) => !v);
+  }
+
+  logout(): void {
+    this.showUserMenu.set(false);
+    this.userService.clearUser();
+    this.authService.logout();
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.showUserMenu.set(false);
   }
 }
