@@ -118,6 +118,7 @@ tasks:
         echo "  API:       https://api-{{.ENV_NAME}}.localhost:4443/graphql"
         echo "  Keycloak:  https://kc-{{.ENV_NAME}}.localhost:4443"
         echo "  MailHog:   https://mail-{{.ENV_NAME}}.localhost:4443"
+        echo "  pgAdmin:   https://pgadmin-{{.ENV_NAME}}.localhost:4443"
         echo "  ──────────────────────────────────────────"
         echo "  Hub:       https://hub.localhost:4443"
         echo "  Traefik:   http://localhost:8888"

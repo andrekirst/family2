@@ -35,7 +35,7 @@ task hub
 # https://hub.localhost:4443
 ```
 
-The hub starts automatically with Traefik (`task traefik:up`) and shows clickable cards for each running environment with links to App, API, Keycloak, and MailHog. It auto-refreshes every 10 seconds.
+The hub starts automatically with Traefik (`task traefik:up`) and shows clickable cards for each running environment with links to App, API, Keycloak, MailHog, and pgAdmin. It auto-refreshes every 10 seconds.
 
 ## Architecture
 
@@ -45,6 +45,7 @@ Browser: https://hub.localhost:4443            (Environment Hub)
          https://api-{env}.localhost:4443      (API/GraphQL)
          https://kc-{env}.localhost:4443       (Keycloak)
          https://mail-{env}.localhost:4443     (MailHog)
+         https://pgadmin-{env}.localhost:4443  (pgAdmin)
                           |
                    [Traefik :4443]  ← shared, single instance
                    [Hub nginx]      ← static landing page
@@ -92,6 +93,7 @@ task list
 | `testmember` | `test123` | family-member |
 
 Keycloak admin: `admin` / `admin`
+pgAdmin: `admin@familyhub.dev` / `admin`
 
 ## Host-Based Development (no Docker)
 

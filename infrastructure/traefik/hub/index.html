@@ -78,6 +78,14 @@
     .env-fix{background:#713f12;color:#fde68a}
     .env-other{background:#44403c;color:#d6d3d1}
 
+    .card.card-offline{opacity:0.6;border-style:dashed}
+    .card.card-offline:hover{opacity:0.85;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+    .offline-badge{display:inline-flex;align-items:center;gap:0.3rem;font-size:0.7rem;color:var(--text-muted);margin-bottom:0.75rem}
+    .offline-badge .status-dot{width:6px;height:6px}
+    .svc-link.svc-offline{opacity:0.45;border:1px dashed var(--border)}
+    .open-btn.open-btn-offline{background:var(--surface-hover);color:var(--text-muted)}
+    .open-btn.open-btn-offline:hover{background:var(--surface)}
+
     /* Service links */
     .services{display:flex;flex-wrap:wrap;gap:0.5rem}
     .svc-link{
@@ -99,6 +107,7 @@
     .svc-api{background:#1a2e05;color:#bef264}
     .svc-kc{background:#3b0764;color:#d8b4fe}
     .svc-mail{background:#431407;color:#fdba74}
+    .svc-pgadmin{background:#164e63;color:#67e8f9}
 
     /* Empty / error states */
     .state-message{
@@ -161,9 +170,10 @@
 
       const PORT = '4443';
       const REFRESH_MS = 10_000;
-      const SERVICE_PREFIXES = ['fe-', 'api-', 'kc-', 'mail-'];
+      const SERVICE_PREFIXES = ['fe-', 'api-', 'kc-', 'mail-', 'pgadmin-'];
       const EXCLUDED_ROUTERS = ['hub@docker', 'hub-api@file'];
       const EXCLUDED_PATTERNS = [/^api-proxy-/];
+      const PINNED_ENVS = ['main'];
 
       const content = document.getElementById('content');
       const statusDot = document.getElementById('statusDot');
@@ -223,6 +233,7 @@
           case 'api':  return 'https://api-' + envName + '.localhost:' + PORT + '/graphql';
           case 'kc':   return 'https://kc-' + envName + '.localhost:' + PORT;
           case 'mail': return 'https://mail-' + envName + '.localhost:' + PORT;
+          case 'pgadmin': return 'https://pgadmin-' + envName + '.localhost:' + PORT;
           default:     return '#';
         }
       }
@@ -233,6 +244,7 @@
         api:  { label: 'API',      css: 'svc-api',  icon: '\u2699' },
         kc:   { label: 'Keycloak', css: 'svc-kc',   icon: '\u269F' },
         mail: { label: 'MailHog',  css: 'svc-mail',  icon: '\u2709' },
+        pgadmin: { label: 'pgAdmin',  css: 'svc-pgadmin',  icon: '\u2756' },
       };
 
       // -- Badge class from env name --------------------------------
@@ -287,8 +299,9 @@
 
         for (const envName of envNames) {
           const services = envs[envName];
+          const isOffline = !!services._offline;
 
-          const card = el('div', { className: 'card' });
+          const card = el('div', { className: 'card' + (isOffline ? ' card-offline' : '') });
 
           // Card header
           const header = el('div', { className: 'card-header' });
@@ -299,22 +312,30 @@
           }));
           card.appendChild(header);
 
-          // Open App button (always shown — URL is predictable from env name)
+          // Offline badge
+          if (isOffline) {
+            const badge = el('div', { className: 'offline-badge' });
+            badge.appendChild(el('span', { className: 'status-dot err' }));
+            badge.appendChild(document.createTextNode('Not running'));
+            card.appendChild(badge);
+          }
+
+          // Open App button
           card.appendChild(el('a', {
-            className: 'open-btn',
+            className: 'open-btn' + (isOffline ? ' open-btn-offline' : ''),
             href: envUrl('fe', envName),
             target: '_blank',
             rel: 'noopener',
-            textContent: 'Open App \u2197',
+            textContent: isOffline ? 'Open App (offline) \u2197' : 'Open App \u2197',
           }));
 
           // Service links
           const svcContainer = el('div', { className: 'services' });
-          for (const svc of ['fe', 'api', 'kc', 'mail']) {
-            if (!services[svc]) continue;
+          for (const svc of ['fe', 'api', 'kc', 'mail', 'pgadmin']) {
+            if (!isOffline && !services[svc]) continue;
             const meta = SVC_META[svc];
             const link = el('a', {
-              className: 'svc-link ' + meta.css,
+              className: 'svc-link ' + meta.css + (isOffline ? ' svc-offline' : ''),
               href: envUrl(svc, envName),
               target: '_blank',
               rel: 'noopener',
@@ -344,6 +365,12 @@
 
             if (!envs[parsed.envName]) envs[parsed.envName] = {};
             envs[parsed.envName][parsed.svcType] = true;
+          }
+
+          for (const pinned of PINNED_ENVS) {
+            if (!envs[pinned]) {
+              envs[pinned] = { _offline: true };
+            }
           }
 
           renderCards(envs);

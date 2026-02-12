@@ -1,0 +1,22 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "FamilyHub App DB",
+      "Group": "FamilyHub",
+      "Port": 5432,
+      "Username": "familyhub",
+      "Host": "postgres",
+      "MaintenanceDB": "familyhub",
+      "SSLMode": "prefer"
+    },
+    "2": {
+      "Name": "Keycloak DB",
+      "Group": "FamilyHub",
+      "Port": 5432,
+      "Username": "keycloak",
+      "Host": "postgres-keycloak",
+      "MaintenanceDB": "keycloak",
+      "SSLMode": "prefer"
+    }
+  }
+}
