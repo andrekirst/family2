@@ -163,6 +163,7 @@
       const REFRESH_MS = 10_000;
       const SERVICE_PREFIXES = ['fe-', 'api-', 'kc-', 'mail-'];
       const EXCLUDED_ROUTERS = ['hub@docker', 'hub-api@file'];
+      const EXCLUDED_PATTERNS = [/^api-proxy-/];
 
       const content = document.getElementById('content');
       const statusDot = document.getElementById('statusDot');
@@ -336,6 +337,8 @@
 
           for (const r of routers) {
             if (EXCLUDED_ROUTERS.includes(r.name)) continue;
+            const base = (r.name || '').replace('@docker', '');
+            if (EXCLUDED_PATTERNS.some(p => p.test(base))) continue;
             const parsed = parseRouter(r);
             if (!parsed) continue;
 
