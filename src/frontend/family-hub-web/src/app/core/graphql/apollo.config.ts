@@ -1,11 +1,12 @@
 import { ApplicationConfig } from '@angular/core';
 import { provideApollo } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
-import { InMemoryCache, ApolloLink } from '@apollo/client/core';
+import { InMemoryCache, ApolloLink, Observable } from '@apollo/client/core';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../auth/auth.service';
 
 /**
  * Apollo Client configuration provider
@@ -15,9 +16,10 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
   return [
     provideApollo(() => {
       const httpLink = inject(HttpLink);
+      const authService = inject(AuthService);
 
       // Auth link: Add Bearer token to GraphQL requests
-      // IMPORTANT: Apollo doesn't use Angular's HttpClient, so we must manually attach the token
+      // IMPORTANT: Apollo doesn't use Angular's HttpClient interceptors, so we must manually attach the token
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const authLink = setContext((_operation: any, prevContext: any) => {
         const token = localStorage.getItem('access_token');
@@ -36,22 +38,58 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
         };
       });
 
-      // Error link: Handle GraphQL errors globally
+      // Error link: Handle GraphQL errors globally with token refresh retry
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const errorLink = onError((errorOptions: any) => {
-        const { graphQLErrors, networkError } = errorOptions;
+        const { graphQLErrors, networkError, forward, operation } = errorOptions;
 
         if (graphQLErrors) {
+          // Check if any error is an authentication failure (expired token)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const authError = graphQLErrors.find(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (error: any) => error.extensions?.['code'] === 'AUTH_NOT_AUTHENTICATED',
+          );
+
+          if (authError) {
+            // Attempt to refresh the token and retry the failed operation
+            return new Observable((observer) => {
+              authService
+                .refreshAccessToken()
+                .then((success) => {
+                  if (!success) {
+                    // Refresh failed — redirect to login
+                    window.location.href = '/login';
+                    observer.error(authError);
+                    return;
+                  }
+
+                  // Update the operation with the new token
+                  const newToken = authService.getAccessToken();
+                  operation.setContext({
+                    headers: {
+                      ...operation.getContext().headers,
+                      authorization: `Bearer ${newToken}`,
+                    },
+                  });
+
+                  // Retry the operation
+                  forward(operation).subscribe(observer);
+                })
+                .catch((err) => {
+                  window.location.href = '/login';
+                  observer.error(err);
+                });
+            });
+          }
+
+          // Log non-auth errors and handle authorization (permission) errors
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           graphQLErrors.forEach((error: any) => {
             console.error(`[GraphQL error]: ${error.message}`);
 
-            // Redirect to login if unauthorized
-            if (
-              error.extensions?.['code'] === 'AUTH_NOT_AUTHENTICATED' ||
-              error.extensions?.['code'] === 'AUTH_NOT_AUTHORIZED'
-            ) {
-              console.warn('Unauthorized - redirecting to login');
+            if (error.extensions?.['code'] === 'AUTH_NOT_AUTHORIZED') {
+              console.warn('Forbidden - redirecting to login');
               window.location.href = '/login';
             }
           });
@@ -60,6 +98,8 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
         if (networkError) {
           console.error(`[Network error]: ${networkError}`);
         }
+
+        return;
       });
 
       // Combine links: auth → error → http

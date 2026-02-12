@@ -23,10 +23,11 @@ export const routes: Routes = [
       ),
   },
 
-  // Protected routes (group-level authGuard)
+  // Protected routes (group-level authGuard, wrapped in layout shell)
   {
     path: '',
     canActivate: [authGuard],
+    loadComponent: () => import('./shared/layout/layout.component').then((m) => m.LayoutComponent),
     children: [
       {
         path: 'dashboard',

@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { UserService } from '../../../../core/user/user.service';
@@ -8,6 +8,7 @@ import { CalendarWeekGridComponent } from '../calendar-week-grid/calendar-week-g
 import { CalendarWeekSkeletonComponent } from '../calendar-week-skeleton/calendar-week-skeleton.component';
 import { CalendarViewSwitcherComponent } from '../calendar-view-switcher/calendar-view-switcher.component';
 import { EventDialogComponent } from '../event-dialog/event-dialog.component';
+import { TopBarService } from '../../../../shared/services/top-bar.service';
 import { CalendarViewMode } from '../../models/calendar.models';
 import { getWeekStart, getWeekEnd, formatWeekLabel } from '../../utils/week.utils';
 
@@ -24,168 +25,121 @@ import { getWeekStart, getWeekEnd, formatWeekLabel } from '../../utils/week.util
     EventDialogComponent,
   ],
   template: `
-    <div class="min-h-screen bg-gray-50">
-      <!-- Header -->
-      <header class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div class="flex items-center gap-4">
-            <a
-              routerLink="/dashboard"
-              class="text-gray-500 hover:text-gray-700"
-              data-testid="back-to-dashboard"
-            >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </a>
-            <h1 class="text-2xl font-bold text-gray-900">Family Calendar</h1>
-          </div>
-          <div class="flex items-center gap-3">
-            <app-calendar-view-switcher
-              [activeView]="viewMode()"
-              (viewChanged)="onViewModeChanged($event)"
+    <!-- Navigation -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2">
+        <button
+          (click)="previousPeriod()"
+          class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+          data-testid="prev-period"
+        >
+          <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
             />
-            <button
-              (click)="openCreateDialog()"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-              data-testid="create-event-button"
-            >
-              + New Event
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <!-- Navigation -->
-      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <button
-              (click)="previousPeriod()"
-              class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
-              data-testid="prev-period"
-            >
-              <svg
-                class="h-5 w-5 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <button
-              (click)="goToToday()"
-              class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              data-testid="today-button"
-            >
-              Today
-            </button>
-            <button
-              (click)="nextPeriod()"
-              class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
-              data-testid="next-period"
-            >
-              <svg
-                class="h-5 w-5 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <h2 class="text-xl font-semibold text-gray-900" data-testid="current-period-label">
-            {{ navigationLabel() }}
-          </h2>
-
-          <!-- Spacer to balance layout -->
-          <div class="w-[140px]"></div>
-        </div>
-
-        <!-- Month View -->
-        @if (viewMode() === 'month') {
-          @if (isLoading()) {
-            <div class="bg-white shadow rounded-lg p-6">
-              <div class="animate-pulse">
-                <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-                <div class="grid grid-cols-7 gap-2">
-                  @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track i) {
-                    <div class="h-24 bg-gray-200 rounded"></div>
-                  }
-                </div>
-              </div>
-            </div>
-          } @else {
-            <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
-              <app-calendar-month-grid
-                [monthInput]="currentMonth()"
-                [eventsInput]="events()"
-                (dayClicked)="onDayClicked($event)"
-                (eventClicked)="onEventClicked($event)"
-              />
-            </div>
-          }
-        }
-
-        <!-- Week View -->
-        @if (viewMode() === 'week') {
-          @if (isLoading()) {
-            <app-calendar-week-skeleton />
-          } @else {
-            <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
-              <app-calendar-week-grid
-                [weekStartInput]="currentWeek()"
-                [eventsInput]="events()"
-                (timeSlotClicked)="onTimeSlotClicked($event)"
-                (eventClicked)="onEventClicked($event)"
-              />
-            </div>
-          }
-        }
+          </svg>
+        </button>
+        <button
+          (click)="goToToday()"
+          class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          data-testid="today-button"
+        >
+          Today
+        </button>
+        <button
+          (click)="nextPeriod()"
+          class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+          data-testid="next-period"
+        >
+          <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
       </div>
 
-      <!-- Event Dialog -->
-      @if (showCreateDialog()) {
-        <app-event-dialog
-          [selectedDate]="selectedDate()"
-          (eventCreated)="onEventCreated()"
-          (dialogClosed)="onDialogClosed()"
-        />
-      }
+      <h2 class="text-xl font-semibold text-gray-900" data-testid="current-period-label">
+        {{ navigationLabel() }}
+      </h2>
 
-      @if (editingEvent()) {
-        <app-event-dialog
-          [event]="editingEvent()"
-          (eventUpdated)="onEventUpdated()"
-          (eventCancelled)="onEventCancelled()"
-          (dialogClosed)="onEditDialogClosed()"
-        />
-      }
+      <app-calendar-view-switcher
+        [activeView]="viewMode()"
+        (viewChanged)="onViewModeChanged($event)"
+      />
     </div>
+
+    <!-- Month View -->
+    @if (viewMode() === 'month') {
+      @if (isLoading()) {
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="animate-pulse">
+            <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div class="grid grid-cols-7 gap-2">
+              @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track i) {
+                <div class="h-24 bg-gray-200 rounded"></div>
+              }
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
+          <app-calendar-month-grid
+            [monthInput]="currentMonth()"
+            [eventsInput]="events()"
+            (dayClicked)="onDayClicked($event)"
+            (eventClicked)="onEventClicked($event)"
+          />
+        </div>
+      }
+    }
+
+    <!-- Week View -->
+    @if (viewMode() === 'week') {
+      @if (isLoading()) {
+        <app-calendar-week-skeleton />
+      } @else {
+        <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
+          <app-calendar-week-grid
+            [weekStartInput]="currentWeek()"
+            [eventsInput]="events()"
+            (timeSlotClicked)="onTimeSlotClicked($event)"
+            (eventClicked)="onEventClicked($event)"
+          />
+        </div>
+      }
+    }
+
+    <!-- Event Dialog -->
+    @if (showCreateDialog()) {
+      <app-event-dialog
+        [selectedDate]="selectedDate()"
+        (eventCreated)="onEventCreated()"
+        (dialogClosed)="onDialogClosed()"
+      />
+    }
+
+    @if (editingEvent()) {
+      <app-event-dialog
+        [event]="editingEvent()"
+        (eventUpdated)="onEventUpdated()"
+        (eventCancelled)="onEventCancelled()"
+        (dialogClosed)="onEditDialogClosed()"
+      />
+    }
   `,
 })
-export class CalendarPageComponent implements OnInit {
+export class CalendarPageComponent implements OnInit, OnDestroy {
   private calendarService = inject(CalendarService);
   private userService = inject(UserService);
   private router = inject(Router);
+  private topBarService = inject(TopBarService);
 
   viewMode = signal<CalendarViewMode>('month');
   currentMonth = signal<Date>(new Date());
@@ -211,7 +165,24 @@ export class CalendarPageComponent implements OnInit {
   );
 
   async ngOnInit(): Promise<void> {
+    this.topBarService.setConfig({
+      title: 'Family Calendar',
+      actions: [
+        {
+          id: 'create-event',
+          label: '+ New Event',
+          onClick: () => this.openCreateDialog(),
+          variant: 'primary',
+          testId: 'create-event-button',
+        },
+      ],
+    });
+
     await this.loadEvents();
+  }
+
+  ngOnDestroy(): void {
+    this.topBarService.clear();
   }
 
   onViewModeChanged(mode: CalendarViewMode): void {
