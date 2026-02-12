@@ -147,13 +147,13 @@ We use RICE scoring to prioritize features:
 
 #### 5. Event Chain Automation (Basic)
 
-| Feature                | Description                                 | RICE Score | Effort  | Priority |
-| ---------------------- | ------------------------------------------- | ---------- | ------- | -------- |
-| **Event Chain Engine** | Core automation framework                   | 60.0       | 4 weeks | P0       |
-| **Simple Triggers**    | Calendar event, task completion, list item  | 52.0       | 2 weeks | P0       |
-| **Basic Actions**      | Create task, add to list, send notification | 50.0       | 2 weeks | P0       |
-| **Chain Templates**    | 3-5 pre-built common chains                 | 45.0       | 2 weeks | P1       |
-| **Chain Management**   | Create, edit, enable/disable chains         | 48.0       | 2 weeks | P0       |
+| Feature                   | Description                                 | RICE Score | Effort  | Priority |
+| ------------------------- | ------------------------------------------- | ---------- | ------- | -------- |
+| **Event Chain Engine** ✅ | Core automation framework                   | 60.0       | 4 weeks | P0       |
+| **Simple Triggers**       | Calendar event, task completion, list item  | 52.0       | 2 weeks | P0       |
+| **Basic Actions**         | Create task, add to list, send notification | 50.0       | 2 weeks | P0       |
+| **Chain Templates**       | 3-5 pre-built common chains                 | 45.0       | 2 weeks | P1       |
+| **Chain Management**      | Create, edit, enable/disable chains         | 48.0       | 2 weeks | P0       |
 
 **Examples of MVP Chains:**
 
@@ -344,37 +344,37 @@ We use RICE scoring to prioritize features:
 
 > **Cross-reference:** Onboarding Flow, Keyboard Shortcuts, Dark Mode, Customizable Dashboard, and Accessibility are now tracked in detail under [Domain 16: UI/UX & Design System](#16-uiux--design-system). The RICE scores and effort estimates below remain as planning reference. Items unique to this section: Quick Actions, Smart Suggestions, Multi-language.
 
-| Feature                      | Description                           | RICE Score | Effort    | Priority |
-| ---------------------------- | ------------------------------------- | ---------- | --------- | -------- |
-| **Onboarding Flow** ↗️ D16   | Interactive tutorial for new users    | 46.0       | 2 weeks   | P0       |
-| **Quick Actions**            | Shortcuts for common tasks            | 42.0       | 1.5 weeks | P1       |
-| **Keyboard Shortcuts** ↗️ D16 | Power user keyboard navigation       | 34.0       | 1.5 weeks | P2       |
-| **Dark Mode** ↗️ D16         | Dark theme support                    | 40.0       | 2 weeks   | P1       |
-| **Customizable Dashboard** ↗️ D16 | Rearrange widgets, choose what to see | 44.0  | 3 weeks   | P0       |
-| **Smart Suggestions**        | AI-powered task/event suggestions     | 48.0       | 4 weeks   | P0       |
-| **Accessibility (WCAG 2.2)** ↗️ D16 | Full accessibility compliance  | 38.0       | 3 weeks   | P1       |
-| **Multi-language**           | Internationalization support          | 36.0       | 3 weeks   | P2       |
+| Feature                             | Description                           | RICE Score | Effort    | Priority |
+| ----------------------------------- | ------------------------------------- | ---------- | --------- | -------- |
+| **Onboarding Flow** ↗️ D16          | Interactive tutorial for new users    | 46.0       | 2 weeks   | P0       |
+| **Quick Actions**                   | Shortcuts for common tasks            | 42.0       | 1.5 weeks | P1       |
+| **Keyboard Shortcuts** ↗️ D16       | Power user keyboard navigation        | 34.0       | 1.5 weeks | P2       |
+| **Dark Mode** ↗️ D16                | Dark theme support                    | 40.0       | 2 weeks   | P1       |
+| **Customizable Dashboard** ↗️ D16   | Rearrange widgets, choose what to see | 44.0       | 3 weeks   | P0       |
+| **Smart Suggestions**               | AI-powered task/event suggestions     | 48.0       | 4 weeks   | P0       |
+| **Accessibility (WCAG 2.2)** ↗️ D16 | Full accessibility compliance         | 38.0       | 3 weeks   | P1       |
+| **Multi-language**                  | Internationalization support          | 36.0       | 3 weeks   | P2       |
 
 **Domain Total: 20 weeks**
 
 #### 9. School & Education (Core)
 
-| Feature                          | Description                                                                   | RICE Score | Effort    | Priority |
-| -------------------------------- | ----------------------------------------------------------------------------- | ---------- | --------- | -------- |
-| **Child School Profiles**        | Per-child profile with school name, grade/year, class, age group              | 46.0       | 1.5 weeks | P0       |
-| **Class Timetable**              | Weekly recurring class schedule with subject, teacher, room, A/B day rotation | 48.0       | 2 weeks   | P0       |
+| Feature                          | Description                                                                     | RICE Score | Effort    | Priority |
+| -------------------------------- | ------------------------------------------------------------------------------- | ---------- | --------- | -------- |
+| **Child School Profiles**        | Per-child profile with school name, grade/year, class, age group                | 46.0       | 1.5 weeks | P0       |
+| **Class Timetable**              | Weekly recurring class schedule with subject, teacher, room, A/B day rotation   | 48.0       | 2 weeks   | P0       |
 | **Assignment Tracker**           | Log assignments with subject, due date, description, difficulty, estimated time | 50.0       | 2 weeks   | P0       |
-| **School Calendar Import**       | Import school holidays, half-days, events via ICS feeds                       | 44.0       | 2 weeks   | P0       |
-| **Homework Dashboard**           | Overview of upcoming assignments across all children, sorted by urgency       | 46.0       | 1.5 weeks | P0       |
-| **Grade Tracking**               | Record grades per subject with configurable grading scales (international)    | 42.0       | 2 weeks   | P1       |
-| **Study Planner**                | Auto-generate study sessions based on exam dates, break work into daily chunks | 44.0       | 2.5 weeks | P1       |
-| **Transport Coordination**       | School bus times, pickup/dropoff schedules, parent responsibility assignment  | 40.0       | 2 weeks   | P1       |
-| **Permission Slip Tracker**      | Track required forms, signatures, deadlines with reminders                    | 38.0       | 1.5 weeks | P1       |
-| **Parent-Teacher Events**        | Track conferences, open houses with scheduling and notes                      | 36.0       | 1 week    | P1       |
-| **Child Dashboard**              | Dedicated view for teens to manage own homework, see schedule, mark tasks done | 42.0       | 3 weeks   | P1       |
-| **School Supply Lists**          | Track required supplies per child/grade, link to shopping lists               | 36.0       | 1 week    | P2       |
-| **Report Card Archive**          | Store and compare report cards across semesters, visualize trends             | 34.0       | 1.5 weeks | P2       |
-| **Shared Parent Responsibility** | Parents claim/delegate school tasks (who attends event, who helps project)    | 38.0       | 1.5 weeks | P1       |
+| **School Calendar Import**       | Import school holidays, half-days, events via ICS feeds                         | 44.0       | 2 weeks   | P0       |
+| **Homework Dashboard**           | Overview of upcoming assignments across all children, sorted by urgency         | 46.0       | 1.5 weeks | P0       |
+| **Grade Tracking**               | Record grades per subject with configurable grading scales (international)      | 42.0       | 2 weeks   | P1       |
+| **Study Planner**                | Auto-generate study sessions based on exam dates, break work into daily chunks  | 44.0       | 2.5 weeks | P1       |
+| **Transport Coordination**       | School bus times, pickup/dropoff schedules, parent responsibility assignment    | 40.0       | 2 weeks   | P1       |
+| **Permission Slip Tracker**      | Track required forms, signatures, deadlines with reminders                      | 38.0       | 1.5 weeks | P1       |
+| **Parent-Teacher Events**        | Track conferences, open houses with scheduling and notes                        | 36.0       | 1 week    | P1       |
+| **Child Dashboard**              | Dedicated view for teens to manage own homework, see schedule, mark tasks done  | 42.0       | 3 weeks   | P1       |
+| **School Supply Lists**          | Track required supplies per child/grade, link to shopping lists                 | 36.0       | 1 week    | P2       |
+| **Report Card Archive**          | Store and compare report cards across semesters, visualize trends               | 34.0       | 1.5 weeks | P2       |
+| **Shared Parent Responsibility** | Parents claim/delegate school tasks (who attends event, who helps project)      | 38.0       | 1.5 weeks | P1       |
 
 **Domain Total: 23.5 weeks**
 
@@ -518,22 +518,22 @@ We use RICE scoring to prioritize features:
 
 #### 8. School & Education (Advanced)
 
-| Feature                          | Description                                                                    | RICE Score | Effort    | Priority |
-| -------------------------------- | ------------------------------------------------------------------------------ | ---------- | --------- | -------- |
-| **School Portal Integration**    | Connect to platforms (PowerSchool, Untis, SchoolTool) for grades & assignments | 42.0       | 6 weeks   | P1       |
-| **Grade Analytics**              | GPA calculation, subject trends, semester comparisons, strength/weakness analysis | 40.0       | 3 weeks   | P1       |
-| **Progressive Access Control**   | Configurable per-child autonomy: parent-managed → guided → self-managed        | 38.0       | 3 weeks   | P1       |
-| **Carpool Management (School)**  | Coordinate school transport with other families, shared scheduling             | 40.0       | 4 weeks   | P1       |
-| **Exam Calendar & Analytics**    | Dedicated exam view with performance tracking and preparation insights         | 36.0       | 2 weeks   | P2       |
-| **Teacher & Staff Contacts**     | Directory of teachers, counselors, admin staff per child                       | 34.0       | 1.5 weeks | P2       |
-| **School Communication Hub**     | Centralize school letters, emails, announcements per child                     | 38.0       | 3 weeks   | P1       |
-| **AI Study Recommendations**     | AI suggests optimal study times, identifies weak subjects, recommends focus areas | 36.0       | 4 weeks   | P2       |
-| **Multi-School Support**         | Handle children at different schools with different schedules and grading systems | 34.0       | 2 weeks   | P2       |
-| **School Year Transitions**      | Archive completed year data, set up new year with new classes and teachers      | 32.0       | 2 weeks   | P2       |
-| **Homework Collaboration**       | Siblings/parents can comment on or assist with assignments                      | 30.0       | 2 weeks   | P2       |
-| **School Expense Tracking**      | Track school-related expenses (fees, supplies, trips) linked to budget module   | 34.0       | 2 weeks   | P2       |
-| **Attendance Tracking**          | Log sick days, late arrivals; trigger school notification chains                | 36.0       | 2 weeks   | P1       |
-| **Achievement & Awards**         | Track extracurricular achievements, certificates, awards                       | 30.0       | 1.5 weeks | P2       |
+| Feature                         | Description                                                                       | RICE Score | Effort    | Priority |
+| ------------------------------- | --------------------------------------------------------------------------------- | ---------- | --------- | -------- |
+| **School Portal Integration**   | Connect to platforms (PowerSchool, Untis, SchoolTool) for grades & assignments    | 42.0       | 6 weeks   | P1       |
+| **Grade Analytics**             | GPA calculation, subject trends, semester comparisons, strength/weakness analysis | 40.0       | 3 weeks   | P1       |
+| **Progressive Access Control**  | Configurable per-child autonomy: parent-managed → guided → self-managed           | 38.0       | 3 weeks   | P1       |
+| **Carpool Management (School)** | Coordinate school transport with other families, shared scheduling                | 40.0       | 4 weeks   | P1       |
+| **Exam Calendar & Analytics**   | Dedicated exam view with performance tracking and preparation insights            | 36.0       | 2 weeks   | P2       |
+| **Teacher & Staff Contacts**    | Directory of teachers, counselors, admin staff per child                          | 34.0       | 1.5 weeks | P2       |
+| **School Communication Hub**    | Centralize school letters, emails, announcements per child                        | 38.0       | 3 weeks   | P1       |
+| **AI Study Recommendations**    | AI suggests optimal study times, identifies weak subjects, recommends focus areas | 36.0       | 4 weeks   | P2       |
+| **Multi-School Support**        | Handle children at different schools with different schedules and grading systems | 34.0       | 2 weeks   | P2       |
+| **School Year Transitions**     | Archive completed year data, set up new year with new classes and teachers        | 32.0       | 2 weeks   | P2       |
+| **Homework Collaboration**      | Siblings/parents can comment on or assist with assignments                        | 30.0       | 2 weeks   | P2       |
+| **School Expense Tracking**     | Track school-related expenses (fees, supplies, trips) linked to budget module     | 34.0       | 2 weeks   | P2       |
+| **Attendance Tracking**         | Log sick days, late arrivals; trigger school notification chains                  | 36.0       | 2 weeks   | P1       |
+| **Achievement & Awards**        | Track extracurricular achievements, certificates, awards                          | 30.0       | 1.5 weeks | P2       |
 
 **Domain Total: 38 weeks**
 
@@ -1321,11 +1321,11 @@ Legend: ✓✓✓ Excellent | ✓✓ Good | ✓ Basic | △ Limited | ✗ None
 
 ## Document History
 
-| Version | Date       | Author                        | Changes                               |
-| ------- | ---------- | ----------------------------- | ------------------------------------- |
+| Version | Date       | Author                        | Changes                                                                                                                                                                                                                                      |
+| ------- | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1.2     | 2026-02-12 | Product Manager (AI-assisted) | Expand UX & Accessibility into comprehensive UI/UX & Design System domain (78 features, 8 sub-categories); add UI/UX Resources appendix; consolidate Phase 2 Section 8 overlaps; add Animation & Transition System; total features 236 → 303 |
-| 1.1     | 2026-02-12 | Product Manager (AI-assisted) | Add School & Education domain (17th domain, 28 features) |
-| 1.0     | 2025-12-19 | Product Manager (AI-assisted) | Initial comprehensive feature backlog |
+| 1.1     | 2026-02-12 | Product Manager (AI-assisted) | Add School & Education domain (17th domain, 28 features)                                                                                                                                                                                     |
+| 1.0     | 2025-12-19 | Product Manager (AI-assisted) | Initial comprehensive feature backlog                                                                                                                                                                                                        |
 
 ---
 
