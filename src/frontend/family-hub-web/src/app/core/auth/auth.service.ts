@@ -9,8 +9,12 @@ import {
   base64UrlDecode,
 } from '../../shared/utils/crypto.utils';
 
+/** Buffer in seconds before expiry to trigger proactive refresh */
+const REFRESH_BUFFER_SECONDS = 300; // 5 minutes
+
 /**
  * Authentication service implementing OAuth 2.0 Authorization Code Flow with PKCE
+ * with proactive token refresh, cross-tab sync, and visibility-based refresh.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -23,8 +27,13 @@ export class AuthService {
   private readonly STORAGE_REFRESH_TOKEN = 'refresh_token';
   private readonly STORAGE_EXPIRES_AT = 'expires_at';
 
+  private refreshTimer: ReturnType<typeof setTimeout> | null = null;
+  private refreshPromise: Promise<boolean> | null = null;
+
   constructor(private http: HttpClient) {
     this.checkAuthStatus();
+    this.setupVisibilityHandler();
+    this.setupStorageSyncHandler();
   }
 
   /**
@@ -37,10 +46,93 @@ export class AuthService {
       if (profile) {
         this.userProfile.set(profile);
         this.isAuthenticated.set(true);
+        this.scheduleTokenRefresh();
       }
     } else {
       this.clearTokens();
     }
+  }
+
+  /**
+   * Schedule a proactive token refresh 5 minutes before the access token expires.
+   * Re-schedules itself after each successful refresh.
+   */
+  private scheduleTokenRefresh(): void {
+    this.clearRefreshTimer();
+
+    const expiresAt = localStorage.getItem(this.STORAGE_EXPIRES_AT);
+    if (!expiresAt) return;
+
+    const expirationTime = parseInt(expiresAt, 10);
+    const now = Math.floor(Date.now() / 1000);
+    const delaySeconds = expirationTime - now - REFRESH_BUFFER_SECONDS;
+
+    if (delaySeconds > 0) {
+      this.refreshTimer = setTimeout(async () => {
+        const success = await this.refreshAccessToken();
+        if (success) {
+          this.scheduleTokenRefresh();
+        }
+      }, delaySeconds * 1000);
+    } else {
+      // Already near expiry — refresh immediately
+      this.refreshAccessToken().then((success) => {
+        if (success) {
+          this.scheduleTokenRefresh();
+        }
+      });
+    }
+  }
+
+  private clearRefreshTimer(): void {
+    if (this.refreshTimer !== null) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+  }
+
+  /**
+   * When the user switches back to this tab, check if the token needs refreshing.
+   */
+  private setupVisibilityHandler(): void {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && this.isAuthenticated()) {
+        if (this.isTokenExpired()) {
+          this.refreshAccessToken().then((success) => {
+            if (success) {
+              this.scheduleTokenRefresh();
+            }
+          });
+        } else {
+          // Token still valid but timer may have drifted while tab was hidden
+          this.scheduleTokenRefresh();
+        }
+      }
+    });
+  }
+
+  /**
+   * When another tab refreshes tokens, pick up the new values via the storage event.
+   */
+  private setupStorageSyncHandler(): void {
+    window.addEventListener('storage', (event: StorageEvent) => {
+      if (event.key === this.STORAGE_ACCESS_TOKEN || event.key === this.STORAGE_EXPIRES_AT) {
+        const accessToken = this.getAccessToken();
+        if (accessToken && !this.isTokenExpired()) {
+          const profile = this.getUserProfileFromToken();
+          if (profile) {
+            this.userProfile.set(profile);
+            this.isAuthenticated.set(true);
+            this.scheduleTokenRefresh();
+          }
+        } else if (!accessToken) {
+          // Another tab logged out
+          this.clearRefreshTimer();
+          this.isAuthenticated.set(false);
+          this.userProfile.set(null);
+        }
+      }
+    });
   }
 
   /**
@@ -179,9 +271,25 @@ export class AuthService {
   }
 
   /**
-   * Refresh access token using refresh token
+   * Refresh access token using refresh token.
+   * Deduplicates concurrent calls — multiple callers share a single in-flight request.
    */
   async refreshAccessToken(): Promise<boolean> {
+    // Deduplicate: if a refresh is already in progress, return the same promise
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    this.refreshPromise = this.executeTokenRefresh();
+
+    try {
+      return await this.refreshPromise;
+    } finally {
+      this.refreshPromise = null;
+    }
+  }
+
+  private async executeTokenRefresh(): Promise<boolean> {
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
       return false;
@@ -263,12 +371,15 @@ export class AuthService {
     // Calculate expiration time
     const expiresAt = Math.floor(Date.now() / 1000) + tokens.expires_in;
     localStorage.setItem(this.STORAGE_EXPIRES_AT, expiresAt.toString());
+
+    this.scheduleTokenRefresh();
   }
 
   /**
    * Clear all OAuth tokens from localStorage
    */
   private clearTokens(): void {
+    this.clearRefreshTimer();
     localStorage.removeItem(this.STORAGE_ACCESS_TOKEN);
     localStorage.removeItem(this.STORAGE_ID_TOKEN);
     localStorage.removeItem(this.STORAGE_REFRESH_TOKEN);
