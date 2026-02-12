@@ -41,6 +41,12 @@ export const routes: Routes = [
           import('./features/calendar/calendar.routes').then((m) => m.CALENDAR_ROUTES),
       },
       {
+        path: 'event-chains',
+        canActivate: [familyMemberGuard],
+        loadChildren: () =>
+          import('./features/event-chains/event-chains.routes').then((m) => m.EVENT_CHAINS_ROUTES),
+      },
+      {
         path: 'family',
         loadChildren: () => import('./features/family/family.routes').then((m) => m.FAMILY_ROUTES),
       },

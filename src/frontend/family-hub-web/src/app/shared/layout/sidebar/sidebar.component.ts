@@ -109,6 +109,12 @@ export class SidebarComponent {
     { path: '/dashboard', label: 'Dashboard', icon: ICONS.HOME, matchPrefix: '/dashboard' },
     { path: '/family/settings', label: 'Family', icon: ICONS.USERS, matchPrefix: '/family' },
     { path: '/calendar', label: 'Calendar', icon: ICONS.CALENDAR, matchPrefix: '/calendar' },
+    {
+      path: '/event-chains',
+      label: 'Automations',
+      icon: ICONS.BOLT,
+      matchPrefix: '/event-chains',
+    },
   ];
 
   userName(): string {
