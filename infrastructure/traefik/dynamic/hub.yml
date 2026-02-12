@@ -1,0 +1,11 @@
+# Routes /api/* on hub.localhost to Traefik's internal API
+# This lets the hub page fetch router data without CORS issues
+http:
+  routers:
+    hub-api:
+      rule: 'Host(`hub.localhost`) && PathPrefix(`/api`)'
+      entryPoints:
+        - websecure
+      service: api@internal
+      tls: {}
+      priority: 100

@@ -114,9 +114,16 @@ tasks:
         echo ""
         echo "  Environment: {{.ENV_NAME}}"
         echo "  ──────────────────────────────────────────"
-        echo "  App:       https://{{.ENV_NAME}}.localhost:3443"
-        echo "  API:       https://api-{{.ENV_NAME}}.localhost:3443/graphql"
-        echo "  Keycloak:  https://kc-{{.ENV_NAME}}.localhost:3443"
-        echo "  MailHog:   https://mail-{{.ENV_NAME}}.localhost:3443"
+        echo "  App:       https://{{.ENV_NAME}}.localhost:4443"
+        echo "  API:       https://api-{{.ENV_NAME}}.localhost:4443/graphql"
+        echo "  Keycloak:  https://kc-{{.ENV_NAME}}.localhost:4443"
+        echo "  MailHog:   https://mail-{{.ENV_NAME}}.localhost:4443"
+        echo "  ──────────────────────────────────────────"
+        echo "  Hub:       https://hub.localhost:4443"
         echo "  Traefik:   http://localhost:8888"
         echo ""
+
+  hub:
+    desc: 'Open Environment Hub in browser'
+    cmds:
+      - xdg-open https://hub.localhost:4443 2>/dev/null || open https://hub.localhost:4443 2>/dev/null || echo "Open https://hub.localhost:4443 in your browser"

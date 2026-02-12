@@ -6,14 +6,28 @@ services:
     image: traefik:v3.2
     restart: unless-stopped
     ports:
-      - '3000:3000' # HTTP (redirects to HTTPS)
-      - '3443:3443' # HTTPS
+      - '4000:4000' # HTTP (redirects to HTTPS)
+      - '4443:4443' # HTTPS
       - '8888:8080' # Dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
       - ./certs:/certs:ro
+    networks:
+      - traefik-public
+
+  hub:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./traefik/hub:/usr/share/nginx/html:ro
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.hub.rule=Host(`hub.localhost`)'
+      - 'traefik.http.routers.hub.entrypoints=websecure'
+      - 'traefik.http.routers.hub.tls=true'
+      - 'traefik.http.services.hub.loadbalancer.server.port=80'
     networks:
       - traefik-public
 

@@ -5,13 +5,13 @@ import { environment } from '../../../environments/environment';
  * Runtime environment configuration service.
  *
  * Detects whether the app is running behind the Traefik multi-environment proxy
- * (subdomain-based routing on port 3443) and derives all service URLs by convention.
+ * (subdomain-based routing on port 4443) and derives all service URLs by convention.
  * Falls back to static environment.ts values for host-based development.
  *
- * Convention: if hostname is `{name}.localhost` on port 3443:
- *   - API:      https://api-{name}.localhost:3443/graphql
- *   - Keycloak: https://kc-{name}.localhost:3443/realms/FamilyHub
- *   - App:      https://{name}.localhost:3443
+ * Convention: if hostname is `{name}.localhost` on port 4443:
+ *   - API:      https://api-{name}.localhost:4443/graphql
+ *   - Keycloak: https://kc-{name}.localhost:4443/realms/FamilyHub
+ *   - App:      https://{name}.localhost:4443
  */
 @Injectable({ providedIn: 'root' })
 export class EnvironmentConfigService {
@@ -28,15 +28,15 @@ export class EnvironmentConfigService {
     const hostname = window.location.hostname;
     const port = window.location.port;
 
-    // Detect multi-env: {name}.localhost on port 3443
+    // Detect multi-env: {name}.localhost on port 4443
     const match = hostname.match(/^(.+)\.localhost$/);
-    if (match && port === '3443') {
+    if (match && port === '4443') {
       const envName = match[1];
-      const baseUrl = `https://${envName}.localhost:3443`;
+      const baseUrl = `https://${envName}.localhost:4443`;
 
-      this.apiUrl = `https://api-${envName}.localhost:3443/graphql`;
+      this.apiUrl = `${baseUrl}/graphql`;
       this.keycloak = {
-        issuer: `https://kc-${envName}.localhost:3443/realms/FamilyHub`,
+        issuer: `https://kc-${envName}.localhost:4443/realms/FamilyHub`,
         clientId: 'familyhub-web',
         redirectUri: `${baseUrl}/callback`,
         postLogoutRedirectUri: baseUrl,

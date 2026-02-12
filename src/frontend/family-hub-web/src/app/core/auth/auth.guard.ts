@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from './auth.service';
+import { UserService } from '../user/user.service';
 
 /**
  * Route guard requiring user authentication
@@ -58,20 +59,23 @@ export const familyAdminGuard: CanActivateFn = (route, state) => {
 };
 
 /**
- * Route guard requiring user to belong to a family
- * TODO: Implement by fetching user family data from GraphQL API
- * For now, just checks authentication
+ * Route guard requiring user to belong to a family.
+ * Redirects unauthenticated users to login, and authenticated users
+ * without a family to the family creation page.
  */
-export const familyMemberGuard: CanActivateFn = (route, state) => {
+export const familyMemberGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
+  const userService = inject(UserService);
   const router = inject(Router);
 
   if (!authService.isAuthenticated()) {
-    sessionStorage.setItem('redirect_url', state.url);
     return router.parseUrl('/login');
   }
 
-  // TODO: Query GraphQL for user's family membership
-  // For now, allow all authenticated users
+  const user = userService.currentUser();
+  if (!user?.familyId) {
+    return router.parseUrl('/family');
+  }
+
   return true;
 };

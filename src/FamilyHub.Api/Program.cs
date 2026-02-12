@@ -64,7 +64,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ?? "account"; // Keycloak default audience
 
         // Authority = internal URL for OIDC discovery (e.g. http://keycloak:8080/realms/...)
-        // Issuer = public URL that appears in JWT "iss" claim (e.g. https://kc-{env}.localhost:3443/realms/...)
+        // Issuer = public URL that appears in JWT "iss" claim (e.g. https://kc-{env}.localhost:4443/realms/...)
         // When running behind a reverse proxy, these differ. If Issuer is not set, it defaults to Authority.
         var keycloakIssuer = builder.Configuration["Keycloak:Issuer"];
 
@@ -112,9 +112,11 @@ builder.Services
     .AddGraphQLServer()
     .AddAuthorization()
     .AddErrorFilter<ValidationExceptionErrorFilter>()
+    .AddErrorFilter<BusinessLogicExceptionErrorFilter>()
     .AddQueryType<RootQuery>()
     .AddMutationType<RootMutation>()
-    .AddTypeExtensionsFromAssembly(typeof(Program).Assembly);
+    .AddTypeExtensionsFromAssembly(typeof(Program).Assembly)
+    .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment());
 
 var app = builder.Build();
 

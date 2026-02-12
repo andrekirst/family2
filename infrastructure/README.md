@@ -23,15 +23,31 @@ task up
 task urls
 ```
 
+## Environment Hub
+
+A web-based dashboard showing all running environments at a glance:
+
+```bash
+# Open hub in browser
+task hub
+
+# Or navigate directly
+# https://hub.localhost:4443
+```
+
+The hub starts automatically with Traefik (`task traefik:up`) and shows clickable cards for each running environment with links to App, API, Keycloak, and MailHog. It auto-refreshes every 10 seconds.
+
 ## Architecture
 
 ```
-Browser: https://{env}.localhost:3443          (Frontend)
-         https://api-{env}.localhost:3443      (API/GraphQL)
-         https://kc-{env}.localhost:3443       (Keycloak)
-         https://mail-{env}.localhost:3443     (MailHog)
+Browser: https://hub.localhost:4443            (Environment Hub)
+         https://{env}.localhost:4443          (Frontend)
+         https://api-{env}.localhost:4443      (API/GraphQL)
+         https://kc-{env}.localhost:4443       (Keycloak)
+         https://mail-{env}.localhost:4443     (MailHog)
                           |
-                   [Traefik :3443]  ← shared, single instance
+                   [Traefik :4443]  ← shared, single instance
+                   [Hub nginx]      ← static landing page
                    Dashboard :8888
                           |
          +----------------+------------------+
@@ -104,4 +120,7 @@ Another Traefik instance is running. Stop it: `task traefik:down`
 Old containers from previous setup may conflict. Run `docker compose down` in the project root first.
 
 **Keycloak "Invalid redirect_uri"**
-The realm template uses wildcard URIs (`https://*.localhost:3443/*`). Ensure Keycloak imported the template correctly — check `task env:logs -- keycloak`.
+The realm template uses wildcard URIs (`https://*.localhost:4443/*`). Ensure Keycloak imported the template correctly — check `task env:logs -- keycloak`.
+
+**Hub shows "Cannot reach Traefik API"**
+The hub needs Traefik running to fetch router data. Start it with `task traefik:up`. If Traefik is running but the API is unreachable, check that `api.dashboard: true` is set in `traefik/traefik.yml`.
