@@ -93,28 +93,29 @@ We use RICE scoring to prioritize features:
 
 #### 1. Family Management & Authentication
 
-| Feature                                                | Description                                                | RICE Score | Effort  | Priority |
-| ------------------------------------------------------ | ---------------------------------------------------------- | ---------- | ------- | -------- |
-| **User Registration & Auth** ✅ COMPLETED (2026-01-13) | Email/password auth via Zitadel (Backend + Frontend OAuth) | 45.0       | 2 weeks | P0       |
-| **Family Creation** ✅ COMPLETED (2026-02-09) #15      | Create family group, generate invite codes                 | 50.0       | 1 week  | P0       |
-| **Family Member Invites (Management)**                 | Invite members from family management UI                   | 40.0       | 1 week  | P0       |
-| **User Profiles**                                      | Name, avatar, role, preferences                            | 36.0       | 1 week  | P0       |
-| **User Avatar in Sidebar**                             | Display user avatar in sidebar navigation                  | 30.0       | 0.5 weeks | P2     |
-| **Family Settings**                                    | Timezone, language, notification prefs                     | 30.0       | 1 week  | P1       |
+| Feature                                                | Description                                                | RICE Score | Effort    | Priority |
+| ------------------------------------------------------ | ---------------------------------------------------------- | ---------- | --------- | -------- |
+| **User Registration & Auth** ✅ COMPLETED (2026-01-13) | Email/password auth via Zitadel (Backend + Frontend OAuth) | 45.0       | 2 weeks   | P0       |
+| **Family Creation** ✅ COMPLETED (2026-02-09) #15      | Create family group, generate invite codes                 | 50.0       | 1 week    | P0       |
+| **Family Member Invites (Management)**                 | Invite members from family management UI                   | 40.0       | 1 week    | P0       |
+| **User Profiles**                                      | Name, avatar, role, preferences                            | 36.0       | 1 week    | P0       |
+| **User Avatar in Sidebar**                             | Display user avatar in sidebar navigation                  | 30.0       | 0.5 weeks | P2       |
+| **Family Settings**                                    | Timezone, language, notification prefs                     | 30.0       | 1 week    | P1       |
 
 **Domain Total: 7 weeks**
 
 #### 2. Shared Calendar (Core)
 
-| Feature              | Description                             | RICE Score | Effort    | Priority |
-| -------------------- | --------------------------------------- | ---------- | --------- | -------- |
-| **Calendar View**    | Month ✅/week ✅/day/agenda views       | 48.0       | 2 weeks   | P0       |
-| **Create Events** ✅ | Title, date/time, description, location | 50.0       | 1.5 weeks | P0       |
-| **Event Assignment** | Assign to family members                | 45.0       | 1 week    | P0       |
-| **Event Colors**     | Color code by person/category           | 40.0       | 0.5 weeks | P0       |
-| **Recurring Events** | Daily/weekly/monthly patterns           | 42.0       | 2 weeks   | P1       |
-| **Event Reminders**  | Notification before events              | 44.0       | 1.5 weeks | P0       |
-| **Calendar Sync**    | Export to ICS, basic import             | 35.0       | 2 weeks   | P2       |
+| Feature                                                                                                                                          | Description                             | RICE Score | Effort    | Priority |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- | ---------- | --------- | -------- |
+| **Calendar View**                                                                                                                                | Month ✅/week ✅/day/agenda views       | 48.0       | 2 weeks   | P0       |
+| **Create Events** ✅                                                                                                                             | Title, date/time, description, location | 50.0       | 1.5 weeks | P0       |
+| **Event Assignment**                                                                                                                             | Assign to family members                | 45.0       | 1 week    | P0       |
+| **Event Colors**                                                                                                                                 | Color code by person/category           | 40.0       | 0.5 weeks | P0       |
+| **Recurring Events**                                                                                                                             | Daily/weekly/monthly patterns           | 42.0       | 2 weeks   | P1       |
+| **Event Reminders**                                                                                                                              | Notification before events              | 44.0       | 1.5 weeks | P0       |
+| **Calendar Sync**                                                                                                                                | Export to ICS, basic import             | 35.0       | 2 weeks   | P2       |
+| [**Calendar Templates**](https://cdn.dribbble.com/userupload/45727828/file/21698e0895f3a12f4db65979a6efbaf0.png?resize=1024x851&vertical=center) | Show calendar templates                 | tbd        | tbd       | P2       |
 
 **Domain Total: 10.5 weeks**
 
@@ -303,6 +304,11 @@ We use RICE scoring to prioritize features:
 3. "Vacation Booked" → Pause recurring chores → Add packing list → Create countdown → Notify pet sitter
 4. "Bill Due Soon" → Check budget → Notify if insufficient funds → Create payment reminder
 5. "Birthday Coming" → Create shopping reminder 2 weeks before → Add to calendar → Create gift list
+6. "Exam Added" → Auto-create study plan → Block social calendar slots → Remind 3 days + 1 day before
+7. "Field Trip Added" → Create permission slip reminder → Add lunch packing task → Update transport schedule
+8. "Report Card Received" → Schedule family review meeting → Alert if grade below threshold → Update grade trends
+9. "School Supply List Updated" → Add missing items to shopping list → Estimate cost → Add to school budget category
+10. "Child Sick Day" → Notify school → Cancel today's activities → Reschedule homework deadlines → Assign parent stay-home
 
 **Domain Total: 19 weeks**
 
@@ -349,10 +355,31 @@ We use RICE scoring to prioritize features:
 
 **Domain Total: 20 weeks**
 
+#### 9. School & Education (Core)
+
+| Feature                          | Description                                                                   | RICE Score | Effort    | Priority |
+| -------------------------------- | ----------------------------------------------------------------------------- | ---------- | --------- | -------- |
+| **Child School Profiles**        | Per-child profile with school name, grade/year, class, age group              | 46.0       | 1.5 weeks | P0       |
+| **Class Timetable**              | Weekly recurring class schedule with subject, teacher, room, A/B day rotation | 48.0       | 2 weeks   | P0       |
+| **Assignment Tracker**           | Log assignments with subject, due date, description, difficulty, estimated time | 50.0       | 2 weeks   | P0       |
+| **School Calendar Import**       | Import school holidays, half-days, events via ICS feeds                       | 44.0       | 2 weeks   | P0       |
+| **Homework Dashboard**           | Overview of upcoming assignments across all children, sorted by urgency       | 46.0       | 1.5 weeks | P0       |
+| **Grade Tracking**               | Record grades per subject with configurable grading scales (international)    | 42.0       | 2 weeks   | P1       |
+| **Study Planner**                | Auto-generate study sessions based on exam dates, break work into daily chunks | 44.0       | 2.5 weeks | P1       |
+| **Transport Coordination**       | School bus times, pickup/dropoff schedules, parent responsibility assignment  | 40.0       | 2 weeks   | P1       |
+| **Permission Slip Tracker**      | Track required forms, signatures, deadlines with reminders                    | 38.0       | 1.5 weeks | P1       |
+| **Parent-Teacher Events**        | Track conferences, open houses with scheduling and notes                      | 36.0       | 1 week    | P1       |
+| **Child Dashboard**              | Dedicated view for teens to manage own homework, see schedule, mark tasks done | 42.0       | 3 weeks   | P1       |
+| **School Supply Lists**          | Track required supplies per child/grade, link to shopping lists               | 36.0       | 1 week    | P2       |
+| **Report Card Archive**          | Store and compare report cards across semesters, visualize trends             | 34.0       | 1.5 weeks | P2       |
+| **Shared Parent Responsibility** | Parents claim/delegate school tasks (who attends event, who helps project)    | 38.0       | 1.5 weeks | P1       |
+
+**Domain Total: 23.5 weeks**
+
 ### Phase 2 Features Summary
 
-**Total Estimated Effort: 137.5 weeks**
-**With AI assistance & iteration: ~55-65 weeks (~12 months with overlap)**
+**Total Estimated Effort: 161 weeks**
+**With AI assistance & iteration: ~64-76 weeks (~14 months with overlap)**
 
 **Feature Breakdown:**
 
@@ -364,6 +391,7 @@ We use RICE scoring to prioritize features:
 - Family Communication: 14 weeks
 - Enhanced Mobile: 23.5 weeks
 - UX Enhancements: 20 weeks
+- School & Education (Core): 23.5 weeks
 
 **Phase 2 Success Criteria:**
 
@@ -486,9 +514,30 @@ We use RICE scoring to prioritize features:
 
 **Domain Total: 31 weeks**
 
+#### 8. School & Education (Advanced)
+
+| Feature                          | Description                                                                    | RICE Score | Effort    | Priority |
+| -------------------------------- | ------------------------------------------------------------------------------ | ---------- | --------- | -------- |
+| **School Portal Integration**    | Connect to platforms (PowerSchool, Untis, SchoolTool) for grades & assignments | 42.0       | 6 weeks   | P1       |
+| **Grade Analytics**              | GPA calculation, subject trends, semester comparisons, strength/weakness analysis | 40.0       | 3 weeks   | P1       |
+| **Progressive Access Control**   | Configurable per-child autonomy: parent-managed → guided → self-managed        | 38.0       | 3 weeks   | P1       |
+| **Carpool Management (School)**  | Coordinate school transport with other families, shared scheduling             | 40.0       | 4 weeks   | P1       |
+| **Exam Calendar & Analytics**    | Dedicated exam view with performance tracking and preparation insights         | 36.0       | 2 weeks   | P2       |
+| **Teacher & Staff Contacts**     | Directory of teachers, counselors, admin staff per child                       | 34.0       | 1.5 weeks | P2       |
+| **School Communication Hub**     | Centralize school letters, emails, announcements per child                     | 38.0       | 3 weeks   | P1       |
+| **AI Study Recommendations**     | AI suggests optimal study times, identifies weak subjects, recommends focus areas | 36.0       | 4 weeks   | P2       |
+| **Multi-School Support**         | Handle children at different schools with different schedules and grading systems | 34.0       | 2 weeks   | P2       |
+| **School Year Transitions**      | Archive completed year data, set up new year with new classes and teachers      | 32.0       | 2 weeks   | P2       |
+| **Homework Collaboration**       | Siblings/parents can comment on or assist with assignments                      | 30.0       | 2 weeks   | P2       |
+| **School Expense Tracking**      | Track school-related expenses (fees, supplies, trips) linked to budget module   | 34.0       | 2 weeks   | P2       |
+| **Attendance Tracking**          | Log sick days, late arrivals; trigger school notification chains                | 36.0       | 2 weeks   | P1       |
+| **Achievement & Awards**         | Track extracurricular achievements, certificates, awards                       | 30.0       | 1.5 weeks | P2       |
+
+**Domain Total: 38 weeks**
+
 ### Phase 3+ Features Summary
 
-**Total Estimated Effort: 227 weeks**
+**Total Estimated Effort: 265 weeks**
 **With AI assistance & ongoing development: 18-24+ months with prioritization**
 
 **Feature Breakdown:**
@@ -500,6 +549,7 @@ We use RICE scoring to prioritize features:
 - Platform & Extensibility: 40 weeks
 - Advanced Features: 28 weeks
 - Enterprise & Scale: 31 weeks
+- School & Education (Advanced): 38 weeks
 
 **Phase 3+ Success Criteria:**
 
@@ -533,8 +583,9 @@ We use RICE scoring to prioritize features:
 | **Platform & API**          | 0   | 0       | 8        | 8              |
 | **Infrastructure**          | 9   | 5       | 8        | 22             |
 | **UX & Accessibility**      | 0   | 8       | 3        | 11             |
+| **School & Education**      | 0   | 14      | 14       | 28             |
 
-**Total Features Planned: 208 features across 16 domains**
+**Total Features Planned: 236 features across 17 domains**
 
 ---
 
@@ -901,6 +952,42 @@ We use RICE scoring to prioritize features:
 - Personalization engine
 - Accessibility improvements
 
+### 17. School & Education
+
+#### Phase 2
+
+- Child school profiles (school name, grade, class, age group)
+- Class timetable (weekly schedule, A/B day rotation)
+- Assignment tracker (subjects, due dates, difficulty, estimated time)
+- School calendar import (ICS feeds)
+- Homework dashboard (cross-child urgency view)
+- Grade tracking (international grading scales)
+- Study planner (auto-generated study sessions)
+- Transport coordination (bus times, pickup schedules)
+- Permission slip tracker (forms, signatures, deadlines)
+- Parent-teacher events (conferences, open houses)
+- Child dashboard (teen self-management view)
+- School supply lists (linked to shopping)
+- Report card archive (semester comparison)
+- Shared parent responsibility (claim/delegate school tasks)
+
+#### Phase 3+
+
+- School portal integration (PowerSchool, Untis, SchoolTool)
+- Grade analytics (GPA, trends, strength/weakness)
+- Progressive access control (age-appropriate autonomy)
+- Carpool management for school transport
+- Exam calendar & analytics
+- Teacher & staff contacts directory
+- School communication hub
+- AI study recommendations
+- Multi-school support
+- School year transitions
+- Homework collaboration
+- School expense tracking (linked to budget)
+- Attendance tracking (sick days, notifications)
+- Achievement & awards tracking
+
 ---
 
 ## Priority Buckets Summary
@@ -1073,6 +1160,7 @@ Legend: ✓✓✓ Excellent | ✓✓ Good | ✓ Basic | △ Limited | ✗ None
 
 | Version | Date       | Author                        | Changes                               |
 | ------- | ---------- | ----------------------------- | ------------------------------------- |
+| 1.1     | 2026-02-12 | Product Manager (AI-assisted) | Add School & Education domain (17th domain, 28 features) |
 | 1.0     | 2025-12-19 | Product Manager (AI-assisted) | Initial comprehensive feature backlog |
 
 ---
