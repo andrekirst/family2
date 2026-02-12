@@ -63,6 +63,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         var keycloakAudience = builder.Configuration["Keycloak:Audience"]
             ?? "account"; // Keycloak default audience
 
+        // Authority = internal URL for OIDC discovery (e.g. http://keycloak:8080/realms/...)
+        // Issuer = public URL that appears in JWT "iss" claim (e.g. https://kc-{env}.localhost:3443/realms/...)
+        // When running behind a reverse proxy, these differ. If Issuer is not set, it defaults to Authority.
+        var keycloakIssuer = builder.Configuration["Keycloak:Issuer"];
+
         options.Authority = keycloakAuthority;
         options.Audience = keycloakAudience;
         options.RequireHttpsMetadata = false; // Development only - set to true in production
@@ -71,6 +76,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
+            ValidIssuer = string.IsNullOrEmpty(keycloakIssuer) ? keycloakAuthority : keycloakIssuer,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
@@ -87,12 +93,14 @@ builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
 builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
 
-// Configure CORS for Angular frontend
+// Configure CORS for Angular frontend (supports multi-environment via config)
+var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? ["http://localhost:4200"];
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(corsOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -114,6 +122,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+
+    // Auto-apply EF Core migrations in development (supports Docker environments)
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
 }
 
 app.UseCors();
@@ -129,7 +142,7 @@ app.MapGraphQL();
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
-app.Run();
+await app.RunAsync();
 
 // Make Program class accessible to integration tests
 public partial class Program { }

@@ -1,6 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
+import { EnvironmentConfigService } from '../config/environment-config.service';
 import { UserProfile, AuthTokens, JwtPayload } from './auth.models';
 import {
   generateCodeVerifier,
@@ -27,6 +27,7 @@ export class AuthService {
   private readonly STORAGE_REFRESH_TOKEN = 'refresh_token';
   private readonly STORAGE_EXPIRES_AT = 'expires_at';
 
+  private readonly envConfig = inject(EnvironmentConfigService);
   private refreshTimer: ReturnType<typeof setTimeout> | null = null;
   private refreshPromise: Promise<boolean> | null = null;
 
@@ -153,11 +154,11 @@ export class AuthService {
     sessionStorage.setItem('post_login_redirect', redirectUrl);
 
     // Build Keycloak authorization URL
-    const authUrl = new URL(`${environment.keycloak.issuer}/protocol/openid-connect/auth`);
-    authUrl.searchParams.append('client_id', environment.keycloak.clientId);
-    authUrl.searchParams.append('redirect_uri', environment.keycloak.redirectUri);
+    const authUrl = new URL(`${this.envConfig.keycloak.issuer}/protocol/openid-connect/auth`);
+    authUrl.searchParams.append('client_id', this.envConfig.keycloak.clientId);
+    authUrl.searchParams.append('redirect_uri', this.envConfig.keycloak.redirectUri);
     authUrl.searchParams.append('response_type', 'code');
-    authUrl.searchParams.append('scope', environment.keycloak.scope);
+    authUrl.searchParams.append('scope', this.envConfig.keycloak.scope);
     authUrl.searchParams.append('code_challenge', codeChallenge);
     authUrl.searchParams.append('code_challenge_method', 'S256');
     authUrl.searchParams.append('state', state);
@@ -185,12 +186,12 @@ export class AuthService {
     }
 
     // Exchange authorization code for tokens
-    const tokenUrl = `${environment.keycloak.issuer}/protocol/openid-connect/token`;
+    const tokenUrl = `${this.envConfig.keycloak.issuer}/protocol/openid-connect/token`;
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      redirect_uri: environment.keycloak.redirectUri,
-      client_id: environment.keycloak.clientId,
+      redirect_uri: this.envConfig.keycloak.redirectUri,
+      client_id: this.envConfig.keycloak.clientId,
       code_verifier: codeVerifier,
     });
 
@@ -256,11 +257,11 @@ export class AuthService {
     this.userProfile.set(null);
 
     // Build Keycloak logout URL
-    const logoutUrl = new URL(`${environment.keycloak.issuer}/protocol/openid-connect/logout`);
-    logoutUrl.searchParams.append('client_id', environment.keycloak.clientId);
+    const logoutUrl = new URL(`${this.envConfig.keycloak.issuer}/protocol/openid-connect/logout`);
+    logoutUrl.searchParams.append('client_id', this.envConfig.keycloak.clientId);
     logoutUrl.searchParams.append(
       'post_logout_redirect_uri',
-      environment.keycloak.postLogoutRedirectUri,
+      this.envConfig.keycloak.postLogoutRedirectUri,
     );
     if (idToken) {
       logoutUrl.searchParams.append('id_token_hint', idToken);
@@ -295,11 +296,11 @@ export class AuthService {
       return false;
     }
 
-    const tokenUrl = `${environment.keycloak.issuer}/protocol/openid-connect/token`;
+    const tokenUrl = `${this.envConfig.keycloak.issuer}/protocol/openid-connect/token`;
     const body = new URLSearchParams({
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
-      client_id: environment.keycloak.clientId,
+      client_id: this.envConfig.keycloak.clientId,
     });
 
     try {

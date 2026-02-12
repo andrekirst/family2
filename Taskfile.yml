@@ -1,0 +1,122 @@
+# Family Hub — Multi-Environment CLI
+# Requires: https://taskfile.dev (v3+)
+#
+# Quick start:
+#   task setup:certs   # one-time: generate TLS certificates
+#   task up            # start environment for current branch
+#   task down          # stop environment (data persists)
+#   task env:destroy   # stop + remove volumes (clean slate)
+
+version: '3'
+
+vars:
+  BRANCH:
+    sh: git rev-parse --abbrev-ref HEAD
+  ENV_NAME:
+    sh: echo "{{.BRANCH}}" | tr '/_' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//'
+  INFRA_DIR: ./infrastructure
+  TRAEFIK_COMPOSE: '{{.INFRA_DIR}}/docker-compose.traefik.yml'
+  ENV_COMPOSE: '{{.INFRA_DIR}}/docker-compose.env.yml'
+
+tasks:
+  # ---------------------------------------------------------------------------
+  # Setup
+  # ---------------------------------------------------------------------------
+  setup:certs:
+    desc: Generate mkcert TLS certificates (idempotent)
+    cmds:
+      - bash {{.INFRA_DIR}}/scripts/setup-certs.sh
+    status:
+      - test -f {{.INFRA_DIR}}/certs/local.pem
+
+  # ---------------------------------------------------------------------------
+  # Traefik (shared proxy)
+  # ---------------------------------------------------------------------------
+  traefik:up:
+    desc: Start shared Traefik reverse proxy
+    deps: [setup:certs]
+    cmds:
+      - docker compose -f {{.TRAEFIK_COMPOSE}} up -d
+    status:
+      - docker compose -f {{.TRAEFIK_COMPOSE}} ps --status running | grep -q traefik
+
+  traefik:down:
+    desc: Stop shared Traefik reverse proxy
+    cmds:
+      - docker compose -f {{.TRAEFIK_COMPOSE}} down
+
+  traefik:logs:
+    desc: Follow Traefik logs
+    cmds:
+      - docker compose -f {{.TRAEFIK_COMPOSE}} logs -f
+
+  # ---------------------------------------------------------------------------
+  # Environment lifecycle
+  # ---------------------------------------------------------------------------
+  env:up:
+    desc: 'Start environment for current branch ({{.ENV_NAME}})'
+    deps: [traefik:up]
+    cmds:
+      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} up -d --build
+    env:
+      ENV_NAME: '{{.ENV_NAME}}'
+
+  env:down:
+    desc: 'Stop environment (data persists)'
+    cmds:
+      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} down
+
+  env:destroy:
+    desc: 'Stop environment + remove volumes (clean slate)'
+    cmds:
+      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} down -v
+
+  env:logs:
+    desc: 'Follow environment logs (optional: task env:logs -- api)'
+    cmds:
+      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} logs -f {{.CLI_ARGS}}
+
+  env:ps:
+    desc: 'Show running containers for current environment'
+    cmds:
+      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} ps
+
+  env:name:
+    desc: 'Print environment name for current branch'
+    cmds:
+      - echo "{{.ENV_NAME}}"
+
+  # ---------------------------------------------------------------------------
+  # List all running FamilyHub environments
+  # ---------------------------------------------------------------------------
+  list:
+    desc: 'List all running FamilyHub environments'
+    cmds:
+      - docker ps --filter "label=com.docker.compose.project" --format "table {{`{{.Names}}`}}\t{{`{{.Status}}`}}\t{{`{{.Ports}}`}}" | grep "^fh-" || echo "No FamilyHub environments running."
+
+  # ---------------------------------------------------------------------------
+  # Quick aliases
+  # ---------------------------------------------------------------------------
+  up:
+    desc: 'Alias for env:up'
+    cmds:
+      - task: env:up
+
+  down:
+    desc: 'Alias for env:down'
+    cmds:
+      - task: env:down
+
+  urls:
+    desc: 'Show URLs for current environment'
+    cmds:
+      - |
+        echo ""
+        echo "  Environment: {{.ENV_NAME}}"
+        echo "  ──────────────────────────────────────────"
+        echo "  App:       https://{{.ENV_NAME}}.localhost:3443"
+        echo "  API:       https://api-{{.ENV_NAME}}.localhost:3443/graphql"
+        echo "  Keycloak:  https://kc-{{.ENV_NAME}}.localhost:3443"
+        echo "  MailHog:   https://mail-{{.ENV_NAME}}.localhost:3443"
+        echo "  Traefik:   http://localhost:8888"
+        echo ""
