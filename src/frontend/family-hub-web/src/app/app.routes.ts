@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth/auth.guard';
+import { authGuard, familyMemberGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -36,6 +36,7 @@ export const routes: Routes = [
       },
       {
         path: 'calendar',
+        canActivate: [familyMemberGuard],
         loadChildren: () =>
           import('./features/calendar/calendar.routes').then((m) => m.CALENDAR_ROUTES),
       },

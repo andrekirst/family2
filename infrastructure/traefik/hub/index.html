@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FamilyHub — Environment Hub</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--surface:#1e293b;--surface-hover:#334155;
+      --border:#334155;--text:#e2e8f0;--text-muted:#94a3b8;
+      --accent:#3b82f6;--accent-hover:#60a5fa;
+      --green:#22c55e;--yellow:#eab308;--red:#ef4444;
+      --radius:0.75rem;
+    }
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      background:var(--bg);color:var(--text);min-height:100vh;
+      display:flex;flex-direction:column;
+    }
+
+    /* Header */
+    header{
+      padding:1.5rem 2rem;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+    }
+    .logo{display:flex;align-items:center;gap:0.75rem}
+    .logo h1{font-size:1.5rem;font-weight:700;letter-spacing:-0.025em}
+    .logo span{
+      font-size:0.75rem;background:var(--accent);color:#fff;
+      padding:0.15rem 0.5rem;border-radius:999px;font-weight:600;
+    }
+    .controls{display:flex;align-items:center;gap:1rem}
+    .controls button{
+      background:var(--surface);color:var(--text);border:1px solid var(--border);
+      padding:0.5rem 1rem;border-radius:var(--radius);cursor:pointer;
+      font-size:0.875rem;transition:background 0.15s;
+    }
+    .controls button:hover{background:var(--surface-hover)}
+    .controls label{font-size:0.875rem;color:var(--text-muted);display:flex;align-items:center;gap:0.4rem;cursor:pointer}
+
+    /* Status bar */
+    .status-bar{
+      padding:0.5rem 2rem;font-size:0.8rem;color:var(--text-muted);
+      display:flex;align-items:center;gap:0.5rem;
+    }
+    .status-dot{
+      width:8px;height:8px;border-radius:50%;display:inline-block;
+    }
+    .status-dot.ok{background:var(--green)}
+    .status-dot.err{background:var(--red)}
+
+    /* Main */
+    main{flex:1;padding:2rem}
+
+    /* Grid */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+      gap:1.25rem;
+    }
+
+    /* Card */
+    .card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:1.25rem;
+      transition:border-color 0.15s,box-shadow 0.15s;
+    }
+    .card:hover{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+    .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+    .card-header h2{font-size:1.1rem;font-weight:600}
+    .card-header .env-badge{
+      font-size:0.7rem;padding:0.2rem 0.6rem;border-radius:999px;
+      font-weight:600;text-transform:uppercase;
+    }
+    .env-main{background:#166534;color:#bbf7d0}
+    .env-feature{background:#1e3a5f;color:#93c5fd}
+    .env-fix{background:#713f12;color:#fde68a}
+    .env-other{background:#44403c;color:#d6d3d1}
+
+    .card.card-offline{opacity:0.6;border-style:dashed}
+    .card.card-offline:hover{opacity:0.85;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+    .offline-badge{display:inline-flex;align-items:center;gap:0.3rem;font-size:0.7rem;color:var(--text-muted);margin-bottom:0.75rem}
+    .offline-badge .status-dot{width:6px;height:6px}
+    .svc-link.svc-offline{opacity:0.45;border:1px dashed var(--border)}
+    .open-btn.open-btn-offline{background:var(--surface-hover);color:var(--text-muted)}
+    .open-btn.open-btn-offline:hover{background:var(--surface)}
+
+    /* Service links */
+    .services{display:flex;flex-wrap:wrap;gap:0.5rem}
+    .svc-link{
+      display:inline-flex;align-items:center;gap:0.35rem;
+      font-size:0.8rem;padding:0.35rem 0.65rem;
+      border-radius:0.5rem;text-decoration:none;
+      transition:background 0.15s,color 0.15s;
+      font-weight:500;
+    }
+    .svc-link:hover{filter:brightness(1.15)}
+    .open-btn{
+      display:block;width:100%;padding:0.6rem;margin-bottom:0.75rem;
+      background:var(--accent);color:#fff;border:none;border-radius:0.5rem;
+      font-size:0.9rem;font-weight:600;cursor:pointer;text-align:center;
+      text-decoration:none;transition:background 0.15s;
+    }
+    .open-btn:hover{background:var(--accent-hover)}
+    .svc-app{background:#1e3a5f;color:#93c5fd}
+    .svc-api{background:#1a2e05;color:#bef264}
+    .svc-kc{background:#3b0764;color:#d8b4fe}
+    .svc-mail{background:#431407;color:#fdba74}
+    .svc-pgadmin{background:#164e63;color:#67e8f9}
+
+    /* Empty / error states */
+    .state-message{
+      text-align:center;padding:4rem 2rem;
+    }
+    .state-message h2{font-size:1.3rem;margin-bottom:0.75rem}
+    .state-message p{color:var(--text-muted);max-width:30rem;margin:0 auto}
+    .state-message code{
+      display:inline-block;margin-top:1rem;background:var(--surface);
+      padding:0.5rem 1rem;border-radius:var(--radius);font-size:0.9rem;
+      border:1px solid var(--border);
+    }
+
+    /* Footer */
+    footer{
+      padding:1rem 2rem;border-top:1px solid var(--border);
+      font-size:0.8rem;color:var(--text-muted);
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;
+    }
+    footer a{color:var(--accent);text-decoration:none}
+    footer a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <h1>FamilyHub</h1>
+      <span>ENV HUB</span>
+    </div>
+    <div class="controls">
+      <label>
+        <input type="checkbox" id="autoRefresh" checked>
+        Auto-refresh (10s)
+      </label>
+      <button id="refreshBtn" title="Refresh now">Refresh</button>
+    </div>
+  </header>
+
+  <div class="status-bar">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="statusText">Connecting...</span>
+  </div>
+
+  <main id="content">
+    <div class="state-message">
+      <h2>Loading...</h2>
+    </div>
+  </main>
+
+  <footer>
+    <span>FamilyHub Multi-Environment System</span>
+    <span>
+      <a href="http://localhost:8888" target="_blank" rel="noopener">Traefik Dashboard</a>
+    </span>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const PORT = '4443';
+      const REFRESH_MS = 10_000;
+      const SERVICE_PREFIXES = ['fe-', 'api-', 'kc-', 'mail-', 'pgadmin-'];
+      const EXCLUDED_ROUTERS = ['hub@docker', 'hub-api@file'];
+      const EXCLUDED_PATTERNS = [/^api-proxy-/];
+      const PINNED_ENVS = ['main'];
+
+      const content = document.getElementById('content');
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+      const refreshBtn = document.getElementById('refreshBtn');
+      const autoRefreshCb = document.getElementById('autoRefresh');
+
+      let timer = null;
+
+      // -- DOM helpers (safe - no innerHTML) -------------------------
+      function el(tag, attrs, children) {
+        const node = document.createElement(tag);
+        if (attrs) {
+          for (const [k, v] of Object.entries(attrs)) {
+            if (k === 'className') node.className = v;
+            else if (k === 'textContent') node.textContent = v;
+            else node.setAttribute(k, v);
+          }
+        }
+        if (children) {
+          for (const child of Array.isArray(children) ? children : [children]) {
+            if (typeof child === 'string') node.appendChild(document.createTextNode(child));
+            else if (child) node.appendChild(child);
+          }
+        }
+        return node;
+      }
+
+      // -- Fetch routers from Traefik API ---------------------------
+      async function fetchRouters() {
+        const res = await fetch('/api/http/routers');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      }
+
+      // -- Parse environment name from router name ------------------
+      function parseRouter(router) {
+        const name = router.name || '';
+        if (!name.endsWith('@docker')) return null;
+        const base = name.replace('@docker', '');
+
+        for (const prefix of SERVICE_PREFIXES) {
+          if (base.startsWith(prefix)) {
+            return {
+              envName: base.slice(prefix.length),
+              svcType: prefix.replace('-', ''),
+            };
+          }
+        }
+        return null;
+      }
+
+      // -- Build environment URL ------------------------------------
+      function envUrl(svcType, envName) {
+        switch (svcType) {
+          case 'fe':   return 'https://' + envName + '.localhost:' + PORT;
+          case 'api':  return 'https://api-' + envName + '.localhost:' + PORT + '/graphql';
+          case 'kc':   return 'https://kc-' + envName + '.localhost:' + PORT;
+          case 'mail': return 'https://mail-' + envName + '.localhost:' + PORT;
+          case 'pgadmin': return 'https://pgadmin-' + envName + '.localhost:' + PORT;
+          default:     return '#';
+        }
+      }
+
+      // -- Service display info -------------------------------------
+      const SVC_META = {
+        fe:   { label: 'App',      css: 'svc-app',  icon: '\u25C8' },
+        api:  { label: 'API',      css: 'svc-api',  icon: '\u2699' },
+        kc:   { label: 'Keycloak', css: 'svc-kc',   icon: '\u269F' },
+        mail: { label: 'MailHog',  css: 'svc-mail',  icon: '\u2709' },
+        pgadmin: { label: 'pgAdmin',  css: 'svc-pgadmin',  icon: '\u2756' },
+      };
+
+      // -- Badge class from env name --------------------------------
+      function badgeClass(envName) {
+        if (envName === 'main' || envName === 'master') return 'env-main';
+        if (envName.startsWith('feature')) return 'env-feature';
+        if (envName.startsWith('fix')) return 'env-fix';
+        return 'env-other';
+      }
+
+      function envType(name) {
+        if (name === 'main' || name === 'master') return 'main';
+        if (name.startsWith('feature')) return 'feature';
+        if (name.startsWith('fix')) return 'fix';
+        return 'branch';
+      }
+
+      // -- Render state message (empty/error) -----------------------
+      function renderStateMessage(title, description, command) {
+        content.textContent = '';
+        const wrapper = el('div', { className: 'state-message' });
+        wrapper.appendChild(el('h2', { textContent: title }));
+        wrapper.appendChild(el('p', { textContent: description }));
+        if (command) {
+          wrapper.appendChild(el('code', { textContent: command }));
+        }
+        content.appendChild(wrapper);
+      }
+
+      // -- Render environment cards ---------------------------------
+      function renderCards(envs) {
+        const envNames = Object.keys(envs);
+
+        if (envNames.length === 0) {
+          renderStateMessage(
+            'No environments running',
+            'Start an environment from any branch to see it here.',
+            'task up'
+          );
+          return;
+        }
+
+        // Sort: 'main' first, then alphabetical
+        envNames.sort((a, b) => {
+          if (a === 'main') return -1;
+          if (b === 'main') return 1;
+          return a.localeCompare(b);
+        });
+
+        content.textContent = '';
+        const grid = el('div', { className: 'grid' });
+
+        for (const envName of envNames) {
+          const services = envs[envName];
+          const isOffline = !!services._offline;
+
+          const card = el('div', { className: 'card' + (isOffline ? ' card-offline' : '') });
+
+          // Card header
+          const header = el('div', { className: 'card-header' });
+          header.appendChild(el('h2', { textContent: envName }));
+          header.appendChild(el('span', {
+            className: 'env-badge ' + badgeClass(envName),
+            textContent: envType(envName),
+          }));
+          card.appendChild(header);
+
+          // Offline badge
+          if (isOffline) {
+            const badge = el('div', { className: 'offline-badge' });
+            badge.appendChild(el('span', { className: 'status-dot err' }));
+            badge.appendChild(document.createTextNode('Not running'));
+            card.appendChild(badge);
+          }
+
+          // Open App button
+          card.appendChild(el('a', {
+            className: 'open-btn' + (isOffline ? ' open-btn-offline' : ''),
+            href: envUrl('fe', envName),
+            target: '_blank',
+            rel: 'noopener',
+            textContent: isOffline ? 'Open App (offline) \u2197' : 'Open App \u2197',
+          }));
+
+          // Service links
+          const svcContainer = el('div', { className: 'services' });
+          for (const svc of ['fe', 'api', 'kc', 'mail', 'pgadmin']) {
+            if (!isOffline && !services[svc]) continue;
+            const meta = SVC_META[svc];
+            const link = el('a', {
+              className: 'svc-link ' + meta.css + (isOffline ? ' svc-offline' : ''),
+              href: envUrl(svc, envName),
+              target: '_blank',
+              rel: 'noopener',
+            }, [meta.icon + ' ' + meta.label]);
+            svcContainer.appendChild(link);
+          }
+          card.appendChild(svcContainer);
+
+          grid.appendChild(card);
+        }
+
+        content.appendChild(grid);
+      }
+
+      // -- Main refresh cycle ---------------------------------------
+      async function refresh() {
+        try {
+          const routers = await fetchRouters();
+          const envs = {};
+
+          for (const r of routers) {
+            if (EXCLUDED_ROUTERS.includes(r.name)) continue;
+            const base = (r.name || '').replace('@docker', '');
+            if (EXCLUDED_PATTERNS.some(p => p.test(base))) continue;
+            const parsed = parseRouter(r);
+            if (!parsed) continue;
+
+            if (!envs[parsed.envName]) envs[parsed.envName] = {};
+            envs[parsed.envName][parsed.svcType] = true;
+          }
+
+          for (const pinned of PINNED_ENVS) {
+            if (!envs[pinned]) {
+              envs[pinned] = { _offline: true };
+            }
+          }
+
+          renderCards(envs);
+          setStatus(true, 'Last updated: ' + new Date().toLocaleTimeString());
+        } catch (err) {
+          setStatus(false, 'Error: ' + err.message + ' \u2014 retrying...');
+          renderStateMessage(
+            'Cannot reach Traefik API',
+            'Make sure Traefik is running with the API enabled.',
+            'task traefik:up'
+          );
+        }
+      }
+
+      function setStatus(ok, text) {
+        statusDot.className = 'status-dot ' + (ok ? 'ok' : 'err');
+        statusText.textContent = text;
+      }
+
+      // -- Timer management -----------------------------------------
+      function startTimer() {
+        stopTimer();
+        timer = setInterval(refresh, REFRESH_MS);
+      }
+
+      function stopTimer() {
+        if (timer) { clearInterval(timer); timer = null; }
+      }
+
+      autoRefreshCb.addEventListener('change', function() {
+        this.checked ? startTimer() : stopTimer();
+      });
+
+      refreshBtn.addEventListener('click', refresh);
+
+      // -- Init -----------------------------------------------------
+      refresh();
+      startTimer();
+    })();
+  </script>
+</body>
+</html>

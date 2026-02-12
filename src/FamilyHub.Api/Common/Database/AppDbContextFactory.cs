@@ -14,8 +14,9 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
-        // Use connection string for local PostgreSQL
-        var connectionString = "Host=localhost;Port=5432;Database=familyhub;Username=familyhub;Password=familyhub";
+        // Support both env var (Docker) and hardcoded fallback (host dev)
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            ?? "Host=localhost;Port=5432;Database=familyhub;Username=familyhub;Password=familyhub";
 
         optionsBuilder.UseNpgsql(connectionString);
         optionsBuilder.UseSnakeCaseNamingConvention();

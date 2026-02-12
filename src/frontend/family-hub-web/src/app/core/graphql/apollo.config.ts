@@ -5,7 +5,7 @@ import { InMemoryCache, ApolloLink, Observable } from '@apollo/client/core';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { inject } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { EnvironmentConfigService } from '../config/environment-config.service';
 import { AuthService } from '../auth/auth.service';
 
 /**
@@ -16,6 +16,7 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
   return [
     provideApollo(() => {
       const httpLink = inject(HttpLink);
+      const envConfig = inject(EnvironmentConfigService);
       const authService = inject(AuthService);
 
       // Auth link: Add Bearer token to GraphQL requests
@@ -106,7 +107,7 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
       const link = ApolloLink.from([
         authLink as unknown as ApolloLink,
         errorLink as unknown as ApolloLink,
-        httpLink.create({ uri: environment.apiUrl }),
+        httpLink.create({ uri: envConfig.apiUrl }),
       ]);
 
       return {

@@ -300,6 +300,10 @@ temp/
 *.pfx
 *.cer
 
+# Infrastructure certs directory (extra safety beyond global *.pem/*.key)
+infrastructure/certs/*
+!infrastructure/certs/.gitkeep
+
 # Keep example certificates for documentation
 !docs/examples/*.cert.example
 
