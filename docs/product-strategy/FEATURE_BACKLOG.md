@@ -1,7 +1,7 @@
 # Family Hub - Prioritized Feature Backlog
 
-**Version:** 1.0
-**Date:** 2025-12-19
+**Version:** 1.2
+**Date:** 2026-02-12
 **Status:** Initial Draft
 **Owner:** Product Management
 
@@ -342,15 +342,17 @@ We use RICE scoring to prioritize features:
 
 #### 8. User Experience Enhancements
 
+> **Cross-reference:** Onboarding Flow, Keyboard Shortcuts, Dark Mode, Customizable Dashboard, and Accessibility are now tracked in detail under [Domain 16: UI/UX & Design System](#16-uiux--design-system). The RICE scores and effort estimates below remain as planning reference. Items unique to this section: Quick Actions, Smart Suggestions, Multi-language.
+
 | Feature                      | Description                           | RICE Score | Effort    | Priority |
 | ---------------------------- | ------------------------------------- | ---------- | --------- | -------- |
-| **Onboarding Flow**          | Interactive tutorial for new users    | 46.0       | 2 weeks   | P0       |
+| **Onboarding Flow** ↗️ D16   | Interactive tutorial for new users    | 46.0       | 2 weeks   | P0       |
 | **Quick Actions**            | Shortcuts for common tasks            | 42.0       | 1.5 weeks | P1       |
-| **Keyboard Shortcuts**       | Power user keyboard navigation        | 34.0       | 1.5 weeks | P2       |
-| **Dark Mode**                | Dark theme support                    | 40.0       | 2 weeks   | P1       |
-| **Customizable Dashboard**   | Rearrange widgets, choose what to see | 44.0       | 3 weeks   | P0       |
+| **Keyboard Shortcuts** ↗️ D16 | Power user keyboard navigation       | 34.0       | 1.5 weeks | P2       |
+| **Dark Mode** ↗️ D16         | Dark theme support                    | 40.0       | 2 weeks   | P1       |
+| **Customizable Dashboard** ↗️ D16 | Rearrange widgets, choose what to see | 44.0  | 3 weeks   | P0       |
 | **Smart Suggestions**        | AI-powered task/event suggestions     | 48.0       | 4 weeks   | P0       |
-| **Accessibility (WCAG 2.1)** | Full accessibility compliance         | 38.0       | 3 weeks   | P1       |
+| **Accessibility (WCAG 2.2)** ↗️ D16 | Full accessibility compliance  | 38.0       | 3 weeks   | P1       |
 | **Multi-language**           | Internationalization support          | 36.0       | 3 weeks   | P2       |
 
 **Domain Total: 20 weeks**
@@ -582,10 +584,10 @@ We use RICE scoring to prioritize features:
 | **Integrations**            | 1   | 2       | 8        | 11             |
 | **Platform & API**          | 0   | 0       | 8        | 8              |
 | **Infrastructure**          | 9   | 5       | 8        | 22             |
-| **UX & Accessibility**      | 0   | 8       | 3        | 11             |
+| **UI/UX & Design System**   | 47  | 26      | 5        | 78             |
 | **School & Education**      | 0   | 14      | 14       | 28             |
 
-**Total Features Planned: 236 features across 17 domains**
+**Total Features Planned: 303 features across 17 domains**
 
 ---
 
@@ -933,24 +935,139 @@ We use RICE scoring to prioritize features:
 - GDPR compliance tools
 - SLA monitoring
 
-### 16. UX & Accessibility
+### 16. UI/UX & Design System
 
-#### Phase 2 (New in Phase 2)
+#### MVP
 
-- Onboarding flow
-- Quick actions
-- Keyboard shortcuts
-- Dark mode
-- Customizable dashboard
-- Smart suggestions
-- WCAG 2.1 compliance
-- Multi-language support (i18n)
+**Design System Foundation**
+
+- Design Token System (colors, spacing, typography, shadows as CSS/Tailwind variables)
+- Icon System (consistent icon library — Lucide/Heroicons + custom family icons)
+- Typography Scale (Inter/SF-inspired type ramp, responsive sizes)
+- Color Palette Implementation (warm palette w/ semantic tokens, WCAG 4.5:1 contrast)
+- Spacing & Layout Grid (8px base grid, consistent padding/margin scale)
+- Border Radius & Shape Language (rounded/warm shape tokens)
+- Shadow & Elevation System (layered depth, card/modal/dropdown levels)
+
+**Form Controls**
+
+- Date & Time Picker (calendar dropdown, time selector, range picker)
+- Multi-Select & Tag Input (family member selector, category tags)
+- Autocomplete / Combobox (search-as-you-type for items, members, locations)
+- Color Picker (event/calendar color assignment)
+- Toggle Switch & Checkbox (settings, permissions, task completion)
+
+**Navigation & Layout**
+
+- Responsive Sidebar Navigation (collapsible, icons + labels, active state)
+- Bottom Navigation Bar (mobile: 4-5 key destinations)
+- Breadcrumb Navigation (deep-page context: Family > Settings > Members)
+- Tab Component (horizontal tabs for sub-views: Calendar Week/Month/Day)
+- Drawer / Side Panel (event detail, task detail, member profile)
+- Page Header with Actions (title + breadcrumb + primary/secondary action buttons)
+- Responsive Breakpoint System (mobile/tablet/desktop layout variants)
+
+**Feedback & Overlays**
+
+- Toast Notification System (success/error/info, auto-dismiss, undo support)
+- Confirmation Dialog (destructive actions: delete event, remove member)
+- Modal / Dialog System (create event, edit profile, settings)
+- Tooltip Component (hover hints, truncated text reveal)
+- Popover / Dropdown Menu (context menus, filter options)
+- Inline Feedback Messages (form validation, success/error contextual)
+- Progress Indicators (linear bar, circular for uploads, step indicator for wizards)
+
+**Data Display Components**
+
+- Card Component (event cards, task cards, list item cards, member cards)
+- Avatar & Avatar Group (user avatars, family member group display)
+- Badge & Status Indicator (unread count, online status, task status pills)
+- Tag / Chip Component (categories, labels, filters, selected members)
+- Calendar Event Display (compact/expanded, color-coded, avatar + time)
+- Empty State Illustrations (friendly illustrations per feature area)
+- Skeleton Loading Screens (content-shaped placeholders per page type)
+- List & List Item Component (shopping lists, task lists, member lists)
+
+**UX Behaviors & Patterns**
+
+- Guided Onboarding Wizard (create family → invite → preferences → first event)
+- Empty State Design System (per-feature illustrations + CTAs + educational text)
+- Error State Handling (friendly error pages: 404, 500, network error, auth expired)
+- Loading State Strategy (skeleton screens for lists, shimmer for cards, spinner for actions)
+- Undo Pattern (undo toast for destructive actions: delete, remove, archive)
+- Search & Filter UX (global search, per-list filters, saved filter presets)
+
+**Theming & Accessibility**
+
+- WCAG 2.2 AA Color Contrast (4.5:1 text, 3:1 large text, both themes)
+- Keyboard Navigation (full tab order, focus indicators, skip links, focus trap in modals)
+- Screen Reader Support (ARIA labels, live regions, semantic HTML, role attributes)
+- Reduced Motion Mode (respect `prefers-reduced-motion`, disable non-essential animation)
+- Touch Target Sizing (minimum 44x44px for all interactive elements)
+- Form Accessibility (label association, error announcements, required field indicators)
+- Responsive Typography (fluid type scaling, minimum 16px body text, no zoom-block)
+
+#### Phase 2
+
+**Design System Foundation**
+
+- In-App Style Guide (`/design-system` route showing all components live)
+- Design Token Documentation (auto-generated from Tailwind config)
+
+**Form Controls**
+
+- Slider Control (budget limits, notification frequency)
+- Rich Text Editor (event descriptions, notes, recipe instructions)
+- File Upload Dropzone (document vault, recipe photos, avatars)
+
+**Navigation & Layout**
+
+- Command Palette (Cmd+K / Ctrl+K global search + quick actions)
+
+**Feedback & Overlays**
+
+- Bottom Sheet (mobile: action menus, quick create)
+- Notification Center (bell icon, unread count, history panel, mark-read)
+
+**Data Display Components**
+
+- Data Table (sortable, filterable — for admin, member lists, expense tracking)
+- Timeline Component (family activity feed, event history)
+
+**UX Behaviors & Patterns**
+
+- Inline Editing (click-to-edit text fields for event titles, task names, list items)
+- Drag-and-Drop Calendar Events (move events between days/times, resize duration)
+- Keyboard Shortcuts System (configurable shortcuts, cheat sheet overlay)
+- Optimistic UI Updates (instant feedback, sync in background, error rollback)
+- Infinite Scroll & Pagination (activity feed, search results, long lists)
+- Contextual Help Tooltips (feature discovery hints, "Did you know..." prompts)
+- Animation & Transition System (shared enter/exit/layout animations, route transitions, micro-interactions library)
+
+**Theming & Accessibility**
+
+- Dark Mode (user toggle: Light/Dark/System, CSS variables, independent contrast testing)
+- High Contrast Mode (optional high-contrast theme variant)
+
+**Data Visualization & Dashboards**
+
+- Customizable Dashboard (widget grid: today's events, tasks, lists, activity)
+- Dashboard Widget: Today's Schedule (timeline view of day's events + assignments)
+- Dashboard Widget: Pending Tasks (assigned tasks by urgency, quick-complete)
+- Dashboard Widget: Shopping List Preview (top items, quick-add)
+- Dashboard Widget: Family Activity Feed (recent actions, who did what)
+- Budget Charts (pie: categories, line: trends, bar: month-over-month)
+- Family Schedule Density View (availability grid, busy/free by member by hour)
 
 #### Phase 3+
 
-- Advanced customization
-- Personalization engine
-- Accessibility improvements
+**Data Visualization & Dashboards**
+
+- Calendar Heatmap (activity density visualization, GitHub-contribution style)
+- Chore Completion Charts (per-member bar/pie charts, fairness indicator)
+- Habit Streak Visualizations (streak counters, flame icons, weekly grid)
+- Goal Progress Indicators (progress bars, milestone markers, completion %)
+- Weekly Summary Card (auto-generated: events attended, tasks completed, lists cleared)
 
 ### 17. School & Education
 
@@ -994,20 +1111,20 @@ We use RICE scoring to prioritize features:
 
 ### P0 - Critical (Ship Blockers)
 
-**MVP:** 32 features - Core functionality that must work
-**Phase 2:** 15 features - Key differentiators and competitive parity
+**MVP:** 65 features - Core functionality and foundational UI/UX that must work
+**Phase 2:** 16 features - Key differentiators and competitive parity
 **Phase 3+:** 12 features - Innovation and platform capabilities
 
 ### P1 - High (Should Have)
 
-**MVP:** 11 features - Important but can be iterated
-**Phase 2:** 35 features - Enhanced experience and feature depth
-**Phase 3+:** 28 features - Advanced capabilities and integrations
+**MVP:** 25 features - Important but can be iterated
+**Phase 2:** 48 features - Enhanced experience, UI components, and feature depth
+**Phase 3+:** 30 features - Advanced capabilities, visualizations, and integrations
 
 ### P2 - Medium (Nice to Have)
 
 **MVP:** 6 features - Polish and enhancement
-**Phase 2:** 15 features - Additional value-adds
+**Phase 2:** 19 features - Additional value-adds and advanced interactions
 **Phase 3+:** 15 features - Future innovations
 
 ### Icebox (Future Consideration)
@@ -1156,10 +1273,57 @@ Legend: ✓✓✓ Excellent | ✓✓ Good | ✓ Basic | △ Limited | ✗ None
 
 ---
 
+## UI/UX Resources & Inspiration
+
+### Design Inspiration
+
+- [Mobbin — UI & UX design reference library](https://mobbin.com) — 2,000+ real app screens
+- [Dribbble — Design shots & concepts](https://dribbble.com) — Calendar & dashboard inspiration
+- [Awwwards — Website design awards](https://www.awwwards.com) — Premium design patterns
+- [Mobbin Dashboard Patterns (Mobile)](https://mobbin.com/explore/mobile/screens/dashboard)
+- [Mobbin Dashboard Patterns (Web)](https://mobbin.com/explore/web/screens/dashboard)
+- [Page Flows — User flow patterns](https://pageflows.com) — Onboarding & interaction flows
+
+### App Inspirations
+
+- [Fantastical](https://flexibits.com/fantastical) — Calendar UI, natural language, split-screen
+- [Linear](https://linear.app) — Keyboard-first, performance, clean design
+- [Things 3](https://culturedcode.com/things/) — Delightful task management, Apple Design Award
+- [Todoist](https://todoist.com) — Warm, productive, cross-platform
+- [Notion](https://notion.so) — Block-based, flexible, inline editing
+
+### Design Systems
+
+- [shadcn/ui](https://ui.shadcn.com) — Clean, accessible components (React, aesthetic reference)
+- [Spartan](https://www.spartan.ng) — Angular port of shadcn/ui, signals-based
+- [PrimeNG](https://primeng.org) — Comprehensive Angular component library
+- [Flowbite](https://flowbite.com) — 600+ Tailwind components
+- [Apple Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines)
+- [Material Design 3](https://m3.material.io) — Google's design language
+
+### Angular Animation Libraries
+
+- [angular-animations](https://www.npmjs.com/package/angular-animations) — Reusable animations for Angular 15+
+- [ng-animate](https://www.npmjs.com/package/ng-animate) — animate.css for Angular
+
+### Charting Libraries
+
+- [Chart.js](https://www.chartjs.org) — Easy, responsive charts (recommended for MVP)
+- [ApexCharts](https://apexcharts.com) — Beautiful defaults, annotation support
+- [ngx-charts](https://swimlane.github.io/ngx-charts/) — Angular-native D3 charts
+
+### Accessibility
+
+- [WCAG 2.2 Quick Reference](https://www.w3.org/WAI/WCAG22/quickref/)
+- [A11y Project Checklist](https://www.a11yproject.com/checklist/)
+
+---
+
 ## Document History
 
 | Version | Date       | Author                        | Changes                               |
 | ------- | ---------- | ----------------------------- | ------------------------------------- |
+| 1.2     | 2026-02-12 | Product Manager (AI-assisted) | Expand UX & Accessibility into comprehensive UI/UX & Design System domain (78 features, 8 sub-categories); add UI/UX Resources appendix; consolidate Phase 2 Section 8 overlaps; add Animation & Transition System; total features 236 → 303 |
 | 1.1     | 2026-02-12 | Product Manager (AI-assisted) | Add School & Education domain (17th domain, 28 features) |
 | 1.0     | 2025-12-19 | Product Manager (AI-assisted) | Initial comprehensive feature backlog |
 
