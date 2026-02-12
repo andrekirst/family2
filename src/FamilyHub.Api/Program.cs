@@ -1,3 +1,4 @@
+using System.Net;
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure;
@@ -13,10 +14,19 @@ using FamilyHub.Api.Features.EventChain;
 using FamilyHub.Api.Features.Family;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure forwarded headers for reverse proxy (Traefik)
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Configure PostgreSQL database with AppDbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -119,6 +129,9 @@ builder.Services
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment());
 
 var app = builder.Build();
+
+// Forward proxy headers (must be first middleware to set correct scheme/host)
+app.UseForwardedHeaders();
 
 // Configure HTTP request pipeline
 if (app.Environment.IsDevelopment())
