@@ -29,16 +29,32 @@ tasks:
     status:
       - test -f {{.INFRA_DIR}}/certs/local.pem
 
+  setup:proxy-volumes:
+    desc: Create external Docker volumes for package caching proxies (idempotent)
+    cmds:
+      - docker volume create fh-proxy-verdaccio
+      - docker volume create fh-proxy-baget
+      - docker volume create fh-proxy-registry-dockerhub
+      - docker volume create fh-proxy-registry-mcr
+      - docker volume create fh-proxy-registry-ghcr
+    status:
+      - docker volume inspect fh-proxy-verdaccio >/dev/null 2>&1
+      - docker volume inspect fh-proxy-baget >/dev/null 2>&1
+      - docker volume inspect fh-proxy-registry-dockerhub >/dev/null 2>&1
+      - docker volume inspect fh-proxy-registry-mcr >/dev/null 2>&1
+      - docker volume inspect fh-proxy-registry-ghcr >/dev/null 2>&1
+
   # ---------------------------------------------------------------------------
   # Traefik (shared proxy)
   # ---------------------------------------------------------------------------
   traefik:up:
     desc: Start shared Traefik reverse proxy
-    deps: [setup:certs]
+    deps: [setup:certs, setup:proxy-volumes]
     cmds:
       - docker compose -f {{.TRAEFIK_COMPOSE}} up -d
     status:
       - docker compose -f {{.TRAEFIK_COMPOSE}} ps --status running | grep -q traefik
+      - docker compose -f {{.TRAEFIK_COMPOSE}} ps --status running | grep -q verdaccio
 
   traefik:down:
     desc: Stop shared Traefik reverse proxy
@@ -122,7 +138,53 @@ tasks:
         echo "  ──────────────────────────────────────────"
         echo "  Hub:       https://hub.localhost:4443"
         echo "  Traefik:   http://localhost:8888"
+        echo "  ──────────────────────────────────────────"
+        echo "  Proxies:"
+        echo "  npm:       https://npm.localhost:4443    (localhost:4873)"
+        echo "  NuGet:     https://nuget.localhost:4443  (localhost:5555)"
+        echo "  DockerHub: localhost:5001"
+        echo "  MCR:       localhost:5002"
+        echo "  GHCR:      localhost:5003"
         echo ""
+
+  # ---------------------------------------------------------------------------
+  # Package caching proxies
+  # ---------------------------------------------------------------------------
+  proxy:status:
+    desc: 'Show proxy container status and volume sizes'
+    cmds:
+      - |
+        echo ""
+        echo "  Proxy Containers:"
+        echo "  ──────────────────────────────────────────"
+        docker compose -f {{.TRAEFIK_COMPOSE}} ps --format "table {{`{{.Name}}`}}\t{{`{{.Status}}`}}\t{{`{{.Ports}}`}}" | grep -E "(verdaccio|baget|registry)" || echo "  No proxy containers running."
+        echo ""
+
+  proxy:logs:
+    desc: 'Follow proxy service logs'
+    cmds:
+      - docker compose -f {{.TRAEFIK_COMPOSE}} logs -f verdaccio baget registry-dockerhub registry-mcr registry-ghcr {{.CLI_ARGS}}
+
+  proxy:usage:
+    desc: 'Show cache disk usage'
+    cmds:
+      - |
+        echo ""
+        echo "  Proxy Cache Disk Usage:"
+        echo "  ──────────────────────────────────────────"
+        for vol in fh-proxy-verdaccio fh-proxy-baget fh-proxy-registry-dockerhub fh-proxy-registry-mcr fh-proxy-registry-ghcr; do
+          size=$(docker run --rm -v "${vol}:/data" alpine sh -c "du -sh /data 2>/dev/null | cut -f1" 2>/dev/null || echo "N/A")
+          printf "  %-35s %s\n" "$vol" "$size"
+        done
+        echo ""
+
+  proxy:clean:
+    desc: 'Stop proxies and remove cache volumes (with confirmation)'
+    prompt: This will remove all cached packages (npm, NuGet, Docker images). Continue?
+    cmds:
+      - docker compose -f {{.TRAEFIK_COMPOSE}} stop verdaccio baget registry-dockerhub registry-mcr registry-ghcr
+      - docker volume rm fh-proxy-verdaccio fh-proxy-baget fh-proxy-registry-dockerhub fh-proxy-registry-mcr fh-proxy-registry-ghcr 2>/dev/null || true
+      - echo "Proxy caches removed. Run 'task traefik:up' to recreate."
 
   hub:
     desc: 'Open Environment Hub in browser'

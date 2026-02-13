@@ -109,6 +109,31 @@
     .svc-mail{background:#431407;color:#fdba74}
     .svc-pgadmin{background:#164e63;color:#67e8f9}
 
+    /* Shared services bar */
+    .shared-services{
+      padding:0.75rem 2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+      border-bottom:1px solid var(--border);
+    }
+    .shared-services-label{
+      font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;
+      letter-spacing:0.05em;font-weight:600;white-space:nowrap;
+    }
+    .shared-svc-link{
+      display:inline-flex;align-items:center;gap:0.4rem;
+      font-size:0.8rem;padding:0.4rem 0.75rem;
+      border-radius:0.5rem;text-decoration:none;
+      font-weight:500;transition:background 0.15s,filter 0.15s;
+    }
+    .shared-svc-link:hover{filter:brightness(1.15)}
+    .shared-svc-link.svc-offline{opacity:0.45;border:1px dashed var(--border)}
+    .shared-svc-dot{
+      width:6px;height:6px;border-radius:50%;display:inline-block;
+    }
+    .shared-svc-dot.online{background:var(--green)}
+    .shared-svc-dot.offline{background:var(--text-muted)}
+    .svc-npm{background:#4a1c0a;color:#fb923c}
+    .svc-nuget{background:#1e1b4b;color:#a5b4fc}
+
     /* Empty / error states */
     .state-message{
       text-align:center;padding:4rem 2rem;
@@ -151,6 +176,8 @@
     <span id="statusText">Connecting...</span>
   </div>
 
+  <div class="shared-services" id="sharedServices" style="display:none"></div>
+
   <main id="content">
     <div class="state-message">
       <h2>Loading...</h2>
@@ -171,11 +198,17 @@
       const PORT = '4443';
       const REFRESH_MS = 10_000;
       const SERVICE_PREFIXES = ['fe-', 'api-', 'kc-', 'mail-', 'pgadmin-'];
-      const EXCLUDED_ROUTERS = ['hub@docker', 'hub-api@file'];
+      const EXCLUDED_ROUTERS = ['hub@docker', 'hub-api@file', 'verdaccio@docker', 'baget@docker'];
       const EXCLUDED_PATTERNS = [/^api-proxy-/];
       const PINNED_ENVS = ['main'];
 
+      const SHARED_SERVICES = {
+        verdaccio: { label: 'npm Registry', css: 'svc-npm', icon: '\u25CB', url: 'https://npm.localhost:' + PORT },
+        baget:     { label: 'NuGet Gallery', css: 'svc-nuget', icon: '\u25CB', url: 'https://nuget.localhost:' + PORT },
+      };
+
       const content = document.getElementById('content');
+      const sharedServicesEl = document.getElementById('sharedServices');
       const statusDot = document.getElementById('statusDot');
       const statusText = document.getElementById('statusText');
       const refreshBtn = document.getElementById('refreshBtn');
@@ -274,6 +307,28 @@
         content.appendChild(wrapper);
       }
 
+      // -- Render shared services bar --------------------------------
+      function renderSharedServices(found) {
+        sharedServicesEl.textContent = '';
+        sharedServicesEl.appendChild(el('span', { className: 'shared-services-label', textContent: 'Shared Services' }));
+
+        for (const [key, meta] of Object.entries(SHARED_SERVICES)) {
+          const online = found.has(key);
+          const link = el('a', {
+            className: 'shared-svc-link ' + meta.css + (online ? '' : ' svc-offline'),
+            href: meta.url,
+            target: '_blank',
+            rel: 'noopener',
+          }, [
+            el('span', { className: 'shared-svc-dot ' + (online ? 'online' : 'offline') }),
+            document.createTextNode(' ' + meta.icon + ' ' + meta.label),
+          ]);
+          sharedServicesEl.appendChild(link);
+        }
+
+        sharedServicesEl.style.display = '';
+      }
+
       // -- Render environment cards ---------------------------------
       function renderCards(envs) {
         const envNames = Object.keys(envs);
@@ -355,10 +410,18 @@
         try {
           const routers = await fetchRouters();
           const envs = {};
+          const sharedFound = new Set();
 
           for (const r of routers) {
-            if (EXCLUDED_ROUTERS.includes(r.name)) continue;
             const base = (r.name || '').replace('@docker', '');
+
+            // Detect shared services (before exclusion check)
+            if (base in SHARED_SERVICES) {
+              sharedFound.add(base);
+              continue;
+            }
+
+            if (EXCLUDED_ROUTERS.includes(r.name)) continue;
             if (EXCLUDED_PATTERNS.some(p => p.test(base))) continue;
             const parsed = parseRouter(r);
             if (!parsed) continue;
@@ -373,6 +436,7 @@
             }
           }
 
+          renderSharedServices(sharedFound);
           renderCards(envs);
           setStatus(true, 'Last updated: ' + new Date().toLocaleTimeString());
         } catch (err) {

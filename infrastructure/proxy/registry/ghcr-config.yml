@@ -1,0 +1,14 @@
+# Docker Registry — pull-through cache for GitHub Container Registry (ghcr.io)
+# Docs: https://distribution.github.io/distribution/recipes/mirror/
+
+version: 0.1
+
+storage:
+  filesystem:
+    rootdirectory: /var/lib/registry
+
+proxy:
+  remoteurl: https://ghcr.io
+
+http:
+  addr: 0.0.0.0:5000
