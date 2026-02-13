@@ -1,0 +1,41 @@
+# Verdaccio — npm caching proxy
+# Proxies all requests to npmjs.org, caches packages locally.
+# Docs: https://verdaccio.org/docs/configuration
+
+storage: /verdaccio/storage/data
+plugins: /verdaccio/plugins
+
+web:
+  title: FamilyHub npm Cache
+
+auth:
+  htpasswd:
+    file: /verdaccio/storage/htpasswd
+    max_users: -1 # disable registration (proxy-only mode)
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    cache: true
+    maxage: 30m
+
+packages:
+  '@*/*':
+    access: $all
+    proxy: npmjs
+
+  '**':
+    access: $all
+    proxy: npmjs
+
+listen:
+  - 0.0.0.0:4873
+
+middlewares:
+  audit:
+    enabled: true
+
+log:
+  type: stdout
+  format: pretty
+  level: warn

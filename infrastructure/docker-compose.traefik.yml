@@ -31,6 +31,95 @@ services:
     networks:
       - traefik-public
 
+  # ---------------------------------------------------------------------------
+  # Package caching proxies — shared across all environments
+  # ---------------------------------------------------------------------------
+
+  # npm caching proxy (Verdaccio)
+  verdaccio:
+    image: verdaccio/verdaccio:6
+    restart: unless-stopped
+    ports:
+      - '4873:4873'
+    volumes:
+      - fh-proxy-verdaccio:/verdaccio/storage
+      - ./proxy/verdaccio/config.yaml:/verdaccio/conf/config.yaml:ro
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.verdaccio.rule=Host(`npm.localhost`)'
+      - 'traefik.http.routers.verdaccio.entrypoints=websecure'
+      - 'traefik.http.routers.verdaccio.tls=true'
+      - 'traefik.http.services.verdaccio.loadbalancer.server.port=4873'
+    networks:
+      - traefik-public
+
+  # NuGet caching proxy (BaGet)
+  baget:
+    image: loicsharma/baget:latest
+    restart: unless-stopped
+    ports:
+      - '5555:80'
+    env_file:
+      - ./proxy/baget/baget.env
+    volumes:
+      - fh-proxy-baget:/var/baget
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.baget.rule=Host(`nuget.localhost`)'
+      - 'traefik.http.routers.baget.entrypoints=websecure'
+      - 'traefik.http.routers.baget.tls=true'
+      - 'traefik.http.services.baget.loadbalancer.server.port=80'
+    networks:
+      - traefik-public
+
+  # Docker Hub pull-through cache
+  registry-dockerhub:
+    image: registry:2
+    restart: unless-stopped
+    ports:
+      - '5001:5000'
+    volumes:
+      - fh-proxy-registry-dockerhub:/var/lib/registry
+      - ./proxy/registry/dockerhub-config.yml:/etc/docker/registry/config.yml:ro
+    networks:
+      - traefik-public
+
+  # Microsoft Container Registry pull-through cache
+  registry-mcr:
+    image: registry:2
+    restart: unless-stopped
+    ports:
+      - '5002:5000'
+    volumes:
+      - fh-proxy-registry-mcr:/var/lib/registry
+      - ./proxy/registry/mcr-config.yml:/etc/docker/registry/config.yml:ro
+    networks:
+      - traefik-public
+
+  # GitHub Container Registry pull-through cache
+  registry-ghcr:
+    image: registry:2
+    restart: unless-stopped
+    ports:
+      - '5003:5000'
+    volumes:
+      - fh-proxy-registry-ghcr:/var/lib/registry
+      - ./proxy/registry/ghcr-config.yml:/etc/docker/registry/config.yml:ro
+    networks:
+      - traefik-public
+
+volumes:
+  fh-proxy-verdaccio:
+    external: true
+  fh-proxy-baget:
+    external: true
+  fh-proxy-registry-dockerhub:
+    external: true
+  fh-proxy-registry-mcr:
+    external: true
+  fh-proxy-registry-ghcr:
+    external: true
+
 networks:
   traefik-public:
     name: traefik-public
