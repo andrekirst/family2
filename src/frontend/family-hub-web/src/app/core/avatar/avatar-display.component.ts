@@ -8,7 +8,7 @@ const SIZE_PX: Record<AvatarSizeType, number> = {
   tiny: 24,
   small: 48,
   medium: 128,
-  large: 512,
+  large: 64,
 };
 
 // Deterministic color palette for initials fallback
