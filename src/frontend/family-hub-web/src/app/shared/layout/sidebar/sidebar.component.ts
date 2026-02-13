@@ -1,6 +1,7 @@
 import { Component, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SidebarStateService } from '../../services/sidebar-state.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserService } from '../../../core/user/user.service';
@@ -9,7 +10,7 @@ import { ICONS } from '../../icons/icons';
 interface NavItem {
   path: string;
   label: string;
-  icon: string;
+  icon: SafeHtml;
   matchPrefix: string;
 }
 
@@ -101,15 +102,46 @@ export class SidebarComponent {
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
+  private readonly sanitizer = inject(DomSanitizer);
 
-  readonly icons = ICONS;
+  readonly icons = {
+    MENU: this.trustHtml(ICONS.MENU),
+    CHEVRON_LEFT: this.trustHtml(ICONS.CHEVRON_LEFT),
+    USER_CIRCLE: this.trustHtml(ICONS.USER_CIRCLE),
+    LOGOUT: this.trustHtml(ICONS.LOGOUT),
+  };
   readonly showUserMenu = signal(false);
 
   readonly navItems: NavItem[] = [
-    { path: '/dashboard', label: 'Dashboard', icon: ICONS.HOME, matchPrefix: '/dashboard' },
-    { path: '/family/settings', label: 'Family', icon: ICONS.USERS, matchPrefix: '/family' },
-    { path: '/calendar', label: 'Calendar', icon: ICONS.CALENDAR, matchPrefix: '/calendar' },
+    {
+      path: '/dashboard',
+      label: 'Dashboard',
+      icon: this.trustHtml(ICONS.HOME),
+      matchPrefix: '/dashboard',
+    },
+    {
+      path: '/family/settings',
+      label: 'Family',
+      icon: this.trustHtml(ICONS.USERS),
+      matchPrefix: '/family',
+    },
+    {
+      path: '/calendar',
+      label: 'Calendar',
+      icon: this.trustHtml(ICONS.CALENDAR),
+      matchPrefix: '/calendar',
+    },
+    {
+      path: '/event-chains',
+      label: 'Automations',
+      icon: this.trustHtml(ICONS.BOLT),
+      matchPrefix: '/event-chains',
+    },
   ];
+
+  private trustHtml(html: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
 
   userName(): string {
     return this.userService.currentUser()?.name ?? 'User';

@@ -23,9 +23,10 @@ fi
 mkcert -install
 
 # Generate wildcard certificate for *.localhost
+# Explicit SANs for npm.localhost and nuget.localhost improve edge-case compatibility
 mkcert \
   -cert-file "$CERT_DIR/local.pem" \
   -key-file "$CERT_DIR/local-key.pem" \
-  "*.localhost" "localhost" "127.0.0.1" "::1"
+  "*.localhost" "localhost" "npm.localhost" "nuget.localhost" "127.0.0.1" "::1"
 
 echo "Certificates generated at $CERT_DIR"

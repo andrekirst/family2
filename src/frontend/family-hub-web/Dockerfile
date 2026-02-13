@@ -1,12 +1,16 @@
+# Build arg for Docker Hub pull-through cache (empty = direct pull)
+ARG DOCKERHUB_REGISTRY=""
+
 # ==============================================================================
 # Development target — ng serve with live reload
 # ==============================================================================
-FROM node:22-alpine AS dev
+FROM ${DOCKERHUB_REGISTRY}node:22-alpine AS dev
 
 WORKDIR /app
 
 # Install dependencies first (layer cache)
 COPY package.json package-lock.json ./
+COPY .npmrc* ./
 RUN npm ci
 
 # Source code is volume-mounted at runtime
@@ -19,10 +23,11 @@ ENTRYPOINT ["npx", "ng", "serve", \
 # ==============================================================================
 # Build stage
 # ==============================================================================
-FROM node:22-alpine AS build
+FROM ${DOCKERHUB_REGISTRY}node:22-alpine AS build
 
 WORKDIR /app
 COPY package.json package-lock.json ./
+COPY .npmrc* ./
 RUN npm ci
 COPY . .
 RUN npx ng build --configuration production
@@ -30,7 +35,7 @@ RUN npx ng build --configuration production
 # ==============================================================================
 # Production image — nginx static serving
 # ==============================================================================
-FROM nginx:alpine AS prod
+FROM ${DOCKERHUB_REGISTRY}nginx:alpine AS prod
 
 COPY --from=build /app/dist/family-hub-web/browser /usr/share/nginx/html
 EXPOSE 80

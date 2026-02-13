@@ -1,9 +1,12 @@
 # Build context: src/ (parent directory, needed for sibling project references)
 
+# Build arg for MCR pull-through cache (default = direct pull from MCR)
+ARG MCR_REGISTRY=mcr.microsoft.com/
+
 # ==============================================================================
 # Development target — hot-reload with dotnet watch
 # ==============================================================================
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS dev
+FROM ${MCR_REGISTRY}dotnet/sdk:10.0 AS dev
 
 WORKDIR /src
 ENV DOTNET_USE_POLLING_FILE_WATCHER=true
@@ -18,10 +21,14 @@ ENTRYPOINT ["dotnet", "watch", "run", \
 # ==============================================================================
 # Build stage — restore and publish
 # ==============================================================================
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM ${MCR_REGISTRY}dotnet/sdk:10.0 AS build
 
+ARG BAGET_URL=""
 WORKDIR /src
 COPY . .
+RUN if [ -n "$BAGET_URL" ]; then \
+      dotnet nuget add source "$BAGET_URL" -n baget-cache --allow-insecure-connections; \
+    fi
 RUN dotnet restore FamilyHub.Api/FamilyHub.Api.csproj
 RUN dotnet publish FamilyHub.Api/FamilyHub.Api.csproj \
   -c Release -o /app/publish --no-restore
@@ -29,7 +36,7 @@ RUN dotnet publish FamilyHub.Api/FamilyHub.Api.csproj \
 # ==============================================================================
 # Final production image
 # ==============================================================================
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM ${MCR_REGISTRY}dotnet/aspnet:10.0 AS final
 
 WORKDIR /app
 COPY --from=build /app/publish .
