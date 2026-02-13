@@ -50,6 +50,13 @@ public class FamilyMemberConfiguration : IEntityTypeConfiguration<FamilyMember>
             .IsRequired()
             .HasDefaultValue(true);
 
+        // Avatar override (nullable - Vogen value object)
+        builder.Property(fm => fm.AvatarId)
+            .HasConversion(
+                avatarId => avatarId.HasValue ? avatarId.Value.Value : (Guid?)null,
+                value => value.HasValue ? AvatarId.From(value.Value) : null)
+            .IsRequired(false);
+
         // Unique constraint: a user can only be a member of a family once
         builder.HasIndex(fm => new { fm.FamilyId, fm.UserId })
             .IsUnique();

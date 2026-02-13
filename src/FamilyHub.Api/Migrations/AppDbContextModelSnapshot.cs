@@ -23,12 +23,134 @@ namespace FamilyHub.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("FamilyHub.Api.Common.Infrastructure.Avatar.AvatarAggregate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("original_file_name");
+
+                    b.Property<string>("OriginalMimeType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("original_mime_type");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_avatars");
+
+                    b.ToTable("avatars", "avatar");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Common.Infrastructure.Avatar.AvatarVariant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AvatarId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("avatar_id");
+
+                    b.Property<int>("FileSize")
+                        .HasColumnType("integer")
+                        .HasColumnName("file_size");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer")
+                        .HasColumnName("height");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("mime_type");
+
+                    b.Property<string>("Size")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("size");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer")
+                        .HasColumnName("width");
+
+                    b.HasKey("Id")
+                        .HasName("pk_avatar_variants");
+
+                    b.HasIndex("AvatarId", "Size")
+                        .IsUnique()
+                        .HasDatabaseName("ix_avatar_variants_avatar_id_size");
+
+                    b.ToTable("avatar_variants", "avatar");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Common.Infrastructure.Avatar.StoredFile", b =>
+                {
+                    b.Property<string>("StorageKey")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("data");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("mime_type");
+
+                    b.HasKey("StorageKey")
+                        .HasName("pk_stored_files");
+
+                    b.ToTable("stored_files", "storage");
+                });
+
             modelBuilder.Entity("FamilyHub.Api.Features.Auth.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid?>("AvatarId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("avatar_id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -319,6 +441,10 @@ namespace FamilyHub.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid?>("AvatarId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("avatar_id");
 
                     b.Property<Guid>("FamilyId")
                         .HasColumnType("uuid")
@@ -860,6 +986,18 @@ namespace FamilyHub.Api.Migrations
                     b.ToTable("step_executions", "event_chain");
                 });
 
+            modelBuilder.Entity("FamilyHub.Api.Common.Infrastructure.Avatar.AvatarVariant", b =>
+                {
+                    b.HasOne("FamilyHub.Api.Common.Infrastructure.Avatar.AvatarAggregate", "Avatar")
+                        .WithMany("Variants")
+                        .HasForeignKey("AvatarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_avatar_variants_avatars_avatar_id");
+
+                    b.Navigation("Avatar");
+                });
+
             modelBuilder.Entity("FamilyHub.Api.Features.Auth.Domain.Entities.User", b =>
                 {
                     b.HasOne("FamilyHub.Api.Features.Family.Domain.Entities.Family", "Family")
@@ -996,6 +1134,11 @@ namespace FamilyHub.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_step_executions_chain_executions_chain_execution_id");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Common.Infrastructure.Avatar.AvatarAggregate", b =>
+                {
+                    b.Navigation("Variants");
                 });
 
             modelBuilder.Entity("FamilyHub.Api.Features.Calendar.Domain.Entities.CalendarEvent", b =>

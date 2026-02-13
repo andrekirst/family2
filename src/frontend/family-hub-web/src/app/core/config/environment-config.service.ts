@@ -16,6 +16,7 @@ import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class EnvironmentConfigService {
   readonly apiUrl: string;
+  readonly apiBaseUrl: string; // Base URL without /graphql, for REST endpoints like avatars
   readonly keycloak: {
     readonly issuer: string;
     readonly clientId: string;
@@ -35,6 +36,7 @@ export class EnvironmentConfigService {
       const baseUrl = `https://${envName}.localhost:4443`;
 
       this.apiUrl = `${baseUrl}/graphql`;
+      this.apiBaseUrl = baseUrl;
       this.keycloak = {
         issuer: `https://kc-${envName}.localhost:4443/realms/FamilyHub`,
         clientId: 'familyhub-web',
@@ -45,6 +47,7 @@ export class EnvironmentConfigService {
     } else {
       // Host-based development or production — use static environment values
       this.apiUrl = environment.apiUrl;
+      this.apiBaseUrl = environment.apiUrl.replace(/\/graphql$/, '');
       this.keycloak = { ...environment.keycloak };
     }
   }
