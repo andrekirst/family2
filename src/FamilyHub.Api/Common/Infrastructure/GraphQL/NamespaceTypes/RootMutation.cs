@@ -15,6 +15,12 @@ public class RootMutation
     public FamilyMutation Family() => new();
 
     /// <summary>
+    /// Dashboard mutations (save layout, add/remove/configure widgets).
+    /// </summary>
+    [Authorize]
+    public DashboardMutation Dashboard() => new();
+
+    /// <summary>
     /// Event Chain Engine mutations (create, update, delete, execute chains).
     /// </summary>
     [Authorize]
