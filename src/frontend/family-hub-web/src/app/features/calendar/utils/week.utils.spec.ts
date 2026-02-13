@@ -26,7 +26,7 @@ function makeEvent(overrides: Partial<CalendarEventDto> = {}): CalendarEventDto 
     startTime: '2026-02-11T09:00:00.000Z',
     endTime: '2026-02-11T10:00:00.000Z',
     isAllDay: false,
-    type: 'Personal',
+
     isCancelled: false,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',

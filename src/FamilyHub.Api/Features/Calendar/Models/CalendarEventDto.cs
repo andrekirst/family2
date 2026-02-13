@@ -11,7 +11,6 @@ public class CalendarEventDto
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public bool IsAllDay { get; set; }
-    public string Type { get; set; } = string.Empty;
     public bool IsCancelled { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

@@ -19,8 +19,7 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
         string? location,
         DateTime startTime,
         DateTime endTime,
-        bool isAllDay,
-        EventType type)
+        bool isAllDay)
     {
         var calendarEvent = new CalendarEvent
         {
@@ -33,7 +32,6 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
             StartTime = startTime,
             EndTime = endTime,
             IsAllDay = isAllDay,
-            Type = type,
             IsCancelled = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -46,7 +44,6 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
             calendarEvent.Title,
             calendarEvent.StartTime,
             calendarEvent.EndTime,
-            calendarEvent.Type,
             calendarEvent.CreatedAt
         ));
 
@@ -59,8 +56,7 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
         string? location,
         DateTime startTime,
         DateTime endTime,
-        bool isAllDay,
-        EventType type)
+        bool isAllDay)
     {
         Title = title;
         Description = description;
@@ -68,7 +64,6 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
         StartTime = startTime;
         EndTime = endTime;
         IsAllDay = isAllDay;
-        Type = type;
         UpdatedAt = DateTime.UtcNow;
 
         RaiseDomainEvent(new CalendarEventUpdatedEvent(
@@ -77,7 +72,6 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
             Title,
             StartTime,
             EndTime,
-            Type,
             UpdatedAt
         ));
     }
@@ -107,7 +101,6 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public bool IsAllDay { get; private set; }
-    public EventType Type { get; private set; }
     public bool IsCancelled { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }

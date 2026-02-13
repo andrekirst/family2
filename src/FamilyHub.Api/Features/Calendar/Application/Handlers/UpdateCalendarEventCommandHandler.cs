@@ -28,8 +28,7 @@ public sealed class UpdateCalendarEventCommandHandler(
             command.Location,
             command.StartTime,
             command.EndTime,
-            command.IsAllDay,
-            command.Type);
+            command.IsAllDay);
 
         // Replace attendees
         calendarEvent.Attendees.Clear();

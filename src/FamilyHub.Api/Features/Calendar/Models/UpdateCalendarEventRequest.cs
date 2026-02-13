@@ -8,6 +8,5 @@ public class UpdateCalendarEventRequest
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public bool IsAllDay { get; set; }
-    public required string Type { get; set; }
     public List<Guid> AttendeeIds { get; set; } = [];
 }

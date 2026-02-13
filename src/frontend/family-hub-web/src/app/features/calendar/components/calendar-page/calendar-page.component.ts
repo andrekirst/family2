@@ -1,4 +1,13 @@
-import { Component, inject, signal, OnInit, OnDestroy, computed } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  OnInit,
+  OnDestroy,
+  computed,
+  ViewChild,
+  TemplateRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { UserService } from '../../../../core/user/user.service';
@@ -7,8 +16,9 @@ import { CalendarMonthGridComponent } from '../calendar-month-grid/calendar-mont
 import { CalendarWeekGridComponent } from '../calendar-week-grid/calendar-week-grid.component';
 import { CalendarWeekSkeletonComponent } from '../calendar-week-skeleton/calendar-week-skeleton.component';
 import { CalendarViewSwitcherComponent } from '../calendar-view-switcher/calendar-view-switcher.component';
-import { EventDialogComponent } from '../event-dialog/event-dialog.component';
+import { EventContextComponent } from '../event-context/event-context.component';
 import { TopBarService } from '../../../../shared/services/top-bar.service';
+import { ContextPanelService } from '../../../../shared/services/context-panel.service';
 import { CalendarViewMode } from '../../models/calendar.models';
 import { getWeekStart, getWeekEnd, formatWeekLabel } from '../../utils/week.utils';
 
@@ -22,7 +32,7 @@ import { getWeekStart, getWeekEnd, formatWeekLabel } from '../../utils/week.util
     CalendarWeekGridComponent,
     CalendarWeekSkeletonComponent,
     CalendarViewSwitcherComponent,
-    EventDialogComponent,
+    EventContextComponent,
   ],
   template: `
     <!-- Navigation -->
@@ -116,23 +126,21 @@ import { getWeekStart, getWeekEnd, formatWeekLabel } from '../../utils/week.util
       }
     }
 
-    <!-- Event Dialog -->
-    @if (showCreateDialog()) {
-      <app-event-dialog
-        [selectedDate]="selectedDate()"
-        (eventCreated)="onEventCreated()"
-        (dialogClosed)="onDialogClosed()"
-      />
-    }
-
-    @if (editingEvent()) {
-      <app-event-dialog
-        [event]="editingEvent()"
-        (eventUpdated)="onEventUpdated()"
-        (eventCancelled)="onEventCancelled()"
-        (dialogClosed)="onEditDialogClosed()"
-      />
-    }
+    <!-- Context panel content template -->
+    <ng-template #eventContextTemplate>
+      @if (contextEvent()) {
+        <app-event-context
+          [event]="contextEvent()"
+          (eventUpdated)="onEventUpdated()"
+          (eventCancelled)="onEventCancelled()"
+        />
+      } @else if (selectedDate()) {
+        <app-event-context
+          [selectedDate]="selectedDate()"
+          (eventCreated)="onEventCreated($event)"
+        />
+      }
+    </ng-template>
   `,
 })
 export class CalendarPageComponent implements OnInit, OnDestroy {
@@ -140,6 +148,9 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private router = inject(Router);
   private topBarService = inject(TopBarService);
+  private contextPanelService = inject(ContextPanelService);
+
+  @ViewChild('eventContextTemplate') eventContextTemplate!: TemplateRef<unknown>;
 
   viewMode = signal<CalendarViewMode>('month');
   currentMonth = signal<Date>(new Date());
@@ -147,8 +158,7 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   events = signal<CalendarEventDto[]>([]);
   isLoading = signal(false);
   selectedDate = signal<Date | null>(null);
-  showCreateDialog = signal(false);
-  editingEvent = signal<CalendarEventDto | null>(null);
+  contextEvent = signal<CalendarEventDto | null>(null);
 
   monthLabel = computed(() => {
     const date = this.currentMonth();
@@ -171,7 +181,7 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
         {
           id: 'create-event',
           label: '+ New Event',
-          onClick: () => this.openCreateDialog(),
+          onClick: () => this.openCreatePanel(),
           variant: 'primary',
           testId: 'create-event-button',
         },
@@ -183,6 +193,7 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.topBarService.clear();
+    this.contextPanelService.close();
   }
 
   onViewModeChanged(mode: CalendarViewMode): void {
@@ -259,47 +270,41 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   }
 
   onDayClicked(date: Date): void {
+    this.contextEvent.set(null);
     this.selectedDate.set(date);
-    this.showCreateDialog.set(true);
+    this.contextPanelService.open(this.eventContextTemplate);
   }
 
   onTimeSlotClicked(date: Date): void {
+    this.contextEvent.set(null);
     this.selectedDate.set(date);
-    this.showCreateDialog.set(true);
+    this.contextPanelService.open(this.eventContextTemplate);
   }
 
   onEventClicked(event: CalendarEventDto): void {
-    this.editingEvent.set(event);
+    this.selectedDate.set(null);
+    this.contextEvent.set(event);
+    this.contextPanelService.open(this.eventContextTemplate, event.id);
   }
 
-  openCreateDialog(): void {
+  openCreatePanel(): void {
+    this.contextEvent.set(null);
     this.selectedDate.set(new Date());
-    this.showCreateDialog.set(true);
+    this.contextPanelService.open(this.eventContextTemplate);
   }
 
-  onEventCreated(): void {
-    this.showCreateDialog.set(false);
+  onEventCreated(event: CalendarEventDto): void {
+    this.contextEvent.set(event);
     this.selectedDate.set(null);
     this.loadEvents();
   }
 
   onEventUpdated(): void {
-    this.editingEvent.set(null);
     this.loadEvents();
   }
 
   onEventCancelled(): void {
-    this.editingEvent.set(null);
     this.loadEvents();
-  }
-
-  onDialogClosed(): void {
-    this.showCreateDialog.set(false);
-    this.selectedDate.set(null);
-  }
-
-  onEditDialogClosed(): void {
-    this.editingEvent.set(null);
   }
 
   private loadEvents(): void {

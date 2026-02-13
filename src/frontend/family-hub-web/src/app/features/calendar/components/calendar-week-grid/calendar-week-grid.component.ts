@@ -13,13 +13,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
-import {
-  EVENT_TYPE_COLORS,
-  EVENT_TYPE_BORDER_COLORS,
-  PositionedEvent,
-  WEEK_GRID_CONSTANTS,
-  WeekDay,
-} from '../../models/calendar.models';
+import { PositionedEvent, WEEK_GRID_CONSTANTS, WeekDay } from '../../models/calendar.models';
 import {
   getWeekDays,
   partitionEvents,
@@ -61,7 +55,7 @@ import {
             @for (event of getAllDayEvents(day.date); track event.id) {
               <div
                 class="text-xs px-1.5 py-0.5 rounded border truncate cursor-pointer"
-                [class]="getEventColor(event.type)"
+                class="bg-blue-100 text-blue-800 border-blue-200"
                 [title]="event.title"
                 (click)="onEventClick($event, event)"
               >
@@ -111,7 +105,7 @@ import {
             @for (pe of getPositionedEvents(dayIdx); track pe.event.id) {
               <div
                 class="absolute rounded-md px-1.5 py-0.5 text-xs cursor-pointer overflow-hidden border-l-[3px] bg-white shadow-sm hover:shadow-md transition-shadow z-10"
-                [class]="getEventBorderColor(pe.event.type)"
+                class="border-l-blue-500"
                 [style.top.px]="pe.top"
                 [style.height.px]="pe.height"
                 [style.left]="getEventLeft(pe)"
@@ -213,14 +207,6 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
 
   getAllDayEvents(dayDate: Date): CalendarEventDto[] {
     return partitionEvents(this.events(), dayDate).allDay;
-  }
-
-  getEventColor(type: string): string {
-    return EVENT_TYPE_COLORS[type] || EVENT_TYPE_COLORS['Other'];
-  }
-
-  getEventBorderColor(type: string): string {
-    return EVENT_TYPE_BORDER_COLORS[type] || EVENT_TYPE_BORDER_COLORS['Other'];
   }
 
   getEventLeft(pe: PositionedEvent): string {
