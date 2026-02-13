@@ -13,6 +13,14 @@ COPY package.json package-lock.json ./
 COPY .npmrc* ./
 RUN npm ci
 
+# Make node_modules writable for non-root user (compose user: directive).
+# The named volume is initialised from this layer on first run.
+RUN chmod -R 777 /app/node_modules
+
+# When compose sets user: to the host UID, HOME still points to /root.
+# Redirect to /tmp so npm/ng can write their caches.
+ENV HOME=/tmp
+
 # Source code is volume-mounted at runtime
 EXPOSE 4200
 ENTRYPOINT ["npx", "ng", "serve", \

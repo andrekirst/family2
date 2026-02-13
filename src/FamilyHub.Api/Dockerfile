@@ -12,6 +12,10 @@ WORKDIR /src
 ENV DOTNET_USE_POLLING_FILE_WATCHER=true
 ENV DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
 
+# When compose sets user: to the host UID, HOME still points to /root.
+# Redirect to /tmp so dotnet can write NuGet/SDK caches.
+ENV HOME=/tmp
+
 # Source code is volume-mounted at runtime, no COPY needed for dev
 EXPOSE 5152
 ENTRYPOINT ["dotnet", "watch", "run", \

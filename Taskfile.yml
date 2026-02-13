@@ -14,6 +14,10 @@ vars:
     sh: git rev-parse --abbrev-ref HEAD
   ENV_NAME:
     sh: echo "{{.BRANCH}}" | tr '/_' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//'
+  DOCKER_UID:
+    sh: id -u
+  DOCKER_GID:
+    sh: id -g
   INFRA_DIR: ./infrastructure
   TRAEFIK_COMPOSE: '{{.INFRA_DIR}}/docker-compose.traefik.yml'
   ENV_COMPOSE: '{{.INFRA_DIR}}/docker-compose.env.yml'
@@ -76,6 +80,8 @@ tasks:
       - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} up -d --build
     env:
       ENV_NAME: '{{.ENV_NAME}}'
+      DOCKER_UID: '{{.DOCKER_UID}}'
+      DOCKER_GID: '{{.DOCKER_GID}}'
 
   env:down:
     desc: 'Stop environment (data persists)'
