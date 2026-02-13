@@ -15,8 +15,6 @@ import { UserService, CurrentUser } from '../../../../core/user/user.service';
 import { InvitationService } from '../../../family/services/invitation.service';
 import { ConfirmationDialogComponent } from '../../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
-const EVENT_TYPES = ['Personal', 'Medical', 'School', 'Work', 'Social', 'Travel', 'Other'];
-
 @Component({
   selector: 'app-event-dialog',
   standalone: true,
@@ -152,26 +150,6 @@ const EVENT_TYPES = ['Personal', 'Medical', 'School', 'Work', 'Social', 'Travel'
               </div>
             </div>
 
-            <!-- Event Type -->
-            <div class="mb-4">
-              <label for="event-type" class="block text-sm font-medium text-gray-700 mb-1"
-                >Event Type</label
-              >
-              <select
-                id="event-type"
-                data-testid="event-type-select"
-                [ngModel]="eventType()"
-                (ngModelChange)="eventType.set($event)"
-                [disabled]="isLoading()"
-                name="eventType"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-              >
-                @for (type of eventTypes; track type) {
-                  <option [value]="type">{{ type }}</option>
-                }
-              </select>
-            </div>
-
             <!-- Attendees -->
             @if (familyMembers().length > 0) {
               <div class="mb-4">
@@ -265,15 +243,12 @@ export class EventDialogComponent implements OnInit {
   @Output() eventCancelled = new EventEmitter<void>();
   @Output() dialogClosed = new EventEmitter<void>();
 
-  readonly eventTypes = EVENT_TYPES;
-
   title = signal('');
   description = signal('');
   location = signal('');
   startTime = signal('');
   endTime = signal('');
   isAllDay = signal(false);
-  eventType = signal('Personal');
   selectedAttendees = signal<string[]>([]);
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
@@ -292,7 +267,6 @@ export class EventDialogComponent implements OnInit {
       this.description.set(this.event.description ?? '');
       this.location.set(this.event.location ?? '');
       this.isAllDay.set(this.event.isAllDay);
-      this.eventType.set(this.event.type);
       this.selectedAttendees.set(this.event.attendees.map((a) => a.userId));
 
       if (this.event.isAllDay) {
@@ -379,7 +353,6 @@ export class EventDialogComponent implements OnInit {
           startTime: startDate.toISOString(),
           endTime: endDate.toISOString(),
           isAllDay: this.isAllDay(),
-          type: this.eventType(),
           attendeeIds: this.selectedAttendees(),
         })
         .subscribe({
@@ -405,7 +378,6 @@ export class EventDialogComponent implements OnInit {
           startTime: startDate.toISOString(),
           endTime: endDate.toISOString(),
           isAllDay: this.isAllDay(),
-          type: this.eventType(),
           attendeeIds: this.selectedAttendees(),
         })
         .subscribe({

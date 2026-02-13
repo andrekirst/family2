@@ -15,7 +15,7 @@ const mockEvent: CalendarEventDto = {
   startTime: '2026-03-01T09:00:00Z',
   endTime: '2026-03-01T10:00:00Z',
   isAllDay: false,
-  type: 'Medical',
+
   isCancelled: false,
   createdAt: '2026-02-01T00:00:00Z',
   updatedAt: '2026-02-01T00:00:00Z',

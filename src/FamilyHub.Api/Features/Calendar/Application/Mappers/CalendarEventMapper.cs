@@ -18,7 +18,6 @@ public static class CalendarEventMapper
             StartTime = calendarEvent.StartTime,
             EndTime = calendarEvent.EndTime,
             IsAllDay = calendarEvent.IsAllDay,
-            Type = calendarEvent.Type.ToString(),
             IsCancelled = calendarEvent.IsCancelled,
             CreatedAt = calendarEvent.CreatedAt,
             UpdatedAt = calendarEvent.UpdatedAt,

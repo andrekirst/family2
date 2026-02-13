@@ -48,11 +48,6 @@ public class CalendarEventConfiguration : IEntityTypeConfiguration<CalendarEvent
         builder.Property(e => e.EndTime).IsRequired();
         builder.Property(e => e.IsAllDay).IsRequired();
 
-        builder.Property(e => e.Type)
-            .HasConversion<string>()
-            .HasMaxLength(50)
-            .IsRequired();
-
         builder.Property(e => e.IsCancelled).IsRequired();
 
         builder.Property(e => e.CreatedAt)

@@ -13,7 +13,6 @@ export const GET_CALENDAR_EVENTS = gql`
         startTime
         endTime
         isAllDay
-        type
         isCancelled
         createdAt
         updatedAt
@@ -38,7 +37,6 @@ export const GET_CALENDAR_EVENT = gql`
         startTime
         endTime
         isAllDay
-        type
         isCancelled
         createdAt
         updatedAt
@@ -64,7 +62,6 @@ export const CREATE_CALENDAR_EVENT = gql`
           startTime
           endTime
           isAllDay
-          type
           isCancelled
           createdAt
           updatedAt
@@ -91,7 +88,6 @@ export const UPDATE_CALENDAR_EVENT = gql`
           startTime
           endTime
           isAllDay
-          type
           isCancelled
           createdAt
           updatedAt

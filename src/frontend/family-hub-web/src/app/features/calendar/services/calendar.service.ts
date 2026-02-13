@@ -23,7 +23,6 @@ export interface CalendarEventDto {
   startTime: string;
   endTime: string;
   isAllDay: boolean;
-  type: string;
   isCancelled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -37,7 +36,6 @@ export interface CreateCalendarEventInput {
   startTime: string;
   endTime: string;
   isAllDay: boolean;
-  type: string;
   attendeeIds: string[];
 }
 
@@ -48,7 +46,6 @@ export interface UpdateCalendarEventInput {
   startTime: string;
   endTime: string;
   isAllDay: boolean;
-  type: string;
   attendeeIds: string[];
 }
 

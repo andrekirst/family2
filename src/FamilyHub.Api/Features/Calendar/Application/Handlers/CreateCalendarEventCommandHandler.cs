@@ -21,8 +21,7 @@ public sealed class CreateCalendarEventCommandHandler(
             command.Location,
             command.StartTime,
             command.EndTime,
-            command.IsAllDay,
-            command.Type);
+            command.IsAllDay);
 
         // Add attendees
         foreach (var attendeeId in command.AttendeeIds)

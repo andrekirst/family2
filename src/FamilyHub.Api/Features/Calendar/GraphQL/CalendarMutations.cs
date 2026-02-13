@@ -4,7 +4,6 @@ using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Calendar.Application.Commands;
 using FamilyHub.Api.Features.Calendar.Application.Mappers;
-using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Models;
@@ -38,7 +37,6 @@ public class CalendarMutations
         }
 
         var title = EventTitle.From(input.Title.Trim());
-        var eventType = Enum.Parse<EventType>(input.Type, ignoreCase: true);
         var attendeeIds = input.AttendeeIds.Select(id => UserId.From(id)).ToList();
 
         var command = new CreateCalendarEventCommand(
@@ -50,7 +48,6 @@ public class CalendarMutations
             input.StartTime,
             input.EndTime,
             input.IsAllDay,
-            eventType,
             attendeeIds);
 
         var result = await commandBus.SendAsync<CreateCalendarEventResult>(command, ct);
@@ -80,7 +77,6 @@ public class CalendarMutations
 
         var calendarEventId = CalendarEventId.From(id);
         var title = EventTitle.From(input.Title.Trim());
-        var eventType = Enum.Parse<EventType>(input.Type, ignoreCase: true);
         var attendeeIds = input.AttendeeIds.Select(uid => UserId.From(uid)).ToList();
 
         var command = new UpdateCalendarEventCommand(
@@ -91,7 +87,6 @@ public class CalendarMutations
             input.StartTime,
             input.EndTime,
             input.IsAllDay,
-            eventType,
             attendeeIds);
 
         var result = await commandBus.SendAsync<UpdateCalendarEventResult>(command, ct);

@@ -1,7 +1,6 @@
 import { Component, computed, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
-import { EVENT_TYPE_COLORS } from '../../models/calendar.models';
 
 export interface CalendarDay {
   date: Date;
@@ -54,7 +53,7 @@ export interface CalendarDay {
             @for (event of day.events.slice(0, 3); track event.id) {
               <div
                 class="text-xs px-1.5 py-0.5 rounded border truncate cursor-pointer"
-                [class]="getEventColor(event.type)"
+                class="bg-blue-100 text-blue-800 border-blue-200"
                 [title]="event.title"
                 data-testid="calendar-event-chip"
                 (click)="onEventClick($event, event)"
@@ -143,10 +142,6 @@ export class CalendarMonthGridComponent {
 
     return days;
   });
-
-  getEventColor(type: string): string {
-    return EVENT_TYPE_COLORS[type] || EVENT_TYPE_COLORS['Other'];
-  }
 
   onDayClick(day: CalendarDay): void {
     this.dayClicked.emit(day.date);
