@@ -19,7 +19,8 @@ public static class UserMapper
             FamilyId = user.FamilyId?.Value,
             EmailVerified = user.EmailVerified,
             IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt
+            CreatedAt = user.CreatedAt,
+            PreferredLocale = user.PreferredLocale
         };
     }
 }

@@ -11,7 +11,11 @@ import {
   partitionEvents,
   layoutTimedEvents,
   getNowIndicatorOffset,
+  getStoredLocale,
 } from './week.utils';
+
+const LOCALE_STORAGE_KEY = 'familyhub-locale';
+const TIME_FORMAT_KEY = 'familyhub-time-format';
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -107,18 +111,44 @@ describe('getWeekEnd', () => {
   });
 });
 
+// ── getStoredLocale ─────────────────────────────────────────────────
+
+describe('getStoredLocale', () => {
+  afterEach(() => localStorage.removeItem(LOCALE_STORAGE_KEY));
+
+  it('returns stored locale from localStorage', () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'de');
+    expect(getStoredLocale()).toBe('de');
+  });
+
+  it('falls back to "en" when nothing stored', () => {
+    localStorage.removeItem(LOCALE_STORAGE_KEY);
+    expect(getStoredLocale()).toBe('en');
+  });
+});
+
 // ── getWeekDays ─────────────────────────────────────────────────────
 
 describe('getWeekDays', () => {
+  beforeEach(() => localStorage.setItem(LOCALE_STORAGE_KEY, 'en'));
+  afterEach(() => localStorage.removeItem(LOCALE_STORAGE_KEY));
+
   it('returns 7 days', () => {
     const days = getWeekDays(new Date(2026, 1, 11));
     expect(days).toHaveLength(7);
   });
 
-  it('starts on Monday and ends on Sunday', () => {
+  it('starts on Monday and ends on Sunday (en)', () => {
     const days = getWeekDays(new Date(2026, 1, 11));
     expect(days[0].dayLabel).toBe('Mon');
     expect(days[6].dayLabel).toBe('Sun');
+  });
+
+  it('uses German day labels when locale is de', () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'de');
+    const days = getWeekDays(new Date(2026, 1, 11));
+    expect(days[0].dayLabel).toBe('Mo');
+    expect(days[6].dayLabel).toBe('So');
   });
 
   it('has correct day numbers', () => {
@@ -149,6 +179,9 @@ describe('getWeekDays', () => {
 // ── formatWeekLabel ─────────────────────────────────────────────────
 
 describe('formatWeekLabel', () => {
+  beforeEach(() => localStorage.setItem(LOCALE_STORAGE_KEY, 'en'));
+  afterEach(() => localStorage.removeItem(LOCALE_STORAGE_KEY));
+
   it('formats same-month range', () => {
     const start = new Date(2026, 1, 9);
     const end = new Date(2026, 1, 15);
@@ -165,6 +198,15 @@ describe('formatWeekLabel', () => {
     const start = new Date(2025, 11, 29);
     const end = new Date(2026, 0, 4);
     expect(formatWeekLabel(start, end)).toBe('Dec 29, 2025 – Jan 4, 2026');
+  });
+
+  it('uses German month names when locale is de', () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'de');
+    const start = new Date(2026, 1, 9);
+    const end = new Date(2026, 1, 15);
+    const label = formatWeekLabel(start, end);
+    expect(label).toContain('Feb');
+    expect(label).toContain('2026');
   });
 });
 
@@ -232,19 +274,44 @@ describe('pixelOffsetToTime', () => {
 // ── formatTimeShort ─────────────────────────────────────────────────
 
 describe('formatTimeShort', () => {
-  it('formats morning time', () => {
+  beforeEach(() => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'en');
+    localStorage.removeItem(TIME_FORMAT_KEY);
+  });
+  afterEach(() => {
+    localStorage.removeItem(LOCALE_STORAGE_KEY);
+    localStorage.removeItem(TIME_FORMAT_KEY);
+  });
+
+  it('formats morning time in 12h mode (en default)', () => {
+    localStorage.setItem(TIME_FORMAT_KEY, '12h');
     const result = formatTimeShort(new Date(2026, 1, 11, 9, 0));
     expect(result).toBe('9:00 AM');
   });
 
-  it('formats afternoon time with minutes', () => {
+  it('formats afternoon time in 12h mode (en)', () => {
+    localStorage.setItem(TIME_FORMAT_KEY, '12h');
     const result = formatTimeShort(new Date(2026, 1, 11, 14, 30));
     expect(result).toBe('2:30 PM');
   });
 
-  it('formats midnight', () => {
+  it('formats midnight in 12h mode (en)', () => {
+    localStorage.setItem(TIME_FORMAT_KEY, '12h');
     const result = formatTimeShort(new Date(2026, 1, 11, 0, 0));
     expect(result).toBe('12:00 AM');
+  });
+
+  it('formats in 24h when time format preference is 24h', () => {
+    localStorage.setItem(TIME_FORMAT_KEY, '24h');
+    const result = formatTimeShort(new Date(2026, 1, 11, 14, 30));
+    expect(result).toContain('14:30');
+  });
+
+  it('formats in 24h format when locale is de (default preference)', () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'de');
+    // No TIME_FORMAT_KEY set — defaults to 24h for de locale
+    const result = formatTimeShort(new Date(2026, 1, 11, 14, 30));
+    expect(result).toContain('14:30');
   });
 });
 

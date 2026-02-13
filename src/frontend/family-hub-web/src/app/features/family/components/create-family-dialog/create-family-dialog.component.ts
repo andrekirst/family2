@@ -16,13 +16,16 @@ export class CreateFamilyDialogComponent {
   @Output() familyCreated = new EventEmitter<void>();
   @Output() dialogClosed = new EventEmitter<void>();
 
+  readonly creatingLabel = $localize`:@@family.create.creating:Creating...`;
+  readonly createFamilyLabel = $localize`:@@family.create.create:Create Family`;
+
   familyName = signal('');
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
 
   onSubmit() {
     if (!this.familyName().trim()) {
-      this.errorMessage.set('Family name is required');
+      this.errorMessage.set($localize`:@@family.create.nameRequired:Family name is required`);
       return;
     }
 
@@ -34,12 +37,12 @@ export class CreateFamilyDialogComponent {
         if (family) {
           this.familyCreated.emit();
         } else {
-          this.errorMessage.set('Failed to create family');
+          this.errorMessage.set($localize`:@@family.create.failed:Failed to create family`);
         }
         this.isLoading.set(false);
       },
       error: (error) => {
-        this.errorMessage.set('An error occurred');
+        this.errorMessage.set($localize`:@@family.create.error:An error occurred`);
         this.isLoading.set(false);
       },
     });

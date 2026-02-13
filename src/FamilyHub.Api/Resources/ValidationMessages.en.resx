@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
+  <!-- Auth -->
+  <data name="EmailRequired" xml:space="preserve"><value>Email is required</value></data>
+  <data name="NameRequired" xml:space="preserve"><value>Name is required</value></data>
+  <data name="ExternalUserIdRequired" xml:space="preserve"><value>External user ID is required</value></data>
+  <data name="UsernameMinLength" xml:space="preserve"><value>Username must be at least 3 characters</value></data>
+  <data name="UsernameMaxLength" xml:space="preserve"><value>Username cannot exceed 50 characters</value></data>
+  <data name="UsernameInvalidFormat" xml:space="preserve"><value>Username can only contain letters, numbers, underscores, and hyphens</value></data>
+  <data name="LoginTimeCannotBeFuture" xml:space="preserve"><value>Login time cannot be in the future</value></data>
+  <!-- Calendar -->
+  <data name="EventTitleRequired" xml:space="preserve"><value>Event title is required</value></data>
+  <data name="FamilyIdRequired" xml:space="preserve"><value>Family ID is required</value></data>
+  <data name="CreatorIdRequired" xml:space="preserve"><value>Creator ID is required</value></data>
+  <data name="EndTimeMustBeAfterStartTime" xml:space="preserve"><value>End time must be after start time</value></data>
+  <!-- EventChain -->
+  <data name="ChainNameRequired" xml:space="preserve"><value>Chain name is required</value></data>
+  <data name="ChainNameMaxLength" xml:space="preserve"><value>Chain name cannot exceed 200 characters</value></data>
+  <data name="TriggerEventTypeRequired" xml:space="preserve"><value>Trigger event type is required</value></data>
+  <data name="AtLeastOneStepRequired" xml:space="preserve"><value>At least one step is required</value></data>
+  <data name="StepAliasRequired" xml:space="preserve"><value>Step alias is required</value></data>
+  <data name="StepAliasMaxLength" xml:space="preserve"><value>Step alias cannot exceed 50 characters</value></data>
+  <data name="StepNameRequired" xml:space="preserve"><value>Step name is required</value></data>
+  <data name="ActionTypeRequired" xml:space="preserve"><value>Action type is required</value></data>
+  <data name="StepOrderMustBePositive" xml:space="preserve"><value>Step order must be positive</value></data>
+  <!-- Family -->
+  <data name="FamilyNameRequired" xml:space="preserve"><value>Family name is required</value></data>
+  <data name="OwnerIdRequired" xml:space="preserve"><value>Owner ID is required</value></data>
+  <data name="InvitationTokenRequired" xml:space="preserve"><value>Invitation token is required</value></data>
+  <data name="AcceptingUserIdRequired" xml:space="preserve"><value>Accepting user ID is required</value></data>
+  <data name="InvitationIdRequired" xml:space="preserve"><value>Invitation ID is required</value></data>
+  <data name="DecliningUserIdRequired" xml:space="preserve"><value>Declining user ID is required</value></data>
+  <data name="RevokingUserIdRequired" xml:space="preserve"><value>Revoking user ID is required</value></data>
+  <data name="InviteeEmailRequired" xml:space="preserve"><value>Invitee email is required</value></data>
+  <data name="InviteeEmailInvalidFormat" xml:space="preserve"><value>Invalid email format</value></data>
+  <data name="InvitationRoleInvalid" xml:space="preserve"><value>Invitation role must be 'Admin' or 'Member' (Owner role cannot be assigned via invitation)</value></data>
+</root>

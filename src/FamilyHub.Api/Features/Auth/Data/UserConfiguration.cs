@@ -90,6 +90,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasDefaultValueSql("NOW()");
 
+        // Locale preference
+        builder.Property(u => u.PreferredLocale)
+            .HasMaxLength(10)
+            .IsRequired()
+            .HasDefaultValue("en");
+
         // Relationships
         builder.HasOne(u => u.Family)
             .WithMany(f => f.Members)

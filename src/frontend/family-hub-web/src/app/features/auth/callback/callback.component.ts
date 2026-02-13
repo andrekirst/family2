@@ -17,13 +17,13 @@ import { CommonModule } from '@angular/common';
       <div class="text-center">
         @if (error) {
           <div class="text-red-600">
-            <h2 class="text-2xl font-bold">Authentication Failed</h2>
+            <h2 class="text-2xl font-bold" i18n="@@callback.authFailed">Authentication Failed</h2>
             <p class="mt-2">{{ error }}</p>
             <button
               (click)="retry()"
               class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600"
             >
-              Try Again
+              <span i18n="@@callback.tryAgain">Try Again</span>
             </button>
           </div>
         } @else {
@@ -33,13 +33,16 @@ import { CommonModule } from '@angular/common';
             ></div>
             <div class="mt-4 space-y-2">
               <p [class.text-green-600]="step() >= 1">
-                {{ step() >= 1 ? '✓' : '○' }} Exchanging authorization code...
+                {{ step() >= 1 ? '✓' : '○' }}
+                <span i18n="@@callback.exchangingCode">Exchanging authorization code...</span>
               </p>
               <p [class.text-green-600]="step() >= 2">
-                {{ step() >= 2 ? '✓' : '○' }} Syncing with backend...
+                {{ step() >= 2 ? '✓' : '○' }}
+                <span i18n="@@callback.syncingBackend">Syncing with backend...</span>
               </p>
               <p [class.text-green-600]="step() >= 3">
-                {{ step() >= 3 ? '✓' : '○' }} Loading dashboard...
+                {{ step() >= 3 ? '✓' : '○' }}
+                <span i18n="@@callback.loadingDashboard">Loading dashboard...</span>
               </p>
             </div>
           </div>
@@ -64,12 +67,12 @@ export class CallbackComponent implements OnInit {
       const error = params['error'];
 
       if (error) {
-        this.error = `Authentication error: ${error}`;
+        this.error = $localize`:@@callback.authError:Authentication error` + `: ${error}`;
         return;
       }
 
       if (!code || !state) {
-        this.error = 'Missing authorization code or state parameter';
+        this.error = $localize`:@@callback.missingParams:Missing authorization code or state parameter`;
         return;
       }
 
@@ -86,7 +89,8 @@ export class CallbackComponent implements OnInit {
         const redirectUrl = this.authService.consumePostLoginRedirect();
         await this.router.navigateByUrl(`${redirectUrl}?login=success`);
       } catch (err: any) {
-        this.error = err.message || 'Failed to complete authentication';
+        this.error =
+          err.message || $localize`:@@callback.failedAuth:Failed to complete authentication`;
         console.error('Callback error:', err);
       }
     });

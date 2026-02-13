@@ -7,6 +7,7 @@ import { onError } from '@apollo/client/link/error';
 import { inject } from '@angular/core';
 import { EnvironmentConfigService } from '../config/environment-config.service';
 import { AuthService } from '../auth/auth.service';
+import { I18nService } from '../i18n/i18n.service';
 
 /**
  * Apollo Client configuration provider
@@ -18,6 +19,7 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
       const httpLink = inject(HttpLink);
       const envConfig = inject(EnvironmentConfigService);
       const authService = inject(AuthService);
+      const i18nService = inject(I18nService);
 
       // Auth link: Add Bearer token to GraphQL requests
       // IMPORTANT: Apollo doesn't use Angular's HttpClient interceptors, so we must manually attach the token
@@ -25,16 +27,21 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
       const authLink = setContext((_operation: any, prevContext: any) => {
         const token = localStorage.getItem('access_token');
 
-        // Only add Authorization header if token exists
-        // Sending an empty Authorization header causes AUTH_NOT_AUTHENTICATED errors
+        // Always send Accept-Language; only add Authorization if token exists
         if (!token) {
-          return prevContext;
+          return {
+            headers: {
+              ...prevContext.headers,
+              'Accept-Language': i18nService.getLocaleForHeader(),
+            },
+          };
         }
 
         return {
           headers: {
             ...prevContext.headers,
             authorization: `Bearer ${token}`,
+            'Accept-Language': i18nService.getLocaleForHeader(),
           },
         };
       });

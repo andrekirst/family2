@@ -15,7 +15,7 @@ import { FamilyMemberDto } from '../../models/invitation.models';
           <div class="h-16 bg-gray-200 rounded"></div>
         </div>
       } @else if (members().length === 0) {
-        <p class="text-gray-500 text-sm">No members found.</p>
+        <p class="text-gray-500 text-sm" i18n="@@family.members.noMembers">No members found.</p>
       } @else {
         @for (member of members(); track member.id) {
           <div class="flex items-center justify-between p-4 bg-white border rounded-lg">
@@ -35,7 +35,7 @@ import { FamilyMemberDto } from '../../models/invitation.models';
               >
                 {{ member.role }}
               </span>
-              <span class="text-xs text-gray-400">
+              <span class="text-xs text-gray-400" i18n="@@family.members.joined">
                 Joined {{ member.joinedAt | date: 'mediumDate' }}
               </span>
             </div>

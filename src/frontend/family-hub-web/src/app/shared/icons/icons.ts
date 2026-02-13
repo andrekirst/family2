@@ -8,6 +8,7 @@ import { ICON_HOME } from './defs/home';
 import { ICON_LOGOUT } from './defs/logout';
 import { ICON_MENU } from './defs/menu';
 import { ICON_PENCIL } from './defs/pencil';
+import { ICON_SETTINGS } from './defs/settings';
 import { ICON_USER_CIRCLE } from './defs/user-circle';
 import { ICON_USERS } from './defs/users';
 
@@ -22,6 +23,7 @@ export const ICONS = {
   LOGOUT: ICON_LOGOUT,
   MENU: ICON_MENU,
   PENCIL: ICON_PENCIL,
+  SETTINGS: ICON_SETTINGS,
   USER_CIRCLE: ICON_USER_CIRCLE,
   USERS: ICON_USERS,
 } as const;

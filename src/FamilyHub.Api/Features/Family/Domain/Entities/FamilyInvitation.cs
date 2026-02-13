@@ -87,12 +87,12 @@ public sealed class FamilyInvitation : AggregateRoot<InvitationId>
     {
         if (!Status.IsPending())
         {
-            throw new DomainException($"Cannot accept invitation in status '{Status.Value}'");
+            throw new DomainException($"Cannot accept invitation in status '{Status.Value}'", DomainErrorCodes.InvitationInvalidStatusForAccept);
         }
 
         if (IsExpired())
         {
-            throw new DomainException("Invitation has expired");
+            throw new DomainException("Invitation has expired", DomainErrorCodes.InvitationExpired);
         }
 
         Status = InvitationStatus.Accepted;
@@ -114,7 +114,7 @@ public sealed class FamilyInvitation : AggregateRoot<InvitationId>
     {
         if (!Status.IsPending())
         {
-            throw new DomainException($"Cannot decline invitation in status '{Status.Value}'");
+            throw new DomainException($"Cannot decline invitation in status '{Status.Value}'", DomainErrorCodes.InvitationInvalidStatusForDecline);
         }
 
         Status = InvitationStatus.Declined;
@@ -129,7 +129,7 @@ public sealed class FamilyInvitation : AggregateRoot<InvitationId>
     {
         if (!Status.IsPending())
         {
-            throw new DomainException($"Cannot revoke invitation in status '{Status.Value}'");
+            throw new DomainException($"Cannot revoke invitation in status '{Status.Value}'", DomainErrorCodes.InvitationInvalidStatusForRevoke);
         }
 
         Status = InvitationStatus.Revoked;

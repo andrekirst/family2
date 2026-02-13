@@ -1,35 +1,37 @@
+using FamilyHub.Api.Resources;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 
 public sealed class CreateChainDefinitionCommandValidator : AbstractValidator<CreateChainDefinitionCommand>
 {
-    public CreateChainDefinitionCommandValidator()
+    public CreateChainDefinitionCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {
         RuleFor(x => x.Name.Value)
-            .NotEmpty().WithMessage("Chain name is required")
-            .MaximumLength(200).WithMessage("Chain name cannot exceed 200 characters");
+            .NotEmpty().WithMessage(_ => localizer["ChainNameRequired"])
+            .MaximumLength(200).WithMessage(_ => localizer["ChainNameMaxLength"]);
 
         RuleFor(x => x.TriggerEventType)
-            .NotEmpty().WithMessage("Trigger event type is required");
+            .NotEmpty().WithMessage(_ => localizer["TriggerEventTypeRequired"]);
 
         RuleFor(x => x.Steps)
-            .NotEmpty().WithMessage("At least one step is required");
+            .NotEmpty().WithMessage(_ => localizer["AtLeastOneStepRequired"]);
 
         RuleForEach(x => x.Steps).ChildRules(step =>
         {
             step.RuleFor(s => s.Alias.Value)
-                .NotEmpty().WithMessage("Step alias is required")
-                .MaximumLength(50).WithMessage("Step alias cannot exceed 50 characters");
+                .NotEmpty().WithMessage(_ => localizer["StepAliasRequired"])
+                .MaximumLength(50).WithMessage(_ => localizer["StepAliasMaxLength"]);
 
             step.RuleFor(s => s.Name)
-                .NotEmpty().WithMessage("Step name is required");
+                .NotEmpty().WithMessage(_ => localizer["StepNameRequired"]);
 
             step.RuleFor(s => s.ActionType)
-                .NotEmpty().WithMessage("Action type is required");
+                .NotEmpty().WithMessage(_ => localizer["ActionTypeRequired"]);
 
             step.RuleFor(s => s.Order)
-                .GreaterThan(0).WithMessage("Step order must be positive");
+                .GreaterThan(0).WithMessage(_ => localizer["StepOrderMustBePositive"]);
         });
     }
 }

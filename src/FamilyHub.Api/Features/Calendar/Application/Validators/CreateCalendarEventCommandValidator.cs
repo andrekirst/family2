@@ -1,26 +1,28 @@
 using FamilyHub.Api.Features.Calendar.Application.Commands;
+using FamilyHub.Api.Resources;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.Calendar.Application.Validators;
 
 public sealed class CreateCalendarEventCommandValidator : AbstractValidator<CreateCalendarEventCommand>
 {
-    public CreateCalendarEventCommandValidator()
+    public CreateCalendarEventCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {
         RuleFor(x => x.Title)
             .NotNull()
-            .WithMessage("Event title is required");
+            .WithMessage(_ => localizer["EventTitleRequired"]);
 
         RuleFor(x => x.FamilyId)
             .NotNull()
-            .WithMessage("Family ID is required");
+            .WithMessage(_ => localizer["FamilyIdRequired"]);
 
         RuleFor(x => x.CreatedBy)
             .NotNull()
-            .WithMessage("Creator ID is required");
+            .WithMessage(_ => localizer["CreatorIdRequired"]);
 
         RuleFor(x => x.EndTime)
             .GreaterThan(x => x.StartTime)
-            .WithMessage("End time must be after start time");
+            .WithMessage(_ => localizer["EndTimeMustBeAfterStartTime"]);
     }
 }

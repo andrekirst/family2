@@ -16,14 +16,17 @@ import { FamilyPermissionService } from '../../../../core/permissions/family-per
           <div class="h-16 bg-gray-200 rounded"></div>
         </div>
       } @else if (invitations().length === 0) {
-        <p class="text-gray-500 text-sm">No pending invitations.</p>
+        <p class="text-gray-500 text-sm" i18n="@@family.invitations.noPending">
+          No pending invitations.
+        </p>
       } @else {
         @for (invitation of invitations(); track invitation.id) {
           <div class="flex items-center justify-between p-4 bg-white border rounded-lg">
             <div>
               <p class="font-medium text-gray-900">{{ invitation.inviteeEmail }}</p>
               <p class="text-sm text-gray-500">
-                Role: {{ invitation.role }} &middot; Expires
+                <span i18n="@@family.invitations.role">Role</span>: {{ invitation.role }} &middot;
+                <span i18n="@@family.invitations.expires">Expires</span>
                 {{ invitation.expiresAt | date: 'mediumDate' }}
               </p>
             </div>
@@ -33,7 +36,7 @@ import { FamilyPermissionService } from '../../../../core/permissions/family-per
                 [disabled]="revoking() === invitation.id"
                 class="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 disabled:opacity-50"
               >
-                {{ revoking() === invitation.id ? 'Revoking...' : 'Revoke' }}
+                {{ revoking() === invitation.id ? revokingLabel : revokeLabel }}
               </button>
             }
           </div>
@@ -45,6 +48,9 @@ import { FamilyPermissionService } from '../../../../core/permissions/family-per
 export class PendingInvitationsComponent implements OnInit {
   private invitationService = inject(InvitationService);
   permissions = inject(FamilyPermissionService);
+
+  readonly revokingLabel = $localize`:@@family.invitations.revoking:Revoking...`;
+  readonly revokeLabel = $localize`:@@family.invitations.revoke:Revoke`;
 
   invitations = signal<InvitationDto[]>([]);
   isLoading = signal(true);

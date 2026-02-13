@@ -23,22 +23,22 @@ public sealed class AcceptInvitationByIdCommandHandler(
         CancellationToken cancellationToken)
     {
         var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken)
-            ?? throw new DomainException("Invitation not found");
+            ?? throw new DomainException("Invitation not found", DomainErrorCodes.InvitationNotFound);
 
         var user = await userRepository.GetByIdAsync(command.AcceptingUserId, cancellationToken)
-            ?? throw new DomainException("User not found");
+            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
 
         // Security: verify the accepting user's email matches the invitation
         if (user.Email != invitation.InviteeEmail)
         {
-            throw new DomainException("This invitation was sent to a different email address");
+            throw new DomainException("This invitation was sent to a different email address", DomainErrorCodes.InvitationEmailMismatch);
         }
 
         // Check if user is already a member of this family
         var existingMember = await memberRepository.GetByUserAndFamilyAsync(command.AcceptingUserId, invitation.FamilyId, cancellationToken);
         if (existingMember is not null)
         {
-            throw new DomainException("You are already a member of this family");
+            throw new DomainException("You are already a member of this family", DomainErrorCodes.AlreadyFamilyMember);
         }
 
         // Accept the invitation (validates status + expiry, raises InvitationAcceptedEvent)

@@ -19,15 +19,15 @@ public sealed class DeclineInvitationByIdCommandHandler(
         CancellationToken cancellationToken)
     {
         var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken)
-            ?? throw new DomainException("Invitation not found");
+            ?? throw new DomainException("Invitation not found", DomainErrorCodes.InvitationNotFound);
 
         var user = await userRepository.GetByIdAsync(command.DeclininingUserId, cancellationToken)
-            ?? throw new DomainException("User not found");
+            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
 
         // Security: verify the declining user's email matches the invitation
         if (user.Email != invitation.InviteeEmail)
         {
-            throw new DomainException("This invitation was sent to a different email address");
+            throw new DomainException("This invitation was sent to a different email address", DomainErrorCodes.InvitationEmailMismatch);
         }
 
         invitation.Decline();

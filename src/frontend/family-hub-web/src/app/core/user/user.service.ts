@@ -1,9 +1,10 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import {
   REGISTER_USER_MUTATION,
   GET_CURRENT_USER_QUERY,
 } from '../../features/auth/graphql/auth.operations';
+import { I18nService } from '../i18n/i18n.service';
 
 export interface CurrentUser {
   id: string;
@@ -13,6 +14,7 @@ export interface CurrentUser {
   isActive: boolean;
   familyId?: string | null;
   permissions: string[];
+  preferredLocale?: string;
 }
 
 // GraphQL response types
@@ -35,6 +37,8 @@ interface GetMyProfileResponse {
  */
 @Injectable({ providedIn: 'root' })
 export class UserService {
+  private readonly i18nService = inject(I18nService);
+
   // Reactive state using Angular Signals
   currentUser = signal<CurrentUser | null>(null);
   isLoading = signal(false);
@@ -77,6 +81,12 @@ export class UserService {
 
       const user = result.data.registerUser;
       this.currentUser.set(user);
+
+      // Sync backend locale preference to the frontend
+      if (user.preferredLocale) {
+        this.i18nService.applyBackendLocale(user.preferredLocale);
+      }
+
       return user;
     } finally {
       this.isLoading.set(false);

@@ -29,7 +29,7 @@ import { TopBarService } from '../../../../shared/services/top-bar.service';
           [class.border-transparent]="activeTab() !== 'members'"
           [class.text-gray-500]="activeTab() !== 'members'"
         >
-          Members
+          <span i18n="@@family.settings.members">Members</span>
         </button>
         @if (permissions.canInvite()) {
           <button
@@ -40,7 +40,7 @@ import { TopBarService } from '../../../../shared/services/top-bar.service';
             [class.border-transparent]="activeTab() !== 'invitations'"
             [class.text-gray-500]="activeTab() !== 'invitations'"
           >
-            Pending Invitations
+            <span i18n="@@family.settings.pendingInvitations">Pending Invitations</span>
           </button>
         }
       </nav>
@@ -77,12 +77,12 @@ export class FamilySettingsComponent implements OnDestroy {
   private readonly topBarEffect = effect(() => {
     const canInvite = this.permissions.canInvite();
     this.topBarService.setConfig({
-      title: 'Family Settings',
+      title: $localize`:@@family.settings.title:Family Settings`,
       actions: canInvite
         ? [
             {
               id: 'invite-member',
-              label: 'Invite Member',
+              label: $localize`:@@family.settings.inviteMember:Invite Member`,
               onClick: () => this.openInviteDialog(),
               variant: 'primary',
             },

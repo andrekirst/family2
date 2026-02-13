@@ -32,7 +32,9 @@ import { TopBarService } from '../../shared/services/top-bar.service';
               </svg>
             </div>
             <div class="ml-3">
-              <p class="text-sm font-medium text-green-800">Successfully logged in!</p>
+              <p class="text-sm font-medium text-green-800" i18n="@@dashboard.loginSuccess">
+                Successfully logged in!
+              </p>
             </div>
           </div>
         </div>
@@ -48,18 +50,22 @@ import { TopBarService } from '../../shared/services/top-bar.service';
       </div>
     } @else if (currentUser()) {
       <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-xl font-semibold text-gray-900">Welcome, {{ currentUser()!.name }}!</h2>
+        <h2 class="text-xl font-semibold text-gray-900" i18n="@@dashboard.welcome">
+          Welcome, {{ currentUser()!.name }}!
+        </h2>
         <p class="mt-2 text-gray-600">{{ currentUser()!.email }}</p>
 
         @if (currentUser()!.emailVerified) {
           <span
             class="mt-2 inline-block px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded"
+            i18n="@@dashboard.emailVerified"
           >
             Email Verified
           </span>
         } @else {
           <span
             class="mt-2 inline-block px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 rounded"
+            i18n="@@dashboard.emailNotVerified"
           >
             Email Not Verified
           </span>
@@ -68,13 +74,16 @@ import { TopBarService } from '../../shared/services/top-bar.service';
         <!-- Family membership display -->
         @if (currentUser()!.familyId) {
           <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 class="text-lg font-medium text-gray-900">Family Member</h3>
-            <p class="mt-1 text-sm text-gray-600">
+            <h3 class="text-lg font-medium text-gray-900" i18n="@@dashboard.familyMember">
+              Family Member
+            </h3>
+            <p class="mt-1 text-sm text-gray-600" i18n="@@dashboard.familyMemberDesc">
               You're part of a family. Manage your family below.
             </p>
             <a
               routerLink="/family/settings"
               class="mt-3 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              i18n="@@dashboard.familySettings"
             >
               Family Settings
             </a>
@@ -90,19 +99,28 @@ import { TopBarService } from '../../shared/services/top-bar.service';
             </div>
           } @else if (pendingInvitations().length > 0) {
             <div class="mt-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-3">Pending Invitations</h3>
+              <h3
+                class="text-lg font-medium text-gray-900 mb-3"
+                i18n="@@dashboard.pendingInvitations"
+              >
+                Pending Invitations
+              </h3>
               <div class="space-y-3">
                 @for (invitation of pendingInvitations(); track invitation.id) {
                   <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div class="flex items-start justify-between">
                       <div>
-                        <p class="font-medium text-gray-900">Join {{ invitation.familyName }}</p>
-                        <p class="text-sm text-gray-600 mt-1">
+                        <p class="font-medium text-gray-900" i18n="@@dashboard.joinFamily">
+                          Join {{ invitation.familyName }}
+                        </p>
+                        <p class="text-sm text-gray-600 mt-1" i18n="@@dashboard.invitedBy">
                           Invited by <strong>{{ invitation.invitedByName }}</strong>
                         </p>
                         <div class="flex gap-4 mt-2 text-xs text-gray-500">
-                          <span>Role: {{ invitation.role }}</span>
-                          <span>Expires: {{ invitation.expiresAt | date: 'mediumDate' }}</span>
+                          <span i18n="@@dashboard.role">Role: {{ invitation.role }}</span>
+                          <span i18n="@@dashboard.expires"
+                            >Expires: {{ invitation.expiresAt | date: 'mediumDate' }}</span
+                          >
                         </div>
                       </div>
                       <div class="flex gap-2 flex-shrink-0 ml-4">
@@ -110,6 +128,7 @@ import { TopBarService } from '../../shared/services/top-bar.service';
                           (click)="declinePendingInvitation(invitation.id)"
                           [disabled]="processingInvitation() === invitation.id"
                           class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                          i18n="@@dashboard.decline"
                         >
                           Decline
                         </button>
@@ -119,7 +138,7 @@ import { TopBarService } from '../../shared/services/top-bar.service';
                           class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                         >
                           {{
-                            processingInvitation() === invitation.id ? 'Processing...' : 'Accept'
+                            processingInvitation() === invitation.id ? processingLabel : acceptLabel
                           }}
                         </button>
                       </div>
@@ -131,26 +150,32 @@ import { TopBarService } from '../../shared/services/top-bar.service';
 
             <!-- Still show create family option below invitations -->
             <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h3 class="text-lg font-medium text-gray-900">Or Create Your Own Family</h3>
-              <p class="mt-1 text-sm text-gray-600">
+              <h3 class="text-lg font-medium text-gray-900" i18n="@@dashboard.orCreateFamily">
+                Or Create Your Own Family
+              </h3>
+              <p class="mt-1 text-sm text-gray-600" i18n="@@dashboard.createFamilyDesc">
                 Start a new family instead of joining an existing one.
               </p>
               <button
                 (click)="openCreateFamilyDialog()"
                 class="mt-3 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600"
+                i18n="@@dashboard.createFamily"
               >
                 Create Family
               </button>
             </div>
           } @else {
             <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h3 class="text-lg font-medium text-gray-900">No Family Yet</h3>
-              <p class="mt-1 text-sm text-gray-600">
+              <h3 class="text-lg font-medium text-gray-900" i18n="@@dashboard.noFamily">
+                No Family Yet
+              </h3>
+              <p class="mt-1 text-sm text-gray-600" i18n="@@dashboard.noFamilyDesc">
                 Create your family to start organizing your life together.
               </p>
               <button
                 (click)="openCreateFamilyDialog()"
                 class="mt-3 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600"
+                i18n="@@dashboard.createFamily"
               >
                 Create Family
               </button>
@@ -160,7 +185,9 @@ import { TopBarService } from '../../shared/services/top-bar.service';
       </div>
     } @else {
       <div class="bg-red-50 border-l-4 border-red-500 p-4">
-        <p class="text-red-700">Failed to load user data. Please try logging in again.</p>
+        <p class="text-red-700" i18n="@@dashboard.loadError">
+          Failed to load user data. Please try logging in again.
+        </p>
       </div>
     }
 
@@ -187,13 +214,17 @@ export class DashboardComponent implements OnInit {
   showSuccessMessage = signal(false);
   showCreateFamilyDialog = signal(false);
 
+  // i18n labels for template ternary expressions
+  readonly processingLabel = $localize`:@@dashboard.processing:Processing...`;
+  readonly acceptLabel = $localize`:@@dashboard.accept:Accept`;
+
   // Pending invitations state
   pendingInvitations = signal<InvitationDto[]>([]);
   loadingInvitations = signal(false);
   processingInvitation = signal<string | null>(null);
 
   async ngOnInit(): Promise<void> {
-    this.topBarService.setConfig({ title: 'Family Hub' });
+    this.topBarService.setConfig({ title: $localize`:@@app.name:Family Hub` });
 
     // Fetch user data from backend
     try {

@@ -82,7 +82,7 @@ public sealed class ChainDefinition : AggregateRoot<ChainDefinitionId>
     public void AddStep(ChainDefinitionStep step)
     {
         if (_steps.Any(s => s.Alias == step.Alias))
-            throw new DomainException($"Step alias '{step.Alias.Value}' already exists in this chain");
+            throw new DomainException($"Step alias '{step.Alias.Value}' already exists in this chain", DomainErrorCodes.DuplicateStepAlias);
 
         _steps.Add(step);
     }

@@ -13,5 +13,6 @@ public class UserDto
     public bool EmailVerified { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string PreferredLocale { get; set; } = "en";
     public List<string> Permissions { get; set; } = [];
 }

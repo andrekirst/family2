@@ -31,7 +31,7 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
         <!-- Header -->
         <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
           <h2 class="text-lg font-semibold text-gray-900">
-            {{ isEditMode() ? 'Edit Event' : 'New Event' }}
+            {{ isEditMode() ? editEventTitle : newEventTitle }}
           </h2>
           <button
             (click)="onDismiss()"
@@ -47,7 +47,10 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
           <form (ngSubmit)="onSubmit()">
             <!-- Title -->
             <div class="mb-4">
-              <label for="event-title" class="block text-sm font-medium text-gray-700 mb-1"
+              <label
+                for="event-title"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                i18n="@@calendar.event.title"
                 >Title</label
               >
               <input
@@ -58,6 +61,7 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
                 (ngModelChange)="title.set($event)"
                 [disabled]="isLoading()"
                 name="title"
+                i18n-placeholder="@@calendar.event.titlePlaceholder"
                 placeholder="Event title"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
               />
@@ -65,7 +69,10 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
 
             <!-- Description -->
             <div class="mb-4">
-              <label for="event-description" class="block text-sm font-medium text-gray-700 mb-1"
+              <label
+                for="event-description"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                i18n="@@calendar.event.description"
                 >Description</label
               >
               <textarea
@@ -76,6 +83,7 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
                 [disabled]="isLoading()"
                 name="description"
                 rows="2"
+                i18n-placeholder="@@calendar.event.descriptionPlaceholder"
                 placeholder="Optional description"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
               ></textarea>
@@ -83,7 +91,10 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
 
             <!-- Location -->
             <div class="mb-4">
-              <label for="event-location" class="block text-sm font-medium text-gray-700 mb-1"
+              <label
+                for="event-location"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                i18n="@@calendar.event.location"
                 >Location</label
               >
               <input
@@ -94,6 +105,7 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
                 (ngModelChange)="location.set($event)"
                 [disabled]="isLoading()"
                 name="location"
+                i18n-placeholder="@@calendar.event.locationPlaceholder"
                 placeholder="Optional location"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
               />
@@ -111,7 +123,10 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
                 name="isAllDay"
                 class="h-4 w-4 text-blue-600 border-gray-300 rounded"
               />
-              <label for="event-allday" class="text-sm font-medium text-gray-700"
+              <label
+                for="event-allday"
+                class="text-sm font-medium text-gray-700"
+                i18n="@@calendar.event.allDay"
                 >All day event</label
               >
             </div>
@@ -119,7 +134,10 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
             <!-- Date/Time -->
             <div class="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label for="event-start" class="block text-sm font-medium text-gray-700 mb-1"
+                <label
+                  for="event-start"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  i18n="@@calendar.event.start"
                   >Start</label
                 >
                 <input
@@ -134,7 +152,10 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
                 />
               </div>
               <div>
-                <label for="event-end" class="block text-sm font-medium text-gray-700 mb-1"
+                <label
+                  for="event-end"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  i18n="@@calendar.event.end"
                   >End</label
                 >
                 <input
@@ -150,10 +171,37 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
               </div>
             </div>
 
+            <!-- Event Type -->
+            <div class="mb-4">
+              <label
+                for="event-type"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                i18n="@@calendar.event.type"
+                >Event Type</label
+              >
+              <select
+                id="event-type"
+                data-testid="event-type-select"
+                [ngModel]="eventType()"
+                (ngModelChange)="eventType.set($event)"
+                [disabled]="isLoading()"
+                name="eventType"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+              >
+                @for (type of eventTypeOptions; track type.value) {
+                  <option [value]="type.value">{{ type.label }}</option>
+                }
+              </select>
+            </div>
+
             <!-- Attendees -->
             @if (familyMembers().length > 0) {
               <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Attendees</label>
+                <label
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                  i18n="@@calendar.event.attendees"
+                  >Attendees</label
+                >
                 <div class="space-y-2 max-h-32 overflow-y-auto">
                   @for (member of familyMembers(); track member.id) {
                     <label class="flex items-center gap-2 cursor-pointer">
@@ -188,6 +236,7 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
                   [disabled]="isLoading()"
                   class="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 disabled:opacity-50"
                   data-testid="cancel-event-button"
+                  i18n="@@calendar.event.cancelEvent"
                 >
                   Cancel Event
                 </button>
@@ -197,6 +246,7 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
                 (click)="onDismiss()"
                 [disabled]="isLoading()"
                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+                i18n="@@common.close"
               >
                 Close
               </button>
@@ -206,7 +256,7 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
                 class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                 data-testid="save-event-button"
               >
-                {{ isLoading() ? 'Saving...' : isEditMode() ? 'Save Changes' : 'Create Event' }}
+                {{ isLoading() ? savingLabel : isEditMode() ? saveChangesLabel : createEventLabel }}
               </button>
             </div>
           </form>
@@ -216,10 +266,10 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
 
     @if (showCancelConfirmation()) {
       <app-confirmation-dialog
-        title="Cancel Event"
+        [title]="cancelEventTitle"
         [message]="cancelConfirmationMessage()"
-        confirmLabel="Cancel Event"
-        cancelLabel="Go Back"
+        [confirmLabel]="cancelEventTitle"
+        [cancelLabel]="goBackLabel"
         variant="danger"
         icon="trash"
         [isLoading]="isCancelLoading()"
@@ -243,12 +293,31 @@ export class EventDialogComponent implements OnInit {
   @Output() eventCancelled = new EventEmitter<void>();
   @Output() dialogClosed = new EventEmitter<void>();
 
+  readonly editEventTitle = $localize`:@@calendar.event.editTitle:Edit Event`;
+  readonly newEventTitle = $localize`:@@calendar.event.newTitle:New Event`;
+  readonly savingLabel = $localize`:@@calendar.event.saving:Saving...`;
+  readonly saveChangesLabel = $localize`:@@calendar.event.saveChanges:Save Changes`;
+  readonly createEventLabel = $localize`:@@calendar.event.createEvent:Create Event`;
+  readonly cancelEventTitle = $localize`:@@calendar.event.cancelEvent:Cancel Event`;
+  readonly goBackLabel = $localize`:@@calendar.event.goBack:Go Back`;
+
+  readonly eventTypeOptions = [
+    { value: 'Personal', label: $localize`:@@calendar.event.typePersonal:Personal` },
+    { value: 'Medical', label: $localize`:@@calendar.event.typeMedical:Medical` },
+    { value: 'School', label: $localize`:@@calendar.event.typeSchool:School` },
+    { value: 'Work', label: $localize`:@@calendar.event.typeWork:Work` },
+    { value: 'Social', label: $localize`:@@calendar.event.typeSocial:Social` },
+    { value: 'Travel', label: $localize`:@@calendar.event.typeTravel:Travel` },
+    { value: 'Other', label: $localize`:@@calendar.event.typeOther:Other` },
+  ];
+
   title = signal('');
   description = signal('');
   location = signal('');
   startTime = signal('');
   endTime = signal('');
   isAllDay = signal(false);
+  eventType = signal('Personal');
   selectedAttendees = signal<string[]>([]);
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
@@ -257,7 +326,8 @@ export class EventDialogComponent implements OnInit {
   showCancelConfirmation = signal(false);
   isCancelLoading = signal(false);
   cancelConfirmationMessage = computed(
-    () => `Are you sure you want to cancel '${this.title()}'? This action cannot be undone.`,
+    () =>
+      $localize`:@@calendar.event.cancelConfirm:Are you sure you want to cancel '${this.title()}'? This action cannot be undone.`,
   );
 
   ngOnInit(): void {
@@ -324,12 +394,14 @@ export class EventDialogComponent implements OnInit {
 
   onSubmit(): void {
     if (!this.title().trim()) {
-      this.errorMessage.set('Event title is required');
+      this.errorMessage.set($localize`:@@calendar.event.titleRequired:Event title is required`);
       return;
     }
 
     if (!this.startTime() || !this.endTime()) {
-      this.errorMessage.set('Start and end times are required');
+      this.errorMessage.set(
+        $localize`:@@calendar.event.timesRequired:Start and end times are required`,
+      );
       return;
     }
 
@@ -337,7 +409,9 @@ export class EventDialogComponent implements OnInit {
     const endDate = new Date(this.endTime());
 
     if (endDate <= startDate) {
-      this.errorMessage.set('End time must be after start time');
+      this.errorMessage.set(
+        $localize`:@@calendar.event.endAfterStart:End time must be after start time`,
+      );
       return;
     }
 
@@ -361,12 +435,14 @@ export class EventDialogComponent implements OnInit {
             if (result) {
               this.eventUpdated.emit();
             } else {
-              this.errorMessage.set('Failed to update event');
+              this.errorMessage.set(
+                $localize`:@@calendar.event.updateFailed:Failed to update event`,
+              );
             }
           },
           error: () => {
             this.isLoading.set(false);
-            this.errorMessage.set('An error occurred');
+            this.errorMessage.set($localize`:@@calendar.event.error:An error occurred`);
           },
         });
     } else {
@@ -386,12 +462,14 @@ export class EventDialogComponent implements OnInit {
             if (result) {
               this.eventCreated.emit();
             } else {
-              this.errorMessage.set('Failed to create event');
+              this.errorMessage.set(
+                $localize`:@@calendar.event.createFailed:Failed to create event`,
+              );
             }
           },
           error: () => {
             this.isLoading.set(false);
-            this.errorMessage.set('An error occurred');
+            this.errorMessage.set($localize`:@@calendar.event.error:An error occurred`);
           },
         });
     }
@@ -413,13 +491,13 @@ export class EventDialogComponent implements OnInit {
         if (success) {
           this.eventCancelled.emit();
         } else {
-          this.errorMessage.set('Failed to cancel event');
+          this.errorMessage.set($localize`:@@calendar.event.cancelFailed:Failed to cancel event`);
         }
       },
       error: () => {
         this.isCancelLoading.set(false);
         this.showCancelConfirmation.set(false);
-        this.errorMessage.set('An error occurred');
+        this.errorMessage.set($localize`:@@calendar.event.error:An error occurred`);
       },
     });
   }

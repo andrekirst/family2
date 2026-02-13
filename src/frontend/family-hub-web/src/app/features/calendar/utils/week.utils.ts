@@ -1,7 +1,13 @@
 import { CalendarEventDto } from '../services/calendar.service';
 import { WeekDay, PositionedEvent, WEEK_GRID_CONSTANTS } from '../models/calendar.models';
+import { getStoredTimeFormat } from '../../../core/i18n/format-preferences.utils';
 
-const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const LOCALE_STORAGE_KEY = 'familyhub-locale';
+
+/** Reads the user's stored locale for date formatting (matches I18nService). */
+export function getStoredLocale(): string {
+  return localStorage.getItem(LOCALE_STORAGE_KEY) ?? 'en';
+}
 
 // ── Date Calculation ────────────────────────────────────────────────
 
@@ -29,6 +35,7 @@ export function getWeekDays(date: Date): WeekDay[] {
   const start = getWeekStart(date);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const locale = getStoredLocale();
 
   const days: WeekDay[] = [];
   for (let i = 0; i < 7; i++) {
@@ -37,7 +44,7 @@ export function getWeekDays(date: Date): WeekDay[] {
     days.push({
       date: d,
       isToday: d.getTime() === today.getTime(),
-      dayLabel: DAY_LABELS[d.getDay()],
+      dayLabel: d.toLocaleDateString(locale, { weekday: 'short' }),
       dayNumber: d.getDate(),
     });
   }
@@ -51,8 +58,9 @@ export function getWeekDays(date: Date): WeekDay[] {
  * - Cross-year: "Dec 29, 2025 – Jan 4, 2026"
  */
 export function formatWeekLabel(start: Date, end: Date): string {
-  const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
-  const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
+  const locale = getStoredLocale();
+  const startMonth = start.toLocaleDateString(locale, { month: 'short' });
+  const endMonth = end.toLocaleDateString(locale, { month: 'short' });
 
   if (start.getFullYear() !== end.getFullYear()) {
     return `${startMonth} ${start.getDate()}, ${start.getFullYear()} – ${endMonth} ${end.getDate()}, ${end.getFullYear()}`;
@@ -87,12 +95,12 @@ export function pixelOffsetToTime(yOffset: number, dayDate: Date): Date {
   return result;
 }
 
-/** Formats a Date to short time, e.g. "9:00 AM", "2:30 PM". */
+/** Formats a Date to short time, respecting the user's format preference. */
 export function formatTimeShort(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
+  return date.toLocaleTimeString(getStoredLocale(), {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true,
+    hour12: getStoredTimeFormat() === '12h',
   });
 }
 

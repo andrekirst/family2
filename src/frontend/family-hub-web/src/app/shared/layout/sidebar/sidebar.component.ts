@@ -27,7 +27,9 @@ interface NavItem {
       <!-- Header -->
       <div class="h-16 flex items-center border-b border-gray-200 px-4 flex-shrink-0">
         @if (!sidebarState.isCollapsed()) {
-          <span class="text-lg font-bold text-gray-900 truncate flex-1">Family Hub</span>
+          <span class="text-lg font-bold text-gray-900 truncate flex-1" i18n="@@app.name"
+            >Family Hub</span
+          >
         }
         <button
           (click)="sidebarState.toggle()"
@@ -35,7 +37,7 @@ interface NavItem {
           [class.ml-auto]="!sidebarState.isCollapsed()"
           [class.mx-auto]="sidebarState.isCollapsed()"
           data-testid="sidebar-toggle"
-          [attr.aria-label]="sidebarState.isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+          [attr.aria-label]="sidebarState.isCollapsed() ? expandSidebarLabel : collapseSidebarLabel"
         >
           <span [innerHTML]="sidebarState.isCollapsed() ? icons.MENU : icons.CHEVRON_LEFT"></span>
         </button>
@@ -83,13 +85,22 @@ interface NavItem {
             class="absolute bottom-full left-2 right-2 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
             data-testid="user-menu"
           >
+            <a
+              routerLink="/settings"
+              (click)="showUserMenu.set(false)"
+              class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              data-testid="settings-link"
+            >
+              <span [innerHTML]="icons.SETTINGS" class="flex-shrink-0"></span>
+              <span i18n="@@nav.settings">Settings</span>
+            </a>
             <button
               (click)="logout()"
               class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               data-testid="logout-button"
             >
               <span [innerHTML]="icons.LOGOUT" class="flex-shrink-0"></span>
-              <span>Logout</span>
+              <span i18n="@@nav.logout">Logout</span>
             </button>
           </div>
         }
@@ -109,31 +120,35 @@ export class SidebarComponent {
     CHEVRON_LEFT: this.trustHtml(ICONS.CHEVRON_LEFT),
     USER_CIRCLE: this.trustHtml(ICONS.USER_CIRCLE),
     LOGOUT: this.trustHtml(ICONS.LOGOUT),
+    SETTINGS: this.trustHtml(ICONS.SETTINGS),
   };
   readonly showUserMenu = signal(false);
+
+  readonly expandSidebarLabel = $localize`:@@nav.expandSidebar:Expand sidebar`;
+  readonly collapseSidebarLabel = $localize`:@@nav.collapseSidebar:Collapse sidebar`;
 
   readonly navItems: NavItem[] = [
     {
       path: '/dashboard',
-      label: 'Dashboard',
+      label: $localize`:@@nav.dashboard:Dashboard`,
       icon: this.trustHtml(ICONS.HOME),
       matchPrefix: '/dashboard',
     },
     {
       path: '/family/settings',
-      label: 'Family',
+      label: $localize`:@@nav.family:Family`,
       icon: this.trustHtml(ICONS.USERS),
       matchPrefix: '/family',
     },
     {
       path: '/calendar',
-      label: 'Calendar',
+      label: $localize`:@@nav.calendar:Calendar`,
       icon: this.trustHtml(ICONS.CALENDAR),
       matchPrefix: '/calendar',
     },
     {
       path: '/event-chains',
-      label: 'Automations',
+      label: $localize`:@@nav.automations:Automations`,
       icon: this.trustHtml(ICONS.BOLT),
       matchPrefix: '/event-chains',
     },

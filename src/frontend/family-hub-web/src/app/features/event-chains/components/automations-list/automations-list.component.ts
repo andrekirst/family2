@@ -128,7 +128,7 @@ export class AutomationsListComponent implements OnInit, OnDestroy {
   isLoading = signal(true);
 
   ngOnInit(): void {
-    this.topBarService.setConfig({ title: 'Automations' });
+    this.topBarService.setConfig({ title: $localize`:@@nav.automations:Automations` });
     this.loadChainDefinitions();
   }
 
