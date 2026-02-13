@@ -19,4 +19,10 @@ public class RootMutation
     /// </summary>
     [Authorize]
     public EventChainMutation EventChain() => new();
+
+    /// <summary>
+    /// Google Integration mutations (unlink, refresh token).
+    /// </summary>
+    [Authorize]
+    public GoogleIntegrationMutation GoogleIntegration() => new();
 }

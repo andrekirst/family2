@@ -12,6 +12,7 @@ using FamilyHub.Api.Features.Auth;
 using FamilyHub.Api.Features.Calendar;
 using FamilyHub.Api.Features.EventChain;
 using FamilyHub.Api.Features.Family;
+using FamilyHub.Api.Features.GoogleIntegration;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -102,6 +103,10 @@ builder.Services.RegisterModule<AuthModule>(builder.Configuration);
 builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
 builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
+builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
+
+// REST controllers (for OAuth callback endpoints)
+builder.Services.AddControllers();
 
 // Configure CORS for Angular frontend (supports multi-environment via config)
 var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -152,6 +157,7 @@ app.UseAuthorization();
 // PostgreSQL RLS middleware - must come AFTER authentication
 app.UseMiddleware<PostgresRlsMiddleware>();
 
+app.MapControllers();
 app.MapGraphQL();
 
 // Health check endpoint

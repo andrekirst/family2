@@ -137,6 +137,12 @@ export class SidebarComponent {
       icon: this.trustHtml(ICONS.BOLT),
       matchPrefix: '/event-chains',
     },
+    {
+      path: '/settings',
+      label: 'Settings',
+      icon: this.trustHtml(ICONS.SETTINGS),
+      matchPrefix: '/settings',
+    },
   ];
 
   private trustHtml(html: string): SafeHtml {

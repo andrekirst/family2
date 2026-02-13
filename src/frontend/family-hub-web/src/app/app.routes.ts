@@ -50,6 +50,11 @@ export const routes: Routes = [
         path: 'family',
         loadChildren: () => import('./features/family/family.routes').then((m) => m.FAMILY_ROUTES),
       },
+      {
+        path: 'settings',
+        loadChildren: () =>
+          import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),
+      },
     ],
   },
 ];

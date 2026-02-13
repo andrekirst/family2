@@ -8,6 +8,7 @@
   <Project Path="../../tests/FamilyHub.Calendar.Tests/FamilyHub.Calendar.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.EventChain.Tests/FamilyHub.EventChain.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.Family.Tests/FamilyHub.Family.Tests.csproj" />
+  <Project Path="../../tests/FamilyHub.GoogleIntegration.Tests/FamilyHub.GoogleIntegration.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.IntegrationTests/FamilyHub.IntegrationTests.csproj" />
   <Project Path="../../tests/FamilyHub.TestCommon/FamilyHub.TestCommon.csproj" />
   <Project Path="../FamilyHub.Common/FamilyHub.Common.csproj" />

@@ -1,0 +1,11 @@
+using FamilyHub.Common.Domain;
+using FamilyHub.Common.Domain.ValueObjects;
+using FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects;
+
+namespace FamilyHub.Api.Features.GoogleIntegration.Domain.Events;
+
+public sealed record GoogleTokenRefreshFailedEvent(
+    GoogleAccountLinkId LinkId,
+    UserId UserId,
+    string Error
+) : DomainEvent;
