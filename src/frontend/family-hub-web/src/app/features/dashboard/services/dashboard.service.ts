@@ -24,7 +24,7 @@ export class DashboardService {
         query: GET_MY_DASHBOARD,
         fetchPolicy: 'network-only',
       })
-      .pipe(map((r) => r.data.dashboard.myDashboard));
+      .pipe(map((r) => r.data!.dashboard.myDashboard));
   }
 
   getFamilyDashboard() {
@@ -33,7 +33,7 @@ export class DashboardService {
         query: GET_FAMILY_DASHBOARD,
         fetchPolicy: 'network-only',
       })
-      .pipe(map((r) => r.data.dashboard.familyDashboard));
+      .pipe(map((r) => r.data!.dashboard.familyDashboard));
   }
 
   getAvailableWidgets() {
@@ -41,7 +41,7 @@ export class DashboardService {
       .query<{ dashboard: { availableWidgets: WidgetDescriptorDto[] } }>({
         query: GET_AVAILABLE_WIDGETS,
       })
-      .pipe(map((r) => r.data.dashboard.availableWidgets));
+      .pipe(map((r) => r.data!.dashboard.availableWidgets));
   }
 
   saveLayout(input: {
