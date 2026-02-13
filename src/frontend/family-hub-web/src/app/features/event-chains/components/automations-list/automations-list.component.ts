@@ -4,7 +4,6 @@ import { ChainDefinitionService } from '../../services/chain-definition.service'
 import { ChainDefinitionDto } from '../../models/chain-definition.models';
 import { UserService } from '../../../../core/user/user.service';
 import { TopBarService } from '../../../../shared/services/top-bar.service';
-import { ICONS } from '../../../../shared/icons/icons';
 
 @Component({
   selector: 'app-automations-list',
@@ -25,7 +24,14 @@ import { ICONS } from '../../../../shared/icons/icons';
         data-testid="automations-empty"
       >
         <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-          <span [innerHTML]="boltIconLarge" class="text-gray-400"></span>
+          <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
+          </svg>
         </div>
         <h3 class="text-lg font-medium text-gray-900 mb-1">No automations yet</h3>
         <p class="text-sm text-gray-500 text-center max-w-sm">
@@ -120,8 +126,6 @@ export class AutomationsListComponent implements OnInit, OnDestroy {
 
   chainDefinitions = signal<ChainDefinitionDto[]>([]);
   isLoading = signal(true);
-
-  readonly boltIconLarge = `<svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`;
 
   ngOnInit(): void {
     this.topBarService.setConfig({ title: 'Automations' });
