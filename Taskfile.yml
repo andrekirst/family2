@@ -18,6 +18,8 @@ vars:
     sh: id -u
   DOCKER_GID:
     sh: id -g
+  SRC_ROOT:
+    sh: echo "$(git rev-parse --show-toplevel)/src"
   INFRA_DIR: ./infrastructure
   TRAEFIK_COMPOSE: '{{.INFRA_DIR}}/docker-compose.traefik.yml'
   ENV_COMPOSE: '{{.INFRA_DIR}}/docker-compose.env.yml'
@@ -82,6 +84,7 @@ tasks:
       ENV_NAME: '{{.ENV_NAME}}'
       DOCKER_UID: '{{.DOCKER_UID}}'
       DOCKER_GID: '{{.DOCKER_GID}}'
+      SRC_ROOT: '{{.SRC_ROOT}}'
 
   env:down:
     desc: 'Stop environment (data persists)'
