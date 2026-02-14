@@ -1,7 +1,7 @@
 # Family Hub - Prioritized Feature Backlog
 
-**Version:** 1.2
-**Date:** 2026-02-12
+**Version:** 1.3
+**Date:** 2026-02-14
 **Status:** Initial Draft
 **Owner:** Product Management
 
@@ -378,10 +378,38 @@ We use RICE scoring to prioritize features:
 
 **Domain Total: 23.5 weeks**
 
+#### 10. Power User & Productivity
+
+> **Cross-reference:** Command Palette (Cmd+K), Keyboard Shortcuts System, and Inline Editing are tracked under [Domain 16: UI/UX & Design System](#16-uiux--design-system). Items below are unique to this domain and complement those UX features with deeper power-user workflows.
+
+| Feature | Description | RICE Score | Effort | Priority |
+| --- | --- | --- | --- | --- |
+| **Quick Entry Bar** | Persistent natural-language text input: "doctor appt Friday 2pm", "add milk to groceries", "vacuum living room assign:Mike due:Saturday" — parses into events, list items, or tasks | 46.0 | 3 weeks | P0 |
+| **Bulk Operations** | Multi-select events, tasks, or list items for batch edit, delete, move, reassign, or change status in a single action | 44.0 | 2 weeks | P0 |
+| **Template Variables in Chains** | Dynamic variables in event chains: `{next_monday}`, `{current_user}`, `{child.age}`, date math (`{today+7d}`), member references — makes automation truly flexible | 44.0 | 2.5 weeks | P0 |
+| **Multi-Tab / Split View** | Open two views side-by-side: calendar + task list, two different calendars, shopping list + meal plan — resizable panels | 42.0 | 3 weeks | P1 |
+| **Saved Views & Smart Filters** | Save custom filter combinations as named views (e.g., "My tasks this week", "Kids' events only"), share views with family or keep personal | 42.0 | 2 weeks | P1 |
+| **Activity Log & Audit Trail** | Chronological history of all family changes: who edited what event, who completed which chore, who added list items — with diff view and rollback | 42.0 | 2.5 weeks | P1 |
+| **Chain Export/Import (YAML/JSON)** | Export event chains as portable YAML/JSON files for sharing, backup, or version control; import chains from files or community | 40.0 | 2 weeks | P1 |
+| **Advanced Search Operators** | Structured query syntax in search: `assigned:me due:this-week type:task status:pending`, boolean operators (AND/OR/NOT), date ranges | 40.0 | 2 weeks | P1 |
+| **Custom Quick Action Buttons** | User-defined shortcut buttons on dashboard: "Add groceries", "Log expense", "Create family event" — configurable per user role | 38.0 | 1.5 weeks | P1 |
+| **Deep Undo/Redo Stack** | Multi-level undo history (50+ levels) across all operations — not just single-action toast undo, with full session history panel | 38.0 | 2 weeks | P1 |
+| **Pinned Items & Favorites** | Pin frequently accessed lists, events, chains, or views to sidebar for one-click access; star items for cross-domain favorites panel | 36.0 | 1 week | P2 |
+| **Focus Mode** | Distraction-free full-screen view for calendar day, task list, or chain editor — hides sidebar, navigation, notifications | 34.0 | 1.5 weeks | P2 |
+
+**Power User Examples:**
+
+1. Quick Entry: Type "soccer practice every Tuesday 4pm assign:Emma" → creates recurring event assigned to Emma
+2. Bulk Ops: Select 15 overdue tasks → batch reassign to different family member → batch change due date to next week
+3. Split View: Calendar on left showing this week + shopping list on right → drag event to see what meals need ingredients
+4. Smart Filter: Save "Unfinished chores assigned to kids, overdue" as "Kids' overdue chores" → pin to sidebar
+
+**Domain Total: 25 weeks**
+
 ### Phase 2 Features Summary
 
-**Total Estimated Effort: 161 weeks**
-**With AI assistance & iteration: ~64-76 weeks (~14 months with overlap)**
+**Total Estimated Effort: 186 weeks**
+**With AI assistance & iteration: ~74-88 weeks (~16 months with overlap)**
 
 **Feature Breakdown:**
 
@@ -394,6 +422,7 @@ We use RICE scoring to prioritize features:
 - Enhanced Mobile: 23.5 weeks
 - UX Enhancements: 20 weeks
 - School & Education (Core): 23.5 weeks
+- Power User & Productivity: 25 weeks
 
 **Phase 2 Success Criteria:**
 
@@ -402,6 +431,7 @@ We use RICE scoring to prioritize features:
 - NPS >50
 - Native mobile apps launched
 - 50+ event chain templates available
+- 30%+ of active users using at least 3 power-user features
 
 ---
 
@@ -537,10 +567,37 @@ We use RICE scoring to prioritize features:
 
 **Domain Total: 38 weeks**
 
+#### 9. Power User & Productivity (Advanced)
+
+| Feature | Description | RICE Score | Effort | Priority |
+| --- | --- | --- | --- | --- |
+| **Personal API Tokens** | Generate scoped API keys from user settings for scripting and external tool integration — read-only, write, or admin scopes per domain | 44.0 | 2 weeks | P0 |
+| **Chain Scripting Language (DSL)** | Define event chains as code using a Family Hub DSL or YAML — enables version control, git-style diffing, code review, and programmatic chain creation | 42.0 | 4 weeks | P0 |
+| **Custom Inbound Webhooks** | Receive structured data from external services (school portals, IoT devices, email parsers) to trigger chains or create items automatically | 42.0 | 3 weeks | P0 |
+| **Scripted Automations** | Embedded scripting engine (Lua or JavaScript sandbox) for custom automation logic beyond template-based chains — with security sandbox and resource limits | 44.0 | 6 weeks | P0 |
+| **CLI Tool** | Command-line interface for Family Hub: `fhub event create`, `fhub tasks list --mine --overdue`, `fhub chain run "morning-routine"` — full CRUD for all domains | 40.0 | 4 weeks | P1 |
+| **Advanced Notification Routing** | Per-category, per-time, per-channel notification rules: "school notifications → email only", "chore reminders → push 8am only", "budget alerts → SMS" | 40.0 | 3 weeks | P1 |
+| **Cross-Domain Quick Views** | Pre-built composite dashboards: "This Week Overview" (calendar + tasks + shopping), "Budget & Shopping" (expenses + lists), "School Week" (timetable + homework + transport) | 40.0 | 2.5 weeks | P1 |
+| **Bulk Data Import Suite** | Import existing data from CSV, JSON, ICS, vCard: contacts, events, tasks, recipes, expenses — with column mapping UI, duplicate detection, and dry-run preview | 38.0 | 3 weeks | P1 |
+| **Macro Recording & Playback** | Record a sequence of UI actions (create event → add to list → assign task), save as replayable macro — one-click execution for repetitive multi-step workflows | 38.0 | 4 weeks | P1 |
+| **Workspace Presets** | Save and switch between named UI configurations: "Morning Routine" (today's calendar + tasks), "Weekend Planning" (meal plan + shopping + calendar), "School Week" (timetable + homework) | 36.0 | 2 weeks | P2 |
+| **Vim-style Navigation Mode** | Optional modal navigation for keyboard enthusiasts: `j/k` scroll lists, `h/l` navigate tabs, `/` search, `g` goto, `x` complete task — toggled in settings | 32.0 | 2 weeks | P2 |
+| **Power User Onboarding Path** | Guided discovery tour of power features: interactive keyboard shortcut cheat sheet, command palette tutorial, "Did you know?" progressive hints for advanced features | 34.0 | 1.5 weeks | P2 |
+
+**Advanced Power User Examples:**
+
+1. API Token: Generate read-only calendar token → feed into home dashboard display or Raspberry Pi e-ink screen
+2. Chain DSL: Write `when: meal.planned → check: pantry.has(meal.ingredients) → create: shopping_list.add(missing) → notify: assigned_shopper` in YAML
+3. CLI: `fhub tasks list --assigned:Emma --overdue --format:json | jq '.[] | .title'` for scripted reports
+4. Webhook: School absence system POSTs to Family Hub → chain triggers "child sick day" workflow → cancels activities, notifies school, assigns parent
+5. Macro: Record "Sunday meal prep" → creates 5 calendar meal events, generates combined shopping list, assigns cooking tasks
+
+**Domain Total: 37 weeks**
+
 ### Phase 3+ Features Summary
 
-**Total Estimated Effort: 265 weeks**
-**With AI assistance & ongoing development: 18-24+ months with prioritization**
+**Total Estimated Effort: 302 weeks**
+**With AI assistance & ongoing development: 20-26+ months with prioritization**
 
 **Feature Breakdown:**
 
@@ -552,6 +609,7 @@ We use RICE scoring to prioritize features:
 - Advanced Features: 28 weeks
 - Enterprise & Scale: 31 weeks
 - School & Education (Advanced): 38 weeks
+- Power User & Productivity (Advanced): 37 weeks
 
 **Phase 3+ Success Criteria:**
 
@@ -560,6 +618,8 @@ We use RICE scoring to prioritize features:
 - Active developer community and ecosystem
 - Multiple revenue streams established
 - Strategic partnerships in place
+- Public API with 100+ active integrations
+- CLI tool adopted by 20%+ of self-hosting users
 
 ---
 
@@ -586,8 +646,9 @@ We use RICE scoring to prioritize features:
 | **Infrastructure**          | 9   | 5       | 8        | 22             |
 | **UI/UX & Design System**   | 47  | 26      | 5        | 78             |
 | **School & Education**      | 0   | 14      | 14       | 28             |
+| **Power User & Productivity** | 0 | 12      | 12       | 24             |
 
-**Total Features Planned: 303 features across 17 domains**
+**Total Features Planned: 327 features across 18 domains**
 
 ---
 
@@ -1105,6 +1166,38 @@ We use RICE scoring to prioritize features:
 - Attendance tracking (sick days, notifications)
 - Achievement & awards tracking
 
+### 18. Power User & Productivity
+
+#### Phase 2
+
+- Quick entry bar (natural language parsing into events/tasks/items)
+- Bulk operations (multi-select for batch edit/delete/move/reassign)
+- Template variables in event chains (dynamic values, date math, member references)
+- Multi-tab / split view (side-by-side panels for any two views)
+- Saved views & smart filters (named filter combos, personal or shared)
+- Activity log & audit trail (who changed what, when, with diff and rollback)
+- Chain export/import as YAML/JSON (portable, versionable chain definitions)
+- Advanced search operators (structured queries, boolean logic, date ranges)
+- Custom quick action buttons (user-defined dashboard shortcuts)
+- Deep undo/redo stack (50+ level history with session history panel)
+- Pinned items & favorites (one-click sidebar access to frequent items)
+- Focus mode (distraction-free full-screen for any view)
+
+#### Phase 3+
+
+- Personal API tokens (scoped keys for scripting and external tools)
+- Chain scripting language / DSL (chains as code, version control, diffing)
+- Custom inbound webhooks (external services triggering chains)
+- Scripted automations (embedded Lua/JS sandbox for custom logic)
+- CLI tool (`fhub` command-line interface for all domains)
+- Advanced notification routing (per-category, per-time, per-channel rules)
+- Cross-domain quick views (composite dashboards across modules)
+- Bulk data import suite (CSV/JSON/ICS/vCard with mapping and preview)
+- Macro recording & playback (record UI sequences as replayable automations)
+- Workspace presets (save/switch named UI configurations)
+- Vim-style navigation mode (optional modal keyboard navigation)
+- Power user onboarding path (guided discovery of advanced features)
+
 ---
 
 ## Priority Buckets Summary
@@ -1112,20 +1205,20 @@ We use RICE scoring to prioritize features:
 ### P0 - Critical (Ship Blockers)
 
 **MVP:** 65 features - Core functionality and foundational UI/UX that must work
-**Phase 2:** 16 features - Key differentiators and competitive parity
-**Phase 3+:** 12 features - Innovation and platform capabilities
+**Phase 2:** 19 features - Key differentiators, competitive parity, and core power-user workflows
+**Phase 3+:** 16 features - Innovation, platform capabilities, and advanced automation
 
 ### P1 - High (Should Have)
 
 **MVP:** 25 features - Important but can be iterated
-**Phase 2:** 48 features - Enhanced experience, UI components, and feature depth
-**Phase 3+:** 30 features - Advanced capabilities, visualizations, and integrations
+**Phase 2:** 54 features - Enhanced experience, UI components, feature depth, and productivity tools
+**Phase 3+:** 35 features - Advanced capabilities, visualizations, integrations, and scripting
 
 ### P2 - Medium (Nice to Have)
 
 **MVP:** 6 features - Polish and enhancement
-**Phase 2:** 19 features - Additional value-adds and advanced interactions
-**Phase 3+:** 15 features - Future innovations
+**Phase 2:** 22 features - Additional value-adds, advanced interactions, and convenience features
+**Phase 3+:** 18 features - Future innovations and niche power-user tools
 
 ### Icebox (Future Consideration)
 
@@ -1323,6 +1416,7 @@ Legend: ✓✓✓ Excellent | ✓✓ Good | ✓ Basic | △ Limited | ✗ None
 
 | Version | Date       | Author                        | Changes                                                                                                                                                                                                                                      |
 | ------- | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.3     | 2026-02-14 | Product Manager (AI-assisted) | Add Power User & Productivity domain (18th domain, 24 features across Phase 2 + Phase 3+): quick entry bar, bulk operations, chain DSL/scripting, CLI tool, API tokens, macro recording, split views, vim navigation, and more; total features 303 → 327 |
 | 1.2     | 2026-02-12 | Product Manager (AI-assisted) | Expand UX & Accessibility into comprehensive UI/UX & Design System domain (78 features, 8 sub-categories); add UI/UX Resources appendix; consolidate Phase 2 Section 8 overlaps; add Animation & Transition System; total features 236 → 303 |
 | 1.1     | 2026-02-12 | Product Manager (AI-assisted) | Add School & Education domain (17th domain, 28 features)                                                                                                                                                                                     |
 | 1.0     | 2025-12-19 | Product Manager (AI-assisted) | Initial comprehensive feature backlog                                                                                                                                                                                                        |
