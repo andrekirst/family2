@@ -5,6 +5,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { provideApolloClient } from './core/graphql/apollo.config';
 import { provideCalendarFeature } from './features/calendar/calendar.providers';
+import { provideDashboardFeature } from './features/dashboard/dashboard.providers';
 import { provideEventChainsFeature } from './features/event-chains/event-chains.providers';
 import { provideFamilyFeature } from './features/family/family.providers';
 import { provideProfileFeature } from './features/profile/profile.providers';
@@ -16,6 +17,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     ...provideApolloClient(),
     ...provideCalendarFeature(),
+    ...provideDashboardFeature(),
     ...provideEventChainsFeature(),
     ...provideFamilyFeature(),
     ...provideProfileFeature(),

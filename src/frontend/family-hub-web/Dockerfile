@@ -6,9 +6,12 @@ ARG DOCKERHUB_REGISTRY=""
 # ==============================================================================
 FROM ${DOCKERHUB_REGISTRY}node:22-alpine AS dev
 
+ARG UID=1000
+ARG GID=1000
+
 WORKDIR /app
 
-# Install dependencies first (layer cache)
+# Install dependencies first (layer cache — needs root)
 COPY package.json package-lock.json ./
 COPY .npmrc* ./
 RUN npm ci
@@ -17,16 +20,17 @@ RUN npm ci
 # The named volume is initialised from this layer on first run.
 RUN chmod -R 777 /app/node_modules
 
-# When compose sets user: to the host UID, HOME still points to /root.
-# Redirect to /tmp so npm/ng can write their caches.
-ENV HOME=/tmp
+# Create non-root user matching host UID/GID for correct file ownership
+RUN addgroup -g ${GID} devuser \
+ && adduser -D -u ${UID} -G devuser -h /home/devuser devuser
+ENV HOME=/home/devuser
 
 # Source code is volume-mounted at runtime
 EXPOSE 4200
+USER ${UID}:${GID}
 ENTRYPOINT ["npx", "ng", "serve", \
   "--host", "0.0.0.0", \
-  "--port", "4200", \
-  "--poll", "2000"]
+  "--port", "4200"]
 
 # ==============================================================================
 # Build stage

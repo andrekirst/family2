@@ -319,6 +319,123 @@ namespace FamilyHub.Api.Migrations
                     b.ToTable("calendar_event_attendees", "calendar");
                 });
 
+            modelBuilder.Entity("FamilyHub.Api.Features.Dashboard.Domain.Entities.DashboardLayout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<bool>("IsShared")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_shared");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_dashboard_layouts");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_dashboard_layouts_family_id")
+                        .HasFilter("\"family_id\" IS NOT NULL");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_dashboard_layouts_user_id")
+                        .HasFilter("\"user_id\" IS NOT NULL");
+
+                    b.ToTable("dashboard_layouts", "dashboard");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Dashboard.Domain.Entities.DashboardWidget", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ConfigJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("config_json");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("DashboardId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("dashboard_id");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer")
+                        .HasColumnName("height");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("WidgetType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("widget_type");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer")
+                        .HasColumnName("width");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer")
+                        .HasColumnName("x");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer")
+                        .HasColumnName("y");
+
+                    b.HasKey("Id")
+                        .HasName("pk_dashboard_widgets");
+
+                    b.HasIndex("DashboardId")
+                        .HasDatabaseName("ix_dashboard_widgets_dashboard_id");
+
+                    b.ToTable("dashboard_widgets", "dashboard");
+                });
+
             modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.Family", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1021,6 +1138,16 @@ namespace FamilyHub.Api.Migrations
                     b.Navigation("CalendarEvent");
                 });
 
+            modelBuilder.Entity("FamilyHub.Api.Features.Dashboard.Domain.Entities.DashboardWidget", b =>
+                {
+                    b.HasOne("FamilyHub.Api.Features.Dashboard.Domain.Entities.DashboardLayout", null)
+                        .WithMany("Widgets")
+                        .HasForeignKey("DashboardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_dashboard_widgets_dashboard_layouts_dashboard_id");
+                });
+
             modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.Family", b =>
                 {
                     b.HasOne("FamilyHub.Api.Features.Auth.Domain.Entities.User", "Owner")
@@ -1144,6 +1271,11 @@ namespace FamilyHub.Api.Migrations
             modelBuilder.Entity("FamilyHub.Api.Features.Calendar.Domain.Entities.CalendarEvent", b =>
                 {
                     b.Navigation("Attendees");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Dashboard.Domain.Entities.DashboardLayout", b =>
+                {
+                    b.Navigation("Widgets");
                 });
 
             modelBuilder.Entity("FamilyHub.Api.Features.Family.Domain.Entities.Family", b =>

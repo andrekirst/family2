@@ -10,6 +10,7 @@ using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Common.Modules;
 using FamilyHub.Api.Features.Auth;
 using FamilyHub.Api.Features.Calendar;
+using FamilyHub.Api.Features.Dashboard;
 using FamilyHub.Api.Features.EventChain;
 using FamilyHub.Api.Features.Family;
 using FluentValidation;
@@ -104,6 +105,7 @@ builder.Services.AddControllers();
 builder.Services.RegisterModule<AuthModule>(builder.Configuration);
 builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
 builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
+builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
 
 // Configure CORS for Angular frontend (supports multi-environment via config)
