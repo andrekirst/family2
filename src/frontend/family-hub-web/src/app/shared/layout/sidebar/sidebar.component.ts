@@ -1,4 +1,4 @@
-import { Component, inject, signal, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -6,6 +6,7 @@ import { SidebarStateService } from '../../services/sidebar-state.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserService } from '../../../core/user/user.service';
 import { ICONS } from '../../icons/icons';
+import { AvatarDisplayComponent } from '../../../core/avatar';
 
 interface NavItem {
   path: string;
@@ -17,7 +18,7 @@ interface NavItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, AvatarDisplayComponent],
   template: `
     <aside
       class="fixed top-0 left-0 h-screen bg-white border-r border-gray-200 flex flex-col z-40 transition-all duration-300"
@@ -73,7 +74,12 @@ interface NavItem {
           [attr.title]="sidebarState.isCollapsed() ? userName() : null"
           data-testid="sidebar-user"
         >
-          <span [innerHTML]="icons.USER_CIRCLE" class="flex-shrink-0"></span>
+          <app-avatar-display
+            [avatarId]="userAvatarId()"
+            [name]="userName()"
+            size="tiny"
+            class="flex-shrink-0"
+          />
           @if (!sidebarState.isCollapsed()) {
             <span class="truncate">{{ userName() }}</span>
           }
@@ -83,6 +89,14 @@ interface NavItem {
             class="absolute bottom-full left-2 right-2 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
             data-testid="user-menu"
           >
+            <button
+              (click)="navigateToProfile()"
+              class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              data-testid="profile-button"
+            >
+              <span [innerHTML]="icons.USER_CIRCLE" class="flex-shrink-0"></span>
+              <span>Profile</span>
+            </button>
             <button
               (click)="logout()"
               class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
@@ -111,6 +125,7 @@ export class SidebarComponent {
     LOGOUT: this.trustHtml(ICONS.LOGOUT),
   };
   readonly showUserMenu = signal(false);
+  readonly userAvatarId = computed(() => this.userService.currentUser()?.avatarId ?? null);
 
   readonly navItems: NavItem[] = [
     {
@@ -154,6 +169,11 @@ export class SidebarComponent {
   toggleUserMenu(event: Event): void {
     event.stopPropagation();
     this.showUserMenu.update((v) => !v);
+  }
+
+  navigateToProfile(): void {
+    this.showUserMenu.set(false);
+    this.router.navigate(['/profile']);
   }
 
   logout(): void {

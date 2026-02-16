@@ -70,6 +70,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired(false);
         builder.HasIndex(u => u.FamilyId);
 
+        // Avatar (nullable - Vogen value object)
+        builder.Property(u => u.AvatarId)
+            .HasConversion(
+                avatarId => avatarId.HasValue ? avatarId.Value.Value : (Guid?)null,
+                value => value.HasValue ? AvatarId.From(value.Value) : null)
+            .IsRequired(false);
+
         // Metadata fields
         builder.Property(u => u.EmailVerified)
             .IsRequired()

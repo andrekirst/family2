@@ -142,6 +142,7 @@ export const GET_FAMILY_MEMBERS = gql`
           userName
           userEmail
           role
+          avatarId
           joinedAt
           isActive
         }

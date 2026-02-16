@@ -8,6 +8,7 @@ import { provideCalendarFeature } from './features/calendar/calendar.providers';
 import { provideDashboardFeature } from './features/dashboard/dashboard.providers';
 import { provideEventChainsFeature } from './features/event-chains/event-chains.providers';
 import { provideFamilyFeature } from './features/family/family.providers';
+import { provideProfileFeature } from './features/profile/profile.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,5 +20,6 @@ export const appConfig: ApplicationConfig = {
     ...provideDashboardFeature(),
     ...provideEventChainsFeature(),
     ...provideFamilyFeature(),
+    ...provideProfileFeature(),
   ],
 };

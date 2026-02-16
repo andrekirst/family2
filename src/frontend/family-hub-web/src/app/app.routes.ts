@@ -47,6 +47,11 @@ export const routes: Routes = [
           import('./features/event-chains/event-chains.routes').then((m) => m.EVENT_CHAINS_ROUTES),
       },
       {
+        path: 'profile',
+        loadChildren: () =>
+          import('./features/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
+      },
+      {
         path: 'family',
         loadChildren: () => import('./features/family/family.routes').then((m) => m.FAMILY_ROUTES),
       },

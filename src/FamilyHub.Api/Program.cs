@@ -98,6 +98,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Add controllers for REST endpoints (avatar serving)
+builder.Services.AddControllers();
+
 // Feature Modules (explicit ordering - dependencies flow downward)
 builder.Services.RegisterModule<AuthModule>(builder.Configuration);
 builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
@@ -155,6 +158,7 @@ app.UseAuthorization();
 app.UseMiddleware<PostgresRlsMiddleware>();
 
 app.MapGraphQL();
+app.MapControllers(); // REST endpoints (avatar serving)
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));

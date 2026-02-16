@@ -1,4 +1,5 @@
 using FamilyHub.Common.Application;
+using FamilyHub.Api.Common.Infrastructure.Avatar;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
@@ -50,6 +51,11 @@ public class AppDbContext : DbContext, IUnitOfWork
     /// Calendar event attendees (join table)
     /// </summary>
     public DbSet<CalendarEventAttendee> CalendarEventAttendees { get; set; }
+
+    // Avatar infrastructure entities
+    public DbSet<AvatarAggregate> Avatars { get; set; }
+    public DbSet<AvatarVariant> AvatarVariants { get; set; }
+    public DbSet<StoredFile> StoredFiles { get; set; }
 
     // Dashboard entities
     public DbSet<DashboardLayout> DashboardLayouts { get; set; }
