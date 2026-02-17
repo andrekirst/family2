@@ -152,6 +152,8 @@
 
   "nav.settings": "Settings",
 
+  "userMenu.signedInAs": "Signed in as",
+
   "settings.title": "Settings",
   "settings.profile": "Profile",
   "settings.email": "Email",

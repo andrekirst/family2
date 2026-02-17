@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, Injector, inject, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { UPDATE_MY_LOCALE_MUTATION } from '../../features/auth/graphql/auth.operations';
 
@@ -15,10 +15,14 @@ const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'de'];
  *
  * Language switching triggers a page reload because `loadTranslations()`
  * is called at bootstrap time and cannot be hot-swapped.
+ *
+ * NOTE: Apollo is resolved lazily via Injector to avoid a circular dependency:
+ * Apollo config injects I18nService for Accept-Language headers,
+ * so I18nService cannot eagerly inject Apollo.
  */
 @Injectable({ providedIn: 'root' })
 export class I18nService {
-  private readonly apollo = inject(Apollo);
+  private readonly injector = inject(Injector);
 
   /** Current locale as a reactive signal */
   readonly currentLocale = signal<SupportedLocale>(this.getStoredLocale());
@@ -90,7 +94,8 @@ export class I18nService {
    * Fire-and-forget — errors are logged but don't block the UI.
    */
   private syncLocaleToBackend(locale: SupportedLocale): void {
-    this.apollo
+    const apollo = this.injector.get(Apollo);
+    apollo
       .mutate({
         mutation: UPDATE_MY_LOCALE_MUTATION,
         variables: { input: { locale } },

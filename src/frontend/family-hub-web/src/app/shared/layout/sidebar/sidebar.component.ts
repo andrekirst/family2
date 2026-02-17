@@ -5,6 +5,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SidebarStateService } from '../../services/sidebar-state.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserService } from '../../../core/user/user.service';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { ICONS } from '../../icons/icons';
 
 interface NavItem {
@@ -73,6 +74,8 @@ interface NavItem {
           [class.justify-center]="sidebarState.isCollapsed()"
           [class.bg-gray-100]="showUserMenu()"
           [attr.title]="sidebarState.isCollapsed() ? userName() : null"
+          [attr.aria-haspopup]="true"
+          [attr.aria-expanded]="showUserMenu()"
           data-testid="sidebar-user"
         >
           <span [innerHTML]="icons.USER_CIRCLE" class="flex-shrink-0"></span>
@@ -82,21 +85,49 @@ interface NavItem {
         </button>
         @if (showUserMenu()) {
           <div
-            class="absolute bottom-full left-2 right-2 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+            class="absolute bottom-full mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+            [class.left-2]="!sidebarState.isCollapsed()"
+            [class.right-2]="!sidebarState.isCollapsed()"
+            [class.left-0]="sidebarState.isCollapsed()"
+            [style.min-width]="sidebarState.isCollapsed() ? '220px' : 'auto'"
+            role="menu"
             data-testid="user-menu"
           >
+            <!-- Identity header -->
+            <div class="px-3 py-2.5 border-b border-gray-100" data-testid="user-menu-header">
+              <p class="text-xs text-gray-500" data-testid="user-menu-signed-in-label">
+                {{ signedInAsLabel }}
+              </p>
+              <p class="text-sm font-semibold text-gray-900 truncate" data-testid="user-menu-name">
+                {{ userName() }}
+              </p>
+              <p class="text-xs text-gray-500 truncate" data-testid="user-menu-email">
+                {{ userEmail() }}
+              </p>
+            </div>
+            <!-- Settings -->
             <a
               routerLink="/settings"
               (click)="showUserMenu.set(false)"
               class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              role="menuitem"
               data-testid="settings-link"
             >
               <span [innerHTML]="icons.SETTINGS" class="flex-shrink-0"></span>
-              <span i18n="@@nav.settings">Settings</span>
+              <span class="flex-1" i18n="@@nav.settings">Settings</span>
+              <span
+                class="text-xs font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"
+                data-testid="locale-badge"
+                >{{ currentLocaleLabel() }}</span
+              >
             </a>
+            <!-- Divider -->
+            <div class="border-t border-gray-100"></div>
+            <!-- Logout -->
             <button
               (click)="logout()"
               class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              role="menuitem"
               data-testid="logout-button"
             >
               <span [innerHTML]="icons.LOGOUT" class="flex-shrink-0"></span>
@@ -112,6 +143,7 @@ export class SidebarComponent {
   readonly sidebarState = inject(SidebarStateService);
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly i18nService = inject(I18nService);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -126,6 +158,7 @@ export class SidebarComponent {
 
   readonly expandSidebarLabel = $localize`:@@nav.expandSidebar:Expand sidebar`;
   readonly collapseSidebarLabel = $localize`:@@nav.collapseSidebar:Collapse sidebar`;
+  readonly signedInAsLabel = $localize`:@@userMenu.signedInAs:Signed in as`;
 
   readonly navItems: NavItem[] = [
     {
@@ -160,6 +193,14 @@ export class SidebarComponent {
 
   userName(): string {
     return this.userService.currentUser()?.name ?? 'User';
+  }
+
+  userEmail(): string {
+    return this.userService.currentUser()?.email ?? '';
+  }
+
+  currentLocaleLabel(): string {
+    return this.i18nService.currentLocale().toUpperCase();
   }
 
   isActive(prefix: string): boolean {
