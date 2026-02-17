@@ -5,9 +5,14 @@ import {
   GET_LINKED_ACCOUNTS,
   GET_GOOGLE_AUTH_URL,
   UNLINK_GOOGLE_ACCOUNT,
+  REFRESH_GOOGLE_TOKEN,
   GET_CALENDAR_SYNC_STATUS,
 } from '../graphql/google-integration.operations';
-import { LinkedAccount, GoogleCalendarSyncStatus } from '../models/google-integration.models';
+import {
+  LinkedAccount,
+  GoogleCalendarSyncStatus,
+  RefreshTokenResult,
+} from '../models/google-integration.models';
 
 @Injectable({ providedIn: 'root' })
 export class GoogleIntegrationService {
@@ -31,7 +36,7 @@ export class GoogleIntegrationService {
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((result) => result.data.googleIntegration.linkedAccounts),
+        map((result) => result.data?.googleIntegration?.linkedAccounts ?? []),
         catchError((err) => {
           this.error.set(err.message);
           return of([]);
@@ -50,7 +55,7 @@ export class GoogleIntegrationService {
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((result) => result.data.googleIntegration.calendarSyncStatus),
+        map((result) => result.data?.googleIntegration?.calendarSyncStatus ?? null),
         catchError(() => of(null)),
       )
       .subscribe((status) => this.syncStatus.set(status));
@@ -65,7 +70,7 @@ export class GoogleIntegrationService {
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((result) => result.data.googleIntegration.authUrl),
+        map((result) => result.data?.googleIntegration?.authUrl ?? null),
         catchError((err) => {
           this.error.set(err.message);
           this.loading.set(false);
@@ -98,6 +103,29 @@ export class GoogleIntegrationService {
         if (success) {
           this.linkedAccounts.set([]);
           this.syncStatus.set(null);
+        }
+        this.loading.set(false);
+      });
+  }
+
+  refreshToken(): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.apollo
+      .mutate<{ googleIntegration: { refreshToken: RefreshTokenResult } }>({
+        mutation: REFRESH_GOOGLE_TOKEN,
+      })
+      .pipe(
+        map((result) => result.data?.googleIntegration?.refreshToken?.success ?? false),
+        catchError((err) => {
+          this.error.set(err.message);
+          return of(false);
+        }),
+      )
+      .subscribe((success) => {
+        if (success) {
+          this.loadLinkedAccounts();
         }
         this.loading.set(false);
       });

@@ -7,7 +7,7 @@ import { GoogleIntegrationService } from '../../services/google-integration.serv
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="bg-white rounded-lg border border-gray-200 p-6">
+    <div class="bg-white rounded-lg border border-gray-200 p-6" data-testid="google-link-container">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <div
@@ -35,7 +35,9 @@ import { GoogleIntegrationService } from '../../services/google-integration.serv
           <div>
             <h3 class="text-sm font-semibold text-gray-900">Google Account</h3>
             @if (googleService.isLinked()) {
-              <p class="text-xs text-gray-500">{{ googleService.primaryAccount()?.googleEmail }}</p>
+              <p class="text-xs text-gray-500" data-testid="google-link-email">
+                {{ googleService.primaryAccount()?.googleEmail }}
+              </p>
             } @else {
               <p class="text-xs text-gray-500">Not connected</p>
             }
@@ -46,12 +48,14 @@ import { GoogleIntegrationService } from '../../services/google-integration.serv
           @if (googleService.isLinked()) {
             <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+              data-testid="google-link-status-connected"
             >
               Connected
             </span>
           } @else {
             <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+              data-testid="google-link-status-disconnected"
             >
               Disconnected
             </span>
@@ -109,7 +113,9 @@ import { GoogleIntegrationService } from '../../services/google-integration.serv
       }
 
       @if (googleService.error()) {
-        <p class="mt-3 text-xs text-red-600">{{ googleService.error() }}</p>
+        <p class="mt-3 text-xs text-red-600" data-testid="google-link-error">
+          {{ googleService.error() }}
+        </p>
       }
     </div>
   `,
