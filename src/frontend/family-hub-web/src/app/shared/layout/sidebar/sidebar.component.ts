@@ -5,6 +5,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SidebarStateService } from '../../services/sidebar-state.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserService } from '../../../core/user/user.service';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { ICONS } from '../../icons/icons';
 import { AvatarDisplayComponent } from '../../../core/avatar';
 
@@ -28,7 +29,9 @@ interface NavItem {
       <!-- Header -->
       <div class="h-16 flex items-center border-b border-gray-200 px-4 flex-shrink-0">
         @if (!sidebarState.isCollapsed()) {
-          <span class="text-lg font-bold text-gray-900 truncate flex-1">Family Hub</span>
+          <span class="text-lg font-bold text-gray-900 truncate flex-1" i18n="@@app.name"
+            >Family Hub</span
+          >
         }
         <button
           (click)="sidebarState.toggle()"
@@ -36,7 +39,7 @@ interface NavItem {
           [class.ml-auto]="!sidebarState.isCollapsed()"
           [class.mx-auto]="sidebarState.isCollapsed()"
           data-testid="sidebar-toggle"
-          [attr.aria-label]="sidebarState.isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+          [attr.aria-label]="sidebarState.isCollapsed() ? expandSidebarLabel : collapseSidebarLabel"
         >
           <span [innerHTML]="sidebarState.isCollapsed() ? icons.MENU : icons.CHEVRON_LEFT"></span>
         </button>
@@ -72,6 +75,8 @@ interface NavItem {
           [class.justify-center]="sidebarState.isCollapsed()"
           [class.bg-gray-100]="showUserMenu()"
           [attr.title]="sidebarState.isCollapsed() ? userName() : null"
+          [attr.aria-haspopup]="true"
+          [attr.aria-expanded]="showUserMenu()"
           data-testid="sidebar-user"
         >
           <app-avatar-display
@@ -86,9 +91,45 @@ interface NavItem {
         </button>
         @if (showUserMenu()) {
           <div
-            class="absolute bottom-full left-2 right-2 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+            class="absolute bottom-full mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+            [class.left-2]="!sidebarState.isCollapsed()"
+            [class.right-2]="!sidebarState.isCollapsed()"
+            [class.left-0]="sidebarState.isCollapsed()"
+            [style.min-width]="sidebarState.isCollapsed() ? '220px' : 'auto'"
+            role="menu"
             data-testid="user-menu"
           >
+            <!-- Identity header -->
+            <div class="px-3 py-2.5 border-b border-gray-100" data-testid="user-menu-header">
+              <p class="text-xs text-gray-500" data-testid="user-menu-signed-in-label">
+                {{ signedInAsLabel }}
+              </p>
+              <p class="text-sm font-semibold text-gray-900 truncate" data-testid="user-menu-name">
+                {{ userName() }}
+              </p>
+              <p class="text-xs text-gray-500 truncate" data-testid="user-menu-email">
+                {{ userEmail() }}
+              </p>
+            </div>
+            <!-- Settings -->
+            <a
+              routerLink="/settings"
+              (click)="showUserMenu.set(false)"
+              class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              role="menuitem"
+              data-testid="settings-link"
+            >
+              <span [innerHTML]="icons.SETTINGS" class="flex-shrink-0"></span>
+              <span class="flex-1" i18n="@@nav.settings">Settings</span>
+              <span
+                class="text-xs font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"
+                data-testid="locale-badge"
+                >{{ currentLocaleLabel() }}</span
+              >
+            </a>
+            <!-- Divider -->
+            <div class="border-t border-gray-100"></div>
+            <!-- Logout -->
             <button
               (click)="navigateToProfile()"
               class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
@@ -100,10 +141,11 @@ interface NavItem {
             <button
               (click)="logout()"
               class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              role="menuitem"
               data-testid="logout-button"
             >
               <span [innerHTML]="icons.LOGOUT" class="flex-shrink-0"></span>
-              <span>Logout</span>
+              <span i18n="@@nav.logout">Logout</span>
             </button>
           </div>
         }
@@ -115,6 +157,7 @@ export class SidebarComponent {
   readonly sidebarState = inject(SidebarStateService);
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly i18nService = inject(I18nService);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -123,32 +166,37 @@ export class SidebarComponent {
     CHEVRON_LEFT: this.trustHtml(ICONS.CHEVRON_LEFT),
     USER_CIRCLE: this.trustHtml(ICONS.USER_CIRCLE),
     LOGOUT: this.trustHtml(ICONS.LOGOUT),
+    SETTINGS: this.trustHtml(ICONS.SETTINGS),
   };
   readonly showUserMenu = signal(false);
   readonly userAvatarId = computed(() => this.userService.currentUser()?.avatarId ?? null);
 
+  readonly expandSidebarLabel = $localize`:@@nav.expandSidebar:Expand sidebar`;
+  readonly collapseSidebarLabel = $localize`:@@nav.collapseSidebar:Collapse sidebar`;
+  readonly signedInAsLabel = $localize`:@@userMenu.signedInAs:Signed in as`;
+
   readonly navItems: NavItem[] = [
     {
       path: '/dashboard',
-      label: 'Dashboard',
+      label: $localize`:@@nav.dashboard:Dashboard`,
       icon: this.trustHtml(ICONS.HOME),
       matchPrefix: '/dashboard',
     },
     {
       path: '/family/settings',
-      label: 'Family',
+      label: $localize`:@@nav.family:Family`,
       icon: this.trustHtml(ICONS.USERS),
       matchPrefix: '/family',
     },
     {
       path: '/calendar',
-      label: 'Calendar',
+      label: $localize`:@@nav.calendar:Calendar`,
       icon: this.trustHtml(ICONS.CALENDAR),
       matchPrefix: '/calendar',
     },
     {
       path: '/event-chains',
-      label: 'Automations',
+      label: $localize`:@@nav.automations:Automations`,
       icon: this.trustHtml(ICONS.BOLT),
       matchPrefix: '/event-chains',
     },
@@ -160,6 +208,14 @@ export class SidebarComponent {
 
   userName(): string {
     return this.userService.currentUser()?.name ?? 'User';
+  }
+
+  userEmail(): string {
+    return this.userService.currentUser()?.email ?? '';
+  }
+
+  currentLocaleLabel(): string {
+    return this.i18nService.currentLocale().toUpperCase();
   }
 
   isActive(prefix: string): boolean {

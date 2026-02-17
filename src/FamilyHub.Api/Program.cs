@@ -65,6 +65,9 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 // Register FluentValidation validators from assembly
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+// Localization (.resx-based IStringLocalizer for backend error messages)
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
 // Configure JWT Bearer authentication with Keycloak
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -150,6 +153,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+
+// Request localization — sets CultureInfo.CurrentUICulture from Accept-Language header.
+// Must come before authentication so IStringLocalizer resolves the correct locale per-request.
+app.UseRequestLocalization(options =>
+{
+    var supportedCultures = new[] { "en", "de" };
+    options.SetDefaultCulture("en");
+    options.AddSupportedCultures(supportedCultures);
+    options.AddSupportedUICultures(supportedCultures);
+    options.ApplyCurrentCultureToResponseHeaders = true;
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

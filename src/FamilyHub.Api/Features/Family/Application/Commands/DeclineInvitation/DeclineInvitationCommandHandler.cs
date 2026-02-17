@@ -20,7 +20,7 @@ public sealed class DeclineInvitationCommandHandler(
     {
         var tokenHash = SecureTokenHelper.ComputeSha256Hash(command.Token);
         var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken)
-            ?? throw new DomainException("Invalid invitation token");
+            ?? throw new DomainException("Invalid invitation token", DomainErrorCodes.InvalidInvitationToken);
 
         invitation.Decline();
 

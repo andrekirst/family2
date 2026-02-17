@@ -11,7 +11,9 @@ import { InvitationService } from '../../services/invitation.service';
     <div class="dialog-overlay" (click)="onDismiss()">
       <div class="dialog-content" (click)="$event.stopPropagation()">
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h3 class="text-lg font-semibold text-gray-900">Invite Family Member</h3>
+          <h3 class="text-lg font-semibold text-gray-900" i18n="@@family.invite.title">
+            Invite Family Member
+          </h3>
           <button
             (click)="onDismiss()"
             class="text-gray-400 hover:text-gray-600"
@@ -32,7 +34,10 @@ import { InvitationService } from '../../services/invitation.service';
           <form (ngSubmit)="onSubmit()">
             <div class="space-y-4">
               <div>
-                <label for="invite-email" class="block text-sm font-medium text-gray-700 mb-1"
+                <label
+                  for="invite-email"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  i18n="@@family.invite.email"
                   >Email Address</label
                 >
                 <input
@@ -42,13 +47,17 @@ import { InvitationService } from '../../services/invitation.service';
                   [(ngModel)]="email"
                   [disabled]="isLoading()"
                   name="email"
+                  i18n-placeholder="@@family.invite.emailPlaceholder"
                   placeholder="member@example.com"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label for="invite-role" class="block text-sm font-medium text-gray-700 mb-1"
+                <label
+                  for="invite-role"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  i18n="@@family.invite.role"
                   >Role</label
                 >
                 <select
@@ -58,8 +67,8 @@ import { InvitationService } from '../../services/invitation.service';
                   name="role"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="Member">Member</option>
-                  <option value="Admin">Admin</option>
+                  <option value="Member" i18n="@@family.invite.roleMember">Member</option>
+                  <option value="Admin" i18n="@@family.invite.roleAdmin">Admin</option>
                 </select>
               </div>
             </div>
@@ -76,6 +85,7 @@ import { InvitationService } from '../../services/invitation.service';
                 (click)="onDismiss()"
                 [disabled]="isLoading()"
                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                i18n="@@family.invite.cancel"
               >
                 Cancel
               </button>
@@ -85,7 +95,7 @@ import { InvitationService } from '../../services/invitation.service';
                 [disabled]="isLoading()"
                 class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {{ isLoading() ? 'Sending...' : 'Send Invitation' }}
+                {{ isLoading() ? sendingLabel : sendInvitationLabel }}
               </button>
             </div>
           </form>
@@ -122,6 +132,9 @@ export class InviteMemberComponent {
   @Output() invitationSent = new EventEmitter<void>();
   @Output() dialogClosed = new EventEmitter<void>();
 
+  readonly sendingLabel = $localize`:@@family.invite.sending:Sending...`;
+  readonly sendInvitationLabel = $localize`:@@family.invite.send:Send Invitation`;
+
   email = signal('');
   role = signal('Member');
   isLoading = signal(false);
@@ -129,7 +142,7 @@ export class InviteMemberComponent {
 
   onSubmit() {
     if (!this.email().trim()) {
-      this.errorMessage.set('Email address is required');
+      this.errorMessage.set($localize`:@@family.invite.emailRequired:Email address is required`);
       return;
     }
 
@@ -146,12 +159,14 @@ export class InviteMemberComponent {
           if (invitation) {
             this.invitationSent.emit();
           } else {
-            this.errorMessage.set('Failed to send invitation');
+            this.errorMessage.set($localize`:@@family.invite.sendFailed:Failed to send invitation`);
           }
           this.isLoading.set(false);
         },
         error: () => {
-          this.errorMessage.set('An error occurred while sending the invitation');
+          this.errorMessage.set(
+            $localize`:@@family.invite.sendError:An error occurred while sending the invitation`,
+          );
           this.isLoading.set(false);
         },
       });

@@ -63,7 +63,7 @@ export interface CalendarDay {
             }
             @if (day.events.length > 3) {
               <div class="text-xs text-gray-500 px-1.5" data-testid="event-overflow">
-                +{{ day.events.length - 3 }} more
+                {{ moreEventsLabel(day.events.length - 3) }}
               </div>
             }
           </div>
@@ -73,7 +73,15 @@ export interface CalendarDay {
   `,
 })
 export class CalendarMonthGridComponent {
-  readonly dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  readonly dayHeaders = [
+    $localize`:@@calendar.dayMon:Mon`,
+    $localize`:@@calendar.dayTue:Tue`,
+    $localize`:@@calendar.dayWed:Wed`,
+    $localize`:@@calendar.dayThu:Thu`,
+    $localize`:@@calendar.dayFri:Fri`,
+    $localize`:@@calendar.daySat:Sat`,
+    $localize`:@@calendar.daySun:Sun`,
+  ];
 
   month = signal<Date>(new Date());
   events = signal<CalendarEventDto[]>([]);
@@ -142,6 +150,10 @@ export class CalendarMonthGridComponent {
 
     return days;
   });
+
+  moreEventsLabel(count: number): string {
+    return $localize`:@@calendar.moreEvents:+${count}:count: more`;
+  }
 
   onDayClick(day: CalendarDay): void {
     this.dayClicked.emit(day.date);

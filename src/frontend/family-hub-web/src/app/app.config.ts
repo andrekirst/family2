@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
@@ -8,6 +8,7 @@ import { provideCalendarFeature } from './features/calendar/calendar.providers';
 import { provideDashboardFeature } from './features/dashboard/dashboard.providers';
 import { provideEventChainsFeature } from './features/event-chains/event-chains.providers';
 import { provideFamilyFeature } from './features/family/family.providers';
+import { locale } from '../main';
 import { provideProfileFeature } from './features/profile/profile.providers';
 
 export const appConfig: ApplicationConfig = {
@@ -21,5 +22,6 @@ export const appConfig: ApplicationConfig = {
     ...provideEventChainsFeature(),
     ...provideFamilyFeature(),
     ...provideProfileFeature(),
+    { provide: LOCALE_ID, useValue: locale },
   ],
 };

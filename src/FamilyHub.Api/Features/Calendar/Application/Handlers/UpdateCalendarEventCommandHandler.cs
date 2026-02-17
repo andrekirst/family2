@@ -15,11 +15,11 @@ public sealed class UpdateCalendarEventCommandHandler(
         CancellationToken cancellationToken)
     {
         var calendarEvent = await repository.GetByIdWithAttendeesAsync(command.CalendarEventId, cancellationToken)
-            ?? throw new DomainException("Calendar event not found");
+            ?? throw new DomainException("Calendar event not found", DomainErrorCodes.CalendarEventNotFound);
 
         if (calendarEvent.IsCancelled)
         {
-            throw new DomainException("Cannot update a cancelled event");
+            throw new DomainException("Cannot update a cancelled event", DomainErrorCodes.CannotUpdateCancelledEvent);
         }
 
         calendarEvent.Update(

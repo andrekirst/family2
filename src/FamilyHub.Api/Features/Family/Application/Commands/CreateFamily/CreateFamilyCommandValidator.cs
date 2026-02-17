@@ -1,4 +1,6 @@
+using FamilyHub.Api.Resources;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 
@@ -9,14 +11,14 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 /// </summary>
 public sealed class CreateFamilyCommandValidator : AbstractValidator<CreateFamilyCommand>
 {
-    public CreateFamilyCommandValidator()
+    public CreateFamilyCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {
         RuleFor(x => x.Name)
             .NotNull()
-            .WithMessage("Family name is required");
+            .WithMessage(_ => localizer["FamilyNameRequired"]);
 
         RuleFor(x => x.OwnerId)
             .NotNull()
-            .WithMessage("Owner ID is required");
+            .WithMessage(_ => localizer["OwnerIdRequired"]);
     }
 }

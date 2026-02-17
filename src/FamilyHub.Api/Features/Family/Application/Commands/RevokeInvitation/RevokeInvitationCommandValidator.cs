@@ -1,15 +1,17 @@
+using FamilyHub.Api.Resources;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.RevokeInvitation;
 
 public class RevokeInvitationCommandValidator : AbstractValidator<RevokeInvitationCommand>
 {
-    public RevokeInvitationCommandValidator()
+    public RevokeInvitationCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {
         RuleFor(x => x.InvitationId.Value)
-            .NotEmpty().WithMessage("Invitation ID is required");
+            .NotEmpty().WithMessage(_ => localizer["InvitationIdRequired"]);
 
         RuleFor(x => x.RevokedBy.Value)
-            .NotEmpty().WithMessage("Revoking user ID is required");
+            .NotEmpty().WithMessage(_ => localizer["RevokingUserIdRequired"]);
     }
 }

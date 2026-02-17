@@ -19,6 +19,7 @@ export const REGISTER_USER_MUTATION = gql`
       isActive
       familyId
       permissions
+      preferredLocale
     }
   }
 `;
@@ -30,6 +31,16 @@ export const REGISTER_USER_MUTATION = gql`
  *
  * Returns null if user not found (e.g., JWT valid but user not in database).
  */
+/**
+ * Update the current user's preferred locale in the backend.
+ * Called after locale switch to persist the preference cross-device.
+ */
+export const UPDATE_MY_LOCALE_MUTATION = gql`
+  mutation UpdateMyLocale($input: UpdateUserLocaleRequestInput!) {
+    updateMyLocale(input: $input)
+  }
+`;
+
 export const GET_CURRENT_USER_QUERY = gql`
   query GetMyProfile {
     me {
@@ -42,6 +53,7 @@ export const GET_CURRENT_USER_QUERY = gql`
         familyId
         avatarId
         permissions
+        preferredLocale
       }
     }
   }

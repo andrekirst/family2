@@ -13,7 +13,7 @@ public sealed class DeleteChainDefinitionCommandHandler(
         CancellationToken cancellationToken)
     {
         var definition = await repository.GetByIdAsync(command.Id, cancellationToken)
-            ?? throw new DomainException("Chain definition not found");
+            ?? throw new DomainException("Chain definition not found", DomainErrorCodes.ChainDefinitionNotFound);
 
         await repository.DeleteAsync(definition, cancellationToken);
 

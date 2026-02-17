@@ -20,7 +20,8 @@ public static class UserMapper
             AvatarId = user.AvatarId?.Value,
             EmailVerified = user.EmailVerified,
             IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt
+            CreatedAt = user.CreatedAt,
+            PreferredLocale = user.PreferredLocale
         };
     }
 }

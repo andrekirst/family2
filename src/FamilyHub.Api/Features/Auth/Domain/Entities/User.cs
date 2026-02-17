@@ -77,6 +77,12 @@ public sealed class User : AggregateRoot<UserId>
     public DateTime UpdatedAt { get; private set; }
 
     /// <summary>
+    /// User's preferred locale for UI language (e.g. "en", "de").
+    /// Stored in DB for cross-device sync; also cached in localStorage for instant access.
+    /// </summary>
+    public string PreferredLocale { get; private set; } = "en";
+
+    /// <summary>
     /// Navigation property to Family
     /// </summary>
     public FamilyHub.Api.Features.Family.Domain.Entities.Family? Family { get; private set; }
@@ -149,7 +155,7 @@ public sealed class User : AggregateRoot<UserId>
     {
         if (FamilyId is not null)
         {
-            throw new DomainException("User is already assigned to a family");
+            throw new DomainException("User is already assigned to a family", DomainErrorCodes.UserAlreadyAssignedToFamily);
         }
 
         FamilyId = familyId;
@@ -170,7 +176,7 @@ public sealed class User : AggregateRoot<UserId>
     {
         if (FamilyId is null)
         {
-            throw new DomainException("User is not assigned to any family");
+            throw new DomainException("User is not assigned to any family", DomainErrorCodes.UserNotAssignedToFamily);
         }
 
         var previousFamilyId = FamilyId.Value;
@@ -182,6 +188,15 @@ public sealed class User : AggregateRoot<UserId>
             previousFamilyId,
             DateTime.UtcNow
         ));
+    }
+
+    /// <summary>
+    /// Update user's preferred locale for UI language.
+    /// </summary>
+    public void UpdateLocale(string locale)
+    {
+        PreferredLocale = locale;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>

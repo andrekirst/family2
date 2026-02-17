@@ -204,6 +204,14 @@ namespace FamilyHub.Api.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
+                    b.Property<string>("PreferredLocale")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("en")
+                        .HasColumnName("preferred_locale");
+
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")

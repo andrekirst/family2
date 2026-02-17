@@ -1,16 +1,16 @@
 <div class="dialog-overlay" (click)="onDismiss()">
   <div class="dialog-content" (click)="$event.stopPropagation()">
     <div class="dialog-header">
-      <h2>Create Your Family</h2>
+      <h2 i18n="@@family.create.title">Create Your Family</h2>
       <button class="close-button" (click)="onDismiss()" aria-label="Close">×</button>
     </div>
 
     <div class="dialog-body">
-      <p>Get started by creating your family. You can invite members later.</p>
+      <p i18n="@@family.create.description">Get started by creating your family. You can invite members later.</p>
 
       <form (ngSubmit)="onSubmit()">
         <div class="form-group">
-          <label for="family-name">Family Name</label>
+          <label for="family-name" i18n="@@family.create.nameLabel">Family Name</label>
           <input
             id="family-name"
             type="text"
@@ -19,6 +19,7 @@
             (ngModelChange)="familyName.set($event)"
             [disabled]="isLoading()"
             name="familyName"
+            i18n-placeholder="@@family.create.namePlaceholder"
             placeholder="e.g., Smith Family"
             class="form-control"
           />
@@ -36,6 +37,7 @@
             (click)="onDismiss()"
             [disabled]="isLoading()"
             class="btn btn-secondary"
+            i18n="@@family.create.skip"
           >
             Skip for Now
           </button>
@@ -45,7 +47,7 @@
             [disabled]="isLoading()"
             class="btn btn-primary"
           >
-            {{ isLoading() ? 'Creating...' : 'Create Family' }}
+            {{ isLoading() ? creatingLabel : createFamilyLabel }}
           </button>
         </div>
       </form>

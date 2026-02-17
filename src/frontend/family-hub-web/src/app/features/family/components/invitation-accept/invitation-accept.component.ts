@@ -18,7 +18,9 @@ import { InvitationDto } from '../../models/invitation.models';
             <div
               class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"
             ></div>
-            <p class="mt-4 text-gray-600">Loading invitation details...</p>
+            <p class="mt-4 text-gray-600" i18n="@@family.accept.loading">
+              Loading invitation details...
+            </p>
           </div>
         } @else if (error()) {
           <div class="bg-white shadow rounded-lg p-8 text-center">
@@ -36,6 +38,7 @@ import { InvitationDto } from '../../models/invitation.models';
             <a
               routerLink="/dashboard"
               class="mt-4 inline-block px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              i18n="@@family.accept.goToDashboard"
             >
               Go to Dashboard
             </a>
@@ -43,26 +46,28 @@ import { InvitationDto } from '../../models/invitation.models';
         } @else if (invitation()) {
           <div class="bg-white shadow rounded-lg overflow-hidden">
             <div class="bg-blue-600 px-6 py-8 text-center text-white">
-              <h1 class="text-2xl font-bold">Family Hub</h1>
-              <p class="mt-2 text-blue-100">You've been invited!</p>
+              <h1 class="text-2xl font-bold" i18n="@@app.name">Family Hub</h1>
+              <p class="mt-2 text-blue-100" i18n="@@family.accept.youveBeenInvited">
+                You've been invited!
+              </p>
             </div>
 
             <div class="p-6">
-              <h2 class="text-xl font-semibold text-gray-900">
+              <h2 class="text-xl font-semibold text-gray-900" i18n="@@family.accept.joinFamily">
                 Join {{ invitation()!.familyName }}
               </h2>
-              <p class="mt-2 text-gray-600">
+              <p class="mt-2 text-gray-600" i18n="@@family.accept.invitedByMessage">
                 <strong>{{ invitation()!.invitedByName }}</strong> has invited you to join their
                 family.
               </p>
 
               <div class="mt-4 p-3 bg-gray-50 rounded-lg">
                 <div class="flex justify-between text-sm">
-                  <span class="text-gray-500">Role:</span>
+                  <span class="text-gray-500" i18n="@@family.accept.role">Role:</span>
                   <span class="font-medium text-gray-900">{{ invitation()!.role }}</span>
                 </div>
                 <div class="flex justify-between text-sm mt-2">
-                  <span class="text-gray-500">Expires:</span>
+                  <span class="text-gray-500" i18n="@@family.accept.expires">Expires:</span>
                   <span class="font-medium text-gray-900">{{
                     invitation()!.expiresAt | date: 'mediumDate'
                   }}</span>
@@ -72,16 +77,20 @@ import { InvitationDto } from '../../models/invitation.models';
               @if (invitation()!.status !== 'Pending') {
                 <div
                   class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800"
+                  i18n="@@family.accept.inactive"
                 >
                   This invitation is no longer active (Status: {{ invitation()!.status }}).
                 </div>
               } @else if (!isAuthenticated()) {
                 <!-- Not logged in: show login button -->
                 <div class="mt-6">
-                  <p class="text-sm text-gray-500 mb-3">Please log in to accept this invitation.</p>
+                  <p class="text-sm text-gray-500 mb-3" i18n="@@family.accept.loginRequired">
+                    Please log in to accept this invitation.
+                  </p>
                   <button
                     (click)="loginToAccept()"
                     class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                    i18n="@@family.accept.loginToAccept"
                   >
                     Login to Accept
                   </button>
@@ -96,11 +105,7 @@ import { InvitationDto } from '../../models/invitation.models';
                     [class.bg-gray-50]="actionResult() === 'declined'"
                     [class.text-gray-800]="actionResult() === 'declined'"
                   >
-                    {{
-                      actionResult() === 'accepted'
-                        ? 'Invitation accepted! Redirecting...'
-                        : 'Invitation declined.'
-                    }}
+                    {{ actionResult() === 'accepted' ? acceptedLabel : declinedLabel }}
                   </div>
                 } @else {
                   <div class="mt-6 flex gap-3">
@@ -108,6 +113,7 @@ import { InvitationDto } from '../../models/invitation.models';
                       (click)="decline()"
                       [disabled]="isProcessing()"
                       class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                      i18n="@@family.accept.decline"
                     >
                       Decline
                     </button>
@@ -116,7 +122,7 @@ import { InvitationDto } from '../../models/invitation.models';
                       [disabled]="isProcessing()"
                       class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                     >
-                      {{ isProcessing() ? 'Processing...' : 'Accept Invitation' }}
+                      {{ isProcessing() ? processingLabel : acceptInvitationLabel }}
                     </button>
                   </div>
                 }
@@ -135,6 +141,11 @@ export class InvitationAcceptComponent implements OnInit {
   private userService = inject(UserService);
   private invitationService = inject(InvitationService);
 
+  readonly acceptedLabel = $localize`:@@family.accept.accepted:Invitation accepted! Redirecting...`;
+  readonly declinedLabel = $localize`:@@family.accept.declined:Invitation declined.`;
+  readonly processingLabel = $localize`:@@common.processing:Processing...`;
+  readonly acceptInvitationLabel = $localize`:@@family.accept.accept:Accept Invitation`;
+
   invitation = signal<InvitationDto | null>(null);
   isLoading = signal(true);
   isProcessing = signal(false);
@@ -149,7 +160,7 @@ export class InvitationAcceptComponent implements OnInit {
       this.token = params['token'] || '';
 
       if (!this.token) {
-        this.error.set('Invalid invitation link');
+        this.error.set($localize`:@@family.accept.invalidLink:Invalid invitation link`);
         this.isLoading.set(false);
         return;
       }
@@ -164,12 +175,12 @@ export class InvitationAcceptComponent implements OnInit {
         if (invitation) {
           this.invitation.set(invitation);
         } else {
-          this.error.set('Invitation not found or has expired');
+          this.error.set($localize`:@@family.accept.notFound:Invitation not found or has expired`);
         }
         this.isLoading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load invitation details');
+        this.error.set($localize`:@@family.accept.loadFailed:Failed to load invitation details`);
         this.isLoading.set(false);
       },
     });
@@ -194,7 +205,7 @@ export class InvitationAcceptComponent implements OnInit {
             this.router.navigate(['/dashboard']);
           }, 1500);
         } else {
-          this.error.set('Failed to accept invitation');
+          this.error.set($localize`:@@family.accept.acceptFailed:Failed to accept invitation`);
         }
         this.isProcessing.set(false);
       },
@@ -202,7 +213,7 @@ export class InvitationAcceptComponent implements OnInit {
         const message =
           err?.graphQLErrors?.[0]?.message ||
           err?.message ||
-          'An error occurred while accepting the invitation';
+          $localize`:@@family.accept.acceptError:An error occurred while accepting the invitation`;
         this.error.set(message);
         this.isProcessing.set(false);
       },
@@ -217,7 +228,9 @@ export class InvitationAcceptComponent implements OnInit {
         this.isProcessing.set(false);
       },
       error: () => {
-        this.error.set('An error occurred while declining the invitation');
+        this.error.set(
+          $localize`:@@family.accept.declineError:An error occurred while declining the invitation`,
+        );
         this.isProcessing.set(false);
       },
     });

@@ -19,12 +19,12 @@ public sealed class RevokeInvitationCommandHandler(
         CancellationToken cancellationToken)
     {
         var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken)
-            ?? throw new DomainException("Invitation not found");
+            ?? throw new DomainException("Invitation not found", DomainErrorCodes.InvitationNotFound);
 
         // Authorization: only Owner/Admin of the family can revoke
         if (!await authService.CanInviteAsync(command.RevokedBy, invitation.FamilyId, cancellationToken))
         {
-            throw new DomainException("You do not have permission to revoke invitations for this family");
+            throw new DomainException("You do not have permission to revoke invitations for this family", DomainErrorCodes.InsufficientPermissionToRevokeInvitation);
         }
 
         invitation.Revoke();

@@ -270,6 +270,30 @@ public class UserAggregateTests
         user.DomainEvents.Should().BeEmpty();
     }
 
+    [Fact]
+    public void UpdateLocale_ShouldSetPreferredLocale()
+    {
+        // Arrange
+        var user = CreateTestUser();
+
+        // Act
+        user.UpdateLocale("de");
+
+        // Assert
+        user.PreferredLocale.Should().Be("de");
+        user.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
+    }
+
+    [Fact]
+    public void Register_ShouldDefaultPreferredLocaleToEnglish()
+    {
+        // Arrange & Act
+        var user = CreateTestUser();
+
+        // Assert
+        user.PreferredLocale.Should().Be("en");
+    }
+
     private static User CreateTestUser()
     {
         var email = Email.From("test@example.com");
