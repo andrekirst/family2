@@ -6,6 +6,7 @@
   </Configurations>
   <Project Path="../../tests/FamilyHub.Auth.Tests/FamilyHub.Auth.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.Calendar.Tests/FamilyHub.Calendar.Tests.csproj" />
+  <Project Path="../../tests/FamilyHub.Dashboard.Tests/FamilyHub.Dashboard.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.EventChain.Tests/FamilyHub.EventChain.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.Family.Tests/FamilyHub.Family.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.IntegrationTests/FamilyHub.IntegrationTests.csproj" />

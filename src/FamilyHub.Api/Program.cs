@@ -10,6 +10,7 @@ using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Common.Modules;
 using FamilyHub.Api.Features.Auth;
 using FamilyHub.Api.Features.Calendar;
+using FamilyHub.Api.Features.Dashboard;
 using FamilyHub.Api.Features.EventChain;
 using FamilyHub.Api.Features.Family;
 using FluentValidation;
@@ -100,10 +101,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Add controllers for REST endpoints (avatar serving)
+builder.Services.AddControllers();
+
 // Feature Modules (explicit ordering - dependencies flow downward)
 builder.Services.RegisterModule<AuthModule>(builder.Configuration);
 builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
 builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
+builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
 
 // Configure CORS for Angular frontend (supports multi-environment via config)
@@ -167,6 +172,7 @@ app.UseAuthorization();
 app.UseMiddleware<PostgresRlsMiddleware>();
 
 app.MapGraphQL();
+app.MapControllers(); // REST endpoints (avatar serving)
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));

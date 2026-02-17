@@ -8,16 +8,20 @@ ARG MCR_REGISTRY=mcr.microsoft.com/
 # ==============================================================================
 FROM ${MCR_REGISTRY}dotnet/sdk:10.0 AS dev
 
+ARG UID=1000
+ARG GID=1000
+
 WORKDIR /src
-ENV DOTNET_USE_POLLING_FILE_WATCHER=true
 ENV DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
 
-# When compose sets user: to the host UID, HOME still points to /root.
-# Redirect to /tmp so dotnet can write NuGet/SDK caches.
-ENV HOME=/tmp
+# Create non-root user matching host UID/GID for correct file ownership
+RUN groupadd -g ${GID} devuser \
+ && useradd -m -u ${UID} -g ${GID} -s /bin/bash devuser
+ENV HOME=/home/devuser
 
 # Source code is volume-mounted at runtime, no COPY needed for dev
 EXPOSE 5152
+USER ${UID}:${GID}
 ENTRYPOINT ["dotnet", "watch", "run", \
   "--project", "FamilyHub.Api/FamilyHub.Api.csproj", \
   "--urls", "http://0.0.0.0:5152"]

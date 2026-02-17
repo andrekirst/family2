@@ -192,6 +192,85 @@ public class UserAggregateTests
     }
 
     [Fact]
+    public void SetAvatar_ShouldSetAvatarIdAndRaiseEvent()
+    {
+        // Arrange
+        var user = CreateTestUser();
+        var avatarId = AvatarId.New();
+
+        // Act
+        user.SetAvatar(avatarId);
+
+        // Assert
+        user.AvatarId.Should().Be(avatarId);
+        user.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
+
+        user.DomainEvents.Should().HaveCount(1);
+        var avatarChangedEvent = user.DomainEvents.OfType<UserAvatarChangedEvent>().FirstOrDefault();
+        avatarChangedEvent.Should().NotBeNull();
+        avatarChangedEvent!.UserId.Should().Be(user.Id);
+        avatarChangedEvent.NewAvatarId.Should().Be(avatarId);
+        avatarChangedEvent.PreviousAvatarId.Should().BeNull();
+    }
+
+    [Fact]
+    public void SetAvatar_ShouldIncludePreviousAvatarId_WhenReplacing()
+    {
+        // Arrange
+        var user = CreateTestUser();
+        var oldAvatarId = AvatarId.New();
+        var newAvatarId = AvatarId.New();
+        user.SetAvatar(oldAvatarId);
+        user.ClearDomainEvents();
+
+        // Act
+        user.SetAvatar(newAvatarId);
+
+        // Assert
+        user.AvatarId.Should().Be(newAvatarId);
+        var avatarChangedEvent = user.DomainEvents.OfType<UserAvatarChangedEvent>().Single();
+        avatarChangedEvent.PreviousAvatarId.Should().Be(oldAvatarId);
+        avatarChangedEvent.NewAvatarId.Should().Be(newAvatarId);
+    }
+
+    [Fact]
+    public void RemoveAvatar_ShouldClearAvatarIdAndRaiseEvent()
+    {
+        // Arrange
+        var user = CreateTestUser();
+        var avatarId = AvatarId.New();
+        user.SetAvatar(avatarId);
+        user.ClearDomainEvents();
+
+        // Act
+        user.RemoveAvatar();
+
+        // Assert
+        user.AvatarId.Should().BeNull();
+        user.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
+
+        user.DomainEvents.Should().HaveCount(1);
+        var avatarRemovedEvent = user.DomainEvents.OfType<UserAvatarRemovedEvent>().FirstOrDefault();
+        avatarRemovedEvent.Should().NotBeNull();
+        avatarRemovedEvent!.UserId.Should().Be(user.Id);
+        avatarRemovedEvent.RemovedAvatarId.Should().Be(avatarId);
+    }
+
+    [Fact]
+    public void RemoveAvatar_ShouldNotRaiseEvent_WhenNoAvatarSet()
+    {
+        // Arrange
+        var user = CreateTestUser();
+
+        // Act
+        user.RemoveAvatar();
+
+        // Assert
+        user.AvatarId.Should().BeNull();
+        user.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
     public void UpdateLocale_ShouldSetPreferredLocale()
     {
         // Arrange

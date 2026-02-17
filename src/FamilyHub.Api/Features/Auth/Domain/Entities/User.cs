@@ -47,6 +47,11 @@ public sealed class User : AggregateRoot<UserId>
     public FamilyId? FamilyId { get; private set; }
 
     /// <summary>
+    /// User's global avatar ID (null if no avatar uploaded yet)
+    /// </summary>
+    public AvatarId? AvatarId { get; private set; }
+
+    /// <summary>
     /// Whether the user's email has been verified by the OAuth provider
     /// </summary>
     public bool EmailVerified { get; private set; }
@@ -192,6 +197,43 @@ public sealed class User : AggregateRoot<UserId>
     {
         PreferredLocale = locale;
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Set or update the user's global avatar.
+    /// Raises UserAvatarChangedEvent.
+    /// </summary>
+    public void SetAvatar(AvatarId avatarId)
+    {
+        var previousAvatarId = AvatarId;
+        AvatarId = avatarId;
+        UpdatedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new UserAvatarChangedEvent(
+            Id,
+            avatarId,
+            previousAvatarId,
+            DateTime.UtcNow
+        ));
+    }
+
+    /// <summary>
+    /// Remove the user's global avatar.
+    /// Raises UserAvatarRemovedEvent.
+    /// </summary>
+    public void RemoveAvatar()
+    {
+        if (AvatarId is null) return;
+
+        var previousAvatarId = AvatarId.Value;
+        AvatarId = null;
+        UpdatedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new UserAvatarRemovedEvent(
+            Id,
+            previousAvatarId,
+            DateTime.UtcNow
+        ));
     }
 
     /// <summary>

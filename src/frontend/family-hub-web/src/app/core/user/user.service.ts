@@ -13,6 +13,7 @@ export interface CurrentUser {
   emailVerified: boolean;
   isActive: boolean;
   familyId?: string | null;
+  avatarId?: string | null;
   permissions: string[];
   preferredLocale?: string;
 }

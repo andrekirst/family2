@@ -18,6 +18,8 @@ vars:
     sh: id -u
   DOCKER_GID:
     sh: id -g
+  SRC_ROOT:
+    sh: echo "$(git rev-parse --show-toplevel)/src"
   INFRA_DIR: ./infrastructure
   TRAEFIK_COMPOSE: '{{.INFRA_DIR}}/docker-compose.traefik.yml'
   ENV_COMPOSE: '{{.INFRA_DIR}}/docker-compose.env.yml'
@@ -32,6 +34,13 @@ tasks:
       - bash {{.INFRA_DIR}}/scripts/setup-certs.sh
     status:
       - test -f {{.INFRA_DIR}}/certs/local.pem
+
+  setup:hooks:
+    desc: Configure git to use .githooks directory (idempotent)
+    cmds:
+      - git config core.hooksPath .githooks
+    status:
+      - test "$(git config core.hooksPath)" = ".githooks"
 
   setup:proxy-volumes:
     desc: Create external Docker volumes for package caching proxies (idempotent)
@@ -75,13 +84,14 @@ tasks:
   # ---------------------------------------------------------------------------
   env:up:
     desc: 'Start environment for current branch ({{.ENV_NAME}})'
-    deps: [traefik:up]
+    deps: [traefik:up, setup:hooks]
     cmds:
       - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} up -d --build
     env:
       ENV_NAME: '{{.ENV_NAME}}'
       DOCKER_UID: '{{.DOCKER_UID}}'
       DOCKER_GID: '{{.DOCKER_GID}}'
+      SRC_ROOT: '{{.SRC_ROOT}}'
 
   env:down:
     desc: 'Stop environment (data persists)'
@@ -107,6 +117,27 @@ tasks:
     desc: 'Print environment name for current branch'
     cmds:
       - echo "{{.ENV_NAME}}"
+
+  env:check-permissions:
+    desc: 'Check for root-owned files in src/ (should be none after fix)'
+    cmds:
+      - |
+        echo "Scanning {{.SRC_ROOT}} for root-owned files..."
+        ROOT_FILES=$(find "{{.SRC_ROOT}}" -uid 0 -not -path '*/.git/*' -not -path '*/node_modules/*' 2>/dev/null)
+        if [ -n "$ROOT_FILES" ]; then
+          echo ""
+          echo "  WARNING: Found root-owned files:"
+          echo "$ROOT_FILES" | head -20
+          COUNT=$(echo "$ROOT_FILES" | wc -l)
+          if [ "$COUNT" -gt 20 ]; then
+            echo "  ... and $((COUNT - 20)) more"
+          fi
+          echo ""
+          echo "  Fix with: sudo chown -R $(id -u):$(id -g) {{.SRC_ROOT}}"
+          exit 1
+        else
+          echo "  OK — no root-owned files found."
+        fi
 
   # ---------------------------------------------------------------------------
   # List all running FamilyHub environments
@@ -191,6 +222,30 @@ tasks:
       - docker compose -f {{.TRAEFIK_COMPOSE}} stop verdaccio baget registry-dockerhub registry-mcr registry-ghcr
       - docker volume rm fh-proxy-verdaccio fh-proxy-baget fh-proxy-registry-dockerhub fh-proxy-registry-mcr fh-proxy-registry-ghcr 2>/dev/null || true
       - echo "Proxy caches removed. Run 'task traefik:up' to recreate."
+
+  # ---------------------------------------------------------------------------
+  # Worktree management
+  # ---------------------------------------------------------------------------
+  worktree:create:
+    desc: 'Create a new worktree (usage: task worktree:create -- <type> <issue> <desc>)'
+    cmds:
+      - bash scripts/create-worktree.sh {{.CLI_ARGS}}
+
+  worktree:list:
+    desc: 'List all git worktrees'
+    cmds:
+      - |
+        echo ""
+        echo "  Git Worktrees:"
+        echo "  ──────────────────────────────────────────"
+        git worktree list --porcelain | awk '
+          /^worktree / { path=$2 }
+          /^branch /   { branch=$2; sub("refs/heads/", "", branch) }
+          /^HEAD /     { head=$2 }
+          /^$/         { printf "  %-50s %s\n", path, branch; path=""; branch=""; head="" }
+          END          { if (path) printf "  %-50s %s\n", path, branch }
+        '
+        echo ""
 
   hub:
     desc: 'Open Environment Hub in browser'

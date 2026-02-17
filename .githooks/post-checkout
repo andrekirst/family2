@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Fallback warning for branch switches if reference-transaction didn't fire.
+# This runs AFTER the checkout, so it can only warn (not block).
+
+set -euo pipefail
+
+OLD_REF="$1"
+NEW_REF="$2"
+BRANCH_CHECKOUT="$3"  # 1 = branch switch, 0 = file checkout
+
+# Only warn on branch switches
+[[ "$BRANCH_CHECKOUT" == "1" ]] || exit 0
+
+# Allow override
+[[ "${FAMILYHUB_ALLOW_CHECKOUT:-0}" == "1" ]] && exit 0
+
+# Don't warn on initial checkout (clone / worktree creation)
+[[ "$OLD_REF" == "0000000000000000000000000000000000000000" ]] && exit 0
+
+# If we get here, reference-transaction didn't block the switch
+echo ""
+echo "  WARNING: You switched branches in this worktree."
+echo "  This may cause migration conflicts with the existing database."
+echo ""
+echo "  Recommended: use separate worktrees per branch:"
+echo "    task worktree:create -- <type> <issue> <description>"
+echo ""
+echo "  Or destroy this environment's data first:"
+echo "    task env:destroy"
+echo ""
+
+exit 0

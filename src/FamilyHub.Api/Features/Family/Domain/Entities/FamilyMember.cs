@@ -1,4 +1,5 @@
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 
@@ -39,7 +40,29 @@ public sealed class FamilyMember
     public DateTime JoinedAt { get; private set; }
     public bool IsActive { get; private set; }
 
+    /// <summary>
+    /// Optional per-family avatar override.
+    /// If set, this takes precedence over the global User.AvatarId for this family context.
+    /// </summary>
+    public AvatarId? AvatarId { get; private set; }
+
     // Navigation properties
     public Family Family { get; private set; } = null!;
     public User User { get; private set; } = null!;
+
+    /// <summary>
+    /// Set a per-family avatar override for this member.
+    /// </summary>
+    public void SetFamilyAvatar(AvatarId avatarId)
+    {
+        AvatarId = avatarId;
+    }
+
+    /// <summary>
+    /// Remove the per-family avatar override (falls back to global User.AvatarId).
+    /// </summary>
+    public void RemoveFamilyAvatar()
+    {
+        AvatarId = null;
+    }
 }

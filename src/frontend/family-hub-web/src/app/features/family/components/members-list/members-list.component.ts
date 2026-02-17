@@ -2,11 +2,12 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InvitationService } from '../../services/invitation.service';
 import { FamilyMemberDto } from '../../models/invitation.models';
+import { AvatarDisplayComponent } from '../../../../core/avatar';
 
 @Component({
   selector: 'app-members-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AvatarDisplayComponent],
   template: `
     <div class="space-y-3">
       @if (isLoading()) {
@@ -19,9 +20,16 @@ import { FamilyMemberDto } from '../../models/invitation.models';
       } @else {
         @for (member of members(); track member.id) {
           <div class="flex items-center justify-between p-4 bg-white border rounded-lg">
-            <div>
-              <p class="font-medium text-gray-900">{{ member.userName }}</p>
-              <p class="text-sm text-gray-500">{{ member.userEmail }}</p>
+            <div class="flex items-center gap-3">
+              <app-avatar-display
+                [avatarId]="member.avatarId"
+                [name]="member.userName"
+                size="small"
+              />
+              <div>
+                <p class="font-medium text-gray-900">{{ member.userName }}</p>
+                <p class="text-sm text-gray-500">{{ member.userEmail }}</p>
+              </div>
             </div>
             <div class="flex items-center gap-3">
               <span
