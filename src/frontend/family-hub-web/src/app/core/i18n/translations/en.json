@@ -105,6 +105,8 @@
   "family.create.failed": "Failed to create family",
   "family.create.error": "An error occurred",
 
+  "contextPanel.details": "Details",
+
   "common.confirm": "Confirm",
   "common.areYouSure": "Are you sure?",
   "common.cancel": "Cancel",

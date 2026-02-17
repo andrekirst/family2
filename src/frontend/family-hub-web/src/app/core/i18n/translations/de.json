@@ -105,6 +105,8 @@
   "family.create.failed": "Familie konnte nicht erstellt werden",
   "family.create.error": "Ein Fehler ist aufgetreten",
 
+  "contextPanel.details": "Details",
+
   "common.confirm": "Bestätigen",
   "common.areYouSure": "Bist du sicher?",
   "common.cancel": "Abbrechen",

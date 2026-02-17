@@ -110,7 +110,9 @@ interface CalendarDay {
           class="h-4 w-4 text-blue-600 border-gray-300 rounded"
           [attr.data-testid]="testId + '-allday'"
         />
-        <label for="allday-toggle" class="text-sm text-gray-700">All day</label>
+        <label for="allday-toggle" class="text-sm text-gray-700" i18n="@@calendar.event.allDay"
+          >All day event</label
+        >
       </div>
 
       <!-- Time inputs -->
@@ -118,7 +120,7 @@ interface CalendarDay {
         <div class="mt-3 space-y-2" [attr.data-testid]="testId + '-time-inputs'">
           <!-- Start time -->
           <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-500 w-10">Start</span>
+            <span class="text-xs text-gray-500 w-10" i18n="@@calendar.event.start">Start</span>
             <button
               type="button"
               (click)="adjustTime('start', -15)"
@@ -146,7 +148,7 @@ interface CalendarDay {
           </div>
           <!-- End time -->
           <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-500 w-10">End</span>
+            <span class="text-xs text-gray-500 w-10" i18n="@@calendar.event.end">End</span>
             <button
               type="button"
               (click)="adjustTime('end', -15)"
@@ -191,11 +193,20 @@ export class DateTimePickerComponent implements OnInit, OnChanges {
   readonly editEndTime = signal('');
   readonly editAllDay = signal(false);
 
-  readonly weekDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  readonly weekDays = [
+    $localize`:@@calendar.dayMon:Mon`,
+    $localize`:@@calendar.dayTue:Tue`,
+    $localize`:@@calendar.dayWed:Wed`,
+    $localize`:@@calendar.dayThu:Thu`,
+    $localize`:@@calendar.dayFri:Fri`,
+    $localize`:@@calendar.daySat:Sat`,
+    $localize`:@@calendar.daySun:Sun`,
+  ];
 
   readonly monthLabel = computed(() => {
     const d = this.viewMonth();
-    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const locale = localStorage.getItem('familyhub-locale') ?? 'en';
+    return d.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
   });
 
   readonly calendarDays = computed(() => {
