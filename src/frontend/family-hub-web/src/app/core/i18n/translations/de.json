@@ -114,6 +114,21 @@
   "calendar.title": "Familienkalender",
   "calendar.today": "Heute",
   "calendar.newEvent": "+ Neues Ereignis",
+  "calendar.viewMonth": "Monat",
+  "calendar.viewWeek": "Woche",
+  "calendar.dayMon": "Mo",
+  "calendar.dayTue": "Di",
+  "calendar.dayWed": "Mi",
+  "calendar.dayThu": "Do",
+  "calendar.dayFri": "Fr",
+  "calendar.daySat": "Sa",
+  "calendar.daySun": "So",
+  "calendar.moreEvents": "+{count} weitere",
+  "calendar.allDay": "GANZTÄGIG",
+
+  "calendar.context.cancelled": "Abgesagt",
+  "calendar.context.descriptionPlaceholder": "Beschreibung hinzufügen",
+  "calendar.context.saved": "Gespeichert!",
 
   "calendar.event.editTitle": "Ereignis bearbeiten",
   "calendar.event.newTitle": "Neues Ereignis",
@@ -165,5 +180,17 @@
   "settings.timeFormat": "Zeitformat",
   "settings.timeFormatDesc": "Wähle 12- oder 24-Stunden-Format",
   "settings.24h": "24-Stunden (14:00)",
-  "settings.12h": "12-Stunden (2:00 PM)"
+  "settings.12h": "12-Stunden (2:00 PM)",
+
+  "automations.empty.title": "Noch keine Automatisierungen",
+  "automations.empty.description": "Mit Ereignisketten-Automatisierungen kannst du Ereignisse über Kalender, Gesundheit und mehr deiner Familie verknüpfen.",
+  "automations.table.name": "Name",
+  "automations.table.trigger": "Auslöser",
+  "automations.table.steps": "Schritte",
+  "automations.table.status": "Status",
+  "automations.table.lastRun": "Letzter Lauf",
+  "automations.table.created": "Erstellt",
+  "automations.table.statusActive": "Aktiv",
+  "automations.table.statusPaused": "Pausiert",
+  "automations.table.neverRun": "Nie"
 }

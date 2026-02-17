@@ -114,6 +114,21 @@
   "calendar.title": "Family Calendar",
   "calendar.today": "Today",
   "calendar.newEvent": "+ New Event",
+  "calendar.viewMonth": "Month",
+  "calendar.viewWeek": "Week",
+  "calendar.dayMon": "Mon",
+  "calendar.dayTue": "Tue",
+  "calendar.dayWed": "Wed",
+  "calendar.dayThu": "Thu",
+  "calendar.dayFri": "Fri",
+  "calendar.daySat": "Sat",
+  "calendar.daySun": "Sun",
+  "calendar.moreEvents": "+{count} more",
+  "calendar.allDay": "ALL DAY",
+
+  "calendar.context.cancelled": "Cancelled",
+  "calendar.context.descriptionPlaceholder": "Add description",
+  "calendar.context.saved": "Saved!",
 
   "calendar.event.editTitle": "Edit Event",
   "calendar.event.newTitle": "New Event",
@@ -165,5 +180,17 @@
   "settings.timeFormat": "Time Format",
   "settings.timeFormatDesc": "Choose 12-hour or 24-hour time",
   "settings.24h": "24-hour (14:00)",
-  "settings.12h": "12-hour (2:00 PM)"
+  "settings.12h": "12-hour (2:00 PM)",
+
+  "automations.empty.title": "No automations yet",
+  "automations.empty.description": "Event chain automations let you connect events across your family's calendar, health, and more.",
+  "automations.table.name": "Name",
+  "automations.table.trigger": "Trigger",
+  "automations.table.steps": "Steps",
+  "automations.table.status": "Status",
+  "automations.table.lastRun": "Last Run",
+  "automations.table.created": "Created",
+  "automations.table.statusActive": "Active",
+  "automations.table.statusPaused": "Paused",
+  "automations.table.neverRun": "Never"
 }

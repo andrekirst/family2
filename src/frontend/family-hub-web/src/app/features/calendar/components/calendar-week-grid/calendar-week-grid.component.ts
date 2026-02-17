@@ -16,12 +16,14 @@ import { CalendarEventDto } from '../../services/calendar.service';
 import { PositionedEvent, WEEK_GRID_CONSTANTS, WeekDay } from '../../models/calendar.models';
 import {
   getWeekDays,
+  getStoredLocale,
   partitionEvents,
   layoutTimedEvents,
   getNowIndicatorOffset,
   pixelOffsetToTime,
   formatTimeShort,
 } from '../../utils/week.utils';
+import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.utils';
 
 @Component({
   selector: 'app-calendar-week-grid',
@@ -49,7 +51,9 @@ import {
     <!-- All-Day Events Row -->
     @if (hasAllDayEvents()) {
       <div class="grid grid-cols-[4rem_repeat(7,1fr)] border-b border-gray-200 bg-white">
-        <div class="w-16 py-1 px-1 text-[10px] text-gray-400 font-medium">ALL DAY</div>
+        <div class="w-16 py-1 px-1 text-[10px] text-gray-400 font-medium" i18n="@@calendar.allDay">
+          ALL DAY
+        </div>
         @for (day of weekDays(); track day.date.toISOString()) {
           <div class="py-1 px-1 border-l border-gray-200 space-y-0.5">
             @for (event of getAllDayEvents(day.date); track event.id) {
@@ -218,10 +222,12 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
   }
 
   formatHourLabel(hour: number): string {
-    if (hour === 0) return '12 AM';
-    if (hour < 12) return `${hour} AM`;
-    if (hour === 12) return '12 PM';
-    return `${hour - 12} PM`;
+    const date = new Date(2000, 0, 1, hour, 0);
+    return date.toLocaleTimeString(getStoredLocale(), {
+      hour: 'numeric',
+      minute: undefined,
+      hour12: getStoredTimeFormat() === '12h',
+    });
   }
 
   formatEventTime(event: CalendarEventDto): string {
