@@ -125,7 +125,7 @@
   "calendar.dayFri": "Fr",
   "calendar.daySat": "Sa",
   "calendar.daySun": "So",
-  "calendar.moreEvents": "+{count} weitere",
+  "calendar.moreEvents": "+{$count} weitere",
   "calendar.allDay": "GANZTÄGIG",
 
   "calendar.context.cancelled": "Abgesagt",
@@ -157,7 +157,7 @@
   "calendar.event.cancelFailed": "Ereignis konnte nicht abgesagt werden",
   "calendar.event.error": "Ein Fehler ist aufgetreten",
   "calendar.event.goBack": "Zurück",
-  "calendar.event.cancelConfirm": "Bist du sicher, dass du '{title}' absagen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "calendar.event.cancelConfirm": "Bist du sicher, dass du '{$title}' absagen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
 
   "calendar.event.typePersonal": "Persönlich",
   "calendar.event.typeMedical": "Medizinisch",

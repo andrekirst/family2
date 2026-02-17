@@ -125,7 +125,7 @@
   "calendar.dayFri": "Fri",
   "calendar.daySat": "Sat",
   "calendar.daySun": "Sun",
-  "calendar.moreEvents": "+{count} more",
+  "calendar.moreEvents": "+{$count} more",
   "calendar.allDay": "ALL DAY",
 
   "calendar.context.cancelled": "Cancelled",
@@ -157,7 +157,7 @@
   "calendar.event.cancelFailed": "Failed to cancel event",
   "calendar.event.error": "An error occurred",
   "calendar.event.goBack": "Go Back",
-  "calendar.event.cancelConfirm": "Are you sure you want to cancel '{title}'? This action cannot be undone.",
+  "calendar.event.cancelConfirm": "Are you sure you want to cancel '{$title}'? This action cannot be undone.",
 
   "calendar.event.typePersonal": "Personal",
   "calendar.event.typeMedical": "Medical",
