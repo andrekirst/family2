@@ -46,5 +46,6 @@ public sealed class FileManagementModule : IModule
         services.AddScoped<IOrganizationRuleRepository, OrganizationRuleRepository>();
         services.AddScoped<IProcessingLogRepository, ProcessingLogRepository>();
         services.AddSingleton<IOrganizationRuleEngine, OrganizationRuleEngine>();
+        services.AddScoped<IFileVersionRepository, FileVersionRepository>();
     }
 }

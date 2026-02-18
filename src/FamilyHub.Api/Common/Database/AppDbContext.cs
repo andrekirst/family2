@@ -19,6 +19,7 @@ using FileManagementRecentSearch = FamilyHub.Api.Features.FileManagement.Domain.
 using FileManagementSavedSearch = FamilyHub.Api.Features.FileManagement.Domain.Entities.SavedSearch;
 using FileManagementOrganizationRule = FamilyHub.Api.Features.FileManagement.Domain.Entities.OrganizationRule;
 using FileManagementProcessingLogEntry = FamilyHub.Api.Features.FileManagement.Domain.Entities.ProcessingLogEntry;
+using FileManagementFileVersion = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileVersion;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -94,6 +95,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<FileManagementSavedSearch> SavedSearches { get; set; }
     public DbSet<FileManagementOrganizationRule> OrganizationRules { get; set; }
     public DbSet<FileManagementProcessingLogEntry> ProcessingLogEntries { get; set; }
+    public DbSet<FileManagementFileVersion> FileVersions { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

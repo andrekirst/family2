@@ -100,4 +100,17 @@ public static class FileManagementMapper
         Success: entry.Success,
         ErrorMessage: entry.ErrorMessage,
         ProcessedAt: entry.ProcessedAt);
+
+    public static FileVersionDto ToDto(FileVersion version) => new()
+    {
+        Id = version.Id.Value,
+        FileId = version.FileId.Value,
+        VersionNumber = version.VersionNumber,
+        StorageKey = version.StorageKey.Value,
+        FileSize = version.FileSize.Value,
+        Checksum = version.Checksum.Value,
+        UploadedBy = version.UploadedBy.Value,
+        IsCurrent = version.IsCurrent,
+        UploadedAt = version.UploadedAt
+    };
 }
