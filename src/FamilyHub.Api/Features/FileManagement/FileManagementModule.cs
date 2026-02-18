@@ -49,5 +49,7 @@ public sealed class FileManagementModule : IModule
         services.AddScoped<IFileVersionRepository, FileVersionRepository>();
         services.AddScoped<IShareLinkRepository, ShareLinkRepository>();
         services.AddScoped<IShareLinkAccessLogRepository, ShareLinkAccessLogRepository>();
+        services.AddScoped<IFileThumbnailRepository, FileThumbnailRepository>();
+        services.AddSingleton<IThumbnailGenerationService, ThumbnailGenerationService>();
     }
 }

@@ -139,4 +139,14 @@ public static class FileManagementMapper
         UserAgent: log.UserAgent,
         Action: log.Action.ToString(),
         AccessedAt: log.AccessedAt);
+
+    public static FileThumbnailDto ToDto(FileThumbnail thumbnail) => new()
+    {
+        Id = thumbnail.Id.Value,
+        FileId = thumbnail.FileId.Value,
+        Width = thumbnail.Width,
+        Height = thumbnail.Height,
+        StorageKey = thumbnail.StorageKey.Value,
+        GeneratedAt = thumbnail.GeneratedAt
+    };
 }
