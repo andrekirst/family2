@@ -40,8 +40,10 @@ public static class DomainErrorCodes
     // File Management
     public const string NotFound = "NOT_FOUND";
     public const string Forbidden = "FORBIDDEN";
+    public const string Conflict = "CONFLICT";
     public const string FileNotFound = "FILE_NOT_FOUND";
     public const string FolderNotFound = "FOLDER_NOT_FOUND";
+    public const string TagNotFound = "TAG_NOT_FOUND";
 
     // EventChain
     public const string ChainDefinitionNotFound = "CHAIN_DEFINITION_NOT_FOUND";

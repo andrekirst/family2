@@ -25,6 +25,14 @@ public sealed class StoredFileRepository(AppDbContext context) : IStoredFileRepo
             .ToListAsync(ct);
     }
 
+    public async Task<List<StoredFile>> GetByIdsAsync(IEnumerable<FileId> ids, CancellationToken ct = default)
+    {
+        var idList = ids.ToList();
+        return await context.Set<StoredFile>()
+            .Where(f => idList.Contains(f.Id))
+            .ToListAsync(ct);
+    }
+
     public async Task AddAsync(StoredFile file, CancellationToken ct = default)
         => await context.Set<StoredFile>().AddAsync(file, ct);
 

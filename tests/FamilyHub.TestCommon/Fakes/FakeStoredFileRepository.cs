@@ -20,6 +20,12 @@ public class FakeStoredFileRepository : IStoredFileRepository
         return Task.FromResult(Files.Where(f => ids.Contains(f.FolderId)).ToList());
     }
 
+    public Task<List<StoredFile>> GetByIdsAsync(IEnumerable<FileId> ids, CancellationToken ct = default)
+    {
+        var idList = ids.ToList();
+        return Task.FromResult(Files.Where(f => idList.Contains(f.Id)).ToList());
+    }
+
     public Task AddAsync(StoredFile file, CancellationToken ct = default)
     {
         Files.Add(file);

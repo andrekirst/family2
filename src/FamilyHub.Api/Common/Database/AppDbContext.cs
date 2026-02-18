@@ -8,6 +8,9 @@ using FamilyHub.Api.Features.FileManagement.Infrastructure.Data;
 using FamilyHub.EventChain.Domain.Entities;
 using FileManagementStoredFile = FamilyHub.Api.Features.FileManagement.Domain.Entities.StoredFile;
 using FileManagementFolder = FamilyHub.Api.Features.FileManagement.Domain.Entities.Folder;
+using FileManagementTag = FamilyHub.Api.Features.FileManagement.Domain.Entities.Tag;
+using FileManagementFileTag = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileTag;
+using FileManagementFileMetadata = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileMetadata;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -72,6 +75,9 @@ public class AppDbContext : DbContext, IUnitOfWork
     // File Management domain entities
     public DbSet<FileManagementStoredFile> ManagedFiles { get; set; }
     public DbSet<FileManagementFolder> Folders { get; set; }
+    public DbSet<FileManagementTag> Tags { get; set; }
+    public DbSet<FileManagementFileTag> FileTags { get; set; }
+    public DbSet<FileManagementFileMetadata> FileMetadatas { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }
