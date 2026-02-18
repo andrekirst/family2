@@ -55,6 +55,8 @@ public static class DomainErrorCodes
     public const string ShareLinkPasswordIncorrect = "SHARE_LINK_PASSWORD_INCORRECT";
     public const string ShareLinkDownloadLimitReached = "SHARE_LINK_DOWNLOAD_LIMIT_REACHED";
     public const string SecureNoteNotFound = "SECURE_NOTE_NOT_FOUND";
+    public const string ExternalConnectionNotFound = "EXTERNAL_CONNECTION_NOT_FOUND";
+    public const string ExternalConnectionAlreadyExists = "EXTERNAL_CONNECTION_ALREADY_EXISTS";
 
     // EventChain
     public const string ChainDefinitionNotFound = "CHAIN_DEFINITION_NOT_FOUND";

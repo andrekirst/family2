@@ -150,6 +150,19 @@ public static class FileManagementMapper
         GeneratedAt = thumbnail.GeneratedAt
     };
 
+    public static ExternalConnectionDto ToDto(ExternalConnection connection) => new()
+    {
+        Id = connection.Id.Value,
+        FamilyId = connection.FamilyId.Value,
+        ProviderType = connection.ProviderType.ToString(),
+        DisplayName = connection.DisplayName,
+        Status = connection.Status.ToString(),
+        IsTokenExpired = connection.IsTokenExpired,
+        TokenExpiresAt = connection.TokenExpiresAt,
+        ConnectedBy = connection.ConnectedBy.Value,
+        ConnectedAt = connection.ConnectedAt
+    };
+
     public static SecureNoteDto ToDto(SecureNote note) => new()
     {
         Id = note.Id.Value,
