@@ -132,6 +132,19 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
       }
     }
 
+    <!-- Day View -->
+    @if (viewMode() === 'day') {
+      <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
+        <app-calendar-day-grid
+          [selectedDateInput]="currentDay()"
+          [eventsInput]="events()"
+          [loadingInput]="isLoading()"
+          (timeSlotClicked)="onTimeSlotClicked($event)"
+          (eventClicked)="onEventClicked($event)"
+        />
+      </div>
+    }
+
     <!-- Context panel content template -->
     <ng-template #eventContextTemplate>
       @if (contextEvent()) {
