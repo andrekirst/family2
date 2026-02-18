@@ -80,6 +80,17 @@ public sealed class Folder : AggregateRoot<FolderId>
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void MoveTo(FolderId newParentFolderId, string newMaterializedPath, UserId movedBy)
+    {
+        var oldParentId = ParentFolderId;
+        ParentFolderId = newParentFolderId;
+        MaterializedPath = newMaterializedPath;
+        UpdatedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new FolderMovedEvent(
+            Id, oldParentId, newParentFolderId, FamilyId, movedBy, UpdatedAt));
+    }
+
     public void MarkDeleted(UserId deletedBy)
     {
         RaiseDomainEvent(new FolderDeletedEvent(

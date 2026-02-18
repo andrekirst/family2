@@ -17,12 +17,26 @@ public sealed class StoredFileRepository(AppDbContext context) : IStoredFileRepo
             .OrderBy(f => f.Name)
             .ToListAsync(ct);
 
+    public async Task<List<StoredFile>> GetByFolderIdsAsync(IEnumerable<FolderId> folderIds, CancellationToken ct = default)
+    {
+        var ids = folderIds.ToList();
+        return await context.Set<StoredFile>()
+            .Where(f => ids.Contains(f.FolderId))
+            .ToListAsync(ct);
+    }
+
     public async Task AddAsync(StoredFile file, CancellationToken ct = default)
         => await context.Set<StoredFile>().AddAsync(file, ct);
 
     public Task RemoveAsync(StoredFile file, CancellationToken ct = default)
     {
         context.Set<StoredFile>().Remove(file);
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveRangeAsync(IEnumerable<StoredFile> files, CancellationToken ct = default)
+    {
+        context.Set<StoredFile>().RemoveRange(files);
         return Task.CompletedTask;
     }
 }

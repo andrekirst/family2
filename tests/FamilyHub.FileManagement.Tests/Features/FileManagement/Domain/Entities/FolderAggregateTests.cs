@@ -119,6 +119,53 @@ public class FolderAggregateTests
     }
 
     [Fact]
+    public void MoveTo_ShouldUpdateParentAndPath()
+    {
+        var familyId = FamilyId.New();
+        var userId = UserId.New();
+        var oldParentId = FolderId.New();
+        var newParentId = FolderId.New();
+
+        var folder = Folder.Create(
+            FileName.From("Movable"),
+            oldParentId,
+            $"/{oldParentId.Value}/",
+            familyId,
+            userId);
+
+        folder.MoveTo(newParentId, $"/{newParentId.Value}/", userId);
+
+        folder.ParentFolderId.Should().Be(newParentId);
+        folder.MaterializedPath.Should().Be($"/{newParentId.Value}/");
+    }
+
+    [Fact]
+    public void MoveTo_ShouldRaiseFolderMovedEvent()
+    {
+        var familyId = FamilyId.New();
+        var userId = UserId.New();
+        var oldParentId = FolderId.New();
+        var newParentId = FolderId.New();
+
+        var folder = Folder.Create(
+            FileName.From("Movable"),
+            oldParentId,
+            $"/{oldParentId.Value}/",
+            familyId,
+            userId);
+
+        folder.MoveTo(newParentId, $"/{newParentId.Value}/", userId);
+
+        folder.DomainEvents.Should().HaveCount(2); // Created + Moved
+        folder.DomainEvents.Last().Should().BeOfType<FolderMovedEvent>();
+
+        var evt = (FolderMovedEvent)folder.DomainEvents.Last();
+        evt.OldParentFolderId.Should().Be(oldParentId);
+        evt.NewParentFolderId.Should().Be(newParentId);
+        evt.MovedBy.Should().Be(userId);
+    }
+
+    [Fact]
     public void MarkDeleted_ShouldRaiseFolderDeletedEvent()
     {
         var folder = Folder.Create(
