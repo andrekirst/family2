@@ -109,7 +109,7 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
           <app-calendar-month-grid
             [monthInput]="currentMonth()"
             [eventsInput]="events()"
-            (dayClicked)="onDayClicked($event)"
+            (dayClicked)="onMonthDayCellClicked($event)"
             (eventClicked)="onEventClicked($event)"
           />
         </div>
@@ -127,6 +127,7 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
             [eventsInput]="events()"
             (timeSlotClicked)="onTimeSlotClicked($event)"
             (eventClicked)="onEventClicked($event)"
+            (dayHeaderClicked)="onDayHeaderClickedInWeek($event)"
           />
         </div>
       }
