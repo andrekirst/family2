@@ -4,8 +4,6 @@ export const SETTINGS_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./components/user-settings/user-settings.component').then(
-        (m) => m.UserSettingsComponent,
-      ),
+      import('./settings-page/settings-page.component').then((m) => m.SettingsPageComponent),
   },
 ];

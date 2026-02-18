@@ -43,7 +43,7 @@ interface FormSnapshot {
           class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200"
           data-testid="event-context-cancelled"
         >
-          Cancelled
+          <span i18n="@@calendar.context.cancelled">Cancelled</span>
         </span>
       }
 
@@ -52,7 +52,7 @@ interface FormSnapshot {
         <app-inline-edit-text
           #titleEditor
           [value]="title()"
-          placeholder="Event title"
+          [placeholder]="eventTitlePlaceholder"
           [disabled]="isCancelled()"
           testId="event-context-title"
           displayClasses="text-lg font-semibold text-gray-900"
@@ -107,10 +107,12 @@ interface FormSnapshot {
 
       <!-- Description (inline-editable) -->
       <div>
-        <h4 class="text-sm font-medium text-gray-700 mb-1">Description</h4>
+        <h4 class="text-sm font-medium text-gray-700 mb-1" i18n="@@calendar.event.description">
+          Description
+        </h4>
         <app-inline-edit-text
           [value]="description()"
-          placeholder="Add description"
+          [placeholder]="descriptionPlaceholder"
           [multiline]="true"
           [disabled]="isCancelled()"
           testId="event-context-description"
@@ -122,7 +124,9 @@ interface FormSnapshot {
       <!-- Attendees (display-only, resolved names) -->
       @if (resolvedAttendees().length > 0) {
         <div data-testid="event-context-attendees">
-          <h4 class="text-sm font-medium text-gray-700 mb-2">Attendees</h4>
+          <h4 class="text-sm font-medium text-gray-700 mb-2" i18n="@@calendar.event.attendees">
+            Attendees
+          </h4>
           <div class="flex flex-wrap gap-1.5">
             @for (attendee of resolvedAttendees(); track attendee.userId) {
               <span
@@ -166,7 +170,7 @@ interface FormSnapshot {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   />
                 </svg>
-                Saving...
+                <span i18n="@@calendar.event.saving">Saving...</span>
               </span>
             } @else if (saveSuccess()) {
               <span class="flex items-center justify-center gap-2">
@@ -178,10 +182,10 @@ interface FormSnapshot {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                Saved!
+                <span i18n="@@calendar.context.saved">Saved!</span>
               </span>
             } @else {
-              {{ eventId() ? 'Save Changes' : 'Create Event' }}
+              {{ eventId() ? saveChangesLabel : createEventLabel }}
             }
           </button>
         </div>
@@ -196,7 +200,7 @@ interface FormSnapshot {
             class="w-full px-4 py-2 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
             data-testid="event-context-cancel"
           >
-            Cancel Event
+            <span i18n="@@calendar.event.cancelEvent">Cancel Event</span>
           </button>
         </div>
       }
@@ -210,10 +214,10 @@ interface FormSnapshot {
 
     @if (showCancelConfirmation()) {
       <app-confirmation-dialog
-        title="Cancel Event"
+        [title]="cancelEventLabel"
         [message]="cancelConfirmationMessage()"
-        confirmLabel="Cancel Event"
-        cancelLabel="Go Back"
+        [confirmLabel]="cancelEventLabel"
+        [cancelLabel]="goBackLabel"
         variant="danger"
         icon="trash"
         [isLoading]="isCancelLoading()"
@@ -239,6 +243,14 @@ export class EventContextComponent implements OnInit, OnChanges {
   @Output() eventCancelled = new EventEmitter<void>();
 
   @ViewChild('titleEditor') titleEditor?: InlineEditTextComponent;
+
+  // i18n labels
+  readonly eventTitlePlaceholder = $localize`:@@calendar.event.titlePlaceholder:Event title`;
+  readonly descriptionPlaceholder = $localize`:@@calendar.context.descriptionPlaceholder:Add description`;
+  readonly saveChangesLabel = $localize`:@@calendar.event.saveChanges:Save Changes`;
+  readonly createEventLabel = $localize`:@@calendar.event.createEvent:Create Event`;
+  readonly cancelEventLabel = $localize`:@@calendar.event.cancelEvent:Cancel Event`;
+  readonly goBackLabel = $localize`:@@calendar.event.goBack:Go Back`;
 
   // Form state
   readonly eventId = signal<string | null>(null);
@@ -289,9 +301,10 @@ export class EventContextComponent implements OnInit, OnChanges {
       .filter((m): m is FamilyMemberDto => m != null);
   });
 
-  readonly cancelConfirmationMessage = computed(
-    () => `Are you sure you want to cancel '${this.title()}'? This action cannot be undone.`,
-  );
+  readonly cancelConfirmationMessage = computed(() => {
+    const title = this.title();
+    return $localize`:@@calendar.event.cancelConfirm:Are you sure you want to cancel '${title}:title:'? This action cannot be undone.`;
+  });
 
   ngOnInit(): void {
     this.initializeForm();
@@ -376,7 +389,7 @@ export class EventContextComponent implements OnInit, OnChanges {
 
   onTitleSaved(newTitle: string): void {
     if (!newTitle.trim()) {
-      this.titleError.set('Title is required');
+      this.titleError.set($localize`:@@calendar.event.titleRequired:Event title is required`);
       return;
     }
     this.titleError.set(null);
@@ -422,12 +435,12 @@ export class EventContextComponent implements OnInit, OnChanges {
             this.showSaveSuccess('Changes saved');
             this.eventUpdated.emit();
           } else {
-            this.errorMessage.set('Failed to save changes');
+            this.errorMessage.set($localize`:@@calendar.event.updateFailed:Failed to update event`);
           }
         },
         error: () => {
           this.isSaving.set(false);
-          this.errorMessage.set('An error occurred while saving');
+          this.errorMessage.set($localize`:@@calendar.event.error:An error occurred`);
         },
       });
     } else {
@@ -442,12 +455,12 @@ export class EventContextComponent implements OnInit, OnChanges {
             this.contextPanelService.setItemId(result.id);
             this.eventCreated.emit(result);
           } else {
-            this.errorMessage.set('Failed to create event');
+            this.errorMessage.set($localize`:@@calendar.event.createFailed:Failed to create event`);
           }
         },
         error: () => {
           this.isSaving.set(false);
-          this.errorMessage.set('An error occurred while creating');
+          this.errorMessage.set($localize`:@@calendar.event.error:An error occurred`);
         },
       });
     }
@@ -485,13 +498,13 @@ export class EventContextComponent implements OnInit, OnChanges {
           this.eventCancelled.emit();
           this.contextPanelService.close();
         } else {
-          this.errorMessage.set('Failed to cancel event');
+          this.errorMessage.set($localize`:@@calendar.event.cancelFailed:Failed to cancel event`);
         }
       },
       error: () => {
         this.isCancelLoading.set(false);
         this.showCancelConfirmation.set(false);
-        this.errorMessage.set('An error occurred');
+        this.errorMessage.set($localize`:@@calendar.event.error:An error occurred`);
       },
     });
   }

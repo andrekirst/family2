@@ -20,7 +20,7 @@ import { CalendarViewMode } from '../../models/calendar.models';
         [class.hover:bg-gray-50]="activeView !== 'month'"
         data-testid="view-month-btn"
       >
-        Month
+        <span i18n="@@calendar.viewMonth">Month</span>
       </button>
       <button
         type="button"
@@ -33,7 +33,7 @@ import { CalendarViewMode } from '../../models/calendar.models';
         [class.hover:bg-gray-50]="activeView !== 'week'"
         data-testid="view-week-btn"
       >
-        Week
+        <span i18n="@@calendar.viewWeek">Week</span>
       </button>
     </div>
   `,

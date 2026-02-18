@@ -11,6 +11,7 @@ using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Common.Modules;
 using FamilyHub.Api.Features.Auth;
 using FamilyHub.Api.Features.Calendar;
+using FamilyHub.Api.Features.Dashboard;
 using FamilyHub.Api.Features.EventChain;
 using FamilyHub.Api.Features.Family;
 using FamilyHub.Api.Features.GoogleIntegration;
@@ -69,6 +70,9 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 // Register FluentValidation validators from assembly
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+// Localization (.resx-based IStringLocalizer for backend error messages)
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
 // Configure JWT Bearer authentication with Keycloak
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -102,10 +106,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Add controllers for REST endpoints (avatar serving)
+builder.Services.AddControllers();
+
 // Feature Modules (explicit ordering - dependencies flow downward)
 builder.Services.RegisterModule<AuthModule>(builder.Configuration);
 builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
 builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
+builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
 builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
 
@@ -155,6 +163,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors();
 
+// Request localization — sets CultureInfo.CurrentUICulture from Accept-Language header.
+// Must come before authentication so IStringLocalizer resolves the correct locale per-request.
+app.UseRequestLocalization(options =>
+{
+    var supportedCultures = new[] { "en", "de" };
+    options.SetDefaultCulture("en");
+    options.AddSupportedCultures(supportedCultures);
+    options.AddSupportedUICultures(supportedCultures);
+    options.ApplyCurrentCultureToResponseHeaders = true;
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -163,6 +182,7 @@ app.UseMiddleware<PostgresRlsMiddleware>();
 
 app.MapControllers();
 app.MapGraphQL();
+app.MapControllers(); // REST endpoints (avatar serving)
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));

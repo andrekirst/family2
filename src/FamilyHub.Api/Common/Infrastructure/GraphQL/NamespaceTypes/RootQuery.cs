@@ -32,6 +32,12 @@ public class RootQuery
     public FamilyQuery Family() => new();
 
     /// <summary>
+    /// Dashboard queries (layouts, widgets, available widget types).
+    /// </summary>
+    [Authorize]
+    public DashboardQuery Dashboard() => new();
+
+    /// <summary>
     /// Event Chain Engine queries (definitions, executions, catalog).
     /// </summary>
     [Authorize]

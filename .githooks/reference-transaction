@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Blocks branch switches in the main worktree.
+# Each branch should live in its own git worktree for DB isolation.
+#
+# Bypass: FAMILYHUB_ALLOW_CHECKOUT=1 git checkout <branch>
+
+set -euo pipefail
+
+STATE="${1:-}"
+[[ "$STATE" == "prepared" ]] || exit 0
+
+# Allow override
+[[ "${FAMILYHUB_ALLOW_CHECKOUT:-0}" == "1" ]] && exit 0
+
+while read -r OLD_VALUE NEW_VALUE REF_NAME; do
+  # Only care about HEAD symbolic-ref changes (branch switches)
+  [[ "$REF_NAME" == "HEAD" ]] || continue
+
+  # Allow initial checkout (clone / worktree creation)
+  [[ "$OLD_VALUE" == "0000000000000000000000000000000000000000" ]] && continue
+
+  # If HEAD is changing and it's not a commit on the same branch, block it
+  CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || true)
+  if [[ -n "$CURRENT_BRANCH" ]]; then
+    echo ""
+    echo "  BLOCKED: Branch switches are not allowed in this worktree."
+    echo "  Each branch needs its own worktree for database isolation."
+    echo ""
+    echo "  Instead, use:"
+    echo "    task worktree:create -- <type> <issue> <description>"
+    echo ""
+    echo "  Or bypass with:"
+    echo "    FAMILYHUB_ALLOW_CHECKOUT=1 git checkout <branch>"
+    echo ""
+    exit 1
+  fi
+done
+
+exit 0

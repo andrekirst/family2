@@ -107,7 +107,7 @@ import { CommonModule } from '@angular/common';
             class="rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             data-testid="confirmation-dialog-confirm"
           >
-            {{ isLoading ? 'Processing...' : confirmLabel }}
+            {{ isLoading ? processingLabel : confirmLabel }}
           </button>
         </div>
       </div>
@@ -115,10 +115,12 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class ConfirmationDialogComponent {
-  @Input() title = 'Confirm';
-  @Input() message = 'Are you sure?';
-  @Input() confirmLabel = 'Confirm';
-  @Input() cancelLabel = 'Cancel';
+  readonly processingLabel = $localize`:@@common.processing:Processing...`;
+
+  @Input() title = $localize`:@@common.confirm:Confirm`;
+  @Input() message = $localize`:@@common.areYouSure:Are you sure?`;
+  @Input() confirmLabel = $localize`:@@common.confirm:Confirm`;
+  @Input() cancelLabel = $localize`:@@common.cancel:Cancel`;
   @Input() variant: 'danger' | 'warning' | 'info' = 'info';
   @Input() icon: 'trash' | 'warning' | 'info' = 'info';
   @Input() isLoading = false;

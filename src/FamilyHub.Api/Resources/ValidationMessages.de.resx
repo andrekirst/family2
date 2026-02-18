@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
+  <!-- Auth -->
+  <data name="EmailRequired" xml:space="preserve"><value>E-Mail ist erforderlich</value></data>
+  <data name="NameRequired" xml:space="preserve"><value>Name ist erforderlich</value></data>
+  <data name="ExternalUserIdRequired" xml:space="preserve"><value>Externe Benutzer-ID ist erforderlich</value></data>
+  <data name="UsernameMinLength" xml:space="preserve"><value>Benutzername muss mindestens 3 Zeichen lang sein</value></data>
+  <data name="UsernameMaxLength" xml:space="preserve"><value>Benutzername darf 50 Zeichen nicht überschreiten</value></data>
+  <data name="UsernameInvalidFormat" xml:space="preserve"><value>Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten</value></data>
+  <data name="LoginTimeCannotBeFuture" xml:space="preserve"><value>Anmeldezeit darf nicht in der Zukunft liegen</value></data>
+  <!-- Calendar -->
+  <data name="EventTitleRequired" xml:space="preserve"><value>Ereignistitel ist erforderlich</value></data>
+  <data name="FamilyIdRequired" xml:space="preserve"><value>Familien-ID ist erforderlich</value></data>
+  <data name="CreatorIdRequired" xml:space="preserve"><value>Ersteller-ID ist erforderlich</value></data>
+  <data name="EndTimeMustBeAfterStartTime" xml:space="preserve"><value>Endzeit muss nach der Startzeit liegen</value></data>
+  <!-- EventChain -->
+  <data name="ChainNameRequired" xml:space="preserve"><value>Kettenname ist erforderlich</value></data>
+  <data name="ChainNameMaxLength" xml:space="preserve"><value>Kettenname darf 200 Zeichen nicht überschreiten</value></data>
+  <data name="TriggerEventTypeRequired" xml:space="preserve"><value>Auslöser-Ereignistyp ist erforderlich</value></data>
+  <data name="AtLeastOneStepRequired" xml:space="preserve"><value>Mindestens ein Schritt ist erforderlich</value></data>
+  <data name="StepAliasRequired" xml:space="preserve"><value>Schritt-Alias ist erforderlich</value></data>
+  <data name="StepAliasMaxLength" xml:space="preserve"><value>Schritt-Alias darf 50 Zeichen nicht überschreiten</value></data>
+  <data name="StepNameRequired" xml:space="preserve"><value>Schrittname ist erforderlich</value></data>
+  <data name="ActionTypeRequired" xml:space="preserve"><value>Aktionstyp ist erforderlich</value></data>
+  <data name="StepOrderMustBePositive" xml:space="preserve"><value>Schrittreihenfolge muss positiv sein</value></data>
+  <!-- Family -->
+  <data name="FamilyNameRequired" xml:space="preserve"><value>Familienname ist erforderlich</value></data>
+  <data name="OwnerIdRequired" xml:space="preserve"><value>Eigentümer-ID ist erforderlich</value></data>
+  <data name="InvitationTokenRequired" xml:space="preserve"><value>Einladungs-Token ist erforderlich</value></data>
+  <data name="AcceptingUserIdRequired" xml:space="preserve"><value>ID des annehmenden Benutzers ist erforderlich</value></data>
+  <data name="InvitationIdRequired" xml:space="preserve"><value>Einladungs-ID ist erforderlich</value></data>
+  <data name="DecliningUserIdRequired" xml:space="preserve"><value>ID des ablehnenden Benutzers ist erforderlich</value></data>
+  <data name="RevokingUserIdRequired" xml:space="preserve"><value>ID des widerrufenden Benutzers ist erforderlich</value></data>
+  <data name="InviteeEmailRequired" xml:space="preserve"><value>E-Mail des Eingeladenen ist erforderlich</value></data>
+  <data name="InviteeEmailInvalidFormat" xml:space="preserve"><value>Ungültiges E-Mail-Format</value></data>
+  <data name="InvitationRoleInvalid" xml:space="preserve"><value>Einladungsrolle muss 'Admin' oder 'Member' sein (Eigentümerrolle kann nicht per Einladung vergeben werden)</value></data>
+</root>

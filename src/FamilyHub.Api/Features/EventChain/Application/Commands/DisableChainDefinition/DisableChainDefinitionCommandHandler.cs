@@ -14,7 +14,7 @@ public sealed class DisableChainDefinitionCommandHandler(
         CancellationToken cancellationToken)
     {
         var definition = await repository.GetByIdAsync(command.Id, cancellationToken)
-            ?? throw new DomainException("Chain definition not found");
+            ?? throw new DomainException("Chain definition not found", DomainErrorCodes.ChainDefinitionNotFound);
 
         definition.Disable();
         await repository.UpdateAsync(definition, cancellationToken);

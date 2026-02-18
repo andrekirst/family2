@@ -17,9 +17,11 @@ public static class UserMapper
             Name = user.Name.Value,
             Username = user.Username,
             FamilyId = user.FamilyId?.Value,
+            AvatarId = user.AvatarId?.Value,
             EmailVerified = user.EmailVerified,
             IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt
+            CreatedAt = user.CreatedAt,
+            PreferredLocale = user.PreferredLocale
         };
     }
 }

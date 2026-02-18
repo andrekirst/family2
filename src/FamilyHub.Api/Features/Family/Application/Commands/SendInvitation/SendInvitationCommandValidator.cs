@@ -1,17 +1,19 @@
+using FamilyHub.Api.Resources;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 
 public class SendInvitationCommandValidator : AbstractValidator<SendInvitationCommand>
 {
-    public SendInvitationCommandValidator()
+    public SendInvitationCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {
         RuleFor(x => x.InviteeEmail.Value)
-            .NotEmpty().WithMessage("Invitee email is required")
-            .EmailAddress().WithMessage("Invalid email format");
+            .NotEmpty().WithMessage(_ => localizer["InviteeEmailRequired"])
+            .EmailAddress().WithMessage(_ => localizer["InviteeEmailInvalidFormat"]);
 
         RuleFor(x => x.Role.Value)
             .Must(role => role is "Admin" or "Member")
-            .WithMessage("Invitation role must be 'Admin' or 'Member' (Owner role cannot be assigned via invitation)");
+            .WithMessage(_ => localizer["InvitationRoleInvalid"]);
     }
 }

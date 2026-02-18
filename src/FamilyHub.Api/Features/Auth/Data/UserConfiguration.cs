@@ -70,6 +70,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired(false);
         builder.HasIndex(u => u.FamilyId);
 
+        // Avatar (nullable - Vogen value object)
+        builder.Property(u => u.AvatarId)
+            .HasConversion(
+                avatarId => avatarId.HasValue ? avatarId.Value.Value : (Guid?)null,
+                value => value.HasValue ? AvatarId.From(value.Value) : null)
+            .IsRequired(false);
+
         // Metadata fields
         builder.Property(u => u.EmailVerified)
             .IsRequired()
@@ -89,6 +96,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.UpdatedAt)
             .IsRequired()
             .HasDefaultValueSql("NOW()");
+
+        // Locale preference
+        builder.Property(u => u.PreferredLocale)
+            .HasMaxLength(10)
+            .IsRequired()
+            .HasDefaultValue("en");
 
         // Relationships
         builder.HasOne(u => u.Family)

@@ -19,6 +19,7 @@ export interface FamilyMemberDto {
   userName: string;
   userEmail: string;
   role: FamilyRole;
+  avatarId: string | null;
   joinedAt: string;
   isActive: boolean;
 }

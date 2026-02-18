@@ -80,7 +80,7 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
     {
         if (IsCancelled)
         {
-            throw new DomainException("Event is already cancelled");
+            throw new DomainException("Event is already cancelled", DomainErrorCodes.EventAlreadyCancelled);
         }
 
         IsCancelled = true;

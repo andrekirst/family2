@@ -47,6 +47,11 @@ public sealed class User : AggregateRoot<UserId>
     public FamilyId? FamilyId { get; private set; }
 
     /// <summary>
+    /// User's global avatar ID (null if no avatar uploaded yet)
+    /// </summary>
+    public AvatarId? AvatarId { get; private set; }
+
+    /// <summary>
     /// Whether the user's email has been verified by the OAuth provider
     /// </summary>
     public bool EmailVerified { get; private set; }
@@ -70,6 +75,12 @@ public sealed class User : AggregateRoot<UserId>
     /// When the user record was last updated
     /// </summary>
     public DateTime UpdatedAt { get; private set; }
+
+    /// <summary>
+    /// User's preferred locale for UI language (e.g. "en", "de").
+    /// Stored in DB for cross-device sync; also cached in localStorage for instant access.
+    /// </summary>
+    public string PreferredLocale { get; private set; } = "en";
 
     /// <summary>
     /// Navigation property to Family
@@ -144,7 +155,7 @@ public sealed class User : AggregateRoot<UserId>
     {
         if (FamilyId is not null)
         {
-            throw new DomainException("User is already assigned to a family");
+            throw new DomainException("User is already assigned to a family", DomainErrorCodes.UserAlreadyAssignedToFamily);
         }
 
         FamilyId = familyId;
@@ -165,7 +176,7 @@ public sealed class User : AggregateRoot<UserId>
     {
         if (FamilyId is null)
         {
-            throw new DomainException("User is not assigned to any family");
+            throw new DomainException("User is not assigned to any family", DomainErrorCodes.UserNotAssignedToFamily);
         }
 
         var previousFamilyId = FamilyId.Value;
@@ -175,6 +186,52 @@ public sealed class User : AggregateRoot<UserId>
         RaiseDomainEvent(new UserFamilyRemovedEvent(
             Id,
             previousFamilyId,
+            DateTime.UtcNow
+        ));
+    }
+
+    /// <summary>
+    /// Update user's preferred locale for UI language.
+    /// </summary>
+    public void UpdateLocale(string locale)
+    {
+        PreferredLocale = locale;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Set or update the user's global avatar.
+    /// Raises UserAvatarChangedEvent.
+    /// </summary>
+    public void SetAvatar(AvatarId avatarId)
+    {
+        var previousAvatarId = AvatarId;
+        AvatarId = avatarId;
+        UpdatedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new UserAvatarChangedEvent(
+            Id,
+            avatarId,
+            previousAvatarId,
+            DateTime.UtcNow
+        ));
+    }
+
+    /// <summary>
+    /// Remove the user's global avatar.
+    /// Raises UserAvatarRemovedEvent.
+    /// </summary>
+    public void RemoveAvatar()
+    {
+        if (AvatarId is null) return;
+
+        var previousAvatarId = AvatarId.Value;
+        AvatarId = null;
+        UpdatedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new UserAvatarRemovedEvent(
+            Id,
+            previousAvatarId,
             DateTime.UtcNow
         ));
     }

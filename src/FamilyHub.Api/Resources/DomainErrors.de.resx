@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
+  <!-- Auth -->
+  <data name="USER_ALREADY_ASSIGNED_TO_FAMILY" xml:space="preserve"><value>Benutzer ist bereits einer Familie zugeordnet</value></data>
+  <data name="USER_NOT_ASSIGNED_TO_FAMILY" xml:space="preserve"><value>Benutzer ist keiner Familie zugeordnet</value></data>
+  <data name="USER_NOT_FOUND" xml:space="preserve"><value>Benutzer nicht gefunden</value></data>
+  <data name="USER_ALREADY_EXISTS" xml:space="preserve"><value>Ein Benutzer mit dieser E-Mail-Adresse existiert bereits</value></data>
+  <!-- Family -->
+  <data name="USER_ALREADY_OWNS_FAMILY" xml:space="preserve"><value>Benutzer besitzt bereits eine Familie</value></data>
+  <data name="FAMILY_CREATION_FAILED" xml:space="preserve"><value>Familienerstellung fehlgeschlagen</value></data>
+  <!-- Family — Invitations -->
+  <data name="INVITATION_NOT_FOUND" xml:space="preserve"><value>Einladung nicht gefunden</value></data>
+  <data name="INVITATION_EXPIRED" xml:space="preserve"><value>Einladung ist abgelaufen</value></data>
+  <data name="INVITATION_INVALID_STATUS_FOR_ACCEPT" xml:space="preserve"><value>Einladung kann im aktuellen Status nicht angenommen werden</value></data>
+  <data name="INVITATION_INVALID_STATUS_FOR_DECLINE" xml:space="preserve"><value>Einladung kann im aktuellen Status nicht abgelehnt werden</value></data>
+  <data name="INVITATION_INVALID_STATUS_FOR_REVOKE" xml:space="preserve"><value>Einladung kann im aktuellen Status nicht widerrufen werden</value></data>
+  <data name="INVALID_INVITATION_TOKEN" xml:space="preserve"><value>Ungültiger Einladungstoken</value></data>
+  <data name="INVITATION_EMAIL_MISMATCH" xml:space="preserve"><value>Diese Einladung wurde an eine andere E-Mail-Adresse gesendet</value></data>
+  <data name="ALREADY_FAMILY_MEMBER" xml:space="preserve"><value>Du bist bereits Mitglied dieser Familie</value></data>
+  <data name="INSUFFICIENT_PERMISSION_TO_SEND_INVITATION" xml:space="preserve"><value>Du hast keine Berechtigung, Einladungen für diese Familie zu senden</value></data>
+  <data name="INSUFFICIENT_PERMISSION_TO_REVOKE_INVITATION" xml:space="preserve"><value>Du hast keine Berechtigung, Einladungen für diese Familie zu widerrufen</value></data>
+  <data name="DUPLICATE_INVITATION" xml:space="preserve"><value>An diese E-Mail-Adresse wurde bereits eine Einladung für diese Familie gesendet</value></data>
+  <data name="MUST_BE_FAMILY_MEMBER_TO_SEND_INVITATION" xml:space="preserve"><value>Du musst Mitglied einer Familie sein, um Einladungen zu senden</value></data>
+  <!-- Calendar -->
+  <data name="CALENDAR_EVENT_NOT_FOUND" xml:space="preserve"><value>Kalenderereignis nicht gefunden</value></data>
+  <data name="EVENT_ALREADY_CANCELLED" xml:space="preserve"><value>Ereignis ist bereits abgesagt</value></data>
+  <data name="CANNOT_UPDATE_CANCELLED_EVENT" xml:space="preserve"><value>Ein abgesagtes Ereignis kann nicht aktualisiert werden</value></data>
+  <data name="MUST_BE_FAMILY_MEMBER_TO_CREATE_EVENT" xml:space="preserve"><value>Benutzer muss einer Familie angehören, um Ereignisse zu erstellen</value></data>
+  <!-- EventChain -->
+  <data name="CHAIN_DEFINITION_NOT_FOUND" xml:space="preserve"><value>Kettendefinition nicht gefunden</value></data>
+  <data name="CHAIN_EXECUTION_NOT_FOUND" xml:space="preserve"><value>Kettenausführung nicht gefunden</value></data>
+  <data name="DUPLICATE_STEP_ALIAS" xml:space="preserve"><value>Schritt-Alias existiert bereits in dieser Kette</value></data>
+  <data name="UNKNOWN_TRIGGER_EVENT_TYPE" xml:space="preserve"><value>Unbekannter Auslöser-Ereignistyp</value></data>
+  <data name="UNKNOWN_ACTION_TYPE" xml:space="preserve"><value>Unbekannter Aktionstyp</value></data>
+  <data name="USER_NOT_IN_FAMILY" xml:space="preserve"><value>Benutzer ist keiner Familie zugeordnet</value></data>
+</root>

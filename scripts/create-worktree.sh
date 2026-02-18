@@ -77,7 +77,11 @@ fi
 mkdir -p "$(dirname "$WORKTREE_PATH")"
 
 # --- Create worktree with new branch ---
-git worktree add -b "$BRANCH" "$WORKTREE_PATH"
+# Bypass the reference-transaction hook that blocks branch switches
+FAMILYHUB_ALLOW_CHECKOUT=1 git worktree add -b "$BRANCH" "$WORKTREE_PATH"
+
+# Configure hooks path in the new worktree
+git -C "$WORKTREE_PATH" config core.hooksPath .githooks
 
 echo ""
 echo "Worktree created successfully:"
@@ -86,6 +90,7 @@ echo "  Path:     ${WORKTREE_PATH}"
 echo ""
 echo "To start working:"
 echo "  cd ${WORKTREE_PATH}"
+echo "  task up"
 echo ""
 echo "To remove later:"
 echo "  git worktree remove ${WORKTREE_PATH}"

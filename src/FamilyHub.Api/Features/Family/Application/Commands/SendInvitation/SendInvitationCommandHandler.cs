@@ -25,14 +25,14 @@ public sealed class SendInvitationCommandHandler(
         // Authorization: only Owner/Admin can invite
         if (!await authService.CanInviteAsync(command.InvitedBy, command.FamilyId, cancellationToken))
         {
-            throw new DomainException("You do not have permission to send invitations for this family");
+            throw new DomainException("You do not have permission to send invitations for this family", DomainErrorCodes.InsufficientPermissionToSendInvitation);
         }
 
         // Check for duplicate pending invitation
         var existing = await invitationRepository.GetByEmailAndFamilyAsync(command.InviteeEmail, command.FamilyId, cancellationToken);
         if (existing is not null)
         {
-            throw new DomainException("An invitation has already been sent to this email for this family");
+            throw new DomainException("An invitation has already been sent to this email for this family", DomainErrorCodes.DuplicateInvitation);
         }
 
         // Generate secure token

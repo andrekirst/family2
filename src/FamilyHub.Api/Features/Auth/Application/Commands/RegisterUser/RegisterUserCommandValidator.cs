@@ -1,4 +1,6 @@
+using FamilyHub.Api.Resources;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 
@@ -9,31 +11,31 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 /// </summary>
 public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
-    public RegisterUserCommandValidator()
+    public RegisterUserCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {
         // Vogen already validates non-empty, but we add extra business rules here
         RuleFor(x => x.Email)
             .NotNull()
-            .WithMessage("Email is required");
+            .WithMessage(_ => localizer["EmailRequired"]);
 
         RuleFor(x => x.Name)
             .NotNull()
-            .WithMessage("Name is required");
+            .WithMessage(_ => localizer["NameRequired"]);
 
         RuleFor(x => x.ExternalUserId)
             .NotNull()
-            .WithMessage("External user ID is required");
+            .WithMessage(_ => localizer["ExternalUserIdRequired"]);
 
         // Optional username validation
         When(x => x.Username != null, () =>
         {
             RuleFor(x => x.Username)
                 .MinimumLength(3)
-                .WithMessage("Username must be at least 3 characters")
+                .WithMessage(_ => localizer["UsernameMinLength"])
                 .MaximumLength(50)
-                .WithMessage("Username cannot exceed 50 characters")
+                .WithMessage(_ => localizer["UsernameMaxLength"])
                 .Matches("^[a-zA-Z0-9_-]+$")
-                .WithMessage("Username can only contain letters, numbers, underscores, and hyphens");
+                .WithMessage(_ => localizer["UsernameInvalidFormat"]);
         });
     }
 }

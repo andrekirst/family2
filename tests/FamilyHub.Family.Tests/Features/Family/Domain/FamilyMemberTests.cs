@@ -85,4 +85,58 @@ public class FamilyMemberTests
         // Assert
         member.IsActive.Should().BeTrue();
     }
+
+    [Fact]
+    public void Create_ShouldHaveNullAvatarId()
+    {
+        // Act
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+
+        // Assert
+        member.AvatarId.Should().BeNull();
+    }
+
+    [Fact]
+    public void SetFamilyAvatar_ShouldSetAvatarId()
+    {
+        // Arrange
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+        var avatarId = AvatarId.New();
+
+        // Act
+        member.SetFamilyAvatar(avatarId);
+
+        // Assert
+        member.AvatarId.Should().Be(avatarId);
+    }
+
+    [Fact]
+    public void RemoveFamilyAvatar_ShouldClearAvatarId()
+    {
+        // Arrange
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+        member.SetFamilyAvatar(AvatarId.New());
+
+        // Act
+        member.RemoveFamilyAvatar();
+
+        // Assert
+        member.AvatarId.Should().BeNull();
+    }
+
+    [Fact]
+    public void SetFamilyAvatar_ShouldReplaceExistingAvatar()
+    {
+        // Arrange
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+        var firstAvatarId = AvatarId.New();
+        var secondAvatarId = AvatarId.New();
+        member.SetFamilyAvatar(firstAvatarId);
+
+        // Act
+        member.SetFamilyAvatar(secondAvatarId);
+
+        // Assert
+        member.AvatarId.Should().Be(secondAvatarId);
+    }
 }

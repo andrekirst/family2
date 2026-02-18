@@ -2,11 +2,12 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InvitationService } from '../../services/invitation.service';
 import { FamilyMemberDto } from '../../models/invitation.models';
+import { AvatarDisplayComponent } from '../../../../core/avatar';
 
 @Component({
   selector: 'app-members-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AvatarDisplayComponent],
   template: `
     <div class="space-y-3">
       @if (isLoading()) {
@@ -15,13 +16,20 @@ import { FamilyMemberDto } from '../../models/invitation.models';
           <div class="h-16 bg-gray-200 rounded"></div>
         </div>
       } @else if (members().length === 0) {
-        <p class="text-gray-500 text-sm">No members found.</p>
+        <p class="text-gray-500 text-sm" i18n="@@family.members.noMembers">No members found.</p>
       } @else {
         @for (member of members(); track member.id) {
           <div class="flex items-center justify-between p-4 bg-white border rounded-lg">
-            <div>
-              <p class="font-medium text-gray-900">{{ member.userName }}</p>
-              <p class="text-sm text-gray-500">{{ member.userEmail }}</p>
+            <div class="flex items-center gap-3">
+              <app-avatar-display
+                [avatarId]="member.avatarId"
+                [name]="member.userName"
+                size="small"
+              />
+              <div>
+                <p class="font-medium text-gray-900">{{ member.userName }}</p>
+                <p class="text-sm text-gray-500">{{ member.userEmail }}</p>
+              </div>
             </div>
             <div class="flex items-center gap-3">
               <span
@@ -35,7 +43,7 @@ import { FamilyMemberDto } from '../../models/invitation.models';
               >
                 {{ member.role }}
               </span>
-              <span class="text-xs text-gray-400">
+              <span class="text-xs text-gray-400" i18n="@@family.members.joined">
                 Joined {{ member.joinedAt | date: 'mediumDate' }}
               </span>
             </div>

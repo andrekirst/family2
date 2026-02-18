@@ -26,17 +26,17 @@ public sealed class AcceptInvitationCommandHandler(
         // Hash the plaintext token to look up the invitation
         var tokenHash = SecureTokenHelper.ComputeSha256Hash(command.Token);
         var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken)
-            ?? throw new DomainException("Invalid invitation token");
+            ?? throw new DomainException("Invalid invitation token", DomainErrorCodes.InvalidInvitationToken);
 
         // Get the accepting user
         var user = await userRepository.GetByIdAsync(command.AcceptingUserId, cancellationToken)
-            ?? throw new DomainException("User not found");
+            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
 
         // Check if user is already a member of this family
         var existingMember = await memberRepository.GetByUserAndFamilyAsync(command.AcceptingUserId, invitation.FamilyId, cancellationToken);
         if (existingMember is not null)
         {
-            throw new DomainException("You are already a member of this family");
+            throw new DomainException("You are already a member of this family", DomainErrorCodes.AlreadyFamilyMember);
         }
 
         // Accept the invitation (validates status + expiry, raises InvitationAcceptedEvent)

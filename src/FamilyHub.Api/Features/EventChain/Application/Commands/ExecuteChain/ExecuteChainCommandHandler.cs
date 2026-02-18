@@ -17,7 +17,7 @@ public sealed class ExecuteChainCommandHandler(
         CancellationToken cancellationToken)
     {
         var definition = await definitionRepository.GetByIdWithStepsAsync(command.ChainDefinitionId, cancellationToken)
-            ?? throw new DomainException("Chain definition not found");
+            ?? throw new DomainException("Chain definition not found", DomainErrorCodes.ChainDefinitionNotFound);
 
         var execution = ChainExecution.Start(
             definition.Id,

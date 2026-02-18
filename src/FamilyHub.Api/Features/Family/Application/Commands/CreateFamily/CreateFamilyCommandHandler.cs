@@ -27,12 +27,12 @@ public sealed class CreateFamilyCommandHandler(
         var existingFamily = await familyRepository.GetByOwnerIdAsync(command.OwnerId, cancellationToken);
         if (existingFamily is not null)
         {
-            throw new DomainException("User already owns a family");
+            throw new DomainException("User already owns a family", DomainErrorCodes.UserAlreadyOwnsFamily);
         }
 
         // Get the user to link them to the new family
         var user = await userRepository.GetByIdAsync(command.OwnerId, cancellationToken)
-            ?? throw new DomainException("User not found");
+            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
 
         // Create family aggregate (raises FamilyCreatedEvent)
         var family = FamilyEntity.Create(command.Name, command.OwnerId);

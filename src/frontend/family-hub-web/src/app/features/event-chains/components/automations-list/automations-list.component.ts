@@ -33,8 +33,13 @@ import { TopBarService } from '../../../../shared/services/top-bar.service';
             />
           </svg>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-1">No automations yet</h3>
-        <p class="text-sm text-gray-500 text-center max-w-sm">
+        <h3 class="text-lg font-medium text-gray-900 mb-1" i18n="@@automations.empty.title">
+          No automations yet
+        </h3>
+        <p
+          class="text-sm text-gray-500 text-center max-w-sm"
+          i18n="@@automations.empty.description"
+        >
           Event chain automations let you connect events across your family's calendar, health, and
           more.
         </p>
@@ -47,31 +52,37 @@ import { TopBarService } from '../../../../shared/services/top-bar.service';
             <tr>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                i18n="@@automations.table.name"
               >
                 Name
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                i18n="@@automations.table.trigger"
               >
                 Trigger
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                i18n="@@automations.table.steps"
               >
                 Steps
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                i18n="@@automations.table.status"
               >
                 Status
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                i18n="@@automations.table.lastRun"
               >
                 Last Run
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                i18n="@@automations.table.created"
               >
                 Created
               </th>
@@ -102,11 +113,11 @@ import { TopBarService } from '../../../../shared/services/top-bar.service';
                     [class.bg-gray-100]="!chain.isEnabled"
                     [class.text-gray-800]="!chain.isEnabled"
                   >
-                    {{ chain.isEnabled ? 'Active' : 'Paused' }}
+                    {{ chain.isEnabled ? activeLabel : pausedLabel }}
                   </span>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-500">
-                  {{ chain.lastExecutedAt ? (chain.lastExecutedAt | date: 'medium') : 'Never' }}
+                  {{ chain.lastExecutedAt ? (chain.lastExecutedAt | date: 'medium') : neverLabel }}
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-500">
                   {{ chain.createdAt | date: 'mediumDate' }}
@@ -124,11 +135,15 @@ export class AutomationsListComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private topBarService = inject(TopBarService);
 
+  readonly activeLabel = $localize`:@@automations.table.statusActive:Active`;
+  readonly pausedLabel = $localize`:@@automations.table.statusPaused:Paused`;
+  readonly neverLabel = $localize`:@@automations.table.neverRun:Never`;
+
   chainDefinitions = signal<ChainDefinitionDto[]>([]);
   isLoading = signal(true);
 
   ngOnInit(): void {
-    this.topBarService.setConfig({ title: 'Automations' });
+    this.topBarService.setConfig({ title: $localize`:@@nav.automations:Automations` });
     this.loadChainDefinitions();
   }
 

@@ -10,8 +10,10 @@ public class UserDto
     public string Name { get; set; } = string.Empty;
     public string? Username { get; set; }
     public Guid? FamilyId { get; set; }
+    public Guid? AvatarId { get; set; }
     public bool EmailVerified { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string PreferredLocale { get; set; } = "en";
     public List<string> Permissions { get; set; } = [];
 }

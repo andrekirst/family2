@@ -32,7 +32,7 @@ import { ICONS } from '../../icons/icons';
             class="text-sm font-semibold text-gray-500 uppercase tracking-wide"
             data-testid="context-panel-header"
           >
-            {{ panelService.mode() === 'create' ? 'New Event' : 'Details' }}
+            {{ panelService.mode() === 'create' ? newEventLabel : detailsLabel }}
           </h2>
           <button
             (click)="panelService.close()"
@@ -59,6 +59,8 @@ export class ContextPanelComponent {
   readonly panelService = inject(ContextPanelService);
   private readonly sanitizer = inject(DomSanitizer);
 
+  readonly newEventLabel = $localize`:@@calendar.event.newTitle:New Event`;
+  readonly detailsLabel = $localize`:@@contextPanel.details:Details`;
   readonly closeIcon = this.sanitizer.bypassSecurityTrustHtml(ICONS.CLOSE);
 
   @HostListener('document:keydown.escape')

@@ -14,7 +14,7 @@ public sealed class CancelCalendarEventCommandHandler(
         CancellationToken cancellationToken)
     {
         var calendarEvent = await repository.GetByIdAsync(command.CalendarEventId, cancellationToken)
-            ?? throw new DomainException("Calendar event not found");
+            ?? throw new DomainException("Calendar event not found", DomainErrorCodes.CalendarEventNotFound);
 
         calendarEvent.Cancel();
         await repository.SaveChangesAsync(cancellationToken);

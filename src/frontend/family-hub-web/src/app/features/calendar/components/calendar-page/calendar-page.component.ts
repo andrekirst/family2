@@ -20,7 +20,7 @@ import { EventContextComponent } from '../event-context/event-context.component'
 import { TopBarService } from '../../../../shared/services/top-bar.service';
 import { ContextPanelService } from '../../../../shared/services/context-panel.service';
 import { CalendarViewMode } from '../../models/calendar.models';
-import { getWeekStart, getWeekEnd, formatWeekLabel } from '../../utils/week.utils';
+import { getWeekStart, getWeekEnd, formatWeekLabel, getStoredLocale } from '../../utils/week.utils';
 
 @Component({
   selector: 'app-calendar-page',
@@ -56,6 +56,7 @@ import { getWeekStart, getWeekEnd, formatWeekLabel } from '../../utils/week.util
           (click)="goToToday()"
           class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           data-testid="today-button"
+          i18n="@@calendar.today"
         >
           Today
         </button>
@@ -162,7 +163,7 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
 
   monthLabel = computed(() => {
     const date = this.currentMonth();
-    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    return date.toLocaleDateString(getStoredLocale(), { month: 'long', year: 'numeric' });
   });
 
   weekLabel = computed(() => {
@@ -176,11 +177,11 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.topBarService.setConfig({
-      title: 'Family Calendar',
+      title: $localize`:@@calendar.title:Family Calendar`,
       actions: [
         {
           id: 'create-event',
-          label: '+ New Event',
+          label: $localize`:@@calendar.newEvent:+ New Event`,
           onClick: () => this.openCreatePanel(),
           variant: 'primary',
           testId: 'create-event-button',
