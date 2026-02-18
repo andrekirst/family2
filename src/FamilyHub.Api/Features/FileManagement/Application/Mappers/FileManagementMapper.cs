@@ -177,4 +177,19 @@ public static class FileManagementMapper
         CreatedAt = note.CreatedAt,
         UpdatedAt = note.UpdatedAt
     };
+
+    public static ZipJobDto ToDto(ZipJob job) => new()
+    {
+        Id = job.Id.Value,
+        FamilyId = job.FamilyId.Value,
+        InitiatedBy = job.InitiatedBy.Value,
+        FileCount = job.FileIds.Count,
+        Status = job.Status.ToString(),
+        Progress = job.Progress,
+        ZipSize = job.ZipSize,
+        ErrorMessage = job.ErrorMessage,
+        CreatedAt = job.CreatedAt,
+        CompletedAt = job.CompletedAt,
+        ExpiresAt = job.ExpiresAt
+    };
 }

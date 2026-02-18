@@ -57,6 +57,9 @@ public static class DomainErrorCodes
     public const string SecureNoteNotFound = "SECURE_NOTE_NOT_FOUND";
     public const string ExternalConnectionNotFound = "EXTERNAL_CONNECTION_NOT_FOUND";
     public const string ExternalConnectionAlreadyExists = "EXTERNAL_CONNECTION_ALREADY_EXISTS";
+    public const string ZipJobNotFound = "ZIP_JOB_NOT_FOUND";
+    public const string ZipJobConcurrentLimitReached = "ZIP_JOB_CONCURRENT_LIMIT_REACHED";
+    public const string ZipJobTooManyFiles = "ZIP_JOB_TOO_MANY_FILES";
 
     // EventChain
     public const string ChainDefinitionNotFound = "CHAIN_DEFINITION_NOT_FOUND";

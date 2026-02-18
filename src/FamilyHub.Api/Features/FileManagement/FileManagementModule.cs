@@ -53,5 +53,6 @@ public sealed class FileManagementModule : IModule
         services.AddSingleton<IThumbnailGenerationService, ThumbnailGenerationService>();
         services.AddScoped<ISecureNoteRepository, SecureNoteRepository>();
         services.AddScoped<IExternalConnectionRepository, ExternalConnectionRepository>();
+        services.AddScoped<IZipJobRepository, ZipJobRepository>();
     }
 }

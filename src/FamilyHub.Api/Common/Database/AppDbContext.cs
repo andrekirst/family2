@@ -25,6 +25,7 @@ using FileManagementShareLinkAccessLog = FamilyHub.Api.Features.FileManagement.D
 using FileManagementFileThumbnail = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileThumbnail;
 using FileManagementSecureNote = FamilyHub.Api.Features.FileManagement.Domain.Entities.SecureNote;
 using FileManagementExternalConnection = FamilyHub.Api.Features.FileManagement.Domain.Entities.ExternalConnection;
+using FileManagementZipJob = FamilyHub.Api.Features.FileManagement.Domain.Entities.ZipJob;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -106,6 +107,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<FileManagementFileThumbnail> FileThumbnails { get; set; }
     public DbSet<FileManagementSecureNote> SecureNotes { get; set; }
     public DbSet<FileManagementExternalConnection> ExternalConnections { get; set; }
+    public DbSet<FileManagementZipJob> ZipJobs { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }
