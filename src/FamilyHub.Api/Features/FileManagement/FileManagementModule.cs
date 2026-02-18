@@ -28,6 +28,7 @@ public sealed class FileManagementModule : IModule
 
         // Application services
         services.AddSingleton<IMetadataExtractionService, MetadataExtractionService>();
+        services.AddScoped<IFileManagementAuthorizationService, FileManagementAuthorizationService>();
 
         // Domain repositories
         services.AddScoped<IStoredFileRepository, StoredFileRepository>();
@@ -38,5 +39,6 @@ public sealed class FileManagementModule : IModule
         services.AddScoped<IAlbumRepository, AlbumRepository>();
         services.AddScoped<IAlbumItemRepository, AlbumItemRepository>();
         services.AddScoped<IUserFavoriteRepository, UserFavoriteRepository>();
+        services.AddScoped<IFilePermissionRepository, FilePermissionRepository>();
     }
 }

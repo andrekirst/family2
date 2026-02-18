@@ -65,4 +65,13 @@ public static class FileManagementMapper
         CreatedAt = album.CreatedAt,
         UpdatedAt = album.UpdatedAt
     };
+
+    public static FilePermissionDto ToDto(FilePermission permission) => new(
+        Id: permission.Id.Value,
+        ResourceType: permission.ResourceType.ToString(),
+        ResourceId: permission.ResourceId,
+        MemberId: permission.MemberId.Value,
+        PermissionLevel: permission.PermissionLevel,
+        GrantedBy: permission.GrantedBy.Value,
+        GrantedAt: permission.GrantedAt);
 }
