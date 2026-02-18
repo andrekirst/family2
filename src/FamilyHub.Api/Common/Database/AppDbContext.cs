@@ -4,6 +4,7 @@ using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Infrastructure.Data;
 using FamilyHub.EventChain.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -60,6 +61,11 @@ public class AppDbContext : DbContext, IUnitOfWork
     // Dashboard entities
     public DbSet<DashboardLayout> DashboardLayouts { get; set; }
     public DbSet<DashboardWidget> DashboardWidgets { get; set; }
+
+    // File Management entities
+    public DbSet<FileBlob> FileBlobs { get; set; }
+    public DbSet<StorageQuota> StorageQuotas { get; set; }
+    public DbSet<UploadChunk> UploadChunks { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

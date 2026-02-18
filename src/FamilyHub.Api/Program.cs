@@ -13,6 +13,8 @@ using FamilyHub.Api.Features.Calendar;
 using FamilyHub.Api.Features.Dashboard;
 using FamilyHub.Api.Features.EventChain;
 using FamilyHub.Api.Features.Family;
+using FamilyHub.Api.Features.FileManagement;
+using FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -110,6 +112,7 @@ builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
 builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
 builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
+builder.Services.RegisterModule<FileManagementModule>(builder.Configuration);
 
 // Configure CORS for Angular frontend (supports multi-environment via config)
 var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -173,6 +176,7 @@ app.UseMiddleware<PostgresRlsMiddleware>();
 
 app.MapGraphQL();
 app.MapControllers(); // REST endpoints (avatar serving)
+app.MapFileEndpoints(); // REST endpoints (file upload/download/stream)
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
