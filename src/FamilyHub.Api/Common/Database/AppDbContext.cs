@@ -20,6 +20,8 @@ using FileManagementSavedSearch = FamilyHub.Api.Features.FileManagement.Domain.E
 using FileManagementOrganizationRule = FamilyHub.Api.Features.FileManagement.Domain.Entities.OrganizationRule;
 using FileManagementProcessingLogEntry = FamilyHub.Api.Features.FileManagement.Domain.Entities.ProcessingLogEntry;
 using FileManagementFileVersion = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileVersion;
+using FileManagementShareLink = FamilyHub.Api.Features.FileManagement.Domain.Entities.ShareLink;
+using FileManagementShareLinkAccessLog = FamilyHub.Api.Features.FileManagement.Domain.Entities.ShareLinkAccessLog;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -96,6 +98,8 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<FileManagementOrganizationRule> OrganizationRules { get; set; }
     public DbSet<FileManagementProcessingLogEntry> ProcessingLogEntries { get; set; }
     public DbSet<FileManagementFileVersion> FileVersions { get; set; }
+    public DbSet<FileManagementShareLink> ShareLinks { get; set; }
+    public DbSet<FileManagementShareLinkAccessLog> ShareLinkAccessLogs { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

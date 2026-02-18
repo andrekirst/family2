@@ -113,4 +113,30 @@ public static class FileManagementMapper
         IsCurrent = version.IsCurrent,
         UploadedAt = version.UploadedAt
     };
+
+    public static ShareLinkDto ToDto(ShareLink link) => new()
+    {
+        Id = link.Id.Value,
+        Token = link.Token,
+        ResourceType = link.ResourceType.ToString(),
+        ResourceId = link.ResourceId,
+        FamilyId = link.FamilyId.Value,
+        CreatedBy = link.CreatedBy.Value,
+        ExpiresAt = link.ExpiresAt,
+        HasPassword = link.HasPassword,
+        MaxDownloads = link.MaxDownloads,
+        DownloadCount = link.DownloadCount,
+        IsRevoked = link.IsRevoked,
+        IsExpired = link.IsExpired,
+        IsAccessible = link.IsAccessible,
+        CreatedAt = link.CreatedAt
+    };
+
+    public static ShareLinkAccessLogDto ToDto(ShareLinkAccessLog log) => new(
+        Id: log.Id.Value,
+        ShareLinkId: log.ShareLinkId.Value,
+        IpAddress: log.IpAddress,
+        UserAgent: log.UserAgent,
+        Action: log.Action.ToString(),
+        AccessedAt: log.AccessedAt);
 }

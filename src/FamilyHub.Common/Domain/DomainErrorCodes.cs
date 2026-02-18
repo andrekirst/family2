@@ -48,6 +48,12 @@ public static class DomainErrorCodes
     public const string OrganizationRuleNotFound = "ORGANIZATION_RULE_NOT_FOUND";
     public const string InboxFolderNotFound = "INBOX_FOLDER_NOT_FOUND";
     public const string FileVersionNotFound = "FILE_VERSION_NOT_FOUND";
+    public const string ShareLinkNotFound = "SHARE_LINK_NOT_FOUND";
+    public const string ShareLinkExpired = "SHARE_LINK_EXPIRED";
+    public const string ShareLinkRevoked = "SHARE_LINK_REVOKED";
+    public const string ShareLinkPasswordRequired = "SHARE_LINK_PASSWORD_REQUIRED";
+    public const string ShareLinkPasswordIncorrect = "SHARE_LINK_PASSWORD_INCORRECT";
+    public const string ShareLinkDownloadLimitReached = "SHARE_LINK_DOWNLOAD_LIMIT_REACHED";
 
     // EventChain
     public const string ChainDefinitionNotFound = "CHAIN_DEFINITION_NOT_FOUND";
