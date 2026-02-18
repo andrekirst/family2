@@ -26,6 +26,9 @@ public class FakeStoredFileRepository : IStoredFileRepository
         return Task.FromResult(Files.Where(f => idList.Contains(f.Id)).ToList());
     }
 
+    public Task<List<StoredFile>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
+        => Task.FromResult(Files.Where(f => f.FamilyId == familyId).ToList());
+
     public Task AddAsync(StoredFile file, CancellationToken ct = default)
     {
         Files.Add(file);

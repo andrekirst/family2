@@ -15,6 +15,8 @@ using FileManagementAlbum = FamilyHub.Api.Features.FileManagement.Domain.Entitie
 using FileManagementAlbumItem = FamilyHub.Api.Features.FileManagement.Domain.Entities.AlbumItem;
 using FileManagementUserFavorite = FamilyHub.Api.Features.FileManagement.Domain.Entities.UserFavorite;
 using FileManagementFilePermission = FamilyHub.Api.Features.FileManagement.Domain.Entities.FilePermission;
+using FileManagementRecentSearch = FamilyHub.Api.Features.FileManagement.Domain.Entities.RecentSearch;
+using FileManagementSavedSearch = FamilyHub.Api.Features.FileManagement.Domain.Entities.SavedSearch;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -86,6 +88,8 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<FileManagementAlbumItem> AlbumItems { get; set; }
     public DbSet<FileManagementUserFavorite> UserFavorites { get; set; }
     public DbSet<FileManagementFilePermission> FilePermissions { get; set; }
+    public DbSet<FileManagementRecentSearch> RecentSearches { get; set; }
+    public DbSet<FileManagementSavedSearch> SavedSearches { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

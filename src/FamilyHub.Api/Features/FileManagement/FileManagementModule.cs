@@ -40,5 +40,8 @@ public sealed class FileManagementModule : IModule
         services.AddScoped<IAlbumItemRepository, AlbumItemRepository>();
         services.AddScoped<IUserFavoriteRepository, UserFavoriteRepository>();
         services.AddScoped<IFilePermissionRepository, FilePermissionRepository>();
+        services.AddScoped<IRecentSearchRepository, RecentSearchRepository>();
+        services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
+        services.AddScoped<IFileSearchService, FileSearchService>();
     }
 }

@@ -33,6 +33,12 @@ public sealed class StoredFileRepository(AppDbContext context) : IStoredFileRepo
             .ToListAsync(ct);
     }
 
+    public async Task<List<StoredFile>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
+        => await context.Set<StoredFile>()
+            .Where(f => f.FamilyId == familyId)
+            .OrderBy(f => f.Name)
+            .ToListAsync(ct);
+
     public async Task AddAsync(StoredFile file, CancellationToken ct = default)
         => await context.Set<StoredFile>().AddAsync(file, ct);
 
