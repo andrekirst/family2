@@ -42,4 +42,10 @@ public class RootQuery
     /// </summary>
     [Authorize]
     public EventChainQuery EventChain() => new();
+
+    /// <summary>
+    /// File management queries (files, folders).
+    /// </summary>
+    [Authorize]
+    public FileManagementQuery FileManagement() => new();
 }

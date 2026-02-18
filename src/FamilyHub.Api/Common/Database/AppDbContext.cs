@@ -6,6 +6,8 @@ using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Data;
 using FamilyHub.EventChain.Domain.Entities;
+using FileManagementStoredFile = FamilyHub.Api.Features.FileManagement.Domain.Entities.StoredFile;
+using FileManagementFolder = FamilyHub.Api.Features.FileManagement.Domain.Entities.Folder;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -66,6 +68,10 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<FileBlob> FileBlobs { get; set; }
     public DbSet<StorageQuota> StorageQuotas { get; set; }
     public DbSet<UploadChunk> UploadChunks { get; set; }
+
+    // File Management domain entities
+    public DbSet<FileManagementStoredFile> ManagedFiles { get; set; }
+    public DbSet<FileManagementFolder> Folders { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

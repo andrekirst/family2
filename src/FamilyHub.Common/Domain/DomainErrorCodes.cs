@@ -37,6 +37,12 @@ public static class DomainErrorCodes
     public const string CannotUpdateCancelledEvent = "CANNOT_UPDATE_CANCELLED_EVENT";
     public const string MustBeFamilyMemberToCreateEvent = "MUST_BE_FAMILY_MEMBER_TO_CREATE_EVENT";
 
+    // File Management
+    public const string NotFound = "NOT_FOUND";
+    public const string Forbidden = "FORBIDDEN";
+    public const string FileNotFound = "FILE_NOT_FOUND";
+    public const string FolderNotFound = "FOLDER_NOT_FOUND";
+
     // EventChain
     public const string ChainDefinitionNotFound = "CHAIN_DEFINITION_NOT_FOUND";
     public const string ChainExecutionNotFound = "CHAIN_EXECUTION_NOT_FOUND";

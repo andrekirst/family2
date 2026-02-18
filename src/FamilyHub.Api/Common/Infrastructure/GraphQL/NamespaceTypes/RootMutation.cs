@@ -25,4 +25,10 @@ public class RootMutation
     /// </summary>
     [Authorize]
     public EventChainMutation EventChain() => new();
+
+    /// <summary>
+    /// File management mutations (upload, delete, rename, move files; create folders).
+    /// </summary>
+    [Authorize]
+    public FileManagementMutation FileManagement() => new();
 }

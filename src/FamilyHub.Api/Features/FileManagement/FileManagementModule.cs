@@ -1,4 +1,6 @@
 using FamilyHub.Api.Common.Modules;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
+using FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Storage;
 
 namespace FamilyHub.Api.Features.FileManagement;
@@ -21,5 +23,9 @@ public sealed class FileManagementModule : IModule
         services.AddSingleton<IChecksumCalculator, ChecksumCalculator>();
         services.AddScoped<IStorageQuotaService, StorageQuotaService>();
         services.AddScoped<IFileManagementStorageService, FileManagementStorageService>();
+
+        // Domain repositories
+        services.AddScoped<IStoredFileRepository, StoredFileRepository>();
+        services.AddScoped<IFolderRepository, FolderRepository>();
     }
 }
