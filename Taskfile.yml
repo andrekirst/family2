@@ -41,12 +41,16 @@ tasks:
       - docker volume create fh-proxy-registry-dockerhub
       - docker volume create fh-proxy-registry-mcr
       - docker volume create fh-proxy-registry-ghcr
+      - docker volume create fh-infisical-pg
+      - docker volume create fh-infisical-redis
     status:
       - docker volume inspect fh-proxy-verdaccio >/dev/null 2>&1
       - docker volume inspect fh-proxy-baget >/dev/null 2>&1
       - docker volume inspect fh-proxy-registry-dockerhub >/dev/null 2>&1
       - docker volume inspect fh-proxy-registry-mcr >/dev/null 2>&1
       - docker volume inspect fh-proxy-registry-ghcr >/dev/null 2>&1
+      - docker volume inspect fh-infisical-pg >/dev/null 2>&1
+      - docker volume inspect fh-infisical-redis >/dev/null 2>&1
 
   # ---------------------------------------------------------------------------
   # Traefik (shared proxy)
@@ -59,6 +63,7 @@ tasks:
     status:
       - docker compose -f {{.TRAEFIK_COMPOSE}} ps --status running | grep -q traefik
       - docker compose -f {{.TRAEFIK_COMPOSE}} ps --status running | grep -q verdaccio
+      - docker compose -f {{.TRAEFIK_COMPOSE}} ps --status running | grep -q infisical
 
   traefik:down:
     desc: Stop shared Traefik reverse proxy
@@ -77,11 +82,18 @@ tasks:
     desc: 'Start environment for current branch ({{.ENV_NAME}})'
     deps: [traefik:up]
     cmds:
-      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} up -d --build
+      - |
+        SECRETS=$(bash {{.INFRA_DIR}}/scripts/fetch-infisical-secrets.sh 2>/dev/null) && eval "$SECRETS"
+        ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} up -d --build
     env:
       ENV_NAME: '{{.ENV_NAME}}'
       DOCKER_UID: '{{.DOCKER_UID}}'
       DOCKER_GID: '{{.DOCKER_GID}}'
+
+  env:secrets:
+    desc: 'Show secrets that would be fetched from Infisical (debug)'
+    cmds:
+      - bash {{.INFRA_DIR}}/scripts/fetch-infisical-secrets.sh
 
   env:down:
     desc: 'Stop environment (data persists)'
@@ -136,18 +148,19 @@ tasks:
         echo ""
         echo "  Environment: {{.ENV_NAME}}"
         echo "  ──────────────────────────────────────────"
-        echo "  App:       https://{{.ENV_NAME}}.localhost:4443"
-        echo "  API:       https://api-{{.ENV_NAME}}.localhost:4443/graphql"
-        echo "  Keycloak:  https://kc-{{.ENV_NAME}}.localhost:4443"
-        echo "  MailHog:   https://mail-{{.ENV_NAME}}.localhost:4443"
-        echo "  pgAdmin:   https://pgadmin-{{.ENV_NAME}}.localhost:4443"
+        echo "  App:       https://{{.ENV_NAME}}.dev.andrekirst.de:4443"
+        echo "  API:       https://api-{{.ENV_NAME}}.dev.andrekirst.de:4443/graphql"
+        echo "  Keycloak:  https://kc-{{.ENV_NAME}}.dev.andrekirst.de:4443"
+        echo "  MailHog:   https://mail-{{.ENV_NAME}}.dev.andrekirst.de:4443"
+        echo "  pgAdmin:   https://pgadmin-{{.ENV_NAME}}.dev.andrekirst.de:4443"
         echo "  ──────────────────────────────────────────"
-        echo "  Hub:       https://hub.localhost:4443"
+        echo "  Hub:       https://hub.dev.andrekirst.de:4443"
         echo "  Traefik:   http://localhost:8888"
+        echo "  Infisical: https://infisical.dev.andrekirst.de:4443  (localhost:8180)"
         echo "  ──────────────────────────────────────────"
         echo "  Proxies:"
-        echo "  npm:       https://npm.localhost:4443    (localhost:4873)"
-        echo "  NuGet:     https://nuget.localhost:4443  (localhost:5555)"
+        echo "  npm:       https://npm.dev.andrekirst.de:4443    (localhost:4873)"
+        echo "  NuGet:     https://nuget.dev.andrekirst.de:4443  (localhost:5555)"
         echo "  DockerHub: localhost:5001"
         echo "  MCR:       localhost:5002"
         echo "  GHCR:      localhost:5003"
@@ -195,4 +208,4 @@ tasks:
   hub:
     desc: 'Open Environment Hub in browser'
     cmds:
-      - xdg-open https://hub.localhost:4443 2>/dev/null || open https://hub.localhost:4443 2>/dev/null || echo "Open https://hub.localhost:4443 in your browser"
+      - xdg-open https://hub.dev.andrekirst.de:4443 2>/dev/null || open https://hub.dev.andrekirst.de:4443 2>/dev/null || echo "Open https://hub.dev.andrekirst.de:4443 in your browser"

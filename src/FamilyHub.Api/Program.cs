@@ -3,6 +3,7 @@ using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.Behaviors;
+using FamilyHub.Api.Common.Infrastructure.Configuration.Infisical;
 using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
@@ -20,6 +21,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Infisical secrets management (loads secrets from vault into IConfiguration)
+builder.Configuration.AddInfisical();
 
 // Configure forwarded headers for reverse proxy (Traefik)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>

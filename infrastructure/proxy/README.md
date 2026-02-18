@@ -18,8 +18,8 @@ All proxy services run in the shared Traefik compose stack (`docker-compose.trae
 
 | Service | Port | Web UI | Cache Target |
 |---------|------|--------|--------------|
-| Verdaccio | `localhost:4873` | `https://npm.localhost:4443` | npmjs.org |
-| BaGet | `localhost:5555` | `https://nuget.localhost:4443` | nuget.org |
+| Verdaccio | `localhost:4873` | `https://npm.dev.andrekirst.de:4443` | npmjs.org |
+| BaGet | `localhost:5555` | `https://nuget.dev.andrekirst.de:4443` | nuget.org |
 | Registry (Docker Hub) | `localhost:5001` | — | registry-1.docker.io |
 | Registry (MCR) | `localhost:5002` | — | mcr.microsoft.com |
 | Registry (GHCR) | `localhost:5003` | — | ghcr.io |

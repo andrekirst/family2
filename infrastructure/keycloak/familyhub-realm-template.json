@@ -69,12 +69,12 @@
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:4200/*", "https://__ENV_NAME__.localhost:4443/*"],
-      "webOrigins": ["http://localhost:4200", "https://__ENV_NAME__.localhost:4443"],
+      "redirectUris": ["http://localhost:4200/*", "https://__ENV_NAME__.dev.andrekirst.de:4443/*"],
+      "webOrigins": ["http://localhost:4200", "https://__ENV_NAME__.dev.andrekirst.de:4443"],
       "protocol": "openid-connect",
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:4200##https://__ENV_NAME__.localhost:4443",
+        "post.logout.redirect.uris": "http://localhost:4200##https://__ENV_NAME__.dev.andrekirst.de:4443",
         "access.token.lifespan": "3600",
         "oauth2.device.authorization.grant.enabled": "false",
         "oidc.ciba.grant.enabled": "false"
