@@ -30,6 +30,7 @@ public sealed class Folder : AggregateRoot<FolderId>
             MaterializedPath = materializedPath,
             FamilyId = familyId,
             CreatedBy = createdBy,
+            IsInbox = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -53,6 +54,28 @@ public sealed class Folder : AggregateRoot<FolderId>
             MaterializedPath = "/",
             FamilyId = familyId,
             CreatedBy = createdBy,
+            IsInbox = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        return folder;
+    }
+
+    /// <summary>
+    /// Creates the dedicated inbox folder for a family. Cannot be deleted or renamed.
+    /// </summary>
+    public static Folder CreateInbox(FolderId rootFolderId, FamilyId familyId, UserId createdBy)
+    {
+        var folder = new Folder
+        {
+            Id = FolderId.New(),
+            Name = FileName.From("Inbox"),
+            ParentFolderId = rootFolderId,
+            MaterializedPath = $"/{rootFolderId.Value}/",
+            FamilyId = familyId,
+            CreatedBy = createdBy,
+            IsInbox = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -65,6 +88,7 @@ public sealed class Folder : AggregateRoot<FolderId>
     public string MaterializedPath { get; private set; }
     public FamilyId FamilyId { get; private set; }
     public UserId CreatedBy { get; private set; }
+    public bool IsInbox { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 

@@ -45,6 +45,8 @@ public static class DomainErrorCodes
     public const string FolderNotFound = "FOLDER_NOT_FOUND";
     public const string TagNotFound = "TAG_NOT_FOUND";
     public const string AlbumNotFound = "ALBUM_NOT_FOUND";
+    public const string OrganizationRuleNotFound = "ORGANIZATION_RULE_NOT_FOUND";
+    public const string InboxFolderNotFound = "INBOX_FOLDER_NOT_FOUND";
 
     // EventChain
     public const string ChainDefinitionNotFound = "CHAIN_DEFINITION_NOT_FOUND";

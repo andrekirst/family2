@@ -14,6 +14,9 @@ public class FakeFolderRepository : IFolderRepository
     public Task<Folder?> GetRootFolderAsync(FamilyId familyId, CancellationToken ct = default)
         => Task.FromResult(Folders.FirstOrDefault(f => f.FamilyId == familyId && f.ParentFolderId == null));
 
+    public Task<Folder?> GetInboxFolderAsync(FamilyId familyId, CancellationToken ct = default)
+        => Task.FromResult(Folders.FirstOrDefault(f => f.FamilyId == familyId && f.IsInbox));
+
     public Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken ct = default)
         => Task.FromResult(Folders.Where(f => f.ParentFolderId == parentId).ToList());
 

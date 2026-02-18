@@ -15,6 +15,10 @@ public sealed class FolderRepository(AppDbContext context) : IFolderRepository
         => await context.Set<Folder>()
             .FirstOrDefaultAsync(f => f.FamilyId == familyId && f.ParentFolderId == null, ct);
 
+    public async Task<Folder?> GetInboxFolderAsync(FamilyId familyId, CancellationToken ct = default)
+        => await context.Set<Folder>()
+            .FirstOrDefaultAsync(f => f.FamilyId == familyId && f.IsInbox, ct);
+
     public async Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken ct = default)
         => await context.Set<Folder>()
             .Where(f => f.ParentFolderId == parentId)

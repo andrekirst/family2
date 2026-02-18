@@ -17,6 +17,8 @@ using FileManagementUserFavorite = FamilyHub.Api.Features.FileManagement.Domain.
 using FileManagementFilePermission = FamilyHub.Api.Features.FileManagement.Domain.Entities.FilePermission;
 using FileManagementRecentSearch = FamilyHub.Api.Features.FileManagement.Domain.Entities.RecentSearch;
 using FileManagementSavedSearch = FamilyHub.Api.Features.FileManagement.Domain.Entities.SavedSearch;
+using FileManagementOrganizationRule = FamilyHub.Api.Features.FileManagement.Domain.Entities.OrganizationRule;
+using FileManagementProcessingLogEntry = FamilyHub.Api.Features.FileManagement.Domain.Entities.ProcessingLogEntry;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -90,6 +92,8 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<FileManagementFilePermission> FilePermissions { get; set; }
     public DbSet<FileManagementRecentSearch> RecentSearches { get; set; }
     public DbSet<FileManagementSavedSearch> SavedSearches { get; set; }
+    public DbSet<FileManagementOrganizationRule> OrganizationRules { get; set; }
+    public DbSet<FileManagementProcessingLogEntry> ProcessingLogEntries { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

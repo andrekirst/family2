@@ -74,4 +74,30 @@ public static class FileManagementMapper
         PermissionLevel: permission.PermissionLevel,
         GrantedBy: permission.GrantedBy.Value,
         GrantedAt: permission.GrantedAt);
+
+    public static OrganizationRuleDto ToDto(OrganizationRule rule) => new(
+        Id: rule.Id.Value,
+        Name: rule.Name,
+        ConditionsJson: rule.ConditionsJson,
+        ConditionLogic: rule.ConditionLogic,
+        ActionType: rule.ActionType,
+        ActionsJson: rule.ActionsJson,
+        Priority: rule.Priority,
+        IsEnabled: rule.IsEnabled,
+        CreatedBy: rule.CreatedBy.Value,
+        CreatedAt: rule.CreatedAt,
+        UpdatedAt: rule.UpdatedAt);
+
+    public static ProcessingLogEntryDto ToDto(ProcessingLogEntry entry) => new(
+        Id: entry.Id.Value,
+        FileId: entry.FileId.Value,
+        FileName: entry.FileName,
+        MatchedRuleId: entry.MatchedRuleId?.Value,
+        MatchedRuleName: entry.MatchedRuleName,
+        ActionTaken: entry.ActionTaken,
+        DestinationFolderId: entry.DestinationFolderId?.Value,
+        AppliedTagNames: entry.AppliedTagNames,
+        Success: entry.Success,
+        ErrorMessage: entry.ErrorMessage,
+        ProcessedAt: entry.ProcessedAt);
 }

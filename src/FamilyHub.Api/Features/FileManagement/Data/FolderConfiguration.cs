@@ -40,11 +40,16 @@ public class FolderConfiguration : IEntityTypeConfiguration<Folder>
             .HasConversion(id => id.Value, value => UserId.From(value))
             .IsRequired();
 
+        builder.Property(f => f.IsInbox)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(f => f.CreatedAt).IsRequired();
         builder.Property(f => f.UpdatedAt).IsRequired();
 
         builder.HasIndex(f => f.FamilyId);
         builder.HasIndex(f => f.ParentFolderId);
         builder.HasIndex(f => f.MaterializedPath);
+        builder.HasIndex(f => new { f.FamilyId, f.IsInbox });
     }
 }

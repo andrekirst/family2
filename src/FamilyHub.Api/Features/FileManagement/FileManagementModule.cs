@@ -43,5 +43,8 @@ public sealed class FileManagementModule : IModule
         services.AddScoped<IRecentSearchRepository, RecentSearchRepository>();
         services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
         services.AddScoped<IFileSearchService, FileSearchService>();
+        services.AddScoped<IOrganizationRuleRepository, OrganizationRuleRepository>();
+        services.AddScoped<IProcessingLogRepository, ProcessingLogRepository>();
+        services.AddSingleton<IOrganizationRuleEngine, OrganizationRuleEngine>();
     }
 }

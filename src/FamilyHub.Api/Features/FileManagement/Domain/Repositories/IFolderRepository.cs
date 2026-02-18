@@ -6,6 +6,7 @@ public interface IFolderRepository
 {
     Task<Entities.Folder?> GetByIdAsync(FolderId id, CancellationToken ct = default);
     Task<Entities.Folder?> GetRootFolderAsync(FamilyId familyId, CancellationToken ct = default);
+    Task<Entities.Folder?> GetInboxFolderAsync(FamilyId familyId, CancellationToken ct = default);
     Task<List<Entities.Folder>> GetChildrenAsync(FolderId parentId, CancellationToken ct = default);
 
     /// <summary>
