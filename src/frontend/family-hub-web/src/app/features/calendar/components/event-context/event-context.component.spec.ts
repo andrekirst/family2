@@ -210,7 +210,7 @@ describe('EventContextComponent', () => {
       component.onTitleSaved('');
       fixture.detectChanges();
       expect(queryByTestId(nativeElement, 'event-context-title-error')?.textContent?.trim()).toBe(
-        'Title is required',
+        'Event title is required',
       );
     });
 
@@ -252,7 +252,7 @@ describe('EventContextComponent', () => {
       component.save();
       fixture.detectChanges();
       expect(queryByTestId(nativeElement, 'event-context-error')?.textContent).toContain(
-        'Failed to save',
+        'Failed to update event',
       );
     });
 
