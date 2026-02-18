@@ -149,4 +149,19 @@ public static class FileManagementMapper
         StorageKey = thumbnail.StorageKey.Value,
         GeneratedAt = thumbnail.GeneratedAt
     };
+
+    public static SecureNoteDto ToDto(SecureNote note) => new()
+    {
+        Id = note.Id.Value,
+        FamilyId = note.FamilyId.Value,
+        UserId = note.UserId.Value,
+        Category = note.Category.ToString(),
+        EncryptedTitle = note.EncryptedTitle,
+        EncryptedContent = note.EncryptedContent,
+        Iv = note.Iv,
+        Salt = note.Salt,
+        Sentinel = note.Sentinel,
+        CreatedAt = note.CreatedAt,
+        UpdatedAt = note.UpdatedAt
+    };
 }

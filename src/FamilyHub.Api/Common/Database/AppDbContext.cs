@@ -23,6 +23,7 @@ using FileManagementFileVersion = FamilyHub.Api.Features.FileManagement.Domain.E
 using FileManagementShareLink = FamilyHub.Api.Features.FileManagement.Domain.Entities.ShareLink;
 using FileManagementShareLinkAccessLog = FamilyHub.Api.Features.FileManagement.Domain.Entities.ShareLinkAccessLog;
 using FileManagementFileThumbnail = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileThumbnail;
+using FileManagementSecureNote = FamilyHub.Api.Features.FileManagement.Domain.Entities.SecureNote;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -102,6 +103,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<FileManagementShareLink> ShareLinks { get; set; }
     public DbSet<FileManagementShareLinkAccessLog> ShareLinkAccessLogs { get; set; }
     public DbSet<FileManagementFileThumbnail> FileThumbnails { get; set; }
+    public DbSet<FileManagementSecureNote> SecureNotes { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }
