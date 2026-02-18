@@ -52,4 +52,17 @@ public static class FileManagementMapper
         CaptureDate = metadata.CaptureDate,
         HasGpsData = metadata.HasGpsData
     };
+
+    public static AlbumDto ToDto(Album album, int itemCount = 0) => new()
+    {
+        Id = album.Id.Value,
+        Name = album.Name.Value,
+        Description = album.Description,
+        CoverFileId = album.CoverFileId?.Value,
+        FamilyId = album.FamilyId.Value,
+        CreatedBy = album.CreatedBy.Value,
+        ItemCount = itemCount,
+        CreatedAt = album.CreatedAt,
+        UpdatedAt = album.UpdatedAt
+    };
 }

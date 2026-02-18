@@ -11,6 +11,9 @@ using FileManagementFolder = FamilyHub.Api.Features.FileManagement.Domain.Entiti
 using FileManagementTag = FamilyHub.Api.Features.FileManagement.Domain.Entities.Tag;
 using FileManagementFileTag = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileTag;
 using FileManagementFileMetadata = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileMetadata;
+using FileManagementAlbum = FamilyHub.Api.Features.FileManagement.Domain.Entities.Album;
+using FileManagementAlbumItem = FamilyHub.Api.Features.FileManagement.Domain.Entities.AlbumItem;
+using FileManagementUserFavorite = FamilyHub.Api.Features.FileManagement.Domain.Entities.UserFavorite;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -78,6 +81,9 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<FileManagementTag> Tags { get; set; }
     public DbSet<FileManagementFileTag> FileTags { get; set; }
     public DbSet<FileManagementFileMetadata> FileMetadatas { get; set; }
+    public DbSet<FileManagementAlbum> Albums { get; set; }
+    public DbSet<FileManagementAlbumItem> AlbumItems { get; set; }
+    public DbSet<FileManagementUserFavorite> UserFavorites { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }
