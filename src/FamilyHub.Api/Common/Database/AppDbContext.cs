@@ -4,6 +4,7 @@ using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
 using FamilyHub.EventChain.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,6 +52,10 @@ public class AppDbContext : DbContext, IUnitOfWork
     /// Calendar event attendees (join table)
     /// </summary>
     public DbSet<CalendarEventAttendee> CalendarEventAttendees { get; set; }
+
+    // Google Integration entities
+    public DbSet<GoogleAccountLink> GoogleAccountLinks { get; set; }
+    public DbSet<OAuthState> OAuthStates { get; set; }
 
     // Avatar infrastructure entities
     public DbSet<AvatarAggregate> Avatars { get; set; }

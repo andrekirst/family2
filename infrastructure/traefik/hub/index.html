@@ -133,6 +133,7 @@
     .shared-svc-dot.offline{background:var(--text-muted)}
     .svc-npm{background:#4a1c0a;color:#fb923c}
     .svc-nuget{background:#1e1b4b;color:#a5b4fc}
+    .svc-infisical{background:#1a2e05;color:#bef264}
 
     /* Empty / error states */
     .state-message{
@@ -203,8 +204,9 @@
       const PINNED_ENVS = ['main'];
 
       const SHARED_SERVICES = {
-        verdaccio: { label: 'npm Registry', css: 'svc-npm', icon: '\u25CB', url: 'https://npm.localhost:' + PORT },
-        baget:     { label: 'NuGet Gallery', css: 'svc-nuget', icon: '\u25CB', url: 'https://nuget.localhost:' + PORT },
+        verdaccio:  { label: 'npm Registry', css: 'svc-npm', icon: '\u25CB', url: 'https://npm.dev.andrekirst.de:' + PORT },
+        baget:      { label: 'NuGet Gallery', css: 'svc-nuget', icon: '\u25CB', url: 'https://nuget.dev.andrekirst.de:' + PORT },
+        infisical:  { label: 'Infisical', css: 'svc-infisical', icon: '\uD83D\uDD12', url: 'https://infisical.dev.andrekirst.de:' + PORT },
       };
 
       const content = document.getElementById('content');
@@ -262,11 +264,11 @@
       // -- Build environment URL ------------------------------------
       function envUrl(svcType, envName) {
         switch (svcType) {
-          case 'fe':   return 'https://' + envName + '.localhost:' + PORT;
-          case 'api':  return 'https://api-' + envName + '.localhost:' + PORT + '/graphql';
-          case 'kc':   return 'https://kc-' + envName + '.localhost:' + PORT;
-          case 'mail': return 'https://mail-' + envName + '.localhost:' + PORT;
-          case 'pgadmin': return 'https://pgadmin-' + envName + '.localhost:' + PORT;
+          case 'fe':   return 'https://' + envName + '.dev.andrekirst.de:' + PORT;
+          case 'api':  return 'https://api-' + envName + '.dev.andrekirst.de:' + PORT + '/graphql';
+          case 'kc':   return 'https://kc-' + envName + '.dev.andrekirst.de:' + PORT;
+          case 'mail': return 'https://mail-' + envName + '.dev.andrekirst.de:' + PORT;
+          case 'pgadmin': return 'https://pgadmin-' + envName + '.dev.andrekirst.de:' + PORT;
           default:     return '#';
         }
       }

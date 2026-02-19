@@ -69,12 +69,12 @@
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:4200/*", "https://__ENV_NAME__.localhost:4443/*"],
-      "webOrigins": ["http://localhost:4200", "https://__ENV_NAME__.localhost:4443"],
+      "redirectUris": ["http://localhost:4200/*", "https://__ENV_NAME__.dev.andrekirst.de:4443/*"],
+      "webOrigins": ["http://localhost:4200", "https://__ENV_NAME__.dev.andrekirst.de:4443"],
       "protocol": "openid-connect",
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:4200##https://__ENV_NAME__.localhost:4443",
+        "post.logout.redirect.uris": "http://localhost:4200##https://__ENV_NAME__.dev.andrekirst.de:4443",
         "access.token.lifespan": "3600",
         "oauth2.device.authorization.grant.enabled": "false",
         "oidc.ciba.grant.enabled": "false"
@@ -113,6 +113,37 @@
         }
       ],
       "realmRoles": ["family-member"]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "displayName": "Google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "__GOOGLE_CLIENT_ID__",
+        "clientSecret": "__GOOGLE_CLIENT_SECRET__",
+        "defaultScope": "openid email profile",
+        "syncMode": "IMPORT",
+        "useJwksUrl": "true"
+      }
+    }
+  ],
+  "identityProviderMappers": [
+    {
+      "name": "google-email-mapper",
+      "identityProviderAlias": "google",
+      "identityProviderMapper": "hardcoded-attribute-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "attribute": "emailVerified",
+        "attribute.value": "true"
+      }
     }
   ],
   "attributes": {

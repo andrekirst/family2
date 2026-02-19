@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate wildcard TLS certificates for *.localhost using mkcert.
+# Generate wildcard TLS certificates for *.dev.andrekirst.de using mkcert.
 # Idempotent: skips generation if certs already exist.
 set -euo pipefail
 
@@ -22,11 +22,11 @@ fi
 # Ensure the local CA is installed in the system trust store
 mkcert -install
 
-# Generate wildcard certificate for *.localhost
-# Explicit SANs for npm.localhost and nuget.localhost improve edge-case compatibility
+# Generate wildcard certificate for *.dev.andrekirst.de
+# Also includes localhost and loopback for host-based dev
 mkcert \
   -cert-file "$CERT_DIR/local.pem" \
   -key-file "$CERT_DIR/local-key.pem" \
-  "*.localhost" "localhost" "npm.localhost" "nuget.localhost" "127.0.0.1" "::1"
+  "*.dev.andrekirst.de" "dev.andrekirst.de" "localhost" "127.0.0.1" "::1"
 
 echo "Certificates generated at $CERT_DIR"

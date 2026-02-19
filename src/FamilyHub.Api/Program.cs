@@ -3,6 +3,7 @@ using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.Behaviors;
+using FamilyHub.Api.Common.Infrastructure.Configuration.Infisical;
 using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
@@ -13,6 +14,7 @@ using FamilyHub.Api.Features.Calendar;
 using FamilyHub.Api.Features.Dashboard;
 using FamilyHub.Api.Features.EventChain;
 using FamilyHub.Api.Features.Family;
+using FamilyHub.Api.Features.GoogleIntegration;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -20,6 +22,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Infisical secrets management (loads secrets from vault into IConfiguration)
+builder.Configuration.AddInfisical();
 
 // Configure forwarded headers for reverse proxy (Traefik)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -110,6 +115,10 @@ builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
 builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
 builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
+builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
+
+// REST controllers (for OAuth callback endpoints)
+builder.Services.AddControllers();
 
 // Configure CORS for Angular frontend (supports multi-environment via config)
 var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -171,6 +180,7 @@ app.UseAuthorization();
 // PostgreSQL RLS middleware - must come AFTER authentication
 app.UseMiddleware<PostgresRlsMiddleware>();
 
+app.MapControllers();
 app.MapGraphQL();
 app.MapControllers(); // REST endpoints (avatar serving)
 

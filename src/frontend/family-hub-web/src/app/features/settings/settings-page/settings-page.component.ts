@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { I18nService, SupportedLocale } from '../../../core/i18n/i18n.service';
 import {
   FormatPreferencesService,
@@ -8,13 +9,27 @@ import {
 } from '../../../core/i18n/format-preferences.service';
 import { UserService } from '../../../core/user/user.service';
 import { TopBarService } from '../../../shared/services/top-bar.service';
+import { IntegrationsPanelComponent } from '../components/integrations-panel/integrations-panel.component';
+import { GoogleIntegrationService } from '../services/google-integration.service';
 
 @Component({
   selector: 'app-settings-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IntegrationsPanelComponent],
   template: `
     <div class="max-w-2xl mx-auto space-y-6">
+      @if (successMessage) {
+        <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <p class="text-sm text-green-800">{{ successMessage }}</p>
+        </div>
+      }
+
+      @if (errorMessage) {
+        <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-sm text-red-800">{{ errorMessage }}</p>
+        </div>
+      }
+
       <!-- Profile Card -->
       <div class="bg-white shadow rounded-lg p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4" i18n="@@settings.profile">Profile</h2>
@@ -141,6 +156,11 @@ import { TopBarService } from '../../../shared/services/top-bar.service';
           </button>
         </div>
       </div>
+
+      <!-- Integrations Card -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <app-integrations-panel />
+      </div>
     </div>
   `,
 })
@@ -149,9 +169,26 @@ export class SettingsPageComponent implements OnInit {
   readonly formatPrefs = inject(FormatPreferencesService);
   readonly userService = inject(UserService);
   private readonly topBarService = inject(TopBarService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly googleService = inject(GoogleIntegrationService);
 
   readonly time24hLabel = $localize`:@@settings.24h:24-hour (14:00)`;
   readonly time12hLabel = $localize`:@@settings.12h:12-hour (2:00 PM)`;
+
+  successMessage: string | null = null;
+  errorMessage: string | null = null;
+
+  constructor() {
+    this.route.queryParams.subscribe((params) => {
+      if (params['google_linked'] === 'true') {
+        this.successMessage = 'Google account linked successfully!';
+        this.googleService.loadLinkedAccounts();
+      }
+      if (params['google_error']) {
+        this.errorMessage = `Failed to link Google account: ${params['google_error']}`;
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.topBarService.setConfig({ title: $localize`:@@settings.title:Settings` });

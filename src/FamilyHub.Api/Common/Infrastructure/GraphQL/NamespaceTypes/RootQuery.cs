@@ -42,4 +42,10 @@ public class RootQuery
     /// </summary>
     [Authorize]
     public EventChainQuery EventChain() => new();
+
+    /// <summary>
+    /// Google Integration queries (linked accounts, sync status, auth URL).
+    /// </summary>
+    [Authorize]
+    public GoogleIntegrationQuery GoogleIntegration() => new();
 }

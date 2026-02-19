@@ -24,7 +24,7 @@ services:
       - ./traefik/hub:/usr/share/nginx/html:ro
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.hub.rule=Host(`hub.localhost`)'
+      - 'traefik.http.routers.hub.rule=Host(`hub.dev.andrekirst.de`)'
       - 'traefik.http.routers.hub.entrypoints=websecure'
       - 'traefik.http.routers.hub.tls=true'
       - 'traefik.http.services.hub.loadbalancer.server.port=80'
@@ -46,7 +46,7 @@ services:
       - ./proxy/verdaccio/config.yaml:/verdaccio/conf/config.yaml:ro
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.verdaccio.rule=Host(`npm.localhost`)'
+      - 'traefik.http.routers.verdaccio.rule=Host(`npm.dev.andrekirst.de`)'
       - 'traefik.http.routers.verdaccio.entrypoints=websecure'
       - 'traefik.http.routers.verdaccio.tls=true'
       - 'traefik.http.services.verdaccio.loadbalancer.server.port=4873'
@@ -65,7 +65,7 @@ services:
       - fh-proxy-baget:/var/baget
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.baget.rule=Host(`nuget.localhost`)'
+      - 'traefik.http.routers.baget.rule=Host(`nuget.dev.andrekirst.de`)'
       - 'traefik.http.routers.baget.entrypoints=websecure'
       - 'traefik.http.routers.baget.tls=true'
       - 'traefik.http.services.baget.loadbalancer.server.port=80'
@@ -108,6 +108,63 @@ services:
     networks:
       - traefik-public
 
+  # ---------------------------------------------------------------------------
+  # Infisical — shared secrets management vault
+  # ---------------------------------------------------------------------------
+  infisical:
+    image: infisical/infisical:latest
+    restart: unless-stopped
+    ports:
+      - '8180:8080'
+    environment:
+      - NODE_ENV=production
+      - ENCRYPTION_KEY=${INFISICAL_ENCRYPTION_KEY:-bd04de0c2d9b97ffdce6ce27265b5c33}
+      - AUTH_SECRET=${INFISICAL_AUTH_SECRET:-generate-a-secret-with-openssl-rand-base64-32}
+      - DB_CONNECTION_URI=postgres://infisical:infisical@infisical-db:5432/infisical
+      - REDIS_URL=redis://infisical-redis:6379
+      - SITE_URL=http://localhost:8180
+      - TELEMETRY_ENABLED=false
+    depends_on:
+      infisical-db:
+        condition: service_healthy
+      infisical-redis:
+        condition: service_started
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.infisical.rule=Host(`infisical.dev.andrekirst.de`)'
+      - 'traefik.http.routers.infisical.entrypoints=websecure'
+      - 'traefik.http.routers.infisical.tls=true'
+      - 'traefik.http.services.infisical.loadbalancer.server.port=8080'
+    networks:
+      traefik-public:
+        aliases:
+          - infisical
+
+  infisical-db:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: infisical
+      POSTGRES_USER: infisical
+      POSTGRES_PASSWORD: infisical
+    volumes:
+      - fh-infisical-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U infisical']
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    networks:
+      - traefik-public
+
+  infisical-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - fh-infisical-redis:/data
+    networks:
+      - traefik-public
+
 volumes:
   fh-proxy-verdaccio:
     external: true
@@ -118,6 +175,10 @@ volumes:
   fh-proxy-registry-mcr:
     external: true
   fh-proxy-registry-ghcr:
+    external: true
+  fh-infisical-pg:
+    external: true
+  fh-infisical-redis:
     external: true
 
 networks:
