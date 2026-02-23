@@ -36,6 +36,10 @@ export class FileStateService {
     this.selectedFileIds.set(new Set([fileId]));
   }
 
+  selectFiles(fileIds: string[]): void {
+    this.selectedFileIds.set(new Set(fileIds));
+  }
+
   clearSelection(): void {
     this.selectedFileIds.set(new Set());
   }

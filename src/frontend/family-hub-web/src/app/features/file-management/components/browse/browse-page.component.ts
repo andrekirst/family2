@@ -17,6 +17,7 @@ import { FolderService } from '../../services/folder.service';
 import { FileDownloadService } from '../../services/file-download.service';
 import { FavoriteService } from '../../services/favorite.service';
 import { FileStateService } from '../../services/file-state.service';
+import { BatchService } from '../../services/batch.service';
 import { StoredFileDto } from '../../models/file.models';
 import { FolderDto } from '../../models/folder.models';
 import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
@@ -113,6 +114,18 @@ import { FileAction } from './file-grid-item/file-grid-item.component';
             <span [innerHTML]="icons.TAG"></span>
           </button>
 
+          <!-- Batch select toggle -->
+          <button
+            (click)="toggleBatchMode()"
+            class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            [class.text-blue-600]="batchMode()"
+            [class.text-gray-500]="!batchMode()"
+            [attr.title]="batchSelectLabel"
+            data-testid="batch-select-toggle"
+          >
+            <span [innerHTML]="icons.CHECK"></span>
+          </button>
+
           <!-- Upload button -->
           <button
             (click)="showUploadDialog.set(true)"
@@ -134,6 +147,59 @@ import { FileAction } from './file-grid-item/file-grid-item.component';
           </button>
         </div>
       </div>
+
+      <!-- Batch toolbar -->
+      @if (batchMode()) {
+        <div
+          class="flex items-center justify-between px-4 py-2 border-b border-blue-200 bg-blue-50"
+        >
+          <div class="flex items-center gap-3">
+            <button
+              (click)="exitBatchMode()"
+              class="p-1 rounded hover:bg-blue-100 text-blue-600 transition-colors"
+            >
+              <span [innerHTML]="icons.CLOSE"></span>
+            </button>
+            <span class="text-sm font-medium text-blue-800">
+              {{ fileState.selectionCount() }}
+              <span i18n="@@files.batch.selected">selected</span>
+            </span>
+            <button
+              (click)="selectAllFiles()"
+              class="text-xs text-blue-600 hover:text-blue-800 font-medium"
+              i18n="@@files.batch.selectAll"
+            >
+              Select All
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              (click)="batchMoveSelected()"
+              [disabled]="fileState.selectionCount() === 0"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              i18n="@@files.action.move"
+            >
+              Move
+            </button>
+            <button
+              (click)="batchDeleteSelected()"
+              [disabled]="fileState.selectionCount() === 0"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+              i18n="@@files.action.delete"
+            >
+              Delete
+            </button>
+            <button
+              (click)="batchDownloadZip()"
+              [disabled]="fileState.selectionCount() === 0"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              <span [innerHTML]="icons.DOWNLOAD"></span>
+              <span i18n="@@files.batch.downloadZip">Download ZIP</span>
+            </button>
+          </div>
+        </div>
+      }
 
       <!-- File grid -->
       <div class="flex-1 overflow-auto">
@@ -249,6 +315,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   private readonly folderService = inject(FolderService);
   private readonly downloadService = inject(FileDownloadService);
   private readonly favoriteService = inject(FavoriteService);
+  private readonly batchService = inject(BatchService);
   private readonly contextPanel = inject(ContextPanelService);
   readonly fileState = inject(FileStateService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -264,6 +331,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     TAG: this.sanitizer.bypassSecurityTrustHtml(ICONS.TAG),
     STAR: this.sanitizer.bypassSecurityTrustHtml(ICONS.STAR),
     STAR_FILLED: this.sanitizer.bypassSecurityTrustHtml(ICONS.STAR_FILLED),
+    CHECK: this.sanitizer.bypassSecurityTrustHtml(ICONS.CHECK),
+    CLOSE: this.sanitizer.bypassSecurityTrustHtml(ICONS.CLOSE),
+    DOWNLOAD: this.sanitizer.bypassSecurityTrustHtml(ICONS.DOWNLOAD),
   };
 
   readonly gridViewLabel = $localize`:@@files.toolbar.gridView:Grid view`;
@@ -271,6 +341,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   readonly manageTagsLabel = $localize`:@@files.toolbar.manageTags:Manage Tags`;
   readonly showFavoritesLabel = $localize`:@@files.toolbar.showFavorites:Show favorites`;
   readonly showAllLabel = $localize`:@@files.toolbar.showAll:Show all files`;
+  readonly batchSelectLabel = $localize`:@@files.batch.toggle:Select multiple`;
 
   readonly sortOptions = [
     { field: 'name' as const, label: $localize`:@@files.sort.name:Name` },
@@ -291,6 +362,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   readonly showRenameDialog = signal(false);
   readonly showTagManager = signal(false);
   readonly showFavoritesOnly = signal(false);
+  readonly batchMode = signal(false);
   private allFiles = signal<StoredFileDto[]>([]);
 
   readonly contextPanelFileId = signal<string | null>(null);
@@ -467,7 +539,46 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   onShareRequested(_fileId: string): void {
     // TODO: Open share link creation dialog
-    // For now, this is a placeholder for Phase 3 integration
+  }
+
+  toggleBatchMode(): void {
+    this.batchMode.update((v) => !v);
+    if (!this.batchMode()) {
+      this.fileState.clearSelection();
+    }
+  }
+
+  exitBatchMode(): void {
+    this.batchMode.set(false);
+    this.fileState.clearSelection();
+  }
+
+  selectAllFiles(): void {
+    const allIds = this.files().map((f) => f.id);
+    this.fileState.selectFiles(allIds);
+  }
+
+  batchMoveSelected(): void {
+    const selected = [...this.fileState.selectedFileIds()];
+    if (selected.length === 0) return;
+    this.moveItemId.set(selected[0]);
+    this.moveItemType.set('file');
+    this.showMoveDialog.set(true);
+  }
+
+  batchDeleteSelected(): void {
+    const selected = [...this.fileState.selectedFileIds()];
+    if (selected.length === 0) return;
+    this.batchService.batchDelete(selected).subscribe(() => {
+      this.exitBatchMode();
+      this.refreshContent();
+    });
+  }
+
+  batchDownloadZip(): void {
+    const selected = [...this.fileState.selectedFileIds()];
+    if (selected.length === 0) return;
+    this.batchService.downloadAsZip(selected);
   }
 
   onFileDeleted(): void {
