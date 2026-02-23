@@ -136,6 +136,16 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     /// <summary>
+    /// Re-link the user to a new external identity provider ID.
+    /// Used when the OAuth provider (e.g. Keycloak realm) is recreated.
+    /// </summary>
+    public void UpdateExternalId(ExternalUserId externalUserId)
+    {
+        ExternalUserId = externalUserId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
     /// Update user's basic profile information from OAuth provider.
     /// </summary>
     public void UpdateProfile(Email email, UserName name, bool emailVerified)
