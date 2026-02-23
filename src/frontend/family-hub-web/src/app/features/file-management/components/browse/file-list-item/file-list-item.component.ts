@@ -1,7 +1,8 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ICONS } from '../../../../../shared/icons/icons';
+import { FavoriteService } from '../../../services/favorite.service';
 import { StoredFileDto } from '../../../models/file.models';
 import { formatBytes } from '../../../utils/file-size.utils';
 import { getFileIcon } from '../../../utils/mime-type.utils';
@@ -13,11 +14,28 @@ import { FileAction } from '../file-grid-item/file-grid-item.component';
   imports: [CommonModule],
   template: `
     <div
-      class="group flex items-center gap-4 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
+      class="group relative flex items-center gap-4 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
       [class.bg-blue-50]="selected()"
       (click)="clicked.emit(file().id)"
       [attr.data-testid]="'file-list-' + file().id"
     >
+      <!-- Favorite star -->
+      <button
+        (click)="toggleFavorite($event)"
+        class="flex-shrink-0 p-0.5 rounded transition-all"
+        [class.opacity-100]="isFavorite()"
+        [class.opacity-0]="!isFavorite()"
+        [class.group-hover:opacity-100]="!isFavorite()"
+        [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+      >
+        <span
+          [innerHTML]="isFavorite() ? starFilledIcon : starIcon"
+          [class.text-yellow-500]="isFavorite()"
+          [class.text-gray-300]="!isFavorite()"
+          class="hover:text-yellow-500 transition-colors"
+        ></span>
+      </button>
+
       <span [innerHTML]="fileIcon()" class="text-gray-400 flex-shrink-0"></span>
       <span class="text-sm text-gray-900 truncate flex-1">{{ file().name }}</span>
       <span class="text-xs text-gray-500 w-20 text-right flex-shrink-0">{{
@@ -36,7 +54,7 @@ import { FileAction } from '../file-grid-item/file-grid-item.component';
 
       @if (showMenu()) {
         <div
-          class="absolute right-4 mt-36 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1"
+          class="absolute right-4 top-full w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1"
           (click)="$event.stopPropagation()"
         >
           <button
@@ -73,16 +91,23 @@ import { FileAction } from '../file-grid-item/file-grid-item.component';
   `,
 })
 export class FileListItemComponent {
+  private readonly favoriteService = inject(FavoriteService);
+
   readonly file = input.required<StoredFileDto>();
   readonly selected = input(false);
   readonly clicked = output<string>();
   readonly actionTriggered = output<FileAction>();
   readonly showMenu = signal(false);
+  readonly isFavorite = signal(false);
 
   readonly dotsIcon: SafeHtml;
+  readonly starIcon: SafeHtml;
+  readonly starFilledIcon: SafeHtml;
 
   constructor(private readonly sanitizer: DomSanitizer) {
     this.dotsIcon = sanitizer.bypassSecurityTrustHtml(ICONS.DOTS_VERTICAL);
+    this.starIcon = sanitizer.bypassSecurityTrustHtml(ICONS.STAR);
+    this.starFilledIcon = sanitizer.bypassSecurityTrustHtml(ICONS.STAR_FILLED);
   }
 
   fileIcon(): SafeHtml {
@@ -96,6 +121,13 @@ export class FileListItemComponent {
   toggleMenu(event: Event): void {
     event.stopPropagation();
     this.showMenu.update((v) => !v);
+  }
+
+  toggleFavorite(event: Event): void {
+    event.stopPropagation();
+    this.favoriteService.toggleFavorite(this.file().id).subscribe(() => {
+      this.isFavorite.update((v) => !v);
+    });
   }
 
   emitAction(action: FileAction['action']): void {

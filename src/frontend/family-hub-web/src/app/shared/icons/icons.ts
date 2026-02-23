@@ -15,7 +15,10 @@ import { ICON_LOGOUT } from './defs/logout';
 import { ICON_MENU } from './defs/menu';
 import { ICON_PENCIL } from './defs/pencil';
 import { ICON_PLUS } from './defs/plus';
+import { ICON_SEARCH } from './defs/search';
 import { ICON_SETTINGS } from './defs/settings';
+import { ICON_STAR, ICON_STAR_FILLED } from './defs/star';
+import { ICON_TAG } from './defs/tag';
 import { ICON_UPLOAD } from './defs/upload';
 import { ICON_USER_CIRCLE } from './defs/user-circle';
 import { ICON_USERS } from './defs/users';
@@ -38,7 +41,11 @@ export const ICONS = {
   MENU: ICON_MENU,
   PENCIL: ICON_PENCIL,
   PLUS: ICON_PLUS,
+  SEARCH: ICON_SEARCH,
   SETTINGS: ICON_SETTINGS,
+  STAR: ICON_STAR,
+  STAR_FILLED: ICON_STAR_FILLED,
+  TAG: ICON_TAG,
   UPLOAD: ICON_UPLOAD,
   USER_CIRCLE: ICON_USER_CIRCLE,
   USERS: ICON_USERS,

@@ -1,7 +1,8 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ICONS } from '../../../../../shared/icons/icons';
+import { FavoriteService } from '../../../services/favorite.service';
 import { StoredFileDto } from '../../../models/file.models';
 import { formatBytes } from '../../../utils/file-size.utils';
 import { getFileIcon } from '../../../utils/mime-type.utils';
@@ -23,6 +24,23 @@ export interface FileAction {
       (click)="clicked.emit(file().id)"
       [attr.data-testid]="'file-' + file().id"
     >
+      <!-- Favorite star (top-left) -->
+      <button
+        (click)="toggleFavorite($event)"
+        class="absolute top-2 left-2 p-1 rounded transition-all"
+        [class.opacity-100]="isFavorite()"
+        [class.opacity-0]="!isFavorite()"
+        [class.group-hover:opacity-100]="!isFavorite()"
+        [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+      >
+        <span
+          [innerHTML]="isFavorite() ? starFilledIcon : starIcon"
+          [class.text-yellow-500]="isFavorite()"
+          [class.text-gray-300]="!isFavorite()"
+          class="hover:text-yellow-500 transition-colors"
+        ></span>
+      </button>
+
       <div class="text-gray-400 mb-3" [innerHTML]="fileIcon()"></div>
       <p
         class="text-sm font-medium text-gray-900 truncate w-full text-center"
@@ -79,16 +97,23 @@ export interface FileAction {
   `,
 })
 export class FileGridItemComponent {
+  private readonly favoriteService = inject(FavoriteService);
+
   readonly file = input.required<StoredFileDto>();
   readonly selected = input(false);
   readonly clicked = output<string>();
   readonly actionTriggered = output<FileAction>();
   readonly showMenu = signal(false);
+  readonly isFavorite = signal(false);
 
   readonly dotsIcon: SafeHtml;
+  readonly starIcon: SafeHtml;
+  readonly starFilledIcon: SafeHtml;
 
   constructor(private readonly sanitizer: DomSanitizer) {
     this.dotsIcon = sanitizer.bypassSecurityTrustHtml(ICONS.DOTS_VERTICAL);
+    this.starIcon = sanitizer.bypassSecurityTrustHtml(ICONS.STAR);
+    this.starFilledIcon = sanitizer.bypassSecurityTrustHtml(ICONS.STAR_FILLED);
   }
 
   fileIcon(): SafeHtml {
@@ -102,6 +127,13 @@ export class FileGridItemComponent {
   toggleMenu(event: Event): void {
     event.stopPropagation();
     this.showMenu.update((v) => !v);
+  }
+
+  toggleFavorite(event: Event): void {
+    event.stopPropagation();
+    this.favoriteService.toggleFavorite(this.file().id).subscribe(() => {
+      this.isFavorite.update((v) => !v);
+    });
   }
 
   emitAction(action: FileAction['action']): void {

@@ -15,6 +15,7 @@ import { ContextPanelService } from '../../../../shared/services/context-panel.s
 import { FileService } from '../../services/file.service';
 import { FolderService } from '../../services/folder.service';
 import { FileDownloadService } from '../../services/file-download.service';
+import { FavoriteService } from '../../services/favorite.service';
 import { FileStateService } from '../../services/file-state.service';
 import { StoredFileDto } from '../../models/file.models';
 import { FolderDto } from '../../models/folder.models';
@@ -24,6 +25,7 @@ import { FileContextPanelComponent } from './file-context-panel/file-context-pan
 import { CreateFolderDialogComponent } from './create-folder-dialog/create-folder-dialog.component';
 import { UploadDialogComponent } from './upload-dialog/upload-dialog.component';
 import { MoveDialogComponent } from './move-dialog/move-dialog.component';
+import { TagManagerDialogComponent } from '../tags/tag-manager-dialog.component';
 import { FolderAction } from './folder-item/folder-item.component';
 import { FileAction } from './file-grid-item/file-grid-item.component';
 
@@ -39,6 +41,7 @@ import { FileAction } from './file-grid-item/file-grid-item.component';
     CreateFolderDialogComponent,
     UploadDialogComponent,
     MoveDialogComponent,
+    TagManagerDialogComponent,
   ],
   template: `
     <div class="flex flex-col h-full">
@@ -87,6 +90,28 @@ import { FileAction } from './file-grid-item/file-grid-item.component';
               </div>
             }
           </div>
+
+          <!-- Favorites toggle -->
+          <button
+            (click)="toggleShowFavorites()"
+            class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            [class.text-yellow-500]="showFavoritesOnly()"
+            [class.text-gray-500]="!showFavoritesOnly()"
+            [attr.title]="showFavoritesOnly() ? showAllLabel : showFavoritesLabel"
+            data-testid="favorites-toggle"
+          >
+            <span [innerHTML]="showFavoritesOnly() ? icons.STAR_FILLED : icons.STAR"></span>
+          </button>
+
+          <!-- Manage Tags -->
+          <button
+            (click)="showTagManager.set(true)"
+            class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
+            [attr.title]="manageTagsLabel"
+            data-testid="manage-tags-button"
+          >
+            <span [innerHTML]="icons.TAG"></span>
+          </button>
 
           <!-- Upload button -->
           <button
@@ -168,6 +193,14 @@ import { FileAction } from './file-grid-item/file-grid-item.component';
       />
     }
 
+    <!-- Tag manager dialog -->
+    @if (showTagManager()) {
+      <app-tag-manager-dialog
+        (closed)="showTagManager.set(false)"
+        (tagsChanged)="onTagsChanged()"
+      />
+    }
+
     <!-- Rename dialog (for folders) -->
     @if (showRenameDialog()) {
       <div
@@ -214,6 +247,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   private readonly fileService = inject(FileService);
   private readonly folderService = inject(FolderService);
   private readonly downloadService = inject(FileDownloadService);
+  private readonly favoriteService = inject(FavoriteService);
   private readonly contextPanel = inject(ContextPanelService);
   readonly fileState = inject(FileStateService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -226,10 +260,16 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     GRID_VIEW: this.sanitizer.bypassSecurityTrustHtml(ICONS.GRID_VIEW),
     LIST_VIEW: this.sanitizer.bypassSecurityTrustHtml(ICONS.LIST_VIEW),
     CHEVRON_DOWN: this.sanitizer.bypassSecurityTrustHtml(ICONS.CHEVRON_DOWN),
+    TAG: this.sanitizer.bypassSecurityTrustHtml(ICONS.TAG),
+    STAR: this.sanitizer.bypassSecurityTrustHtml(ICONS.STAR),
+    STAR_FILLED: this.sanitizer.bypassSecurityTrustHtml(ICONS.STAR_FILLED),
   };
 
   readonly gridViewLabel = $localize`:@@files.toolbar.gridView:Grid view`;
   readonly listViewLabel = $localize`:@@files.toolbar.listView:List view`;
+  readonly manageTagsLabel = $localize`:@@files.toolbar.manageTags:Manage Tags`;
+  readonly showFavoritesLabel = $localize`:@@files.toolbar.showFavorites:Show favorites`;
+  readonly showAllLabel = $localize`:@@files.toolbar.showAll:Show all files`;
 
   readonly sortOptions = [
     { field: 'name' as const, label: $localize`:@@files.sort.name:Name` },
@@ -248,6 +288,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   readonly showMoveDialog = signal(false);
   readonly showSortMenu = signal(false);
   readonly showRenameDialog = signal(false);
+  readonly showTagManager = signal(false);
+  readonly showFavoritesOnly = signal(false);
+  private allFiles = signal<StoredFileDto[]>([]);
 
   readonly contextPanelFileId = signal<string | null>(null);
   readonly moveItemId = signal<string | null>(null);
@@ -259,6 +302,22 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   toggleSortMenu(): void {
     this.showSortMenu.update((v) => !v);
+  }
+
+  toggleShowFavorites(): void {
+    this.showFavoritesOnly.update((v) => !v);
+    if (this.showFavoritesOnly()) {
+      this.favoriteService.getFavorites().subscribe((favFiles) => {
+        this.allFiles.set(this.files());
+        this.files.set(favFiles);
+      });
+    } else {
+      this.files.set(this.allFiles());
+    }
+  }
+
+  onTagsChanged(): void {
+    // Tags were created or deleted — refresh is only needed if we show tags elsewhere
   }
 
   ngOnInit(): void {
