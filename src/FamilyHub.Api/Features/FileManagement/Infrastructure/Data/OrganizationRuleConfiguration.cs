@@ -1,4 +1,5 @@
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,6 +13,10 @@ public class OrganizationRuleConfiguration : IEntityTypeConfiguration<Organizati
         builder.ToTable("organization_rules", "file_management");
 
         builder.HasKey(r => r.Id);
+        builder.Property(r => r.Id)
+            .HasConversion(
+                id => id.Value,
+                value => OrganizationRuleId.From(value));
 
         builder.Property(r => r.Name)
             .HasMaxLength(200)

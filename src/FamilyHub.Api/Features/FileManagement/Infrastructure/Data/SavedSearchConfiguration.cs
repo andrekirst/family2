@@ -1,4 +1,5 @@
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,6 +12,15 @@ public class SavedSearchConfiguration : IEntityTypeConfiguration<SavedSearch>
         builder.ToTable("saved_searches", "file_management");
 
         builder.HasKey(s => s.Id);
+        builder.Property(s => s.Id)
+            .HasConversion(
+                id => id.Value,
+                value => SavedSearchId.From(value));
+
+        builder.Property(s => s.UserId)
+            .HasConversion(
+                id => id.Value,
+                value => UserId.From(value));
 
         builder.Property(s => s.Name)
             .HasMaxLength(200)

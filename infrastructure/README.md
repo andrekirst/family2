@@ -1,6 +1,27 @@
 # Multi-Environment Development Infrastructure
 
-Run multiple fully-isolated FamilyHub development stacks simultaneously, each accessible via unique `*.localhost` subdomains.
+Run multiple fully-isolated FamilyHub development stacks simultaneously, each accessible via unique `*.localhost` subdomains. Shared services (Keycloak, MailHog) run once; per-environment services (Postgres, API, Frontend, pgAdmin) are isolated per branch.
+
+## Architecture
+
+```
+Shared Layer (runs once)
+  docker-compose.traefik.yml     docker-compose.shared.yml
+  ─────────────────────────      ────────────────────────
+  Traefik (4000/4443/8888)       Keycloak (auth.localhost)     <- per-env realms
+  Hub Dashboard                  Keycloak Postgres
+  Verdaccio (npm proxy)          MailHog (mail.localhost)
+  BaGet (NuGet proxy)            Infisical (secrets.localhost)
+  Docker Registry Mirrors
+
+Per-Env: fh-feature-150          Per-Env: fh-main
+  docker-compose.env.yml           docker-compose.env.yml
+  ────────────────────             ────────────────────
+  Postgres (isolated)              Postgres (isolated)
+  API (dotnet watch)               API (dotnet watch)
+  Frontend (ng serve)              Frontend (ng serve)
+  pgAdmin                          pgAdmin
+```
 
 ## Prerequisites
 
@@ -9,6 +30,8 @@ Run multiple fully-isolated FamilyHub development stacks simultaneously, each ac
 | **Docker** + Compose v2 | [docs.docker.com](https://docs.docker.com/get-docker/) |
 | **Task** (v3+) | [taskfile.dev](https://taskfile.dev/installation/) |
 | **mkcert** | [github.com/FiloSottile/mkcert](https://github.com/FiloSottile/mkcert#installation) |
+| **jq** | `sudo apt install jq` or `brew install jq` |
+| **curl** | Usually pre-installed |
 
 ## Quick Start
 
@@ -16,51 +39,53 @@ Run multiple fully-isolated FamilyHub development stacks simultaneously, each ac
 # 1. One-time: generate TLS certificates
 task setup:certs
 
-# 2. Start environment for your current branch
+# 2. Start shared services (Traefik + Keycloak + MailHog + proxies)
+task shared:up
+
+# 3. Start environment for your current branch
 task up
 
-# 3. See all URLs
+# 4. See all URLs
 task urls
 ```
 
-## Environment Hub
+`task up` automatically starts shared services if they're not running.
 
-A web-based dashboard showing all running environments at a glance:
+## URL Convention
+
+| Service | URL |
+|---------|-----|
+| Frontend | `https://{env}.localhost:4443` |
+| API | `https://api-{env}.localhost:4443/graphql` |
+| pgAdmin | `https://pgadmin-{env}.localhost:4443` |
+| Keycloak (shared) | `https://auth.localhost:4443` |
+| MailHog (shared) | `https://mail.localhost:4443` |
+| Infisical (shared) | `https://secrets.localhost:4443` |
+| Hub Dashboard | `https://hub.localhost:4443` |
+| Traefik Dashboard | `http://localhost:8888` |
+
+Dual-domain: Replace `.localhost` with `.dev.andrekirst.de` for Google OAuth compatibility.
+
+## Environment Names
+
+Branch names are converted to Docker-safe environment names:
+
+- `main` -> `main`
+- `feature/150-file-management` -> `feature-150-file-management`
+- `fix/bug-42` -> `fix-bug-42`
+
+## Keycloak Realm Provisioning
+
+Each environment gets its own Keycloak realm (`FamilyHub-{env}`) provisioned via the Admin REST API:
 
 ```bash
-# Open hub in browser
-task hub
+# Automatic (happens during `task up`)
+# Manual provisioning:
+bash infrastructure/keycloak/provision-realm.sh feature-150-file-management
 
-# Or navigate directly
-# https://hub.localhost:4443
+# Delete a realm:
+bash infrastructure/keycloak/provision-realm.sh feature-150-file-management --delete
 ```
-
-The hub starts automatically with Traefik (`task traefik:up`) and shows clickable cards for each running environment with links to App, API, Keycloak, MailHog, and pgAdmin. It auto-refreshes every 10 seconds.
-
-## Architecture
-
-```
-Browser: https://hub.localhost:4443            (Environment Hub)
-         https://{env}.localhost:4443          (Frontend)
-         https://api-{env}.localhost:4443      (API/GraphQL)
-         https://kc-{env}.localhost:4443       (Keycloak)
-         https://mail-{env}.localhost:4443     (MailHog)
-         https://pgadmin-{env}.localhost:4443  (pgAdmin)
-                          |
-                   [Traefik :4443]  ← shared, single instance
-                   [Hub nginx]      ← static landing page
-                   Dashboard :8888
-                          |
-         +----------------+------------------+
-         |                |                  |
-   [fh-main_*]    [fh-feature-121_*]   [fh-feature-125_*]
-```
-
-Each branch gets a unique env name derived from the branch name:
-
-- `main` → `main`
-- `feature/121-sidebar` → `feature-121-sidebar`
-- `fix/bug-42` → `fix-bug-42`
 
 ## Daily Workflow
 
@@ -72,13 +97,16 @@ task up
 task env:logs
 task env:logs -- api
 
+# Health check
+task status
+
 # Show running containers
 task env:ps
 
 # Stop (data persists in Docker volumes)
 task down
 
-# Full reset (removes volumes too)
+# Full reset (removes volumes + Keycloak realm)
 task env:destroy
 
 # List all running environments
@@ -95,34 +123,25 @@ task list
 Keycloak admin: `admin` / `admin`
 pgAdmin: `admin@familyhub.dev` / `admin`
 
-## Host-Based Development (no Docker)
-
-The traditional workflow still works:
-
-```bash
-docker compose up -d          # Start postgres, keycloak, mailhog
-dotnet run --project src/FamilyHub.Api
-cd src/frontend/family-hub-web && ng serve
-```
-
-This uses `localhost` ports directly (5432, 8080, 5152, 4200).
-
 ## Troubleshooting
 
 **"mkcert: command not found"**
 Install mkcert: `sudo apt install mkcert` or see [installation guide](https://github.com/FiloSottile/mkcert#installation).
 
 **"Certificate not trusted"**
-Run `mkcert -install` to add the local CA to your system trust store.
+Run `mkcert -install` to add the local CA to your system trust store. Use `--force` flag with setup-certs to regenerate.
 
-**Port 3443 already in use**
-Another Traefik instance is running. Stop it: `task traefik:down`
+**Port 4443 already in use**
+Another Traefik instance is running. Stop it: `task shared:down`
 
-**Container name conflicts**
-Old containers from previous setup may conflict. Run `docker compose down` in the project root first.
+**Keycloak slow to start**
+First startup can take 60+ seconds. Check progress: `task shared:logs -- keycloak`
 
-**Keycloak "Invalid redirect_uri"**
-The realm template uses wildcard URIs (`https://*.localhost:4443/*`). Ensure Keycloak imported the template correctly — check `task env:logs -- keycloak`.
+**Realm provisioning fails**
+Keycloak must be fully healthy. Wait and retry: `bash infrastructure/keycloak/provision-realm.sh {env-name}`
 
 **Hub shows "Cannot reach Traefik API"**
-The hub needs Traefik running to fetch router data. Start it with `task traefik:up`. If Traefik is running but the API is unreachable, check that `api.dashboard: true` is set in `traefik/traefik.yml`.
+Start shared services: `task shared:up`
+
+**Multiple environments**
+Each worktree can run its own environment simultaneously. Just run `task up` in each worktree.

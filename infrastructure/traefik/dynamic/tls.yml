@@ -1,4 +1,4 @@
-# Dynamic TLS configuration — default certificate for *.localhost
+# Dynamic TLS configuration — default certificate for *.localhost and *.dev.andrekirst.de
 tls:
   stores:
     default:

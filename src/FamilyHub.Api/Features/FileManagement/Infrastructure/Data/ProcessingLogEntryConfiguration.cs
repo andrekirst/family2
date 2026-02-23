@@ -1,4 +1,5 @@
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,6 +13,10 @@ public class ProcessingLogEntryConfiguration : IEntityTypeConfiguration<Processi
         builder.ToTable("processing_log", "file_management");
 
         builder.HasKey(e => e.Id);
+        builder.Property(e => e.Id)
+            .HasConversion(
+                id => id.Value,
+                value => ProcessingLogEntryId.From(value));
 
         builder.Property(e => e.FileId)
             .HasConversion(id => id.Value, value => FileId.From(value))

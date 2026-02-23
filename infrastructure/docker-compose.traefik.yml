@@ -1,10 +1,10 @@
-# Shared Traefik reverse proxy — runs once, routes all FamilyHub environments
+# Shared Traefik reverse proxy + package caching proxies — runs once, routes all environments
 # Usage: docker compose -f infrastructure/docker-compose.traefik.yml up -d
 
 services:
   traefik:
     image: traefik:v3.2
-    restart: unless-stopped
+    restart: always
     ports:
       - '4000:4000' # HTTP (redirects to HTTPS)
       - '4443:4443' # HTTPS
@@ -14,17 +14,23 @@ services:
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
       - ./certs:/certs:ro
+    healthcheck:
+      test: ['CMD', 'traefik', 'healthcheck']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - traefik-public
 
   hub:
     image: nginx:alpine
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./traefik/hub:/usr/share/nginx/html:ro
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.hub.rule=Host(`hub.localhost`)'
+      - 'traefik.http.routers.hub.rule=Host(`hub.localhost`) || Host(`hub.dev.andrekirst.de`)'
       - 'traefik.http.routers.hub.entrypoints=websecure'
       - 'traefik.http.routers.hub.tls=true'
       - 'traefik.http.services.hub.loadbalancer.server.port=80'
@@ -38,7 +44,7 @@ services:
   # npm caching proxy (Verdaccio)
   verdaccio:
     image: verdaccio/verdaccio:6
-    restart: unless-stopped
+    restart: always
     ports:
       - '4873:4873'
     volumes:
@@ -46,7 +52,7 @@ services:
       - ./proxy/verdaccio/config.yaml:/verdaccio/conf/config.yaml:ro
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.verdaccio.rule=Host(`npm.localhost`)'
+      - 'traefik.http.routers.verdaccio.rule=Host(`npm.localhost`) || Host(`npm.dev.andrekirst.de`)'
       - 'traefik.http.routers.verdaccio.entrypoints=websecure'
       - 'traefik.http.routers.verdaccio.tls=true'
       - 'traefik.http.services.verdaccio.loadbalancer.server.port=4873'
@@ -56,7 +62,7 @@ services:
   # NuGet caching proxy (BaGet)
   baget:
     image: loicsharma/baget:latest
-    restart: unless-stopped
+    restart: always
     ports:
       - '5555:80'
     env_file:
@@ -65,7 +71,7 @@ services:
       - fh-proxy-baget:/var/baget
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.baget.rule=Host(`nuget.localhost`)'
+      - 'traefik.http.routers.baget.rule=Host(`nuget.localhost`) || Host(`nuget.dev.andrekirst.de`)'
       - 'traefik.http.routers.baget.entrypoints=websecure'
       - 'traefik.http.routers.baget.tls=true'
       - 'traefik.http.services.baget.loadbalancer.server.port=80'
@@ -75,7 +81,7 @@ services:
   # Docker Hub pull-through cache
   registry-dockerhub:
     image: registry:2
-    restart: unless-stopped
+    restart: always
     ports:
       - '5001:5000'
     volumes:
@@ -87,7 +93,7 @@ services:
   # Microsoft Container Registry pull-through cache
   registry-mcr:
     image: registry:2
-    restart: unless-stopped
+    restart: always
     ports:
       - '5002:5000'
     volumes:
@@ -99,7 +105,7 @@ services:
   # GitHub Container Registry pull-through cache
   registry-ghcr:
     image: registry:2
-    restart: unless-stopped
+    restart: always
     ports:
       - '5003:5000'
     volumes:

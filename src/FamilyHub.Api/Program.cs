@@ -62,6 +62,8 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     options.UseNpgsql(connectionString);
     options.UseSnakeCaseNamingConvention();
     options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
+    options.ConfigureWarnings(w =>
+        w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
 
 // Register FluentValidation validators from assembly
@@ -82,6 +84,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         // Authority = internal URL for OIDC discovery (e.g. http://keycloak:8080/realms/...)
         // Issuer = public URL that appears in JWT "iss" claim (e.g. https://kc-{env}.localhost:4443/realms/...)
         // When running behind a reverse proxy, these differ. If Issuer is not set, it defaults to Authority.
+        // Support multiple issuers for dual-domain (*.localhost + *.dev.andrekirst.de)
+        var keycloakIssuers = builder.Configuration["Keycloak:Issuers"]?
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var keycloakIssuer = builder.Configuration["Keycloak:Issuer"];
 
         options.Authority = keycloakAuthority;
@@ -92,12 +97,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = string.IsNullOrEmpty(keycloakIssuer) ? keycloakAuthority : keycloakIssuer,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ClockSkew = TimeSpan.FromMinutes(5)
         };
+
+        if (keycloakIssuers is { Length: > 0 })
+        {
+            options.TokenValidationParameters.ValidIssuers = keycloakIssuers;
+        }
+        else
+        {
+            options.TokenValidationParameters.ValidIssuer =
+                string.IsNullOrEmpty(keycloakIssuer) ? keycloakAuthority : keycloakIssuer;
+        }
 
     });
 
@@ -180,6 +194,25 @@ app.MapFileEndpoints(); // REST endpoints (file upload/download/stream)
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
+// Frontend runtime configuration endpoint (served same-origin via Traefik proxy)
+app.MapGet("/config", (IConfiguration configuration) =>
+{
+    var section = configuration.GetSection("FrontendConfig");
+    var appUrl = section["AppUrl"] ?? "http://localhost:4200";
+    return Results.Ok(new
+    {
+        apiUrl = section["ApiUrl"] ?? "http://localhost:5152/graphql",
+        keycloak = new
+        {
+            issuer = section["KeycloakIssuer"] ?? "http://localhost:8080/realms/FamilyHub",
+            clientId = section["KeycloakClientId"] ?? "familyhub-web",
+            redirectUri = $"{appUrl}/callback",
+            postLogoutRedirectUri = appUrl,
+            scope = "openid profile email"
+        }
+    });
+}).AllowAnonymous();
 
 await app.RunAsync();
 

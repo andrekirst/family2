@@ -1,4 +1,9 @@
-import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  APP_INITIALIZER,
+  ApplicationConfig,
+  LOCALE_ID,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
@@ -10,6 +15,7 @@ import { provideEventChainsFeature } from './features/event-chains/event-chains.
 import { provideFamilyFeature } from './features/family/family.providers';
 import { locale } from '../main';
 import { provideProfileFeature } from './features/profile/profile.providers';
+import { EnvironmentConfigService } from './core/config/environment-config.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -23,5 +29,11 @@ export const appConfig: ApplicationConfig = {
     ...provideFamilyFeature(),
     ...provideProfileFeature(),
     { provide: LOCALE_ID, useValue: locale },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (envConfig: EnvironmentConfigService) => () => envConfig.load(),
+      deps: [EnvironmentConfigService],
+      multi: true,
+    },
   ],
 };
