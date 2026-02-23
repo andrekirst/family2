@@ -166,6 +166,7 @@ import { FileAction } from './file-grid-item/file-grid-item.component';
         <app-file-context-panel
           [fileId]="contextPanelFileId()!"
           (moveRequested)="startMove($event, 'file')"
+          (shareRequested)="onShareRequested($event)"
           (deleted)="onFileDeleted()"
           (renamed)="refreshContent()"
         />
@@ -462,6 +463,11 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
         .renameFile({ fileId: this.renameItemId, newName: name })
         .subscribe(() => this.refreshContent());
     }
+  }
+
+  onShareRequested(_fileId: string): void {
+    // TODO: Open share link creation dialog
+    // For now, this is a placeholder for Phase 3 integration
   }
 
   onFileDeleted(): void {

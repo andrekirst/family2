@@ -7,10 +7,13 @@ import { FileService } from '../../../services/file.service';
 import { FileDownloadService } from '../../../services/file-download.service';
 import { FavoriteService } from '../../../services/favorite.service';
 import { TagService } from '../../../services/tag.service';
+import { VersionService } from '../../../services/version.service';
+import { MediaService } from '../../../services/media.service';
 import { StoredFileDto } from '../../../models/file.models';
 import { TagDto } from '../../../models/tag.models';
+import { FileVersionDto } from '../../../models/version.models';
 import { formatBytes } from '../../../utils/file-size.utils';
-import { getFileIcon } from '../../../utils/mime-type.utils';
+import { getFileIcon, getFileCategory } from '../../../utils/mime-type.utils';
 import { TagChipComponent } from '../../tags/tag-chip.component';
 
 @Component({
@@ -20,13 +23,36 @@ import { TagChipComponent } from '../../tags/tag-chip.component';
   template: `
     @if (file()) {
       <div class="p-4 space-y-4">
-        <!-- File icon / preview -->
-        <div class="flex justify-center py-4 relative">
-          <div class="text-gray-400" [innerHTML]="largeFileIcon()"></div>
+        <!-- Media preview / File icon -->
+        <div class="relative">
+          @if (isImage()) {
+            <img
+              [src]="mediaPreviewUrl()"
+              [alt]="file()!.name"
+              class="w-full rounded-lg object-contain max-h-48 bg-gray-100"
+              loading="lazy"
+            />
+          } @else if (isVideo()) {
+            <video
+              [src]="mediaPreviewUrl()"
+              controls
+              class="w-full rounded-lg max-h-48 bg-black"
+              preload="metadata"
+            ></video>
+          } @else if (isAudio()) {
+            <div class="flex flex-col items-center py-4">
+              <div class="text-gray-400 mb-3" [innerHTML]="largeFileIcon()"></div>
+              <audio [src]="mediaPreviewUrl()" controls class="w-full"></audio>
+            </div>
+          } @else {
+            <div class="flex justify-center py-4">
+              <div class="text-gray-400" [innerHTML]="largeFileIcon()"></div>
+            </div>
+          }
           <!-- Favorite star -->
           <button
             (click)="toggleFavorite()"
-            class="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
+            class="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100/80 transition-colors"
             [attr.aria-label]="isFavorite() ? unfavoriteLabel : favoriteLabel"
           >
             <span
@@ -135,6 +161,58 @@ import { TagChipComponent } from '../../tags/tag-chip.component';
           </div>
         </div>
 
+        <!-- Version history -->
+        <div class="space-y-2 pt-2 border-t border-gray-200">
+          <button
+            (click)="toggleVersions()"
+            class="flex items-center justify-between w-full text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            <span i18n="@@files.context.versions">Versions</span>
+            <span class="text-gray-400">{{ versions().length }}</span>
+          </button>
+          @if (showVersions()) {
+            <div class="space-y-1 max-h-40 overflow-y-auto">
+              @for (version of versions(); track version.id) {
+                <div
+                  class="flex items-center justify-between py-1.5 px-2 rounded text-xs"
+                  [class.bg-blue-50]="version.isCurrent"
+                >
+                  <div class="flex items-center gap-2">
+                    <span [innerHTML]="clockIcon" class="text-gray-400"></span>
+                    <span class="text-gray-700">v{{ version.versionNumber }}</span>
+                    <span class="text-gray-400">{{ formatSize(version.fileSize) }}</span>
+                    @if (version.isCurrent) {
+                      <span
+                        class="px-1.5 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded"
+                        i18n="@@files.context.currentVersion"
+                      >
+                        Current
+                      </span>
+                    }
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-400">{{ version.uploadedAt | date: 'shortDate' }}</span>
+                    @if (!version.isCurrent) {
+                      <button
+                        (click)="restoreVersion(version)"
+                        class="text-blue-600 hover:text-blue-700 font-medium"
+                        i18n="@@files.context.restore"
+                      >
+                        Restore
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+              @if (versions().length === 0) {
+                <p class="text-xs text-gray-400 py-1" i18n="@@files.context.noVersions">
+                  No version history
+                </p>
+              }
+            </div>
+          }
+        </div>
+
         <!-- Actions -->
         <div class="flex flex-col gap-2 pt-2 border-t border-gray-200">
           <button
@@ -143,6 +221,13 @@ import { TagChipComponent } from '../../tags/tag-chip.component';
           >
             <span [innerHTML]="downloadIcon"></span>
             <span i18n="@@files.action.download">Download</span>
+          </button>
+          <button
+            (click)="shareRequested.emit(file()!.id)"
+            class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <span [innerHTML]="shareIcon"></span>
+            <span i18n="@@files.action.share">Share</span>
           </button>
           <button
             (click)="moveRequested.emit(file()!.id)"
@@ -193,9 +278,12 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
   private readonly downloadService = inject(FileDownloadService);
   private readonly favoriteService = inject(FavoriteService);
   private readonly tagService = inject(TagService);
+  private readonly versionService = inject(VersionService);
+  private readonly mediaService = inject(MediaService);
 
   readonly fileId = input.required<string>();
   readonly moveRequested = output<string>();
+  readonly shareRequested = output<string>();
   readonly deleted = output<void>();
   readonly renamed = output<void>();
 
@@ -207,6 +295,8 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
   readonly allTags = signal<TagDto[]>([]);
   readonly showTagPicker = signal(false);
   readonly availableTags = signal<TagDto[]>([]);
+  readonly versions = signal<FileVersionDto[]>([]);
+  readonly showVersions = signal(false);
   editName = '';
 
   readonly downloadIcon: SafeHtml;
@@ -214,6 +304,8 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
   readonly closeIcon: SafeHtml;
   readonly starIcon: SafeHtml;
   readonly starFilledIcon: SafeHtml;
+  readonly shareIcon: SafeHtml;
+  readonly clockIcon: SafeHtml;
   private readonly sanitizer: DomSanitizer;
 
   readonly favoriteLabel = $localize`:@@files.context.favorite:Add to favorites`;
@@ -226,6 +318,8 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
     this.closeIcon = sanitizer.bypassSecurityTrustHtml(ICONS.CLOSE);
     this.starIcon = sanitizer.bypassSecurityTrustHtml(ICONS.STAR);
     this.starFilledIcon = sanitizer.bypassSecurityTrustHtml(ICONS.STAR_FILLED);
+    this.shareIcon = sanitizer.bypassSecurityTrustHtml(ICONS.SHARE);
+    this.clockIcon = sanitizer.bypassSecurityTrustHtml(ICONS.CLOCK);
   }
 
   ngOnInit(): void {
@@ -236,6 +330,24 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
   ngOnChanges(): void {
     this.loadFile();
     this.showTagPicker.set(false);
+    this.showVersions.set(false);
+  }
+
+  isImage(): boolean {
+    return getFileCategory(this.file()?.mimeType ?? '') === 'image';
+  }
+
+  isVideo(): boolean {
+    return getFileCategory(this.file()?.mimeType ?? '') === 'video';
+  }
+
+  isAudio(): boolean {
+    return getFileCategory(this.file()?.mimeType ?? '') === 'audio';
+  }
+
+  mediaPreviewUrl(): string {
+    const f = this.file();
+    return f ? this.mediaService.getStreamUrl(f.storageKey) : '';
   }
 
   largeFileIcon(): SafeHtml {
@@ -271,6 +383,13 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
     }
   }
 
+  toggleVersions(): void {
+    this.showVersions.update((v) => !v);
+    if (this.showVersions() && this.versions().length === 0) {
+      this.loadVersions();
+    }
+  }
+
   addTag(tag: TagDto): void {
     const f = this.file();
     if (!f) return;
@@ -286,6 +405,17 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
     this.tagService.untagFile(f.id, tag.id).subscribe(() => {
       this.fileTags.update((tags) => tags.filter((t) => t.id !== tag.id));
       this.updateAvailableTags();
+    });
+  }
+
+  restoreVersion(version: FileVersionDto): void {
+    const f = this.file();
+    if (!f) return;
+    this.versionService.restoreVersion(version.id, f.id).subscribe((result) => {
+      if (result) {
+        this.loadVersions();
+        this.loadFile();
+      }
     });
   }
 
@@ -331,16 +461,23 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
 
   private loadFile(): void {
     this.fileService.getFile(this.fileId()).subscribe((f) => this.file.set(f));
-    // TODO: Load file-specific tags and favorite status from backend
-    // For now, reset state on file change
     this.fileTags.set([]);
     this.isFavorite.set(false);
+    this.versions.set([]);
   }
 
   private loadAllTags(): void {
     this.tagService.getTags().subscribe((tags) => {
       this.allTags.set(tags);
       this.updateAvailableTags();
+    });
+  }
+
+  private loadVersions(): void {
+    const f = this.file();
+    if (!f) return;
+    this.versionService.getFileVersions(f.id, f.folderId).subscribe((v) => {
+      this.versions.set(v);
     });
   }
 

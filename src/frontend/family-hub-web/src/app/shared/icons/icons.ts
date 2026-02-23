@@ -3,6 +3,7 @@ import { ICON_CALENDAR } from './defs/calendar';
 import { ICON_CHEVRON_DOWN } from './defs/chevron-down';
 import { ICON_CHEVRON_LEFT } from './defs/chevron-left';
 import { ICON_CHEVRON_RIGHT } from './defs/chevron-right';
+import { ICON_CLOCK } from './defs/clock';
 import { ICON_CLOSE } from './defs/close';
 import { ICON_DOCUMENT } from './defs/document';
 import { ICON_DOTS_VERTICAL } from './defs/dots-vertical';
@@ -10,13 +11,17 @@ import { ICON_DOWNLOAD } from './defs/download';
 import { ICON_FOLDER } from './defs/folder';
 import { ICON_GRID_VIEW } from './defs/grid-view';
 import { ICON_HOME } from './defs/home';
+import { ICON_LINK } from './defs/link';
 import { ICON_LIST_VIEW } from './defs/list-view';
 import { ICON_LOGOUT } from './defs/logout';
 import { ICON_MENU } from './defs/menu';
 import { ICON_PENCIL } from './defs/pencil';
+import { ICON_PHOTO } from './defs/photo';
+import { ICON_PLAY } from './defs/play';
 import { ICON_PLUS } from './defs/plus';
 import { ICON_SEARCH } from './defs/search';
 import { ICON_SETTINGS } from './defs/settings';
+import { ICON_SHARE } from './defs/share';
 import { ICON_STAR, ICON_STAR_FILLED } from './defs/star';
 import { ICON_TAG } from './defs/tag';
 import { ICON_UPLOAD } from './defs/upload';
@@ -29,6 +34,7 @@ export const ICONS = {
   CHEVRON_DOWN: ICON_CHEVRON_DOWN,
   CHEVRON_LEFT: ICON_CHEVRON_LEFT,
   CHEVRON_RIGHT: ICON_CHEVRON_RIGHT,
+  CLOCK: ICON_CLOCK,
   CLOSE: ICON_CLOSE,
   DOCUMENT: ICON_DOCUMENT,
   DOTS_VERTICAL: ICON_DOTS_VERTICAL,
@@ -36,13 +42,17 @@ export const ICONS = {
   FOLDER: ICON_FOLDER,
   GRID_VIEW: ICON_GRID_VIEW,
   HOME: ICON_HOME,
+  LINK: ICON_LINK,
   LIST_VIEW: ICON_LIST_VIEW,
   LOGOUT: ICON_LOGOUT,
   MENU: ICON_MENU,
   PENCIL: ICON_PENCIL,
+  PHOTO: ICON_PHOTO,
+  PLAY: ICON_PLAY,
   PLUS: ICON_PLUS,
   SEARCH: ICON_SEARCH,
   SETTINGS: ICON_SETTINGS,
+  SHARE: ICON_SHARE,
   STAR: ICON_STAR,
   STAR_FILLED: ICON_STAR_FILLED,
   TAG: ICON_TAG,

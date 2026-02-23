@@ -292,10 +292,42 @@
   "files.search.startSearching": "Alle Dateien durchsuchen",
   "files.search.startSearchingDesc": "Gib einen Suchbegriff ein, um Dateien nach Name oder Inhalt zu finden.",
 
+  "files.action.share": "Teilen",
+
+  "files.context.versions": "Versionen",
+  "files.context.currentVersion": "Aktuell",
+  "files.context.restore": "Wiederherstellen",
+  "files.context.noVersions": "Kein Versionsverlauf",
+
+  "files.albums.title": "Alben",
+  "files.albums.create": "Neues Album",
+  "files.albums.createTitle": "Album erstellen",
+  "files.albums.namePlaceholder": "Albumname",
+  "files.albums.descPlaceholder": "Beschreibung (optional)",
+  "files.albums.empty": "Noch keine Alben",
+  "files.albums.emptyDesc": "Erstelle ein Album, um deine Fotos zu organisieren.",
+  "files.albums.photos": "Fotos",
+  "files.albums.noPhotos": "Noch keine Fotos in diesem Album",
+  "files.albums.noPhotosDesc": "Füge Fotos über das Kontextmenü im Dateibrowser hinzu.",
+  "files.albums.deleteConfirm": "Bist du sicher, dass du dieses Album löschen möchtest? Fotos werden nicht gelöscht.",
   "files.albums.comingSoonDesc": "Organisiere deine Fotos in Alben.",
   "files.albums.detailComingSoonDesc": "Albumfotos anzeigen und verwalten.",
-  "files.search.comingSoonDesc": "Alle Dateien durchsuchen.",
+
+  "files.sharing.title": "Geteilte Links",
+  "files.sharing.empty": "Keine geteilten Links",
+  "files.sharing.emptyDesc": "Teile Dateien oder Ordner über den Dateibrowser, um Links zu erstellen.",
+  "files.sharing.copy": "Kopieren",
+  "files.sharing.downloads": "Downloads",
+  "files.sharing.expires": "Läuft ab",
+  "files.sharing.revoked": "Widerrufen",
+  "files.sharing.expired": "Abgelaufen",
+  "files.sharing.active": "Aktiv",
+  "files.sharing.viewLog": "Protokoll",
+  "files.sharing.revoke": "Widerrufen",
+  "files.sharing.noAccess": "Noch kein Zugriff aufgezeichnet.",
   "files.sharing.comingSoonDesc": "Dateien per Link teilen.",
+
+  "files.search.comingSoonDesc": "Alle Dateien durchsuchen.",
   "files.inbox.comingSoonDesc": "Eingehende Dateien automatisch organisieren.",
   "files.notes.comingSoonDesc": "Sichere Notizen erstellen und verwalten."
 }
