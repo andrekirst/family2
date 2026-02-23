@@ -1,0 +1,105 @@
+import { Component, input, output, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ICONS } from '../../../../../shared/icons/icons';
+import { StoredFileDto } from '../../../models/file.models';
+import { formatBytes } from '../../../utils/file-size.utils';
+import { getFileIcon } from '../../../utils/mime-type.utils';
+import { FileAction } from '../file-grid-item/file-grid-item.component';
+
+@Component({
+  selector: 'app-file-list-item',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div
+      class="group flex items-center gap-4 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
+      [class.bg-blue-50]="selected()"
+      (click)="clicked.emit(file().id)"
+      [attr.data-testid]="'file-list-' + file().id"
+    >
+      <span [innerHTML]="fileIcon()" class="text-gray-400 flex-shrink-0"></span>
+      <span class="text-sm text-gray-900 truncate flex-1">{{ file().name }}</span>
+      <span class="text-xs text-gray-500 w-20 text-right flex-shrink-0">{{
+        formatSize(file().size)
+      }}</span>
+      <span class="text-xs text-gray-500 w-32 text-right flex-shrink-0">{{
+        file().updatedAt | date: 'mediumDate'
+      }}</span>
+      <button
+        (click)="toggleMenu($event)"
+        class="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-gray-200 transition-all flex-shrink-0"
+        [attr.aria-label]="'Actions for ' + file().name"
+      >
+        <span [innerHTML]="dotsIcon"></span>
+      </button>
+
+      @if (showMenu()) {
+        <div
+          class="absolute right-4 mt-36 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1"
+          (click)="$event.stopPropagation()"
+        >
+          <button
+            (click)="emitAction('download')"
+            class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            i18n="@@files.action.download"
+          >
+            Download
+          </button>
+          <button
+            (click)="emitAction('rename')"
+            class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            i18n="@@files.action.rename"
+          >
+            Rename
+          </button>
+          <button
+            (click)="emitAction('move')"
+            class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            i18n="@@files.action.move"
+          >
+            Move
+          </button>
+          <button
+            (click)="emitAction('delete')"
+            class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+            i18n="@@files.action.delete"
+          >
+            Delete
+          </button>
+        </div>
+      }
+    </div>
+  `,
+})
+export class FileListItemComponent {
+  readonly file = input.required<StoredFileDto>();
+  readonly selected = input(false);
+  readonly clicked = output<string>();
+  readonly actionTriggered = output<FileAction>();
+  readonly showMenu = signal(false);
+
+  readonly dotsIcon: SafeHtml;
+
+  constructor(private readonly sanitizer: DomSanitizer) {
+    this.dotsIcon = sanitizer.bypassSecurityTrustHtml(ICONS.DOTS_VERTICAL);
+  }
+
+  fileIcon(): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(getFileIcon(this.file().mimeType));
+  }
+
+  formatSize(bytes: number): string {
+    return formatBytes(bytes);
+  }
+
+  toggleMenu(event: Event): void {
+    event.stopPropagation();
+    this.showMenu.update((v) => !v);
+  }
+
+  emitAction(action: FileAction['action']): void {
+    this.showMenu.set(false);
+    this.actionTriggered.emit({ fileId: this.file().id, action });
+  }
+}

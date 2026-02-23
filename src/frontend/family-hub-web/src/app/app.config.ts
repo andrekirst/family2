@@ -13,6 +13,7 @@ import { provideCalendarFeature } from './features/calendar/calendar.providers';
 import { provideDashboardFeature } from './features/dashboard/dashboard.providers';
 import { provideEventChainsFeature } from './features/event-chains/event-chains.providers';
 import { provideFamilyFeature } from './features/family/family.providers';
+import { provideFileManagementFeature } from './features/file-management/file-management.providers';
 import { locale } from '../main';
 import { provideProfileFeature } from './features/profile/profile.providers';
 import { EnvironmentConfigService } from './core/config/environment-config.service';
@@ -27,6 +28,7 @@ export const appConfig: ApplicationConfig = {
     ...provideDashboardFeature(),
     ...provideEventChainsFeature(),
     ...provideFamilyFeature(),
+    ...provideFileManagementFeature(),
     ...provideProfileFeature(),
     { provide: LOCALE_ID, useValue: locale },
     {

@@ -194,5 +194,73 @@
   "automations.table.created": "Created",
   "automations.table.statusActive": "Active",
   "automations.table.statusPaused": "Paused",
-  "automations.table.neverRun": "Never"
+  "automations.table.neverRun": "Never",
+
+  "nav.files": "Files",
+
+  "files.title": "Files",
+  "files.comingSoon": "Coming soon",
+
+  "files.tab.browse": "Browse",
+  "files.tab.albums": "Albums",
+  "files.tab.search": "Search",
+  "files.tab.sharing": "Sharing",
+  "files.tab.inbox": "Inbox",
+  "files.tab.notes": "Notes",
+
+  "files.breadcrumb.home": "Home",
+
+  "files.toolbar.sort": "Sort",
+  "files.toolbar.gridView": "Grid view",
+  "files.toolbar.listView": "List view",
+
+  "files.sort.name": "Name",
+  "files.sort.size": "Size",
+  "files.sort.created": "Created",
+  "files.sort.modified": "Modified",
+
+  "files.action.upload": "Upload",
+  "files.action.newFolder": "New Folder",
+  "files.action.download": "Download",
+  "files.action.rename": "Rename",
+  "files.action.move": "Move",
+  "files.action.delete": "Delete",
+
+  "files.empty.title": "This folder is empty",
+  "files.empty.description": "Upload files or create a subfolder to get started.",
+
+  "files.list.name": "Name",
+  "files.list.size": "Size",
+  "files.list.modified": "Modified",
+
+  "files.createFolder.title": "New Folder",
+  "files.createFolder.placeholder": "Folder name",
+  "files.createFolder.create": "Create",
+
+  "files.upload.title": "Upload Files",
+  "files.upload.dropHere": "Drag & drop files here",
+  "files.upload.or": "or",
+  "files.upload.browse": "Browse Files",
+  "files.upload.done": "Done",
+
+  "files.move.title": "Move to...",
+  "files.move.root": "Root",
+  "files.move.confirm": "Move Here",
+
+  "files.rename.title": "Rename",
+  "files.rename.save": "Save",
+
+  "files.context.save": "Save",
+  "files.context.size": "Size",
+  "files.context.type": "Type",
+  "files.context.created": "Created",
+  "files.context.modified": "Modified",
+  "files.context.deleteConfirm": "Are you sure you want to delete this file?",
+
+  "files.albums.comingSoonDesc": "Organize your photos into albums.",
+  "files.albums.detailComingSoonDesc": "View and manage album photos.",
+  "files.search.comingSoonDesc": "Search across all your files.",
+  "files.sharing.comingSoonDesc": "Share files with links.",
+  "files.inbox.comingSoonDesc": "Auto-organize incoming files.",
+  "files.notes.comingSoonDesc": "Create and manage secure notes."
 }

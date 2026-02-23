@@ -194,5 +194,73 @@
   "automations.table.created": "Erstellt",
   "automations.table.statusActive": "Aktiv",
   "automations.table.statusPaused": "Pausiert",
-  "automations.table.neverRun": "Nie"
+  "automations.table.neverRun": "Nie",
+
+  "nav.files": "Dateien",
+
+  "files.title": "Dateien",
+  "files.comingSoon": "Demnächst verfügbar",
+
+  "files.tab.browse": "Durchsuchen",
+  "files.tab.albums": "Alben",
+  "files.tab.search": "Suche",
+  "files.tab.sharing": "Freigaben",
+  "files.tab.inbox": "Eingang",
+  "files.tab.notes": "Notizen",
+
+  "files.breadcrumb.home": "Start",
+
+  "files.toolbar.sort": "Sortieren",
+  "files.toolbar.gridView": "Rasteransicht",
+  "files.toolbar.listView": "Listenansicht",
+
+  "files.sort.name": "Name",
+  "files.sort.size": "Größe",
+  "files.sort.created": "Erstellt",
+  "files.sort.modified": "Geändert",
+
+  "files.action.upload": "Hochladen",
+  "files.action.newFolder": "Neuer Ordner",
+  "files.action.download": "Herunterladen",
+  "files.action.rename": "Umbenennen",
+  "files.action.move": "Verschieben",
+  "files.action.delete": "Löschen",
+
+  "files.empty.title": "Dieser Ordner ist leer",
+  "files.empty.description": "Lade Dateien hoch oder erstelle einen Unterordner.",
+
+  "files.list.name": "Name",
+  "files.list.size": "Größe",
+  "files.list.modified": "Geändert",
+
+  "files.createFolder.title": "Neuer Ordner",
+  "files.createFolder.placeholder": "Ordnername",
+  "files.createFolder.create": "Erstellen",
+
+  "files.upload.title": "Dateien hochladen",
+  "files.upload.dropHere": "Dateien hierher ziehen",
+  "files.upload.or": "oder",
+  "files.upload.browse": "Dateien auswählen",
+  "files.upload.done": "Fertig",
+
+  "files.move.title": "Verschieben nach...",
+  "files.move.root": "Stammverzeichnis",
+  "files.move.confirm": "Hierher verschieben",
+
+  "files.rename.title": "Umbenennen",
+  "files.rename.save": "Speichern",
+
+  "files.context.save": "Speichern",
+  "files.context.size": "Größe",
+  "files.context.type": "Typ",
+  "files.context.created": "Erstellt",
+  "files.context.modified": "Geändert",
+  "files.context.deleteConfirm": "Bist du sicher, dass du diese Datei löschen möchtest?",
+
+  "files.albums.comingSoonDesc": "Organisiere deine Fotos in Alben.",
+  "files.albums.detailComingSoonDesc": "Albumfotos anzeigen und verwalten.",
+  "files.search.comingSoonDesc": "Alle Dateien durchsuchen.",
+  "files.sharing.comingSoonDesc": "Dateien per Link teilen.",
+  "files.inbox.comingSoonDesc": "Eingehende Dateien automatisch organisieren.",
+  "files.notes.comingSoonDesc": "Sichere Notizen erstellen und verwalten."
 }

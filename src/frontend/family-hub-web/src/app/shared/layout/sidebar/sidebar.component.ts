@@ -218,6 +218,12 @@ export class SidebarComponent {
       matchPrefix: '/calendar',
     },
     {
+      path: '/files/browse',
+      label: $localize`:@@nav.files:Files`,
+      icon: this.trustHtml(ICONS.FOLDER),
+      matchPrefix: '/files',
+    },
+    {
       path: '/event-chains',
       label: $localize`:@@nav.automations:Automations`,
       icon: this.trustHtml(ICONS.BOLT),
