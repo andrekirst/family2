@@ -14,7 +14,6 @@ public class QueryType
 {
     [Authorize]
     public async Task<List<ProcessingLogEntryDto>> GetProcessingLog(
-        Guid familyId,
         int skip,
         int take,
         ClaimsPrincipal claimsPrincipal,
@@ -25,11 +24,14 @@ public class QueryType
         var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
             ?? throw new UnauthorizedAccessException("User not authenticated");
 
-        _ = await userRepository.GetByExternalIdAsync(
+        var user = await userRepository.GetByExternalIdAsync(
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
-        var query = new GetProcessingLogQuery(FamilyId.From(familyId), skip, take);
+        var familyId = user.FamilyId
+            ?? throw new UnauthorizedAccessException("User is not a member of any family");
+
+        var query = new GetProcessingLogQuery(familyId, skip, take);
         return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

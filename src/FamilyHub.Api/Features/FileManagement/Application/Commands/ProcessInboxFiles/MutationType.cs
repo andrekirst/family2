@@ -13,7 +13,6 @@ public class MutationType
 {
     [Authorize]
     public async Task<ProcessInboxFilesResult> ProcessInboxFiles(
-        Guid familyId,
         ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
         [Service] IUserRepository userRepository,
@@ -26,8 +25,11 @@ public class MutationType
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
+        var familyId = user.FamilyId
+            ?? throw new UnauthorizedAccessException("User is not a member of any family");
+
         var command = new ProcessInboxFilesCommand(
-            FamilyId.From(familyId),
+            familyId,
             user.Id);
 
         return await commandBus.SendAsync(command, cancellationToken);

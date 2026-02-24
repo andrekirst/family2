@@ -15,7 +15,6 @@ public class MutationType
     [Authorize]
     public async Task<CreateOrganizationRuleResult> CreateOrganizationRule(
         string name,
-        Guid familyId,
         string conditionsJson,
         string conditionLogic,
         string actionType,
@@ -32,12 +31,15 @@ public class MutationType
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
+        var familyId = user.FamilyId
+            ?? throw new UnauthorizedAccessException("User is not a member of any family");
+
         var parsedLogic = Enum.Parse<ConditionLogic>(conditionLogic, ignoreCase: true);
         var parsedActionType = Enum.Parse<RuleActionType>(actionType, ignoreCase: true);
 
         var command = new CreateOrganizationRuleCommand(
             name,
-            FamilyId.From(familyId),
+            familyId,
             user.Id,
             conditionsJson,
             parsedLogic,

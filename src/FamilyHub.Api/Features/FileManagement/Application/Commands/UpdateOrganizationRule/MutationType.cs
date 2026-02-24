@@ -16,7 +16,6 @@ public class MutationType
     public async Task<UpdateOrganizationRuleResult> UpdateOrganizationRule(
         Guid ruleId,
         string name,
-        Guid familyId,
         string conditionsJson,
         string conditionLogic,
         string actionType,
@@ -29,9 +28,12 @@ public class MutationType
         var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
             ?? throw new UnauthorizedAccessException("User not authenticated");
 
-        _ = await userRepository.GetByExternalIdAsync(
+        var user = await userRepository.GetByExternalIdAsync(
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
+
+        var familyId = user.FamilyId
+            ?? throw new UnauthorizedAccessException("User is not a member of any family");
 
         var parsedLogic = Enum.Parse<ConditionLogic>(conditionLogic, ignoreCase: true);
         var parsedActionType = Enum.Parse<RuleActionType>(actionType, ignoreCase: true);
@@ -43,7 +45,7 @@ public class MutationType
             parsedLogic,
             parsedActionType,
             actionsJson,
-            FamilyId.From(familyId));
+            familyId);
 
         return await commandBus.SendAsync(command, cancellationToken);
     }

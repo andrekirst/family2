@@ -36,7 +36,6 @@ export interface RuleMatchPreviewDto {
 
 export interface CreateOrganizationRuleInput {
   name: string;
-  familyId: string;
   conditionsJson: string;
   conditionLogic: string;
   actionType: string;
@@ -46,7 +45,6 @@ export interface CreateOrganizationRuleInput {
 export interface UpdateOrganizationRuleInput {
   ruleId: string;
   name: string;
-  familyId: string;
   conditionsJson: string;
   conditionLogic: string;
   actionType: string;

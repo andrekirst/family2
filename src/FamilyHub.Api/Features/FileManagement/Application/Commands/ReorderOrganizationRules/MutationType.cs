@@ -14,7 +14,6 @@ public class MutationType
     [Authorize]
     public async Task<ReorderOrganizationRulesResult> ReorderOrganizationRules(
         List<Guid> ruleIdsInOrder,
-        Guid familyId,
         ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
         [Service] IUserRepository userRepository,
@@ -23,13 +22,16 @@ public class MutationType
         var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
             ?? throw new UnauthorizedAccessException("User not authenticated");
 
-        _ = await userRepository.GetByExternalIdAsync(
+        var user = await userRepository.GetByExternalIdAsync(
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
+        var familyId = user.FamilyId
+            ?? throw new UnauthorizedAccessException("User is not a member of any family");
+
         var command = new ReorderOrganizationRulesCommand(
             ruleIdsInOrder,
-            FamilyId.From(familyId));
+            familyId);
 
         return await commandBus.SendAsync(command, cancellationToken);
     }

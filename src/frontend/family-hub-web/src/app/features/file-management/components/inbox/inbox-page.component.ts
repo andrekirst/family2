@@ -326,9 +326,6 @@ export class InboxPageComponent implements OnInit {
   private readonly inboxService = inject(InboxService);
   private readonly sanitizer = inject(DomSanitizer);
 
-  // TODO: Get familyId from user context / auth service
-  private readonly familyId = '00000000-0000-0000-0000-000000000000';
-
   readonly rules = signal<OrganizationRuleDto[]>([]);
   readonly logEntries = signal<ProcessingLogEntryDto[]>([]);
   readonly loading = signal(true);
@@ -381,7 +378,7 @@ export class InboxPageComponent implements OnInit {
   }
 
   toggleRule(rule: OrganizationRuleDto): void {
-    this.inboxService.toggleRule(rule.id, !rule.isEnabled, this.familyId).subscribe((ok) => {
+    this.inboxService.toggleRule(rule.id, !rule.isEnabled).subscribe((ok) => {
       if (ok) {
         this.rules.update((rules) =>
           rules.map((r) => (r.id === rule.id ? { ...r, isEnabled: !r.isEnabled } : r)),
@@ -414,7 +411,7 @@ export class InboxPageComponent implements OnInit {
   }
 
   deleteRule(rule: OrganizationRuleDto): void {
-    this.inboxService.deleteRule(rule.id, this.familyId).subscribe((ok) => {
+    this.inboxService.deleteRule(rule.id).subscribe((ok) => {
       if (ok) {
         this.rules.update((rules) => rules.filter((r) => r.id !== rule.id));
       }
@@ -423,7 +420,7 @@ export class InboxPageComponent implements OnInit {
 
   processInbox(): void {
     this.processing.set(true);
-    this.inboxService.processInboxFiles(this.familyId).subscribe((result) => {
+    this.inboxService.processInboxFiles().subscribe((result) => {
       this.processing.set(false);
       if (result.success) {
         this.lastResult.set({
@@ -452,7 +449,6 @@ export class InboxPageComponent implements OnInit {
         .updateRule({
           ruleId: this.editingRule()!.id,
           name: this.ruleName,
-          familyId: this.familyId,
           conditionsJson,
           conditionLogic: 'And',
           actionType: this.actionType,
@@ -468,7 +464,6 @@ export class InboxPageComponent implements OnInit {
       this.inboxService
         .createRule({
           name: this.ruleName,
-          familyId: this.familyId,
           conditionsJson,
           conditionLogic: 'And',
           actionType: this.actionType,
@@ -494,14 +489,14 @@ export class InboxPageComponent implements OnInit {
   }
 
   private loadRules(): void {
-    this.inboxService.getRules(this.familyId).subscribe((rules) => {
+    this.inboxService.getRules().subscribe((rules) => {
       this.rules.set(rules);
       this.loading.set(false);
     });
   }
 
   private loadLog(): void {
-    this.inboxService.getProcessingLog(this.familyId, 0, 50).subscribe((entries) => {
+    this.inboxService.getProcessingLog(0, 50).subscribe((entries) => {
       this.logEntries.set(entries);
     });
   }

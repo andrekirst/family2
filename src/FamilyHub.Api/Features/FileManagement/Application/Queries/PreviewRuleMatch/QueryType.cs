@@ -15,7 +15,6 @@ public class QueryType
     [Authorize]
     public async Task<RuleMatchPreviewDto?> PreviewRuleMatch(
         Guid fileId,
-        Guid familyId,
         ClaimsPrincipal claimsPrincipal,
         [Service] IQueryBus queryBus,
         [Service] IUserRepository userRepository,
@@ -24,13 +23,16 @@ public class QueryType
         var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
             ?? throw new UnauthorizedAccessException("User not authenticated");
 
-        _ = await userRepository.GetByExternalIdAsync(
+        var user = await userRepository.GetByExternalIdAsync(
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
+        var familyId = user.FamilyId
+            ?? throw new UnauthorizedAccessException("User is not a member of any family");
+
         var query = new PreviewRuleMatchQuery(
             FileId.From(fileId),
-            FamilyId.From(familyId));
+            familyId);
         return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

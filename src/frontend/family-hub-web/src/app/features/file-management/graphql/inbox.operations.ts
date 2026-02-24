@@ -1,9 +1,9 @@
 import { gql } from 'apollo-angular';
 
 export const GET_ORGANIZATION_RULES = gql`
-  query GetOrganizationRules($familyId: UUID!) {
+  query GetOrganizationRules {
     fileManagement {
-      organizationRules(familyId: $familyId) {
+      organizationRules {
         id
         name
         conditionsJson
@@ -21,9 +21,9 @@ export const GET_ORGANIZATION_RULES = gql`
 `;
 
 export const GET_PROCESSING_LOG = gql`
-  query GetProcessingLog($familyId: UUID!, $skip: Int!, $take: Int!) {
+  query GetProcessingLog($skip: Int!, $take: Int!) {
     fileManagement {
-      processingLog(familyId: $familyId, skip: $skip, take: $take) {
+      processingLog(skip: $skip, take: $take) {
         id
         fileId
         fileName
@@ -41,9 +41,9 @@ export const GET_PROCESSING_LOG = gql`
 `;
 
 export const PREVIEW_RULE_MATCH = gql`
-  query PreviewRuleMatch($fileId: UUID!, $familyId: UUID!) {
+  query PreviewRuleMatch($fileId: UUID!) {
     fileManagement {
-      previewRuleMatch(fileId: $fileId, familyId: $familyId) {
+      previewRuleMatch(fileId: $fileId) {
         matched
         matchedRuleId
         matchedRuleName
@@ -57,7 +57,6 @@ export const PREVIEW_RULE_MATCH = gql`
 export const CREATE_ORGANIZATION_RULE = gql`
   mutation CreateOrganizationRule(
     $name: String!
-    $familyId: UUID!
     $conditionsJson: String!
     $conditionLogic: String!
     $actionType: String!
@@ -66,7 +65,6 @@ export const CREATE_ORGANIZATION_RULE = gql`
     fileManagement {
       createOrganizationRule(
         name: $name
-        familyId: $familyId
         conditionsJson: $conditionsJson
         conditionLogic: $conditionLogic
         actionType: $actionType
@@ -83,7 +81,6 @@ export const UPDATE_ORGANIZATION_RULE = gql`
   mutation UpdateOrganizationRule(
     $ruleId: UUID!
     $name: String!
-    $familyId: UUID!
     $conditionsJson: String!
     $conditionLogic: String!
     $actionType: String!
@@ -93,7 +90,6 @@ export const UPDATE_ORGANIZATION_RULE = gql`
       updateOrganizationRule(
         ruleId: $ruleId
         name: $name
-        familyId: $familyId
         conditionsJson: $conditionsJson
         conditionLogic: $conditionLogic
         actionType: $actionType
@@ -106,9 +102,9 @@ export const UPDATE_ORGANIZATION_RULE = gql`
 `;
 
 export const DELETE_ORGANIZATION_RULE = gql`
-  mutation DeleteOrganizationRule($ruleId: UUID!, $familyId: UUID!) {
+  mutation DeleteOrganizationRule($ruleId: UUID!) {
     fileManagement {
-      deleteOrganizationRule(ruleId: $ruleId, familyId: $familyId) {
+      deleteOrganizationRule(ruleId: $ruleId) {
         success
       }
     }
@@ -116,9 +112,9 @@ export const DELETE_ORGANIZATION_RULE = gql`
 `;
 
 export const TOGGLE_ORGANIZATION_RULE = gql`
-  mutation ToggleOrganizationRule($ruleId: UUID!, $isEnabled: Boolean!, $familyId: UUID!) {
+  mutation ToggleOrganizationRule($ruleId: UUID!, $isEnabled: Boolean!) {
     fileManagement {
-      toggleOrganizationRule(ruleId: $ruleId, isEnabled: $isEnabled, familyId: $familyId) {
+      toggleOrganizationRule(ruleId: $ruleId, isEnabled: $isEnabled) {
         success
       }
     }
@@ -126,9 +122,9 @@ export const TOGGLE_ORGANIZATION_RULE = gql`
 `;
 
 export const REORDER_ORGANIZATION_RULES = gql`
-  mutation ReorderOrganizationRules($ruleIdsInOrder: [UUID!]!, $familyId: UUID!) {
+  mutation ReorderOrganizationRules($ruleIdsInOrder: [UUID!]!) {
     fileManagement {
-      reorderOrganizationRules(ruleIdsInOrder: $ruleIdsInOrder, familyId: $familyId) {
+      reorderOrganizationRules(ruleIdsInOrder: $ruleIdsInOrder) {
         success
       }
     }
@@ -136,9 +132,9 @@ export const REORDER_ORGANIZATION_RULES = gql`
 `;
 
 export const PROCESS_INBOX_FILES = gql`
-  mutation ProcessInboxFiles($familyId: UUID!) {
+  mutation ProcessInboxFiles {
     fileManagement {
-      processInboxFiles(familyId: $familyId) {
+      processInboxFiles {
         success
         filesProcessed
         rulesMatched

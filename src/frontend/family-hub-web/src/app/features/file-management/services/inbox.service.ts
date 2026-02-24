@@ -24,11 +24,10 @@ import {
 export class InboxService {
   private readonly apollo = inject(Apollo);
 
-  getRules(familyId: string): Observable<OrganizationRuleDto[]> {
+  getRules(): Observable<OrganizationRuleDto[]> {
     return this.apollo
       .query<{ fileManagement: { organizationRules: OrganizationRuleDto[] } }>({
         query: GET_ORGANIZATION_RULES,
-        variables: { familyId },
         fetchPolicy: 'network-only',
       })
       .pipe(
@@ -40,11 +39,11 @@ export class InboxService {
       );
   }
 
-  getProcessingLog(familyId: string, skip = 0, take = 20): Observable<ProcessingLogEntryDto[]> {
+  getProcessingLog(skip = 0, take = 20): Observable<ProcessingLogEntryDto[]> {
     return this.apollo
       .query<{ fileManagement: { processingLog: ProcessingLogEntryDto[] } }>({
         query: GET_PROCESSING_LOG,
-        variables: { familyId, skip, take },
+        variables: { skip, take },
         fetchPolicy: 'network-only',
       })
       .pipe(
@@ -56,11 +55,11 @@ export class InboxService {
       );
   }
 
-  previewRuleMatch(fileId: string, familyId: string): Observable<RuleMatchPreviewDto | null> {
+  previewRuleMatch(fileId: string): Observable<RuleMatchPreviewDto | null> {
     return this.apollo
       .query<{ fileManagement: { previewRuleMatch: RuleMatchPreviewDto | null } }>({
         query: PREVIEW_RULE_MATCH,
-        variables: { fileId, familyId },
+        variables: { fileId },
         fetchPolicy: 'network-only',
       })
       .pipe(
@@ -104,11 +103,11 @@ export class InboxService {
       );
   }
 
-  deleteRule(ruleId: string, familyId: string): Observable<boolean> {
+  deleteRule(ruleId: string): Observable<boolean> {
     return this.apollo
       .mutate<{ fileManagement: { deleteOrganizationRule: { success: boolean } } }>({
         mutation: DELETE_ORGANIZATION_RULE,
-        variables: { ruleId, familyId },
+        variables: { ruleId },
       })
       .pipe(
         map((r) => r.data?.fileManagement.deleteOrganizationRule.success ?? false),
@@ -119,11 +118,11 @@ export class InboxService {
       );
   }
 
-  toggleRule(ruleId: string, isEnabled: boolean, familyId: string): Observable<boolean> {
+  toggleRule(ruleId: string, isEnabled: boolean): Observable<boolean> {
     return this.apollo
       .mutate<{ fileManagement: { toggleOrganizationRule: { success: boolean } } }>({
         mutation: TOGGLE_ORGANIZATION_RULE,
-        variables: { ruleId, isEnabled, familyId },
+        variables: { ruleId, isEnabled },
       })
       .pipe(
         map((r) => r.data?.fileManagement.toggleOrganizationRule.success ?? false),
@@ -134,11 +133,11 @@ export class InboxService {
       );
   }
 
-  reorderRules(ruleIdsInOrder: string[], familyId: string): Observable<boolean> {
+  reorderRules(ruleIdsInOrder: string[]): Observable<boolean> {
     return this.apollo
       .mutate<{ fileManagement: { reorderOrganizationRules: { success: boolean } } }>({
         mutation: REORDER_ORGANIZATION_RULES,
-        variables: { ruleIdsInOrder, familyId },
+        variables: { ruleIdsInOrder },
       })
       .pipe(
         map((r) => r.data?.fileManagement.reorderOrganizationRules.success ?? false),
@@ -149,7 +148,7 @@ export class InboxService {
       );
   }
 
-  processInboxFiles(familyId: string): Observable<{
+  processInboxFiles(): Observable<{
     success: boolean;
     filesProcessed: number;
     rulesMatched: number;
@@ -167,7 +166,6 @@ export class InboxService {
         };
       }>({
         mutation: PROCESS_INBOX_FILES,
-        variables: { familyId },
       })
       .pipe(
         map(
