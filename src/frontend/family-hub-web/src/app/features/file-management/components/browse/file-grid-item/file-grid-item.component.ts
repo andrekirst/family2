@@ -12,6 +12,11 @@ export interface FileAction {
   action: 'rename' | 'move' | 'delete' | 'download';
 }
 
+export interface FavoriteToggleEvent {
+  fileId: string;
+  isFavorited: boolean;
+}
+
 @Component({
   selector: 'app-file-grid-item',
   standalone: true,
@@ -28,15 +33,15 @@ export interface FileAction {
       <button
         (click)="toggleFavorite($event)"
         class="absolute top-2 left-2 p-1 rounded transition-all"
-        [class.opacity-100]="isFavorite()"
-        [class.opacity-0]="!isFavorite()"
-        [class.group-hover:opacity-100]="!isFavorite()"
-        [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+        [class.opacity-100]="isFavorited()"
+        [class.opacity-0]="!isFavorited()"
+        [class.group-hover:opacity-100]="!isFavorited()"
+        [attr.aria-label]="isFavorited() ? 'Remove from favorites' : 'Add to favorites'"
       >
         <span
-          [innerHTML]="isFavorite() ? starFilledIcon : starIcon"
-          [class.text-yellow-500]="isFavorite()"
-          [class.text-gray-300]="!isFavorite()"
+          [innerHTML]="isFavorited() ? starFilledIcon : starIcon"
+          [class.text-yellow-500]="isFavorited()"
+          [class.text-gray-300]="!isFavorited()"
           class="hover:text-yellow-500 transition-colors"
         ></span>
       </button>
@@ -104,11 +109,12 @@ export class FileGridItemComponent {
 
   readonly file = input.required<StoredFileDto>();
   readonly selected = input(false);
+  readonly isFavorited = input(false);
   readonly clicked = output<string>();
   readonly actionTriggered = output<FileAction>();
+  readonly favoriteToggled = output<FavoriteToggleEvent>();
   readonly showMenu = signal(false);
   readonly menuOpenUp = signal(false);
-  readonly isFavorite = signal(false);
 
   readonly dotsIcon: SafeHtml;
   readonly starIcon: SafeHtml;
@@ -144,8 +150,8 @@ export class FileGridItemComponent {
 
   toggleFavorite(event: Event): void {
     event.stopPropagation();
-    this.favoriteService.toggleFavorite(this.file().id).subscribe(() => {
-      this.isFavorite.update((v) => !v);
+    this.favoriteService.toggleFavorite(this.file().id).subscribe((isFavorited) => {
+      this.favoriteToggled.emit({ fileId: this.file().id, isFavorited });
     });
   }
 

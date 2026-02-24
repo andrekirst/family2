@@ -1,4 +1,13 @@
-import { Component, inject, input, output, signal, OnInit, OnChanges } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  inject,
+  input,
+  output,
+  signal,
+  OnInit,
+  OnChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -12,6 +21,7 @@ import { MediaService } from '../../../services/media.service';
 import { StoredFileDto } from '../../../models/file.models';
 import { TagDto } from '../../../models/tag.models';
 import { FileVersionDto } from '../../../models/version.models';
+import { FavoriteToggleEvent } from '../file-grid-item/file-grid-item.component';
 import { formatBytes } from '../../../utils/file-size.utils';
 import { getFileIcon, getFileCategory } from '../../../utils/mime-type.utils';
 import { TagChipComponent } from '../../tags/tag-chip.component';
@@ -49,21 +59,9 @@ import { TagChipComponent } from '../../tags/tag-chip.component';
               <div class="text-gray-400" [innerHTML]="largeFileIcon()"></div>
             </div>
           }
-          <!-- Favorite star -->
-          <button
-            (click)="toggleFavorite()"
-            class="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100/80 transition-colors"
-            [attr.aria-label]="isFavorite() ? unfavoriteLabel : favoriteLabel"
-          >
-            <span
-              [innerHTML]="isFavorite() ? starFilledIcon : starIcon"
-              [class.text-yellow-500]="isFavorite()"
-              [class.text-gray-300]="!isFavorite()"
-            ></span>
-          </button>
         </div>
 
-        <!-- Name (inline-editable) -->
+        <!-- Name + favorite star row -->
         @if (isEditing()) {
           <div class="flex items-center gap-2">
             <input
@@ -83,13 +81,26 @@ import { TagChipComponent } from '../../tags/tag-chip.component';
             </button>
           </div>
         } @else {
-          <h3
-            class="text-base font-semibold text-gray-900 text-center cursor-pointer hover:text-blue-600 transition-colors"
-            (click)="startRename()"
-            [attr.title]="file()!.name"
-          >
-            {{ file()!.name }}
-          </h3>
+          <div class="flex items-center justify-center gap-2">
+            <h3
+              class="text-base font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors truncate"
+              (click)="startRename()"
+              [attr.title]="file()!.name"
+            >
+              {{ file()!.name }}
+            </h3>
+            <button
+              (click)="toggleFavorite()"
+              class="p-1 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
+              [attr.aria-label]="isFavorited() ? unfavoriteLabel : favoriteLabel"
+            >
+              <span
+                [innerHTML]="isFavorited() ? starFilledIcon : starIcon"
+                [class.text-yellow-500]="isFavorited()"
+                [class.text-gray-300]="!isFavorited()"
+              ></span>
+            </button>
+          </div>
         }
 
         <!-- Tags section -->
@@ -280,17 +291,19 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
   private readonly tagService = inject(TagService);
   private readonly versionService = inject(VersionService);
   private readonly mediaService = inject(MediaService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly fileId = input.required<string>();
+  readonly isFavorited = input(false);
   readonly moveRequested = output<string>();
   readonly shareRequested = output<string>();
   readonly deleted = output<void>();
   readonly renamed = output<void>();
+  readonly favoriteToggled = output<FavoriteToggleEvent>();
 
   readonly file = signal<StoredFileDto | null>(null);
   readonly isEditing = signal(false);
   readonly showDeleteConfirm = signal(false);
-  readonly isFavorite = signal(false);
   readonly fileTags = signal<TagDto[]>([]);
   readonly allTags = signal<TagDto[]>([]);
   readonly showTagPicker = signal(false);
@@ -371,8 +384,8 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
   toggleFavorite(): void {
     const f = this.file();
     if (!f) return;
-    this.favoriteService.toggleFavorite(f.id).subscribe(() => {
-      this.isFavorite.update((v) => !v);
+    this.favoriteService.toggleFavorite(f.id).subscribe((isFavorited) => {
+      this.favoriteToggled.emit({ fileId: f.id, isFavorited });
     });
   }
 
@@ -460,9 +473,11 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
   }
 
   private loadFile(): void {
-    this.fileService.getFile(this.fileId()).subscribe((f) => this.file.set(f));
+    this.fileService.getFile(this.fileId()).subscribe((f) => {
+      this.file.set(f);
+      this.cdr.markForCheck();
+    });
     this.fileTags.set([]);
-    this.isFavorite.set(false);
     this.versions.set([]);
   }
 

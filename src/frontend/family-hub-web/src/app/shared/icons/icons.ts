@@ -2,6 +2,7 @@ import { ICON_BOLT } from './defs/bolt';
 import { ICON_CALENDAR } from './defs/calendar';
 import { ICON_CHECK } from './defs/check';
 import { ICON_CHEVRON_DOWN } from './defs/chevron-down';
+import { ICON_CHEVRON_UP } from './defs/chevron-up';
 import { ICON_CHEVRON_LEFT } from './defs/chevron-left';
 import { ICON_CHEVRON_RIGHT } from './defs/chevron-right';
 import { ICON_CLOCK } from './defs/clock';
@@ -38,6 +39,7 @@ export const ICONS = {
   CALENDAR: ICON_CALENDAR,
   CHECK: ICON_CHECK,
   CHEVRON_DOWN: ICON_CHEVRON_DOWN,
+  CHEVRON_UP: ICON_CHEVRON_UP,
   CHEVRON_LEFT: ICON_CHEVRON_LEFT,
   CHEVRON_RIGHT: ICON_CHEVRON_RIGHT,
   CLOCK: ICON_CLOCK,

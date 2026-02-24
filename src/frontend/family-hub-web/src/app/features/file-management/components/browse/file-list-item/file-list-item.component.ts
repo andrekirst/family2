@@ -6,7 +6,7 @@ import { FavoriteService } from '../../../services/favorite.service';
 import { StoredFileDto } from '../../../models/file.models';
 import { formatBytes } from '../../../utils/file-size.utils';
 import { getFileIcon } from '../../../utils/mime-type.utils';
-import { FileAction } from '../file-grid-item/file-grid-item.component';
+import { FileAction, FavoriteToggleEvent } from '../file-grid-item/file-grid-item.component';
 
 @Component({
   selector: 'app-file-list-item',
@@ -23,15 +23,15 @@ import { FileAction } from '../file-grid-item/file-grid-item.component';
       <button
         (click)="toggleFavorite($event)"
         class="flex-shrink-0 p-0.5 rounded transition-all"
-        [class.opacity-100]="isFavorite()"
-        [class.opacity-0]="!isFavorite()"
-        [class.group-hover:opacity-100]="!isFavorite()"
-        [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+        [class.opacity-100]="isFavorited()"
+        [class.opacity-0]="!isFavorited()"
+        [class.group-hover:opacity-100]="!isFavorited()"
+        [attr.aria-label]="isFavorited() ? 'Remove from favorites' : 'Add to favorites'"
       >
         <span
-          [innerHTML]="isFavorite() ? starFilledIcon : starIcon"
-          [class.text-yellow-500]="isFavorite()"
-          [class.text-gray-300]="!isFavorite()"
+          [innerHTML]="isFavorited() ? starFilledIcon : starIcon"
+          [class.text-yellow-500]="isFavorited()"
+          [class.text-gray-300]="!isFavorited()"
           class="hover:text-yellow-500 transition-colors"
         ></span>
       </button>
@@ -99,11 +99,12 @@ export class FileListItemComponent {
 
   readonly file = input.required<StoredFileDto>();
   readonly selected = input(false);
+  readonly isFavorited = input(false);
   readonly clicked = output<string>();
   readonly actionTriggered = output<FileAction>();
+  readonly favoriteToggled = output<FavoriteToggleEvent>();
   readonly showMenu = signal(false);
   readonly menuOpenUp = signal(false);
-  readonly isFavorite = signal(false);
 
   readonly dotsIcon: SafeHtml;
   readonly starIcon: SafeHtml;
@@ -139,8 +140,8 @@ export class FileListItemComponent {
 
   toggleFavorite(event: Event): void {
     event.stopPropagation();
-    this.favoriteService.toggleFavorite(this.file().id).subscribe(() => {
-      this.isFavorite.update((v) => !v);
+    this.favoriteService.toggleFavorite(this.file().id).subscribe((isFavorited) => {
+      this.favoriteToggled.emit({ fileId: this.file().id, isFavorited });
     });
   }
 

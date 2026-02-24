@@ -1,5 +1,7 @@
 import {
   Component,
+  ElementRef,
+  HostListener,
   inject,
   signal,
   OnInit,
@@ -28,7 +30,7 @@ import { UploadDialogComponent } from './upload-dialog/upload-dialog.component';
 import { MoveDialogComponent } from './move-dialog/move-dialog.component';
 import { TagManagerDialogComponent } from '../tags/tag-manager-dialog.component';
 import { FolderAction } from './folder-item/folder-item.component';
-import { FileAction } from './file-grid-item/file-grid-item.component';
+import { FileAction, FavoriteToggleEvent } from './file-grid-item/file-grid-item.component';
 
 @Component({
   selector: 'app-browse-page',
@@ -215,10 +217,15 @@ import { FileAction } from './file-grid-item/file-grid-item.component';
             [files]="files()"
             [viewMode]="fileState.viewMode()"
             [selectedFileIds]="fileState.selectedFileIds()"
+            [favoriteFileIds]="favoriteFileIds()"
+            [currentSortField]="fileState.sortBy()"
+            [currentSortDirection]="fileState.sortDirection()"
             (folderClicked)="navigateToFolder($event)"
             (fileClicked)="onFileClicked($event)"
             (folderAction)="onFolderAction($event)"
             (fileAction)="onFileAction($event)"
+            (favoriteToggled)="onFavoriteToggled($event)"
+            (sortRequested)="sortBy($event)"
             (uploadClicked)="showUploadDialog.set(true)"
             (createFolderClicked)="showCreateFolderDialog.set(true)"
           />
@@ -231,8 +238,10 @@ import { FileAction } from './file-grid-item/file-grid-item.component';
       @if (contextPanelFileId()) {
         <app-file-context-panel
           [fileId]="contextPanelFileId()!"
+          [isFavorited]="favoriteFileIds().has(contextPanelFileId()!)"
           (moveRequested)="startMove($event, 'file')"
           (shareRequested)="onShareRequested($event)"
+          (favoriteToggled)="onFavoriteToggled($event)"
           (deleted)="onFileDeleted()"
           (renamed)="refreshContent()"
         />
@@ -319,6 +328,16 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   private readonly contextPanel = inject(ContextPanelService);
   readonly fileState = inject(FileStateService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly elRef = inject(ElementRef);
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.showSortMenu()) return;
+    const sortBtn = this.elRef.nativeElement.querySelector('[data-testid="sort-button"]');
+    if (sortBtn && !sortBtn.contains(event.target as Node)) {
+      this.showSortMenu.set(false);
+    }
+  }
 
   @ViewChild('fileContextPanel') fileContextPanelTemplate!: TemplateRef<unknown>;
 
@@ -355,6 +374,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   readonly breadcrumbs = signal<FolderDto[]>([]);
   readonly loading = signal(false);
 
+  readonly favoriteFileIds = signal<Set<string>>(new Set());
   readonly showCreateFolderDialog = signal(false);
   readonly showUploadDialog = signal(false);
   readonly showMoveDialog = signal(false);
@@ -387,6 +407,18 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     } else {
       this.files.set(this.allFiles());
     }
+  }
+
+  onFavoriteToggled(event: FavoriteToggleEvent): void {
+    this.favoriteFileIds.update((set) => {
+      const next = new Set(set);
+      if (event.isFavorited) {
+        next.add(event.fileId);
+      } else {
+        next.delete(event.fileId);
+      }
+      return next;
+    });
   }
 
   onTagsChanged(): void {
@@ -422,17 +454,17 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       this.files.set(f);
       this.loading.set(false);
     });
+    this.favoriteService.getFavorites().subscribe((favFiles) => {
+      this.favoriteFileIds.set(new Set(favFiles.map((f) => f.id)));
+    });
   }
 
   onFileClicked(fileId: string): void {
     this.fileState.selectFile(fileId);
     this.contextPanelFileId.set(fileId);
-    // Defer to next tick so the template ref is available
-    setTimeout(() => {
-      if (this.fileContextPanelTemplate) {
-        this.contextPanel.open(this.fileContextPanelTemplate, fileId);
-      }
-    });
+    if (this.fileContextPanelTemplate) {
+      this.contextPanel.open(this.fileContextPanelTemplate, fileId);
+    }
   }
 
   onFolderAction(action: FolderAction): void {

@@ -25,8 +25,10 @@ import { ToastContainerComponent } from '../components/toast-container/toast-con
       >
         <app-top-bar />
         <div class="flex-1 flex overflow-hidden">
-          <main class="flex-1 overflow-auto">
-            <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+          <main class="flex-1 overflow-hidden flex flex-col">
+            <div
+              class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-1 min-h-0 flex flex-col w-full"
+            >
               <router-outlet />
             </div>
           </main>

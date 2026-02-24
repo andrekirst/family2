@@ -25,7 +25,10 @@ interface FrontendConfig {
  */
 @Injectable({ providedIn: 'root' })
 export class EnvironmentConfigService {
-  private _config!: FrontendConfig;
+  private _config: FrontendConfig = {
+    apiUrl: environment.apiUrl,
+    keycloak: { ...environment.keycloak },
+  };
 
   get apiUrl(): string {
     return this._config.apiUrl;
