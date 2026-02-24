@@ -40,127 +40,139 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
     CalendarDaySkeletonComponent,
   ],
   template: `
-    <!-- Navigation -->
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-2">
-        <button
-          (click)="previousPeriod()"
-          class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
-          data-testid="prev-period"
-        >
-          <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-        <button
-          (click)="goToToday()"
-          class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          data-testid="today-button"
-          i18n="@@calendar.today"
-        >
-          Today
-        </button>
-        <button
-          (click)="nextPeriod()"
-          class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
-          data-testid="next-period"
-        >
-          <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
+    <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">
+      <!-- Navigation -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <button
+            (click)="previousPeriod()"
+            class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+            data-testid="prev-period"
+          >
+            <svg
+              class="h-5 w-5 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <button
+            (click)="goToToday()"
+            class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            data-testid="today-button"
+            i18n="@@calendar.today"
+          >
+            Today
+          </button>
+          <button
+            (click)="nextPeriod()"
+            class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+            data-testid="next-period"
+          >
+            <svg
+              class="h-5 w-5 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <h2 class="text-xl font-semibold text-gray-900" data-testid="current-period-label">
+          {{ navigationLabel() }}
+        </h2>
+
+        <app-calendar-view-switcher
+          [activeView]="viewMode()"
+          (viewChanged)="onViewModeChanged($event)"
+        />
       </div>
 
-      <h2 class="text-xl font-semibold text-gray-900" data-testid="current-period-label">
-        {{ navigationLabel() }}
-      </h2>
-
-      <app-calendar-view-switcher
-        [activeView]="viewMode()"
-        (viewChanged)="onViewModeChanged($event)"
-      />
-    </div>
-
-    <!-- Month View -->
-    @if (viewMode() === 'month') {
-      @if (isLoading()) {
-        <div class="bg-white shadow rounded-lg p-6">
-          <div class="animate-pulse">
-            <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div class="grid grid-cols-7 gap-2">
-              @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track i) {
-                <div class="h-24 bg-gray-200 rounded"></div>
-              }
+      <!-- Month View -->
+      @if (viewMode() === 'month') {
+        @if (isLoading()) {
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="animate-pulse">
+              <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+              <div class="grid grid-cols-7 gap-2">
+                @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; track i) {
+                  <div class="h-24 bg-gray-200 rounded"></div>
+                }
+              </div>
             </div>
           </div>
-        </div>
-      } @else {
-        <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
-          <app-calendar-month-grid
-            [monthInput]="currentMonth()"
-            [eventsInput]="events()"
-            (dayClicked)="onMonthDayCellClicked($event)"
-            (eventClicked)="onEventClicked($event)"
-          />
-        </div>
+        } @else {
+          <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
+            <app-calendar-month-grid
+              [monthInput]="currentMonth()"
+              [eventsInput]="events()"
+              (dayClicked)="onMonthDayCellClicked($event)"
+              (eventClicked)="onEventClicked($event)"
+            />
+          </div>
+        }
       }
-    }
 
-    <!-- Week View -->
-    @if (viewMode() === 'week') {
-      @if (isLoading()) {
-        <app-calendar-week-skeleton />
-      } @else {
+      <!-- Week View -->
+      @if (viewMode() === 'week') {
+        @if (isLoading()) {
+          <app-calendar-week-skeleton />
+        } @else {
+          <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
+            <app-calendar-week-grid
+              [weekStartInput]="currentWeek()"
+              [eventsInput]="events()"
+              (timeSlotClicked)="onTimeSlotClicked($event)"
+              (eventClicked)="onEventClicked($event)"
+              (dayHeaderClicked)="onDayHeaderClickedInWeek($event)"
+            />
+          </div>
+        }
+      }
+
+      <!-- Day View -->
+      @if (viewMode() === 'day') {
         <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
-          <app-calendar-week-grid
-            [weekStartInput]="currentWeek()"
+          <app-calendar-day-grid
+            [selectedDateInput]="currentDay()"
             [eventsInput]="events()"
+            [loadingInput]="isLoading()"
             (timeSlotClicked)="onTimeSlotClicked($event)"
             (eventClicked)="onEventClicked($event)"
-            (dayHeaderClicked)="onDayHeaderClickedInWeek($event)"
           />
         </div>
       }
-    }
 
-    <!-- Day View -->
-    @if (viewMode() === 'day') {
-      <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
-        <app-calendar-day-grid
-          [selectedDateInput]="currentDay()"
-          [eventsInput]="events()"
-          [loadingInput]="isLoading()"
-          (timeSlotClicked)="onTimeSlotClicked($event)"
-          (eventClicked)="onEventClicked($event)"
-        />
-      </div>
-    }
-
-    <!-- Context panel content template -->
-    <ng-template #eventContextTemplate>
-      @if (contextEvent()) {
-        <app-event-context
-          [event]="contextEvent()"
-          (eventUpdated)="onEventUpdated()"
-          (eventCancelled)="onEventCancelled()"
-        />
-      } @else if (selectedDate()) {
-        <app-event-context
-          [selectedDate]="selectedDate()"
-          (eventCreated)="onEventCreated($event)"
-        />
-      }
-    </ng-template>
+      <!-- Context panel content template -->
+      <ng-template #eventContextTemplate>
+        @if (contextEvent()) {
+          <app-event-context
+            [event]="contextEvent()"
+            (eventUpdated)="onEventUpdated()"
+            (eventCancelled)="onEventCancelled()"
+          />
+        } @else if (selectedDate()) {
+          <app-event-context
+            [selectedDate]="selectedDate()"
+            (eventCreated)="onEventCreated($event)"
+          />
+        }
+      </ng-template>
+    </div>
   `,
 })
 export class CalendarPageComponent implements OnInit, OnDestroy {

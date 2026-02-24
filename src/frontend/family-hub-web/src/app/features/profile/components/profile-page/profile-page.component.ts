@@ -13,29 +13,31 @@ import {
   standalone: true,
   imports: [CommonModule, AvatarDisplayComponent, AvatarUploadComponent],
   template: `
-    <div class="max-w-md">
-      <h3 class="text-lg font-medium text-gray-900 mb-4">Your Avatar</h3>
-      <div class="flex items-start gap-6 mb-6">
-        <app-avatar-display
-          [avatarId]="currentAvatarId()"
-          [name]="currentUserName()"
-          size="large"
-        />
-        <div class="flex-1 pt-2">
-          <p class="text-sm text-gray-600 mb-1">{{ currentUserName() }}</p>
-          <p class="text-xs text-gray-400 mb-3">{{ currentUserEmail() }}</p>
-          @if (currentAvatarId()) {
-            <button
-              (click)="removeAvatar()"
-              [disabled]="isRemovingAvatar()"
-              class="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
-            >
-              {{ isRemovingAvatar() ? 'Removing...' : 'Remove avatar' }}
-            </button>
-          }
+    <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">
+      <div class="max-w-md">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Your Avatar</h3>
+        <div class="flex items-start gap-6 mb-6">
+          <app-avatar-display
+            [avatarId]="currentAvatarId()"
+            [name]="currentUserName()"
+            size="large"
+          />
+          <div class="flex-1 pt-2">
+            <p class="text-sm text-gray-600 mb-1">{{ currentUserName() }}</p>
+            <p class="text-xs text-gray-400 mb-3">{{ currentUserEmail() }}</p>
+            @if (currentAvatarId()) {
+              <button
+                (click)="removeAvatar()"
+                [disabled]="isRemovingAvatar()"
+                class="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
+              >
+                {{ isRemovingAvatar() ? 'Removing...' : 'Remove avatar' }}
+              </button>
+            }
+          </div>
         </div>
+        <app-avatar-upload (avatarUploaded)="onAvatarUploaded($event)" />
       </div>
-      <app-avatar-upload (avatarUploaded)="onAvatarUploaded($event)" />
     </div>
   `,
 })

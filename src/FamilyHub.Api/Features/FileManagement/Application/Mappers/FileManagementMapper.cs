@@ -1,0 +1,195 @@
+using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Models;
+using Tag = FamilyHub.Api.Features.FileManagement.Domain.Entities.Tag;
+
+namespace FamilyHub.Api.Features.FileManagement.Application.Mappers;
+
+public static class FileManagementMapper
+{
+    public static StoredFileDto ToDto(StoredFile file) => new()
+    {
+        Id = file.Id.Value,
+        Name = file.Name.Value,
+        MimeType = file.MimeType.Value,
+        Size = file.Size.Value,
+        StorageKey = file.StorageKey.Value,
+        Checksum = file.Checksum.Value,
+        FolderId = file.FolderId.Value,
+        FamilyId = file.FamilyId.Value,
+        UploadedBy = file.UploadedBy.Value,
+        CreatedAt = file.CreatedAt,
+        UpdatedAt = file.UpdatedAt
+    };
+
+    public static FolderDto ToDto(Folder folder) => new()
+    {
+        Id = folder.Id.Value,
+        Name = folder.Name.Value,
+        ParentFolderId = folder.ParentFolderId?.Value,
+        MaterializedPath = folder.MaterializedPath,
+        FamilyId = folder.FamilyId.Value,
+        CreatedBy = folder.CreatedBy.Value,
+        CreatedAt = folder.CreatedAt
+    };
+
+    public static TagDto ToDto(Tag tag, int fileCount = 0) => new()
+    {
+        Id = tag.Id.Value,
+        Name = tag.Name.Value,
+        Color = tag.Color.Value,
+        FamilyId = tag.FamilyId.Value,
+        FileCount = fileCount,
+        CreatedAt = tag.CreatedAt
+    };
+
+    public static FileMetadataDto ToDto(FileMetadata metadata) => new()
+    {
+        FileId = metadata.FileId.Value,
+        GpsLatitude = metadata.GpsLatitude?.Value,
+        GpsLongitude = metadata.GpsLongitude?.Value,
+        LocationName = metadata.LocationName,
+        CameraModel = metadata.CameraModel,
+        CaptureDate = metadata.CaptureDate,
+        HasGpsData = metadata.HasGpsData
+    };
+
+    public static AlbumDto ToDto(Album album, int itemCount = 0) => new()
+    {
+        Id = album.Id.Value,
+        Name = album.Name.Value,
+        Description = album.Description,
+        CoverFileId = album.CoverFileId?.Value,
+        FamilyId = album.FamilyId.Value,
+        CreatedBy = album.CreatedBy.Value,
+        ItemCount = itemCount,
+        CreatedAt = album.CreatedAt,
+        UpdatedAt = album.UpdatedAt
+    };
+
+    public static FilePermissionDto ToDto(FilePermission permission) => new(
+        Id: permission.Id.Value,
+        ResourceType: permission.ResourceType.ToString(),
+        ResourceId: permission.ResourceId,
+        MemberId: permission.MemberId.Value,
+        PermissionLevel: permission.PermissionLevel,
+        GrantedBy: permission.GrantedBy.Value,
+        GrantedAt: permission.GrantedAt);
+
+    public static OrganizationRuleDto ToDto(OrganizationRule rule) => new(
+        Id: rule.Id.Value,
+        Name: rule.Name,
+        ConditionsJson: rule.ConditionsJson,
+        ConditionLogic: rule.ConditionLogic,
+        ActionType: rule.ActionType,
+        ActionsJson: rule.ActionsJson,
+        Priority: rule.Priority,
+        IsEnabled: rule.IsEnabled,
+        CreatedBy: rule.CreatedBy.Value,
+        CreatedAt: rule.CreatedAt,
+        UpdatedAt: rule.UpdatedAt);
+
+    public static ProcessingLogEntryDto ToDto(ProcessingLogEntry entry) => new(
+        Id: entry.Id.Value,
+        FileId: entry.FileId.Value,
+        FileName: entry.FileName,
+        MatchedRuleId: entry.MatchedRuleId?.Value,
+        MatchedRuleName: entry.MatchedRuleName,
+        ActionTaken: entry.ActionTaken,
+        DestinationFolderId: entry.DestinationFolderId?.Value,
+        AppliedTagNames: entry.AppliedTagNames,
+        Success: entry.Success,
+        ErrorMessage: entry.ErrorMessage,
+        ProcessedAt: entry.ProcessedAt);
+
+    public static FileVersionDto ToDto(FileVersion version) => new()
+    {
+        Id = version.Id.Value,
+        FileId = version.FileId.Value,
+        VersionNumber = version.VersionNumber,
+        StorageKey = version.StorageKey.Value,
+        FileSize = version.FileSize.Value,
+        Checksum = version.Checksum.Value,
+        UploadedBy = version.UploadedBy.Value,
+        IsCurrent = version.IsCurrent,
+        UploadedAt = version.UploadedAt
+    };
+
+    public static ShareLinkDto ToDto(ShareLink link) => new()
+    {
+        Id = link.Id.Value,
+        Token = link.Token,
+        ResourceType = link.ResourceType.ToString(),
+        ResourceId = link.ResourceId,
+        FamilyId = link.FamilyId.Value,
+        CreatedBy = link.CreatedBy.Value,
+        ExpiresAt = link.ExpiresAt,
+        HasPassword = link.HasPassword,
+        MaxDownloads = link.MaxDownloads,
+        DownloadCount = link.DownloadCount,
+        IsRevoked = link.IsRevoked,
+        IsExpired = link.IsExpired,
+        IsAccessible = link.IsAccessible,
+        CreatedAt = link.CreatedAt
+    };
+
+    public static ShareLinkAccessLogDto ToDto(ShareLinkAccessLog log) => new(
+        Id: log.Id.Value,
+        ShareLinkId: log.ShareLinkId.Value,
+        IpAddress: log.IpAddress,
+        UserAgent: log.UserAgent,
+        Action: log.Action.ToString(),
+        AccessedAt: log.AccessedAt);
+
+    public static FileThumbnailDto ToDto(FileThumbnail thumbnail) => new()
+    {
+        Id = thumbnail.Id.Value,
+        FileId = thumbnail.FileId.Value,
+        Width = thumbnail.Width,
+        Height = thumbnail.Height,
+        StorageKey = thumbnail.StorageKey.Value,
+        GeneratedAt = thumbnail.GeneratedAt
+    };
+
+    public static ExternalConnectionDto ToDto(ExternalConnection connection) => new()
+    {
+        Id = connection.Id.Value,
+        FamilyId = connection.FamilyId.Value,
+        ProviderType = connection.ProviderType.ToString(),
+        DisplayName = connection.DisplayName,
+        Status = connection.Status.ToString(),
+        IsTokenExpired = connection.IsTokenExpired,
+        TokenExpiresAt = connection.TokenExpiresAt,
+        ConnectedBy = connection.ConnectedBy.Value,
+        ConnectedAt = connection.ConnectedAt
+    };
+
+    public static SecureNoteDto ToDto(SecureNote note) => new()
+    {
+        Id = note.Id.Value,
+        FamilyId = note.FamilyId.Value,
+        UserId = note.UserId.Value,
+        Category = note.Category.ToString(),
+        EncryptedTitle = note.EncryptedTitle,
+        EncryptedContent = note.EncryptedContent,
+        Iv = note.Iv,
+        Salt = note.Salt,
+        Sentinel = note.Sentinel,
+        CreatedAt = note.CreatedAt,
+        UpdatedAt = note.UpdatedAt
+    };
+
+    public static ZipJobDto ToDto(ZipJob job) => new()
+    {
+        Id = job.Id.Value,
+        FamilyId = job.FamilyId.Value,
+        InitiatedBy = job.InitiatedBy.Value,
+        FileCount = job.FileIds.Count,
+        Status = job.Status.ToString(),
+        Progress = job.Progress,
+        ZipSize = job.ZipSize,
+        ErrorMessage = job.ErrorMessage,
+        CreatedAt = job.CreatedAt,
+        CompletedAt = job.CompletedAt,
+        ExpiresAt = job.ExpiresAt
+    };
+}

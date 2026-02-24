@@ -62,6 +62,13 @@ export class CallbackComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(async (params) => {
+      // If already authenticated (e.g., after HMR re-render), skip and redirect
+      if (this.authService.isAuthenticated()) {
+        const redirectUrl = this.authService.consumePostLoginRedirect();
+        await this.router.navigateByUrl(redirectUrl);
+        return;
+      }
+
       const code = params['code'];
       const state = params['state'];
       const error = params['error'];

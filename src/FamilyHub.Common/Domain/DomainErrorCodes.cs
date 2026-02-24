@@ -37,6 +37,30 @@ public static class DomainErrorCodes
     public const string CannotUpdateCancelledEvent = "CANNOT_UPDATE_CANCELLED_EVENT";
     public const string MustBeFamilyMemberToCreateEvent = "MUST_BE_FAMILY_MEMBER_TO_CREATE_EVENT";
 
+    // File Management
+    public const string NotFound = "NOT_FOUND";
+    public const string Forbidden = "FORBIDDEN";
+    public const string Conflict = "CONFLICT";
+    public const string FileNotFound = "FILE_NOT_FOUND";
+    public const string FolderNotFound = "FOLDER_NOT_FOUND";
+    public const string TagNotFound = "TAG_NOT_FOUND";
+    public const string AlbumNotFound = "ALBUM_NOT_FOUND";
+    public const string OrganizationRuleNotFound = "ORGANIZATION_RULE_NOT_FOUND";
+    public const string InboxFolderNotFound = "INBOX_FOLDER_NOT_FOUND";
+    public const string FileVersionNotFound = "FILE_VERSION_NOT_FOUND";
+    public const string ShareLinkNotFound = "SHARE_LINK_NOT_FOUND";
+    public const string ShareLinkExpired = "SHARE_LINK_EXPIRED";
+    public const string ShareLinkRevoked = "SHARE_LINK_REVOKED";
+    public const string ShareLinkPasswordRequired = "SHARE_LINK_PASSWORD_REQUIRED";
+    public const string ShareLinkPasswordIncorrect = "SHARE_LINK_PASSWORD_INCORRECT";
+    public const string ShareLinkDownloadLimitReached = "SHARE_LINK_DOWNLOAD_LIMIT_REACHED";
+    public const string SecureNoteNotFound = "SECURE_NOTE_NOT_FOUND";
+    public const string ExternalConnectionNotFound = "EXTERNAL_CONNECTION_NOT_FOUND";
+    public const string ExternalConnectionAlreadyExists = "EXTERNAL_CONNECTION_ALREADY_EXISTS";
+    public const string ZipJobNotFound = "ZIP_JOB_NOT_FOUND";
+    public const string ZipJobConcurrentLimitReached = "ZIP_JOB_CONCURRENT_LIMIT_REACHED";
+    public const string ZipJobTooManyFiles = "ZIP_JOB_TOO_MANY_FILES";
+
     // EventChain
     public const string ChainDefinitionNotFound = "CHAIN_DEFINITION_NOT_FOUND";
     public const string ChainExecutionNotFound = "CHAIN_EXECUTION_NOT_FOUND";

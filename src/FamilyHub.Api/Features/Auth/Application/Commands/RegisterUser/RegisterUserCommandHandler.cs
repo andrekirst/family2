@@ -27,11 +27,16 @@ public sealed class RegisterUserCommandHandler(IUserRepository userRepository)
             return new RegisterUserResult(existingUser.Id, IsNewUser: false);
         }
 
-        // Check for duplicate email
+        // Check if user exists by email (e.g. Keycloak realm was recreated, external ID changed)
         var emailExists = await userRepository.GetByEmailAsync(command.Email, cancellationToken);
         if (emailExists is not null)
         {
-            throw new InvalidOperationException($"User with email {command.Email.Value} already exists");
+            // Re-link to the new external ID and update profile
+            emailExists.UpdateExternalId(command.ExternalUserId);
+            emailExists.UpdateProfile(command.Email, command.Name, command.EmailVerified);
+            emailExists.UpdateLastLogin(DateTime.UtcNow);
+
+            return new RegisterUserResult(emailExists.Id, IsNewUser: false);
         }
 
         // Register new user

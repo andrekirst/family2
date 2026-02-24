@@ -15,9 +15,12 @@ WORKDIR /src
 ENV DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
 
 # Create non-root user matching host UID/GID for correct file ownership
-RUN groupadd -g ${GID} devuser \
- && useradd -m -u ${UID} -g ${GID} -s /bin/bash devuser
+# Use getent to skip creation if the GID/UID already exists in the base image
+RUN (getent group ${GID} || groupadd -g ${GID} devuser) \
+ && (getent passwd ${UID} || useradd -m -u ${UID} -g ${GID} -s /bin/bash devuser)
+# Ensure HOME is writable by the non-root user (mkdir runs as root)
 ENV HOME=/home/devuser
+RUN mkdir -p ${HOME} && chown ${UID}:${GID} ${HOME}
 
 # Source code is volume-mounted at runtime, no COPY needed for dev
 EXPOSE 5152

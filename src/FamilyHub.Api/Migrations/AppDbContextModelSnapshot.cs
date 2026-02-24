@@ -610,6 +610,1223 @@ namespace FamilyHub.Api.Migrations
                     b.ToTable("family_members", "family");
                 });
 
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.Album", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("CoverFileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cover_file_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_albums");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_albums_family_id");
+
+                    b.ToTable("albums", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.AlbumItem", b =>
+                {
+                    b.Property<Guid>("AlbumId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("album_id");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file_id");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<Guid>("AddedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("added_by");
+
+                    b.HasKey("AlbumId", "FileId")
+                        .HasName("pk_album_items");
+
+                    b.HasIndex("AlbumId")
+                        .HasDatabaseName("ix_album_items_album_id");
+
+                    b.HasIndex("FileId")
+                        .HasDatabaseName("ix_album_items_file_id");
+
+                    b.ToTable("album_items", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.ExternalConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("ConnectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("connected_at");
+
+                    b.Property<Guid>("ConnectedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("connected_by");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("EncryptedAccessToken")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("encrypted_access_token");
+
+                    b.Property<string>("EncryptedRefreshToken")
+                        .HasColumnType("text")
+                        .HasColumnName("encrypted_refresh_token");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<string>("ProviderType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("provider_type");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("TokenExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("token_expires_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_external_connections");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_external_connections_family_id");
+
+                    b.HasIndex("FamilyId", "ProviderType")
+                        .IsUnique()
+                        .HasDatabaseName("ix_external_connections_family_id_provider_type");
+
+                    b.ToTable("external_connections", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.FileMetadata", b =>
+                {
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file_id");
+
+                    b.Property<string>("CameraModel")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("camera_model");
+
+                    b.Property<DateTime?>("CaptureDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("capture_date");
+
+                    b.Property<DateTime>("ExtractedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("extracted_at");
+
+                    b.Property<double?>("GpsLatitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("gps_latitude");
+
+                    b.Property<double?>("GpsLongitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("gps_longitude");
+
+                    b.Property<string>("LocationName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("location_name");
+
+                    b.Property<string>("RawExif")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("raw_exif");
+
+                    b.HasKey("FileId")
+                        .HasName("pk_file_metadata");
+
+                    b.ToTable("file_metadata", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.FilePermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<DateTime>("GrantedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("granted_at");
+
+                    b.Property<Guid>("GrantedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("granted_by");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("member_id");
+
+                    b.Property<int>("PermissionLevel")
+                        .HasColumnType("integer")
+                        .HasColumnName("permission_level");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resource_id");
+
+                    b.Property<int>("ResourceType")
+                        .HasColumnType("integer")
+                        .HasColumnName("resource_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_file_permissions");
+
+                    b.HasIndex("MemberId", "FamilyId")
+                        .HasDatabaseName("ix_file_permissions_member_id_family_id");
+
+                    b.HasIndex("ResourceType", "ResourceId")
+                        .HasDatabaseName("ix_file_permissions_resource_type_resource_id");
+
+                    b.HasIndex("MemberId", "ResourceType", "ResourceId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_file_permissions_member_id_resource_type_resource_id");
+
+                    b.ToTable("file_permissions", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.FileTag", b =>
+                {
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file_id");
+
+                    b.Property<Guid>("TagId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tag_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("FileId", "TagId")
+                        .HasName("pk_file_tags");
+
+                    b.ToTable("file_tags", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.FileThumbnail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file_id");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("generated_at");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer")
+                        .HasColumnName("height");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer")
+                        .HasColumnName("width");
+
+                    b.HasKey("Id")
+                        .HasName("pk_file_thumbnails");
+
+                    b.HasIndex("FileId")
+                        .HasDatabaseName("ix_file_thumbnails_file_id");
+
+                    b.HasIndex("FileId", "Width", "Height")
+                        .IsUnique()
+                        .HasDatabaseName("ix_file_thumbnails_file_id_width_height");
+
+                    b.ToTable("file_thumbnails", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.FileVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Checksum")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("checksum");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file_id");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint")
+                        .HasColumnName("file_size");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_current");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded_at");
+
+                    b.Property<Guid>("UploadedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("uploaded_by");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_number");
+
+                    b.HasKey("Id")
+                        .HasName("pk_file_versions");
+
+                    b.HasIndex("FileId")
+                        .HasDatabaseName("ix_file_versions_file_id");
+
+                    b.HasIndex("FileId", "IsCurrent")
+                        .HasDatabaseName("ix_file_versions_file_id_is_current");
+
+                    b.ToTable("file_versions", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.Folder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<bool>("IsInbox")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_inbox");
+
+                    b.Property<string>("MaterializedPath")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("materialized_path");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid?>("ParentFolderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_folder_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_folders");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_folders_family_id");
+
+                    b.HasIndex("MaterializedPath")
+                        .HasDatabaseName("ix_folders_materialized_path");
+
+                    b.HasIndex("ParentFolderId")
+                        .HasDatabaseName("ix_folders_parent_folder_id");
+
+                    b.HasIndex("FamilyId", "IsInbox")
+                        .HasDatabaseName("ix_folders_family_id_is_inbox");
+
+                    b.ToTable("folders", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.OrganizationRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("integer")
+                        .HasColumnName("action_type");
+
+                    b.Property<string>("ActionsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("actions_json");
+
+                    b.Property<int>("ConditionLogic")
+                        .HasColumnType("integer")
+                        .HasColumnName("condition_logic");
+
+                    b.Property<string>("ConditionsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("conditions_json");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_enabled");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_organization_rules");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_organization_rules_family_id");
+
+                    b.HasIndex("FamilyId", "Priority")
+                        .HasDatabaseName("ix_organization_rules_family_id_priority");
+
+                    b.ToTable("organization_rules", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.ProcessingLogEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("ActionTaken")
+                        .HasColumnType("integer")
+                        .HasColumnName("action_taken");
+
+                    b.Property<string>("AppliedTagNames")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("applied_tag_names");
+
+                    b.Property<Guid?>("DestinationFolderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("destination_folder_id");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("error_message");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file_id");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
+
+                    b.Property<Guid?>("MatchedRuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("matched_rule_id");
+
+                    b.Property<string>("MatchedRuleName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("matched_rule_name");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("boolean")
+                        .HasColumnName("success");
+
+                    b.HasKey("Id")
+                        .HasName("pk_processing_log");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_processing_log_family_id");
+
+                    b.HasIndex("ProcessedAt")
+                        .HasDatabaseName("ix_processing_log_processed_at");
+
+                    b.ToTable("processing_log", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.RecentSearch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Query")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("query");
+
+                    b.Property<DateTime>("SearchedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("searched_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recent_searches");
+
+                    b.HasIndex("UserId", "SearchedAt")
+                        .HasDatabaseName("ix_recent_searches_user_id_searched_at");
+
+                    b.ToTable("recent_searches", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.SavedSearch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FiltersJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("filters_json");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Query")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("query");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_saved_searches");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_saved_searches_user_id");
+
+                    b.ToTable("saved_searches", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.SecureNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("category");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EncryptedContent")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("encrypted_content");
+
+                    b.Property<string>("EncryptedTitle")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("encrypted_title");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<string>("Iv")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("iv");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("salt");
+
+                    b.Property<string>("Sentinel")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("sentinel");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_secure_notes");
+
+                    b.HasIndex("UserId", "FamilyId")
+                        .HasDatabaseName("ix_secure_notes_user_id_family_id");
+
+                    b.HasIndex("UserId", "FamilyId", "Category")
+                        .HasDatabaseName("ix_secure_notes_user_id_family_id_category");
+
+                    b.ToTable("secure_notes", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.ShareLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("DownloadCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("download_count");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_revoked");
+
+                    b.Property<int?>("MaxDownloads")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_downloads");
+
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resource_id");
+
+                    b.Property<int>("ResourceType")
+                        .HasColumnType("integer")
+                        .HasColumnName("resource_type");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token");
+
+                    b.HasKey("Id")
+                        .HasName("pk_share_links");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_share_links_family_id");
+
+                    b.HasIndex("ResourceId")
+                        .HasDatabaseName("ix_share_links_resource_id");
+
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("ix_share_links_token");
+
+                    b.ToTable("share_links", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.ShareLinkAccessLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("AccessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("accessed_at");
+
+                    b.Property<int>("Action")
+                        .HasColumnType("integer")
+                        .HasColumnName("action");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<Guid>("ShareLinkId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("share_link_id");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("user_agent");
+
+                    b.HasKey("Id")
+                        .HasName("pk_share_link_access_log");
+
+                    b.HasIndex("ShareLinkId")
+                        .HasDatabaseName("ix_share_link_access_log_share_link_id");
+
+                    b.ToTable("share_link_access_log", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.StoredFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Checksum")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("checksum");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<Guid>("FolderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("folder_id");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("mime_type");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UploadedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("uploaded_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_files");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_files_family_id");
+
+                    b.HasIndex("FolderId")
+                        .HasDatabaseName("ix_files_folder_id");
+
+                    b.ToTable("files", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.Tag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("color");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tags");
+
+                    b.HasIndex("FamilyId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tags_family_id_name");
+
+                    b.ToTable("tags", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.UserFavorite", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("file_id");
+
+                    b.Property<DateTime>("FavoritedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("favorited_at");
+
+                    b.HasKey("UserId", "FileId")
+                        .HasName("pk_user_favorites");
+
+                    b.HasIndex("FileId")
+                        .HasDatabaseName("ix_user_favorites_file_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_user_favorites_user_id");
+
+                    b.ToTable("user_favorites", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Domain.Entities.ZipJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text")
+                        .HasColumnName("error_message");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.PrimitiveCollection<string>("FileIds")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("file_ids");
+
+                    b.Property<Guid>("InitiatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("initiated_by");
+
+                    b.Property<int>("Progress")
+                        .HasColumnType("integer")
+                        .HasColumnName("progress");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<long?>("ZipSize")
+                        .HasColumnType("bigint")
+                        .HasColumnName("zip_size");
+
+                    b.Property<string>("ZipStorageKey")
+                        .HasColumnType("text")
+                        .HasColumnName("zip_storage_key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_zip_jobs");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_zip_jobs_expires_at");
+
+                    b.HasIndex("FamilyId")
+                        .HasDatabaseName("ix_zip_jobs_family_id");
+
+                    b.ToTable("zip_jobs", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Infrastructure.Data.FileBlob", b =>
+                {
+                    b.Property<string>("StorageKey")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("data");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("mime_type");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size");
+
+                    b.HasKey("StorageKey")
+                        .HasName("pk_file_blobs");
+
+                    b.ToTable("file_blobs", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Infrastructure.Data.StorageQuota", b =>
+                {
+                    b.Property<Guid>("FamilyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<long>("MaxBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("max_bytes");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<long>("UsedBytes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("used_bytes");
+
+                    b.HasKey("FamilyId")
+                        .HasName("pk_storage_quotas");
+
+                    b.ToTable("storage_quotas", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.FileManagement.Infrastructure.Data.UploadChunk", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("ChunkIndex")
+                        .HasColumnType("integer")
+                        .HasColumnName("chunk_index");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("data");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size");
+
+                    b.Property<string>("UploadId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("upload_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_upload_chunks");
+
+                    b.HasIndex("UploadId", "ChunkIndex")
+                        .IsUnique()
+                        .HasDatabaseName("ix_upload_chunks_upload_id_chunk_index");
+
+                    b.ToTable("upload_chunks", "file_management");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.GoogleIntegration.Domain.Entities.GoogleAccountLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("AccessTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("access_token_expires_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("EncryptedAccessToken")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("encrypted_access_token");
+
+                    b.Property<string>("EncryptedRefreshToken")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("encrypted_refresh_token");
+
+                    b.Property<string>("GoogleAccountId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("google_account_id");
+
+                    b.Property<string>("GoogleEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("google_email");
+
+                    b.Property<string>("GrantedScopes")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("granted_scopes");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("text")
+                        .HasColumnName("last_error");
+
+                    b.Property<DateTime?>("LastSyncAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_sync_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("Active")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_google_account_links");
+
+                    b.HasIndex("GoogleAccountId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_google_account_links_google_account_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_google_account_links_status");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_google_account_links_user_id");
+
+                    b.ToTable("google_account_links", "google_integration");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.GoogleIntegration.Domain.Entities.OAuthState", b =>
+                {
+                    b.Property<string>("State")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("state");
+
+                    b.Property<string>("CodeVerifier")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("code_verifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("State")
+                        .HasName("pk_oauth_states");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_oauth_states_expires_at");
+
+                    b.ToTable("oauth_states", "google_integration");
+                });
+
             modelBuilder.Entity("FamilyHub.EventChain.Domain.Entities.ChainDefinition", b =>
                 {
                     b.Property<Guid>("Id")

@@ -8,15 +8,6 @@
       "Host": "postgres",
       "MaintenanceDB": "familyhub",
       "SSLMode": "prefer"
-    },
-    "2": {
-      "Name": "Keycloak DB",
-      "Group": "FamilyHub",
-      "Port": 5432,
-      "Username": "keycloak",
-      "Host": "postgres-keycloak",
-      "MaintenanceDB": "keycloak",
-      "SSLMode": "prefer"
     }
   }
 }

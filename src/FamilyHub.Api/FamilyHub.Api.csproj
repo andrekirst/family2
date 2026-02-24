@@ -7,11 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="FamilyHub.Infisical.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.12" />
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="15.1.12" />
+    <PackageReference Include="MetadataExtractor" Version="2.9.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
@@ -36,5 +42,12 @@
     <ProjectReference Include="..\FamilyHub.EventChain.Domain\FamilyHub.EventChain.Domain.csproj" />
     <ProjectReference Include="..\FamilyHub.EventChain.Infrastructure\FamilyHub.EventChain.Infrastructure.csproj" />
   </ItemGroup>
+
+  <Target Name="CopyDevModule" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy
+      SourceFiles="$(MSBuildThisFileDirectory)..\FamilyHub.Dev\bin\Debug\$(TargetFramework)\FamilyHub.Dev.dll"
+      DestinationFolder="$(OutputPath)"
+      ContinueOnError="true" />
+  </Target>
 
 </Project>

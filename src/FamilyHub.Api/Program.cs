@@ -3,6 +3,7 @@ using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.Behaviors;
+using FamilyHub.Api.Common.Infrastructure.Configuration.Infisical;
 using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
@@ -13,13 +14,20 @@ using FamilyHub.Api.Features.Calendar;
 using FamilyHub.Api.Features.Dashboard;
 using FamilyHub.Api.Features.EventChain;
 using FamilyHub.Api.Features.Family;
+using FamilyHub.Api.Features.FileManagement;
+using FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
+using FamilyHub.Api.Features.GoogleIntegration;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Infisical secrets management (loads secrets from vault into IConfiguration)
+builder.Configuration.AddInfisical();
 
 // Configure forwarded headers for reverse proxy (Traefik)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -60,6 +68,8 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     options.UseNpgsql(connectionString);
     options.UseSnakeCaseNamingConvention();
     options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
+    options.ConfigureWarnings(w =>
+        w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
 
 // Register FluentValidation validators from assembly
@@ -80,6 +90,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         // Authority = internal URL for OIDC discovery (e.g. http://keycloak:8080/realms/...)
         // Issuer = public URL that appears in JWT "iss" claim (e.g. https://kc-{env}.localhost:4443/realms/...)
         // When running behind a reverse proxy, these differ. If Issuer is not set, it defaults to Authority.
+        // Support multiple issuers for dual-domain (*.localhost + *.dev.andrekirst.de)
+        var keycloakIssuers = builder.Configuration["Keycloak:Issuers"]?
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var keycloakIssuer = builder.Configuration["Keycloak:Issuer"];
 
         options.Authority = keycloakAuthority;
@@ -90,12 +103,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = string.IsNullOrEmpty(keycloakIssuer) ? keycloakAuthority : keycloakIssuer,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ClockSkew = TimeSpan.FromMinutes(5)
         };
+
+        if (keycloakIssuers is { Length: > 0 })
+        {
+            options.TokenValidationParameters.ValidIssuers = keycloakIssuers;
+        }
+        else
+        {
+            options.TokenValidationParameters.ValidIssuer =
+                string.IsNullOrEmpty(keycloakIssuer) ? keycloakAuthority : keycloakIssuer;
+        }
 
     });
 
@@ -110,6 +132,8 @@ builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
 builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
 builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
+builder.Services.RegisterModule<FileManagementModule>(builder.Configuration);
+builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
 
 // Configure CORS for Angular frontend (supports multi-environment via config)
 var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -137,6 +161,27 @@ builder.Services
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment());
 
 var app = builder.Build();
+
+// Pre-warm OIDC discovery — fetch Keycloak's signing keys at startup so the
+// first authenticated request doesn't pay the discovery round-trip cost.
+_ = Task.Run(async () =>
+{
+    try
+    {
+        var jwtOptions = app.Services
+            .GetRequiredService<IOptionsMonitor<JwtBearerOptions>>()
+            .Get(JwtBearerDefaults.AuthenticationScheme);
+        if (jwtOptions.ConfigurationManager is not null)
+        {
+            await jwtOptions.ConfigurationManager.GetConfigurationAsync(CancellationToken.None);
+            app.Logger.LogInformation("OIDC discovery pre-warmed successfully");
+        }
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex, "OIDC discovery pre-warm failed — first request will trigger lazy discovery");
+    }
+});
 
 // Forward proxy headers (must be first middleware to set correct scheme/host)
 app.UseForwardedHeaders();
@@ -171,11 +216,32 @@ app.UseAuthorization();
 // PostgreSQL RLS middleware - must come AFTER authentication
 app.UseMiddleware<PostgresRlsMiddleware>();
 
+app.MapControllers();
 app.MapGraphQL();
 app.MapControllers(); // REST endpoints (avatar serving)
+app.MapFileEndpoints(); // REST endpoints (file upload/download/stream)
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
+// Frontend runtime configuration endpoint (served same-origin via Traefik proxy)
+app.MapGet("/config", (IConfiguration configuration) =>
+{
+    var section = configuration.GetSection("FrontendConfig");
+    var appUrl = section["AppUrl"] ?? "http://localhost:4200";
+    return Results.Ok(new
+    {
+        apiUrl = section["ApiUrl"] ?? "http://localhost:5152/graphql",
+        keycloak = new
+        {
+            issuer = section["KeycloakIssuer"] ?? "http://localhost:8080/realms/FamilyHub",
+            clientId = section["KeycloakClientId"] ?? "familyhub-web",
+            redirectUri = $"{appUrl}/callback",
+            postLogoutRedirectUri = appUrl,
+            scope = "openid profile email"
+        }
+    });
+}).AllowAnonymous();
 
 await app.RunAsync();
 
