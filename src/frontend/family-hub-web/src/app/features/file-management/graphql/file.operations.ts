@@ -15,7 +15,7 @@ const FILE_FIELDS = `
 `;
 
 export const GET_FILES = gql`
-  query GetFiles($folderId: UUID!) {
+  query GetFiles($folderId: UUID) {
     fileManagement {
       files(folderId: $folderId) {
         ${FILE_FIELDS}

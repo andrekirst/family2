@@ -20,7 +20,7 @@ import {
 export class FileService {
   private readonly apollo = inject(Apollo);
 
-  getFiles(folderId: string): Observable<StoredFileDto[]> {
+  getFiles(folderId: string | null): Observable<StoredFileDto[]> {
     return this.apollo
       .query<{ fileManagement: { files: StoredFileDto[] } }>({
         query: GET_FILES,

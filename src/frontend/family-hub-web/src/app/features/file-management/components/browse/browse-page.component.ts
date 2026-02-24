@@ -415,7 +415,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   refreshContent(): void {
     this.loading.set(true);
-    const folderId = this.fileState.currentFolderId() ?? '00000000-0000-0000-0000-000000000000';
+    const folderId = this.fileState.currentFolderId() ?? null;
 
     this.folderService.getFolders(folderId).subscribe((f) => this.folders.set(f));
     this.fileService.getFiles(folderId).subscribe((f) => {

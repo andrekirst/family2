@@ -21,7 +21,7 @@ import {
 export class FolderService {
   private readonly apollo = inject(Apollo);
 
-  getFolders(parentFolderId: string): Observable<FolderDto[]> {
+  getFolders(parentFolderId: string | null): Observable<FolderDto[]> {
     return this.apollo
       .query<{ fileManagement: { folders: FolderDto[] } }>({
         query: GET_FOLDERS,

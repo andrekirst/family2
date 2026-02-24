@@ -11,7 +11,7 @@ const FOLDER_FIELDS = `
 `;
 
 export const GET_FOLDERS = gql`
-  query GetFolders($parentFolderId: UUID!) {
+  query GetFolders($parentFolderId: UUID) {
     fileManagement {
       folders(parentFolderId: $parentFolderId) {
         ${FOLDER_FIELDS}
