@@ -43,4 +43,11 @@
     <ProjectReference Include="..\FamilyHub.EventChain.Infrastructure\FamilyHub.EventChain.Infrastructure.csproj" />
   </ItemGroup>
 
+  <Target Name="CopyDevModule" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy
+      SourceFiles="$(MSBuildThisFileDirectory)..\FamilyHub.Dev\bin\Debug\$(TargetFramework)\FamilyHub.Dev.dll"
+      DestinationFolder="$(OutputPath)"
+      ContinueOnError="true" />
+  </Target>
+
 </Project>
