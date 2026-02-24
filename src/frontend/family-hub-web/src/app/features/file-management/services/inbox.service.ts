@@ -26,13 +26,13 @@ export class InboxService {
 
   getRules(familyId: string): Observable<OrganizationRuleDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getOrganizationRules: OrganizationRuleDto[] } }>({
+      .query<{ fileManagement: { organizationRules: OrganizationRuleDto[] } }>({
         query: GET_ORGANIZATION_RULES,
         variables: { familyId },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getOrganizationRules),
+        map((r) => r.data!.fileManagement.organizationRules),
         catchError((err) => {
           console.error('Failed to load organization rules:', err);
           return of([]);
@@ -42,13 +42,13 @@ export class InboxService {
 
   getProcessingLog(familyId: string, skip = 0, take = 20): Observable<ProcessingLogEntryDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getProcessingLog: ProcessingLogEntryDto[] } }>({
+      .query<{ fileManagement: { processingLog: ProcessingLogEntryDto[] } }>({
         query: GET_PROCESSING_LOG,
         variables: { familyId, skip, take },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getProcessingLog),
+        map((r) => r.data!.fileManagement.processingLog),
         catchError((err) => {
           console.error('Failed to load processing log:', err);
           return of([]);
@@ -149,9 +149,7 @@ export class InboxService {
       );
   }
 
-  processInboxFiles(
-    familyId: string,
-  ): Observable<{
+  processInboxFiles(familyId: string): Observable<{
     success: boolean;
     filesProcessed: number;
     rulesMatched: number;

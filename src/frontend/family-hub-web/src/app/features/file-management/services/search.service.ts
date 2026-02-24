@@ -1,7 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { Observable, catchError, map, of } from 'rxjs';
-import { FileSearchResultDto, SavedSearchDto, SearchFilters } from '../models/search.models';
+import {
+  FileSearchResultDto,
+  RecentSearchDto,
+  SavedSearchDto,
+  SearchFilters,
+} from '../models/search.models';
 import {
   SEARCH_FILES,
   GET_RECENT_SEARCHES,
@@ -46,14 +51,14 @@ export class SearchService {
       );
   }
 
-  getRecentSearches(): Observable<SavedSearchDto[]> {
+  getRecentSearches(): Observable<RecentSearchDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getRecentSearches: SavedSearchDto[] } }>({
+      .query<{ fileManagement: { recentSearches: RecentSearchDto[] } }>({
         query: GET_RECENT_SEARCHES,
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getRecentSearches),
+        map((r) => r.data!.fileManagement.recentSearches),
         catchError((err) => {
           console.error('Failed to load recent searches:', err);
           return of([]);
@@ -63,12 +68,12 @@ export class SearchService {
 
   getSavedSearches(): Observable<SavedSearchDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getSavedSearches: SavedSearchDto[] } }>({
+      .query<{ fileManagement: { savedSearches: SavedSearchDto[] } }>({
         query: GET_SAVED_SEARCHES,
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getSavedSearches),
+        map((r) => r.data!.fileManagement.savedSearches),
         catchError((err) => {
           console.error('Failed to load saved searches:', err);
           return of([]);
@@ -76,14 +81,14 @@ export class SearchService {
       );
   }
 
-  saveSearch(query: string, filters: SearchFilters): Observable<SavedSearchDto | null> {
+  saveSearch(name: string, query: string, filtersJson?: string): Observable<string | null> {
     return this.apollo
-      .mutate<{ fileManagement: { saveSearch: SavedSearchDto } }>({
+      .mutate<{ fileManagement: { saveSearch: { success: boolean; savedSearchId: string } } }>({
         mutation: SAVE_SEARCH,
-        variables: { query, filters },
+        variables: { name, query, filtersJson },
       })
       .pipe(
-        map((r) => r.data?.fileManagement.saveSearch ?? null),
+        map((r) => r.data?.fileManagement.saveSearch.savedSearchId ?? null),
         catchError((err) => {
           console.error('Failed to save search:', err);
           return of(null);
@@ -91,11 +96,11 @@ export class SearchService {
       );
   }
 
-  deleteSavedSearch(savedSearchId: string): Observable<boolean> {
+  deleteSavedSearch(searchId: string): Observable<boolean> {
     return this.apollo
       .mutate<{ fileManagement: { deleteSavedSearch: boolean } }>({
         mutation: DELETE_SAVED_SEARCH,
-        variables: { savedSearchId },
+        variables: { searchId },
       })
       .pipe(
         map((r) => r.data?.fileManagement.deleteSavedSearch ?? false),

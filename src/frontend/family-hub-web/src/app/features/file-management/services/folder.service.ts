@@ -23,13 +23,13 @@ export class FolderService {
 
   getFolders(parentFolderId: string): Observable<FolderDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getFolders: FolderDto[] } }>({
+      .query<{ fileManagement: { folders: FolderDto[] } }>({
         query: GET_FOLDERS,
         variables: { parentFolderId },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getFolders),
+        map((r) => r.data!.fileManagement.folders),
         catchError((err) => {
           console.error('Failed to load folders:', err);
           return of([]);
@@ -39,12 +39,12 @@ export class FolderService {
 
   getFolder(folderId: string): Observable<FolderDto | null> {
     return this.apollo
-      .query<{ fileManagement: { getFolder: FolderDto } }>({
+      .query<{ fileManagement: { folder: FolderDto } }>({
         query: GET_FOLDER,
         variables: { folderId },
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getFolder),
+        map((r) => r.data!.fileManagement.folder),
         catchError((err) => {
           console.error('Failed to load folder:', err);
           return of(null);
@@ -54,13 +54,13 @@ export class FolderService {
 
   getBreadcrumb(folderId: string): Observable<FolderDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getBreadcrumb: FolderDto[] } }>({
+      .query<{ fileManagement: { breadcrumb: FolderDto[] } }>({
         query: GET_BREADCRUMB,
         variables: { folderId },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getBreadcrumb),
+        map((r) => r.data!.fileManagement.breadcrumb),
         catchError((err) => {
           console.error('Failed to load breadcrumb:', err);
           return of([]);

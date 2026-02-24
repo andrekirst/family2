@@ -3,7 +3,7 @@ import { gql } from 'apollo-angular';
 export const GET_FILE_VERSIONS = gql`
   query GetFileVersions($fileId: UUID!, $familyId: UUID!) {
     fileManagement {
-      getFileVersions(fileId: $fileId, familyId: $familyId) {
+      fileVersions(fileId: $fileId, familyId: $familyId) {
         id
         fileId
         versionNumber

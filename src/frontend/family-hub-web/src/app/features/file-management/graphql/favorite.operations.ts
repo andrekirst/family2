@@ -17,7 +17,7 @@ const FILE_FIELDS = `
 export const GET_FAVORITES = gql`
   query GetFavorites {
     fileManagement {
-      getFavorites {
+      favorites {
         ${FILE_FIELDS}
       }
     }
@@ -28,7 +28,7 @@ export const TOGGLE_FAVORITE = gql`
   mutation ToggleFavorite($fileId: UUID!) {
     fileManagement {
       toggleFavorite(fileId: $fileId) {
-        ${FILE_FIELDS}
+        isFavorited
       }
     }
   }

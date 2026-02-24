@@ -26,7 +26,7 @@ const FILE_FIELDS = `
 export const GET_TAGS = gql`
   query GetTags {
     fileManagement {
-      getTags {
+      tags {
         ${TAG_FIELDS}
       }
     }
@@ -34,9 +34,9 @@ export const GET_TAGS = gql`
 `;
 
 export const GET_FILES_BY_TAG = gql`
-  query GetFilesByTag($tagId: UUID!) {
+  query GetFilesByTag($tagIds: [UUID!]!) {
     fileManagement {
-      getFilesByTag(tagId: $tagId) {
+      filesByTag(tagIds: $tagIds) {
         ${FILE_FIELDS}
       }
     }
@@ -74,9 +74,7 @@ export const DELETE_TAG = gql`
 export const TAG_FILE = gql`
   mutation TagFile($fileId: UUID!, $tagId: UUID!) {
     fileManagement {
-      tagFile(fileId: $fileId, tagId: $tagId) {
-        ${FILE_FIELDS}
-      }
+      tagFile(fileId: $fileId, tagId: $tagId)
     }
   }
 `;
@@ -84,9 +82,7 @@ export const TAG_FILE = gql`
 export const UNTAG_FILE = gql`
   mutation UntagFile($fileId: UUID!, $tagId: UUID!) {
     fileManagement {
-      untagFile(fileId: $fileId, tagId: $tagId) {
-        ${FILE_FIELDS}
-      }
+      untagFile(fileId: $fileId, tagId: $tagId)
     }
   }
 `;

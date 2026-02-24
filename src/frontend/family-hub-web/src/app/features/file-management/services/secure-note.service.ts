@@ -19,13 +19,13 @@ export class SecureNoteService {
 
   getNotes(category?: string): Observable<SecureNoteDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getSecureNotes: SecureNoteDto[] } }>({
+      .query<{ fileManagement: { secureNotes: SecureNoteDto[] } }>({
         query: GET_SECURE_NOTES,
         variables: { category: category ?? null },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getSecureNotes),
+        map((r) => r.data!.fileManagement.secureNotes),
         catchError((err) => {
           console.error('Failed to load secure notes:', err);
           return of([]);

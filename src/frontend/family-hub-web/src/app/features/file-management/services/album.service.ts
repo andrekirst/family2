@@ -17,12 +17,12 @@ export class AlbumService {
 
   getAlbums(): Observable<AlbumDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getAlbums: AlbumDto[] } }>({
+      .query<{ fileManagement: { albums: AlbumDto[] } }>({
         query: GET_ALBUMS,
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getAlbums),
+        map((r) => r.data!.fileManagement.albums),
         catchError((err) => {
           console.error('Failed to load albums:', err);
           return of([]);

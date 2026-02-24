@@ -10,13 +10,13 @@ export class VersionService {
 
   getFileVersions(fileId: string, familyId: string): Observable<FileVersionDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getFileVersions: FileVersionDto[] } }>({
+      .query<{ fileManagement: { fileVersions: FileVersionDto[] } }>({
         query: GET_FILE_VERSIONS,
         variables: { fileId, familyId },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getFileVersions),
+        map((r) => r.data!.fileManagement.fileVersions),
         catchError((err) => {
           console.error('Failed to load file versions:', err);
           return of([]);

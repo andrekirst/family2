@@ -7,7 +7,12 @@ import { ICONS } from '../../../../shared/icons/icons';
 import { SearchService } from '../../services/search.service';
 import { TagService } from '../../services/tag.service';
 import { FileDownloadService } from '../../services/file-download.service';
-import { FileSearchResultDto, SearchFilters, SavedSearchDto } from '../../models/search.models';
+import {
+  FileSearchResultDto,
+  RecentSearchDto,
+  SearchFilters,
+  SavedSearchDto,
+} from '../../models/search.models';
 import { TagDto } from '../../models/tag.models';
 import { formatBytes } from '../../utils/file-size.utils';
 import { getFileIcon } from '../../utils/mime-type.utils';
@@ -303,7 +308,7 @@ export class SearchPageComponent implements OnInit {
 
   readonly results = signal<FileSearchResultDto[]>([]);
   readonly savedSearches = signal<SavedSearchDto[]>([]);
-  readonly recentSearches = signal<SavedSearchDto[]>([]);
+  readonly recentSearches = signal<RecentSearchDto[]>([]);
   readonly allTags = signal<TagDto[]>([]);
   readonly searching = signal(false);
   readonly showFilters = signal(false);
@@ -432,22 +437,26 @@ export class SearchPageComponent implements OnInit {
       });
   }
 
-  applySavedSearch(saved: SavedSearchDto): void {
+  applySavedSearch(saved: SavedSearchDto | RecentSearchDto): void {
     this.query = saved.query;
-    if (saved.filters) {
-      this.selectedMimeTypes = new Set(saved.filters.mimeTypes ?? []);
-      this.selectedTagIds = new Set(saved.filters.tagIds ?? []);
-      this.filterDateFrom = saved.filters.dateFrom ?? '';
-      this.filterDateTo = saved.filters.dateTo ?? '';
+    const filtersJson = 'filtersJson' in saved ? saved.filtersJson : null;
+    if (filtersJson) {
+      const filters: SearchFilters = JSON.parse(filtersJson);
+      this.selectedMimeTypes = new Set(filters.mimeTypes ?? []);
+      this.selectedTagIds = new Set(filters.tagIds ?? []);
+      this.filterDateFrom = filters.dateFrom ?? '';
+      this.filterDateTo = filters.dateTo ?? '';
     }
     this.searchSubject.next(this.query);
   }
 
   saveCurrentSearch(): void {
     if (!this.query.trim()) return;
-    this.searchService.saveSearch(this.query, this.buildFilters()).subscribe((saved) => {
-      if (saved) {
-        this.savedSearches.update((list) => [saved, ...list]);
+    const filters = this.buildFilters();
+    const filtersJson = Object.keys(filters).length > 0 ? JSON.stringify(filters) : undefined;
+    this.searchService.saveSearch(this.query, this.query, filtersJson).subscribe((savedId) => {
+      if (savedId) {
+        this.searchService.getSavedSearches().subscribe((s) => this.savedSearches.set(s));
       }
     });
   }

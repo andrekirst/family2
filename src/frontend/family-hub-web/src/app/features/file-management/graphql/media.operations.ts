@@ -3,7 +3,7 @@ import { gql } from 'apollo-angular';
 export const GET_MEDIA_STREAM_INFO = gql`
   query GetMediaStreamInfo($fileId: UUID!, $familyId: UUID!) {
     fileManagement {
-      getMediaStreamInfo(fileId: $fileId, familyId: $familyId) {
+      mediaStreamInfo(fileId: $fileId, familyId: $familyId) {
         fileId
         mimeType
         fileSize

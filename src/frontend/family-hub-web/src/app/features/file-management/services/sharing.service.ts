@@ -24,13 +24,13 @@ export class SharingService {
 
   getShareLinks(familyId: string): Observable<ShareLinkDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getShareLinks: ShareLinkDto[] } }>({
+      .query<{ fileManagement: { shareLinks: ShareLinkDto[] } }>({
         query: GET_SHARE_LINKS,
         variables: { familyId },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getShareLinks),
+        map((r) => r.data!.fileManagement.shareLinks),
         catchError((err) => {
           console.error('Failed to load share links:', err);
           return of([]);
@@ -40,13 +40,13 @@ export class SharingService {
 
   getAccessLog(shareLinkId: string, familyId: string): Observable<ShareLinkAccessLogDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getShareLinkAccessLog: ShareLinkAccessLogDto[] } }>({
+      .query<{ fileManagement: { shareLinkAccessLog: ShareLinkAccessLogDto[] } }>({
         query: GET_SHARE_LINK_ACCESS_LOG,
         variables: { shareLinkId, familyId },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getShareLinkAccessLog),
+        map((r) => r.data!.fileManagement.shareLinkAccessLog),
         catchError((err) => {
           console.error('Failed to load access log:', err);
           return of([]);
@@ -56,13 +56,13 @@ export class SharingService {
 
   getPermissions(resourceType: string, resourceId: string): Observable<FilePermissionDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getPermissions: FilePermissionDto[] } }>({
+      .query<{ fileManagement: { permissions: FilePermissionDto[] } }>({
         query: GET_PERMISSIONS,
         variables: { resourceType, resourceId },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getPermissions),
+        map((r) => r.data!.fileManagement.permissions),
         catchError((err) => {
           console.error('Failed to load permissions:', err);
           return of([]);

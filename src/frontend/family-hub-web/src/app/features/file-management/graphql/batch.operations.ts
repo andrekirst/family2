@@ -8,7 +8,8 @@ export const MOVE_FILE = gql`
   mutation MoveFile($input: MoveFileRequestInput!) {
     fileManagement {
       moveFile(input: $input) {
-        success
+        id
+        name
       }
     }
   }
@@ -17,9 +18,7 @@ export const MOVE_FILE = gql`
 export const DELETE_FILE = gql`
   mutation DeleteFile($fileId: UUID!) {
     fileManagement {
-      deleteFile(fileId: $fileId) {
-        success
-      }
+      deleteFile(fileId: $fileId)
     }
   }
 `;

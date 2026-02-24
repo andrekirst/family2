@@ -3,7 +3,7 @@ import { gql } from 'apollo-angular';
 export const GET_SECURE_NOTES = gql`
   query GetSecureNotes($category: String) {
     fileManagement {
-      getSecureNotes(category: $category) {
+      secureNotes(category: $category) {
         id
         familyId
         userId

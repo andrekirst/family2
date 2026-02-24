@@ -17,12 +17,12 @@ export class ExternalStorageService {
 
   getConnections(): Observable<ExternalConnectionDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getExternalConnections: ExternalConnectionDto[] } }>({
+      .query<{ fileManagement: { externalConnections: ExternalConnectionDto[] } }>({
         query: GET_EXTERNAL_CONNECTIONS,
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getExternalConnections),
+        map((r) => r.data!.fileManagement.externalConnections),
         catchError((err) => {
           console.error('Failed to load external connections:', err);
           return of([]);

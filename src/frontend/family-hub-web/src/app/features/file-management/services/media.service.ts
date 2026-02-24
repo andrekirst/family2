@@ -12,13 +12,13 @@ export class MediaService {
 
   getMediaStreamInfo(fileId: string, familyId: string): Observable<MediaStreamInfoDto | null> {
     return this.apollo
-      .query<{ fileManagement: { getMediaStreamInfo: MediaStreamInfoDto } }>({
+      .query<{ fileManagement: { mediaStreamInfo: MediaStreamInfoDto } }>({
         query: GET_MEDIA_STREAM_INFO,
         variables: { fileId, familyId },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getMediaStreamInfo),
+        map((r) => r.data!.fileManagement.mediaStreamInfo),
         catchError((err) => {
           console.error('Failed to load media info:', err);
           return of(null);

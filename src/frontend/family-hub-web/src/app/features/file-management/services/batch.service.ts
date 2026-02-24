@@ -14,12 +14,12 @@ export class BatchService {
   batchMove(fileIds: string[], targetFolderId: string): Observable<boolean[]> {
     const ops = fileIds.map((fileId) =>
       this.apollo
-        .mutate<{ fileManagement: { moveFile: { success: boolean } } }>({
+        .mutate<{ fileManagement: { moveFile: { id: string } } }>({
           mutation: MOVE_FILE,
           variables: { input: { fileId, targetFolderId } },
         })
         .pipe(
-          map((r) => r.data?.fileManagement.moveFile.success ?? false),
+          map((r) => !!r.data?.fileManagement.moveFile.id),
           catchError(() => of(false)),
         ),
     );
@@ -29,12 +29,12 @@ export class BatchService {
   batchDelete(fileIds: string[]): Observable<boolean[]> {
     const ops = fileIds.map((fileId) =>
       this.apollo
-        .mutate<{ fileManagement: { deleteFile: { success: boolean } } }>({
+        .mutate<{ fileManagement: { deleteFile: boolean } }>({
           mutation: DELETE_FILE,
           variables: { fileId },
         })
         .pipe(
-          map((r) => r.data?.fileManagement.deleteFile.success ?? false),
+          map((r) => r.data?.fileManagement.deleteFile ?? false),
           catchError(() => of(false)),
         ),
     );

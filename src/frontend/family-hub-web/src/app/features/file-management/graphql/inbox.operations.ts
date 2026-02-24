@@ -3,7 +3,7 @@ import { gql } from 'apollo-angular';
 export const GET_ORGANIZATION_RULES = gql`
   query GetOrganizationRules($familyId: UUID!) {
     fileManagement {
-      getOrganizationRules(familyId: $familyId) {
+      organizationRules(familyId: $familyId) {
         id
         name
         conditionsJson
@@ -23,7 +23,7 @@ export const GET_ORGANIZATION_RULES = gql`
 export const GET_PROCESSING_LOG = gql`
   query GetProcessingLog($familyId: UUID!, $skip: Int!, $take: Int!) {
     fileManagement {
-      getProcessingLog(familyId: $familyId, skip: $skip, take: $take) {
+      processingLog(familyId: $familyId, skip: $skip, take: $take) {
         id
         fileId
         fileName

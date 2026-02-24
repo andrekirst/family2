@@ -3,7 +3,7 @@ import { gql } from 'apollo-angular';
 export const GET_SHARE_LINKS = gql`
   query GetShareLinks($familyId: UUID!) {
     fileManagement {
-      getShareLinks(familyId: $familyId) {
+      shareLinks(familyId: $familyId) {
         id
         token
         resourceType
@@ -26,7 +26,7 @@ export const GET_SHARE_LINKS = gql`
 export const GET_SHARE_LINK_ACCESS_LOG = gql`
   query GetShareLinkAccessLog($shareLinkId: UUID!, $familyId: UUID!) {
     fileManagement {
-      getShareLinkAccessLog(shareLinkId: $shareLinkId, familyId: $familyId) {
+      shareLinkAccessLog(shareLinkId: $shareLinkId, familyId: $familyId) {
         id
         shareLinkId
         ipAddress
@@ -41,7 +41,7 @@ export const GET_SHARE_LINK_ACCESS_LOG = gql`
 export const GET_PERMISSIONS = gql`
   query GetPermissions($resourceType: String!, $resourceId: UUID!) {
     fileManagement {
-      getPermissions(resourceType: $resourceType, resourceId: $resourceId) {
+      permissions(resourceType: $resourceType, resourceId: $resourceId) {
         id
         resourceType
         resourceId

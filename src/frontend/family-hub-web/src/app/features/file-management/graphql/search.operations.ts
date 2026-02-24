@@ -40,10 +40,10 @@ export const SEARCH_FILES = gql`
 export const GET_RECENT_SEARCHES = gql`
   query GetRecentSearches {
     fileManagement {
-      getRecentSearches {
+      recentSearches {
         id
         query
-        createdAt
+        searchedAt
       }
     }
   }
@@ -52,9 +52,11 @@ export const GET_RECENT_SEARCHES = gql`
 export const GET_SAVED_SEARCHES = gql`
   query GetSavedSearches {
     fileManagement {
-      getSavedSearches {
+      savedSearches {
         id
+        name
         query
+        filtersJson
         createdAt
       }
     }
@@ -62,21 +64,20 @@ export const GET_SAVED_SEARCHES = gql`
 `;
 
 export const SAVE_SEARCH = gql`
-  mutation SaveSearch($query: String!, $filters: SearchFiltersDtoInput!) {
+  mutation SaveSearch($name: String!, $query: String!, $filtersJson: String) {
     fileManagement {
-      saveSearch(query: $query, filters: $filters) {
-        id
-        query
-        createdAt
+      saveSearch(name: $name, query: $query, filtersJson: $filtersJson) {
+        success
+        savedSearchId
       }
     }
   }
 `;
 
 export const DELETE_SAVED_SEARCH = gql`
-  mutation DeleteSavedSearch($savedSearchId: UUID!) {
+  mutation DeleteSavedSearch($searchId: UUID!) {
     fileManagement {
-      deleteSavedSearch(savedSearchId: $savedSearchId)
+      deleteSavedSearch(searchId: $searchId)
     }
   }
 `;

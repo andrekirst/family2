@@ -13,7 +13,7 @@ const FOLDER_FIELDS = `
 export const GET_FOLDERS = gql`
   query GetFolders($parentFolderId: UUID!) {
     fileManagement {
-      getFolders(parentFolderId: $parentFolderId) {
+      folders(parentFolderId: $parentFolderId) {
         ${FOLDER_FIELDS}
       }
     }
@@ -23,7 +23,7 @@ export const GET_FOLDERS = gql`
 export const GET_FOLDER = gql`
   query GetFolder($folderId: UUID!) {
     fileManagement {
-      getFolder(folderId: $folderId) {
+      folder(folderId: $folderId) {
         ${FOLDER_FIELDS}
       }
     }
@@ -33,7 +33,7 @@ export const GET_FOLDER = gql`
 export const GET_BREADCRUMB = gql`
   query GetBreadcrumb($folderId: UUID!) {
     fileManagement {
-      getBreadcrumb(folderId: $folderId) {
+      breadcrumb(folderId: $folderId) {
         ${FOLDER_FIELDS}
       }
     }

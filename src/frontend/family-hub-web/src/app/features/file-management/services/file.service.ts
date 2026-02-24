@@ -22,13 +22,13 @@ export class FileService {
 
   getFiles(folderId: string): Observable<StoredFileDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getFiles: StoredFileDto[] } }>({
+      .query<{ fileManagement: { files: StoredFileDto[] } }>({
         query: GET_FILES,
         variables: { folderId },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getFiles),
+        map((r) => r.data!.fileManagement.files),
         catchError((err) => {
           console.error('Failed to load files:', err);
           return of([]);
@@ -38,12 +38,12 @@ export class FileService {
 
   getFile(fileId: string): Observable<StoredFileDto | null> {
     return this.apollo
-      .query<{ fileManagement: { getFile: StoredFileDto } }>({
+      .query<{ fileManagement: { file: StoredFileDto } }>({
         query: GET_FILE,
         variables: { fileId },
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getFile),
+        map((r) => r.data!.fileManagement.file),
         catchError((err) => {
           console.error('Failed to load file:', err);
           return of(null);

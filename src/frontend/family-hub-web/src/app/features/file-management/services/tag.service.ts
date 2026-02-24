@@ -19,12 +19,12 @@ export class TagService {
 
   getTags(): Observable<TagDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getTags: TagDto[] } }>({
+      .query<{ fileManagement: { tags: TagDto[] } }>({
         query: GET_TAGS,
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getTags),
+        map((r) => r.data!.fileManagement.tags),
         catchError((err) => {
           console.error('Failed to load tags:', err);
           return of([]);
@@ -34,13 +34,13 @@ export class TagService {
 
   getFilesByTag(tagId: string): Observable<StoredFileDto[]> {
     return this.apollo
-      .query<{ fileManagement: { getFilesByTag: StoredFileDto[] } }>({
+      .query<{ fileManagement: { filesByTag: StoredFileDto[] } }>({
         query: GET_FILES_BY_TAG,
-        variables: { tagId },
+        variables: { tagIds: [tagId] },
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.getFilesByTag),
+        map((r) => r.data!.fileManagement.filesByTag),
         catchError((err) => {
           console.error('Failed to load files by tag:', err);
           return of([]);
@@ -93,32 +93,32 @@ export class TagService {
       );
   }
 
-  tagFile(fileId: string, tagId: string): Observable<StoredFileDto | null> {
+  tagFile(fileId: string, tagId: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ fileManagement: { tagFile: StoredFileDto } }>({
+      .mutate<{ fileManagement: { tagFile: boolean } }>({
         mutation: TAG_FILE,
         variables: { fileId, tagId },
       })
       .pipe(
-        map((r) => r.data?.fileManagement.tagFile ?? null),
+        map((r) => r.data?.fileManagement.tagFile ?? false),
         catchError((err) => {
           console.error('Failed to tag file:', err);
-          return of(null);
+          return of(false);
         }),
       );
   }
 
-  untagFile(fileId: string, tagId: string): Observable<StoredFileDto | null> {
+  untagFile(fileId: string, tagId: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ fileManagement: { untagFile: StoredFileDto } }>({
+      .mutate<{ fileManagement: { untagFile: boolean } }>({
         mutation: UNTAG_FILE,
         variables: { fileId, tagId },
       })
       .pipe(
-        map((r) => r.data?.fileManagement.untagFile ?? null),
+        map((r) => r.data?.fileManagement.untagFile ?? false),
         catchError((err) => {
           console.error('Failed to untag file:', err);
-          return of(null);
+          return of(false);
         }),
       );
   }

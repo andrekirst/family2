@@ -17,14 +17,22 @@ export interface SearchFilters {
   folderId?: string;
 }
 
-export interface SavedSearchDto {
+export interface RecentSearchDto {
   id: string;
   query: string;
-  filters: SearchFilters;
+  searchedAt: string;
+}
+
+export interface SavedSearchDto {
+  id: string;
+  name: string;
+  query: string;
+  filtersJson: string | null;
   createdAt: string;
 }
 
 export interface SaveSearchInput {
+  name: string;
   query: string;
-  filters: SearchFilters;
+  filtersJson?: string;
 }

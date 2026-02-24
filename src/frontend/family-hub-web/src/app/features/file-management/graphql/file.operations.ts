@@ -17,7 +17,7 @@ const FILE_FIELDS = `
 export const GET_FILES = gql`
   query GetFiles($folderId: UUID!) {
     fileManagement {
-      getFiles(folderId: $folderId) {
+      files(folderId: $folderId) {
         ${FILE_FIELDS}
       }
     }
@@ -27,7 +27,7 @@ export const GET_FILES = gql`
 export const GET_FILE = gql`
   query GetFile($fileId: UUID!) {
     fileManagement {
-      getFile(fileId: $fileId) {
+      file(fileId: $fileId) {
         ${FILE_FIELDS}
       }
     }

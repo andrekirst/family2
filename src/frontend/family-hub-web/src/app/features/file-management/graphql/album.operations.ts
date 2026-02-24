@@ -3,7 +3,7 @@ import { gql } from 'apollo-angular';
 export const GET_ALBUMS = gql`
   query GetAlbums {
     fileManagement {
-      getAlbums {
+      albums {
         id
         name
         description

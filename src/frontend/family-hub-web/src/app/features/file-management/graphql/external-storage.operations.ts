@@ -3,7 +3,7 @@ import { gql } from 'apollo-angular';
 export const GET_EXTERNAL_CONNECTIONS = gql`
   query GetExternalConnections {
     fileManagement {
-      getExternalConnections {
+      externalConnections {
         id
         familyId
         providerType
