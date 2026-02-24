@@ -276,7 +276,7 @@ import { OrganizationRuleDto, ProcessingLogEntryDto } from '../../models/inbox.m
                   <option value="MoveToFolder" i18n="@@files.inbox.actionMove">
                     Move to Folder
                   </option>
-                  <option value="ApplyTag" i18n="@@files.inbox.actionTag">Apply Tag</option>
+                  <option value="ApplyTags" i18n="@@files.inbox.actionTag">Apply Tag</option>
                   <option value="AddToAlbum" i18n="@@files.inbox.actionAlbum">Add to Album</option>
                 </select>
               </div>
@@ -442,7 +442,7 @@ export class InboxPageComponent implements OnInit {
     const actionsJson = JSON.stringify({
       targetFolderId: this.actionType === 'MoveToFolder' ? this.actionTarget : undefined,
       tagNames:
-        this.actionType === 'ApplyTag'
+        this.actionType === 'ApplyTags'
           ? this.actionTarget.split(',').map((t) => t.trim())
           : undefined,
     });
@@ -454,7 +454,7 @@ export class InboxPageComponent implements OnInit {
           name: this.ruleName,
           familyId: this.familyId,
           conditionsJson,
-          conditionLogic: 'All',
+          conditionLogic: 'And',
           actionType: this.actionType,
           actionsJson,
         })
@@ -470,7 +470,7 @@ export class InboxPageComponent implements OnInit {
           name: this.ruleName,
           familyId: this.familyId,
           conditionsJson,
-          conditionLogic: 'All',
+          conditionLogic: 'And',
           actionType: this.actionType,
           actionsJson,
         })
