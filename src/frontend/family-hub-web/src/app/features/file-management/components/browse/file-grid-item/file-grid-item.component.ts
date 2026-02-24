@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ICONS } from '../../../../../shared/icons/icons';
@@ -60,7 +60,10 @@ export interface FileAction {
 
       @if (showMenu()) {
         <div
-          class="absolute right-0 top-8 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1"
+          class="absolute right-0 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1"
+          [class.top-8]="!menuOpenUp()"
+          [class.bottom-full]="menuOpenUp()"
+          [class.mb-1]="menuOpenUp()"
           (click)="$event.stopPropagation()"
         >
           <button
@@ -104,13 +107,17 @@ export class FileGridItemComponent {
   readonly clicked = output<string>();
   readonly actionTriggered = output<FileAction>();
   readonly showMenu = signal(false);
+  readonly menuOpenUp = signal(false);
   readonly isFavorite = signal(false);
 
   readonly dotsIcon: SafeHtml;
   readonly starIcon: SafeHtml;
   readonly starFilledIcon: SafeHtml;
 
-  constructor(private readonly sanitizer: DomSanitizer) {
+  constructor(
+    private readonly sanitizer: DomSanitizer,
+    private readonly elRef: ElementRef<HTMLElement>,
+  ) {
     this.dotsIcon = sanitizer.bypassSecurityTrustHtml(ICONS.DOTS_VERTICAL);
     this.starIcon = sanitizer.bypassSecurityTrustHtml(ICONS.STAR);
     this.starFilledIcon = sanitizer.bypassSecurityTrustHtml(ICONS.STAR_FILLED);
@@ -126,7 +133,13 @@ export class FileGridItemComponent {
 
   toggleMenu(event: Event): void {
     event.stopPropagation();
-    this.showMenu.update((v) => !v);
+    const opening = !this.showMenu();
+    if (opening) {
+      const rect = this.elRef.nativeElement.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      this.menuOpenUp.set(spaceBelow < 200);
+    }
+    this.showMenu.set(opening);
   }
 
   toggleFavorite(event: Event): void {

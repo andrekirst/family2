@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, ElementRef, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ICONS } from '../../../../../shared/icons/icons';
@@ -34,7 +34,11 @@ export interface FolderAction {
 
       @if (showMenu()) {
         <div
-          class="absolute right-0 top-full mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1"
+          class="absolute right-0 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1"
+          [class.top-full]="!menuOpenUp()"
+          [class.mt-1]="!menuOpenUp()"
+          [class.bottom-full]="menuOpenUp()"
+          [class.mb-1]="menuOpenUp()"
           (click)="$event.stopPropagation()"
         >
           <button
@@ -68,18 +72,28 @@ export class FolderItemComponent {
   readonly clicked = output<string>();
   readonly actionTriggered = output<FolderAction>();
   readonly showMenu = signal(false);
+  readonly menuOpenUp = signal(false);
 
   readonly folderIcon;
   readonly dotsIcon;
 
-  constructor(sanitizer: DomSanitizer) {
+  constructor(
+    sanitizer: DomSanitizer,
+    private readonly elRef: ElementRef<HTMLElement>,
+  ) {
     this.folderIcon = sanitizer.bypassSecurityTrustHtml(ICONS.FOLDER);
     this.dotsIcon = sanitizer.bypassSecurityTrustHtml(ICONS.DOTS_VERTICAL);
   }
 
   toggleMenu(event: Event): void {
     event.stopPropagation();
-    this.showMenu.update((v) => !v);
+    const opening = !this.showMenu();
+    if (opening) {
+      const rect = this.elRef.nativeElement.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      this.menuOpenUp.set(spaceBelow < 160);
+    }
+    this.showMenu.set(opening);
   }
 
   emitAction(action: FolderAction['action']): void {
