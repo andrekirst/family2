@@ -1,4 +1,4 @@
-# Routes /api/* on hub.localhost to Traefik's internal API
+# Routes /api/* on hub.dev.andrekirst.de to Traefik's internal API
 # This lets the hub page fetch router data without CORS issues
 http:
   routers:

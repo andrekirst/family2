@@ -31,4 +31,10 @@ public class RootMutation
     /// </summary>
     [Authorize]
     public FileManagementMutation FileManagement() => new();
+
+    /// <summary>
+    /// Google Integration mutations (unlink, refresh token).
+    /// </summary>
+    [Authorize]
+    public GoogleIntegrationMutation GoogleIntegration() => new();
 }

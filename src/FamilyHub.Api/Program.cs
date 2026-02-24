@@ -3,6 +3,7 @@ using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.Behaviors;
+using FamilyHub.Api.Common.Infrastructure.Configuration.Infisical;
 using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
@@ -15,13 +16,18 @@ using FamilyHub.Api.Features.EventChain;
 using FamilyHub.Api.Features.Family;
 using FamilyHub.Api.Features.FileManagement;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
+using FamilyHub.Api.Features.GoogleIntegration;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Infisical secrets management (loads secrets from vault into IConfiguration)
+builder.Configuration.AddInfisical();
 
 // Configure forwarded headers for reverse proxy (Traefik)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -127,6 +133,7 @@ builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
 builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
 builder.Services.RegisterModule<FileManagementModule>(builder.Configuration);
+builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
 
 // Configure CORS for Angular frontend (supports multi-environment via config)
 var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -154,6 +161,27 @@ builder.Services
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment());
 
 var app = builder.Build();
+
+// Pre-warm OIDC discovery — fetch Keycloak's signing keys at startup so the
+// first authenticated request doesn't pay the discovery round-trip cost.
+_ = Task.Run(async () =>
+{
+    try
+    {
+        var jwtOptions = app.Services
+            .GetRequiredService<IOptionsMonitor<JwtBearerOptions>>()
+            .Get(JwtBearerDefaults.AuthenticationScheme);
+        if (jwtOptions.ConfigurationManager is not null)
+        {
+            await jwtOptions.ConfigurationManager.GetConfigurationAsync(CancellationToken.None);
+            app.Logger.LogInformation("OIDC discovery pre-warmed successfully");
+        }
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex, "OIDC discovery pre-warm failed — first request will trigger lazy discovery");
+    }
+});
 
 // Forward proxy headers (must be first middleware to set correct scheme/host)
 app.UseForwardedHeaders();
@@ -188,6 +216,7 @@ app.UseAuthorization();
 // PostgreSQL RLS middleware - must come AFTER authentication
 app.UseMiddleware<PostgresRlsMiddleware>();
 
+app.MapControllers();
 app.MapGraphQL();
 app.MapControllers(); // REST endpoints (avatar serving)
 app.MapFileEndpoints(); // REST endpoints (file upload/download/stream)

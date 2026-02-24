@@ -134,6 +134,7 @@
     .svc-secrets{background:#1e1b4b;color:#c4b5fd}
     .svc-npm{background:#4a1c0a;color:#fb923c}
     .svc-nuget{background:#1e1b4b;color:#a5b4fc}
+    .svc-infisical{background:#1a2e05;color:#bef264}
 
     /* Empty / error states */
     .state-message{
@@ -211,7 +212,7 @@
       const SHARED_SERVICES = {
         keycloak:  { label: 'Keycloak',      css: 'svc-kc',      icon: '\u269F', url: 'https://auth' + BASE_DOMAIN + ':' + PORT },
         mailhog:   { label: 'MailHog',        css: 'svc-mail',    icon: '\u2709', url: 'https://mail' + BASE_DOMAIN + ':' + PORT },
-        infisical: { label: 'Infisical',      css: 'svc-secrets', icon: '\u26BF', url: 'https://secrets' + BASE_DOMAIN + ':' + PORT },
+        infisical: { label: 'Infisical',      css: 'svc-infisical', icon: '\uD83D\uDD12', url: 'https://secrets' + BASE_DOMAIN + ':' + PORT },
         verdaccio: { label: 'npm Registry',   css: 'svc-npm',     icon: '\u25CB', url: 'https://npm' + BASE_DOMAIN + ':' + PORT },
         baget:     { label: 'NuGet Gallery',  css: 'svc-nuget',   icon: '\u25CB', url: 'https://nuget' + BASE_DOMAIN + ':' + PORT },
       };

@@ -62,12 +62,16 @@ tasks:
       - docker volume create fh-proxy-registry-dockerhub
       - docker volume create fh-proxy-registry-mcr
       - docker volume create fh-proxy-registry-ghcr
+      - docker volume create fh-infisical-pg
+      - docker volume create fh-infisical-redis
     status:
       - docker volume inspect fh-proxy-verdaccio >/dev/null 2>&1
       - docker volume inspect fh-proxy-baget >/dev/null 2>&1
       - docker volume inspect fh-proxy-registry-dockerhub >/dev/null 2>&1
       - docker volume inspect fh-proxy-registry-mcr >/dev/null 2>&1
       - docker volume inspect fh-proxy-registry-ghcr >/dev/null 2>&1
+      - docker volume inspect fh-infisical-pg >/dev/null 2>&1
+      - docker volume inspect fh-infisical-redis >/dev/null 2>&1
 
   # ---------------------------------------------------------------------------
   # Shared layer (Traefik + Keycloak + MailHog + Infisical + proxies)
@@ -109,8 +113,10 @@ tasks:
     cmds:
       # Provision Keycloak realm for this environment
       - bash {{.INFRA_DIR}}/keycloak/provision-realm.sh "{{.ENV_NAME}}"
-      # Start per-env services
-      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} up -d --build
+      # Fetch Infisical secrets (if configured)
+      - |
+        SECRETS=$(bash {{.INFRA_DIR}}/scripts/fetch-infisical-secrets.sh 2>/dev/null) && eval "$SECRETS"
+        ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} up -d --build
       # Show URLs
       - task: urls
     env:
@@ -118,6 +124,11 @@ tasks:
       DOCKER_UID: '{{.DOCKER_UID}}'
       DOCKER_GID: '{{.DOCKER_GID}}'
       SRC_ROOT: '{{.SRC_ROOT}}'
+
+  env:secrets:
+    desc: 'Show secrets that would be fetched from Infisical (debug)'
+    cmds:
+      - bash {{.INFRA_DIR}}/scripts/fetch-infisical-secrets.sh
 
   env:down:
     desc: 'Stop environment (data persists)'
@@ -180,7 +191,7 @@ tasks:
         echo "  Shared services:"
         echo "  Keycloak:    https://auth.localhost:4443"
         echo "  MailHog:     https://mail.localhost:4443"
-        echo "  Infisical:   https://secrets.localhost:4443"
+        echo "  Infisical:   https://secrets.localhost:4443  (localhost:8180)"
         echo "  Hub:         https://hub.localhost:4443"
         echo "  Traefik:     http://localhost:8888"
         echo "  ──────────────────────────────────────────"
@@ -272,4 +283,4 @@ tasks:
   hub:
     desc: 'Open Environment Hub in browser'
     cmds:
-      - xdg-open https://hub.localhost:4443 2>/dev/null || open https://hub.localhost:4443 2>/dev/null || echo "Open https://hub.localhost:4443 in your browser"
+      - xdg-open https://hub.dev.andrekirst.de:4443 2>/dev/null || open https://hub.dev.andrekirst.de:4443 2>/dev/null || echo "Open https://hub.dev.andrekirst.de:4443 in your browser"
