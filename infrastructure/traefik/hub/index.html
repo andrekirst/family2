@@ -105,8 +105,6 @@
     .open-btn:hover{background:var(--accent-hover)}
     .svc-app{background:#1e3a5f;color:#93c5fd}
     .svc-api{background:#1a2e05;color:#bef264}
-    .svc-kc{background:#3b0764;color:#d8b4fe}
-    .svc-mail{background:#431407;color:#fdba74}
     .svc-pgadmin{background:#164e63;color:#67e8f9}
 
     /* Shared services bar */
@@ -131,6 +129,9 @@
     }
     .shared-svc-dot.online{background:var(--green)}
     .shared-svc-dot.offline{background:var(--text-muted)}
+    .svc-kc{background:#3b0764;color:#d8b4fe}
+    .svc-mail{background:#431407;color:#fdba74}
+    .svc-secrets{background:#1e1b4b;color:#c4b5fd}
     .svc-npm{background:#4a1c0a;color:#fb923c}
     .svc-nuget{background:#1e1b4b;color:#a5b4fc}
     .svc-infisical{background:#1a2e05;color:#bef264}
@@ -198,15 +199,22 @@
 
       const PORT = '4443';
       const REFRESH_MS = 10_000;
-      const SERVICE_PREFIXES = ['fe-', 'api-', 'kc-', 'mail-', 'pgadmin-'];
+      // Per-env service prefixes — Keycloak and MailHog are now shared (no per-env prefix)
+      const SERVICE_PREFIXES = ['fe-', 'api-', 'pgadmin-'];
       const EXCLUDED_ROUTERS = ['hub@docker', 'hub-api@file', 'verdaccio@docker', 'baget@docker'];
       const EXCLUDED_PATTERNS = [/^api-proxy-/];
       const PINNED_ENVS = ['main'];
 
+      // Detect domain from current hostname (hub.localhost -> .localhost, hub.dev.andrekirst.de -> .dev.andrekirst.de)
+      const BASE_DOMAIN = location.hostname.replace(/^hub\./, '.');
+
+      // Shared services — displayed in the top bar with health indicators
       const SHARED_SERVICES = {
-        verdaccio:  { label: 'npm Registry', css: 'svc-npm', icon: '\u25CB', url: 'https://npm.dev.andrekirst.de:' + PORT },
-        baget:      { label: 'NuGet Gallery', css: 'svc-nuget', icon: '\u25CB', url: 'https://nuget.dev.andrekirst.de:' + PORT },
-        infisical:  { label: 'Infisical', css: 'svc-infisical', icon: '\uD83D\uDD12', url: 'https://infisical.dev.andrekirst.de:' + PORT },
+        keycloak:  { label: 'Keycloak',      css: 'svc-kc',      icon: '\u269F', url: 'https://auth' + BASE_DOMAIN + ':' + PORT },
+        mailhog:   { label: 'MailHog',        css: 'svc-mail',    icon: '\u2709', url: 'https://mail' + BASE_DOMAIN + ':' + PORT },
+        infisical: { label: 'Infisical',      css: 'svc-infisical', icon: '\uD83D\uDD12', url: 'https://secrets' + BASE_DOMAIN + ':' + PORT },
+        verdaccio: { label: 'npm Registry',   css: 'svc-npm',     icon: '\u25CB', url: 'https://npm' + BASE_DOMAIN + ':' + PORT },
+        baget:     { label: 'NuGet Gallery',  css: 'svc-nuget',   icon: '\u25CB', url: 'https://nuget' + BASE_DOMAIN + ':' + PORT },
       };
 
       const content = document.getElementById('content');
@@ -264,22 +272,18 @@
       // -- Build environment URL ------------------------------------
       function envUrl(svcType, envName) {
         switch (svcType) {
-          case 'fe':   return 'https://' + envName + '.dev.andrekirst.de:' + PORT;
-          case 'api':  return 'https://api-' + envName + '.dev.andrekirst.de:' + PORT + '/graphql';
-          case 'kc':   return 'https://kc-' + envName + '.dev.andrekirst.de:' + PORT;
-          case 'mail': return 'https://mail-' + envName + '.dev.andrekirst.de:' + PORT;
-          case 'pgadmin': return 'https://pgadmin-' + envName + '.dev.andrekirst.de:' + PORT;
-          default:     return '#';
+          case 'fe':      return 'https://' + envName + BASE_DOMAIN + ':' + PORT;
+          case 'api':     return 'https://api-' + envName + BASE_DOMAIN + ':' + PORT + '/graphql';
+          case 'pgadmin': return 'https://pgadmin-' + envName + BASE_DOMAIN + ':' + PORT;
+          default:        return '#';
         }
       }
 
       // -- Service display info -------------------------------------
       const SVC_META = {
-        fe:   { label: 'App',      css: 'svc-app',  icon: '\u25C8' },
-        api:  { label: 'API',      css: 'svc-api',  icon: '\u2699' },
-        kc:   { label: 'Keycloak', css: 'svc-kc',   icon: '\u269F' },
-        mail: { label: 'MailHog',  css: 'svc-mail',  icon: '\u2709' },
-        pgadmin: { label: 'pgAdmin',  css: 'svc-pgadmin',  icon: '\u2756' },
+        fe:      { label: 'App',     css: 'svc-app',     icon: '\u25C8' },
+        api:     { label: 'API',     css: 'svc-api',     icon: '\u2699' },
+        pgadmin: { label: 'pgAdmin', css: 'svc-pgadmin', icon: '\u2756' },
       };
 
       // -- Badge class from env name --------------------------------
@@ -386,9 +390,9 @@
             textContent: isOffline ? 'Open App (offline) \u2197' : 'Open App \u2197',
           }));
 
-          // Service links
+          // Service links (only per-env services — no more Keycloak/MailHog per card)
           const svcContainer = el('div', { className: 'services' });
-          for (const svc of ['fe', 'api', 'kc', 'mail', 'pgadmin']) {
+          for (const svc of ['fe', 'api', 'pgadmin']) {
             if (!isOffline && !services[svc]) continue;
             const meta = SVC_META[svc];
             const link = el('a', {
@@ -446,7 +450,7 @@
           renderStateMessage(
             'Cannot reach Traefik API',
             'Make sure Traefik is running with the API enabled.',
-            'task traefik:up'
+            'task shared:up'
           );
         }
       }

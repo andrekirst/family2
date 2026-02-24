@@ -62,8 +62,11 @@ export const familyAdminGuard: CanActivateFn = (route, state) => {
  * Route guard requiring user to belong to a family.
  * Redirects unauthenticated users to login, and authenticated users
  * without a family to the family creation page.
+ *
+ * After a page refresh (F5), currentUser is null because it lives in memory.
+ * The guard fetches it from the backend before making a routing decision.
  */
-export const familyMemberGuard: CanActivateFn = () => {
+export const familyMemberGuard: CanActivateFn = async () => {
   const authService = inject(AuthService);
   const userService = inject(UserService);
   const router = inject(Router);
@@ -72,7 +75,12 @@ export const familyMemberGuard: CanActivateFn = () => {
     return router.parseUrl('/login');
   }
 
-  const user = userService.currentUser();
+  // After F5 refresh, currentUser is null — fetch it from the backend
+  let user = userService.currentUser();
+  if (!user) {
+    user = await userService.fetchCurrentUser();
+  }
+
   if (!user?.familyId) {
     return router.parseUrl('/family');
   }

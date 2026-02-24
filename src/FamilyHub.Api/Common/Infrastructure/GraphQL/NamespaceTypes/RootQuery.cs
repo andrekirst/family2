@@ -44,6 +44,12 @@ public class RootQuery
     public EventChainQuery EventChain() => new();
 
     /// <summary>
+    /// File management queries (files, folders).
+    /// </summary>
+    [Authorize]
+    public FileManagementQuery FileManagement() => new();
+
+    /// <summary>
     /// Google Integration queries (linked accounts, sync status, auth URL).
     /// </summary>
     [Authorize]

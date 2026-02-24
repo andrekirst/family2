@@ -68,7 +68,7 @@
           },
           "defaultConfiguration": "development",
           "options": {
-            "allowedHosts": [".dev.andrekirst.de"]
+            "allowedHosts": true
           }
         },
         "test": {

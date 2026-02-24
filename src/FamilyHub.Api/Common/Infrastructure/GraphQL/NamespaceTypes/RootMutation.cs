@@ -27,6 +27,12 @@ public class RootMutation
     public EventChainMutation EventChain() => new();
 
     /// <summary>
+    /// File management mutations (upload, delete, rename, move files; create folders).
+    /// </summary>
+    [Authorize]
+    public FileManagementMutation FileManagement() => new();
+
+    /// <summary>
     /// Google Integration mutations (unlink, refresh token).
     /// </summary>
     [Authorize]

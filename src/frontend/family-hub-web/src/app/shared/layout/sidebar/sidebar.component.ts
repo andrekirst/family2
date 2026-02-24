@@ -6,6 +6,7 @@ import { SidebarStateService } from '../../services/sidebar-state.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserService } from '../../../core/user/user.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { FamilyService } from '../../../features/family/services/family.service';
 import { ICONS } from '../../icons/icons';
 import { AvatarDisplayComponent } from '../../../core/avatar';
 
@@ -66,6 +67,24 @@ interface NavItem {
           </a>
         }
       </nav>
+
+      <!-- Temporary: Create Family button for testing -->
+      @if (!hasFamily()) {
+        <div class="mx-2 mb-2">
+          <button
+            (click)="createFamily()"
+            [disabled]="isCreatingFamily()"
+            class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            [class.justify-center]="sidebarState.isCollapsed()"
+            [attr.title]="sidebarState.isCollapsed() ? 'Create Family' : null"
+          >
+            <span [innerHTML]="icons.USERS" class="flex-shrink-0 [&>svg]:stroke-white"></span>
+            @if (!sidebarState.isCollapsed()) {
+              <span>{{ isCreatingFamily() ? 'Creating...' : 'Create Family' }}</span>
+            }
+          </button>
+        </div>
+      }
 
       <!-- User section -->
       <div class="border-t border-gray-200 p-3 flex-shrink-0 relative">
@@ -158,6 +177,7 @@ export class SidebarComponent {
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly i18nService = inject(I18nService);
+  private readonly familyService = inject(FamilyService);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -167,8 +187,11 @@ export class SidebarComponent {
     USER_CIRCLE: this.trustHtml(ICONS.USER_CIRCLE),
     LOGOUT: this.trustHtml(ICONS.LOGOUT),
     SETTINGS: this.trustHtml(ICONS.SETTINGS),
+    USERS: this.trustHtml(ICONS.USERS),
   };
   readonly showUserMenu = signal(false);
+  readonly isCreatingFamily = signal(false);
+  readonly hasFamily = computed(() => !!this.userService.currentUser()?.familyId);
   readonly userAvatarId = computed(() => this.userService.currentUser()?.avatarId ?? null);
 
   readonly expandSidebarLabel = $localize`:@@nav.expandSidebar:Expand sidebar`;
@@ -193,6 +216,12 @@ export class SidebarComponent {
       label: $localize`:@@nav.calendar:Calendar`,
       icon: this.trustHtml(ICONS.CALENDAR),
       matchPrefix: '/calendar',
+    },
+    {
+      path: '/files/browse',
+      label: $localize`:@@nav.files:Files`,
+      icon: this.trustHtml(ICONS.FOLDER),
+      matchPrefix: '/files',
     },
     {
       path: '/event-chains',
@@ -242,6 +271,20 @@ export class SidebarComponent {
     this.showUserMenu.set(false);
     this.userService.clearUser();
     this.authService.logout();
+  }
+
+  /** Temporary: create a family for testing */
+  createFamily(): void {
+    this.isCreatingFamily.set(true);
+    this.familyService.createFamily({ name: 'My Family' }).subscribe({
+      next: (family) => {
+        this.isCreatingFamily.set(false);
+        if (family) {
+          this.userService.fetchCurrentUser();
+        }
+      },
+      error: () => this.isCreatingFamily.set(false),
+    });
   }
 
   @HostListener('document:click')

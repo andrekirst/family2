@@ -1,0 +1,128 @@
+# Shared services layer — Keycloak, MailHog, Infisical (runs once, shared by all environments)
+# Usage: docker compose -f infrastructure/docker-compose.shared.yml up -d
+# Requires: traefik-public network (created by docker-compose.traefik.yml)
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — Keycloak database (shared across all environments)
+  # ---------------------------------------------------------------------------
+  postgres-keycloak:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - fh-shared-keycloak-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U keycloak']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shared-internal
+
+  # ---------------------------------------------------------------------------
+  # Keycloak — shared identity provider (per-env realms provisioned via REST API)
+  # ---------------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.4
+    restart: always
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_PROXY: edge
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HTTP_ENABLED: 'true'
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command:
+      - start-dev
+      - --health-enabled=true
+    depends_on:
+      postgres-keycloak:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'exec 3<>/dev/tcp/127.0.0.1/8080 && echo -e "GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep -q "200 OK"',
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.keycloak.rule=Host(`auth.localhost`) || Host(`auth.dev.andrekirst.de`)'
+      - 'traefik.http.routers.keycloak.entrypoints=websecure'
+      - 'traefik.http.routers.keycloak.tls=true'
+      - 'traefik.http.services.keycloak.loadbalancer.server.port=8080'
+    networks:
+      shared-internal:
+      traefik-public:
+        aliases:
+          - keycloak
+
+  # ---------------------------------------------------------------------------
+  # MailHog — shared email testing
+  # ---------------------------------------------------------------------------
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: always
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.mailhog.rule=Host(`mail.localhost`) || Host(`mail.dev.andrekirst.de`)'
+      - 'traefik.http.routers.mailhog.entrypoints=websecure'
+      - 'traefik.http.routers.mailhog.tls=true'
+      - 'traefik.http.services.mailhog.loadbalancer.server.port=8025'
+    networks:
+      traefik-public:
+        aliases:
+          - mailhog
+
+  # ---------------------------------------------------------------------------
+  # Infisical — self-hosted secrets management (stores Google OAuth creds etc.)
+  # ---------------------------------------------------------------------------
+  infisical-mongo:
+    image: mongo:7
+    restart: always
+    volumes:
+      - fh-shared-infisical-db:/data/db
+    networks:
+      - shared-internal
+
+  infisical:
+    image: infisical/infisical:latest
+    restart: always
+    environment:
+      MONGO_URL: mongodb://infisical-mongo:27017/infisical
+      ENCRYPTION_KEY: 0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f
+      AUTH_SECRET: change-me-in-production-auth-secret
+      SITE_URL: https://secrets.localhost:4443
+    depends_on:
+      - infisical-mongo
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.infisical.rule=Host(`secrets.localhost`) || Host(`secrets.dev.andrekirst.de`)'
+      - 'traefik.http.routers.infisical.entrypoints=websecure'
+      - 'traefik.http.routers.infisical.tls=true'
+      - 'traefik.http.services.infisical.loadbalancer.server.port=8080'
+    networks:
+      shared-internal:
+      traefik-public:
+
+volumes:
+  fh-shared-keycloak-db:
+  fh-shared-infisical-db:
+
+networks:
+  shared-internal:
+    driver: bridge
+  traefik-public:
+    external: true

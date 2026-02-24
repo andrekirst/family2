@@ -3,7 +3,7 @@
 http:
   routers:
     hub-api:
-      rule: 'Host(`hub.dev.andrekirst.de`) && PathPrefix(`/api`)'
+      rule: '(Host(`hub.localhost`) || Host(`hub.dev.andrekirst.de`)) && PathPrefix(`/api`)'
       entryPoints:
         - websecure
       service: api@internal

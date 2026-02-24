@@ -21,9 +21,11 @@ RUN npm ci
 RUN chmod -R 777 /app/node_modules
 
 # Create non-root user matching host UID/GID for correct file ownership
-RUN addgroup -g ${GID} devuser \
- && adduser -D -u ${UID} -G devuser -h /home/devuser devuser
+# Skip creation if the GID/UID already exists in the base image (e.g. node:1000)
+RUN (getent group ${GID} || addgroup -g ${GID} devuser) \
+ && (getent passwd ${UID} || adduser -D -u ${UID} -G $(getent group ${GID} | cut -d: -f1) -h /home/devuser devuser)
 ENV HOME=/home/devuser
+RUN mkdir -p ${HOME} && chown ${UID}:${GID} ${HOME}
 
 # Source code is volume-mounted at runtime
 EXPOSE 4200

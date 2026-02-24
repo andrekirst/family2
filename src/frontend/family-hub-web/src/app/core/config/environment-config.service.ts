@@ -1,54 +1,95 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 
+interface FrontendConfig {
+  apiUrl: string;
+  keycloak: {
+    issuer: string;
+    clientId: string;
+    redirectUri: string;
+    postLogoutRedirectUri: string;
+    scope: string;
+  };
+}
+
 /**
  * Runtime environment configuration service.
  *
- * Detects whether the app is running behind the Traefik multi-environment proxy
- * (subdomain-based routing on port 4443) and derives all service URLs by convention.
- * Falls back to static environment.ts values for host-based development.
+ * Loads configuration at app startup via three strategies (in order):
+ *   1. Fetch `/config` from same-origin (proxied by Traefik to API in Docker environments)
+ *   2. Fall back to hostname-based detection for multi-env setups
+ *   3. Fall back to static environment.ts values for host-based development
  *
- * Convention: if hostname is `{name}.dev.andrekirst.de` on port 4443:
- *   - API:      https://api-{name}.dev.andrekirst.de:4443/graphql
- *   - Keycloak: https://kc-{name}.dev.andrekirst.de:4443/realms/FamilyHub
- *   - App:      https://{name}.dev.andrekirst.de:4443
+ * The `load()` method is called by APP_INITIALIZER before Angular bootstrap completes,
+ * ensuring all components have access to correct configuration from the start.
  */
 @Injectable({ providedIn: 'root' })
 export class EnvironmentConfigService {
-  readonly apiUrl: string;
-  readonly apiBaseUrl: string; // Base URL without /graphql, for REST endpoints like avatars
-  readonly keycloak: {
-    readonly issuer: string;
-    readonly clientId: string;
-    readonly redirectUri: string;
-    readonly postLogoutRedirectUri: string;
-    readonly scope: string;
+  private _config: FrontendConfig = {
+    apiUrl: environment.apiUrl,
+    keycloak: { ...environment.keycloak },
   };
 
-  constructor() {
+  get apiUrl(): string {
+    return this._config.apiUrl;
+  }
+
+  get apiBaseUrl(): string {
+    return this._config.apiUrl.replace(/\/graphql$/, '');
+  }
+
+  get keycloak(): FrontendConfig['keycloak'] {
+    return this._config.keycloak;
+  }
+
+  /**
+   * Load configuration. Called once during APP_INITIALIZER.
+   * Uses native fetch() because Angular's HttpClient is not yet available.
+   */
+  async load(): Promise<void> {
+    // Strategy 1: Fetch /config from same-origin (works in Docker environments)
+    try {
+      const response = await fetch('/config', {
+        signal: AbortSignal.timeout(3000),
+      });
+      if (response.ok) {
+        const config = await response.json();
+        if (config?.apiUrl && config?.keycloak?.issuer) {
+          this._config = config;
+          return;
+        }
+      }
+    } catch {
+      // /config not available — fall through to hostname detection
+    }
+
+    // Strategy 2: Hostname-based detection for multi-env proxy setups
     const hostname = window.location.hostname;
     const port = window.location.port;
+    const match = hostname.match(/^(.+)\.(localhost|dev\.andrekirst\.de)$/);
 
-    // Detect multi-env: {name}.dev.andrekirst.de on port 4443
-    const match = hostname.match(/^(.+)\.dev\.andrekirst\.de$/);
     if (match && port === '4443') {
       const envName = match[1];
-      const baseUrl = `https://${envName}.dev.andrekirst.de:4443`;
+      const domain = match[2];
+      const baseUrl = `https://${envName}.${domain}:4443`;
 
-      this.apiUrl = `${baseUrl}/graphql`;
-      this.apiBaseUrl = baseUrl;
-      this.keycloak = {
-        issuer: `https://kc-${envName}.dev.andrekirst.de:4443/realms/FamilyHub`,
-        clientId: 'familyhub-web',
-        redirectUri: `${baseUrl}/callback`,
-        postLogoutRedirectUri: baseUrl,
-        scope: 'openid profile email',
+      this._config = {
+        apiUrl: `${baseUrl}/graphql`,
+        keycloak: {
+          issuer: `https://auth.${domain}:4443/realms/FamilyHub-${envName}`,
+          clientId: 'familyhub-web',
+          redirectUri: `${baseUrl}/callback`,
+          postLogoutRedirectUri: baseUrl,
+          scope: 'openid profile email',
+        },
       };
-    } else {
-      // Host-based development or production — use static environment values
-      this.apiUrl = environment.apiUrl;
-      this.apiBaseUrl = environment.apiUrl.replace(/\/graphql$/, '');
-      this.keycloak = { ...environment.keycloak };
+      return;
     }
+
+    // Strategy 3: Static environment.ts values (host-based dev or production)
+    this._config = {
+      apiUrl: environment.apiUrl,
+      keycloak: { ...environment.keycloak },
+    };
   }
 }

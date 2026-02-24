@@ -4,8 +4,29 @@ using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Infrastructure.Data;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
 using FamilyHub.EventChain.Domain.Entities;
+using FileManagementStoredFile = FamilyHub.Api.Features.FileManagement.Domain.Entities.StoredFile;
+using FileManagementFolder = FamilyHub.Api.Features.FileManagement.Domain.Entities.Folder;
+using FileManagementTag = FamilyHub.Api.Features.FileManagement.Domain.Entities.Tag;
+using FileManagementFileTag = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileTag;
+using FileManagementFileMetadata = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileMetadata;
+using FileManagementAlbum = FamilyHub.Api.Features.FileManagement.Domain.Entities.Album;
+using FileManagementAlbumItem = FamilyHub.Api.Features.FileManagement.Domain.Entities.AlbumItem;
+using FileManagementUserFavorite = FamilyHub.Api.Features.FileManagement.Domain.Entities.UserFavorite;
+using FileManagementFilePermission = FamilyHub.Api.Features.FileManagement.Domain.Entities.FilePermission;
+using FileManagementRecentSearch = FamilyHub.Api.Features.FileManagement.Domain.Entities.RecentSearch;
+using FileManagementSavedSearch = FamilyHub.Api.Features.FileManagement.Domain.Entities.SavedSearch;
+using FileManagementOrganizationRule = FamilyHub.Api.Features.FileManagement.Domain.Entities.OrganizationRule;
+using FileManagementProcessingLogEntry = FamilyHub.Api.Features.FileManagement.Domain.Entities.ProcessingLogEntry;
+using FileManagementFileVersion = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileVersion;
+using FileManagementShareLink = FamilyHub.Api.Features.FileManagement.Domain.Entities.ShareLink;
+using FileManagementShareLinkAccessLog = FamilyHub.Api.Features.FileManagement.Domain.Entities.ShareLinkAccessLog;
+using FileManagementFileThumbnail = FamilyHub.Api.Features.FileManagement.Domain.Entities.FileThumbnail;
+using FileManagementSecureNote = FamilyHub.Api.Features.FileManagement.Domain.Entities.SecureNote;
+using FileManagementExternalConnection = FamilyHub.Api.Features.FileManagement.Domain.Entities.ExternalConnection;
+using FileManagementZipJob = FamilyHub.Api.Features.FileManagement.Domain.Entities.ZipJob;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -65,6 +86,33 @@ public class AppDbContext : DbContext, IUnitOfWork
     // Dashboard entities
     public DbSet<DashboardLayout> DashboardLayouts { get; set; }
     public DbSet<DashboardWidget> DashboardWidgets { get; set; }
+
+    // File Management entities
+    public DbSet<FileBlob> FileBlobs { get; set; }
+    public DbSet<StorageQuota> StorageQuotas { get; set; }
+    public DbSet<UploadChunk> UploadChunks { get; set; }
+
+    // File Management domain entities
+    public DbSet<FileManagementStoredFile> ManagedFiles { get; set; }
+    public DbSet<FileManagementFolder> Folders { get; set; }
+    public DbSet<FileManagementTag> Tags { get; set; }
+    public DbSet<FileManagementFileTag> FileTags { get; set; }
+    public DbSet<FileManagementFileMetadata> FileMetadatas { get; set; }
+    public DbSet<FileManagementAlbum> Albums { get; set; }
+    public DbSet<FileManagementAlbumItem> AlbumItems { get; set; }
+    public DbSet<FileManagementUserFavorite> UserFavorites { get; set; }
+    public DbSet<FileManagementFilePermission> FilePermissions { get; set; }
+    public DbSet<FileManagementRecentSearch> RecentSearches { get; set; }
+    public DbSet<FileManagementSavedSearch> SavedSearches { get; set; }
+    public DbSet<FileManagementOrganizationRule> OrganizationRules { get; set; }
+    public DbSet<FileManagementProcessingLogEntry> ProcessingLogEntries { get; set; }
+    public DbSet<FileManagementFileVersion> FileVersions { get; set; }
+    public DbSet<FileManagementShareLink> ShareLinks { get; set; }
+    public DbSet<FileManagementShareLinkAccessLog> ShareLinkAccessLogs { get; set; }
+    public DbSet<FileManagementFileThumbnail> FileThumbnails { get; set; }
+    public DbSet<FileManagementSecureNote> SecureNotes { get; set; }
+    public DbSet<FileManagementExternalConnection> ExternalConnections { get; set; }
+    public DbSet<FileManagementZipJob> ZipJobs { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

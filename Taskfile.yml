@@ -2,10 +2,11 @@
 # Requires: https://taskfile.dev (v3+)
 #
 # Quick start:
-#   task setup:certs   # one-time: generate TLS certificates
-#   task up            # start environment for current branch
-#   task down          # stop environment (data persists)
-#   task env:destroy   # stop + remove volumes (clean slate)
+#   task setup:certs      # one-time: generate TLS certificates
+#   task shared:up        # start shared services (Keycloak, MailHog, Traefik, proxies)
+#   task up               # provision realm + start per-env services
+#   task down             # stop per-env (data persists)
+#   task env:destroy      # stop + remove volumes + delete realm
 
 version: '3'
 
@@ -22,7 +23,11 @@ vars:
     sh: echo "$(git rev-parse --show-toplevel)/src"
   INFRA_DIR: ./infrastructure
   TRAEFIK_COMPOSE: '{{.INFRA_DIR}}/docker-compose.traefik.yml'
+  SHARED_COMPOSE: '{{.INFRA_DIR}}/docker-compose.shared.yml'
   ENV_COMPOSE: '{{.INFRA_DIR}}/docker-compose.env.yml'
+  # Explicit project names prevent orphan-container warnings between compose files
+  DC_TRAEFIK: 'docker compose -p fh-traefik -f {{.INFRA_DIR}}/docker-compose.traefik.yml'
+  DC_SHARED: 'docker compose -p fh-shared -f {{.INFRA_DIR}}/docker-compose.shared.yml'
 
 tasks:
   # ---------------------------------------------------------------------------
@@ -41,6 +46,13 @@ tasks:
       - git config core.hooksPath .githooks
     status:
       - test "$(git config core.hooksPath)" = ".githooks"
+
+  setup:network:
+    desc: Create traefik-public Docker network (idempotent)
+    cmds:
+      - docker network create traefik-public 2>/dev/null || true
+    status:
+      - docker network inspect traefik-public >/dev/null 2>&1
 
   setup:proxy-volumes:
     desc: Create external Docker volumes for package caching proxies (idempotent)
@@ -62,38 +74,51 @@ tasks:
       - docker volume inspect fh-infisical-redis >/dev/null 2>&1
 
   # ---------------------------------------------------------------------------
-  # Traefik (shared proxy)
+  # Shared layer (Traefik + Keycloak + MailHog + Infisical + proxies)
   # ---------------------------------------------------------------------------
-  traefik:up:
-    desc: Start shared Traefik reverse proxy
-    deps: [setup:certs, setup:proxy-volumes]
+  shared:up:
+    desc: Start all shared services (Traefik, Keycloak, MailHog, Infisical, proxies)
+    deps: [setup:certs, setup:network, setup:proxy-volumes]
     cmds:
-      - docker compose -f {{.TRAEFIK_COMPOSE}} up -d
-    status:
-      - docker compose -f {{.TRAEFIK_COMPOSE}} ps --status running | grep -q traefik
-      - docker compose -f {{.TRAEFIK_COMPOSE}} ps --status running | grep -q verdaccio
-      - docker compose -f {{.TRAEFIK_COMPOSE}} ps --status running | grep -q infisical
+      - '{{.DC_TRAEFIK}} up -d'
+      - '{{.DC_SHARED}} up -d'
+      - echo ""
+      - echo "  Shared services starting..."
+      - echo "  Keycloak may take 30-60s on first start."
+      - echo "  Check status with 'task shared:status'"
+      - echo ""
 
-  traefik:down:
-    desc: Stop shared Traefik reverse proxy
+  shared:down:
+    desc: Stop shared services
     cmds:
-      - docker compose -f {{.TRAEFIK_COMPOSE}} down
+      - '{{.DC_SHARED}} down'
+      - '{{.DC_TRAEFIK}} down'
 
-  traefik:logs:
-    desc: Follow Traefik logs
+  shared:status:
+    desc: Health check shared services
     cmds:
-      - docker compose -f {{.TRAEFIK_COMPOSE}} logs -f
+      - bash {{.INFRA_DIR}}/scripts/health-check.sh shared
+
+  shared:logs:
+    desc: Follow shared service logs
+    cmds:
+      - '{{.DC_TRAEFIK}} logs -f {{.CLI_ARGS}}'
 
   # ---------------------------------------------------------------------------
-  # Environment lifecycle
+  # Per-environment lifecycle
   # ---------------------------------------------------------------------------
   env:up:
-    desc: 'Start environment for current branch ({{.ENV_NAME}})'
-    deps: [traefik:up, setup:hooks]
+    desc: 'Provision realm + start environment for current branch ({{.ENV_NAME}})'
+    deps: [shared:up, setup:hooks]
     cmds:
+      # Provision Keycloak realm for this environment
+      - bash {{.INFRA_DIR}}/keycloak/provision-realm.sh "{{.ENV_NAME}}"
+      # Fetch Infisical secrets (if configured)
       - |
         SECRETS=$(bash {{.INFRA_DIR}}/scripts/fetch-infisical-secrets.sh 2>/dev/null) && eval "$SECRETS"
         ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} up -d --build
+      # Show URLs
+      - task: urls
     env:
       ENV_NAME: '{{.ENV_NAME}}'
       DOCKER_UID: '{{.DOCKER_UID}}'
@@ -111,9 +136,10 @@ tasks:
       - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} down
 
   env:destroy:
-    desc: 'Stop environment + remove volumes (clean slate)'
+    desc: 'Stop environment + remove volumes + delete realm (clean slate)'
     cmds:
       - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} down -v
+      - bash {{.INFRA_DIR}}/keycloak/provision-realm.sh "{{.ENV_NAME}}" --delete
 
   env:logs:
     desc: 'Follow environment logs (optional: task env:logs -- api)'
@@ -130,47 +156,26 @@ tasks:
     cmds:
       - echo "{{.ENV_NAME}}"
 
-  env:check-permissions:
-    desc: 'Check for root-owned files in src/ (should be none after fix)'
-    cmds:
-      - |
-        echo "Scanning {{.SRC_ROOT}} for root-owned files..."
-        ROOT_FILES=$(find "{{.SRC_ROOT}}" -uid 0 -not -path '*/.git/*' -not -path '*/node_modules/*' 2>/dev/null)
-        if [ -n "$ROOT_FILES" ]; then
-          echo ""
-          echo "  WARNING: Found root-owned files:"
-          echo "$ROOT_FILES" | head -20
-          COUNT=$(echo "$ROOT_FILES" | wc -l)
-          if [ "$COUNT" -gt 20 ]; then
-            echo "  ... and $((COUNT - 20)) more"
-          fi
-          echo ""
-          echo "  Fix with: sudo chown -R $(id -u):$(id -g) {{.SRC_ROOT}}"
-          exit 1
-        else
-          echo "  OK — no root-owned files found."
-        fi
-
-  # ---------------------------------------------------------------------------
-  # List all running FamilyHub environments
-  # ---------------------------------------------------------------------------
-  list:
-    desc: 'List all running FamilyHub environments'
-    cmds:
-      - docker ps --filter "label=com.docker.compose.project" --format "table {{`{{.Names}}`}}\t{{`{{.Status}}`}}\t{{`{{.Ports}}`}}" | grep "^fh-" || echo "No FamilyHub environments running."
-
   # ---------------------------------------------------------------------------
   # Quick aliases
   # ---------------------------------------------------------------------------
   up:
-    desc: 'Alias for env:up'
+    desc: 'Alias for env:up — start environment for current branch'
     cmds:
       - task: env:up
 
   down:
-    desc: 'Alias for env:down'
+    desc: 'Alias for env:down — stop environment'
     cmds:
       - task: env:down
+
+  # ---------------------------------------------------------------------------
+  # Status & information
+  # ---------------------------------------------------------------------------
+  status:
+    desc: 'Full health dashboard (shared + environment)'
+    cmds:
+      - bash {{.INFRA_DIR}}/scripts/health-check.sh all "{{.ENV_NAME}}"
 
   urls:
     desc: 'Show URLs for current environment'
@@ -179,22 +184,37 @@ tasks:
         echo ""
         echo "  Environment: {{.ENV_NAME}}"
         echo "  ──────────────────────────────────────────"
-        echo "  App:       https://{{.ENV_NAME}}.dev.andrekirst.de:4443"
-        echo "  API:       https://api-{{.ENV_NAME}}.dev.andrekirst.de:4443/graphql"
-        echo "  Keycloak:  https://kc-{{.ENV_NAME}}.dev.andrekirst.de:4443"
-        echo "  MailHog:   https://mail-{{.ENV_NAME}}.dev.andrekirst.de:4443"
-        echo "  pgAdmin:   https://pgadmin-{{.ENV_NAME}}.dev.andrekirst.de:4443"
+        echo "  App:         https://{{.ENV_NAME}}.localhost:4443"
+        echo "  API:         https://api-{{.ENV_NAME}}.localhost:4443/graphql"
+        echo "  pgAdmin:     https://pgadmin-{{.ENV_NAME}}.localhost:4443"
         echo "  ──────────────────────────────────────────"
-        echo "  Hub:       https://hub.dev.andrekirst.de:4443"
-        echo "  Traefik:   http://localhost:8888"
-        echo "  Infisical: https://infisical.dev.andrekirst.de:4443  (localhost:8180)"
+        echo "  Shared services:"
+        echo "  Keycloak:    https://auth.localhost:4443"
+        echo "  MailHog:     https://mail.localhost:4443"
+        echo "  Infisical:   https://secrets.localhost:4443  (localhost:8180)"
+        echo "  Hub:         https://hub.localhost:4443"
+        echo "  Traefik:     http://localhost:8888"
         echo "  ──────────────────────────────────────────"
         echo "  Proxies:"
-        echo "  npm:       https://npm.dev.andrekirst.de:4443    (localhost:4873)"
-        echo "  NuGet:     https://nuget.dev.andrekirst.de:4443  (localhost:5555)"
-        echo "  DockerHub: localhost:5001"
-        echo "  MCR:       localhost:5002"
-        echo "  GHCR:      localhost:5003"
+        echo "  npm:         https://npm.localhost:4443    (localhost:4873)"
+        echo "  NuGet:       https://nuget.localhost:4443  (localhost:5555)"
+        echo "  DockerHub:   localhost:5001"
+        echo "  MCR:         localhost:5002"
+        echo "  GHCR:        localhost:5003"
+        echo "  ──────────────────────────────────────────"
+        echo "  Keycloak realm: FamilyHub-{{.ENV_NAME}}"
+        echo ""
+
+  list:
+    desc: 'List all running FamilyHub environments'
+    cmds:
+      - |
+        echo ""
+        echo "  Running FamilyHub environments:"
+        echo "  ──────────────────────────────────────────"
+        docker ps --filter "label=com.docker.compose.project" --format "{{`{{.Names}}`}}\t{{`{{.Status}}`}}" | grep "^fh-" | awk -F'[-_]' '{env=$2; for(i=3;i<NF;i++) env=env"-"$i; print env}' | sort -u | while read env; do
+          echo "  - $env"
+        done 2>/dev/null || echo "  No environments running."
         echo ""
 
   # ---------------------------------------------------------------------------
@@ -207,13 +227,13 @@ tasks:
         echo ""
         echo "  Proxy Containers:"
         echo "  ──────────────────────────────────────────"
-        docker compose -f {{.TRAEFIK_COMPOSE}} ps --format "table {{`{{.Name}}`}}\t{{`{{.Status}}`}}\t{{`{{.Ports}}`}}" | grep -E "(verdaccio|baget|registry)" || echo "  No proxy containers running."
+        {{.DC_TRAEFIK}} ps --format "table {{`{{.Name}}`}}\t{{`{{.Status}}`}}\t{{`{{.Ports}}`}}" | grep -E "(verdaccio|baget|registry)" || echo "  No proxy containers running."
         echo ""
 
   proxy:logs:
     desc: 'Follow proxy service logs'
     cmds:
-      - docker compose -f {{.TRAEFIK_COMPOSE}} logs -f verdaccio baget registry-dockerhub registry-mcr registry-ghcr {{.CLI_ARGS}}
+      - '{{.DC_TRAEFIK}} logs -f verdaccio baget registry-dockerhub registry-mcr registry-ghcr {{.CLI_ARGS}}'
 
   proxy:usage:
     desc: 'Show cache disk usage'
@@ -232,9 +252,9 @@ tasks:
     desc: 'Stop proxies and remove cache volumes (with confirmation)'
     prompt: This will remove all cached packages (npm, NuGet, Docker images). Continue?
     cmds:
-      - docker compose -f {{.TRAEFIK_COMPOSE}} stop verdaccio baget registry-dockerhub registry-mcr registry-ghcr
+      - '{{.DC_TRAEFIK}} stop verdaccio baget registry-dockerhub registry-mcr registry-ghcr'
       - docker volume rm fh-proxy-verdaccio fh-proxy-baget fh-proxy-registry-dockerhub fh-proxy-registry-mcr fh-proxy-registry-ghcr 2>/dev/null || true
-      - echo "Proxy caches removed. Run 'task traefik:up' to recreate."
+      - echo "Proxy caches removed. Run 'task shared:up' to recreate."
 
   # ---------------------------------------------------------------------------
   # Worktree management
