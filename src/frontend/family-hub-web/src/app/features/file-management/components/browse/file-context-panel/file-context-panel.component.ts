@@ -1,5 +1,6 @@
 import {
   Component,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   inject,
   input,
@@ -30,6 +31,7 @@ import { TagChipComponent } from '../../tags/tag-chip.component';
   selector: 'app-file-context-panel',
   standalone: true,
   imports: [CommonModule, FormsModule, TagChipComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (file()) {
       <div class="p-4 space-y-4">
@@ -485,6 +487,7 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
     this.tagService.getTags().subscribe((tags) => {
       this.allTags.set(tags);
       this.updateAvailableTags();
+      this.cdr.markForCheck();
     });
   }
 
@@ -493,6 +496,7 @@ export class FileContextPanelComponent implements OnInit, OnChanges {
     if (!f) return;
     this.versionService.getFileVersions(f.id, f.folderId).subscribe((v) => {
       this.versions.set(v);
+      this.cdr.markForCheck();
     });
   }
 

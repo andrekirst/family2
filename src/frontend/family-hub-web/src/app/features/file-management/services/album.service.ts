@@ -22,7 +22,7 @@ export class AlbumService {
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.albums),
+        map((r) => r.data?.fileManagement?.albums ?? []),
         catchError((err) => {
           console.error('Failed to load albums:', err);
           return of([]);
@@ -32,12 +32,12 @@ export class AlbumService {
 
   createAlbum(input: CreateAlbumInput): Observable<string | null> {
     return this.apollo
-      .mutate<{ fileManagement: { createAlbum: { albumId: string } } }>({
+      .mutate<{ fileManagement: { createAlbum: { albumId: { value: string } } } }>({
         mutation: CREATE_ALBUM,
         variables: { input },
       })
       .pipe(
-        map((r) => r.data?.fileManagement.createAlbum.albumId ?? null),
+        map((r) => r.data?.fileManagement.createAlbum.albumId.value ?? null),
         catchError((err) => {
           console.error('Failed to create album:', err);
           return of(null);
@@ -47,12 +47,12 @@ export class AlbumService {
 
   renameAlbum(albumId: string, name: string): Observable<boolean> {
     return this.apollo
-      .mutate<{ fileManagement: { renameAlbum: { albumId: string } } }>({
+      .mutate<{ fileManagement: { renameAlbum: { albumId: { value: string } } } }>({
         mutation: RENAME_ALBUM,
         variables: { input: { albumId, name } },
       })
       .pipe(
-        map((r) => !!r.data?.fileManagement.renameAlbum.albumId),
+        map((r) => !!r.data?.fileManagement.renameAlbum.albumId?.value),
         catchError((err) => {
           console.error('Failed to rename album:', err);
           return of(false);

@@ -22,7 +22,9 @@ export const CREATE_ALBUM = gql`
   mutation CreateAlbum($input: CreateAlbumRequestInput!) {
     fileManagement {
       createAlbum(input: $input) {
-        albumId
+        albumId {
+          value
+        }
       }
     }
   }
@@ -32,7 +34,9 @@ export const RENAME_ALBUM = gql`
   mutation RenameAlbum($input: RenameAlbumRequestInput!) {
     fileManagement {
       renameAlbum(input: $input) {
-        albumId
+        albumId {
+          value
+        }
       }
     }
   }

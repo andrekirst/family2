@@ -32,7 +32,7 @@ export class InboxService {
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.organizationRules),
+        map((r) => r.data?.fileManagement?.organizationRules ?? []),
         catchError((err) => {
           console.error('Failed to load organization rules:', err);
           return of([]);
@@ -48,7 +48,7 @@ export class InboxService {
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.processingLog),
+        map((r) => r.data?.fileManagement?.processingLog ?? []),
         catchError((err) => {
           console.error('Failed to load processing log:', err);
           return of([]);
@@ -64,7 +64,7 @@ export class InboxService {
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((r) => r.data!.fileManagement.previewRuleMatch),
+        map((r) => r.data?.fileManagement?.previewRuleMatch ?? null),
         catchError((err) => {
           console.error('Failed to preview rule match:', err);
           return of(null);

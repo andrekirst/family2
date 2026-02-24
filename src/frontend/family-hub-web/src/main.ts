@@ -2,6 +2,7 @@ import '@angular/localize/init';
 import { loadTranslations } from '@angular/localize';
 import { registerLocaleData } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
+import localeEn from '@angular/common/locales/en';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
@@ -9,8 +10,9 @@ import { App } from './app/app';
 import en from './app/core/i18n/translations/en.json';
 import de from './app/core/i18n/translations/de.json';
 
-// Register German locale data for DatePipe, DecimalPipe, etc.
+// Register locale data for DatePipe, DecimalPipe, etc.
 registerLocaleData(localeDe);
+registerLocaleData(localeEn);
 
 // Determine locale from localStorage (instant, pre-auth access)
 const LOCALE_STORAGE_KEY = 'familyhub-locale';
