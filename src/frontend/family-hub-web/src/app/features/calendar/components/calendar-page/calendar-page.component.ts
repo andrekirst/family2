@@ -19,11 +19,13 @@ import { CalendarViewSwitcherComponent } from '../calendar-view-switcher/calenda
 import { EventContextComponent } from '../event-context/event-context.component';
 import { TopBarService } from '../../../../shared/services/top-bar.service';
 import { ContextPanelService } from '../../../../shared/services/context-panel.service';
-import { CalendarViewMode } from '../../models/calendar.models';
+import { CalendarViewMode, AGENDA_CONSTANTS } from '../../models/calendar.models';
 import { getWeekStart, getWeekEnd, formatWeekLabel, getStoredLocale } from '../../utils/week.utils';
 import { getDayStart, getDayEnd, formatDayLabel } from '../../utils/day.utils';
+import { getAgendaDateRange } from '../../utils/agenda.utils';
 import { CalendarDayGridComponent } from '../calendar-day-grid/calendar-day-grid.component';
 import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-day-skeleton.component';
+import { CalendarAgendaComponent } from '../calendar-agenda/calendar-agenda.component';
 
 @Component({
   selector: 'app-calendar-page',
@@ -38,31 +40,34 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
     EventContextComponent,
     CalendarDayGridComponent,
     CalendarDaySkeletonComponent,
+    CalendarAgendaComponent,
   ],
   template: `
     <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">
       <!-- Navigation -->
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
-          <button
-            (click)="previousPeriod()"
-            class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
-            data-testid="prev-period"
-          >
-            <svg
-              class="h-5 w-5 text-gray-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          @if (viewMode() !== 'agenda') {
+            <button
+              (click)="previousPeriod()"
+              class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+              data-testid="prev-period"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
+              <svg
+                class="h-5 w-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+          }
           <button
             (click)="goToToday()"
             class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -71,25 +76,27 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
           >
             Today
           </button>
-          <button
-            (click)="nextPeriod()"
-            class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
-            data-testid="next-period"
-          >
-            <svg
-              class="h-5 w-5 text-gray-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          @if (viewMode() !== 'agenda') {
+            <button
+              (click)="nextPeriod()"
+              class="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+              data-testid="next-period"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
+              <svg
+                class="h-5 w-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          }
         </div>
 
         <h2 class="text-xl font-semibold text-gray-900" data-testid="current-period-label">
@@ -157,6 +164,34 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
         </div>
       }
 
+      <!-- Agenda View -->
+      @if (viewMode() === 'agenda') {
+        @if (isLoading() && agendaBatchCount() === 1) {
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="animate-pulse space-y-4">
+              @for (i of [1, 2, 3, 4, 5]; track i) {
+                <div>
+                  <div class="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                  <div class="h-12 bg-gray-200 rounded"></div>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
+            <app-calendar-agenda
+              [eventsInput]="agendaEvents()"
+              [batchCountInput]="agendaBatchCount()"
+              [loadingInput]="isLoading()"
+              [loadingMoreInput]="agendaLoadingMore()"
+              [hasMoreInput]="agendaHasMore()"
+              (eventClicked)="onEventClicked($event)"
+              (loadMore)="onLoadMoreAgenda()"
+            />
+          </div>
+        }
+      }
+
       <!-- Context panel content template -->
       <ng-template #eventContextTemplate>
         @if (contextEvent()) {
@@ -193,6 +228,12 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   selectedDate = signal<Date | null>(null);
   contextEvent = signal<CalendarEventDto | null>(null);
 
+  // Agenda-specific state
+  agendaEvents = signal<CalendarEventDto[]>([]);
+  agendaBatchCount = signal<number>(1);
+  agendaLoadingMore = signal<boolean>(false);
+  agendaHasMore = signal<boolean>(true);
+
   monthLabel = computed(() => {
     const date = this.currentMonth();
     return date.toLocaleDateString(getStoredLocale(), { month: 'long', year: 'numeric' });
@@ -205,10 +246,13 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
 
   dayLabel = computed(() => formatDayLabel(this.currentDay()));
 
+  agendaLabel = $localize`:@@calendar.agenda.upcomingEvents:Upcoming Events`;
+
   navigationLabel = computed(() => {
     const mode = this.viewMode();
     if (mode === 'month') return this.monthLabel();
     if (mode === 'day') return this.dayLabel();
+    if (mode === 'agenda') return this.agendaLabel;
     return this.weekLabel();
   });
 
@@ -239,11 +283,23 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
 
     const current = this.viewMode();
 
+    if (mode === 'agenda') {
+      // Switching to agenda: reset batch count and load fresh
+      this.agendaBatchCount.set(1);
+      this.agendaHasMore.set(true);
+      this.viewMode.set(mode);
+      this.loadAgendaEvents();
+      return;
+    }
+
     if (mode === 'day') {
       // Switching to day view
       if (current === 'week') {
         // Use the week's Monday as the starting day
         this.currentDay.set(new Date(this.currentWeek()));
+      } else if (current === 'agenda') {
+        // From agenda: use today
+        this.currentDay.set(new Date());
       } else {
         // Switching from month → day: use today if current month, else 1st of month
         const now = new Date();
@@ -258,6 +314,9 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
       if (current === 'day') {
         // Switching day → week: derive week from currentDay
         this.currentWeek.set(getWeekStart(this.currentDay()));
+      } else if (current === 'agenda') {
+        // From agenda: use current week
+        this.currentWeek.set(getWeekStart(new Date()));
       } else {
         // Switching month → week: use today if current month contains today, else 1st of month
         const now = new Date();
@@ -274,6 +333,10 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
         // Derive month from currentDay
         const day = this.currentDay();
         this.currentMonth.set(new Date(day.getFullYear(), day.getMonth(), 1));
+      } else if (current === 'agenda') {
+        // From agenda: use current month
+        const now = new Date();
+        this.currentMonth.set(new Date(now.getFullYear(), now.getMonth(), 1));
       } else {
         // Switching week → month: use the month containing the week's Monday
         const weekMon = this.currentWeek();
@@ -310,7 +373,14 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     this.currentMonth.set(new Date(now.getFullYear(), now.getMonth(), 1));
     this.currentWeek.set(getWeekStart(now));
     this.currentDay.set(new Date(now));
-    this.loadEvents();
+
+    if (this.viewMode() === 'agenda') {
+      this.agendaBatchCount.set(1);
+      this.agendaHasMore.set(true);
+      this.loadAgendaEvents();
+    } else {
+      this.loadEvents();
+    }
   }
 
   prevDay(): void {
@@ -393,18 +463,36 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     this.contextPanelService.open(this.eventContextTemplate);
   }
 
+  onLoadMoreAgenda(): void {
+    const newBatch = this.agendaBatchCount() + 1;
+    if (newBatch > AGENDA_CONSTANTS.MAX_BATCHES) {
+      this.agendaHasMore.set(false);
+      return;
+    }
+    this.agendaBatchCount.set(newBatch);
+    this.loadAgendaEvents(true);
+  }
+
   onEventCreated(event: CalendarEventDto): void {
     this.contextEvent.set(event);
     this.selectedDate.set(null);
-    this.loadEvents();
+    this.reloadCurrentView();
   }
 
   onEventUpdated(): void {
-    this.loadEvents();
+    this.reloadCurrentView();
   }
 
   onEventCancelled(): void {
-    this.loadEvents();
+    this.reloadCurrentView();
+  }
+
+  private reloadCurrentView(): void {
+    if (this.viewMode() === 'agenda') {
+      this.loadAgendaEvents();
+    } else {
+      this.loadEvents();
+    }
   }
 
   private loadEvents(): void {
@@ -439,6 +527,37 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
           this.isLoading.set(false);
         },
         error: () => {
+          this.isLoading.set(false);
+        },
+      });
+  }
+
+  private loadAgendaEvents(isLoadMore = false): void {
+    const user = this.userService.currentUser();
+    if (!user?.familyId) return;
+
+    const { start, end } = getAgendaDateRange(this.agendaBatchCount());
+
+    if (isLoadMore) {
+      this.agendaLoadingMore.set(true);
+    } else {
+      this.isLoading.set(true);
+    }
+
+    this.calendarService
+      .getCalendarEvents(user.familyId, start.toISOString(), end.toISOString())
+      .subscribe({
+        next: (events) => {
+          this.agendaEvents.set(events);
+          this.agendaLoadingMore.set(false);
+          this.isLoading.set(false);
+
+          if (this.agendaBatchCount() >= AGENDA_CONSTANTS.MAX_BATCHES) {
+            this.agendaHasMore.set(false);
+          }
+        },
+        error: () => {
+          this.agendaLoadingMore.set(false);
           this.isLoading.set(false);
         },
       });

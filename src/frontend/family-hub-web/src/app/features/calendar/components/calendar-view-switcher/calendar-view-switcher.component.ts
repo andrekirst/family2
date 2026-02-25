@@ -48,6 +48,19 @@ import { CalendarViewMode } from '../../models/calendar.models';
       >
         <span i18n="@@calendar.viewDay">Day</span>
       </button>
+      <button
+        type="button"
+        (click)="viewChanged.emit('agenda')"
+        class="px-4 py-2 text-sm font-medium transition-colors border-l border-gray-300"
+        [class.bg-blue-600]="activeView === 'agenda'"
+        [class.text-white]="activeView === 'agenda'"
+        [class.bg-white]="activeView !== 'agenda'"
+        [class.text-gray-700]="activeView !== 'agenda'"
+        [class.hover:bg-gray-50]="activeView !== 'agenda'"
+        data-testid="view-agenda-btn"
+      >
+        <span i18n="@@calendar.viewAgenda">Agenda</span>
+      </button>
     </div>
   `,
 })
