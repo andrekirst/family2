@@ -1,9 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 import { SettingsPageComponent } from './settings-page.component';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { FormatPreferencesService } from '../../../core/i18n/format-preferences.service';
 import { UserService } from '../../../core/user/user.service';
 import { TopBarService } from '../../../shared/services/top-bar.service';
+import { GoogleIntegrationService } from '../services/google-integration.service';
 import { signal } from '@angular/core';
 
 describe('SettingsPageComponent', () => {
@@ -22,6 +25,7 @@ describe('SettingsPageComponent', () => {
   };
   let userServiceSpy: { currentUser: ReturnType<typeof signal> };
   let topBarSpy: { setConfig: ReturnType<typeof vi.fn> };
+  let googleServiceSpy: Record<string, unknown>;
 
   beforeEach(() => {
     i18nSpy = {
@@ -39,6 +43,19 @@ describe('SettingsPageComponent', () => {
       currentUser: signal({ id: '1', email: 'test@example.com', name: 'Test User' }),
     };
     topBarSpy = { setConfig: vi.fn() };
+    googleServiceSpy = {
+      isLinked: signal(false),
+      primaryAccount: signal(null),
+      linkedAccounts: signal([]),
+      syncStatus: signal(null),
+      loading: signal(false),
+      error: signal(null),
+      loadLinkedAccounts: vi.fn(),
+      loadSyncStatus: vi.fn(),
+      linkGoogle: vi.fn(),
+      unlinkGoogle: vi.fn(),
+      refreshToken: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
       imports: [SettingsPageComponent],
@@ -47,6 +64,8 @@ describe('SettingsPageComponent', () => {
         { provide: FormatPreferencesService, useValue: formatPrefsSpy },
         { provide: UserService, useValue: userServiceSpy },
         { provide: TopBarService, useValue: topBarSpy },
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } },
+        { provide: GoogleIntegrationService, useValue: googleServiceSpy },
       ],
     });
 
