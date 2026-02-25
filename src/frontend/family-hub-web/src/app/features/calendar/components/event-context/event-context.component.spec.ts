@@ -18,6 +18,7 @@ const mockMembers: FamilyMemberDto[] = [
     role: 'Owner',
     joinedAt: '2026-01-01T00:00:00Z',
     isActive: true,
+    avatarId: null,
   },
   {
     id: 'member-2',
@@ -27,6 +28,7 @@ const mockMembers: FamilyMemberDto[] = [
     role: 'Member',
     joinedAt: '2026-01-01T00:00:00Z',
     isActive: true,
+    avatarId: null,
   },
 ];
 
@@ -208,7 +210,7 @@ describe('EventContextComponent', () => {
       component.onTitleSaved('');
       fixture.detectChanges();
       expect(queryByTestId(nativeElement, 'event-context-title-error')?.textContent?.trim()).toBe(
-        'Title is required',
+        'Event title is required',
       );
     });
 
@@ -250,7 +252,7 @@ describe('EventContextComponent', () => {
       component.save();
       fixture.detectChanges();
       expect(queryByTestId(nativeElement, 'event-context-error')?.textContent).toContain(
-        'Failed to save',
+        'Failed to update event',
       );
     });
 

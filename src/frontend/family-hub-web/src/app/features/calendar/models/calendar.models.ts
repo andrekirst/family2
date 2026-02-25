@@ -1,6 +1,6 @@
 import { CalendarEventDto } from '../services/calendar.service';
 
-export type CalendarViewMode = 'month' | 'week';
+export type CalendarViewMode = 'month' | 'week' | 'day';
 
 export interface WeekDay {
   date: Date;

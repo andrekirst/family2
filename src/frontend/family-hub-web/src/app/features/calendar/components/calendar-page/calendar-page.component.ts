@@ -21,6 +21,9 @@ import { TopBarService } from '../../../../shared/services/top-bar.service';
 import { ContextPanelService } from '../../../../shared/services/context-panel.service';
 import { CalendarViewMode } from '../../models/calendar.models';
 import { getWeekStart, getWeekEnd, formatWeekLabel, getStoredLocale } from '../../utils/week.utils';
+import { getDayStart, getDayEnd, formatDayLabel } from '../../utils/day.utils';
+import { CalendarDayGridComponent } from '../calendar-day-grid/calendar-day-grid.component';
+import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-day-skeleton.component';
 
 @Component({
   selector: 'app-calendar-page',
@@ -33,6 +36,8 @@ import { getWeekStart, getWeekEnd, formatWeekLabel, getStoredLocale } from '../.
     CalendarWeekSkeletonComponent,
     CalendarViewSwitcherComponent,
     EventContextComponent,
+    CalendarDayGridComponent,
+    CalendarDaySkeletonComponent,
   ],
   template: `
     <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">
@@ -115,7 +120,7 @@ import { getWeekStart, getWeekEnd, formatWeekLabel, getStoredLocale } from '../.
             <app-calendar-month-grid
               [monthInput]="currentMonth()"
               [eventsInput]="events()"
-              (dayClicked)="onDayClicked($event)"
+              (dayClicked)="onMonthDayCellClicked($event)"
               (eventClicked)="onEventClicked($event)"
             />
           </div>
@@ -133,9 +138,23 @@ import { getWeekStart, getWeekEnd, formatWeekLabel, getStoredLocale } from '../.
               [eventsInput]="events()"
               (timeSlotClicked)="onTimeSlotClicked($event)"
               (eventClicked)="onEventClicked($event)"
+              (dayHeaderClicked)="onDayHeaderClickedInWeek($event)"
             />
           </div>
         }
+      }
+
+      <!-- Day View -->
+      @if (viewMode() === 'day') {
+        <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="calendar-grid">
+          <app-calendar-day-grid
+            [selectedDateInput]="currentDay()"
+            [eventsInput]="events()"
+            [loadingInput]="isLoading()"
+            (timeSlotClicked)="onTimeSlotClicked($event)"
+            (eventClicked)="onEventClicked($event)"
+          />
+        </div>
       }
 
       <!-- Context panel content template -->
@@ -168,6 +187,7 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   viewMode = signal<CalendarViewMode>('month');
   currentMonth = signal<Date>(new Date());
   currentWeek = signal<Date>(getWeekStart(new Date()));
+  currentDay = signal<Date>(new Date());
   events = signal<CalendarEventDto[]>([]);
   isLoading = signal(false);
   selectedDate = signal<Date | null>(null);
@@ -183,9 +203,14 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     return formatWeekLabel(start, getWeekEnd(start));
   });
 
-  navigationLabel = computed(() =>
-    this.viewMode() === 'month' ? this.monthLabel() : this.weekLabel(),
-  );
+  dayLabel = computed(() => formatDayLabel(this.currentDay()));
+
+  navigationLabel = computed(() => {
+    const mode = this.viewMode();
+    if (mode === 'month') return this.monthLabel();
+    if (mode === 'day') return this.dayLabel();
+    return this.weekLabel();
+  });
 
   async ngOnInit(): Promise<void> {
     this.topBarService.setConfig({
@@ -212,19 +237,48 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   onViewModeChanged(mode: CalendarViewMode): void {
     if (mode === this.viewMode()) return;
 
-    if (mode === 'week') {
-      // Switching month → week: use today if current month contains today, else 1st of month
-      const now = new Date();
-      const cm = this.currentMonth();
-      if (now.getFullYear() === cm.getFullYear() && now.getMonth() === cm.getMonth()) {
-        this.currentWeek.set(getWeekStart(now));
+    const current = this.viewMode();
+
+    if (mode === 'day') {
+      // Switching to day view
+      if (current === 'week') {
+        // Use the week's Monday as the starting day
+        this.currentDay.set(new Date(this.currentWeek()));
       } else {
-        this.currentWeek.set(getWeekStart(cm));
+        // Switching from month → day: use today if current month, else 1st of month
+        const now = new Date();
+        const cm = this.currentMonth();
+        if (now.getFullYear() === cm.getFullYear() && now.getMonth() === cm.getMonth()) {
+          this.currentDay.set(new Date(now));
+        } else {
+          this.currentDay.set(new Date(cm.getFullYear(), cm.getMonth(), 1));
+        }
+      }
+    } else if (mode === 'week') {
+      if (current === 'day') {
+        // Switching day → week: derive week from currentDay
+        this.currentWeek.set(getWeekStart(this.currentDay()));
+      } else {
+        // Switching month → week: use today if current month contains today, else 1st of month
+        const now = new Date();
+        const cm = this.currentMonth();
+        if (now.getFullYear() === cm.getFullYear() && now.getMonth() === cm.getMonth()) {
+          this.currentWeek.set(getWeekStart(now));
+        } else {
+          this.currentWeek.set(getWeekStart(cm));
+        }
       }
     } else {
-      // Switching week → month: use the month containing the week's Monday
-      const weekMon = this.currentWeek();
-      this.currentMonth.set(new Date(weekMon.getFullYear(), weekMon.getMonth(), 1));
+      // Switching to month view
+      if (current === 'day') {
+        // Derive month from currentDay
+        const day = this.currentDay();
+        this.currentMonth.set(new Date(day.getFullYear(), day.getMonth(), 1));
+      } else {
+        // Switching week → month: use the month containing the week's Monday
+        const weekMon = this.currentWeek();
+        this.currentMonth.set(new Date(weekMon.getFullYear(), weekMon.getMonth(), 1));
+      }
     }
 
     this.viewMode.set(mode);
@@ -234,6 +288,8 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   previousPeriod(): void {
     if (this.viewMode() === 'month') {
       this.previousMonth();
+    } else if (this.viewMode() === 'day') {
+      this.prevDay();
     } else {
       this.previousWeek();
     }
@@ -242,6 +298,8 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   nextPeriod(): void {
     if (this.viewMode() === 'month') {
       this.nextMonth();
+    } else if (this.viewMode() === 'day') {
+      this.nextDay();
     } else {
       this.nextWeek();
     }
@@ -251,6 +309,35 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     const now = new Date();
     this.currentMonth.set(new Date(now.getFullYear(), now.getMonth(), 1));
     this.currentWeek.set(getWeekStart(now));
+    this.currentDay.set(new Date(now));
+    this.loadEvents();
+  }
+
+  prevDay(): void {
+    const current = this.currentDay();
+    const prev = new Date(current);
+    prev.setDate(prev.getDate() - 1);
+    this.currentDay.set(prev);
+    this.loadEvents();
+  }
+
+  nextDay(): void {
+    const current = this.currentDay();
+    const next = new Date(current);
+    next.setDate(next.getDate() + 1);
+    this.currentDay.set(next);
+    this.loadEvents();
+  }
+
+  onDayHeaderClickedInWeek(date: Date): void {
+    this.currentDay.set(new Date(date));
+    this.viewMode.set('day');
+    this.loadEvents();
+  }
+
+  onMonthDayCellClicked(date: Date): void {
+    this.currentDay.set(new Date(date));
+    this.viewMode.set('day');
     this.loadEvents();
   }
 
@@ -334,6 +421,9 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
       // Fetch a wider range to include events visible in adjacent month days
       startDate = new Date(year, month - 1, 20);
       endDate = new Date(year, month + 1, 12);
+    } else if (this.viewMode() === 'day') {
+      startDate = getDayStart(this.currentDay());
+      endDate = getDayEnd(this.currentDay());
     } else {
       startDate = this.currentWeek();
       endDate = getWeekEnd(this.currentWeek());

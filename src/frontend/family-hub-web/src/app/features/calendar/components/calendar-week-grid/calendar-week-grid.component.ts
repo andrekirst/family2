@@ -37,10 +37,11 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
         <div class="py-2 text-center border-l border-gray-200" [class.bg-blue-50]="day.isToday">
           <div class="text-xs font-medium text-gray-500 uppercase">{{ day.dayLabel }}</div>
           <div
-            class="text-lg font-semibold mt-0.5 w-8 h-8 flex items-center justify-center mx-auto rounded-full"
+            class="text-lg font-semibold mt-0.5 w-8 h-8 flex items-center justify-center mx-auto rounded-full cursor-pointer hover:ring-2 hover:ring-blue-400"
             [class.bg-blue-600]="day.isToday"
             [class.text-white]="day.isToday"
             [class.text-gray-900]="!day.isToday"
+            (click)="onDayHeaderClick(day.date)"
           >
             {{ day.dayNumber }}
           </div>
@@ -157,6 +158,7 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
 
   @Output() timeSlotClicked = new EventEmitter<Date>();
   @Output() eventClicked = new EventEmitter<CalendarEventDto>();
+  @Output() dayHeaderClicked = new EventEmitter<Date>();
 
   readonly hourHeight = WEEK_GRID_CONSTANTS.HOUR_HEIGHT;
   readonly totalHeight = WEEK_GRID_CONSTANTS.TOTAL_HEIGHT;
@@ -259,5 +261,9 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
   onEventClick(mouseEvent: MouseEvent, event: CalendarEventDto): void {
     mouseEvent.stopPropagation();
     this.eventClicked.emit(event);
+  }
+
+  onDayHeaderClick(date: Date): void {
+    this.dayHeaderClicked.emit(date);
   }
 }
