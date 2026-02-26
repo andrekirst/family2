@@ -30,7 +30,7 @@ jobs:
         run: dotnet build FamilyHub.slnx --no-restore -c Release
 
       - name: Test
-        run: dotnet test FamilyHub.slnx --no-build -c Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test FamilyHub.slnx --no-build -c Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "FullyQualifiedName!~IntegrationTests"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

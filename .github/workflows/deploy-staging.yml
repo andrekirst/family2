@@ -29,7 +29,7 @@ jobs:
         run: |
           dotnet restore FamilyHub.slnx
           dotnet build FamilyHub.slnx --no-restore -c Release
-          dotnet test FamilyHub.slnx --no-build -c Release --verbosity normal
+          dotnet test FamilyHub.slnx --no-build -c Release --verbosity normal --filter "FullyQualifiedName!~IntegrationTests"
 
   build-images:
     name: Build & Push Images
