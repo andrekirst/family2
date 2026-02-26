@@ -143,6 +143,22 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
                 </div>
               </div>
             }
+
+            <!-- Drag Overlay -->
+            @if (isDragging() && dragDayIndex() === dayIdx) {
+              <div
+                class="absolute w-full bg-blue-500/30 border border-blue-500 rounded-sm pointer-events-none z-30"
+                [style.top.px]="dragOverlayTop()"
+                [style.height.px]="dragOverlayHeight()"
+              >
+                <div class="absolute -top-5 left-1 text-xs font-medium text-blue-700 bg-white px-1 rounded shadow-sm">
+                  {{ dragStartTimeLabel() }}
+                </div>
+                <div class="absolute -bottom-5 left-1 text-xs font-medium text-blue-700 bg-white px-1 rounded shadow-sm">
+                  {{ dragEndTimeLabel() }}
+                </div>
+              </div>
+            }
           </div>
         }
       </div>
@@ -186,6 +202,47 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
   private mouseUpUnlisten?: () => void;
 
   weekDays = computed<WeekDay[]>(() => getWeekDays(this.weekStart()));
+
+  // Drag overlay computed values
+  dragOverlayTop = computed<number>(() => {
+    const startY = this.dragStartY();
+    const currentY = this.dragCurrentY();
+    return Math.min(startY, currentY);
+  });
+
+  dragOverlayHeight = computed<number>(() => {
+    const startY = this.dragStartY();
+    const currentY = this.dragCurrentY();
+    return Math.abs(currentY - startY);
+  });
+
+  dragStartTimeLabel = computed<string>(() => {
+    const dayIdx = this.dragDayIndex();
+    if (dayIdx === null) {
+      return '';
+    }
+    const day = this.weekDays()[dayIdx];
+    if (!day) {
+      return '';
+    }
+    const startY = this.dragStartY();
+    const time = pixelOffsetToTime(startY, day.date);
+    return formatTimeShort(time);
+  });
+
+  dragEndTimeLabel = computed<string>(() => {
+    const dayIdx = this.dragDayIndex();
+    if (dayIdx === null) {
+      return '';
+    }
+    const day = this.weekDays()[dayIdx];
+    if (!day) {
+      return '';
+    }
+    const currentY = this.dragCurrentY();
+    const time = pixelOffsetToTime(currentY, day.date);
+    return formatTimeShort(time);
+  });
 
   constructor(private renderer: Renderer2) {}
 
