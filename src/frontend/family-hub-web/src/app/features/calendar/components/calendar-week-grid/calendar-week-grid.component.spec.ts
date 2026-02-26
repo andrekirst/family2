@@ -59,7 +59,9 @@ describe('CalendarWeekGridComponent', () => {
       component.eventsInput = [];
       fixture.detectChanges();
 
-      const dayHeaders = nativeElement.querySelectorAll('.grid-cols-\\[4rem_repeat\\(7\\,1fr\\)\\] > div:not(:first-child)');
+      const dayHeaders = nativeElement.querySelectorAll(
+        '.grid-cols-\\[4rem_repeat\\(7\\,1fr\\)\\] > div:not(:first-child)',
+      );
       expect(dayHeaders.length).toBeGreaterThanOrEqual(7);
     });
 
@@ -92,9 +94,7 @@ describe('CalendarWeekGridComponent', () => {
 
     it('should not show all-day events section when no all-day events exist', () => {
       component.weekStartInput = FIXED_DATE;
-      component.eventsInput = [
-        createEvent({ isAllDay: false }),
-      ];
+      component.eventsInput = [createEvent({ isAllDay: false })];
       fixture.detectChanges();
 
       expect(nativeElement.textContent).not.toContain('ALL DAY');
@@ -145,7 +145,9 @@ describe('CalendarWeekGridComponent', () => {
 
     it('should start drag state when mouse down on day column', () => {
       const dayIndex = 1;
+      const targetEl = document.createElement('div');
       const mouseEvent = new MouseEvent('mousedown', { clientY: 100, bubbles: true });
+      Object.defineProperty(mouseEvent, 'target', { value: targetEl, writable: false });
       Object.defineProperty(mouseEvent, 'currentTarget', {
         value: document.createElement('div'),
         writable: false,
@@ -155,6 +157,7 @@ describe('CalendarWeekGridComponent', () => {
 
       expect(component.isDragging()).toBe(true);
       expect(component.dragDayIndex()).toBe(dayIndex);
+      expect(component.dragCurrentDayIndex()).toBe(dayIndex);
     });
 
     it('should not start drag when mouse down on an existing event', () => {
@@ -183,6 +186,7 @@ describe('CalendarWeekGridComponent', () => {
       // Start drag
       component.isDragging.set(true);
       component.dragDayIndex.set(1);
+      component.dragCurrentDayIndex.set(1);
       component.dragStartY.set(100);
       component.dragCurrentY.set(100);
       fixture.detectChanges();
@@ -194,16 +198,22 @@ describe('CalendarWeekGridComponent', () => {
       const mockContainer = document.createElement('div');
       mockContainer.scrollTop = 0;
       const mockDayColumn = document.createElement('div');
-      mockDayColumn.getBoundingClientRect = () => ({ top: 0, left: 0, right: 100, bottom: 100, width: 100, height: 100 } as DOMRect);
+      mockDayColumn.setAttribute('data-day-index', '1');
+      mockDayColumn.getBoundingClientRect = () =>
+        ({ top: 0, left: 0, right: 100, bottom: 100, width: 100, height: 100 }) as DOMRect;
 
       // Mock querySelector to return our mock day column
       const originalQuerySelector = mockContainer.querySelector;
       mockContainer.querySelector = (selector: string) => {
-        if (selector.includes('nth-child')) {
+        if (selector.includes('data-day-index')) {
           return mockDayColumn;
         }
         return originalQuerySelector.call(mockContainer, selector);
       };
+
+      // Mock document.elementFromPoint (not available in jsdom)
+      const originalElementFromPoint = document.elementFromPoint;
+      document.elementFromPoint = () => null;
 
       // Set the scroll container
       if (component.scrollContainer) {
@@ -216,12 +226,16 @@ describe('CalendarWeekGridComponent', () => {
       component.onMouseMove(mouseMoveEvent);
 
       expect(component.dragCurrentY()).toBe(200);
+
+      // Restore
+      document.elementFromPoint = originalElementFromPoint;
     });
 
     it('should emit timeRangeSelected when drag completes above threshold', () => {
       const dayIndex = 1;
       component.isDragging.set(true);
       component.dragDayIndex.set(dayIndex);
+      component.dragCurrentDayIndex.set(dayIndex);
       component.dragStartY.set(100);
       component.dragCurrentY.set(200); // 100px drag distance (above 15px threshold)
       fixture.detectChanges();
@@ -243,6 +257,7 @@ describe('CalendarWeekGridComponent', () => {
       const dayIndex = 1;
       component.isDragging.set(true);
       component.dragDayIndex.set(dayIndex);
+      component.dragCurrentDayIndex.set(dayIndex);
       component.dragStartY.set(100);
       component.dragCurrentY.set(110); // 10px drag distance (below 15px threshold)
       fixture.detectChanges();
@@ -261,6 +276,7 @@ describe('CalendarWeekGridComponent', () => {
       const dayIndex = 1;
       component.isDragging.set(true);
       component.dragDayIndex.set(dayIndex);
+      component.dragCurrentDayIndex.set(dayIndex);
       component.dragStartY.set(200); // Start lower
       component.dragCurrentY.set(100); // End higher (drag upward)
       fixture.detectChanges();
@@ -280,6 +296,7 @@ describe('CalendarWeekGridComponent', () => {
       const dayIndex = 1;
       component.isDragging.set(true);
       component.dragDayIndex.set(dayIndex);
+      component.dragCurrentDayIndex.set(dayIndex);
       component.dragStartY.set(100);
       component.dragCurrentY.set(105); // Very small drag that would be < 15 min
       fixture.detectChanges();
@@ -301,6 +318,7 @@ describe('CalendarWeekGridComponent', () => {
       const dayIndex = 1;
       component.isDragging.set(true);
       component.dragDayIndex.set(dayIndex);
+      component.dragCurrentDayIndex.set(dayIndex);
       component.dragStartY.set(100);
       component.dragCurrentY.set(200);
       fixture.detectChanges();
@@ -312,6 +330,7 @@ describe('CalendarWeekGridComponent', () => {
       expect(component.dragStartY()).toBe(0);
       expect(component.dragCurrentY()).toBe(0);
       expect(component.dragDayIndex()).toBe(null);
+      expect(component.dragCurrentDayIndex()).toBe(null);
     });
 
     it('should calculate drag overlay top as minimum of start and current Y', () => {
@@ -341,6 +360,7 @@ describe('CalendarWeekGridComponent', () => {
     it('should show drag overlay when dragging on a specific day', () => {
       component.isDragging.set(true);
       component.dragDayIndex.set(1);
+      component.dragCurrentDayIndex.set(1);
       component.dragStartY.set(100);
       component.dragCurrentY.set(200);
       fixture.detectChanges();
@@ -360,6 +380,7 @@ describe('CalendarWeekGridComponent', () => {
     it('should display time labels during drag', () => {
       component.isDragging.set(true);
       component.dragDayIndex.set(1);
+      component.dragCurrentDayIndex.set(1);
       component.dragStartY.set(360); // ~6 AM (60px/hour * 6)
       component.dragCurrentY.set(720); // ~12 PM (60px/hour * 12)
       fixture.detectChanges();
@@ -372,6 +393,137 @@ describe('CalendarWeekGridComponent', () => {
       expect(endLabel).toBeTruthy();
       expect(startLabel).not.toBe(endLabel);
     });
+
+    it('should detect cross-day drag when dragCurrentDayIndex differs from dragDayIndex', () => {
+      component.isDragging.set(true);
+      component.dragDayIndex.set(1);
+      component.dragCurrentDayIndex.set(3);
+
+      expect(component.isCrossDayDrag()).toBe(true);
+    });
+
+    it('should not detect cross-day drag when on same day', () => {
+      component.isDragging.set(true);
+      component.dragDayIndex.set(1);
+      component.dragCurrentDayIndex.set(1);
+
+      expect(component.isCrossDayDrag()).toBe(false);
+    });
+
+    it('should emit dateRangeSelected for cross-day drag', () => {
+      component.isDragging.set(true);
+      component.dragDayIndex.set(1); // Tuesday
+      component.dragCurrentDayIndex.set(3); // Thursday
+      component.dragStartY.set(100);
+      component.dragCurrentY.set(200);
+      fixture.detectChanges();
+
+      const emitted: TimeRange[] = [];
+      component.dateRangeSelected.subscribe((tr) => emitted.push(tr));
+
+      const mouseUpEvent = new MouseEvent('mouseup', { bubbles: true });
+      component.onMouseUp(mouseUpEvent);
+
+      expect(emitted).toHaveLength(1);
+      // Should be an all-day range: start at midnight, end at 23:59:59
+      expect(emitted[0].start.getHours()).toBe(0);
+      expect(emitted[0].start.getMinutes()).toBe(0);
+      expect(emitted[0].end.getHours()).toBe(23);
+      expect(emitted[0].end.getMinutes()).toBe(59);
+      // Start date should be before end date
+      expect(emitted[0].start.getTime()).toBeLessThan(emitted[0].end.getTime());
+    });
+
+    it('should support bidirectional cross-day drag (right to left)', () => {
+      component.isDragging.set(true);
+      component.dragDayIndex.set(4); // Friday
+      component.dragCurrentDayIndex.set(1); // Tuesday
+      component.dragStartY.set(100);
+      component.dragCurrentY.set(200);
+      fixture.detectChanges();
+
+      const emitted: TimeRange[] = [];
+      component.dateRangeSelected.subscribe((tr) => emitted.push(tr));
+
+      const mouseUpEvent = new MouseEvent('mouseup', { bubbles: true });
+      component.onMouseUp(mouseUpEvent);
+
+      expect(emitted).toHaveLength(1);
+      // Min index is 1 (Tuesday), max is 4 (Friday)
+      expect(emitted[0].start.getTime()).toBeLessThan(emitted[0].end.getTime());
+    });
+
+    it('should compute correct crossDayDragRange', () => {
+      component.dragDayIndex.set(2);
+      component.dragCurrentDayIndex.set(5);
+
+      const range = component.crossDayDragRange();
+      expect(range.min).toBe(2);
+      expect(range.max).toBe(5);
+
+      // Reversed direction
+      component.dragDayIndex.set(5);
+      component.dragCurrentDayIndex.set(2);
+
+      const rangeReversed = component.crossDayDragRange();
+      expect(rangeReversed.min).toBe(2);
+      expect(rangeReversed.max).toBe(5);
+    });
+
+    it('should highlight days in cross-day drag range', () => {
+      component.isDragging.set(true);
+      component.dragDayIndex.set(1);
+      component.dragCurrentDayIndex.set(3);
+
+      expect(component.isDayInCrossDayRange(0)).toBe(false);
+      expect(component.isDayInCrossDayRange(1)).toBe(true);
+      expect(component.isDayInCrossDayRange(2)).toBe(true);
+      expect(component.isDayInCrossDayRange(3)).toBe(true);
+      expect(component.isDayInCrossDayRange(4)).toBe(false);
+    });
+
+    it('should not highlight days in cross-day range when not dragging', () => {
+      component.isDragging.set(false);
+      component.dragDayIndex.set(1);
+      component.dragCurrentDayIndex.set(3);
+
+      expect(component.isDayInCrossDayRange(2)).toBe(false);
+    });
+
+    it('should not emit timeRangeSelected for cross-day drag', () => {
+      component.isDragging.set(true);
+      component.dragDayIndex.set(1);
+      component.dragCurrentDayIndex.set(3);
+      component.dragStartY.set(100);
+      component.dragCurrentY.set(200);
+      fixture.detectChanges();
+
+      const timeEmitted: TimeRange[] = [];
+      component.timeRangeSelected.subscribe((tr) => timeEmitted.push(tr));
+
+      const mouseUpEvent = new MouseEvent('mouseup', { bubbles: true });
+      component.onMouseUp(mouseUpEvent);
+
+      expect(timeEmitted).toHaveLength(0);
+    });
+
+    it('should reset all drag state after cross-day drag', () => {
+      component.isDragging.set(true);
+      component.dragDayIndex.set(1);
+      component.dragCurrentDayIndex.set(3);
+      component.dragStartY.set(100);
+      component.dragCurrentY.set(200);
+      fixture.detectChanges();
+
+      const mouseUpEvent = new MouseEvent('mouseup', { bubbles: true });
+      component.onMouseUp(mouseUpEvent);
+
+      expect(component.isDragging()).toBe(false);
+      expect(component.dragDayIndex()).toBe(null);
+      expect(component.dragCurrentDayIndex()).toBe(null);
+      expect(component.dragStartY()).toBe(0);
+      expect(component.dragCurrentY()).toBe(0);
+    });
   });
 
   describe('Lifecycle', () => {
@@ -382,7 +534,9 @@ describe('CalendarWeekGridComponent', () => {
 
       // Start a drag to create listeners
       const dayIndex = 1;
+      const targetEl = document.createElement('div');
       const mouseEvent = new MouseEvent('mousedown', { clientY: 100, bubbles: true });
+      Object.defineProperty(mouseEvent, 'target', { value: targetEl, writable: false });
       Object.defineProperty(mouseEvent, 'currentTarget', {
         value: document.createElement('div'),
         writable: false,

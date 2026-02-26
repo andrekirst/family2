@@ -146,6 +146,7 @@ import { CalendarAgendaComponent } from '../calendar-agenda/calendar-agenda.comp
               [eventsInput]="events()"
               (timeSlotClicked)="onTimeSlotClicked($event)"
               (timeRangeSelected)="onTimeRangeSelected($event)"
+              (dateRangeSelected)="onDateRangeSelected($event)"
               (eventClicked)="onEventClicked($event)"
               (dayHeaderClicked)="onDayHeaderClickedInWeek($event)"
             />

@@ -16,6 +16,7 @@ import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
 import {
   PositionedEvent,
+  SpannedAllDayEvent,
   WEEK_GRID_CONSTANTS,
   WeekDay,
   TimeRange,
@@ -61,20 +62,32 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
         <div class="w-16 py-1 px-1 text-[10px] text-gray-400 font-medium" i18n="@@calendar.allDay">
           ALL DAY
         </div>
-        @for (day of weekDays(); track day.date.toISOString()) {
-          <div class="py-1 px-1 border-l border-gray-200 space-y-0.5">
-            @for (event of getAllDayEvents(day.date); track event.id) {
+        <!-- Spanning container: 7 columns with relative positioning for stacked rows -->
+        <div class="col-span-7 relative" [style.min-height.px]="allDayRowHeight()">
+          <!-- Column borders (visual grid lines) -->
+          @for (i of [0, 1, 2, 3, 4, 5, 6]; track i) {
+            @if (i > 0) {
               <div
-                class="text-xs px-1.5 py-0.5 rounded border truncate cursor-pointer"
-                class="bg-blue-100 text-blue-800 border-blue-200"
-                [title]="event.title"
-                (click)="onEventClick($event, event)"
-              >
-                {{ event.title }}
-              </div>
+                class="absolute top-0 bottom-0 border-l border-gray-200"
+                [style.left]="(i / 7) * 100 + '%'"
+              ></div>
             }
-          </div>
-        }
+          }
+          <!-- Spanning event bars -->
+          @for (se of spannedAllDayEvents(); track se.event.id) {
+            <div
+              class="absolute text-xs px-1.5 py-0.5 truncate cursor-pointer bg-blue-100 text-blue-800 border border-blue-200 rounded-sm hover:bg-blue-200 transition-colors"
+              [style.left]="'calc(' + (se.startCol / 7) * 100 + '% + 2px)'"
+              [style.width]="'calc(' + (se.span / 7) * 100 + '% - 4px)'"
+              [style.top.px]="se.row * 22 + 4"
+              style="height: 20px; line-height: 18px;"
+              [title]="se.event.title"
+              (click)="onEventClick($event, se.event)"
+            >
+              {{ se.event.title }}
+            </div>
+          }
+        </div>
       </div>
     }
 
@@ -101,7 +114,9 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
         @for (day of weekDays(); track day.date.toISOString(); let dayIdx = $index) {
           <div
             class="relative border-l border-gray-200 select-none"
-            [class.bg-blue-50/30]="day.isToday"
+            [class.bg-blue-50/30]="day.isToday && !isDayInCrossDayRange(dayIdx)"
+            [class.bg-blue-100/50]="isDayInCrossDayRange(dayIdx)"
+            [attr.data-day-index]="dayIdx"
             (mousedown)="onMouseDown($event, dayIdx)"
           >
             <!-- Hour grid lines -->
@@ -143,8 +158,8 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
               </div>
             }
 
-            <!-- Drag Overlay -->
-            @if (isDragging() && dragDayIndex() === dayIdx) {
+            <!-- Same-day Drag Overlay (time range) -->
+            @if (isDragging() && !isCrossDayDrag() && dragDayIndex() === dayIdx) {
               <div
                 class="absolute w-full bg-blue-500/30 border border-blue-500 rounded-sm pointer-events-none z-30"
                 [style.top.px]="dragOverlayTop()"
@@ -161,6 +176,13 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
                   {{ dragEndTimeLabel() }}
                 </div>
               </div>
+            }
+
+            <!-- Cross-day Drag Overlay (full column highlight) -->
+            @if (isDragging() && isCrossDayDrag() && isDayInCrossDayRange(dayIdx)) {
+              <div
+                class="absolute inset-0 bg-blue-500/20 border border-blue-400 pointer-events-none z-30"
+              ></div>
             }
           </div>
         }
@@ -186,6 +208,7 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
   @Output() eventClicked = new EventEmitter<CalendarEventDto>();
   @Output() dayHeaderClicked = new EventEmitter<Date>();
   @Output() timeRangeSelected = new EventEmitter<TimeRange>();
+  @Output() dateRangeSelected = new EventEmitter<TimeRange>();
 
   readonly hourHeight = WEEK_GRID_CONSTANTS.HOUR_HEIGHT;
   readonly totalHeight = WEEK_GRID_CONSTANTS.TOTAL_HEIGHT;
@@ -199,6 +222,21 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
   dragStartY = signal<number>(0);
   dragCurrentY = signal<number>(0);
   dragDayIndex = signal<number | null>(null);
+  dragCurrentDayIndex = signal<number | null>(null);
+
+  // Cross-day drag detection
+  isCrossDayDrag = computed<boolean>(() => {
+    const start = this.dragDayIndex();
+    const current = this.dragCurrentDayIndex();
+    return start !== null && current !== null && start !== current;
+  });
+
+  crossDayDragRange = computed<{ min: number; max: number }>(() => {
+    const start = this.dragDayIndex();
+    const current = this.dragCurrentDayIndex();
+    if (start === null || current === null) return { min: -1, max: -1 };
+    return { min: Math.min(start, current), max: Math.max(start, current) };
+  });
 
   // Global listener cleanup functions
   private mouseMoveUnlisten?: () => void;
@@ -258,6 +296,106 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
     });
   });
 
+  spannedAllDayEvents = computed<SpannedAllDayEvent[]>(() => {
+    const days = this.weekDays();
+    const allEvents = this.events();
+    if (days.length === 0) return [];
+
+    const weekStartTime = new Date(days[0].date);
+    weekStartTime.setHours(0, 0, 0, 0);
+    const weekEndTime = new Date(days[6].date);
+    weekEndTime.setHours(23, 59, 59, 999);
+
+    // Collect unique all-day events that overlap with this week
+    const seen = new Set<string>();
+    const allDayEvents: CalendarEventDto[] = [];
+    for (const day of days) {
+      const { allDay } = partitionEvents(allEvents, day.date);
+      for (const event of allDay) {
+        if (!seen.has(event.id)) {
+          seen.add(event.id);
+          allDayEvents.push(event);
+        }
+      }
+    }
+
+    // Sort by start time then by duration (longer first for better row packing)
+    allDayEvents.sort((a, b) => {
+      const aStart = new Date(a.startTime).getTime();
+      const bStart = new Date(b.startTime).getTime();
+      if (aStart !== bStart) return aStart - bStart;
+      const aDur = new Date(a.endTime).getTime() - aStart;
+      const bDur = new Date(b.endTime).getTime() - new Date(b.startTime).getTime();
+      return bDur - aDur;
+    });
+
+    // Compute column span for each event, clipped to week boundaries
+    const result: SpannedAllDayEvent[] = [];
+    // Track which columns are occupied in each row
+    const rowOccupancy: boolean[][] = [];
+
+    for (const event of allDayEvents) {
+      const eventStart = new Date(event.startTime);
+      const eventEnd = new Date(event.endTime);
+
+      // Clip to week bounds
+      const clippedStart = eventStart < weekStartTime ? weekStartTime : eventStart;
+      const clippedEnd = eventEnd > weekEndTime ? weekEndTime : eventEnd;
+
+      // Find which day columns this event occupies
+      let startCol = -1;
+      let endCol = -1;
+      for (let i = 0; i < 7; i++) {
+        const dayStart = new Date(days[i].date);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(days[i].date);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        if (clippedStart <= dayEnd && clippedEnd >= dayStart) {
+          if (startCol === -1) startCol = i;
+          endCol = i;
+        }
+      }
+
+      if (startCol === -1) continue;
+
+      const span = endCol - startCol + 1;
+
+      // Find the first row where this event fits (no column overlap)
+      let row = 0;
+      while (true) {
+        if (row >= rowOccupancy.length) {
+          rowOccupancy.push(new Array(7).fill(false));
+        }
+        let fits = true;
+        for (let c = startCol; c <= endCol; c++) {
+          if (rowOccupancy[row][c]) {
+            fits = false;
+            break;
+          }
+        }
+        if (fits) break;
+        row++;
+      }
+
+      // Mark columns as occupied in this row
+      for (let c = startCol; c <= endCol; c++) {
+        rowOccupancy[row][c] = true;
+      }
+
+      result.push({ event, startCol, span, row });
+    }
+
+    return result;
+  });
+
+  allDayRowHeight = computed<number>(() => {
+    const events = this.spannedAllDayEvents();
+    if (events.length === 0) return 28;
+    const maxRow = Math.max(...events.map((e) => e.row));
+    return (maxRow + 1) * 22 + 8; // 22px per row + 8px padding
+  });
+
   // Cache layout per-computation cycle
   private layoutCache = computed(() => {
     const days = this.weekDays();
@@ -300,8 +438,10 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
     return this.layoutCache()[dayIndex] ?? [];
   }
 
-  getAllDayEvents(dayDate: Date): CalendarEventDto[] {
-    return partitionEvents(this.events(), dayDate).allDay;
+  isDayInCrossDayRange(dayIdx: number): boolean {
+    if (!this.isDragging() || !this.isCrossDayDrag()) return false;
+    const range = this.crossDayDragRange();
+    return dayIdx >= range.min && dayIdx <= range.max;
   }
 
   getEventLeft(pe: PositionedEvent): string {
@@ -348,6 +488,7 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
     this.dragStartY.set(yOffset);
     this.dragCurrentY.set(yOffset);
     this.dragDayIndex.set(dayIndex);
+    this.dragCurrentDayIndex.set(dayIndex);
 
     // Attach global listeners using Renderer2
     this.mouseMoveUnlisten = this.renderer.listen('document', 'mousemove', (e: MouseEvent) => {
@@ -371,16 +512,23 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
       return;
     }
 
-    const container = this.scrollContainer.nativeElement;
-    const dayColumn = container.querySelector(
-      `.grid > div:nth-child(${dayIdx + 2})`,
-    ) as HTMLElement;
+    // Detect which day column the cursor is over
+    const el = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
+    const dayColumn = el?.closest('[data-day-index]') as HTMLElement | null;
+    if (dayColumn) {
+      const hoveredDayIdx = parseInt(dayColumn.getAttribute('data-day-index')!, 10);
+      this.dragCurrentDayIndex.set(hoveredDayIdx);
+    }
 
-    if (!dayColumn) {
+    // Update Y position relative to the start day's column
+    const container = this.scrollContainer.nativeElement;
+    const startColumn = container.querySelector(`[data-day-index="${dayIdx}"]`) as HTMLElement;
+
+    if (!startColumn) {
       return;
     }
 
-    const rect = dayColumn.getBoundingClientRect();
+    const rect = startColumn.getBoundingClientRect();
     const yOffset = mouseEvent.clientY - rect.top;
 
     this.dragCurrentY.set(yOffset);
@@ -392,8 +540,10 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
     }
 
     const dayIdx = this.dragDayIndex();
+    const currentDayIdx = this.dragCurrentDayIndex();
     const startY = this.dragStartY();
     const currentY = this.dragCurrentY();
+    const crossDay = this.isCrossDayDrag();
 
     this.isDragging.set(false);
 
@@ -408,7 +558,28 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
       this.mouseUpUnlisten = undefined;
     }
 
-    // Calculate drag distance to differentiate click from drag
+    // Cross-day drag: emit as all-day date range
+    if (crossDay && dayIdx !== null && currentDayIdx !== null) {
+      const days = this.weekDays();
+      const minIdx = Math.min(dayIdx, currentDayIdx);
+      const maxIdx = Math.max(dayIdx, currentDayIdx);
+
+      const startDate = new Date(days[minIdx].date);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(days[maxIdx].date);
+      endDate.setHours(23, 59, 59, 999);
+
+      this.dateRangeSelected.emit({ start: startDate, end: endDate });
+
+      this.dragStartY.set(0);
+      this.dragCurrentY.set(0);
+      this.dragDayIndex.set(null);
+      this.dragCurrentDayIndex.set(null);
+      return;
+    }
+
+    // Same-day: calculate drag distance to differentiate click from drag
     const dragDistance = Math.abs(currentY - startY);
     const CLICK_THRESHOLD_PX = 15;
 
@@ -422,10 +593,11 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
       this.dragStartY.set(0);
       this.dragCurrentY.set(0);
       this.dragDayIndex.set(null);
+      this.dragCurrentDayIndex.set(null);
       return;
     }
 
-    // Calculate time range from drag positions
+    // Same-day drag: calculate time range from drag positions
     if (dayIdx !== null) {
       const day = this.weekDays()[dayIdx];
 
@@ -454,5 +626,6 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
     this.dragStartY.set(0);
     this.dragCurrentY.set(0);
     this.dragDayIndex.set(null);
+    this.dragCurrentDayIndex.set(null);
   }
 }

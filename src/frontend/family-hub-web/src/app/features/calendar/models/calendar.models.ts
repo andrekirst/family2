@@ -22,6 +22,13 @@ export interface PositionedEvent {
   totalColumns: number; // total columns in overlap group
 }
 
+export interface SpannedAllDayEvent {
+  event: CalendarEventDto;
+  startCol: number; // 0-6 (column index within the week)
+  span: number; // 1-7 (number of columns to span)
+  row: number; // vertical stacking row (0-based)
+}
+
 export interface AgendaDayGroup {
   date: Date;
   label: string; // "Today — Thursday, Feb 12" / "Tomorrow — Friday, Feb 13" / plain date
