@@ -9,6 +9,11 @@ export interface WeekDay {
   dayNumber: number; // 10, 11, ...
 }
 
+export interface TimeRange {
+  start: Date;
+  end: Date;
+}
+
 export interface PositionedEvent {
   event: CalendarEventDto;
   top: number; // px from midnight
