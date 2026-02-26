@@ -237,6 +237,8 @@ export class EventContextComponent implements OnInit, OnChanges {
 
   @Input() event: CalendarEventDto | null = null;
   @Input() selectedDate: Date | null = null;
+  @Input() selectedStartDate: Date | null = null;
+  @Input() selectedEndDate: Date | null = null;
 
   @Output() eventCreated = new EventEmitter<CalendarEventDto>();
   @Output() eventUpdated = new EventEmitter<void>();
