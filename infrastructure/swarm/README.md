@@ -134,6 +134,18 @@ docker node ls
 
 Run these steps **once** on the Swarm manager node.
 
+### Quick Install (recommended)
+
+An interactive installation script automates all setup steps below. Run on the manager node:
+
+```bash
+bash infrastructure/scripts/install-swarm.sh
+```
+
+The script checks prerequisites, labels the storage node, creates the network and secrets, deploys Traefik and the GitHub runner, and optionally deploys staging with Keycloak realm provisioning. Each step can be skipped and the script is safe to re-run.
+
+### Manual Setup (step-by-step)
+
 ### Step 1: Label the storage node
 
 Stateful services (PostgreSQL, Keycloak) need persistent volumes. Pin them to a specific node so volumes are always on the same disk:
