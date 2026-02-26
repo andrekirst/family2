@@ -10,10 +10,11 @@ import {
   signal,
   ViewChild,
   AfterViewInit,
+  Renderer2,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
-import { PositionedEvent, WEEK_GRID_CONSTANTS } from '../../models/calendar.models';
+import { PositionedEvent, TimeRange, WEEK_GRID_CONSTANTS } from '../../models/calendar.models';
 import {
   partitionEvents,
   layoutTimedEvents,
@@ -58,11 +59,7 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
       }
 
       <!-- Scrollable Time Grid -->
-      <div
-        #scrollContainer
-        class="overflow-y-auto"
-        style="max-height: calc(100vh - 280px)"
-      >
+      <div #scrollContainer class="overflow-y-auto" style="max-height: calc(100vh - 280px)">
         <div class="grid grid-cols-[4rem_1fr] relative" [style.height.px]="totalHeight">
           <!-- Time Gutter -->
           <div class="relative w-16">
@@ -78,9 +75,9 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
 
           <!-- Day Column -->
           <div
-            class="relative border-l border-gray-200"
+            class="relative border-l border-gray-200 select-none"
             [class.bg-blue-50/30]="isTodaySelected()"
-            (click)="onTimeSlotClick($event)"
+            (mousedown)="onMouseDown($event)"
           >
             <!-- Hour grid lines -->
             @for (hour of hours; track hour) {
@@ -146,12 +143,29 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
               </div>
             }
 
+            <!-- Drag Overlay -->
+            @if (isDragging()) {
+              <div
+                class="absolute w-full bg-blue-500/30 border border-blue-500 rounded-sm pointer-events-none z-30"
+                [style.top.px]="dragOverlayTop()"
+                [style.height.px]="dragOverlayHeight()"
+              >
+                <div
+                  class="absolute -top-5 left-1 text-xs font-medium text-blue-700 bg-white px-1 rounded shadow-sm"
+                >
+                  {{ dragStartTimeLabel() }}
+                </div>
+                <div
+                  class="absolute -bottom-5 left-1 text-xs font-medium text-blue-700 bg-white px-1 rounded shadow-sm"
+                >
+                  {{ dragEndTimeLabel() }}
+                </div>
+              </div>
+            }
+
             <!-- Now Indicator -->
             @if (isTodaySelected() && nowOffset() >= 0) {
-              <div
-                class="absolute w-full z-20 pointer-events-none"
-                [style.top.px]="nowOffset()"
-              >
+              <div class="absolute w-full z-20 pointer-events-none" [style.top.px]="nowOffset()">
                 <div class="relative">
                   <div class="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full"></div>
                   <div class="w-full h-0.5 bg-red-500"></div>
@@ -184,6 +198,7 @@ export class CalendarDayGridComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   @Output() timeSlotClicked = new EventEmitter<Date>();
+  @Output() timeRangeSelected = new EventEmitter<TimeRange>();
   @Output() eventClicked = new EventEmitter<CalendarEventDto>();
 
   readonly hourHeight = WEEK_GRID_CONSTANTS.HOUR_HEIGHT;
@@ -192,6 +207,28 @@ export class CalendarDayGridComponent implements OnInit, OnDestroy, AfterViewIni
 
   nowOffset = signal<number>(getNowIndicatorOffset());
   private nowInterval: ReturnType<typeof setInterval> | null = null;
+
+  // Drag state
+  isDragging = signal<boolean>(false);
+  dragStartY = signal<number>(0);
+  dragCurrentY = signal<number>(0);
+  private mouseMoveUnlisten?: () => void;
+  private mouseUpUnlisten?: () => void;
+
+  dragOverlayTop = computed<number>(() => Math.min(this.dragStartY(), this.dragCurrentY()));
+  dragOverlayHeight = computed<number>(() => Math.abs(this.dragCurrentY() - this.dragStartY()));
+
+  dragStartTimeLabel = computed<string>(() => {
+    if (!this.isDragging()) return '';
+    return formatTimeShort(pixelOffsetToTime(this.dragStartY(), this.selectedDate()));
+  });
+
+  dragEndTimeLabel = computed<string>(() => {
+    if (!this.isDragging()) return '';
+    return formatTimeShort(pixelOffsetToTime(this.dragCurrentY(), this.selectedDate()));
+  });
+
+  constructor(private renderer: Renderer2) {}
 
   isTodaySelected = computed(() => isToday(this.selectedDate()));
 
@@ -222,6 +259,8 @@ export class CalendarDayGridComponent implements OnInit, OnDestroy, AfterViewIni
     if (this.nowInterval) {
       clearInterval(this.nowInterval);
     }
+    this.mouseMoveUnlisten?.();
+    this.mouseUpUnlisten?.();
   }
 
   getEventLeft(pe: PositionedEvent): string {
@@ -245,18 +284,82 @@ export class CalendarDayGridComponent implements OnInit, OnDestroy, AfterViewIni
     return `${formatTimeShort(new Date(event.startTime))} – ${formatTimeShort(new Date(event.endTime))}`;
   }
 
-  onTimeSlotClick(mouseEvent: MouseEvent): void {
+  onMouseDown(mouseEvent: MouseEvent): void {
     const target = mouseEvent.target as HTMLElement;
-    if (target !== mouseEvent.currentTarget && target.closest('.z-10')) {
+    if (target.closest('.z-10')) return;
+
+    const rect = (mouseEvent.currentTarget as HTMLElement).getBoundingClientRect();
+    const yOffset = mouseEvent.clientY - rect.top;
+
+    this.isDragging.set(true);
+    this.dragStartY.set(yOffset);
+    this.dragCurrentY.set(yOffset);
+
+    this.mouseMoveUnlisten = this.renderer.listen('document', 'mousemove', (e: MouseEvent) => {
+      this.onMouseMove(e);
+    });
+
+    this.mouseUpUnlisten = this.renderer.listen('document', 'mouseup', (e: MouseEvent) => {
+      this.onMouseUp(e);
+    });
+
+    mouseEvent.preventDefault();
+  }
+
+  private onMouseMove(mouseEvent: MouseEvent): void {
+    if (!this.isDragging()) return;
+
+    const container = this.scrollContainer.nativeElement;
+    const dayColumn = container.querySelector('.grid > div:nth-child(2)') as HTMLElement;
+    if (!dayColumn) return;
+
+    const rect = dayColumn.getBoundingClientRect();
+    const yOffset = mouseEvent.clientY - rect.top;
+    this.dragCurrentY.set(yOffset);
+  }
+
+  private onMouseUp(_mouseEvent: MouseEvent): void {
+    if (!this.isDragging()) return;
+
+    const startY = this.dragStartY();
+    const currentY = this.dragCurrentY();
+
+    this.isDragging.set(false);
+
+    this.mouseMoveUnlisten?.();
+    this.mouseMoveUnlisten = undefined;
+    this.mouseUpUnlisten?.();
+    this.mouseUpUnlisten = undefined;
+
+    const dragDistance = Math.abs(currentY - startY);
+    const CLICK_THRESHOLD_PX = 15;
+
+    if (dragDistance < CLICK_THRESHOLD_PX) {
+      // Short drag = click: emit time slot click
+      const clickedTime = pixelOffsetToTime(startY, this.selectedDate());
+      this.timeSlotClicked.emit(clickedTime);
+      this.dragStartY.set(0);
+      this.dragCurrentY.set(0);
       return;
     }
 
-    const container = this.scrollContainer.nativeElement;
-    const rect = (mouseEvent.currentTarget as HTMLElement).getBoundingClientRect();
-    const yOffset = mouseEvent.clientY - rect.top + container.scrollTop;
+    // Convert pixel positions to times
+    const time1 = pixelOffsetToTime(startY, this.selectedDate());
+    const time2 = pixelOffsetToTime(currentY, this.selectedDate());
 
-    const clickedTime = pixelOffsetToTime(yOffset, this.selectedDate());
-    this.timeSlotClicked.emit(clickedTime);
+    const startTime = time1 < time2 ? time1 : time2;
+    const endTime = time1 < time2 ? time2 : time1;
+
+    // Ensure minimum 15-minute duration
+    const MIN_DURATION_MS = 15 * 60 * 1000;
+    if (endTime.getTime() - startTime.getTime() < MIN_DURATION_MS) {
+      endTime.setMinutes(endTime.getMinutes() + 15);
+    }
+
+    this.timeRangeSelected.emit({ start: startTime, end: endTime });
+
+    this.dragStartY.set(0);
+    this.dragCurrentY.set(0);
   }
 
   onEventClick(mouseEvent: MouseEvent, event: CalendarEventDto): void {

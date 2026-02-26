@@ -151,10 +151,14 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
                 [style.top.px]="dragOverlayTop()"
                 [style.height.px]="dragOverlayHeight()"
               >
-                <div class="absolute -top-5 left-1 text-xs font-medium text-blue-700 bg-white px-1 rounded shadow-sm">
+                <div
+                  class="absolute -top-5 left-1 text-xs font-medium text-blue-700 bg-white px-1 rounded shadow-sm"
+                >
                   {{ dragStartTimeLabel() }}
                 </div>
-                <div class="absolute -bottom-5 left-1 text-xs font-medium text-blue-700 bg-white px-1 rounded shadow-sm">
+                <div
+                  class="absolute -bottom-5 left-1 text-xs font-medium text-blue-700 bg-white px-1 rounded shadow-sm"
+                >
                   {{ dragEndTimeLabel() }}
                 </div>
               </div>
@@ -335,9 +339,8 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
       }
     }
 
-    const container = this.scrollContainer.nativeElement;
     const rect = (mouseEvent.currentTarget as HTMLElement).getBoundingClientRect();
-    const yOffset = mouseEvent.clientY - rect.top + container.scrollTop;
+    const yOffset = mouseEvent.clientY - rect.top;
 
     const day = this.weekDays()[dayIndex];
     const clickedTime = pixelOffsetToTime(yOffset, day.date);
@@ -360,9 +363,8 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
       return;
     }
 
-    const container = this.scrollContainer.nativeElement;
     const rect = (mouseEvent.currentTarget as HTMLElement).getBoundingClientRect();
-    const yOffset = mouseEvent.clientY - rect.top + container.scrollTop;
+    const yOffset = mouseEvent.clientY - rect.top;
 
     this.isDragging.set(true);
     this.dragStartY.set(yOffset);
@@ -393,7 +395,7 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
 
     const container = this.scrollContainer.nativeElement;
     const dayColumn = container.querySelector(
-      `.grid > div:nth-child(${dayIdx + 2})`
+      `.grid > div:nth-child(${dayIdx + 2})`,
     ) as HTMLElement;
 
     if (!dayColumn) {
@@ -401,7 +403,7 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
     }
 
     const rect = dayColumn.getBoundingClientRect();
-    const yOffset = mouseEvent.clientY - rect.top + container.scrollTop;
+    const yOffset = mouseEvent.clientY - rect.top;
 
     this.dragCurrentY.set(yOffset);
   }
