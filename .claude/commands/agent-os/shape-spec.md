@@ -108,43 +108,124 @@ Should I include these in the spec? (yes / adjust: remove 3, add frontend/forms)
 
 Read the confirmed standards files to include their content in the plan context.
 
-### Step 6: Generate Spec Folder Name
+### Step 6: Gather GitHub Issue Metadata
+
+Present a pre-filled summary derived from Steps 1-5 and ask the user to confirm or adjust.
+
+Use AskUserQuestion:
+
+```
+I'll create a GitHub issue to track this work. Here's what I've inferred:
+
+- **Title**: [Feature] {derived from Step 1 description}
+- **Phase**: {inferred from product context or "Phase 1" default}
+- **Service**: {inferred from scope/references}
+- **Domain**: {inferred from feature area}
+- **Priority**: P2 (default)
+- **Effort**: {estimated from plan complexity: S/M/L/XL}
+- **User Story**:
+  **As a** {persona}
+  **I want** {capability}
+  **So that** {benefit}
+
+Should I create a GitHub issue with these details? (yes / adjust / skip)
+```
+
+If the user says **"skip"**, do not create a GitHub issue — proceed without it. Spec files will still be saved and committed, but commit messages and plan.md will not reference an issue number.
+
+If the user says **"adjust"**, ask follow-up questions to correct the metadata.
+
+**Label mapping tables** — use these exact label strings when creating issues:
+
+| Phase | Label |
+|-------|-------|
+| Phase 0 - Foundation & Tooling | `phase-0` |
+| Phase 1 - Core MVP | `phase-1` |
+| Phase 2 - Health Integration & Event Chains | `phase-2` |
+| Phase 3 - Meal Planning & Finance | `phase-3` |
+| Phase 4 - Recurrence & Advanced Features | `phase-4` |
+| Phase 5 - Microservices Extraction | `phase-5` |
+| Phase 6 - Mobile App & Extended Features | `phase-6` |
+| Future (Phase 7+) | `phase-7-future` |
+
+| Service | Label |
+|---------|-------|
+| Auth Service | `service-auth` |
+| Calendar Service | `service-calendar` |
+| Task Service | `service-task` |
+| Shopping Service | `service-shopping` |
+| Health Service | `service-health` |
+| Meal Planning Service | `service-meal-planning` |
+| Finance Service | `service-finance` |
+| Communication Service | `service-communication` |
+| Frontend (Angular) | `service-frontend` |
+| Infrastructure/DevOps | `service-infrastructure` |
+
+| Domain | Label |
+|--------|-------|
+| Event Chain Automation | `domain-event-chain` |
+| Security | `domain-security` |
+| Performance | `domain-performance` |
+| Accessibility | `domain-accessibility` |
+
+| Priority | Label |
+|----------|-------|
+| P0 - Critical | `priority-p0` |
+| P1 - High | `priority-p1` |
+| P2 - Medium | `priority-p2` |
+| P3 - Low | `priority-p3` |
+
+| Effort | Label |
+|--------|-------|
+| Small (< 4 hours) | `effort-s` |
+| Medium (4-16 hours) | `effort-m` |
+| Large (2-5 days) | `effort-l` |
+| Extra Large (1+ weeks) | `effort-xl` |
+
+### Step 7: Generate Spec Folder Name
 
 Create a folder name using this format:
 
 ```
-YYYY-MM-DD-HHMM-{feature-slug}/
+YYYY-MM-DD-{feature-slug}/
 ```
 
 Where:
 
-- Date/time is current timestamp
+- Date is today's date
 - Feature slug is derived from the feature description (lowercase, hyphens, max 40 chars)
 
-Example: `2026-01-15-1430-user-comment-system/`
+Example: `2026-01-15-user-comment-system/`
 
 **Note:** If `agent-os/specs/` doesn't exist, create it when saving the spec folder.
 
-### Step 7: Structure the Plan
+### Step 8: Structure the Plan
 
-Now build the plan with **Task 1 always being "Save spec documentation"**.
+Now build the plan with **Task 1 always being "Save spec, commit, and create GitHub issue"** (or "Save spec and commit" if issue creation was skipped).
 
 Present this structure to the user:
 
 ```
-Here's the plan structure. Task 1 saves all our shaping work before implementation begins.
+Here's the plan structure. Task 1 saves all our shaping work, creates the GitHub issue, and commits before implementation begins.
 
 ---
 
-## Task 1: Save Spec Documentation
+## Task 1: Save Spec, Commit, and Create GitHub Issue
 
-Create `agent-os/specs/{folder-name}/` with:
+1. Write spec files to `agent-os/specs/{folder-name}/`:
+   - **plan.md** — This full plan
+   - **shape.md** — Shaping notes (scope, decisions, context from our conversation)
+   - **standards.md** — Relevant standards that apply to this work
+   - **references.md** — Pointers to reference implementations studied
+   - **visuals/** — Any mockups or screenshots provided
 
-- **plan.md** — This full plan
-- **shape.md** — Shaping notes (scope, decisions, context from our conversation)
-- **standards.md** — Relevant standards that apply to this work
-- **references.md** — Pointers to reference implementations studied
-- **visuals/** — Any mockups or screenshots provided
+2. Create GitHub issue via `gh issue create` → capture issue number
+   {or "Skipped — no issue creation" if user chose skip}
+
+3. Update plan.md and shape.md headers with `**GitHub Issue**: #{number}`
+
+4. Git commit all spec files:
+   `docs(spec): add {slug} spec (#{number})`
 
 ## Task 2: [First implementation task]
 
@@ -159,7 +240,7 @@ Create `agent-os/specs/{folder-name}/` with:
 Does this plan structure look right? I'll fill in the implementation tasks next.
 ```
 
-### Step 8: Complete the Plan
+### Step 9: Complete the Plan
 
 After Task 1 is confirmed, continue building out the remaining implementation tasks based on:
 
@@ -169,31 +250,195 @@ After Task 1 is confirmed, continue building out the remaining implementation ta
 
 Each task should be specific and actionable.
 
-### Step 9: Ready for Execution
+### Step 10: Ready for Execution
 
 When the full plan is ready:
 
 ```
-Plan complete. When you approve and execute:
+Plan complete. When you approve, Task 1 will:
 
-1. Task 1 will save all spec documentation first
-2. Then implementation tasks will proceed
+1. Save spec documentation to agent-os/specs/{folder-name}/
+2. Create GitHub issue with labels: {labels summary}
+3. Cross-link issue number in plan.md and shape.md
+4. Commit spec files to git
+
+Then implementation tasks proceed.
 
 Ready to start? (approve / adjust)
 ```
+
+If issue creation was skipped in Step 6, adjust the message:
+
+```
+Plan complete. When you approve, Task 1 will:
+
+1. Save spec documentation to agent-os/specs/{folder-name}/
+2. Commit spec files to git
+
+Then implementation tasks proceed.
+
+Ready to start? (approve / adjust)
+```
+
+## Task 1 Execution Instructions
+
+When the user approves and Task 1 runs, follow these steps in order:
+
+### Step A: Write Spec Files
+
+Write all spec files to `agent-os/specs/{folder-name}/` (plan.md, shape.md, standards.md, references.md, and optionally visuals/).
+
+Use the plan.md and shape.md content templates defined below. **Do not include the `**GitHub Issue**` field yet** — it will be added after issue creation.
+
+### Step B: Create GitHub Issue (unless skipped)
+
+Run `gh issue create` with this format:
+
+```bash
+gh issue create \
+  --title "[Feature] {feature title}" \
+  --label "type-feature" \
+  --label "status-planning" \
+  --label "{phase-label}" \
+  --label "{service-label}" \
+  --label "{priority-label}" \
+  --label "{effort-label}" \
+  --body "$(cat <<'ISSUE_EOF'
+## Summary
+
+{2-3 sentence description from Step 1}
+
+## User Story
+
+**As a** {persona}
+**I want** {capability}
+**So that** {benefit}
+
+## Acceptance Criteria
+
+- [ ] {derived from plan tasks and scope}
+
+## Technical Notes
+
+{Standards applied, key decisions from shape.md}
+
+## Spec
+
+[`agent-os/specs/{folder}/`](agent-os/specs/{folder}/)
+- [plan.md](agent-os/specs/{folder}/plan.md)
+- [shape.md](agent-os/specs/{folder}/shape.md)
+ISSUE_EOF
+)"
+```
+
+Add `--label "{domain-label}"` only if a domain label was identified in Step 6.
+
+Capture the issue number from the command output.
+
+### Step C: Update Spec Files with Issue Number
+
+After capturing the issue number, update:
+
+- **plan.md**: Add `**GitHub Issue**: #{number}` to the metadata header
+- **shape.md**: Add `**GitHub Issue**: #{number}` to the metadata header
+
+### Step D: Git Commit
+
+Stage and commit all spec files:
+
+```bash
+git add agent-os/specs/{folder-name}/
+git commit -m "$(cat <<'EOF'
+docs(spec): add {slug} spec (#{number})
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+EOF
+)"
+```
+
+If issue creation was skipped, omit the issue number from the commit message:
+
+```bash
+git commit -m "$(cat <<'EOF'
+docs(spec): add {slug} spec
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+EOF
+)"
+```
+
+## Error Handling
+
+### `gh` not authenticated
+
+If `gh auth status` fails or `gh issue create` returns an authentication error:
+
+1. Skip issue creation gracefully
+2. Inform the user: "GitHub CLI is not authenticated. Run `gh auth login` to enable automatic issue creation. Spec files have been saved and committed without an issue link."
+3. Continue with commit (without issue number)
+
+### `gh issue create` fails (other errors)
+
+1. Show the formatted issue body so the user can create the issue manually
+2. Continue with commit (without issue number)
+3. Tell the user: "Issue creation failed. Here's the issue body — you can create it manually at {repo URL}/issues/new"
+
+### Label doesn't exist
+
+If `gh issue create` fails because a label doesn't exist:
+
+1. Remove the offending label from the command
+2. Retry `gh issue create` without that label
+3. Inform the user which label was skipped
+
+### Git commit fails
+
+1. Report the error to the user
+2. Continue — spec files are still written to disk
+3. The user can commit manually
 
 ## Output Structure
 
 The spec folder will contain:
 
 ```
-agent-os/specs/{YYYY-MM-DD-HHMM-feature-slug}/
-├── plan.md           # The full plan
-├── shape.md          # Shaping decisions and context
+agent-os/specs/{YYYY-MM-DD-feature-slug}/
+├── plan.md           # The full plan (with GitHub Issue link)
+├── shape.md          # Shaping decisions and context (with GitHub Issue link)
 ├── standards.md      # Which standards apply and key points
 ├── references.md     # Pointers to similar code
 └── visuals/          # Mockups, screenshots (if any)
 ```
+
+## plan.md Content
+
+The plan.md file should use this header format:
+
+```markdown
+# {Feature Name}
+
+**Created**: {YYYY-MM-DD}
+**GitHub Issue**: #{number}
+**Spec**: `agent-os/specs/{folder}/`
+
+## Context
+
+[Feature context and description]
+
+## Files to Modify
+
+[Implementation details...]
+
+## Implementation Tasks
+
+### Task 1: Save Spec, Commit, and Create GitHub Issue
+...
+
+### Task 2: [First implementation task]
+...
+```
+
+If issue creation was skipped, omit the `**GitHub Issue**` line.
 
 ## shape.md Content
 
@@ -201,6 +446,12 @@ The shape.md file should capture:
 
 ```markdown
 # {Feature Name} — Shaping Notes
+
+**Feature**: {brief description}
+**Created**: {YYYY-MM-DD}
+**GitHub Issue**: #{number}
+
+---
 
 ## Scope
 
@@ -222,6 +473,8 @@ The shape.md file should capture:
 - api/response-format — [why it applies]
 - api/error-handling — [why it applies]
 ```
+
+If issue creation was skipped, omit the `**GitHub Issue**` line.
 
 ## standards.md Content
 
@@ -269,3 +522,4 @@ The following standards apply to this work.
 - **Visuals are optional** — Not every feature needs mockups.
 - **Standards guide, not dictate** — They inform the plan but aren't always mandatory.
 - **Specs are discoverable** — Months later, someone can find this spec and understand what was built and why.
+- **Issue creation is opt-out** — The default is to create an issue. Users can skip if they prefer.
