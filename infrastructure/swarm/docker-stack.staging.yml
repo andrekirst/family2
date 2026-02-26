@@ -189,13 +189,13 @@ services:
         - 'traefik.http.routers.api-staging.rule=Host(`api-staging.familyhub.local`)'
         - 'traefik.http.routers.api-staging.entrypoints=web'
         - 'traefik.http.services.api-staging.loadbalancer.server.port=5152'
-        # Same-origin proxy: /graphql and /health on frontend domain
-        - 'traefik.http.routers.api-staging-proxy.rule=Host(`staging.familyhub.local`) && (PathPrefix(`/graphql`) || PathPrefix(`/health`) || PathPrefix(`/config`))'
+        # Same-origin proxy: API paths on frontend domain
+        - 'traefik.http.routers.api-staging-proxy.rule=Host(`staging.familyhub.local`) && (PathPrefix(`/graphql`) || PathPrefix(`/health`) || PathPrefix(`/config`) || PathPrefix(`/api`))'
         - 'traefik.http.routers.api-staging-proxy.entrypoints=web'
         - 'traefik.http.routers.api-staging-proxy.service=api-staging'
         - 'traefik.http.routers.api-staging-proxy.priority=200'
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://localhost:5152/health || exit 1']
+      test: ['CMD-SHELL', 'curl -sf http://localhost:5152/health || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -251,5 +251,6 @@ secrets:
 networks:
   staging-internal:
     driver: overlay
+    attachable: true
   traefik-public:
     external: true

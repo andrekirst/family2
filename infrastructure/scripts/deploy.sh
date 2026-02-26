@@ -59,19 +59,37 @@ docker stack deploy \
   --with-registry-auth \
   "$STACK_NAME"
 
-echo "  Stack deployed. Waiting for database to be ready..."
-sleep 15
+echo "  Waiting for database to be ready..."
+for i in $(seq 1 24); do
+  if docker exec "$(docker ps -q -f name="${STACK_NAME}_postgres")" pg_isready -U familyhub -d familyhub &>/dev/null; then
+    echo "  Database is ready."
+    break
+  fi
+  if [[ $i -eq 24 ]]; then
+    echo "  WARNING: Database not ready after 120s. Attempting migration anyway..."
+  fi
+  echo "  Database not ready — waiting 5s... (${i}/24)"
+  sleep 5
+done
 
 # ---------------------------------------------------------------------------
 # Step 2: Run EF Core migrations
 # ---------------------------------------------------------------------------
 echo "  [2/3] Running database migrations..."
 
-# Get the DB connection string from the stack's API service environment
+# Get the DB password from the environment variable matching the target env
+DB_PASSWORD_VAR="${ENV^^}_DB_PASSWORD"
+DB_PASSWORD="${!DB_PASSWORD_VAR}"
+
+if [[ -z "$DB_PASSWORD" ]]; then
+  echo "  ERROR: ${DB_PASSWORD_VAR} is not set. Export it before running this script."
+  exit 1
+fi
+
 # Run migration container on the same overlay network as PostgreSQL
 docker run --rm \
   --network "${STACK_NAME}_${NETWORK}" \
-  -e "ConnectionStrings__DefaultConnection=Host=${DB_HOST};Port=5432;Database=familyhub;Username=familyhub;Password=\${${ENV^^}_DB_PASSWORD}" \
+  -e "ConnectionStrings__DefaultConnection=Host=${DB_HOST};Port=5432;Database=familyhub;Username=familyhub;Password=${DB_PASSWORD}" \
   "ghcr.io/andrekirst/family2/api-migrate:${IMAGE_TAG}" \
   || { echo "  ERROR: Migration failed."; exit 1; }
 

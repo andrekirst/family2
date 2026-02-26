@@ -80,14 +80,16 @@ services:
   # --------------------------------------------------------------------------
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.4
-    command: ['start-dev']
+    command: ['start', '--optimized']
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: ${PROD_KC_DB_PASSWORD}
       KC_PROXY: edge
-      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME: auth.familyhub.local
+      KC_HOSTNAME_STRICT: 'true'
+      KC_HTTP_ENABLED: 'true'
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${PROD_KC_ADMIN_PASSWORD}
     networks:
@@ -171,13 +173,13 @@ services:
         - 'traefik.http.routers.api-prod.rule=Host(`api.familyhub.local`)'
         - 'traefik.http.routers.api-prod.entrypoints=web'
         - 'traefik.http.services.api-prod.loadbalancer.server.port=5152'
-        # Same-origin proxy: /graphql and /health on frontend domain
-        - 'traefik.http.routers.api-prod-proxy.rule=Host(`app.familyhub.local`) && (PathPrefix(`/graphql`) || PathPrefix(`/health`) || PathPrefix(`/config`))'
+        # Same-origin proxy: API paths on frontend domain
+        - 'traefik.http.routers.api-prod-proxy.rule=Host(`app.familyhub.local`) && (PathPrefix(`/graphql`) || PathPrefix(`/health`) || PathPrefix(`/config`) || PathPrefix(`/api`))'
         - 'traefik.http.routers.api-prod-proxy.entrypoints=web'
         - 'traefik.http.routers.api-prod-proxy.service=api-prod'
         - 'traefik.http.routers.api-prod-proxy.priority=200'
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://localhost:5152/health || exit 1']
+      test: ['CMD-SHELL', 'curl -sf http://localhost:5152/health || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -233,5 +235,6 @@ secrets:
 networks:
   prod-internal:
     driver: overlay
+    attachable: true
   traefik-public:
     external: true

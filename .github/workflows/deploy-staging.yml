@@ -112,7 +112,17 @@ jobs:
             fh-staging
 
       - name: Wait for database
-        run: sleep 15
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in $(seq 1 24); do
+            if docker exec "$(docker ps -q -f name=fh-staging_postgres)" pg_isready -U familyhub -d familyhub 2>/dev/null; then
+              echo "Database is ready."
+              exit 0
+            fi
+            echo "Database not ready — waiting 5s... ($i/24)"
+            sleep 5
+          done
+          echo "WARNING: Database not ready after 120s. Attempting migration anyway..."
 
       - name: Run database migrations
         env:
