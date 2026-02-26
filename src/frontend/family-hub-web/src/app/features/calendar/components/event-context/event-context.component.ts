@@ -314,8 +314,8 @@ export class EventContextComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!changes['event']?.isFirstChange() && !changes['selectedDate']?.isFirstChange()) {
-      if (changes['event'] || changes['selectedDate']) {
+    if (!changes['event']?.isFirstChange() && !changes['selectedDate']?.isFirstChange() && !changes['selectedStartDate']?.isFirstChange() && !changes['selectedEndDate']?.isFirstChange()) {
+      if (changes['event'] || changes['selectedDate'] || changes['selectedStartDate'] || changes['selectedEndDate']) {
         this.initializeForm();
       }
     }
@@ -344,6 +344,29 @@ export class EventContextComponent implements OnInit, OnChanges {
         endTime: endIso,
         isAllDay: this.event.isAllDay,
       });
+    } else if (this.selectedStartDate && this.selectedEndDate) {
+      // Create mode with drag-selected time range: use exact start/end times
+      this.eventId.set(null);
+      this.title.set('');
+      this.description.set('');
+      this.location.set('');
+      this.isAllDay.set(false);
+      this.isCancelled.set(false);
+
+      this.startTime.set(this.selectedStartDate.toISOString());
+      this.endTime.set(this.selectedEndDate.toISOString());
+
+      // Pre-select current user as attendee
+      const currentUser = this.userService.currentUser();
+      if (currentUser) {
+        this.selectedAttendees.set([currentUser.id]);
+      }
+
+      // Create mode has no saved snapshot
+      this.savedSnapshot.set(null);
+
+      // Auto-focus title after render
+      setTimeout(() => this.titleEditor?.startEditing());
     } else if (this.selectedDate) {
       // Create mode: set defaults
       this.eventId.set(null);
