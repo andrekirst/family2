@@ -239,6 +239,7 @@ export class EventContextComponent implements OnInit, OnChanges {
   @Input() selectedDate: Date | null = null;
   @Input() selectedStartDate: Date | null = null;
   @Input() selectedEndDate: Date | null = null;
+  @Input() isAllDaySelection = false;
 
   @Output() eventCreated = new EventEmitter<CalendarEventDto>();
   @Output() eventUpdated = new EventEmitter<void>();
@@ -314,8 +315,18 @@ export class EventContextComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!changes['event']?.isFirstChange() && !changes['selectedDate']?.isFirstChange() && !changes['selectedStartDate']?.isFirstChange() && !changes['selectedEndDate']?.isFirstChange()) {
-      if (changes['event'] || changes['selectedDate'] || changes['selectedStartDate'] || changes['selectedEndDate']) {
+    if (
+      !changes['event']?.isFirstChange() &&
+      !changes['selectedDate']?.isFirstChange() &&
+      !changes['selectedStartDate']?.isFirstChange() &&
+      !changes['selectedEndDate']?.isFirstChange()
+    ) {
+      if (
+        changes['event'] ||
+        changes['selectedDate'] ||
+        changes['selectedStartDate'] ||
+        changes['selectedEndDate']
+      ) {
         this.initializeForm();
       }
     }
@@ -350,7 +361,7 @@ export class EventContextComponent implements OnInit, OnChanges {
       this.title.set('');
       this.description.set('');
       this.location.set('');
-      this.isAllDay.set(false);
+      this.isAllDay.set(this.isAllDaySelection);
       this.isCancelled.set(false);
 
       this.startTime.set(this.selectedStartDate.toISOString());

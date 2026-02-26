@@ -1,6 +1,16 @@
-import { Component, computed, EventEmitter, Input, Output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  Renderer2,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
+import { TimeRange } from '../../models/calendar.models';
 
 export interface CalendarDay {
   date: Date;
@@ -26,14 +36,16 @@ export interface CalendarDay {
     </div>
 
     <!-- Calendar Grid -->
-    <div class="grid grid-cols-7 flex-1">
-      @for (day of calendarDays(); track day.date.toISOString()) {
+    <div class="grid grid-cols-7 flex-1 select-none">
+      @for (day of calendarDays(); track day.date.toISOString(); let idx = $index) {
         <div
           class="min-h-[100px] border-r border-b border-gray-200 last:border-r-0 p-1 cursor-pointer hover:bg-gray-50 transition-colors"
-          [class.bg-white]="day.isCurrentMonth"
-          [class.bg-gray-50]="!day.isCurrentMonth"
+          [class.bg-white]="day.isCurrentMonth && !isDayInDragRange(idx)"
+          [class.bg-gray-50]="!day.isCurrentMonth && !isDayInDragRange(idx)"
+          [class.!bg-blue-100]="isDayInDragRange(idx)"
+          [attr.data-day-index]="idx"
           data-testid="calendar-day"
-          (click)="onDayClick(day)"
+          (mousedown)="onDayMouseDown($event, idx)"
         >
           <!-- Day Number -->
           <div class="flex justify-end">
@@ -72,7 +84,7 @@ export interface CalendarDay {
     </div>
   `,
 })
-export class CalendarMonthGridComponent {
+export class CalendarMonthGridComponent implements OnDestroy {
   readonly dayHeaders = [
     $localize`:@@calendar.dayMon:Mon`,
     $localize`:@@calendar.dayTue:Tue`,
@@ -95,7 +107,24 @@ export class CalendarMonthGridComponent {
   }
 
   @Output() dayClicked = new EventEmitter<Date>();
+  @Output() dateRangeSelected = new EventEmitter<TimeRange>();
   @Output() eventClicked = new EventEmitter<CalendarEventDto>();
+
+  // Drag state
+  isDragging = signal(false);
+  dragStartIndex = signal<number | null>(null);
+  dragCurrentIndex = signal<number | null>(null);
+  private mouseMoveUnlisten?: () => void;
+  private mouseUpUnlisten?: () => void;
+
+  private dragRange = computed(() => {
+    const start = this.dragStartIndex();
+    const current = this.dragCurrentIndex();
+    if (start === null || current === null) return { min: -1, max: -1 };
+    return { min: Math.min(start, current), max: Math.max(start, current) };
+  });
+
+  constructor(private renderer: Renderer2) {}
 
   calendarDays = computed<CalendarDay[]>(() => {
     const current = this.month();
@@ -155,12 +184,87 @@ export class CalendarMonthGridComponent {
     return $localize`:@@calendar.moreEvents:+${count}:count: more`;
   }
 
-  onDayClick(day: CalendarDay): void {
-    this.dayClicked.emit(day.date);
+  isDayInDragRange(index: number): boolean {
+    if (!this.isDragging()) return false;
+    const range = this.dragRange();
+    return index >= range.min && index <= range.max;
+  }
+
+  ngOnDestroy(): void {
+    this.mouseMoveUnlisten?.();
+    this.mouseUpUnlisten?.();
+  }
+
+  onDayMouseDown(mouseEvent: MouseEvent, index: number): void {
+    const target = mouseEvent.target as HTMLElement;
+    if (target.closest('[data-testid="calendar-event-chip"]')) return;
+
+    this.isDragging.set(true);
+    this.dragStartIndex.set(index);
+    this.dragCurrentIndex.set(index);
+
+    this.mouseMoveUnlisten = this.renderer.listen('document', 'mousemove', (e: MouseEvent) => {
+      this.onMouseMove(e);
+    });
+
+    this.mouseUpUnlisten = this.renderer.listen('document', 'mouseup', () => {
+      this.onMouseUp();
+    });
+
+    mouseEvent.preventDefault();
+  }
+
+  private onMouseMove(mouseEvent: MouseEvent): void {
+    if (!this.isDragging()) return;
+
+    const el = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
+    const dayCell = el?.closest('[data-day-index]') as HTMLElement | null;
+    if (dayCell) {
+      const idx = parseInt(dayCell.getAttribute('data-day-index')!, 10);
+      this.dragCurrentIndex.set(idx);
+    }
+  }
+
+  private onMouseUp(): void {
+    if (!this.isDragging()) return;
+
+    const startIdx = this.dragStartIndex();
+    const currentIdx = this.dragCurrentIndex();
+
+    this.isDragging.set(false);
+
+    this.mouseMoveUnlisten?.();
+    this.mouseMoveUnlisten = undefined;
+    this.mouseUpUnlisten?.();
+    this.mouseUpUnlisten = undefined;
+
+    if (startIdx === null || currentIdx === null) return;
+
+    const days = this.calendarDays();
+
+    if (startIdx === currentIdx) {
+      // Single day click — use existing behavior
+      this.dayClicked.emit(days[startIdx].date);
+    } else {
+      // Multi-day drag — emit date range as all-day event
+      const minIdx = Math.min(startIdx, currentIdx);
+      const maxIdx = Math.max(startIdx, currentIdx);
+
+      const startDate = new Date(days[minIdx].date);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(days[maxIdx].date);
+      endDate.setHours(23, 59, 59, 999);
+
+      this.dateRangeSelected.emit({ start: startDate, end: endDate });
+    }
+
+    this.dragStartIndex.set(null);
+    this.dragCurrentIndex.set(null);
   }
 
   onEventClick(event: MouseEvent, calendarEvent: CalendarEventDto): void {
-    event.stopPropagation(); // Prevent day click
+    event.stopPropagation();
     this.eventClicked.emit(calendarEvent);
   }
 }
