@@ -354,6 +354,10 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
       return;
     }
 
+    const dayIdx = this.dragDayIndex();
+    const startY = this.dragStartY();
+    const currentY = this.dragCurrentY();
+
     this.isDragging.set(false);
 
     // Clean up global listeners
@@ -365,6 +369,44 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
     if (this.mouseUpUnlisten) {
       this.mouseUpUnlisten();
       this.mouseUpUnlisten = undefined;
+    }
+
+    // Calculate drag distance to differentiate click from drag
+    const dragDistance = Math.abs(currentY - startY);
+    const CLICK_THRESHOLD_PX = 15;
+
+    // If drag distance is less than threshold, treat as click (let onTimeSlotClick handle it)
+    if (dragDistance < CLICK_THRESHOLD_PX) {
+      // Reset drag state
+      this.dragStartY.set(0);
+      this.dragCurrentY.set(0);
+      this.dragDayIndex.set(null);
+      return;
+    }
+
+    // Calculate time range from drag positions
+    if (dayIdx !== null) {
+      const day = this.weekDays()[dayIdx];
+
+      // Convert pixel offsets to times (already snapped to 15-min intervals by pixelOffsetToTime)
+      const time1 = pixelOffsetToTime(startY, day.date);
+      const time2 = pixelOffsetToTime(currentY, day.date);
+
+      // Support bidirectional drag: ensure startTime < endTime
+      const startTime = time1 < time2 ? time1 : time2;
+      const endTime = time1 < time2 ? time2 : time1;
+
+      // Ensure minimum 15-minute duration
+      const MIN_DURATION_MS = 15 * 60 * 1000;
+      if (endTime.getTime() - startTime.getTime() < MIN_DURATION_MS) {
+        endTime.setMinutes(endTime.getMinutes() + 15);
+      }
+
+      // Emit the time range selection
+      this.timeRangeSelected.emit({
+        start: startTime,
+        end: endTime,
+      });
     }
 
     // Reset drag state
