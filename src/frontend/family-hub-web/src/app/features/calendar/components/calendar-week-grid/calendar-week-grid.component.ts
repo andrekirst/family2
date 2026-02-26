@@ -13,7 +13,12 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
-import { PositionedEvent, WEEK_GRID_CONSTANTS, WeekDay } from '../../models/calendar.models';
+import {
+  PositionedEvent,
+  WEEK_GRID_CONSTANTS,
+  WeekDay,
+  TimeRange,
+} from '../../models/calendar.models';
 import {
   getWeekDays,
   getStoredLocale,
@@ -159,6 +164,7 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
   @Output() timeSlotClicked = new EventEmitter<Date>();
   @Output() eventClicked = new EventEmitter<CalendarEventDto>();
   @Output() dayHeaderClicked = new EventEmitter<Date>();
+  @Output() timeRangeSelected = new EventEmitter<TimeRange>();
 
   readonly hourHeight = WEEK_GRID_CONSTANTS.HOUR_HEIGHT;
   readonly totalHeight = WEEK_GRID_CONSTANTS.TOTAL_HEIGHT;
@@ -166,6 +172,12 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
 
   nowOffset = signal<number>(getNowIndicatorOffset());
   private nowInterval: ReturnType<typeof setInterval> | null = null;
+
+  // Drag state tracking
+  isDragging = signal<boolean>(false);
+  dragStartY = signal<number>(0);
+  dragCurrentY = signal<number>(0);
+  dragDayIndex = signal<number | null>(null);
 
   weekDays = computed<WeekDay[]>(() => getWeekDays(this.weekStart()));
 
