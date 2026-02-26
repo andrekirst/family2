@@ -9,12 +9,24 @@ export interface WeekDay {
   dayNumber: number; // 10, 11, ...
 }
 
+export interface TimeRange {
+  start: Date;
+  end: Date;
+}
+
 export interface PositionedEvent {
   event: CalendarEventDto;
   top: number; // px from midnight
   height: number; // px based on duration
   column: number; // 0-based column in overlap group
   totalColumns: number; // total columns in overlap group
+}
+
+export interface SpannedAllDayEvent {
+  event: CalendarEventDto;
+  startCol: number; // 0-6 (column index within the week)
+  span: number; // 1-7 (number of columns to span)
+  row: number; // vertical stacking row (0-based)
 }
 
 export interface AgendaDayGroup {
