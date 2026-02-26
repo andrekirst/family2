@@ -100,9 +100,8 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
         <!-- Day Columns -->
         @for (day of weekDays(); track day.date.toISOString(); let dayIdx = $index) {
           <div
-            class="relative border-l border-gray-200"
+            class="relative border-l border-gray-200 select-none"
             [class.bg-blue-50/30]="day.isToday"
-            (click)="onTimeSlotClick($event, dayIdx)"
             (mousedown)="onMouseDown($event, dayIdx)"
           >
             <!-- Hour grid lines -->
@@ -326,27 +325,6 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
     return `${formatTimeShort(new Date(event.startTime))} – ${formatTimeShort(new Date(event.endTime))}`;
   }
 
-  onTimeSlotClick(mouseEvent: MouseEvent, dayIndex: number): void {
-    // Only handle clicks on the day column background, not on events
-    if (
-      (mouseEvent.target as HTMLElement).closest('[class*="cursor-pointer"]') !==
-      mouseEvent.currentTarget
-    ) {
-      // Check if the click target is an event block (not the column div itself)
-      const target = mouseEvent.target as HTMLElement;
-      if (target !== mouseEvent.currentTarget && target.closest('.z-10')) {
-        return;
-      }
-    }
-
-    const rect = (mouseEvent.currentTarget as HTMLElement).getBoundingClientRect();
-    const yOffset = mouseEvent.clientY - rect.top;
-
-    const day = this.weekDays()[dayIndex];
-    const clickedTime = pixelOffsetToTime(yOffset, day.date);
-    this.timeSlotClicked.emit(clickedTime);
-  }
-
   onEventClick(mouseEvent: MouseEvent, event: CalendarEventDto): void {
     mouseEvent.stopPropagation();
     this.eventClicked.emit(event);
@@ -434,9 +412,13 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
     const dragDistance = Math.abs(currentY - startY);
     const CLICK_THRESHOLD_PX = 15;
 
-    // If drag distance is less than threshold, treat as click (let onTimeSlotClick handle it)
+    // If drag distance is less than threshold, treat as click
     if (dragDistance < CLICK_THRESHOLD_PX) {
-      // Reset drag state
+      if (dayIdx !== null) {
+        const day = this.weekDays()[dayIdx];
+        const clickedTime = pixelOffsetToTime(startY, day.date);
+        this.timeSlotClicked.emit(clickedTime);
+      }
       this.dragStartY.set(0);
       this.dragCurrentY.set(0);
       this.dragDayIndex.set(null);
