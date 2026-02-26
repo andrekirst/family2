@@ -7,6 +7,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  Renderer2,
   signal,
   ViewChild,
   AfterViewInit,
@@ -102,6 +103,7 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
             class="relative border-l border-gray-200"
             [class.bg-blue-50/30]="day.isToday"
             (click)="onTimeSlotClick($event, dayIdx)"
+            (mousedown)="onMouseDown($event, dayIdx)"
           >
             <!-- Hour grid lines -->
             @for (hour of hours; track hour) {
@@ -179,7 +181,13 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
   dragCurrentY = signal<number>(0);
   dragDayIndex = signal<number | null>(null);
 
+  // Global listener cleanup functions
+  private mouseMoveUnlisten?: () => void;
+  private mouseUpUnlisten?: () => void;
+
   weekDays = computed<WeekDay[]>(() => getWeekDays(this.weekStart()));
+
+  constructor(private renderer: Renderer2) {}
 
   hasAllDayEvents = computed(() => {
     const days = this.weekDays();
@@ -216,6 +224,15 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
   ngOnDestroy(): void {
     if (this.nowInterval) {
       clearInterval(this.nowInterval);
+    }
+
+    // Clean up global mouse listeners
+    if (this.mouseMoveUnlisten) {
+      this.mouseMoveUnlisten();
+    }
+
+    if (this.mouseUpUnlisten) {
+      this.mouseUpUnlisten();
     }
   }
 
@@ -277,5 +294,82 @@ export class CalendarWeekGridComponent implements OnInit, OnDestroy, AfterViewIn
 
   onDayHeaderClick(date: Date): void {
     this.dayHeaderClicked.emit(date);
+  }
+
+  onMouseDown(mouseEvent: MouseEvent, dayIndex: number): void {
+    // Prevent drag on existing events
+    const target = mouseEvent.target as HTMLElement;
+    if (target.closest('.z-10')) {
+      return;
+    }
+
+    const container = this.scrollContainer.nativeElement;
+    const rect = (mouseEvent.currentTarget as HTMLElement).getBoundingClientRect();
+    const yOffset = mouseEvent.clientY - rect.top + container.scrollTop;
+
+    this.isDragging.set(true);
+    this.dragStartY.set(yOffset);
+    this.dragCurrentY.set(yOffset);
+    this.dragDayIndex.set(dayIndex);
+
+    // Attach global listeners using Renderer2
+    this.mouseMoveUnlisten = this.renderer.listen('document', 'mousemove', (e: MouseEvent) => {
+      this.onMouseMove(e);
+    });
+
+    this.mouseUpUnlisten = this.renderer.listen('document', 'mouseup', (e: MouseEvent) => {
+      this.onMouseUp(e);
+    });
+
+    mouseEvent.preventDefault();
+  }
+
+  onMouseMove(mouseEvent: MouseEvent): void {
+    if (!this.isDragging()) {
+      return;
+    }
+
+    const dayIdx = this.dragDayIndex();
+    if (dayIdx === null) {
+      return;
+    }
+
+    const container = this.scrollContainer.nativeElement;
+    const dayColumn = container.querySelector(
+      `.grid > div:nth-child(${dayIdx + 2})`
+    ) as HTMLElement;
+
+    if (!dayColumn) {
+      return;
+    }
+
+    const rect = dayColumn.getBoundingClientRect();
+    const yOffset = mouseEvent.clientY - rect.top + container.scrollTop;
+
+    this.dragCurrentY.set(yOffset);
+  }
+
+  onMouseUp(mouseEvent: MouseEvent): void {
+    if (!this.isDragging()) {
+      return;
+    }
+
+    this.isDragging.set(false);
+
+    // Clean up global listeners
+    if (this.mouseMoveUnlisten) {
+      this.mouseMoveUnlisten();
+      this.mouseMoveUnlisten = undefined;
+    }
+
+    if (this.mouseUpUnlisten) {
+      this.mouseUpUnlisten();
+      this.mouseUpUnlisten = undefined;
+    }
+
+    // Reset drag state
+    this.dragStartY.set(0);
+    this.dragCurrentY.set(0);
+    this.dragDayIndex.set(null);
   }
 }
