@@ -1,0 +1,139 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/andrekirst/family2
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore + Build + Test
+        working-directory: src/FamilyHub.Api
+        run: |
+          dotnet restore FamilyHub.slnx
+          dotnet build FamilyHub.slnx --no-restore -c Release
+          dotnet test FamilyHub.slnx --no-build -c Release --verbosity normal
+
+  build-images:
+    name: Build & Push Images
+    needs: test
+    runs-on: [self-hosted, linux, arm64]
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE_TAG: sha-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+      - name: Build API image (final stage)
+        working-directory: src
+        run: |
+          docker build \
+            --target final \
+            -t "$IMAGE_PREFIX/api:$IMAGE_TAG" \
+            -t "$IMAGE_PREFIX/api:latest" \
+            -f FamilyHub.Api/Dockerfile .
+
+      - name: Build API migrate image
+        working-directory: src
+        run: |
+          docker build \
+            --target migrate \
+            -t "$IMAGE_PREFIX/api-migrate:$IMAGE_TAG" \
+            -t "$IMAGE_PREFIX/api-migrate:latest" \
+            -f FamilyHub.Api/Dockerfile .
+
+      - name: Build Frontend image (prod stage)
+        working-directory: src/frontend/family-hub-web
+        run: |
+          docker build \
+            --target prod \
+            --build-arg NPM_REGISTRY=https://registry.npmjs.org/ \
+            -t "$IMAGE_PREFIX/frontend:$IMAGE_TAG" \
+            -t "$IMAGE_PREFIX/frontend:latest" \
+            -f Dockerfile .
+
+      - name: Push images
+        run: |
+          docker push "$IMAGE_PREFIX/api:$IMAGE_TAG"
+          docker push "$IMAGE_PREFIX/api:latest"
+          docker push "$IMAGE_PREFIX/api-migrate:$IMAGE_TAG"
+          docker push "$IMAGE_PREFIX/api-migrate:latest"
+          docker push "$IMAGE_PREFIX/frontend:$IMAGE_TAG"
+          docker push "$IMAGE_PREFIX/frontend:latest"
+
+    outputs:
+      image_tag: ${{ env.IMAGE_TAG }}
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: build-images
+    runs-on: [self-hosted, linux, arm64]
+    environment: staging
+    env:
+      IMAGE_TAG: sha-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy staging stack
+        working-directory: infrastructure/swarm
+        env:
+          STAGING_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+          STAGING_KC_DB_PASSWORD: ${{ secrets.STAGING_KC_DB_PASSWORD }}
+          STAGING_KC_ADMIN_PASSWORD: ${{ secrets.STAGING_KC_ADMIN_PASSWORD }}
+        run: |
+          docker stack deploy \
+            -c docker-stack.staging.yml \
+            --with-registry-auth \
+            fh-staging
+
+      - name: Wait for database
+        run: sleep 15
+
+      - name: Run database migrations
+        env:
+          STAGING_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+        run: |
+          docker run --rm \
+            --network fh-staging_staging-internal \
+            -e "ConnectionStrings__DefaultConnection=Host=fh-staging_postgres;Port=5432;Database=familyhub;Username=familyhub;Password=$STAGING_DB_PASSWORD" \
+            "$IMAGE_PREFIX/api-migrate:$IMAGE_TAG"
+
+      - name: Health check
+        run: |
+          for i in $(seq 1 30); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 --max-time 10 http://staging.familyhub.local/health 2>/dev/null || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "Health check passed (HTTP 200)"
+              exit 0
+            fi
+            echo "Attempt $i/30 (HTTP $status) — retrying in 10s..."
+            sleep 10
+          done
+          echo "Health check failed after 300s"
+          docker stack services fh-staging
+          exit 1

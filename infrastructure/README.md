@@ -214,3 +214,94 @@ Start shared services: `task shared:up`
 
 **Multiple environments**
 Each worktree can run its own environment simultaneously. Just run `task up` in each worktree.
+
+---
+
+## Docker Swarm Deployment (Turing Pi 2)
+
+FamilyHub deploys to a Turing Pi 2 board with 2x RK1 ARM64 modules running Docker Swarm. Staging deploys automatically on push to `main`; production requires manual trigger.
+
+### Architecture
+
+```
+Turing Pi 2 (2x RK1, ARM64, 32GB RAM each)
+Docker Swarm Mode
+
+Base Stack (fh-base)                    Traefik v3.2 (port 80/443, dashboard :8080)
+                                        Overlay network: traefik-public
+
+Staging Stack (fh-staging)              Production Stack (fh-production)
+─────────────────────────               ──────────────────────────────
+PostgreSQL (pinned)                     PostgreSQL (pinned)
+Keycloak (pinned)                       Keycloak (pinned)
+MailHog                                 API (2 replicas)
+API (1 replica)                         Frontend (2 replicas)
+Frontend (1 replica)
+```
+
+### URL Convention (Swarm)
+
+| Service | Staging | Production |
+|---------|---------|------------|
+| Frontend | `http://staging.familyhub.local` | `http://app.familyhub.local` |
+| API | `http://api-staging.familyhub.local` | `http://api.familyhub.local` |
+| Keycloak | `http://auth-staging.familyhub.local` | `http://auth.familyhub.local` |
+| MailHog | `http://mail-staging.familyhub.local` | N/A (real SMTP) |
+
+Add to client `/etc/hosts`:
+
+```
+<manager-ip> staging.familyhub.local api-staging.familyhub.local auth-staging.familyhub.local mail-staging.familyhub.local app.familyhub.local api.familyhub.local auth.familyhub.local
+```
+
+### CI/CD Workflows
+
+| Workflow | Trigger | Runner | Purpose |
+|----------|---------|--------|---------|
+| `ci.yml` | PR to main | GitHub-hosted | Build + test (backend + frontend) |
+| `deploy-staging.yml` | Push to main | Self-hosted ARM64 | Test, build images, deploy staging |
+| `deploy-production.yml` | Manual dispatch | Self-hosted ARM64 | Deploy to production (approval required) |
+
+### One-Time Swarm Setup
+
+Run on the Swarm manager node:
+
+```bash
+# 1. Label storage node
+docker node update --label-add storage=true <node1>
+
+# 2. Create shared overlay network
+docker network create --driver overlay --attachable traefik-public
+
+# 3. Create Swarm secrets
+bash infrastructure/scripts/setup-swarm-secrets.sh
+
+# 4. Deploy self-hosted GitHub runner
+RUNNER_TOKEN=<token> bash infrastructure/scripts/setup-runner.sh
+
+# 5. Deploy base stack (Traefik)
+docker stack deploy -c infrastructure/swarm/docker-stack.base.yml fh-base
+
+# 6. Push to main to trigger first staging deployment
+```
+
+### Manual Deployment
+
+```bash
+# Deploy staging
+bash infrastructure/scripts/deploy.sh staging sha-abc1234
+
+# Deploy production
+bash infrastructure/scripts/deploy.sh production sha-abc1234
+```
+
+### Swarm Files
+
+```
+infrastructure/swarm/
+├── traefik/
+│   └── traefik-swarm.yml          # Traefik static config (Swarm mode)
+├── docker-stack.base.yml          # Base: Traefik reverse proxy
+├── docker-stack.staging.yml       # Full staging environment
+└── docker-stack.production.yml    # Full production environment
+```

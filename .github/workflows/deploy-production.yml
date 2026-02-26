@@ -1,0 +1,96 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (e.g., sha-abc1234)'
+        required: true
+        type: string
+      confirm:
+        description: 'Type "deploy" to confirm production deployment'
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/andrekirst/family2
+
+jobs:
+  validate:
+    name: Validate Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify confirmation
+        env:
+          CONFIRM_INPUT: ${{ inputs.confirm }}
+        run: |
+          if [ "$CONFIRM_INPUT" != "deploy" ]; then
+            echo "ERROR: Confirmation input must be 'deploy'. Got: '$CONFIRM_INPUT'"
+            exit 1
+          fi
+          echo "Deployment confirmed."
+
+  deploy-production:
+    name: Deploy to Production
+    needs: validate
+    runs-on: [self-hosted, linux, arm64]
+    environment: production
+    env:
+      IMAGE_TAG: ${{ inputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify image exists
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          docker pull "$IMAGE_PREFIX/api:$IMAGE_TAG"
+          docker pull "$IMAGE_PREFIX/frontend:$IMAGE_TAG"
+          docker pull "$IMAGE_PREFIX/api-migrate:$IMAGE_TAG"
+          echo "All images verified."
+
+      - name: Deploy production stack
+        working-directory: infrastructure/swarm
+        env:
+          PROD_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+          PROD_KC_DB_PASSWORD: ${{ secrets.PROD_KC_DB_PASSWORD }}
+          PROD_KC_ADMIN_PASSWORD: ${{ secrets.PROD_KC_ADMIN_PASSWORD }}
+        run: |
+          docker stack deploy \
+            -c docker-stack.production.yml \
+            --with-registry-auth \
+            fh-production
+
+      - name: Wait for database
+        run: sleep 15
+
+      - name: Run database migrations
+        env:
+          PROD_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+        run: |
+          docker run --rm \
+            --network fh-production_prod-internal \
+            -e "ConnectionStrings__DefaultConnection=Host=fh-production_postgres;Port=5432;Database=familyhub;Username=familyhub;Password=$PROD_DB_PASSWORD" \
+            "$IMAGE_PREFIX/api-migrate:$IMAGE_TAG"
+
+      - name: Health check
+        run: |
+          for i in $(seq 1 30); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 --max-time 10 http://app.familyhub.local/health 2>/dev/null || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "Health check passed (HTTP 200)"
+              exit 0
+            fi
+            echo "Attempt $i/30 (HTTP $status) — retrying in 10s..."
+            sleep 10
+          done
+          echo "Health check failed after 300s"
+          docker stack services fh-production
+          exit 1

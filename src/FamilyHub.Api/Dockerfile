@@ -45,6 +45,19 @@ RUN dotnet publish FamilyHub.Api/FamilyHub.Api.csproj \
   -c Release -o /app/publish --no-restore
 
 # ==============================================================================
+# Migration image — SDK with dotnet-ef for running EF Core migrations
+# ==============================================================================
+FROM ${MCR_REGISTRY}dotnet/sdk:10.0 AS migrate
+
+WORKDIR /src
+COPY --from=build /src .
+RUN dotnet tool install --global dotnet-ef --version 10.*
+ENV PATH="$PATH:/root/.dotnet/tools"
+ENTRYPOINT ["dotnet", "ef", "database", "update", \
+  "--project", "FamilyHub.Api/FamilyHub.Api.csproj", \
+  "--no-build"]
+
+# ==============================================================================
 # Final production image
 # ==============================================================================
 FROM ${MCR_REGISTRY}dotnet/aspnet:10.0 AS final
@@ -52,4 +65,6 @@ FROM ${MCR_REGISTRY}dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 5152
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD ["sh", "-c", "wget -qO- http://localhost:5152/health || exit 1"]
 ENTRYPOINT ["dotnet", "FamilyHub.Api.dll"]

@@ -39,9 +39,11 @@ ENTRYPOINT ["npx", "ng", "serve", \
 # ==============================================================================
 FROM ${DOCKERHUB_REGISTRY}node:22-alpine AS build
 
+ARG NPM_REGISTRY=""
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY .npmrc* ./
+RUN if [ -n "$NPM_REGISTRY" ]; then echo "registry=$NPM_REGISTRY" > .npmrc; fi
 RUN npm ci
 COPY . .
 RUN npx ng build --configuration production
@@ -51,5 +53,8 @@ RUN npx ng build --configuration production
 # ==============================================================================
 FROM ${DOCKERHUB_REGISTRY}nginx:alpine AS prod
 
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/family-hub-web/browser /usr/share/nginx/html
 EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD ["sh", "-c", "wget -qO- http://localhost/nginx-health || exit 1"]
