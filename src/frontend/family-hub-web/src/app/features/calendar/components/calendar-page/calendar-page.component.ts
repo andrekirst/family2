@@ -19,7 +19,7 @@ import { CalendarViewSwitcherComponent } from '../calendar-view-switcher/calenda
 import { EventContextComponent } from '../event-context/event-context.component';
 import { TopBarService } from '../../../../shared/services/top-bar.service';
 import { ContextPanelService } from '../../../../shared/services/context-panel.service';
-import { CalendarViewMode, AGENDA_CONSTANTS } from '../../models/calendar.models';
+import { CalendarViewMode, AGENDA_CONSTANTS, TimeRange } from '../../models/calendar.models';
 import { getWeekStart, getWeekEnd, formatWeekLabel, getStoredLocale } from '../../utils/week.utils';
 import { getDayStart, getDayEnd, formatDayLabel } from '../../utils/day.utils';
 import { getAgendaDateRange } from '../../utils/agenda.utils';
@@ -128,6 +128,7 @@ import { CalendarAgendaComponent } from '../calendar-agenda/calendar-agenda.comp
               [monthInput]="currentMonth()"
               [eventsInput]="events()"
               (dayClicked)="onMonthDayCellClicked($event)"
+              (dateRangeSelected)="onDateRangeSelected($event)"
               (eventClicked)="onEventClicked($event)"
             />
           </div>
@@ -144,6 +145,8 @@ import { CalendarAgendaComponent } from '../calendar-agenda/calendar-agenda.comp
               [weekStartInput]="currentWeek()"
               [eventsInput]="events()"
               (timeSlotClicked)="onTimeSlotClicked($event)"
+              (timeRangeSelected)="onTimeRangeSelected($event)"
+              (dateRangeSelected)="onDateRangeSelected($event)"
               (eventClicked)="onEventClicked($event)"
               (dayHeaderClicked)="onDayHeaderClickedInWeek($event)"
             />
@@ -159,6 +162,7 @@ import { CalendarAgendaComponent } from '../calendar-agenda/calendar-agenda.comp
             [eventsInput]="events()"
             [loadingInput]="isLoading()"
             (timeSlotClicked)="onTimeSlotClicked($event)"
+            (timeRangeSelected)="onTimeRangeSelected($event)"
             (eventClicked)="onEventClicked($event)"
           />
         </div>
@@ -200,9 +204,12 @@ import { CalendarAgendaComponent } from '../calendar-agenda/calendar-agenda.comp
             (eventUpdated)="onEventUpdated()"
             (eventCancelled)="onEventCancelled()"
           />
-        } @else if (selectedDate()) {
+        } @else if (selectedDate() || selectedStartDate() || selectedEndDate()) {
           <app-event-context
             [selectedDate]="selectedDate()"
+            [selectedStartDate]="selectedStartDate()"
+            [selectedEndDate]="selectedEndDate()"
+            [isAllDaySelection]="isAllDaySelection()"
             (eventCreated)="onEventCreated($event)"
           />
         }
@@ -226,6 +233,9 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   events = signal<CalendarEventDto[]>([]);
   isLoading = signal(false);
   selectedDate = signal<Date | null>(null);
+  selectedStartDate = signal<Date | null>(null);
+  selectedEndDate = signal<Date | null>(null);
+  isAllDaySelection = signal(false);
   contextEvent = signal<CalendarEventDto | null>(null);
 
   // Agenda-specific state
@@ -442,17 +452,43 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   onDayClicked(date: Date): void {
     this.contextEvent.set(null);
     this.selectedDate.set(date);
+    this.selectedStartDate.set(null);
+    this.selectedEndDate.set(null);
+    this.isAllDaySelection.set(false);
     this.contextPanelService.open(this.eventContextTemplate);
   }
 
   onTimeSlotClicked(date: Date): void {
     this.contextEvent.set(null);
     this.selectedDate.set(date);
+    this.selectedStartDate.set(null);
+    this.selectedEndDate.set(null);
+    this.isAllDaySelection.set(false);
+    this.contextPanelService.open(this.eventContextTemplate);
+  }
+
+  onTimeRangeSelected(range: TimeRange): void {
+    this.contextEvent.set(null);
+    this.selectedDate.set(null);
+    this.isAllDaySelection.set(false);
+    this.selectedStartDate.set(range.start);
+    this.selectedEndDate.set(range.end);
+    this.contextPanelService.open(this.eventContextTemplate);
+  }
+
+  onDateRangeSelected(range: TimeRange): void {
+    this.contextEvent.set(null);
+    this.selectedDate.set(null);
+    this.isAllDaySelection.set(true);
+    this.selectedStartDate.set(range.start);
+    this.selectedEndDate.set(range.end);
     this.contextPanelService.open(this.eventContextTemplate);
   }
 
   onEventClicked(event: CalendarEventDto): void {
     this.selectedDate.set(null);
+    this.selectedStartDate.set(null);
+    this.selectedEndDate.set(null);
     this.contextEvent.set(event);
     this.contextPanelService.open(this.eventContextTemplate, event.id);
   }
@@ -460,6 +496,9 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   openCreatePanel(): void {
     this.contextEvent.set(null);
     this.selectedDate.set(new Date());
+    this.selectedStartDate.set(null);
+    this.selectedEndDate.set(null);
+    this.isAllDaySelection.set(false);
     this.contextPanelService.open(this.eventContextTemplate);
   }
 
@@ -476,6 +515,8 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   onEventCreated(event: CalendarEventDto): void {
     this.contextEvent.set(event);
     this.selectedDate.set(null);
+    this.selectedStartDate.set(null);
+    this.selectedEndDate.set(null);
     this.reloadCurrentView();
   }
 

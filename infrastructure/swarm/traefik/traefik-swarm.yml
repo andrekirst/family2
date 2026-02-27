@@ -1,0 +1,24 @@
+# Traefik v3 static configuration for Docker Swarm
+# Shared reverse proxy for staging + production environments on Turing Pi 2
+
+api:
+  dashboard: true
+  insecure: true
+
+ping: {}
+
+entryPoints:
+  web:
+    address: ':80'
+
+  websecure:
+    address: ':443'
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: traefik-public
+    swarmMode: true
+
+log:
+  level: INFO

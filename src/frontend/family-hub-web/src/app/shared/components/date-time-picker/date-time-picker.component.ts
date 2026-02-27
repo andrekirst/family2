@@ -22,6 +22,7 @@ interface CalendarDay {
   isCurrentMonth: boolean;
   isToday: boolean;
   isSelected: boolean;
+  isInRange: boolean;
 }
 
 @Component({
@@ -87,12 +88,14 @@ interface CalendarDay {
             (click)="selectDate(day.date)"
             [disabled]="disabled"
             class="h-8 w-full text-xs rounded-md transition-colors disabled:cursor-default"
-            [class.text-gray-900]="day.isCurrentMonth && !day.isSelected"
-            [class.text-gray-400]="!day.isCurrentMonth"
+            [class.text-gray-900]="day.isCurrentMonth && !day.isSelected && !day.isInRange"
+            [class.text-gray-400]="!day.isCurrentMonth && !day.isSelected && !day.isInRange"
             [class.font-bold]="day.isToday"
             [class.bg-blue-600]="day.isSelected"
             [class.text-white]="day.isSelected"
-            [class.hover:bg-gray-100]="!day.isSelected && !disabled"
+            [class.bg-blue-100]="day.isInRange && !day.isSelected"
+            [class.text-blue-800]="day.isInRange && !day.isSelected"
+            [class.hover:bg-gray-100]="!day.isSelected && !day.isInRange && !disabled"
           >
             {{ day.dayNumber }}
           </button>
@@ -222,29 +225,32 @@ export class DateTimePickerComponent implements OnInit, OnChanges {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const selectedDate = this.editStartTime() ? new Date(this.editStartTime()) : null;
-    if (selectedDate) selectedDate.setHours(0, 0, 0, 0);
+    const rangeStart = this.editStartTime() ? new Date(this.editStartTime()) : null;
+    if (rangeStart) rangeStart.setHours(0, 0, 0, 0);
+
+    const rangeEnd = this.editEndTime() ? new Date(this.editEndTime()) : null;
+    if (rangeEnd) rangeEnd.setHours(0, 0, 0, 0);
 
     const days: CalendarDay[] = [];
 
     // Previous month days
     for (let i = startDayOfWeek - 1; i >= 0; i--) {
       const d = new Date(year, month, -i);
-      days.push(this.createCalendarDay(d, false, today, selectedDate));
+      days.push(this.createCalendarDay(d, false, today, rangeStart, rangeEnd));
     }
 
     // Current month days
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     for (let i = 1; i <= daysInMonth; i++) {
       const d = new Date(year, month, i);
-      days.push(this.createCalendarDay(d, true, today, selectedDate));
+      days.push(this.createCalendarDay(d, true, today, rangeStart, rangeEnd));
     }
 
     // Next month days to fill 6 rows
     const remaining = 42 - days.length;
     for (let i = 1; i <= remaining; i++) {
       const d = new Date(year, month + 1, i);
-      days.push(this.createCalendarDay(d, false, today, selectedDate));
+      days.push(this.createCalendarDay(d, false, today, rangeStart, rangeEnd));
     }
 
     return days;
@@ -360,16 +366,25 @@ export class DateTimePickerComponent implements OnInit, OnChanges {
     date: Date,
     isCurrentMonth: boolean,
     today: Date,
-    selectedDate: Date | null,
+    rangeStart: Date | null,
+    rangeEnd: Date | null,
   ): CalendarDay {
     const dateOnly = new Date(date);
     dateOnly.setHours(0, 0, 0, 0);
+    const t = dateOnly.getTime();
+
+    const isStart = rangeStart ? t === rangeStart.getTime() : false;
+    const isEnd = rangeEnd ? t === rangeEnd.getTime() : false;
+    const isInRange =
+      rangeStart && rangeEnd ? t >= rangeStart.getTime() && t <= rangeEnd.getTime() : false;
+
     return {
       date,
       dayNumber: date.getDate(),
       isCurrentMonth,
       isToday: dateOnly.getTime() === today.getTime(),
-      isSelected: selectedDate ? dateOnly.getTime() === selectedDate.getTime() : false,
+      isSelected: isStart || isEnd,
+      isInRange,
     };
   }
 
