@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Features.Photos.Application.Mappers;
 using FamilyHub.Api.Features.Photos.Application.Queries;
 using FamilyHub.Api.Features.Photos.Domain.Repositories;
 using FamilyHub.Api.Features.Photos.Models;
@@ -21,7 +20,7 @@ public sealed class GetPhotosQueryHandler(
 
         return new PhotosPageDto
         {
-            Items = photos.Select(PhotoMapper.ToDto).ToList(),
+            Items = photos,
             TotalCount = totalCount,
             HasMore = query.Skip + query.Take < totalCount
         };

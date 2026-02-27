@@ -1,5 +1,6 @@
 import {
   Component,
+  inject,
   input,
   output,
   signal,
@@ -10,12 +11,14 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { EnvironmentConfigService } from '../../../../core/config/environment-config.service';
+import { SecureSrcDirective } from '../../../../shared/directives/secure-src.directive';
 import { PhotoDto, AdjacentPhotosDto } from '../../models/photos.models';
 
 @Component({
   selector: 'app-photo-viewer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SecureSrcDirective],
   template: `
     <div class="fixed inset-0 z-50 bg-black/90 flex flex-col" (click)="onBackdropClick($event)">
       <!-- Top bar -->
@@ -79,7 +82,7 @@ import { PhotoDto, AdjacentPhotosDto } from '../../models/photos.models';
 
         <!-- Photo -->
         <img
-          [src]="photo().storagePath"
+          [appSecureSrc]="imageUrl()"
           [alt]="photo().caption || photo().fileName"
           class="max-h-full max-w-full object-contain select-none"
           (click)="$event.stopPropagation()"
@@ -152,6 +155,8 @@ import { PhotoDto, AdjacentPhotosDto } from '../../models/photos.models';
   `,
 })
 export class PhotoViewerComponent implements OnInit, OnDestroy {
+  private readonly envConfig = inject(EnvironmentConfigService);
+
   photo = input.required<PhotoDto>();
   adjacentPhotos = input<AdjacentPhotosDto | null>(null);
   canDelete = input(false);
@@ -164,6 +169,7 @@ export class PhotoViewerComponent implements OnInit, OnDestroy {
 
   isEditingCaption = signal(false);
   editCaptionValue = signal('');
+  imageUrl = computed(() => `${this.envConfig.apiBaseUrl}${this.photo().storagePath}`);
 
   ngOnInit(): void {
     document.body.style.overflow = 'hidden';

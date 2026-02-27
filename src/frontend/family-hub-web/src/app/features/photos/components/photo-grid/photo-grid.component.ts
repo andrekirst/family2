@@ -1,11 +1,13 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { EnvironmentConfigService } from '../../../../core/config/environment-config.service';
+import { SecureSrcDirective } from '../../../../shared/directives/secure-src.directive';
 import { PhotoDto } from '../../models/photos.models';
 
 @Component({
   selector: 'app-photo-grid',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SecureSrcDirective],
   template: `
     @if (isLoading()) {
       <div
@@ -43,10 +45,9 @@ import { PhotoDto } from '../../models/photos.models';
             (click)="onPhotoClick(photo)"
           >
             <img
-              [src]="photo.storagePath"
+              [appSecureSrc]="imageUrl(photo)"
               [alt]="photo.caption || photo.fileName"
               class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-              loading="lazy"
             />
             @if (photo.caption) {
               <div
@@ -74,6 +75,8 @@ import { PhotoDto } from '../../models/photos.models';
   `,
 })
 export class PhotoGridComponent {
+  private readonly envConfig = inject(EnvironmentConfigService);
+
   photos = input.required<PhotoDto[]>();
   isLoading = input(false);
   isLoadingMore = input(false);
@@ -83,6 +86,10 @@ export class PhotoGridComponent {
   loadMore = output<void>();
 
   readonly skeletonItems = Array.from({ length: 12 });
+
+  imageUrl(photo: PhotoDto): string {
+    return `${this.envConfig.apiBaseUrl}${photo.storagePath}`;
+  }
 
   onPhotoClick(photo: PhotoDto): void {
     this.photoSelected.emit(photo);

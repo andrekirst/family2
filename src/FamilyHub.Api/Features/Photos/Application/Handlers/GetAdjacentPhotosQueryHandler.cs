@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Features.Photos.Application.Mappers;
 using FamilyHub.Api.Features.Photos.Application.Queries;
 using FamilyHub.Api.Features.Photos.Domain.Repositories;
 using FamilyHub.Api.Features.Photos.Models;
@@ -15,14 +14,14 @@ public sealed class GetAdjacentPhotosQueryHandler(
         CancellationToken cancellationToken)
     {
         var previous = await repository.GetPreviousAsync(
-            query.FamilyId, query.CurrentCreatedAt, query.CurrentPhotoId, cancellationToken);
+            query.FamilyId, query.CurrentCreatedAt, query.CurrentPhotoId.Value, cancellationToken);
         var next = await repository.GetNextAsync(
-            query.FamilyId, query.CurrentCreatedAt, query.CurrentPhotoId, cancellationToken);
+            query.FamilyId, query.CurrentCreatedAt, query.CurrentPhotoId.Value, cancellationToken);
 
         return new AdjacentPhotosDto
         {
-            Previous = previous is not null ? PhotoMapper.ToDto(previous) : null,
-            Next = next is not null ? PhotoMapper.ToDto(next) : null
+            Previous = previous,
+            Next = next
         };
     }
 }
