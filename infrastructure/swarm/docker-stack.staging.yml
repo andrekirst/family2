@@ -1,0 +1,256 @@
+# Docker Swarm Staging Stack — Full FamilyHub staging environment
+# Deploy: IMAGE_TAG=sha-abc1234 docker stack deploy -c docker-stack.staging.yml --with-registry-auth fh-staging
+#
+# Requires:
+#   - External network: traefik-public (created by base stack)
+#   - Swarm secrets: staging_db_password, staging_kc_db_password, staging_kc_admin_password
+#   - Node label: node.labels.storage==true (on node hosting stateful services)
+
+version: '3.8'
+
+services:
+  # --------------------------------------------------------------------------
+  # PostgreSQL — Application database
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: familyhub
+      POSTGRES_USER: familyhub
+      POSTGRES_PASSWORD_FILE: /run/secrets/staging_db_password
+    volumes:
+      - staging-postgres-data:/var/lib/postgresql/data
+    networks:
+      - staging-internal
+    secrets:
+      - staging_db_password
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.storage == true
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        parallelism: 1
+        order: stop-first
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U familyhub -d familyhub']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # --------------------------------------------------------------------------
+  # PostgreSQL — Keycloak database
+  # --------------------------------------------------------------------------
+  postgres-keycloak:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD_FILE: /run/secrets/staging_kc_db_password
+    volumes:
+      - staging-kc-postgres-data:/var/lib/postgresql/data
+    networks:
+      - staging-internal
+    secrets:
+      - staging_kc_db_password
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.storage == true
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        parallelism: 1
+        order: stop-first
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U keycloak -d keycloak']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # --------------------------------------------------------------------------
+  # Keycloak — OAuth 2.0 / OIDC provider
+  # --------------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.4
+    command: ['start-dev']
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${STAGING_KC_DB_PASSWORD}
+      KC_PROXY: edge
+      KC_HOSTNAME_STRICT: 'false'
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${STAGING_KC_ADMIN_PASSWORD}
+    networks:
+      - staging-internal
+      - traefik-public
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.storage == true
+      restart_policy:
+        condition: any
+        delay: 10s
+      update_config:
+        parallelism: 1
+        order: stop-first
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.docker.network=traefik-public'
+        - 'traefik.http.routers.kc-staging.rule=Host(`auth-staging.familyhub.local`)'
+        - 'traefik.http.routers.kc-staging.entrypoints=web'
+        - 'traefik.http.services.kc-staging.loadbalancer.server.port=8080'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200'",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # --------------------------------------------------------------------------
+  # MailHog — Email testing (staging only)
+  # --------------------------------------------------------------------------
+  mailhog:
+    image: mailhog/mailhog:latest
+    networks:
+      - staging-internal
+      - traefik-public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.docker.network=traefik-public'
+        - 'traefik.http.routers.mail-staging.rule=Host(`mail-staging.familyhub.local`)'
+        - 'traefik.http.routers.mail-staging.entrypoints=web'
+        - 'traefik.http.services.mail-staging.loadbalancer.server.port=8025'
+
+  # --------------------------------------------------------------------------
+  # API — .NET 10 backend
+  # --------------------------------------------------------------------------
+  api:
+    image: ghcr.io/andrekirst/family2/api:${IMAGE_TAG:-latest}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Staging
+      ASPNETCORE_URLS: http://0.0.0.0:5152
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=familyhub;Username=familyhub;Password=${STAGING_DB_PASSWORD}
+      Keycloak__Authority: http://keycloak:8080/realms/FamilyHub-staging
+      Keycloak__Audience: account
+      Keycloak__Issuers: http://keycloak:8080/realms/FamilyHub-staging,http://auth-staging.familyhub.local/realms/FamilyHub-staging
+      Keycloak__ClientId: familyhub-api
+      Keycloak__ClientSecret: familyhub-api-secret-change-in-production
+      CORS__Origins: http://staging.familyhub.local
+      Email__Host: mailhog
+      Email__Port: '1025'
+      Email__UseSsl: 'false'
+      Email__FromAddress: noreply@familyhub.local
+      App__FrontendUrl: http://staging.familyhub.local
+      FrontendConfig__ApiUrl: http://staging.familyhub.local/graphql
+      FrontendConfig__KeycloakIssuer: http://auth-staging.familyhub.local/realms/FamilyHub-staging
+      FrontendConfig__KeycloakClientId: familyhub-web
+      FrontendConfig__AppUrl: http://staging.familyhub.local
+    networks:
+      - staging-internal
+      - traefik-public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.docker.network=traefik-public'
+        # Direct API access
+        - 'traefik.http.routers.api-staging.rule=Host(`api-staging.familyhub.local`)'
+        - 'traefik.http.routers.api-staging.entrypoints=web'
+        - 'traefik.http.services.api-staging.loadbalancer.server.port=5152'
+        # Same-origin proxy: API paths on frontend domain
+        - 'traefik.http.routers.api-staging-proxy.rule=Host(`staging.familyhub.local`) && (PathPrefix(`/graphql`) || PathPrefix(`/health`) || PathPrefix(`/config`) || PathPrefix(`/api`))'
+        - 'traefik.http.routers.api-staging-proxy.entrypoints=web'
+        - 'traefik.http.routers.api-staging-proxy.service=api-staging'
+        - 'traefik.http.routers.api-staging-proxy.priority=200'
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:5152/health || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # --------------------------------------------------------------------------
+  # Frontend — Angular SPA via nginx
+  # --------------------------------------------------------------------------
+  frontend:
+    image: ghcr.io/andrekirst/family2/frontend:${IMAGE_TAG:-latest}
+    networks:
+      - traefik-public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.docker.network=traefik-public'
+        - 'traefik.http.routers.frontend-staging.rule=Host(`staging.familyhub.local`)'
+        - 'traefik.http.routers.frontend-staging.entrypoints=web'
+        - 'traefik.http.routers.frontend-staging.priority=100'
+        - 'traefik.http.services.frontend-staging.loadbalancer.server.port=80'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/nginx-health || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  staging-postgres-data:
+  staging-kc-postgres-data:
+
+secrets:
+  staging_db_password:
+    external: true
+  staging_kc_db_password:
+    external: true
+  staging_kc_admin_password:
+    external: true
+
+networks:
+  staging-internal:
+    driver: overlay
+    attachable: true
+  traefik-public:
+    external: true

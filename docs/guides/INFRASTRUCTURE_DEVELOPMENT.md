@@ -459,24 +459,116 @@ docker-compose restart redis
 
 ---
 
+## Docker Swarm Deployment (Turing Pi 2)
+
+### Target Hardware
+
+Turing Pi 2 board with 2x RK1 modules (Rockchip RK3588, ARM64, 32GB RAM each) running Docker Swarm.
+
+### Architecture
+
+Three stack layers:
+
+- **Base stack** (`fh-base`) — Traefik v3.2 reverse proxy with Swarm-mode service discovery
+- **Staging stack** (`fh-staging`) — Full environment auto-deployed on push to `main`
+- **Production stack** (`fh-production`) — Full environment deployed via manual trigger
+
+Both staging and production run on the same Swarm cluster with separate overlay networks for isolation.
+
+### Container Images
+
+Built natively on ARM64 self-hosted runner (no QEMU emulation):
+
+| Image | Registry | Stage | Purpose |
+|-------|----------|-------|---------|
+| `api` | `ghcr.io/andrekirst/family2/api` | `final` | ASP.NET runtime (~200MB) |
+| `api-migrate` | `ghcr.io/andrekirst/family2/api-migrate` | `migrate` | SDK + dotnet-ef (~800MB) |
+| `frontend` | `ghcr.io/andrekirst/family2/frontend` | `prod` | nginx + Angular dist |
+
+Tag convention: `sha-<full-commit-sha>`
+
+### CI/CD Pipeline
+
+```
+PR to main  ──►  ci.yml (GitHub-hosted)
+                   └── Backend: restore → build → test
+                   └── Frontend: install → build
+
+Push to main ──►  deploy-staging.yml (GitHub-hosted + self-hosted)
+                   └── test (GitHub-hosted)
+                   └── build-images (self-hosted ARM64) → ghcr.io
+                   └── deploy-staging (self-hosted ARM64) → Swarm
+
+Manual       ──►  deploy-production.yml (self-hosted)
+                   └── validate confirmation
+                   └── deploy-production → Swarm (requires reviewer approval)
+```
+
+### Swarm Stack Files
+
+```
+infrastructure/swarm/
+├── traefik/
+│   └── traefik-swarm.yml           # Traefik static config (Swarm mode, ports 80/443)
+├── docker-stack.base.yml           # Base: Traefik reverse proxy (deploy once)
+├── docker-stack.staging.yml        # Staging: PostgreSQL, Keycloak, MailHog, API, Frontend
+└── docker-stack.production.yml     # Production: PostgreSQL, Keycloak, API (2x), Frontend (2x)
+```
+
+### Key Swarm Patterns
+
+**Placement constraints:** Stateful services (PostgreSQL, Keycloak) pinned to nodes with `node.labels.storage==true` to keep data volumes on a specific node.
+
+**Rolling updates:** `update_config.order: start-first` ensures new containers are healthy before old ones are removed (zero-downtime for API and Frontend).
+
+**Automatic rollback:** `rollback_config` enables Swarm to automatically revert to the previous version if the new deployment fails health checks.
+
+**Secrets:** Database passwords stored as Docker Swarm secrets, mounted at `/run/secrets/<name>`. PostgreSQL reads via `POSTGRES_PASSWORD_FILE`; Keycloak receives passwords as environment variables (doesn't support `_FILE`).
+
+### Infrastructure Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `setup-swarm-secrets.sh` | Create Docker Swarm secrets for staging + production |
+| `setup-runner.sh` | Deploy GitHub Actions self-hosted runner as Swarm service |
+| `deploy.sh` | Manual deployment helper (migrations → stack deploy → health check) |
+| `provision-swarm-realm.sh` | Provision Keycloak realm for Swarm environments |
+
+### GitHub Configuration Required
+
+**Repository Settings → Environments:**
+
+- `staging` — No protection rules (auto-deploy)
+- `production` — Required reviewers (manual approval)
+
+**Repository Settings → Secrets & Variables → Actions:**
+
+- Per-environment: `{STAGING,PROD}_DB_PASSWORD`, `{STAGING,PROD}_KC_DB_PASSWORD`, `{STAGING,PROD}_KC_ADMIN_PASSWORD`
+
+---
+
 ## Related Documentation
 
 - **Local Setup:** [docs/development/LOCAL_DEVELOPMENT_SETUP.md](../docs/development/LOCAL_DEVELOPMENT_SETUP.md) - Complete setup guide
 - **Debugging:** [docs/development/DEBUGGING_GUIDE.md](../docs/development/DEBUGGING_GUIDE.md) - Troubleshooting
 - **Architecture:** [docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md](../docs/architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Deployment strategy
+- **Swarm README:** [infrastructure/README.md](../../infrastructure/README.md) - Quick start for Swarm deployment
 
 ---
 
-**Last Updated:** 2026-01-14
-**Derived from:** Root CLAUDE.md v5.0.0
+**Last Updated:** 2026-02-26
+**Derived from:** Root CLAUDE.md v9.0.0
 **Canonical Sources:**
 
 - infrastructure/docker/docker-compose.yml (Service configuration)
+- infrastructure/swarm/ (Swarm stack files)
+- .github/workflows/ (CI/CD pipelines)
 - docs/development/LOCAL_DEVELOPMENT_SETUP.md (Setup instructions)
 - docs/development/DEBUGGING_GUIDE.md (Troubleshooting)
 
 **Recent Changes:**
 
+- 2026-02-26: Added Docker Swarm deployment and CI/CD pipelines (#196)
 - 2026-01-14: Added Redis 7 Alpine for GraphQL subscriptions (#84)
 
 **Sync Checklist:**
@@ -485,3 +577,5 @@ docker-compose restart redis
 - [x] Environment variables match LOCAL_DEVELOPMENT_SETUP.md
 - [x] Port mappings match documented URLs
 - [x] Health checks accurate
+- [x] Swarm stack files documented
+- [x] CI/CD workflows documented
