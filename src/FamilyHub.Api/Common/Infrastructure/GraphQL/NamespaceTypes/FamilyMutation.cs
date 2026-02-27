@@ -20,4 +20,10 @@ public class FamilyMutation
     /// </summary>
     [Authorize]
     public FamilyCalendarMutation Calendar() => new();
+
+    /// <summary>
+    /// Photos mutations namespace (upload, update caption, delete).
+    /// </summary>
+    [Authorize]
+    public FamilyPhotosMutation Photos() => new();
 }

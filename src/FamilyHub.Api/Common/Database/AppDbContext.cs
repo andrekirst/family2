@@ -6,6 +6,7 @@ using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Data;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
+using FamilyHub.Api.Features.Photos.Domain.Entities;
 using FamilyHub.EventChain.Domain.Entities;
 using FileManagementStoredFile = FamilyHub.Api.Features.FileManagement.Domain.Entities.StoredFile;
 using FileManagementFolder = FamilyHub.Api.Features.FileManagement.Domain.Entities.Folder;
@@ -73,6 +74,9 @@ public class AppDbContext : DbContext, IUnitOfWork
     /// Calendar event attendees (join table)
     /// </summary>
     public DbSet<CalendarEventAttendee> CalendarEventAttendees { get; set; }
+
+    // Photos entities
+    public DbSet<Photo> Photos { get; set; }
 
     // Google Integration entities
     public DbSet<GoogleAccountLink> GoogleAccountLinks { get; set; }
