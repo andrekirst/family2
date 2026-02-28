@@ -14,6 +14,7 @@
   <Project Path="../../tests/FamilyHub.GoogleIntegration.Tests/FamilyHub.GoogleIntegration.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.Infisical.Tests/FamilyHub.Infisical.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.IntegrationTests/FamilyHub.IntegrationTests.csproj" />
+  <Project Path="../../tests/FamilyHub.Photos.Tests/FamilyHub.Photos.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.TestCommon/FamilyHub.TestCommon.csproj" />
   <Project Path="../FamilyHub.Common/FamilyHub.Common.csproj" />
   <Project Path="../FamilyHub.Dev/FamilyHub.Dev.csproj" />

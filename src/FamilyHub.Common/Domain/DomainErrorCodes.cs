@@ -61,6 +61,10 @@ public static class DomainErrorCodes
     public const string ZipJobConcurrentLimitReached = "ZIP_JOB_CONCURRENT_LIMIT_REACHED";
     public const string ZipJobTooManyFiles = "ZIP_JOB_TOO_MANY_FILES";
 
+    // Photos
+    public const string PhotoNotFound = "PHOTO_NOT_FOUND";
+    public const string PhotoAlreadyDeleted = "PHOTO_ALREADY_DELETED";
+
     // EventChain
     public const string ChainDefinitionNotFound = "CHAIN_DEFINITION_NOT_FOUND";
     public const string ChainExecutionNotFound = "CHAIN_EXECUTION_NOT_FOUND";

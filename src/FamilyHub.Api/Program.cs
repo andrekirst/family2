@@ -17,6 +17,7 @@ using FamilyHub.Api.Features.Family;
 using FamilyHub.Api.Features.FileManagement;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
 using FamilyHub.Api.Features.GoogleIntegration;
+using FamilyHub.Api.Features.Photos;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -134,6 +135,7 @@ builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
 builder.Services.RegisterModule<FileManagementModule>(builder.Configuration);
 builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
+builder.Services.RegisterModule<PhotosModule>(builder.Configuration);
 
 // Configure CORS for Angular frontend (supports multi-environment via config)
 var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)

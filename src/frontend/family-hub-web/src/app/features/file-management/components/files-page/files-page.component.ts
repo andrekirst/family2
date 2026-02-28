@@ -44,6 +44,7 @@ export class FilesPageComponent implements OnInit, OnDestroy {
   readonly tabs: FileTab[] = [
     { path: 'browse', label: $localize`:@@files.tab.browse:Browse` },
     { path: 'albums', label: $localize`:@@files.tab.albums:Albums` },
+    { path: 'photos', label: $localize`:@@files.tab.photos:Photos` },
     { path: 'search', label: $localize`:@@files.tab.search:Search` },
     { path: 'sharing', label: $localize`:@@files.tab.sharing:Sharing` },
     { path: 'inbox', label: $localize`:@@files.tab.inbox:Inbox` },
