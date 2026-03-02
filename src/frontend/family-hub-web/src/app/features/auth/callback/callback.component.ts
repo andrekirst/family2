@@ -94,7 +94,8 @@ export class CallbackComponent implements OnInit {
 
         // Step 3: Navigate to intended destination (after registration completes)
         const redirectUrl = this.authService.consumePostLoginRedirect();
-        await this.router.navigateByUrl(`${redirectUrl}?login=success`);
+        const separator = redirectUrl.includes('?') ? '&' : '?';
+        await this.router.navigateByUrl(`${redirectUrl}${separator}login=success`);
       } catch (err: any) {
         this.error =
           err.message || $localize`:@@callback.failedAuth:Failed to complete authentication`;

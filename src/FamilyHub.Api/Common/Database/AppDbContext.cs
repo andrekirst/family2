@@ -6,6 +6,7 @@ using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Data;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
+using FamilyHub.Api.Features.Messaging.Domain.Entities;
 using FamilyHub.EventChain.Domain.Entities;
 using FileManagementStoredFile = FamilyHub.Api.Features.FileManagement.Domain.Entities.StoredFile;
 using FileManagementFolder = FamilyHub.Api.Features.FileManagement.Domain.Entities.Folder;
@@ -113,6 +114,9 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<FileManagementSecureNote> SecureNotes { get; set; }
     public DbSet<FileManagementExternalConnection> ExternalConnections { get; set; }
     public DbSet<FileManagementZipJob> ZipJobs { get; set; }
+
+    // Messaging entities
+    public DbSet<Message> Messages { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

@@ -14,6 +14,7 @@ import { provideDashboardFeature } from './features/dashboard/dashboard.provider
 import { provideEventChainsFeature } from './features/event-chains/event-chains.providers';
 import { provideFamilyFeature } from './features/family/family.providers';
 import { provideFileManagementFeature } from './features/file-management/file-management.providers';
+import { provideMessagingFeature } from './features/messaging/messaging.providers';
 import { provideSettingsFeature } from './features/settings/settings.providers';
 import { locale } from '../main';
 import { provideProfileFeature } from './features/profile/profile.providers';
@@ -30,6 +31,7 @@ export const appConfig: ApplicationConfig = {
     ...provideEventChainsFeature(),
     ...provideFamilyFeature(),
     ...provideFileManagementFeature(),
+    ...provideMessagingFeature(),
     ...provideSettingsFeature(),
     ...provideProfileFeature(),
     { provide: LOCALE_ID, useValue: locale },
