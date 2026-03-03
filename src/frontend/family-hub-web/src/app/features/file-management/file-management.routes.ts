@@ -42,6 +42,13 @@ export const FILE_MANAGEMENT_ROUTES: Routes = [
         loadComponent: () =>
           import('./components/notes/notes-page.component').then((m) => m.NotesPageComponent),
       },
+      {
+        path: 'photos',
+        loadComponent: () =>
+          import('../photos/components/photos-page/photos-page.component').then(
+            (m) => m.PhotosPageComponent,
+          ),
+      },
     ],
   },
 ];
