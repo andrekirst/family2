@@ -39,6 +39,7 @@ public class MutationType
             throw new InvalidOperationException("You must be part of a family to send messages");
         }
 
+        var content = input.Content?.Trim() ?? string.Empty;
         var attachments = input.Attachments?
             .Select(a => new AttachmentData(
                 FileId.From(Guid.Parse(a.FileId)),
@@ -47,10 +48,15 @@ public class MutationType
                 a.FileSize))
             .ToList();
 
+        if (content.Length == 0 && (attachments is null || attachments.Count == 0))
+        {
+            throw new InvalidOperationException("Message must have content or at least one attachment");
+        }
+
         var command = new SendMessageCommand(
             user.FamilyId.Value,
             user.Id,
-            MessageContent.From(input.Content.Trim()),
+            MessageContent.From(content),
             attachments);
 
         var result = await commandBus.SendAsync(command, cancellationToken);

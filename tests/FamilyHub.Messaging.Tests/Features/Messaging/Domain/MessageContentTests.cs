@@ -17,19 +17,27 @@ public class MessageContentTests
     }
 
     [Fact]
-    public void From_WithEmptyString_ShouldThrowValidationException()
+    public void From_WithEmptyString_ShouldSucceed()
     {
-        // Act & Assert
-        var act = () => MessageContent.From("");
-        act.Should().Throw<ValueObjectValidationException>();
+        // Empty content is valid for attachment-only messages
+        var content = MessageContent.From("");
+        content.Value.Should().BeEmpty();
     }
 
     [Fact]
-    public void From_WithWhitespace_ShouldThrowValidationException()
+    public void From_WithWhitespace_ShouldSucceed()
     {
-        // Act & Assert
-        var act = () => MessageContent.From("   ");
-        act.Should().Throw<ValueObjectValidationException>();
+        // Whitespace content is valid (trimmed to empty by mutation layer)
+        var content = MessageContent.From("   ");
+        content.Value.Should().Be("   ");
+    }
+
+    [Fact]
+    public void Empty_ShouldReturnEmptyContent()
+    {
+        // MessageContent.Empty is a convenience for attachment-only messages
+        var content = MessageContent.Empty;
+        content.Value.Should().BeEmpty();
     }
 
     [Fact]
