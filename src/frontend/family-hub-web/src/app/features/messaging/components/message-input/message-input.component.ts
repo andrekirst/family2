@@ -217,7 +217,7 @@ export class MessageInputComponent {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  private uploadFiles(files: File[]): void {
+  uploadFiles(files: File[]): void {
     this.isUploading.set(true);
     let completed = 0;
 

@@ -26,16 +26,34 @@ import { MessageViewModel } from '../message-item/message-item.component';
           <p class="text-sm" i18n="@@messaging.noFamily">Join a family to start messaging.</p>
         </div>
       } @else {
-        <!-- Message list -->
-        <app-message-list
-          #messageList
-          [messages]="messageViewModels()"
-          [isLoadingOlder]="isLoadingOlder()"
-          (loadOlder)="loadOlderMessages()"
-        />
+        <div
+          class="relative flex flex-col flex-1 min-h-0"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+        >
+          <!-- Drop overlay -->
+          @if (isDragging()) {
+            <div
+              class="absolute inset-0 z-10 flex items-center justify-center bg-blue-50/80 border-2 border-dashed border-blue-400 rounded-lg pointer-events-none"
+            >
+              <span class="text-blue-600 font-medium text-sm" i18n="@@messaging.dropFiles"
+                >Drop files to attach</span
+              >
+            </div>
+          }
 
-        <!-- Message input -->
-        <app-message-input (messageSend)="onSendMessage($event)" />
+          <!-- Message list -->
+          <app-message-list
+            #messageList
+            [messages]="messageViewModels()"
+            [isLoadingOlder]="isLoadingOlder()"
+            (loadOlder)="loadOlderMessages()"
+          />
+
+          <!-- Message input -->
+          <app-message-input #messageInput (messageSend)="onSendMessage($event)" />
+        </div>
       }
     </div>
   `,
@@ -59,7 +77,9 @@ export class MessagingPageComponent implements OnInit, OnDestroy {
   private readonly rawMessages = signal<MessageDto[]>([]);
 
   @ViewChild('messageList') private messageList!: MessageListComponent;
+  @ViewChild('messageInput') private messageInput!: MessageInputComponent;
 
+  readonly isDragging = signal(false);
   readonly isLoading = signal(false);
   readonly isLoadingOlder = signal(false);
   readonly hasMoreMessages = signal(true);
@@ -124,6 +144,27 @@ export class MessagingPageComponent implements OnInit, OnDestroy {
       },
       error: () => this.isLoadingOlder.set(false),
     });
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(true);
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+    if (event.dataTransfer?.files?.length) {
+      this.messageInput.uploadFiles(Array.from(event.dataTransfer.files));
+    }
   }
 
   onSendMessage(payload: MessageSendPayload): void {
