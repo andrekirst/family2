@@ -44,6 +44,10 @@ export class UserService {
   currentUser = signal<CurrentUser | null>(null);
   isLoading = signal(false);
 
+  // Shared promise so multiple consumers (callback, dashboard, guards) coalesce
+  // into a single in-flight request instead of each making their own.
+  private _readyPromise: Promise<CurrentUser | null> | null = null;
+
   constructor(private apollo: Apollo) {}
 
   /**
@@ -55,7 +59,13 @@ export class UserService {
    * @returns User data from backend
    * @throws Error if registration fails
    */
-  async registerUser(): Promise<CurrentUser> {
+  registerUser(): Promise<CurrentUser> {
+    const promise = this._doRegisterUser();
+    this._readyPromise = promise;
+    return promise;
+  }
+
+  private async _doRegisterUser(): Promise<CurrentUser> {
     this.isLoading.set(true);
 
     try {
@@ -134,9 +144,30 @@ export class UserService {
   }
 
   /**
+   * Wait for the user to be available. Multiple consumers (dashboard, guards)
+   * share a single in-flight request via _readyPromise.
+   *
+   * Fast path: currentUser signal already populated → returns immediately.
+   * In-flight: registerUser() running → piggybacks on its promise.
+   * Cold start (F5 refresh): triggers fetchCurrentUser().
+   */
+  whenReady(): Promise<CurrentUser | null> {
+    const user = this.currentUser();
+    if (user) {
+      return Promise.resolve(user);
+    }
+    if (this._readyPromise) {
+      return this._readyPromise;
+    }
+    this._readyPromise = this.fetchCurrentUser();
+    return this._readyPromise;
+  }
+
+  /**
    * Clear user state on logout.
    */
   clearUser(): void {
     this.currentUser.set(null);
+    this._readyPromise = null;
   }
 }
