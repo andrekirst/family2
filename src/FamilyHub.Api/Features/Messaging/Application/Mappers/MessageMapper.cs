@@ -19,7 +19,8 @@ public static class MessageMapper
             SenderName = senderName ?? string.Empty,
             SenderAvatarId = senderAvatarId,
             Content = message.Content.Value,
-            SentAt = message.SentAt
+            SentAt = message.SentAt,
+            Attachments = AttachmentMapper.ToDtoList(message.Attachments)
         };
     }
 }

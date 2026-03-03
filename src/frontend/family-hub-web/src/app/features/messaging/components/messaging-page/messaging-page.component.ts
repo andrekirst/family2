@@ -4,7 +4,10 @@ import { Subscription } from 'rxjs';
 import { MessagingService, MessageDto } from '../../services/messaging.service';
 import { UserService } from '../../../../core/user/user.service';
 import { MessageListComponent } from '../message-list/message-list.component';
-import { MessageInputComponent } from '../message-input/message-input.component';
+import {
+  MessageInputComponent,
+  MessageSendPayload,
+} from '../message-input/message-input.component';
 import { MessageViewModel } from '../message-item/message-item.component';
 
 @Component({
@@ -72,6 +75,7 @@ export class MessagingPageComponent implements OnInit, OnDestroy {
       senderAvatarId: m.senderAvatarId,
       content: m.content,
       sentAt: m.sentAt,
+      attachments: m.attachments ?? [],
     })),
   );
 
@@ -122,8 +126,12 @@ export class MessagingPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSendMessage(content: string): void {
-    this.messagingService.sendMessage({ content }).subscribe({
+  onSendMessage(payload: MessageSendPayload): void {
+    const input = {
+      content: payload.content,
+      ...(payload.attachments.length > 0 ? { attachments: payload.attachments } : {}),
+    };
+    this.messagingService.sendMessage(input).subscribe({
       next: (message) => {
         if (message) {
           // Avoid duplicates if subscription already delivered it

@@ -6,6 +6,7 @@ using FamilyHub.Api.Common.Services;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Application.Mappers;
 using FamilyHub.Api.Features.Messaging.Domain.Repositories;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Models;
 using HotChocolate.Authorization;
@@ -38,10 +39,19 @@ public class MutationType
             throw new InvalidOperationException("You must be part of a family to send messages");
         }
 
+        var attachments = input.Attachments?
+            .Select(a => new AttachmentData(
+                FileId.From(Guid.Parse(a.FileId)),
+                a.FileName,
+                a.MimeType,
+                a.FileSize))
+            .ToList();
+
         var command = new SendMessageCommand(
             user.FamilyId.Value,
             user.Id,
-            MessageContent.From(input.Content.Trim()));
+            MessageContent.From(input.Content.Trim()),
+            attachments);
 
         var result = await commandBus.SendAsync(command, cancellationToken);
 

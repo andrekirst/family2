@@ -2,6 +2,7 @@ using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Domain.Entities;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FamilyHub.Api.Features.Messaging.Data;
@@ -12,6 +13,18 @@ namespace FamilyHub.Api.Features.Messaging.Data;
 /// </summary>
 public class MessageConfiguration : IEntityTypeConfiguration<Message>
 {
+    /// <summary>
+    /// Safely extracts the underlying Guid from a MessageId without triggering
+    /// Vogen's ThrowWhenNotInitialized check on default/uninitialized structs.
+    /// Required because EF Core's ValueComparer calls GetHashCode() on default
+    /// values during change tracking of owned entity shadow FK properties.
+    /// </summary>
+    private static Guid SafeGuid(MessageId id)
+    {
+        try { return id.Value; }
+        catch (Vogen.ValueObjectValidationException) { return Guid.Empty; }
+    }
+
     public void Configure(EntityTypeBuilder<Message> builder)
     {
         builder.ToTable("messages", "messaging");
@@ -20,7 +33,14 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
         builder.Property(m => m.Id)
             .HasConversion(
                 id => id.Value,
-                value => MessageId.From(value))
+                value => MessageId.From(value),
+                // Custom comparer that handles uninitialized Vogen VOs safely.
+                // EF Core propagates this to owned entity shadow FK properties,
+                // preventing ValueObjectValidationException during change tracking.
+                new ValueComparer<MessageId>(
+                    (a, b) => SafeGuid(a) == SafeGuid(b),
+                    v => SafeGuid(v).GetHashCode(),
+                    v => v))
             .ValueGeneratedOnAdd();
 
         builder.Property(m => m.FamilyId)
@@ -49,5 +69,45 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
         // Composite index for efficient family timeline queries (ORDER BY sent_at DESC)
         builder.HasIndex(m => new { m.FamilyId, m.SentAt })
             .IsDescending(false, true);
+
+        // Owned collection: message_attachments table in messaging schema
+        builder.OwnsMany(m => m.Attachments, ab =>
+        {
+            ab.ToTable("message_attachments", "messaging");
+
+            ab.Property(a => a.Id)
+                .HasColumnName("id");
+
+            ab.Property(a => a.FileId)
+                .HasConversion(
+                    id => id.Value,
+                    value => FileId.From(value))
+                .HasColumnName("file_id")
+                .IsRequired();
+
+            ab.Property(a => a.FileName)
+                .HasColumnName("file_name")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            ab.Property(a => a.MimeType)
+                .HasColumnName("mime_type")
+                .HasMaxLength(127)
+                .IsRequired();
+
+            ab.Property(a => a.FileSize)
+                .HasColumnName("file_size")
+                .IsRequired();
+
+            ab.Property(a => a.AttachedAt)
+                .HasColumnName("attached_at")
+                .IsRequired();
+
+            ab.WithOwner().HasForeignKey("message_id");
+            ab.HasKey("Id");
+            ab.HasIndex("message_id");
+        });
+
+        builder.Navigation(m => m.Attachments).AutoInclude();
     }
 }

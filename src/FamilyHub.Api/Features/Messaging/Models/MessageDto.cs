@@ -13,4 +13,5 @@ public class MessageDto
     public Guid? SenderAvatarId { get; set; }
     public string Content { get; set; } = string.Empty;
     public DateTime SentAt { get; set; }
+    public List<AttachmentDto> Attachments { get; set; } = [];
 }

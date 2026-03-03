@@ -17,8 +17,21 @@ public sealed class SendMessageCommandHandler(
         SendMessageCommand command,
         CancellationToken cancellationToken)
     {
-        // Create message aggregate (raises MessageSentEvent)
-        var message = Message.Create(command.FamilyId, command.SenderId, command.Content);
+        // Build attachments from command data (metadata provided by client from upload response)
+        List<MessageAttachment>? attachments = null;
+        if (command.Attachments is { Count: > 0 })
+        {
+            attachments = command.Attachments
+                .Select(a => MessageAttachment.Create(
+                    a.FileId,
+                    a.FileName,
+                    a.MimeType,
+                    a.FileSize))
+                .ToList();
+        }
+
+        // Create message aggregate (raises MessageSentEvent + attachment events)
+        var message = Message.Create(command.FamilyId, command.SenderId, command.Content, attachments);
 
         await messageRepository.AddAsync(message, cancellationToken);
 

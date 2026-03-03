@@ -67,4 +67,73 @@ public class MessageAggregateTests
         // Assert
         message1.Id.Should().NotBe(message2.Id);
     }
+
+    [Fact]
+    public void Create_WithAttachments_ShouldIncludeAttachments()
+    {
+        // Arrange
+        var familyId = FamilyId.New();
+        var senderId = UserId.New();
+        var content = MessageContent.From("Check out these files!");
+        var attachments = new[]
+        {
+            MessageAttachment.Create(FileId.New(), "photo.jpg", "image/jpeg", 2048),
+            MessageAttachment.Create(FileId.New(), "doc.pdf", "application/pdf", 4096),
+        };
+
+        // Act
+        var message = Message.Create(familyId, senderId, content, attachments);
+
+        // Assert
+        message.Attachments.Should().HaveCount(2);
+        message.Attachments[0].FileName.Should().Be("photo.jpg");
+        message.Attachments[1].FileName.Should().Be("doc.pdf");
+    }
+
+    [Fact]
+    public void Create_WithAttachments_ShouldRaiseAttachmentAddedEvents()
+    {
+        // Arrange
+        var familyId = FamilyId.New();
+        var senderId = UserId.New();
+        var content = MessageContent.From("Files attached");
+        var fileId1 = FileId.New();
+        var fileId2 = FileId.New();
+        var attachments = new[]
+        {
+            MessageAttachment.Create(fileId1, "a.txt", "text/plain", 100),
+            MessageAttachment.Create(fileId2, "b.txt", "text/plain", 200),
+        };
+
+        // Act
+        var message = Message.Create(familyId, senderId, content, attachments);
+
+        // Assert — 1 MessageSentEvent + 2 MessageAttachmentAddedEvent
+        message.DomainEvents.Should().HaveCount(3);
+        message.DomainEvents.OfType<MessageSentEvent>().Should().HaveCount(1);
+        message.DomainEvents.OfType<MessageAttachmentAddedEvent>().Should().HaveCount(2);
+
+        var attachmentEvents = message.DomainEvents.OfType<MessageAttachmentAddedEvent>().ToList();
+        attachmentEvents[0].FileId.Should().Be(fileId1);
+        attachmentEvents[1].FileId.Should().Be(fileId2);
+        attachmentEvents.Should().AllSatisfy(e =>
+        {
+            e.MessageId.Should().Be(message.Id);
+            e.FamilyId.Should().Be(familyId);
+            e.SenderId.Should().Be(senderId);
+        });
+    }
+
+    [Fact]
+    public void Create_WithoutAttachments_ShouldHaveEmptyCollection()
+    {
+        // Arrange & Act
+        var message = Message.Create(
+            FamilyId.New(),
+            UserId.New(),
+            MessageContent.From("No attachments"));
+
+        // Assert
+        message.Attachments.Should().BeEmpty();
+    }
 }
