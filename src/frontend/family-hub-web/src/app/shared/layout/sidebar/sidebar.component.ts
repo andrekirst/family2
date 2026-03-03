@@ -182,6 +182,7 @@ export class SidebarComponent {
   private readonly sanitizer = inject(DomSanitizer);
 
   readonly icons = {
+    CHAT_BUBBLE: this.trustHtml(ICONS.CHAT_BUBBLE),
     MENU: this.trustHtml(ICONS.MENU),
     CHEVRON_LEFT: this.trustHtml(ICONS.CHEVRON_LEFT),
     USER_CIRCLE: this.trustHtml(ICONS.USER_CIRCLE),
@@ -216,6 +217,12 @@ export class SidebarComponent {
       label: $localize`:@@nav.calendar:Calendar`,
       icon: this.trustHtml(ICONS.CALENDAR),
       matchPrefix: '/calendar',
+    },
+    {
+      path: '/messages',
+      label: $localize`:@@nav.messages:Messages`,
+      icon: this.trustHtml(ICONS.CHAT_BUBBLE),
+      matchPrefix: '/messages',
     },
     {
       path: '/files/browse',

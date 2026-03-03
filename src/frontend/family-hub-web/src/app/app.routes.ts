@@ -41,6 +41,12 @@ export const routes: Routes = [
           import('./features/calendar/calendar.routes').then((m) => m.CALENDAR_ROUTES),
       },
       {
+        path: 'messages',
+        canActivate: [familyMemberGuard],
+        loadChildren: () =>
+          import('./features/messaging/messaging.routes').then((m) => m.MESSAGING_ROUTES),
+      },
+      {
         path: 'files',
         canActivate: [familyMemberGuard],
         loadChildren: () =>

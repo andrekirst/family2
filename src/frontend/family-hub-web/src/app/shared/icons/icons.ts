@@ -1,5 +1,6 @@
 import { ICON_BOLT } from './defs/bolt';
 import { ICON_CALENDAR } from './defs/calendar';
+import { ICON_CHAT_BUBBLE } from './defs/chat-bubble';
 import { ICON_CHECK } from './defs/check';
 import { ICON_CHEVRON_DOWN } from './defs/chevron-down';
 import { ICON_CHEVRON_UP } from './defs/chevron-up';
@@ -37,6 +38,7 @@ import { ICON_USERS } from './defs/users';
 export const ICONS = {
   BOLT: ICON_BOLT,
   CALENDAR: ICON_CALENDAR,
+  CHAT_BUBBLE: ICON_CHAT_BUBBLE,
   CHECK: ICON_CHECK,
   CHEVRON_DOWN: ICON_CHEVRON_DOWN,
   CHEVRON_UP: ICON_CHEVRON_UP,

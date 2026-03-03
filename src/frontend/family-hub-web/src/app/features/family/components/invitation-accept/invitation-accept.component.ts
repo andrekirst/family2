@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { UserService } from '../../../../core/user/user.service';
@@ -9,7 +9,7 @@ import { InvitationDto } from '../../models/invitation.models';
 @Component({
   selector: 'app-invitation-accept',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-50">
       <div class="max-w-md w-full mx-4">
@@ -53,12 +53,12 @@ import { InvitationDto } from '../../models/invitation.models';
             </div>
 
             <div class="p-6">
-              <h2 class="text-xl font-semibold text-gray-900" i18n="@@family.accept.joinFamily">
-                Join {{ invitation()!.familyName }}
+              <h2 class="text-xl font-semibold text-gray-900">
+                {{ joinLabel }} {{ invitation()!.familyName }}
               </h2>
-              <p class="mt-2 text-gray-600" i18n="@@family.accept.invitedByMessage">
-                <strong>{{ invitation()!.invitedByName }}</strong> has invited you to join their
-                family.
+              <p class="mt-2 text-gray-600">
+                <strong>{{ invitation()!.invitedByName }}</strong>
+                {{ invitedByLabel }}
               </p>
 
               <div class="mt-4 p-3 bg-gray-50 rounded-lg">
@@ -66,37 +66,21 @@ import { InvitationDto } from '../../models/invitation.models';
                   <span class="text-gray-500" i18n="@@family.accept.role">Role:</span>
                   <span class="font-medium text-gray-900">{{ invitation()!.role }}</span>
                 </div>
-                <div class="flex justify-between text-sm mt-2">
-                  <span class="text-gray-500" i18n="@@family.accept.expires">Expires:</span>
-                  <span class="font-medium text-gray-900">{{
-                    invitation()!.expiresAt | date: 'mediumDate'
-                  }}</span>
-                </div>
+                @if (formattedExpiresAt()) {
+                  <div class="flex justify-between text-sm mt-2">
+                    <span class="text-gray-500" i18n="@@family.accept.expires">Expires:</span>
+                    <span class="font-medium text-gray-900">{{ formattedExpiresAt() }}</span>
+                  </div>
+                }
               </div>
 
               @if (invitation()!.status !== 'Pending') {
                 <div
                   class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800"
-                  i18n="@@family.accept.inactive"
                 >
-                  This invitation is no longer active (Status: {{ invitation()!.status }}).
-                </div>
-              } @else if (!isAuthenticated()) {
-                <!-- Not logged in: show login button -->
-                <div class="mt-6">
-                  <p class="text-sm text-gray-500 mb-3" i18n="@@family.accept.loginRequired">
-                    Please log in to accept this invitation.
-                  </p>
-                  <button
-                    (click)="loginToAccept()"
-                    class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                    i18n="@@family.accept.loginToAccept"
-                  >
-                    Login to Accept
-                  </button>
+                  {{ inactiveLabel }} (Status: {{ invitation()!.status }}).
                 </div>
               } @else {
-                <!-- Logged in: show accept/decline -->
                 @if (actionResult()) {
                   <div
                     class="mt-4 p-3 rounded-lg text-sm"
@@ -107,15 +91,24 @@ import { InvitationDto } from '../../models/invitation.models';
                   >
                     {{ actionResult() === 'accepted' ? acceptedLabel : declinedLabel }}
                   </div>
+                } @else if (!isAuthenticated()) {
+                  <div class="mt-6">
+                    <p class="text-sm text-gray-500 mb-3">{{ loginRequiredLabel }}</p>
+                    <button
+                      (click)="loginToAccept()"
+                      class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                    >
+                      {{ loginToAcceptLabel }}
+                    </button>
+                  </div>
                 } @else {
                   <div class="mt-6 flex gap-3">
                     <button
                       (click)="decline()"
                       [disabled]="isProcessing()"
                       class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-                      i18n="@@family.accept.decline"
                     >
-                      Decline
+                      {{ declineButtonLabel }}
                     </button>
                     <button
                       (click)="accept()"
@@ -141,12 +134,29 @@ export class InvitationAcceptComponent implements OnInit {
   private userService = inject(UserService);
   private invitationService = inject(InvitationService);
 
+  readonly joinLabel = $localize`:@@family.accept.joinFamily:Join`;
+  readonly invitedByLabel = $localize`:@@family.accept.invitedByMessage:has invited you to join their family.`;
+  readonly inactiveLabel = $localize`:@@family.accept.inactive:This invitation is no longer active`;
+  readonly loginRequiredLabel = $localize`:@@family.accept.loginRequired:Please log in to accept this invitation.`;
+  readonly loginToAcceptLabel = $localize`:@@family.accept.loginToAccept:Login to Accept`;
+  readonly declineButtonLabel = $localize`:@@family.accept.decline:Decline`;
   readonly acceptedLabel = $localize`:@@family.accept.accepted:Invitation accepted! Redirecting...`;
   readonly declinedLabel = $localize`:@@family.accept.declined:Invitation declined.`;
   readonly processingLabel = $localize`:@@common.processing:Processing...`;
   readonly acceptInvitationLabel = $localize`:@@family.accept.accept:Accept Invitation`;
 
   invitation = signal<InvitationDto | null>(null);
+  formattedExpiresAt = computed(() => {
+    const expiresAt = this.invitation()?.expiresAt;
+    if (!expiresAt) return '';
+    try {
+      return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(
+        new Date(expiresAt),
+      );
+    } catch {
+      return expiresAt;
+    }
+  });
   isLoading = signal(true);
   isProcessing = signal(false);
   error = signal<string | null>(null);
@@ -188,7 +198,7 @@ export class InvitationAcceptComponent implements OnInit {
 
   loginToAccept(): void {
     // Save the current URL for post-login redirect
-    sessionStorage.setItem('post_login_redirect', `/invitation/accept?token=${this.token}`);
+    sessionStorage.setItem('redirect_url', `/invitation/accept?token=${this.token}`);
     this.authService.login();
   }
 

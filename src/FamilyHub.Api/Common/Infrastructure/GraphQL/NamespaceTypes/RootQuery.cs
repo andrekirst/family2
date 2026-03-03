@@ -54,4 +54,10 @@ public class RootQuery
     /// </summary>
     [Authorize]
     public GoogleIntegrationQuery GoogleIntegration() => new();
+
+    /// <summary>
+    /// Messaging queries (family channel messages).
+    /// </summary>
+    [Authorize]
+    public MessagingQuery Messaging() => new();
 }

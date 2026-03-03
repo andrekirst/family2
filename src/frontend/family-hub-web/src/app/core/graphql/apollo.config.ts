@@ -1,9 +1,13 @@
 import { ApplicationConfig } from '@angular/core';
 import { provideApollo } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
-import { InMemoryCache, ApolloLink, Observable } from '@apollo/client/core';
+import { InMemoryCache, ApolloLink, Observable, split } from '@apollo/client/core';
+import { getMainDefinition } from '@apollo/client/utilities';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient } from 'graphql-ws';
+import { Kind, OperationTypeNode } from 'graphql';
 import { inject } from '@angular/core';
 import { EnvironmentConfigService } from '../config/environment-config.service';
 import { AuthService } from '../auth/auth.service';
@@ -110,12 +114,37 @@ export function provideApolloClient(): ApplicationConfig['providers'] {
         return;
       });
 
-      // Combine links: auth → error → http
-      const link = ApolloLink.from([
+      // WebSocket link for subscriptions (graphql-ws protocol)
+      const wsUrl = envConfig.apiUrl.replace(/^http/, 'ws');
+      const wsLink = new GraphQLWsLink(
+        createClient({
+          url: wsUrl,
+          connectionParams: () => {
+            const token = localStorage.getItem('access_token');
+            return token ? { Authorization: `Bearer ${token}` } : {};
+          },
+        }),
+      );
+
+      // HTTP link for queries and mutations
+      const httpLinkInstance = ApolloLink.from([
         authLink as unknown as ApolloLink,
         errorLink as unknown as ApolloLink,
         httpLink.create({ uri: envConfig.apiUrl }),
       ]);
+
+      // Split: subscriptions → WebSocket, everything else → HTTP
+      const link = split(
+        ({ query }) => {
+          const definition = getMainDefinition(query);
+          return (
+            definition.kind === Kind.OPERATION_DEFINITION &&
+            definition.operation === OperationTypeNode.SUBSCRIPTION
+          );
+        },
+        wsLink,
+        httpLinkInstance,
+      );
 
       return {
         link,

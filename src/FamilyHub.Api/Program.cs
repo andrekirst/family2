@@ -17,6 +17,8 @@ using FamilyHub.Api.Features.Family;
 using FamilyHub.Api.Features.FileManagement;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
 using FamilyHub.Api.Features.GoogleIntegration;
+using FamilyHub.Api.Common.Development;
+using FamilyHub.Api.Features.Messaging;
 using FamilyHub.Api.Features.Photos;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -135,7 +137,14 @@ builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
 builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
 builder.Services.RegisterModule<FileManagementModule>(builder.Configuration);
 builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
+builder.Services.RegisterModule<MessagingModule>(builder.Configuration);
 builder.Services.RegisterModule<PhotosModule>(builder.Configuration);
+
+// Development-only: seed database with Keycloak test users
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHostedService<DevDataSeeder>();
+}
 
 // Configure CORS for Angular frontend (supports multi-environment via config)
 var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -159,6 +168,8 @@ builder.Services
     .AddErrorFilter<BusinessLogicExceptionErrorFilter>()
     .AddQueryType<RootQuery>()
     .AddMutationType<RootMutation>()
+    .AddSubscriptionType(d => d.Name("Subscription"))
+    .AddInMemorySubscriptions()
     .AddTypeExtensionsFromAssembly(typeof(Program).Assembly)
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment());
 
@@ -219,6 +230,7 @@ app.UseAuthorization();
 app.UseMiddleware<PostgresRlsMiddleware>();
 
 app.MapControllers();
+app.UseWebSockets();
 app.MapGraphQL();
 app.MapControllers(); // REST endpoints (avatar serving)
 app.MapFileEndpoints(); // REST endpoints (file upload/download/stream)

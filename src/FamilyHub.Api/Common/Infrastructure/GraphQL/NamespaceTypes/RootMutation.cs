@@ -37,4 +37,10 @@ public class RootMutation
     /// </summary>
     [Authorize]
     public GoogleIntegrationMutation GoogleIntegration() => new();
+
+    /// <summary>
+    /// Messaging mutations (send messages).
+    /// </summary>
+    [Authorize]
+    public MessagingMutation Messaging() => new();
 }

@@ -1827,6 +1827,43 @@ namespace FamilyHub.Api.Migrations
                     b.ToTable("oauth_states", "google_integration");
                 });
 
+            modelBuilder.Entity("FamilyHub.Api.Features.Messaging.Domain.Entities.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("content");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_id");
+
+                    b.Property<DateTime>("SentAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_messages");
+
+                    b.HasIndex("FamilyId", "SentAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_messages_family_id_sent_at");
+
+                    b.ToTable("messages", "messaging");
+                });
+
             modelBuilder.Entity("FamilyHub.Api.Features.Photos.Domain.Entities.Photo", b =>
                 {
                     b.Property<Guid>("Id")
