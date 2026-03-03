@@ -15,10 +15,10 @@
   "quickLoginCheckMilliSeconds": 1000,
   "maxDeltaTimeSeconds": 43200,
   "failureFactor": 5,
-  "ssoSessionIdleTimeout": 2592000,
-  "ssoSessionMaxLifespan": 2592000,
-  "offlineSessionIdleTimeout": 2592000,
-  "offlineSessionMaxLifespan": 2592000,
+  "ssoSessionIdleTimeout": 86400,
+  "ssoSessionMaxLifespan": 86400,
+  "offlineSessionIdleTimeout": 86400,
+  "offlineSessionMaxLifespan": 86400,
   "roles": {
     "realm": [
       {
@@ -99,6 +99,17 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "familyhub-test",
+      "name": "Family Hub Test Client",
+      "description": "Used by readiness gate for OIDC verification. Direct access grants enabled.",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect"
     }
   ],
   "users": [

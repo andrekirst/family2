@@ -26,6 +26,7 @@ export class AuthService {
   private readonly STORAGE_ID_TOKEN = 'id_token';
   private readonly STORAGE_REFRESH_TOKEN = 'refresh_token';
   private readonly STORAGE_EXPIRES_AT = 'expires_at';
+  private readonly STORAGE_EXPECTED_ISSUER = 'expected_issuer';
 
   private readonly envConfig = inject(EnvironmentConfigService);
   private refreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -43,6 +44,20 @@ export class AuthService {
   private checkAuthStatus(): void {
     const accessToken = this.getAccessToken();
     if (accessToken && !this.isTokenExpired()) {
+      // Verify stored tokens belong to the current environment's issuer
+      const storedIssuer = localStorage.getItem(this.STORAGE_EXPECTED_ISSUER);
+      if (storedIssuer && storedIssuer !== this.envConfig.keycloak.issuer) {
+        console.warn(
+          'Stale auth detected: token issuer mismatch (stored:',
+          storedIssuer,
+          'expected:',
+          this.envConfig.keycloak.issuer,
+          ')',
+        );
+        this.clearTokens();
+        return;
+      }
+
       const profile = this.getUserProfileFromToken();
       if (profile) {
         this.userProfile.set(profile);
@@ -162,6 +177,7 @@ export class AuthService {
     authUrl.searchParams.append('code_challenge', codeChallenge);
     authUrl.searchParams.append('code_challenge_method', 'S256');
     authUrl.searchParams.append('state', state);
+    authUrl.searchParams.append('prompt', 'login');
 
     // Redirect to Keycloak
     window.location.href = authUrl.toString();
@@ -373,6 +389,9 @@ export class AuthService {
     const expiresAt = Math.floor(Date.now() / 1000) + tokens.expires_in;
     localStorage.setItem(this.STORAGE_EXPIRES_AT, expiresAt.toString());
 
+    // Store issuer for cross-environment stale auth detection
+    localStorage.setItem(this.STORAGE_EXPECTED_ISSUER, this.envConfig.keycloak.issuer);
+
     this.scheduleTokenRefresh();
   }
 
@@ -385,6 +404,7 @@ export class AuthService {
     localStorage.removeItem(this.STORAGE_ID_TOKEN);
     localStorage.removeItem(this.STORAGE_REFRESH_TOKEN);
     localStorage.removeItem(this.STORAGE_EXPIRES_AT);
+    localStorage.removeItem(this.STORAGE_EXPECTED_ISSUER);
   }
 
   /**

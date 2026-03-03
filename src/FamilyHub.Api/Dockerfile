@@ -24,6 +24,12 @@ RUN mkdir -p ${HOME} && chown ${UID}:${GID} ${HOME}
 
 # Source code is volume-mounted at runtime, no COPY needed for dev
 EXPOSE 5152
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=30 \
+  CMD curl -sf http://localhost:5152/health || exit 1
+
 USER ${UID}:${GID}
 ENTRYPOINT ["dotnet", "watch", "run", \
   "--project", "FamilyHub.Api/FamilyHub.Api.csproj", \

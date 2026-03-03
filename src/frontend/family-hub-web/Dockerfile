@@ -29,6 +29,10 @@ RUN mkdir -p ${HOME} && chown ${UID}:${GID} ${HOME}
 
 # Source code is volume-mounted at runtime
 EXPOSE 4200
+
+HEALTHCHECK --interval=5s --timeout=3s --start-period=90s --retries=60 \
+  CMD wget -qO- http://localhost:4200/ || exit 1
+
 USER ${UID}:${GID}
 ENTRYPOINT ["npx", "ng", "serve", \
   "--host", "0.0.0.0", \

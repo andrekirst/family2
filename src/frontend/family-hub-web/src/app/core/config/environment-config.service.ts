@@ -48,6 +48,7 @@ export class EnvironmentConfigService {
    */
   async load(): Promise<void> {
     // Strategy 1: Fetch /config from same-origin (works in Docker environments)
+    let configLoaded = false;
     try {
       const response = await fetch('/config', {
         signal: AbortSignal.timeout(3000),
@@ -56,40 +57,63 @@ export class EnvironmentConfigService {
         const config = await response.json();
         if (config?.apiUrl && config?.keycloak?.issuer) {
           this._config = config;
-          return;
+          configLoaded = true;
         }
       }
     } catch {
       // /config not available — fall through to hostname detection
     }
 
-    // Strategy 2: Hostname-based detection for multi-env proxy setups
-    const hostname = window.location.hostname;
-    const port = window.location.port;
-    const match = hostname.match(/^(.+)\.(localhost|dev\.andrekirst\.de)$/);
+    if (!configLoaded) {
+      // Strategy 2: Hostname-based detection for multi-env proxy setups
+      const hostname = window.location.hostname;
+      const port = window.location.port;
+      const match = hostname.match(/^(.+)\.(localhost|dev\.andrekirst\.de)$/);
 
-    if (match && port === '4443') {
-      const envName = match[1];
-      const domain = match[2];
-      const baseUrl = `https://${envName}.${domain}:4443`;
+      if (match && port === '4443') {
+        const envName = match[1];
+        const domain = match[2];
+        const baseUrl = `https://${envName}.${domain}:4443`;
 
-      this._config = {
-        apiUrl: `${baseUrl}/graphql`,
-        keycloak: {
-          issuer: `https://auth.${domain}:4443/realms/FamilyHub-${envName}`,
-          clientId: 'familyhub-web',
-          redirectUri: `${baseUrl}/callback`,
-          postLogoutRedirectUri: baseUrl,
-          scope: 'openid profile email',
-        },
-      };
-      return;
+        this._config = {
+          apiUrl: `${baseUrl}/graphql`,
+          keycloak: {
+            issuer: `https://auth.${domain}:4443/realms/FamilyHub-${envName}`,
+            clientId: 'familyhub-web',
+            redirectUri: `${baseUrl}/callback`,
+            postLogoutRedirectUri: baseUrl,
+            scope: 'openid profile email',
+          },
+        };
+      } else {
+        // Strategy 3: Static environment.ts values (host-based dev or production)
+        this._config = {
+          apiUrl: environment.apiUrl,
+          keycloak: { ...environment.keycloak },
+        };
+      }
     }
 
-    // Strategy 3: Static environment.ts values (host-based dev or production)
-    this._config = {
-      apiUrl: environment.apiUrl,
-      keycloak: { ...environment.keycloak },
-    };
+    // Clear stale auth tokens if issuer changed (environment switch)
+    this.clearStaleAuthIfNeeded();
+  }
+
+  /**
+   * Detect and clear auth tokens left over from a different environment.
+   * Called at the end of load() — before AuthService initializes —
+   * so stale tokens are removed before any auth checks run.
+   */
+  private clearStaleAuthIfNeeded(): void {
+    const storedIssuer = localStorage.getItem('expected_issuer');
+    if (storedIssuer && storedIssuer !== this._config.keycloak.issuer) {
+      console.warn(
+        `Clearing stale auth: issuer changed from ${storedIssuer} to ${this._config.keycloak.issuer}`,
+      );
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('id_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('expires_at');
+      localStorage.removeItem('expected_issuer');
+    }
   }
 }
