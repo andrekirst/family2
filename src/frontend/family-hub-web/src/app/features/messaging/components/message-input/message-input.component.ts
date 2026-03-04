@@ -1,13 +1,14 @@
 import { Component, ElementRef, ViewChild, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { MessagingService, AttachmentDto } from '../../services/messaging.service';
+import { MessagingService } from '../../services/messaging.service';
 
 export interface PendingAttachment {
-  fileId: string;
+  storageKey: string;
   fileName: string;
   mimeType: string;
   fileSize: number;
+  checksum: string;
 }
 
 export interface MessageSendPayload {
@@ -41,7 +42,7 @@ export interface MessageSendPayload {
       <!-- Pending attachment chips -->
       @if (pendingAttachments().length > 0) {
         <div class="flex flex-wrap gap-1.5 pb-2">
-          @for (attachment of pendingAttachments(); track attachment.fileId) {
+          @for (attachment of pendingAttachments(); track attachment.storageKey) {
             <span
               class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700"
               data-testid="pending-attachment"
@@ -49,7 +50,7 @@ export interface MessageSendPayload {
               <span class="max-w-[120px] truncate">{{ attachment.fileName }}</span>
               <span class="text-gray-400">({{ formatFileSize(attachment.fileSize) }})</span>
               <button
-                (click)="removeAttachment(attachment.fileId)"
+                (click)="removeAttachment(attachment.storageKey)"
                 class="ml-0.5 text-gray-400 hover:text-gray-600"
                 data-testid="remove-attachment"
               >
@@ -206,8 +207,8 @@ export class MessageInputComponent {
     }
   }
 
-  removeAttachment(fileId: string): void {
-    this.pendingAttachments.update((list) => list.filter((a) => a.fileId !== fileId));
+  removeAttachment(storageKey: string): void {
+    this.pendingAttachments.update((list) => list.filter((a) => a.storageKey !== storageKey));
     this.updateCanSend();
   }
 
@@ -223,14 +224,15 @@ export class MessageInputComponent {
 
     for (const file of files) {
       this.messagingService.uploadFile(file).subscribe({
-        next: (result: AttachmentDto) => {
+        next: (result) => {
           this.pendingAttachments.update((list) => [
             ...list,
             {
-              fileId: result.fileId,
+              storageKey: result.storageKey,
               fileName: result.fileName,
               mimeType: result.mimeType,
-              fileSize: result.fileSize,
+              fileSize: result.size,
+              checksum: result.checksum,
             },
           ]);
           this.updateCanSend();

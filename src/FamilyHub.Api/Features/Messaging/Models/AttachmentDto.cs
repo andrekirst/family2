@@ -6,5 +6,6 @@ public class AttachmentDto
     public string FileName { get; set; } = string.Empty;
     public string MimeType { get; set; } = string.Empty;
     public long FileSize { get; set; }
+    public string? StorageKey { get; set; }
     public DateTime AttachedAt { get; set; }
 }

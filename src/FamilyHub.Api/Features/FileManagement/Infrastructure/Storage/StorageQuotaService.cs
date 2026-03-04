@@ -61,7 +61,12 @@ public sealed class StorageQuotaService(
 
     private async Task<StorageQuota> GetOrCreateQuotaAsync(FamilyId familyId, CancellationToken ct)
     {
-        var quota = await dbContext.Set<StorageQuota>()
+        // Check local change tracker first — the entity may have been added
+        // in a prior call within the same scope but not yet saved to the database.
+        var quota = dbContext.Set<StorageQuota>().Local
+            .FirstOrDefault(q => q.FamilyId == familyId.Value);
+
+        quota ??= await dbContext.Set<StorageQuota>()
             .FirstOrDefaultAsync(q => q.FamilyId == familyId.Value, ct);
 
         if (quota is null)

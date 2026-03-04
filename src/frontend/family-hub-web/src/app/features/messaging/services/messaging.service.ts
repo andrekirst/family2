@@ -14,6 +14,7 @@ export interface AttachmentDto {
   fileName: string;
   mimeType: string;
   fileSize: number;
+  storageKey: string | null;
   attachedAt: string;
 }
 
@@ -29,10 +30,18 @@ export interface MessageDto {
 }
 
 export interface AttachmentInput {
-  fileId: string;
+  storageKey: string;
   fileName: string;
   mimeType: string;
   fileSize: number;
+  checksum: string;
+}
+
+export interface UploadResponse {
+  storageKey: string;
+  mimeType: string;
+  size: number;
+  checksum: string;
 }
 
 export interface SendMessageInput {
@@ -97,21 +106,16 @@ export class MessagingService {
       );
   }
 
-  uploadFile(file: File): Observable<AttachmentDto> {
+  uploadFile(file: File): Observable<UploadResponse & { fileName: string }> {
     const formData = new FormData();
     formData.append('file', file);
 
     const apiUrl = this.config.apiBaseUrl;
-    return this.http.post<AttachmentInput>(`${apiUrl}/api/messaging/mock-upload`, formData).pipe(
-      map(
-        (result: AttachmentInput): AttachmentDto => ({
-          fileId: result.fileId,
-          fileName: result.fileName,
-          mimeType: result.mimeType,
-          fileSize: result.fileSize,
-          attachedAt: new Date().toISOString(),
-        }),
-      ),
+    return this.http.post<UploadResponse>(`${apiUrl}/api/files/upload`, formData).pipe(
+      map((result: UploadResponse) => ({
+        ...result,
+        fileName: file.name,
+      })),
     );
   }
 }

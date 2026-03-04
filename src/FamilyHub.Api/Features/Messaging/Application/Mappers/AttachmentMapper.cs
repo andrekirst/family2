@@ -13,6 +13,7 @@ public static class AttachmentMapper
             FileName = attachment.FileName,
             MimeType = attachment.MimeType,
             FileSize = attachment.FileSize,
+            StorageKey = attachment.StorageKey,
             AttachedAt = attachment.AttachedAt
         };
     }

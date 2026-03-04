@@ -13,6 +13,7 @@ const MESSAGE_FIELDS = `
     fileName
     mimeType
     fileSize
+    storageKey
     attachedAt
   }
 `;

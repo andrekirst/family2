@@ -6,7 +6,6 @@ using FamilyHub.Api.Common.Services;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Application.Mappers;
 using FamilyHub.Api.Features.Messaging.Domain.Repositories;
-using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Models;
 using HotChocolate.Authorization;
@@ -42,10 +41,11 @@ public class MutationType
         var content = input.Content?.Trim() ?? string.Empty;
         var attachments = input.Attachments?
             .Select(a => new AttachmentData(
-                FileId.From(Guid.Parse(a.FileId)),
+                a.StorageKey,
                 a.FileName,
                 a.MimeType,
-                a.FileSize))
+                a.FileSize,
+                a.Checksum))
             .ToList();
 
         if (content.Length == 0 && (attachments is null || attachments.Count == 0))

@@ -19,7 +19,6 @@ using FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
 using FamilyHub.Api.Features.GoogleIntegration;
 using FamilyHub.Api.Common.Development;
 using FamilyHub.Api.Features.Messaging;
-using FamilyHub.Api.Features.Messaging.Infrastructure;
 using FamilyHub.Api.Features.Photos;
 using FamilyHub.Api.Features.Search;
 using FamilyHub.Api.Common.Infrastructure.HealthChecks;
@@ -250,9 +249,6 @@ app.UseWebSockets();
 app.MapGraphQL();
 app.MapControllers(); // REST endpoints (avatar serving)
 app.MapFileEndpoints(); // REST endpoints (file upload/download/stream)
-#pragma warning disable CS0618 // Obsolete mock endpoint
-app.MapMockFileUploadEndpoint(); // Mock file upload for message attachments
-#pragma warning restore CS0618
 
 // Health check endpoints
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));

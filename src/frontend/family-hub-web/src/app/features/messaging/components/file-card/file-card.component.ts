@@ -1,5 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { AttachmentDto } from '../../services/messaging.service';
 import { EnvironmentConfigService } from '../../../../core/config/environment-config.service';
 
@@ -8,12 +9,9 @@ import { EnvironmentConfigService } from '../../../../core/config/environment-co
   standalone: true,
   imports: [CommonModule],
   template: `
-    <a
-      [href]="downloadUrl()"
-      target="_blank"
-      rel="noopener"
-      download
-      class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition-colors cursor-pointer max-w-xs no-underline"
+    <button
+      (click)="download()"
+      class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition-colors cursor-pointer max-w-xs text-left"
       data-testid="file-card"
     >
       <!-- File type icon -->
@@ -73,19 +71,33 @@ import { EnvironmentConfigService } from '../../../../core/config/environment-co
           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
         />
       </svg>
-    </a>
+    </button>
   `,
 })
 export class FileCardComponent {
   private readonly config = inject(EnvironmentConfigService);
+  private readonly http = inject(HttpClient);
 
   attachment = input.required<AttachmentDto>();
 
   isImage = computed(() => this.attachment().mimeType?.startsWith('image/') ?? false);
 
-  downloadUrl = computed(
-    () => `${this.config.apiBaseUrl}/api/messaging/mock-download/${this.attachment().fileId}`,
-  );
+  downloadUrl = computed(() => {
+    const att = this.attachment();
+    const key = att.storageKey ?? att.fileId;
+    return `${this.config.apiBaseUrl}/api/files/${key}/download`;
+  });
+
+  download(): void {
+    this.http.get(this.downloadUrl(), { responseType: 'blob' }).subscribe((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = this.attachment().fileName || 'download';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
 
   formatFileSize(bytes: number): string {
     if (!bytes) return '';

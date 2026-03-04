@@ -99,6 +99,11 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
                 .HasColumnName("file_size")
                 .IsRequired();
 
+            ab.Property(a => a.StorageKey)
+                .HasColumnName("storage_key")
+                .HasMaxLength(255)
+                .IsRequired(false);
+
             ab.Property(a => a.AttachedAt)
                 .HasColumnName("attached_at")
                 .IsRequired();
