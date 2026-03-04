@@ -1,4 +1,6 @@
 using FamilyHub.Api.Common.Modules;
+using FamilyHub.Api.Common.Search;
+using FamilyHub.Api.Features.FileManagement.Application.Search;
 using FamilyHub.Api.Features.FileManagement.Application.Services;
 using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
@@ -54,5 +56,9 @@ public sealed class FileManagementModule : IModule
         services.AddScoped<ISecureNoteRepository, SecureNoteRepository>();
         services.AddScoped<IExternalConnectionRepository, ExternalConnectionRepository>();
         services.AddScoped<IZipJobRepository, ZipJobRepository>();
+
+        // Search
+        services.AddScoped<ISearchProvider, FileManagementSearchProvider>();
+        services.AddSingleton<ICommandPaletteProvider, FileManagementCommandPaletteProvider>();
     }
 }

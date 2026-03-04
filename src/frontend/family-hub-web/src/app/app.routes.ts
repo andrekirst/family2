@@ -16,6 +16,11 @@ export const routes: Routes = [
       import('./features/auth/callback/callback.component').then((m) => m.CallbackComponent),
   },
   {
+    path: 'status',
+    loadComponent: () =>
+      import('./features/status/status.component').then((m) => m.StatusComponent),
+  },
+  {
     path: 'invitation/accept',
     loadComponent: () =>
       import('./features/family/components/invitation-accept/invitation-accept.component').then(

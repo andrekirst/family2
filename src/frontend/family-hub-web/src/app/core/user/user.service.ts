@@ -59,25 +59,35 @@ export class UserService {
     this.isLoading.set(true);
 
     try {
-      const result = await this.apollo
-        .mutate<RegisterUserResponse>({
-          mutation: REGISTER_USER_MUTATION,
-          variables: {
-            input: {
-              // Note: Backend extracts real values from JWT claims
-              // These are placeholder values to satisfy GraphQL schema
-              email: '',
-              name: '',
-              externalUserId: '',
-              externalProvider: 'KEYCLOAK',
-              emailVerified: false,
+      let result;
+      try {
+        result = await this.apollo
+          .mutate<RegisterUserResponse>({
+            mutation: REGISTER_USER_MUTATION,
+            variables: {
+              input: {
+                // Note: Backend extracts real values from JWT claims
+                // These are placeholder values to satisfy GraphQL schema
+                email: '',
+                name: '',
+                externalUserId: '',
+                externalProvider: 'KEYCLOAK',
+                emailVerified: false,
+              },
             },
-          },
-        })
-        .toPromise();
+          })
+          .toPromise();
+      } catch (apolloErr: any) {
+        // Apollo rejects the promise on GraphQL/network errors with errorPolicy 'none'
+        const gqlMessages = apolloErr?.graphQLErrors?.map((e: any) => e.message)?.join('; ');
+        const networkMsg = apolloErr?.networkError?.message;
+        throw new Error(
+          `RegisterUser mutation failed: ${gqlMessages || networkMsg || apolloErr?.message || 'Unknown error'}`,
+        );
+      }
 
       if (!result?.data?.registerUser) {
-        throw new Error('Failed to register user with backend');
+        throw new Error(`RegisterUser returned empty data: ${JSON.stringify(result)}`);
       }
 
       const user = result.data.registerUser;

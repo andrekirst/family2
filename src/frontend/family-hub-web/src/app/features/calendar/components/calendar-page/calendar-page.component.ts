@@ -4,13 +4,16 @@ import {
   signal,
   OnInit,
   OnDestroy,
+  AfterViewInit,
   computed,
   ViewChild,
   TemplateRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { UserService } from '../../../../core/user/user.service';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { CalendarService, CalendarEventDto } from '../../services/calendar.service';
 import { CalendarMonthGridComponent } from '../calendar-month-grid/calendar-month-grid.component';
 import { CalendarWeekGridComponent } from '../calendar-week-grid/calendar-week-grid.component';
@@ -217,10 +220,12 @@ import { CalendarAgendaComponent } from '../calendar-agenda/calendar-agenda.comp
     </div>
   `,
 })
-export class CalendarPageComponent implements OnInit, OnDestroy {
+export class CalendarPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private calendarService = inject(CalendarService);
   private userService = inject(UserService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private location = inject(Location);
   private topBarService = inject(TopBarService);
   private contextPanelService = inject(ContextPanelService);
 
@@ -237,6 +242,8 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
   selectedEndDate = signal<Date | null>(null);
   isAllDaySelection = signal(false);
   contextEvent = signal<CalendarEventDto | null>(null);
+
+  private queryParamSub?: Subscription;
 
   // Agenda-specific state
   agendaEvents = signal<CalendarEventDto[]>([]);
@@ -283,7 +290,19 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     await this.loadEvents();
   }
 
+  ngAfterViewInit(): void {
+    // Subscribe to query param changes for deep-linking from command palette.
+    // Must be in AfterViewInit because @ViewChild eventContextTemplate is needed.
+    this.queryParamSub = this.route.queryParamMap.subscribe((params) => {
+      const eventId = params.get('event');
+      if (eventId) {
+        this.openEventById(eventId);
+      }
+    });
+  }
+
   ngOnDestroy(): void {
+    this.queryParamSub?.unsubscribe();
     this.topBarService.clear();
     this.contextPanelService.close();
   }
@@ -500,6 +519,25 @@ export class CalendarPageComponent implements OnInit, OnDestroy {
     this.selectedEndDate.set(null);
     this.isAllDaySelection.set(false);
     this.contextPanelService.open(this.eventContextTemplate);
+  }
+
+  private async openEventById(eventId: string): Promise<void> {
+    // Clean the query param from the URL immediately, using Location.replaceState
+    // to avoid triggering router NavigationStart (which would close the context panel)
+    this.location.replaceState('/calendar');
+
+    const event = await firstValueFrom(this.calendarService.getCalendarEvent(eventId));
+    if (!event) return;
+
+    // Navigate calendar to the event's date
+    const eventDate = new Date(event.startTime);
+    this.currentMonth.set(new Date(eventDate.getFullYear(), eventDate.getMonth(), 1));
+    this.currentWeek.set(getWeekStart(eventDate));
+    this.currentDay.set(new Date(eventDate));
+
+    // Reload events for the new date range, then open the context panel
+    this.loadEvents();
+    this.onEventClicked(event);
   }
 
   onLoadMoreAgenda(): void {

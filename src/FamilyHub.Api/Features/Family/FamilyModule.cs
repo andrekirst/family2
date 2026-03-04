@@ -1,7 +1,9 @@
 using FamilyHub.Api.Common.Email;
 using FamilyHub.Api.Common.Infrastructure.Avatar;
 using FamilyHub.Api.Common.Modules;
+using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Common.Widgets;
+using FamilyHub.Api.Features.Family.Application.Search;
 using FamilyHub.Api.Features.Family.Application.Services;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
@@ -27,5 +29,9 @@ public sealed class FamilyModule : IModule
 
         // Widget provider for dashboard
         services.AddSingleton<IWidgetProvider, FamilyWidgetProvider>();
+
+        // Search & command palette providers
+        services.AddScoped<ISearchProvider, FamilySearchProvider>();
+        services.AddSingleton<ICommandPaletteProvider, FamilyCommandPaletteProvider>();
     }
 }

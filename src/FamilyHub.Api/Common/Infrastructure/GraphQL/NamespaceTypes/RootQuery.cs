@@ -60,4 +60,10 @@ public class RootQuery
     /// </summary>
     [Authorize]
     public MessagingQuery Messaging() => new();
+
+    /// <summary>
+    /// Universal search and command palette queries.
+    /// </summary>
+    [Authorize]
+    public SearchQuery Search() => new();
 }

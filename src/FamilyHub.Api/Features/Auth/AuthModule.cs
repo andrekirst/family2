@@ -1,5 +1,7 @@
 using FamilyHub.Api.Common.Modules;
+using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Common.Services;
+using FamilyHub.Api.Features.Auth.Application.Search;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
 
@@ -11,5 +13,8 @@ public sealed class AuthModule : IModule
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserService, UserService>();
+
+        // Search
+        services.AddSingleton<ICommandPaletteProvider, ProfileCommandPaletteProvider>();
     }
 }

@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TopBarService } from '../../services/top-bar.service';
+import { CommandPaletteService } from '../../services/command-palette.service';
 
 @Component({
   selector: 'app-top-bar',
@@ -15,6 +16,27 @@ import { TopBarService } from '../../services/top-bar.service';
       <h1 class="text-xl font-semibold text-gray-900 truncate">
         {{ topBarService.title() }}
       </h1>
+
+      <!-- Center: Search trigger -->
+      <button
+        (click)="commandPalette.open()"
+        class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-colors cursor-pointer"
+        data-testid="search-trigger"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <span class="hidden sm:inline">Search...</span>
+        <kbd
+          class="hidden sm:inline-flex ml-1 px-1.5 py-0.5 text-xs text-gray-400 bg-white rounded border border-gray-200"
+          >Ctrl+K</kbd
+        >
+      </button>
 
       <!-- Right: Actions -->
       <div class="flex items-center gap-3">
@@ -44,4 +66,5 @@ import { TopBarService } from '../../services/top-bar.service';
 })
 export class TopBarComponent {
   readonly topBarService = inject(TopBarService);
+  protected readonly commandPalette = inject(CommandPaletteService);
 }
