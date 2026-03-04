@@ -299,7 +299,7 @@ PostgreSQL may struggle with query performance as data grows (millions of events
 
 ---
 
-### Risk 2.3: Zitadel Integration Complexity
+### Risk 2.3: Keycloak Integration Complexity
 
 **Category:** Technical Risk
 **Probability:** 3/5 (Medium)
@@ -307,26 +307,26 @@ PostgreSQL may struggle with query performance as data grows (millions of events
 **Risk Score:** 9 (Medium)
 
 **Description:**
-Zitadel may be difficult to integrate or configure, delaying Phase 1 authentication implementation.
+Keycloak may be difficult to integrate or configure, delaying Phase 1 authentication implementation.
 
 **Mitigation Strategies:**
 
 1. **Early Proof of Concept (Phase 0)**
 
-   - Set up Zitadel instance in Week 2
+   - Set up Keycloak instance in Week 2
    - Implement basic OAuth flow
    - Test token validation
    - Timeline: Week 2-3
 
 2. **Fallback Authentication Strategy**
 
-   - If Zitadel POC fails by Week 3, switch to ASP.NET Core Identity
+   - If Keycloak POC fails by Week 3, switch to ASP.NET Core Identity
    - Use JWT tokens with manual user management
    - Timeline: Decision point Week 3, implementation Week 4-6
 
 3. **Documentation and Support**
-   - Review Zitadel documentation thoroughly
-   - Join Zitadel community Discord/Slack
+   - Review Keycloak documentation thoroughly
+   - Join Keycloak community Discord/Slack
    - Allocate 20 hours for integration in Phase 0
    - Timeline: Week 1-4
 
@@ -337,7 +337,7 @@ Zitadel may be difficult to integrate or configure, delaying Phase 1 authenticat
 
 **Contingency Plan:**
 
-- Switch to custom auth if Zitadel integration exceeds 30 developer hours
+- Switch to custom auth if Keycloak integration exceeds 30 developer hours
 - Impact: +2 weeks to timeline, but full control over auth
 
 ---
@@ -510,7 +510,7 @@ Unauthorized access to user data, particularly sensitive health and financial in
 
 2. **Authentication and Authorization (Phase 1)**
 
-   - OAuth 2.0 / OIDC via Zitadel
+   - OAuth 2.0 / OIDC via Keycloak
    - JWT token validation on every request
    - Role-based access control (RBAC)
    - Row-level security in PostgreSQL
@@ -560,7 +560,7 @@ Unauthorized access to user data, particularly sensitive health and financial in
 **Risk Score:** 9 (Medium)
 
 **Description:**
-Dependency on Zitadel, cloud providers (GCP, AWS, Azure), or other third-party services creates single points of failure.
+Dependency on Keycloak, cloud providers (GCP, AWS, Azure), or other third-party services creates single points of failure.
 
 **Mitigation Strategies:**
 
@@ -577,7 +577,7 @@ Dependency on Zitadel, cloud providers (GCP, AWS, Azure), or other third-party s
 
 3. **Fallback Mechanisms (Phase 4)**
 
-   - Zitadel down: Use cached user sessions (limited time)
+   - Keycloak down: Use cached user sessions (limited time)
    - Database down: Read-only mode with cached data
    - Timeline: Week 27-34
 
@@ -593,7 +593,7 @@ Dependency on Zitadel, cloud providers (GCP, AWS, Azure), or other third-party s
 
 **Contingency Plan:**
 
-- If Zitadel down > 4 hours: Communicate to users, provide ETA
+- If Keycloak down > 4 hours: Communicate to users, provide ETA
 - If cloud provider outage: Failover to backup region (if configured)
 
 ---
@@ -1056,7 +1056,7 @@ If US users store Protected Health Information (PHI), HIPAA compliance may be re
 | 1.3     | Privacy Concerns           | Mitigate (security audit, transparency)  | Developer | Active   |
 | 2.1     | Event Bus Bottleneck       | Mitigate (load testing, migration plan)  | Developer | Active   |
 | 2.2     | Database Scalability       | Mitigate (indexing, read replicas)       | Developer | Active   |
-| 2.3     | Zitadel Integration        | Mitigate (POC, fallback plan)            | Developer | Active   |
+| 2.3     | Keycloak Integration        | Mitigate (POC, fallback plan)            | Developer | Active   |
 | 2.4     | GraphQL Complexity         | Mitigate (incremental, fallback)         | Developer | Monitor  |
 | 2.5     | Kubernetes Complexity      | Mitigate (start simple, managed service) | Developer | Active   |
 | 2.6     | Data Loss                  | Mitigate (backups, testing)              | Developer | Active   |
@@ -1133,7 +1133,7 @@ If US users store Protected Health Information (PHI), HIPAA compliance may be re
 
 **Phase-Level Risk Gates:**
 
-- Phase 0: Zitadel POC successful or fallback decided
+- Phase 0: Keycloak POC successful or fallback decided
 - Phase 1: No security vulnerabilities in audit
 - Phase 2: Event bus performance validated
 - Phase 3: Budget within projected range

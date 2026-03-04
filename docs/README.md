@@ -30,12 +30,12 @@ Technical architecture decisions, DDD domain model, event chains, system diagram
 
 ### 2. **Authentication** (`/authentication/` - 4 docs)
 
-OAuth 2.0 integration with Zitadel, setup guides, security audits.
+OAuth 2.0 integration with Keycloak, setup guides, security audits.
 
 **Key documents:**
 
 - [OAuth Integration Guide](authentication/OAUTH_INTEGRATION_GUIDE.md) (complete guide)
-- [Zitadel Setup](authentication/ZITADEL-SETUP-GUIDE.md)
+- [Keycloak Setup](authentication/)
 
 ### 3. **Infrastructure** (`/infrastructure/` - 6 docs)
 
@@ -198,12 +198,12 @@ UX research, design system, wireframes, accessibility, responsive design.
 
 ### What's the tech stack?
 
-→ .NET Core 10, Angular v21, PostgreSQL 16, Zitadel, RabbitMQ
+→ .NET Core 10, Angular v21, PostgreSQL 16, Keycloak, RabbitMQ
 → See [Architecture](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
 
 ### How does authentication work?
 
-→ OAuth 2.0 with Zitadel (no password storage)
+→ OAuth 2.0 with Keycloak (no password storage)
 → See [OAuth Integration Guide](authentication/OAUTH_INTEGRATION_GUIDE.md)
 
 ---

@@ -21,7 +21,7 @@
 
 ## Auth
 
-- Keycloak for OAuth 2.0 / OIDC (NOT Zitadel)
+- Keycloak for OAuth 2.0 / OIDC
 
 ## Infrastructure
 

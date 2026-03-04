@@ -334,7 +334,7 @@ Benefits:
 1. **No Token Expiration**: Tests don't fail due to token refresh
 2. **Fast Setup**: No OAuth flow required
 3. **Deterministic**: Same test user IDs across runs
-4. **Isolated**: No external Zitadel dependency
+4. **Isolated**: No external Keycloak dependency
 
 ### Why Multiple Threshold Sets
 

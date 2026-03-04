@@ -620,7 +620,7 @@ Event chains are automated workflows that span multiple bounded contexts (servic
      FullName: string
      Role: FamilyRole
      CreatedByUserId: Guid
-     ZitadelUserId: string
+     KeycloakUserId: string
    }
    ↓
 
@@ -666,14 +666,14 @@ Event chains are automated workflows that span multiple bounded contexts (servic
 **Key Characteristics:**
 
 - **Complexity:** Medium
-- **Services Involved:** Auth Service, Communication Service, Zitadel (external)
+- **Services Involved:** Auth Service, Communication Service, Keycloak (external)
 - **Average Duration:**
   - Email invitations: Immediate-to-hours (user-dependent acceptance)
   - Child accounts: <2 seconds (immediate creation)
 - **User Benefit:** Streamlined family onboarding, support for children without email
 - **Failure Scenarios:**
   - Email invitation expired (14 days)
-  - Zitadel user creation fails (child accounts)
+  - Keycloak user creation fails (child accounts)
   - Duplicate email/username
 
 **Expected Outcomes:**
@@ -686,7 +686,7 @@ Event chains are automated workflows that span multiple bounded contexts (servic
 **Phase 1 Implementation:**
 
 - Email invitations stored but emails not sent (logged only)
-- Child accounts created immediately in Zitadel
+- Child accounts created immediately in Keycloak
 - In-app notifications for member additions
 
 **Phase 2+ Enhancements:**

@@ -225,7 +225,7 @@ Doctor Appointment Scheduled
 
 ### Domain-Driven Design (8 Bounded Contexts - Initial Launch)
 
-1. **Auth Service:** User authentication via Zitadel (OAuth 2.0)
+1. **Auth Service:** User authentication via Keycloak (OAuth 2.0)
 2. **Calendar Service:** Event scheduling and management
 3. **Task Service:** To-do items and assignment
 4. **Shopping Service:** Lists and item tracking
@@ -267,7 +267,7 @@ Communication Service subscribes and sends notification
 - **Frontend:** Angular v21, TypeScript, Tailwind CSS
 - **Database:** PostgreSQL 16 (per service)
 - **Caching:** Redis 7
-- **Auth:** Zitadel (external IdP)
+- **Auth:** Keycloak (external IdP)
 - **Infrastructure:** Cloud Kubernetes (managed service)
   - Initial: DigitalOcean, Linode, or Hetzner (cost-effective)
   - Deployment: Helm charts (provider-independent for future flexibility)
@@ -352,7 +352,7 @@ Communication Service subscribes and sends notification
 
 **Services:**
 
-- Zitadel: $0-100/month × 12 = $0-1,200
+- Keycloak: $0-100/month × 12 = $0-1,200
 - Domain/SSL: $15
 - Monitoring: $0 (self-hosted)
 - **Subtotal:** $15-1,215
@@ -617,7 +617,7 @@ Communication Service subscribes and sends notification
 
 **Validate or Pivot:**
 
-- Zitadel integration feasibility
+- Keycloak integration feasibility
 - GraphQL schema stitching approach
 - Kubernetes vs. Docker Compose for initial deployment
 

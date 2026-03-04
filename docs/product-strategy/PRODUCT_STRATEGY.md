@@ -313,7 +313,7 @@ Automated workflows that trigger actions across different domains based on event
 - Backend: .NET Core 10 / C# 14 with GraphQL
 - Frontend: Angular 21 with TypeScript and Tailwind CSS
 - Architecture: Microservices, event-driven, DDD
-- Auth: Zitadel (modern, self-hostable IdP)
+- Auth: Keycloak (modern, self-hostable IdP)
 - Database: PostgreSQL + Redis
 
 **Value:** Future-proof architecture, easy integration, developer-friendly for customization and extensions.
@@ -642,7 +642,7 @@ This metric captures:
 | ------------------------------------------------ | ------ | ----------- | ---------------------------------------------------------- |
 | Microservices complexity overwhelming single dev | High   | Medium      | Start with modular monolith, extract services gradually    |
 | Performance issues at scale                      | Medium | Medium      | Early load testing, optimize critical paths, Redis caching |
-| Security vulnerabilities                         | High   | Medium      | Security audits, Zitadel for auth, regular updates         |
+| Security vulnerabilities                         | High   | Medium      | Security audits, Keycloak for auth, regular updates         |
 | K8s deployment complexity                        | Medium | High        | Excellent documentation, Helm charts, automated setup      |
 
 ### Market Risks

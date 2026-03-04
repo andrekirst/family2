@@ -59,7 +59,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 **Core Architecture Decisions (ADRs):**
 
 - [ADR-001: Modular Monolith First](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md) - Why not microservices from day one
-- [ADR-002: OAuth with Zitadel](architecture/ADR-002-OAUTH-WITH-ZITADEL.md) - Why Zitadel vs Auth0/Keycloak
+- [ADR-002: OAuth with Keycloak](architecture/ADR-002-OAUTH-WITH-KEYCLOAK.md) - Why Keycloak vs Auth0/custom auth
 - [ADR-003: GraphQL Input/Command Pattern](architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md) - Separation of presentation and domain concerns
 - [ADR-005: Family Module Extraction Pattern](architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md) - Reusable bounded context extraction pattern
 

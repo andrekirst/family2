@@ -95,7 +95,7 @@ We use RICE scoring to prioritize features:
 
 | Feature                                                | Description                                                | RICE Score | Effort    | Priority |
 | ------------------------------------------------------ | ---------------------------------------------------------- | ---------- | --------- | -------- |
-| **User Registration & Auth** ✅ COMPLETED (2026-01-13) | Email/password auth via Zitadel (Backend + Frontend OAuth) | 45.0       | 2 weeks   | P0       |
+| **User Registration & Auth** ✅ COMPLETED (2026-01-13) | Email/password auth via Keycloak (Backend + Frontend OAuth) | 45.0       | 2 weeks   | P0       |
 | **Family Creation** ✅ COMPLETED (2026-02-09) #15      | Create family group, generate invite codes                 | 50.0       | 1 week    | P0       |
 | **Family Member Invites (Management)**                 | Invite members from family management UI                   | 40.0       | 1 week    | P0       |
 | **User Profiles**                                      | Name, avatar, role, preferences                            | 36.0       | 1 week    | P0       |
@@ -597,7 +597,7 @@ We use RICE scoring to prioritize features:
 
 #### MVP
 
-- User registration & authentication (Zitadel OAuth 2.0 - email only)
+- User registration & authentication (Keycloak OAuth 2.0 - email only)
 - Family creation and invite codes
 - Family member invites - Wizard step (email invitations)
 - Family member invites - Management UI (ongoing member addition)

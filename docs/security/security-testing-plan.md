@@ -104,7 +104,7 @@ This document defines the comprehensive security testing strategy for Family Hub
 
 | Service | Purpose | Trust Level | Risk |
 |---------|---------|-------------|------|
-| **Zitadel** | Authentication (OAuth 2.0/OIDC) | High | Medium |
+| **Keycloak** | Authentication (OAuth 2.0/OIDC) | High | Medium |
 | **Let's Encrypt** | TLS certificates | High | Low |
 | **Docker Hub** | Container images | Medium | Medium |
 | **NPM Registry** | Frontend dependencies | Medium | High |
@@ -115,7 +115,7 @@ This document defines the comprehensive security testing strategy for Family Hub
 
 - **Dependency Confusion** - Malicious packages with similar names
 - **Supply Chain Attack** - Compromised third-party libraries
-- **OAuth Token Theft** - Zitadel token interception
+- **OAuth Token Theft** - Keycloak token interception
 - **Container Image Poisoning** - Backdoored base images
 
 ---
@@ -360,7 +360,7 @@ kube-bench run --targets=master,node,policies
 - **Brute Force**: Attacker guesses passwords
 - **Session Fixation**: Attacker hijacks user session
 - **Token Theft**: JWT token stolen via XSS
-- **OAuth Misconfiguration**: Zitadel redirect URI manipulation
+- **OAuth Misconfiguration**: Keycloak redirect URI manipulation
 
 **Testing Approach:**
 
@@ -383,7 +383,7 @@ curl -H "Authorization: Bearer $TOKEN" https://api.familyhub.yourdomain.com/grap
 
 **Mitigation:**
 
-- Zitadel handles password policies (min 12 chars, complexity)
+- Keycloak handles password policies (min 12 chars, complexity)
 - JWT expiry: 1 hour (access), 7 days (refresh)
 - Rate limit login attempts (5 per email per 15 min)
 - Implement logout blacklist for JWTs
@@ -722,7 +722,7 @@ public class CalendarServiceAuthorizationTests
 - Frontend application (Angular PWA)
 - API Gateway (GraphQL endpoint)
 - All microservices (via API Gateway)
-- Authentication flow (Zitadel integration)
+- Authentication flow (Keycloak integration)
 - Database access (read-only test account)
 - Kubernetes infrastructure (external view)
 
@@ -732,7 +732,7 @@ public class CalendarServiceAuthorizationTests
 - Physical security
 - Social engineering (phishing, vishing)
 - Denial of Service (DoS) attacks
-- Third-party services (Zitadel, cloud provider)
+- Third-party services (Keycloak, cloud provider)
 
 **Rules of Engagement:**
 

@@ -276,7 +276,7 @@ test('should create family with valid name', async ({ graphqlClient }) => {
 
 ### 4. OAuth Implementation (PKCE Flow)
 
-**PKCE + State parameter** OAuth 2.0 flow with Zitadel.
+**PKCE + State parameter** OAuth 2.0 flow with Keycloak.
 
 **Environment Config:**
 
@@ -285,7 +285,7 @@ test('should create family with valid name', async ({ graphqlClient }) => {
 export const environment = {
   production: false,
   apiUrl: 'https://localhost:7000/graphql',
-  zitadel: {
+  keycloak: {
     issuer: 'http://localhost:8080',
     clientId: 'YOUR_CLIENT_ID',
     redirectUri: 'http://localhost:4200/callback',
@@ -315,12 +315,12 @@ export class AuthService {
     sessionStorage.setItem('code_verifier', codeVerifier);
     sessionStorage.setItem('state', state);
 
-    // Redirect to Zitadel
-    const authUrl = `${environment.zitadel.issuer}/oauth/v2/authorize?` +
-      `client_id=${environment.zitadel.clientId}&` +
-      `redirect_uri=${environment.zitadel.redirectUri}&` +
+    // Redirect to Keycloak
+    const authUrl = `${environment.keycloak.issuer}/oauth/v2/authorize?` +
+      `client_id=${environment.keycloak.clientId}&` +
+      `redirect_uri=${environment.keycloak.redirectUri}&` +
       `response_type=code&` +
-      `scope=${environment.zitadel.scope}&` +
+      `scope=${environment.keycloak.scope}&` +
       `code_challenge=${codeChallenge}&` +
       `code_challenge_method=S256&` +
       `state=${state}`;
@@ -337,14 +337,14 @@ export class AuthService {
 
     // Exchange code for tokens
     const codeVerifier = sessionStorage.getItem('code_verifier')!;
-    const response = await fetch(`${environment.zitadel.issuer}/oauth/v2/token`, {
+    const response = await fetch(`${environment.keycloak.issuer}/oauth/v2/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: environment.zitadel.redirectUri,
-        client_id: environment.zitadel.clientId,
+        redirect_uri: environment.keycloak.redirectUri,
+        client_id: environment.keycloak.clientId,
         code_verifier: codeVerifier
       })
     });
@@ -557,7 +557,7 @@ export class FormComponent {
 
 - **Module not found:** Run `npm install`
 - **CORS error:** Check backend CORS configuration
-- **OAuth redirect loop:** Verify redirect URI matches Zitadel config
+- **OAuth redirect loop:** Verify redirect URI matches Keycloak config
 - **Component not rendering:** Check `standalone: true` and `imports` array
 
 **See:** [DEBUGGING_GUIDE.md](../../docs/development/DEBUGGING_GUIDE.md)

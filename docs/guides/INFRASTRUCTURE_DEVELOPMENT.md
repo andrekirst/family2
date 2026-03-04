@@ -2,7 +2,7 @@
 
 **Purpose:** Guide for Docker Compose, Kubernetes deployment, CI/CD pipelines, and infrastructure management in Family Hub.
 
-**Tech Stack:** Docker Compose, Kubernetes (K8s), GitHub Actions, PostgreSQL 16, RabbitMQ, Redis, Zitadel, Seq, MailHog
+**Tech Stack:** Docker Compose, Kubernetes (K8s), GitHub Actions, PostgreSQL 16, RabbitMQ, Redis, Keycloak, Seq, MailHog
 
 ---
 
@@ -15,7 +15,7 @@
 - **PostgreSQL 16** - Primary database (port 5432)
 - **RabbitMQ 3.12** - Message broker (ports 5672, 15672)
 - **Redis 7 Alpine** - Real-time subscriptions (port 6379)
-- **Zitadel v2.47.0** - OAuth 2.0 provider (port 8080)
+- **Keycloak v2.47.0** - OAuth 2.0 provider (port 8080)
 - **Seq** - Structured logging (port 5341)
 - **MailHog** - Email testing (ports 1025, 8025)
 
@@ -52,9 +52,9 @@ docker-compose restart <service-name>
 # Create .env file in infrastructure/docker/
 POSTGRES_PASSWORD=Dev123!
 RABBITMQ_PASSWORD=Dev123!
-ZITADEL_MASTERKEY=MasterKey123!MustBe32Characters!
-ZITADEL_DB_PASSWORD=Dev123!
-ZITADEL_ADMIN_PASSWORD=Admin123!
+KEYCLOAK_MASTERKEY=MasterKey123!MustBe32Characters!
+KEYCLOAK_DB_PASSWORD=Dev123!
+KEYCLOAK_ADMIN_PASSWORD=Admin123!
 
 # SMTP (optional, defaults to MailHog)
 SMTP_HOST=mailhog
@@ -66,7 +66,7 @@ SMTP_FROM_ADDRESS=noreply@familyhub.local
 
 - Backend API: `http://localhost:7000/graphql`
 - Frontend: `http://localhost:4200`
-- Zitadel: `http://localhost:8080`
+- Keycloak: `http://localhost:8080`
 - RabbitMQ Management: `http://localhost:15672` (familyhub/Dev123!)
 - Seq Logging: `http://localhost:5341`
 - MailHog UI: `http://localhost:8025`
@@ -327,7 +327,7 @@ docker-compose logs -f
 # Specific service
 docker-compose logs -f postgres
 docker-compose logs -f rabbitmq
-docker-compose logs -f zitadel
+docker-compose logs -f keycloak
 
 # Last N lines
 docker-compose logs --tail=100 postgres

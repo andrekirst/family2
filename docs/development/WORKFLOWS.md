@@ -350,7 +350,7 @@ Add a `ToGraphQLType()` extension method when auto-mapping can't handle:
 public static class AuthResultExtensions
 {
     // Complex nested object - requires manual mapping
-    public static AuthenticationResult ToGraphQLType(this CompleteZitadelLoginResult result)
+    public static AuthenticationResult ToGraphQLType(this CompleteKeycloakLoginResult result)
     {
         return new AuthenticationResult
         {
@@ -424,7 +424,7 @@ public static class InvitationMapper
 public static class AuthResultExtensions
 {
     // Single object return (most common)
-    public static AuthenticationResult ToGraphQLType(this CompleteZitadelLoginResult result)
+    public static AuthenticationResult ToGraphQLType(this CompleteKeycloakLoginResult result)
     {
         return new AuthenticationResult
         {
@@ -459,17 +459,17 @@ public static class AuthResultExtensions
 }
 
 // 3. USAGE - MutationHandler automatically discovers and invokes extensions
-public async Task<CompleteZitadelLoginPayload> CompleteZitadelLoginAsync(
-    CompleteZitadelLoginInput input,
+public async Task<CompleteKeycloakLoginPayload> CompleteKeycloakLoginAsync(
+    CompleteKeycloakLoginInput input,
     [Service] IMutationHandler mutationHandler,
     [Service] IMediator mediator)
 {
-    return await mutationHandler.Handle<CompleteZitadelLoginResult, CompleteZitadelLoginPayload>(
+    return await mutationHandler.Handle<CompleteKeycloakLoginResult, CompleteKeycloakLoginPayload>(
         async () =>
         {
-            var command = new CompleteZitadelLoginCommand(
+            var command = new CompleteKeycloakLoginCommand(
                 AuthorizationCode.From(input.Code),
-                ZitadelCallbackUri.From(input.RedirectUri));
+                KeycloakCallbackUri.From(input.RedirectUri));
 
             var result = await mediator.Send(command);
             return result; // MutationHandler calls result.ToGraphQLType() via reflection
@@ -576,7 +576,7 @@ Modules/FamilyHub.Modules.Auth/Presentation/GraphQL/
 ├── Extensions/
 │   └── AuthResultExtensions.cs # ToGraphQLType() for all Auth command results
 ├── Payloads/
-│   ├── CompleteZitadelLoginPayload.cs
+│   ├── CompleteKeycloakLoginPayload.cs
 │   ├── CreateFamilyPayload.cs
 │   └── AcceptInvitationPayload.cs
 └── Mutations/

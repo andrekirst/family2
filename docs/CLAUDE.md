@@ -61,7 +61,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 **Key Documents:**
 
 - [ADR-001: Modular Monolith First](architecture/ADR-001-MODULAR-MONOLITH-FIRST.md)
-- [ADR-002: OAuth with Zitadel](architecture/ADR-002-OAUTH-WITH-ZITADEL.md)
+- [ADR-002: OAuth with Keycloak](architecture/ADR-002-OAUTH-WITH-KEYCLOAK.md)
 - [ADR-003: GraphQL Input/Command Pattern](architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md)
 - [ADR-004: Playwright Migration](architecture/ADR-004-PLAYWRIGHT-MIGRATION.md)
 - [ADR-005: Family Module Extraction](architecture/ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md)
@@ -105,7 +105,7 @@ Start here: [Executive Summary](executive-summary.md) (15-minute overview)
 **Key Documents:**
 
 - [OAuth Integration Guide](authentication/OAUTH_INTEGRATION_GUIDE.md) - Complete PKCE implementation
-- [Zitadel Setup Guide](authentication/ZITADEL-SETUP-GUIDE.md)
+- [OAuth Integration Guide](authentication/OAUTH_INTEGRATION_GUIDE.md) - Keycloak setup
 - [OAuth Security Checklist](authentication/OAUTH-FINAL-REVIEW-CHECKLIST.md)
 
 ### Infrastructure

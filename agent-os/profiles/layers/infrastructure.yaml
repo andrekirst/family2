@@ -15,7 +15,7 @@ patterns:
       - postgres (PostgreSQL 16)
       - rabbitmq (RabbitMQ 3.12)
       - redis (Redis 7)
-      - zitadel (Zitadel v2.47.0)
+      - keycloak (Keycloak v2.47.0)
       - seq (Seq logging)
       - mailhog (Email testing)
 
@@ -37,7 +37,7 @@ patterns:
     postgres: 5432
     rabbitmq: 5672
     rabbitmqAdmin: 15672
-    zitadel: 8080
+    keycloak: 8080
     seq: 5341
     mailhog: 8025
 

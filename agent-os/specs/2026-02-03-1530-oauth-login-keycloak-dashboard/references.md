@@ -212,7 +212,7 @@ this.apollo.query({ query: GET_CURRENT_USER_QUERY })
 
 ### Architecture Decision Records
 
-- **ADR-002:** OAuth with Zitadel (to be amended for Keycloak)
+- **ADR-002:** OAuth with Keycloak
 - **ADR-003:** GraphQL Input→Command Pattern
 
 ### Development Guides

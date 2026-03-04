@@ -15,7 +15,7 @@ Family Hub has **12 ADRs** documenting critical architectural decisions:
 **Core Architecture:**
 
 1. **[ADR-001: Modular Monolith First](ADR-001-MODULAR-MONOLITH-FIRST.md)** - Why not microservices from day one
-2. **[ADR-002: OAuth with Zitadel](ADR-002-OAUTH-WITH-ZITADEL.md)** - OAuth provider selection
+2. **[ADR-002: OAuth with Keycloak](ADR-002-OAUTH-WITH-KEYCLOAK.md)** - OAuth provider selection
 3. **[ADR-003: GraphQL Input/Command Pattern](ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md)** - Presentation/domain separation
 4. **[ADR-004: Playwright Migration](ADR-004-PLAYWRIGHT-MIGRATION.md)** - E2E testing framework
 5. **[ADR-005: Family Module Extraction](ADR-005-FAMILY-MODULE-EXTRACTION-PATTERN.md)** - Bounded context extraction
@@ -45,7 +45,7 @@ Family Hub has **12 ADRs** documenting critical architectural decisions:
 │                                             │
 │  ┌──────────┐         ┌──────────┐          │
 │  │   Auth   │────────▶│  Family  │          │
-│  │ (Zitadel)│         │  Context │          │
+│  │ (Keycloak)│         │  Context │          │
 │  └──────────┘         └──────────┘          │
 │       │                     │               │
 │       ▼                     ▼               │
@@ -215,9 +215,9 @@ CREATE POLICY family_isolation_policy ON auth.users
 
 ---
 
-### ADR-002: OAuth with Zitadel
+### ADR-002: OAuth with Keycloak
 
-**Decision:** Use Zitadel for OAuth 2.0 / OIDC.
+**Decision:** Use Keycloak for OAuth 2.0 / OIDC.
 
 **Rationale:**
 
@@ -226,9 +226,9 @@ CREATE POLICY family_isolation_policy ON auth.users
 - GDPR-compliant by design
 - No vendor lock-in
 
-**Alternatives Considered:** Auth0, Keycloak, Custom
+**Alternatives Considered:** Auth0, Zitadel, ASP.NET Core Identity
 
-**Status:** Implemented (Phase 0)
+**Status:** Implemented
 
 ---
 

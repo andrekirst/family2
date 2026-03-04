@@ -2,7 +2,7 @@
 
 **Purpose:** Guide to security architecture, threat model, OWASP testing, Row-Level Security, and vulnerability management in Family Hub.
 
-**Tech Stack:** PostgreSQL RLS, Zitadel OAuth 2.0, HTTPS/TLS 1.3, STRIDE threat modeling
+**Tech Stack:** PostgreSQL RLS, Keycloak OAuth 2.0, HTTPS/TLS 1.3, STRIDE threat modeling
 
 ---
 
@@ -75,7 +75,7 @@ SELECT * FROM auth.users WHERE family_id = current_setting('app.current_family_i
 
 ---
 
-### 2. OAuth 2.0 Security (Zitadel + PKCE)
+### 2. OAuth 2.0 Security (Keycloak + PKCE)
 
 **PKCE (Proof Key for Code Exchange)** prevents authorization code interception.
 
@@ -84,7 +84,7 @@ SELECT * FROM auth.users WHERE family_id = current_setting('app.current_family_i
 ```
 1. Generate code_verifier (random 32-byte string)
 2. Generate code_challenge = SHA256(code_verifier)
-3. Redirect to Zitadel with code_challenge
+3. Redirect to Keycloak with code_challenge
 4. User authenticates
 5. Redirect back with authorization code
 6. Exchange code + code_verifier for tokens
@@ -102,8 +102,8 @@ const state = generateState();
 sessionStorage.setItem('code_verifier', codeVerifier);
 sessionStorage.setItem('state', state);
 
-// Redirect to Zitadel
-const authUrl = `${zitadelIssuer}/oauth/v2/authorize?` +
+// Redirect to Keycloak
+const authUrl = `${keycloakIssuer}/oauth/v2/authorize?` +
   `client_id=${clientId}&` +
   `redirect_uri=${redirectUri}&` +
   `response_type=code&` +
@@ -166,7 +166,7 @@ window.location.href = authUrl;
 
 - Run `dotnet list package --vulnerable`
 - Run `npm audit`
-- Track CVEs for PostgreSQL, RabbitMQ, Zitadel
+- Track CVEs for PostgreSQL, RabbitMQ, Keycloak
 
 **A07: Identification & Authentication**
 
@@ -272,7 +272,7 @@ builder.Property(u => u.Email)
 ```bash
 # Development only (never commit)
 ConnectionStrings__DefaultConnection=Host=localhost;...
-Zitadel__ClientSecret=supersecret123
+Keycloak__ClientSecret=supersecret123
 RabbitMQ__Password=Dev123!
 ```
 
