@@ -363,7 +363,7 @@ The roadmap (`/docs/implementation-roadmap.md`) defines **6 phases**:
 
 Family Hub uses **8 bounded contexts** (microservices):
 
-1. **Auth Service** - Zitadel integration, family groups
+1. **Auth Service** - Keycloak integration, family groups
 2. **Calendar Service** - Events, appointments, recurrence
 3. **Task Service** - To-dos, assignments, chores
 4. **Shopping Service** - Lists, items, sharing

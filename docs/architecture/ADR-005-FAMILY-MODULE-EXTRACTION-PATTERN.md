@@ -1289,7 +1289,7 @@ Every coupling point has:
 ### Architecture Decision Records
 
 - [ADR-001: Modular Monolith First](ADR-001-MODULAR-MONOLITH-FIRST.md) - Architectural approach and microservices migration strategy
-- [ADR-002: OAuth with Zitadel](ADR-002-OAUTH-WITH-ZITADEL.md) - Authentication strategy
+- [ADR-002: OAuth with Keycloak](ADR-002-OAUTH-WITH-KEYCLOAK.md) - Authentication strategy
 - [ADR-003: GraphQL Input → Command Pattern](ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md) - Presentation layer pattern
 
 ### Domain-Driven Design

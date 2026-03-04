@@ -64,7 +64,7 @@ Month 6-7: Launch
 ├──────────────────────────────────────────────────────────────┤
 │                                                               │
 │  🔐 AUTHENTICATION & FAMILY (5 features)                      │
-│  ├─ User registration & auth (Zitadel)                       │
+│  ├─ User registration & auth (Keycloak)                       │
 │  ├─ Family creation & invites                                │
 │  ├─ User profiles                                            │
 │  └─ Family settings                                          │

@@ -22,7 +22,7 @@ Family Hub is a **modular monolith** (per [ADR-001](ADR-001-MODULAR-MONOLITH-FIR
 
 - **ASP.NET Core 10**: Web framework
 - **PostgreSQL 16**: Database with RLS
-- **Zitadel**: OAuth provider (JWT tokens)
+- **Keycloak**: OAuth provider (JWT tokens)
 - **Hot Chocolate**: GraphQL server
 
 ### Security Requirements
@@ -143,7 +143,7 @@ public class PostgresRlsContextMiddleware
     {
         // Extract user ID from JWT claims (if authenticated)
         var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? context.User?.FindFirst("sub")?.Value; // Zitadel uses 'sub' claim
+            ?? context.User?.FindFirst("sub")?.Value; // Keycloak uses 'sub' claim
 
         if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
         {

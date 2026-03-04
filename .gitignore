@@ -344,9 +344,6 @@ docs/.jekyll-cache/
 # Claude Code plans (keep in Git for collaboration)
 # .claude/plans/
 
-# Zitadel config exports (may contain secrets)
-infrastructure/docker/zitadel/exports/*.json
-
 # Database seed data (keep examples, ignore generated)
 **/seed-data-generated/
 

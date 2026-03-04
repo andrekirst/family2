@@ -22,7 +22,7 @@ The Quartz.NET scheduler is configured in `/src/api/FamilyHub.Api/Program.cs` wi
 **Job 1: ManagedAccountRetryJob**
 
 - Schedule: Every 1 minute
-- Purpose: Retry failed Zitadel account creations
+- Purpose: Retry failed Keycloak account creations
 - Retry Schedule: 1min → 5min → 15min → 1hr → 4hr (5 attempts max)
 
 **Job 2: ExpiredInvitationCleanupJob**
@@ -81,7 +81,7 @@ FROM auth.queued_managed_account_creations
 ORDER BY created_at DESC
 LIMIT 10;
 
--- Check if User was created (if Zitadel call succeeded)
+-- Check if User was created (if Keycloak call succeeded)
 SELECT id, username, full_name, email
 FROM auth.users
 WHERE username = 'testuser';
@@ -205,11 +205,11 @@ public class PasswordEncryptionService(IDataProtectionProvider provider)
 }
 ```
 
-### Zitadel API Errors
+### Keycloak API Errors
 
 **Common Issues:**
 
-- Invalid access token (check Zitadel settings)
+- Invalid access token (check Keycloak settings)
 - Rate limiting (exponential backoff handles this)
 - Network errors (retry logic handles this)
 - Invalid username format (permanent error - should NOT retry)
@@ -217,7 +217,7 @@ public class PasswordEncryptionService(IDataProtectionProvider provider)
 **Check Logs:**
 
 ```
-[WRN] Failed to create Zitadel user for job {JobId}, attempt {RetryCount}: {Error}
+[WRN] Failed to create Keycloak user for job {JobId}, attempt {RetryCount}: {Error}
 [ERR] Job {JobId} failed permanently after {RetryCount} attempts
 ```
 

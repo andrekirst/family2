@@ -52,6 +52,6 @@ graphql:
 
 relatedDocs:
   - docs/authentication/OAUTH_INTEGRATION_GUIDE.md
-  - docs/authentication/ZITADEL-SETUP-GUIDE.md
-  - docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md
+  - docs/authentication/
+  - docs/architecture/ADR-002-OAUTH-WITH-KEYCLOAK.md
   - docs/architecture/ADR-006-EMAIL-ONLY-AUTHENTICATION.md

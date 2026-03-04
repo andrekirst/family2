@@ -10,10 +10,10 @@
 
 Before starting manual testing, ensure:
 
-- ✅ Docker Compose is running (PostgreSQL, RabbitMQ, Redis, Seq, Zitadel)
+- ✅ Docker Compose is running (PostgreSQL, RabbitMQ, Redis, Seq, Keycloak)
 - ✅ API is running (`dotnet run --project src/api/FamilyHub.Api`)
 - ✅ Frontend is running (`npm start` in `src/frontend/family-hub-web`)
-- ✅ At least 2 test users exist in Zitadel
+- ✅ At least 2 test users exist in Keycloak
 - ✅ At least 1 test family exists with multiple members
 
 ### Quick Setup
@@ -25,7 +25,7 @@ docker-compose up -d
 
 # 2. Verify services are healthy
 docker ps
-# Expected: All containers healthy (PostgreSQL, RabbitMQ, Redis, Seq, Zitadel)
+# Expected: All containers healthy (PostgreSQL, RabbitMQ, Redis, Seq, Keycloak)
 
 # 3. Check Redis
 docker exec familyhub-redis redis-cli ping

@@ -103,7 +103,7 @@ This threat model identifies potential security threats to Family Hub, a privacy
 
 External Dependencies:
 ┌──────────────┐     ┌──────────────┐
-│   Zitadel    │     │  Let's       │
+│   Keycloak    │     │  Let's       │
 │   (OAuth)    │     │  Encrypt     │
 └──────────────┘     └──────────────┘
 ```
@@ -136,7 +136,7 @@ External Dependencies:
 
 **Trust Boundary 5: External Services**
 
-- Zitadel (Auth Provider): Partially trusted
+- Keycloak (Auth Provider): Partially trusted
 - Let's Encrypt: Trusted
 - Protection: TLS pinning, API key rotation
 
@@ -326,7 +326,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
 
 ---
 
-### 4.3 Auth Service (Zitadel Integration)
+### 4.3 Auth Service (Keycloak Integration)
 
 **Component:** User authentication, family group management
 
@@ -499,7 +499,7 @@ We use Microsoft's STRIDE methodology to systematically identify threats:
    - Protection: Input validation, CSP, CSRF tokens
 
 2. **OAuth Callback Endpoint**
-   - Zitadel authentication flow
+   - Keycloak authentication flow
    - Threat: OAuth token theft, session hijacking
    - Protection: State validation, PKCE, secure cookies
 
@@ -873,7 +873,7 @@ R-011 to R-015: Medium (yellow)
 
 **Implemented:**
 
-- OAuth 2.0 / OIDC via Zitadel
+- OAuth 2.0 / OIDC via Keycloak
 - JWT token validation
 - Role-based access control (RBAC)
 
@@ -981,7 +981,7 @@ R-011 to R-015: Medium (yellow)
 #### Phase 0 (Week 1-4): Foundation
 
 - ✅ TLS 1.3 configuration
-- ✅ Zitadel OAuth integration
+- ✅ Keycloak OAuth integration
 - ✅ Basic input validation
 - ✅ HTTPS-only enforcement
 

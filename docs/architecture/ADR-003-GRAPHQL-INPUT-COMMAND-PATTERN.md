@@ -342,7 +342,7 @@ builder.AddType<UserIdType>();
 **Pattern Applied To:**
 
 - `CreateFamilyInput` → `CreateFamilyCommand` (FamilyName value object)
-- `CompleteZitadelLoginInput` → `CompleteZitadelLoginCommand` (primitive types)
+- `CompleteKeycloakLoginInput` → `CompleteKeycloakLoginCommand` (primitive types)
 
 **Files:**
 
@@ -383,7 +383,7 @@ This decision was validated through:
 ## Related Decisions
 
 - [ADR-001: Modular Monolith First](ADR-001-MODULAR-MONOLITH-FIRST.md) - Architectural approach
-- [ADR-002: OAuth with Zitadel](ADR-002-OAUTH-WITH-ZITADEL.md) - Authentication strategy
+- [ADR-002: OAuth with Keycloak](ADR-002-OAUTH-WITH-KEYCLOAK.md) - Authentication strategy
 
 ## References
 
@@ -419,8 +419,8 @@ PersonName supports both single names and compound names (1-100 characters):
 - "John Doe" (compound name)
 - "Marie-Claire Dubois" (hyphenated compound)
 
-**Zitadel Integration:**
-Current workaround duplicates single name to both firstName and lastName when creating Zitadel accounts (Zitadel requires non-empty lastName field). Tested and validated in Phase 0 (2026-01-05).
+**Keycloak Integration:**
+Current workaround duplicates single name to both firstName and lastName when creating Keycloak accounts (Keycloak requires non-empty lastName field). Tested and validated in Phase 0 (2026-01-05).
 
 ```csharp
 // Mononym handling in CreateManagedMemberCommandHandler

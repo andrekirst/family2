@@ -82,7 +82,7 @@
 │  ┌─────────────────────────────────────────────────────────────────────────┐    │
 │  │                    External Services Layer                              │    │
 │  │  ┌────────────┐         ┌────────────┐         ┌────────────┐           │    │
-│  │  │  Zitadel   │         │   Email    │         │   Push     │           │    │
+│  │  │  Keycloak   │         │   Email    │         │   Push     │           │    │
 │  │  │   (Auth)   │         │  (SendGrid)│         │   (FCM)    │           │    │
 │  │  └────────────┘         └────────────┘         └────────────┘           │    │
 │  └─────────────────────────────────────────────────────────────────────────┘    │
@@ -312,7 +312,7 @@ Database: family_hub_db
 ├─────────────────────────────────────────────────────────────────────────┤
 │ • family_groups (id, name, owner_id, created_at)                        │
 │ • family_members (id, family_group_id, user_id, role, joined_at)       │
-│ • user_profiles (id, email, display_name, zitadel_user_id)             │
+│ • user_profiles (id, email, display_name, keycloak_user_id)             │
 └─────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -484,7 +484,7 @@ API Tier:
 │ .NET Core 10 / C# 14                                                    │
 │ ├─ GraphQL: Hot Chocolate (Schema Stitching)                            │
 │ ├─ API Gateway: YARP or Ocelot                                          │
-│ ├─ Authentication: JWT (Zitadel tokens)                                 │
+│ ├─ Authentication: JWT (Keycloak tokens)                                 │
 │ └─ Serialization: System.Text.Json                                      │
 └─────────────────────────────────────────────────────────────────────────┘
 
@@ -534,7 +534,7 @@ Infrastructure Tier:
 
 External Services:
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ Zitadel (Authentication)                                                │
+│ Keycloak (Authentication)                                                │
 │ SendGrid or Amazon SES (Email)                                         │
 │ Firebase Cloud Messaging (Push Notifications)                          │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -686,7 +686,7 @@ Alerts (Last 24h): 2
 
 2. Authentication & Authorization:
    ┌─────────────────────────────────────────────────────────────────────┐
-   │ • OAuth 2.0 / OIDC via Zitadel                                      │
+   │ • OAuth 2.0 / OIDC via Keycloak                                      │
    │ • JWT token validation on every request                             │
    │ • Role-based access control (RBAC)                                  │
    │   - Owner: Full control                                             │

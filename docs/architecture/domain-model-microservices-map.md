@@ -36,7 +36,7 @@ This document defines the Domain-Driven Design (DDD) bounded contexts, domain mo
 │  ┌──────────────┐         ┌──────────────┐                      │
 │  │   Auth       │────────▶│  Identity    │                      │
 │  │   Service    │         │  Context     │                      │
-│  │  (Zitadel)   │         │   (Users)    │                      │
+│  │  (Keycloak)   │         │   (Users)    │                      │
 │  └──────────────┘         └──────────────┘                      │
 │         │                        │                              │
 │         │                        ▼                              │
@@ -78,7 +78,7 @@ Legend:
 
 | Context                   | Core Responsibility                                  | Team Pattern      |
 | ------------------------- | ---------------------------------------------------- | ----------------- |
-| **Auth Service**          | Identity & access management via Zitadel             | Conformist        |
+| **Auth Service**          | Identity & access management via Keycloak             | Conformist        |
 | **Federation Service**    | Instance federation, cross-instance communication    | **Core Domain**   |
 | **Calendar Service**      | Schedule management, events, appointments            | Core Domain       |
 | **Task Service**          | To-do items, reminders, task tracking                | Core Domain       |
@@ -109,7 +109,7 @@ Legend:
 
 ### 2.1 Auth Service (Identity & Access Management)
 
-**Type:** External Integration (Zitadel)
+**Type:** External Integration (Keycloak)
 **Pattern:** Anti-Corruption Layer
 
 #### Core Responsibilities
@@ -165,7 +165,7 @@ public class FamilyMemberInvitation
     // Child account creation fields
     public string? ChildUsername { get; private set; }
     public string? ChildFullName { get; private set; }
-    public string? ZitadelUserId { get; private set; }
+    public string? KeycloakUserId { get; private set; }
 
     // Domain methods
     public void Accept(Guid acceptedByUserId);
@@ -227,7 +227,7 @@ public record ChildAccountCreatedEvent(
     string FullName,
     FamilyRole Role,
     Guid CreatedByUserId,
-    string ZitadelUserId
+    string KeycloakUserId
 );
 
 public record FamilyMemberInvitationAcceptedEvent(
@@ -327,7 +327,7 @@ type Mutation {
 - **Schema:** `auth` schema
 - **Tables:** `family_groups`, `family_members`, `user_profiles`
 - **Caching:** Redis for session tokens and user context
-- **External:** Zitadel for OAuth tokens and user credentials
+- **External:** Keycloak for OAuth tokens and user credentials
 
 ---
 
@@ -2285,7 +2285,7 @@ Only for critical financial operations:
 | **Event Bus**               | Redis Pub/Sub            | Event-driven communication       |
 | **Database**                | PostgreSQL 16            | Primary data store per service   |
 | **Caching**                 | Redis 7                  | Performance optimization         |
-| **Auth**                    | Zitadel                  | External identity provider       |
+| **Auth**                    | Keycloak                  | External identity provider       |
 | **Container Orchestration** | Kubernetes               | Deployment, scaling, management  |
 | **Frontend**                | Angular v21 + TypeScript | SPA with Tailwind CSS            |
 | **Monitoring**              | Prometheus + Grafana     | Metrics and observability        |
@@ -2310,7 +2310,7 @@ Services:
       port: 5001
       replicas: 1
       database: auth_db
-      external: zitadel-integration
+      external: keycloak-integration
 
   - calendar-service:
       port: 5002
@@ -2453,7 +2453,7 @@ This domain model and microservices architecture provides the foundation for imp
 
 **Dependencies for Implementation:**
 
-- Zitadel instance setup and configuration
+- Keycloak instance setup and configuration
 - Kubernetes cluster (local Minikube for dev)
 - PostgreSQL and Redis instances
 - GraphQL tooling (Hot Chocolate NuGet packages)

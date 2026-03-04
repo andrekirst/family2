@@ -13,9 +13,9 @@
 
 ## Decisions
 
-### OAuth Provider: Keycloak (Not Zitadel)
+### OAuth Provider: Keycloak (Not Keycloak)
 
-- **Decision:** Use Keycloak despite ADR-002 documenting Zitadel
+- **Decision:** Use Keycloak despite ADR-002 documenting Keycloak
 - **Rationale:** Keycloak realm configuration already exists (`keycloak-realms/familyhub-realm.json`)
 - **Action:** Update ADR-002 with amendment after implementation
 

@@ -49,7 +49,7 @@ Both independent architecture reviews converged on the same critical finding: **
 ```
 family-hub-api/ (Single .NET Project)
 ├── Modules/
-│   ├── Auth/         (Zitadel integration)
+│   ├── Auth/         (Keycloak integration)
 │   ├── Calendar/     (Events, appointments)
 │   ├── Tasks/        (To-dos, chores)
 │   ├── Shopping/     (Lists, items)
@@ -292,9 +292,9 @@ Timeline: Phase 5+ (after MVP validation)
 
 ### Authentication ⚠️ MANDATORY POC
 
-**Current Plan**: Zitadel (no fallback)
+**Current Plan**: Keycloak (no fallback)
 
-**Recommendation**: **Zitadel POC in Week 2-3 with Fallback Plan**
+**Recommendation**: **Keycloak POC in Week 2-3 with Fallback Plan**
 
 **POC Success Criteria**:
 
@@ -309,13 +309,13 @@ Timeline: Phase 5+ (after MVP validation)
 
 - Pros: Mature (2014), large community, proven at scale
 - Cons: Java-based (heavier), complex configuration
-- Timeline: +1 week vs Zitadel
+- Timeline: +1 week vs Keycloak
 
 **Option B: ASP.NET Core Identity** (Custom)
 
 - Pros: Full control, simpler, proven, no external dependency
 - Cons: More code to maintain, security responsibility
-- Timeline: +2-3 weeks vs Zitadel
+- Timeline: +2-3 weeks vs Keycloak
 
 **Option C: Auth0** (Managed service)
 
@@ -601,7 +601,7 @@ public class DoctorAppointmentSaga : ISaga
 | **GraphQL Learning Curve** | 🟠 HIGH | Medium (60%) | High (4/5) |
 | **Event Chain Reliability** | 🟠 HIGH | Medium (50%) | High (4/5) |
 | **RLS Misconfiguration** | 🟡 MEDIUM | Low (20%) | Critical (5/5) |
-| **Zitadel Integration** | 🟡 MEDIUM | Medium (40%) | Medium (3/5) |
+| **Keycloak Integration** | 🟡 MEDIUM | Medium (40%) | Medium (3/5) |
 
 **Overall Risk**: 🔴 **CRITICAL** - High probability of project failure
 
@@ -615,7 +615,7 @@ public class DoctorAppointmentSaga : ISaga
 | **GraphQL Learning Curve** | 🟢 LOW | None (0%) | N/A | Deferred to Phase 4+ |
 | **Event Chain Reliability** | 🟡 MEDIUM | Medium (40%) | High (4/5) | RabbitMQ + Saga |
 | **RLS Misconfiguration** | 🟡 MEDIUM | Low (20%) | Critical (5/5) | Testing framework |
-| **Zitadel Integration** | 🟡 MEDIUM | Medium (40%) | Medium (3/5) | POC + fallback |
+| **Keycloak Integration** | 🟡 MEDIUM | Medium (40%) | Medium (3/5) | POC + fallback |
 
 **Overall Risk**: 🟡 **MEDIUM** - Achievable with realistic timeline
 
@@ -719,8 +719,8 @@ public class DoctorAppointmentSaga : ISaga
 
 ### Phase 0 Week 3-4
 
-1. 🔴 **MANDATORY**: Zitadel POC (max 30 hours, must decide by Week 3)
-2. If Zitadel POC fails: Switch to Keycloak or ASP.NET Core Identity
+1. 🔴 **MANDATORY**: Keycloak POC (max 30 hours, must decide by Week 3)
+2. If Keycloak POC fails: Switch to Keycloak or ASP.NET Core Identity
 3. Implement first REST endpoint (NOT GraphQL)
 4. Implement first React/Angular component
 5. Validate end-to-end flow (auth → API → DB → frontend)
@@ -751,7 +751,7 @@ Event Bus:
   NOT: Redis Pub/Sub alone (no persistence)
 
 Authentication:
-  primary: Zitadel (POC required in Week 2-3)
+  primary: Keycloak (POC required in Week 2-3)
   fallback: Keycloak OR ASP.NET Core Identity
 
 Deployment:

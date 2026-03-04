@@ -73,7 +73,7 @@ Each phase must deliver:
 - [ ] Local Kubernetes cluster (Minikube or Docker Desktop)
 - [ ] PostgreSQL 16 database instance
 - [ ] Redis 7 instance
-- [ ] Zitadel instance configured with test realm
+- [ ] Keycloak instance configured with test realm
 - [ ] Docker Compose for local development
 
 **Backend Foundation:**
@@ -89,7 +89,7 @@ Each phase must deliver:
 - [ ] Angular v21 workspace setup
 - [ ] Tailwind CSS configuration
 - [ ] Apollo Client for GraphQL
-- [x] Authentication module (Zitadel integration) ✅ (2026-01-13)
+- [x] Authentication module (Keycloak integration) ✅ (2026-01-13)
 - [ ] Core UI components library
 
 **DevOps:**
@@ -110,7 +110,7 @@ Each phase must deliver:
 - Developer can spin up entire stack with one command
 - Sample "Hello World" GraphQL query works end-to-end
 - CI/CD deploys to local Kubernetes successfully
-- Zitadel authentication flow completes
+- Keycloak authentication flow completes
 
 #### Estimated Effort
 
@@ -138,13 +138,13 @@ Each phase must deliver:
 
 **1. Auth Service**
 
-- Integration with Zitadel (OAuth 2.0 / OIDC)
+- Integration with Keycloak (OAuth 2.0 / OIDC)
 - Family group management (CRUD)
 - Member invitation flow
   - **Week 5-6:** Family member invitation system (wizard Step 2)
     - Multi-step family creation wizard with optional member invitations
     - Email invitations with token-based acceptance (14-day expiration)
-    - Child account creation via Zitadel Management API (username/password)
+    - Child account creation via Keycloak Management API (username/password)
     - Batch invitation processing
     - Password generation and secure display
   - **Week 7:** Family management UI for ongoing member invitations
@@ -187,7 +187,7 @@ Each phase must deliver:
 
 **Pages:**
 
-- [ ] Login / Registration (Zitadel flow)
+- [ ] Login / Registration (Keycloak flow)
 - [ ] Family Group Dashboard
 - [ ] Calendar View (month, week, day)
 - [ ] Task List View
@@ -919,7 +919,7 @@ CREATE TABLE communication.notifications (...);
 - **Mitigation:** Database sharding or read replicas
 - **Timeline:** Week 40 (if metrics show need)
 
-**Risk:** Zitadel integration complexity
+**Risk:** Keycloak integration complexity
 
 - **Mitigation:** POC in Phase 0, fallback to custom auth if needed
 - **Timeline:** Week 2-3 (validation), Week 10 (fallback decision)
@@ -1101,7 +1101,7 @@ Production (Cloud)
 **Phase 1-2 (Development):**
 
 - Local development: $0
-- Zitadel Cloud: $0-20 (depending on free tier)
+- Keycloak Cloud: $0-20 (depending on free tier)
 - **Total:** $0-20/month
 
 **Phase 3-4 (Staging):**
@@ -1123,7 +1123,7 @@ Production (Cloud)
 
 ### 8.2 Tool and Service Costs
 
-- Zitadel: $0-100/month (based on MAU)
+- Keycloak: $0-100/month (based on MAU)
 - Seq or ELK: $0 (self-hosted) or $50-100 (cloud)
 - GitHub Actions: $0 (free tier)
 - Domain registration: $15/year
@@ -1187,7 +1187,7 @@ Production (Cloud)
 
 ### 10.2 If Technology Choice Fails
 
-**Zitadel Failure:**
+**Keycloak Failure:**
 
 - Fallback: Custom auth with ASP.NET Core Identity
 - Timeline impact: +3-4 weeks
@@ -1213,7 +1213,7 @@ Production (Cloud)
 
 - [ ] Development environment documented and tested
 - [ ] CI/CD pipeline builds and deploys successfully
-- [ ] Zitadel authentication flow works end-to-end
+- [ ] Keycloak authentication flow works end-to-end
 - [ ] Sample GraphQL query returns data
 - [ ] All team members can run stack locally
 

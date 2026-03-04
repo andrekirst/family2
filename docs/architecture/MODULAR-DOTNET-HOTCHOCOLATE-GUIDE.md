@@ -382,7 +382,7 @@ Each module follows a consistent 5-layer structure:
 │   └── Exceptions/                           # Application Exceptions
 │
 ├── 📁 Infrastructure/                        # External Integrations
-│   ├── OAuth/                                # OAuth Integration (Zitadel)
+│   ├── OAuth/                                # OAuth Integration (Keycloak)
 │   ├── Messaging/                            # RabbitMQ Publishers
 │   ├── Authorization/                        # Authorization Handlers
 │   ├── Configuration/                        # Configuration Models
@@ -864,7 +864,7 @@ Notice how arrows always point inward:
 - **Infrastructure** depends on Application (implements application interfaces)
 - **Domain** depends on nothing (pure business logic)
 
-This ensures the domain remains independent and testable. You can swap GraphQL for REST, PostgreSQL for MongoDB, or Zitadel for Auth0 without touching domain code.
+This ensures the domain remains independent and testable. You can swap GraphQL for REST, PostgreSQL for MongoDB, or Keycloak for Auth0 without touching domain code.
 `─────────────────────────────────────────────────`
 
 ## 2.2 Domain Layer
@@ -908,13 +908,13 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     public DateTime? EmailVerifiedAt { get; private set; }
 
     /// <summary>
-    /// External OAuth provider user ID (e.g., Zitadel user ID).
+    /// External OAuth provider user ID (e.g., Keycloak user ID).
     /// Required field - all users authenticate via OAuth.
     /// </summary>
     public string ExternalUserId { get; private set; } = string.Empty;
 
     /// <summary>
-    /// OAuth provider name (e.g., "zitadel").
+    /// OAuth provider name (e.g., "keycloak").
     /// Required field - all users authenticate via OAuth.
     /// </summary>
     public string ExternalProvider { get; private set; } = string.Empty;
@@ -953,7 +953,7 @@ public class User : AggregateRoot<UserId>, ISoftDeletable
     }
 
     /// <summary>
-    /// Creates a new user from external OAuth provider (e.g., Zitadel).
+    /// Creates a new user from external OAuth provider (e.g., Keycloak).
     /// This is now the ONLY way to create users (ADR-006: Email-Only Authentication).
     /// </summary>
     public static User CreateFromOAuth(
@@ -1538,7 +1538,7 @@ This separation ensures validation happens at the right layer and domain remains
 ### 2.4.1 OAuth Integration
 
 ```csharp
-// File: FamilyHub.Modules.Auth/Infrastructure/OAuth/ZitadelOAuthService.cs
+// File: FamilyHub.Modules.Auth/Infrastructure/OAuth/KeycloakOAuthService.cs
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
@@ -1546,15 +1546,15 @@ using System.Net.Http.Json;
 namespace FamilyHub.Modules.Auth.Infrastructure.OAuth;
 
 /// <summary>
-/// Service for Zitadel OAuth integration.
+/// Service for Keycloak OAuth integration.
 /// Implements authorization code flow with PKCE.
 /// </summary>
-public sealed partial class ZitadelOAuthService(
+public sealed partial class KeycloakOAuthService(
     HttpClient httpClient,
-    IOptions<ZitadelSettings> settings,
-    ILogger<ZitadelOAuthService> logger)
+    IOptions<KeycloakSettings> settings,
+    ILogger<KeycloakOAuthService> logger)
 {
-    private readonly ZitadelSettings _settings = settings.Value;
+    private readonly KeycloakSettings _settings = settings.Value;
 
     /// <summary>
     /// Exchanges authorization code for access token.
@@ -1612,12 +1612,12 @@ public sealed partial class ZitadelOAuthService(
 ```
 
 `📖 ADR ────────────────────────────────────────`
-**ADR-002: OAuth with Zitadel**
+**ADR-002: OAuth with Keycloak**
 
-Family Hub uses **Zitadel** (open-source identity platform) instead of Auth0/Okta for:
+Family Hub uses **Keycloak** (open-source identity platform) instead of Auth0/Okta for:
 
 - **Self-hosting option**: Can be deployed alongside Family Hub (Phase 7+)
-- **No user limits**: Auth0 charges per active user, Zitadel doesn't
+- **No user limits**: Auth0 charges per active user, Keycloak doesn't
 - **Full control**: Complete access to user data and audit logs
 - **GDPR compliance**: European data residency guaranteed
 
@@ -1627,7 +1627,7 @@ Authorization Code Flow with PKCE is used for security:
 - **State parameter** prevents CSRF attacks
 - **Token expiry**: Access tokens expire in 1 hour, refresh tokens in 30 days
 
-See [ADR-002](ADR-002-OAUTH-WITH-ZITADEL.md) for full OAuth integration architecture.
+See [ADR-002](ADR-002-OAUTH-WITH-KEYCLOAK.md) for full OAuth integration architecture.
 `─────────────────────────────────────────────────`
 
 ### 2.4.2 RabbitMQ Publisher
@@ -2306,7 +2306,7 @@ Let's visualize how a request flows through all layers:
 |-------|---------------|---------|
 | **Domain** | Business logic, rules, invariants | `User.UpdateFamily()`, `Family.Create()` |
 | **Application** | Use case orchestration, validation | `CreateFamilyCommandHandler` |
-| **Infrastructure** | External integrations (OAuth, RabbitMQ) | `ZitadelOAuthService`, `RabbitMqPublisher` |
+| **Infrastructure** | External integrations (OAuth, RabbitMQ) | `KeycloakOAuthService`, `RabbitMqPublisher` |
 | **Persistence** | Data access, EF Core mapping | `UserRepository`, `UserConfiguration` |
 | **Presentation** | API exposure (GraphQL types/queries) | `FamilyMutations`, `UserQueries` |
 
@@ -2805,8 +2805,8 @@ public class CreateFamilyCommandHandlerTests
 
         var user = User.CreateFromOAuth(
             email,
-            "zitadel-123",
-            "zitadel",
+            "keycloak-123",
+            "keycloak",
             familyId);
 
         // Act
@@ -2889,8 +2889,8 @@ public static class TestDataFactory
 
         var user = User.CreateFromOAuth(
             email,
-            $"zitadel-{emailPrefix}-{testId}",
-            "zitadel",
+            $"keycloak-{emailPrefix}-{testId}",
+            "keycloak",
             tempFamily.Id);
 
         await context.Users.AddAsync(user);
@@ -3321,7 +3321,7 @@ public static class AuthModuleServiceRegistration
         services.AddScoped<Family.Domain.Repositories.IFamilyMemberInvitationRepository, FamilyMemberInvitationRepository>();
 
         // 8. Configuration Options (Singleton)
-        services.Configure<ZitadelSettings>(configuration.GetSection(ZitadelSettings.SectionName));
+        services.Configure<KeycloakSettings>(configuration.GetSection(KeycloakSettings.SectionName));
 
         // 9. Infrastructure Services (Scoped)
         services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -3526,23 +3526,23 @@ var graphqlBuilder = builder.Services
 graphqlBuilder.AddAuthModuleGraphQlTypes();
 graphqlBuilder.AddFamilyModuleGraphQlTypes();
 
-// JWT Authentication configuration (Zitadel OAuth)
-var zitadelSettings = builder.Configuration.GetSection(ZitadelSettings.SectionName).Get<ZitadelSettings>()
-    ?? throw new InvalidOperationException("Zitadel settings are not configured");
+// JWT Authentication configuration (Keycloak OAuth)
+var keycloakSettings = builder.Configuration.GetSection(KeycloakSettings.SectionName).Get<KeycloakSettings>()
+    ?? throw new InvalidOperationException("Keycloak settings are not configured");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = zitadelSettings.Authority;
-        options.Audience = zitadelSettings.Audience;
+        options.Authority = keycloakSettings.Authority;
+        options.Audience = keycloakSettings.Audience;
         options.RequireHttpsMetadata = false; // Allow HTTP for development
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = zitadelSettings.Authority,
+            ValidIssuer = keycloakSettings.Authority,
             ValidateAudience = true,
-            ValidAudience = zitadelSettings.Audience,
+            ValidAudience = keycloakSettings.Audience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(5),
             ValidateIssuerSigningKey = true,
@@ -5662,14 +5662,14 @@ Independent validators (e.g., email format + duplicate check) benefit from paral
 #### Validator Implementation - Simple Rules
 
 ```csharp
-// File: FamilyHub.Modules.Auth/Application/Commands/CompleteZitadelLogin/CompleteZitadelLoginCommandValidator.cs
+// File: FamilyHub.Modules.Auth/Application/Commands/CompleteKeycloakLogin/CompleteKeycloakLoginCommandValidator.cs
 using FluentValidation;
 
-namespace FamilyHub.Modules.Auth.Application.Commands.CompleteZitadelLogin;
+namespace FamilyHub.Modules.Auth.Application.Commands.CompleteKeycloakLogin;
 
-public sealed class CompleteZitadelLoginCommandValidator : AbstractValidator<CompleteZitadelLoginCommand>
+public sealed class CompleteKeycloakLoginCommandValidator : AbstractValidator<CompleteKeycloakLoginCommand>
 {
-    public CompleteZitadelLoginCommandValidator()
+    public CompleteKeycloakLoginCommandValidator()
     {
         RuleFor(x => x.AuthorizationCode)
             .NotEmpty()

@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-01-04
 **Decision Makers:** Andre Kirst, Claude Code AI
-**Related ADRs:** [ADR-001](ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-002](ADR-002-OAUTH-WITH-ZITADEL.md), [ADR-003](ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md)
+**Related ADRs:** [ADR-001](ADR-001-MODULAR-MONOLITH-FIRST.md), [ADR-002](ADR-002-OAUTH-WITH-KEYCLOAK.md), [ADR-003](ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md)
 
 ---
 
@@ -401,7 +401,7 @@ Test Mode includes security measures:
 
 | Tradeoff | Rationale |
 |----------|-----------|
-| Test Mode doesn't test OAuth flow | OAuth flow tested via Zitadel's own tests; our focus is business logic |
+| Test Mode doesn't test OAuth flow | OAuth flow tested via Keycloak's own tests; our focus is business logic |
 | Backend modification required | Small change (middleware) for significant testing benefit |
 | Test users are synthetic | Predictable state more valuable than realistic randomness |
 | Some tests skip real auth | Speed gain outweighs marginal coverage loss |
@@ -418,7 +418,7 @@ Test Mode includes security measures:
 ## Related Decisions
 
 - [ADR-001: Modular Monolith First](ADR-001-MODULAR-MONOLITH-FIRST.md) - Backend architecture influences E2E test strategy
-- [ADR-002: OAuth with Zitadel](ADR-002-OAUTH-WITH-ZITADEL.md) - Auth fixture mocks OAuth tokens
+- [ADR-002: OAuth with Keycloak](ADR-002-OAUTH-WITH-KEYCLOAK.md) - Auth fixture mocks OAuth tokens
 - [ADR-003: GraphQL Input/Command Pattern](ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md) - API helpers use GraphQL mutations
 
 ---

@@ -212,7 +212,7 @@ Comprehensive strategic and technical documentation is preserved in the `/docs` 
 
 3. **[Architecture Decision Records (ADRs)](/docs/architecture/)**
    - ADR-001: Modular Monolith First
-   - ADR-002: OAuth with Zitadel
+   - ADR-002: OAuth with Keycloak
    - ADR-003: GraphQL Input-Command Pattern
    - ADR-005: Family Module Extraction Pattern
 

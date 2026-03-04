@@ -392,7 +392,7 @@ test.describe('OAuth Complete Flow', () => {
 
 #### ADR-002: OAuth with Keycloak
 
-**Location**: `docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md`
+**Location**: `docs/architecture/ADR-002-OAUTH-WITH-KEYCLOAK.md`
 
 **Relevance**: Complete understanding of OAuth 2.0 + PKCE flow.
 
@@ -502,7 +502,7 @@ No need to introduce new libraries or patterns.
 
 ### Documentation
 
-- `docs/architecture/ADR-002-OAUTH-WITH-ZITADEL.md` (includes Keycloak amendment)
+- `docs/architecture/ADR-002-OAUTH-WITH-KEYCLOAK.md` (includes Keycloak amendment)
 - `docs/architecture/ADR-003-GRAPHQL-INPUT-COMMAND-PATTERN.md`
 - `docs/architecture/domain-model-microservices-map.md`
 - `docs/guides/FRONTEND_DEVELOPMENT.md`
