@@ -25,6 +25,11 @@ public interface IMessageRepository
     Task<List<Message>> GetByFamilyAsync(FamilyId familyId, int limit = 50, DateTime? before = null, CancellationToken ct = default);
 
     /// <summary>
+    /// Get messages for a conversation with cursor pagination.
+    /// </summary>
+    Task<List<Message>> GetByConversationAsync(ConversationId conversationId, int limit = 50, DateTime? before = null, CancellationToken ct = default);
+
+    /// <summary>
     /// Add a new message to the repository.
     /// </summary>
     Task AddAsync(Message message, CancellationToken ct = default);

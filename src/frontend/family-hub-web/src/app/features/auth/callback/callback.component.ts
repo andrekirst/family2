@@ -1,14 +1,17 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { take } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserService } from '../../../core/user/user.service';
-import { HealthService } from '../../../shared/services/health.service';
 import { CommonModule } from '@angular/common';
-import { firstValueFrom } from 'rxjs';
 
 /**
- * OAuth callback component - handles redirect from Keycloak
- * Exchanges authorization code for tokens, verifies backend health, then syncs with backend
+ * OAuth callback component - handles redirect from Keycloak.
+ * Exchanges authorization code for tokens, syncs user with backend,
+ * and navigates to the dashboard.
+ * Other consumers (dashboard, guards) use whenReady() to share
+ * the same in-flight request on F5 refresh.
  */
 @Component({
   selector: 'app-callback',
@@ -41,24 +44,7 @@ import { firstValueFrom } from 'rxjs';
             <div
               class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"
             ></div>
-            <div class="mt-4 space-y-2">
-              <p [class.text-green-600]="step() >= 1">
-                {{ step() >= 1 ? '&#10003;' : '&#9675;' }}
-                <span i18n="@@callback.exchangingCode">Exchanging authorization code...</span>
-              </p>
-              <p [class.text-green-600]="step() >= 2">
-                {{ step() >= 2 ? '&#10003;' : '&#9675;' }}
-                <span i18n="@@callback.verifyingBackend">Verifying backend services...</span>
-              </p>
-              <p [class.text-green-600]="step() >= 3">
-                {{ step() >= 3 ? '&#10003;' : '&#9675;' }}
-                <span i18n="@@callback.syncingBackend">Syncing with backend...</span>
-              </p>
-              <p [class.text-green-600]="step() >= 4">
-                {{ step() >= 4 ? '&#10003;' : '&#9675;' }}
-                <span i18n="@@callback.loadingDashboard">Loading dashboard...</span>
-              </p>
-            </div>
+            <p class="mt-4" i18n="@@callback.signingIn">Signing you in...</p>
           </div>
         }
       </div>
@@ -70,61 +56,52 @@ export class CallbackComponent implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private userService = inject(UserService);
-  private healthService = inject(HealthService);
+  private destroyRef = inject(DestroyRef);
 
   error: string | null = null;
-  step = signal(1); // Track progress through authentication flow
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(async (params) => {
-      // If already authenticated (e.g., after HMR re-render), skip and redirect
-      if (this.authService.isAuthenticated()) {
-        const redirectUrl = this.authService.consumePostLoginRedirect();
-        await this.router.navigateByUrl(redirectUrl);
-        return;
-      }
-
-      const code = params['code'];
-      const state = params['state'];
-      const error = params['error'];
-
-      if (error) {
-        this.error = $localize`:@@callback.authError:Authentication error` + `: ${error}`;
-        return;
-      }
-
-      if (!code || !state) {
-        this.error = $localize`:@@callback.missingParams:Missing authorization code or state parameter`;
-        return;
-      }
-
-      try {
-        // Step 1: Exchange authorization code for tokens (OAuth PKCE flow)
-        await this.authService.handleCallback(code, state);
-        this.step.set(2);
-
-        // Step 2: Verify backend health before calling RegisterUser
-        const health = await firstValueFrom(this.healthService.checkHealth());
-        if (health.status !== 'Healthy') {
-          await this.router.navigateByUrl('/status?from=callback');
+    this.route.queryParams
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe(async (params) => {
+        // If already authenticated (e.g., after HMR re-render), skip and redirect
+        if (this.authService.isAuthenticated()) {
+          const redirectUrl = this.authService.consumePostLoginRedirect();
+          await this.router.navigateByUrl(redirectUrl);
           return;
         }
-        this.step.set(3);
 
-        // Step 3: Sync user with backend database
-        await this.userService.registerUser();
-        this.step.set(4);
+        const code = params['code'];
+        const state = params['state'];
+        const error = params['error'];
 
-        // Step 4: Navigate to intended destination (after registration completes)
-        const redirectUrl = this.authService.consumePostLoginRedirect();
-        const separator = redirectUrl.includes('?') ? '&' : '?';
-        await this.router.navigateByUrl(`${redirectUrl}${separator}login=success`);
-      } catch (err: any) {
-        this.error =
-          err.message || $localize`:@@callback.failedAuth:Failed to complete authentication`;
-        console.error('Callback error:', err);
-      }
-    });
+        if (error) {
+          this.error = $localize`:@@callback.authError:Authentication error` + `: ${error}`;
+          return;
+        }
+
+        if (!code || !state) {
+          this.error = $localize`:@@callback.missingParams:Missing authorization code or state parameter`;
+          return;
+        }
+
+        try {
+          // Exchange authorization code for tokens (OAuth PKCE flow)
+          await this.authService.handleCallback(code, state);
+
+          // Sync user with backend (also populates _readyPromise for whenReady())
+          await this.userService.registerUser();
+
+          // Navigate to intended destination
+          const redirectUrl = this.authService.consumePostLoginRedirect();
+          const separator = redirectUrl.includes('?') ? '&' : '?';
+          await this.router.navigateByUrl(`${redirectUrl}${separator}login=success`);
+        } catch (err: any) {
+          this.error =
+            err.message || $localize`:@@callback.failedAuth:Failed to complete authentication`;
+          console.error('Callback error:', err);
+        }
+      });
   }
 
   retry(): void {

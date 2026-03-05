@@ -75,11 +75,9 @@ export const familyMemberGuard: CanActivateFn = async () => {
     return router.parseUrl('/login');
   }
 
-  // After F5 refresh, currentUser is null — fetch it from the backend
-  let user = userService.currentUser();
-  if (!user) {
-    user = await userService.fetchCurrentUser();
-  }
+  // Wait for user data — piggybacks on registerUser() if in-flight,
+  // or fetches from backend on F5 refresh
+  const user = await userService.whenReady();
 
   if (!user?.familyId) {
     return router.parseUrl('/family');

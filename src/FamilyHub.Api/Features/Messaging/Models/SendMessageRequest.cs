@@ -6,4 +6,6 @@ namespace FamilyHub.Api.Features.Messaging.Models;
 public class SendMessageRequest
 {
     public string Content { get; set; } = string.Empty;
+    public List<AttachmentInput>? Attachments { get; set; }
+    public Guid? ConversationId { get; set; }
 }

@@ -6,6 +6,7 @@ using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Services;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Storage;
+using Minio;
 
 namespace FamilyHub.Api.Features.FileManagement;
 
@@ -21,8 +22,32 @@ public sealed class FileManagementModule : IModule
         services.Configure<StorageQuotaOptions>(
             configuration.GetSection(StorageQuotaOptions.SectionName));
 
-        // Storage infrastructure
-        services.AddScoped<IStorageProvider, PostgresStorageProvider>();
+        // Storage infrastructure — conditional provider based on configuration
+        var provider = configuration.GetValue<string>("FileManagement:Storage:Provider") ?? "Postgres";
+
+        if (provider.Equals("MinIO", StringComparison.OrdinalIgnoreCase))
+        {
+            services.Configure<MinioStorageOptions>(
+                configuration.GetSection(MinioStorageOptions.SectionName));
+
+            var minioOptions = configuration.GetSection(MinioStorageOptions.SectionName)
+                .Get<MinioStorageOptions>() ?? new MinioStorageOptions();
+
+            services.AddSingleton<IMinioClient>(_ =>
+                new MinioClient()
+                    .WithEndpoint(minioOptions.Endpoint)
+                    .WithCredentials(minioOptions.AccessKey, minioOptions.SecretKey)
+                    .WithSSL(minioOptions.UseSSL)
+                    .Build());
+
+            services.AddSingleton<IStorageProvider, MinioStorageProvider>();
+            services.AddHostedService<MinioBucketInitializer>();
+        }
+        else
+        {
+            services.AddScoped<IStorageProvider, PostgresStorageProvider>();
+        }
+
         services.AddSingleton<IMimeDetector, MimeDetector>();
         services.AddSingleton<IChecksumCalculator, ChecksumCalculator>();
         services.AddScoped<IStorageQuotaService, StorageQuotaService>();

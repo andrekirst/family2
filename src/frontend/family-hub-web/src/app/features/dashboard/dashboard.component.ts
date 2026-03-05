@@ -206,13 +206,12 @@ export class DashboardComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.topBarService.setConfig({ title: 'Family Hub' });
 
-    // Fetch user data from backend (skip if already loaded by login callback)
-    if (!this.userService.currentUser()) {
-      try {
-        await this.userService.fetchCurrentUser();
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      }
+    // Wait for user data — piggybacks on registerUser() if in-flight,
+    // or fetches from backend on F5 refresh
+    try {
+      await this.userService.whenReady();
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
     }
 
     // Load the dashboard

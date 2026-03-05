@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
+import { firstValueFrom } from 'rxjs';
 import {
   REGISTER_USER_MUTATION,
   GET_CURRENT_USER_QUERY,
@@ -44,6 +45,10 @@ export class UserService {
   currentUser = signal<CurrentUser | null>(null);
   isLoading = signal(false);
 
+  // Shared promise so multiple consumers (callback, dashboard, guards) coalesce
+  // into a single in-flight request instead of each making their own.
+  private _readyPromise: Promise<CurrentUser | null> | null = null;
+
   constructor(private apollo: Apollo) {}
 
   /**
@@ -55,53 +60,68 @@ export class UserService {
    * @returns User data from backend
    * @throws Error if registration fails
    */
-  async registerUser(): Promise<CurrentUser> {
+  registerUser(): Promise<CurrentUser> {
+    const promise = this._doRegisterUser();
+    this._readyPromise = promise;
+    return promise;
+  }
+
+  private async _doRegisterUser(): Promise<CurrentUser> {
     this.isLoading.set(true);
-
     try {
-      let result;
+      return await this._attemptRegister();
+    } catch (firstError) {
+      console.warn('RegisterUser first attempt failed, retrying in 1s…', firstError);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       try {
-        result = await this.apollo
-          .mutate<RegisterUserResponse>({
-            mutation: REGISTER_USER_MUTATION,
-            variables: {
-              input: {
-                // Note: Backend extracts real values from JWT claims
-                // These are placeholder values to satisfy GraphQL schema
-                email: '',
-                name: '',
-                externalUserId: '',
-                externalProvider: 'KEYCLOAK',
-                emailVerified: false,
-              },
-            },
-          })
-          .toPromise();
-      } catch (apolloErr: any) {
-        // Apollo rejects the promise on GraphQL/network errors with errorPolicy 'none'
-        const gqlMessages = apolloErr?.graphQLErrors?.map((e: any) => e.message)?.join('; ');
-        const networkMsg = apolloErr?.networkError?.message;
-        throw new Error(
-          `RegisterUser mutation failed: ${gqlMessages || networkMsg || apolloErr?.message || 'Unknown error'}`,
-        );
+        return await this._attemptRegister();
+      } catch (retryError) {
+        console.error('RegisterUser retry also failed:', retryError);
+        throw retryError;
       }
-
-      if (!result?.data?.registerUser) {
-        throw new Error(`RegisterUser returned empty data: ${JSON.stringify(result)}`);
-      }
-
-      const user = result.data.registerUser;
-      this.currentUser.set(user);
-
-      // Sync backend locale preference to the frontend
-      if (user.preferredLocale) {
-        this.i18nService.applyBackendLocale(user.preferredLocale);
-      }
-
-      return user;
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  private async _attemptRegister(): Promise<CurrentUser> {
+    // Use errorPolicy: 'none' so GraphQL errors throw instead of silently
+    // returning { data: null }. The global 'all' policy is useful for queries
+    // with partial data, but registerUser is all-or-nothing.
+    const result = await firstValueFrom(
+      this.apollo.mutate<RegisterUserResponse>({
+        mutation: REGISTER_USER_MUTATION,
+        variables: {
+          input: {
+            // Note: Backend extracts real values from JWT claims
+            // These are placeholder values to satisfy GraphQL schema
+            email: '',
+            name: '',
+            externalUserId: '',
+            externalProvider: 'KEYCLOAK',
+            emailVerified: false,
+          },
+        },
+        errorPolicy: 'none',
+      }),
+    );
+
+    if (!result?.data?.registerUser) {
+      // With errorPolicy: 'none', GraphQL errors throw before reaching here.
+      // If we still get null data, log the full result for diagnostics.
+      console.error('RegisterUser returned null data. Full result:', JSON.stringify(result));
+      throw new Error('Backend registration returned null data (no GraphQL errors)');
+    }
+
+    const user = result.data.registerUser;
+    this.currentUser.set(user);
+
+    // Sync backend locale preference to the frontend
+    if (user.preferredLocale) {
+      this.i18nService.applyBackendLocale(user.preferredLocale);
+    }
+
+    return user;
   }
 
   /**
@@ -114,12 +134,12 @@ export class UserService {
     this.isLoading.set(true);
 
     try {
-      const result = await this.apollo
-        .query<GetMyProfileResponse>({
+      const result = await firstValueFrom(
+        this.apollo.query<GetMyProfileResponse>({
           query: GET_CURRENT_USER_QUERY,
           fetchPolicy: 'network-only', // Always fetch fresh data
-        })
-        .toPromise();
+        }),
+      );
 
       if (!result?.data?.me?.profile) {
         return null;
@@ -134,9 +154,30 @@ export class UserService {
   }
 
   /**
+   * Wait for the user to be available. Multiple consumers (dashboard, guards)
+   * share a single in-flight request via _readyPromise.
+   *
+   * Fast path: currentUser signal already populated → returns immediately.
+   * In-flight: registerUser() running → piggybacks on its promise.
+   * Cold start (F5 refresh): triggers fetchCurrentUser().
+   */
+  whenReady(): Promise<CurrentUser | null> {
+    const user = this.currentUser();
+    if (user) {
+      return Promise.resolve(user);
+    }
+    if (this._readyPromise) {
+      return this._readyPromise;
+    }
+    this._readyPromise = this.fetchCurrentUser();
+    return this._readyPromise;
+  }
+
+  /**
    * Clear user state on logout.
    */
   clearUser(): void {
     this.currentUser.set(null);
+    this._readyPromise = null;
   }
 }

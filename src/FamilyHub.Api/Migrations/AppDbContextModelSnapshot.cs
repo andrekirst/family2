@@ -1827,6 +1827,52 @@ namespace FamilyHub.Api.Migrations
                     b.ToTable("oauth_states", "google_integration");
                 });
 
+            modelBuilder.Entity("FamilyHub.Api.Features.Messaging.Domain.Entities.Conversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<Guid?>("FolderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("folder_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_conversations");
+
+                    b.HasIndex("FamilyId", "Type")
+                        .HasDatabaseName("ix_conversations_family_id_type");
+
+                    b.ToTable("conversations", "messaging");
+                });
+
             modelBuilder.Entity("FamilyHub.Api.Features.Messaging.Domain.Entities.Message", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1839,6 +1885,10 @@ namespace FamilyHub.Api.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("content");
+
+                    b.Property<Guid?>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id");
 
                     b.Property<Guid>("FamilyId")
                         .HasColumnType("uuid")
@@ -1856,6 +1906,10 @@ namespace FamilyHub.Api.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_messages");
+
+                    b.HasIndex("ConversationId", "SentAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_messages_conversation_id_sent_at");
 
                     b.HasIndex("FamilyId", "SentAt")
                         .IsDescending(false, true)
@@ -2542,6 +2596,113 @@ namespace FamilyHub.Api.Migrations
                     b.Navigation("Family");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Messaging.Domain.Entities.Conversation", b =>
+                {
+                    b.OwnsMany("FamilyHub.Api.Features.Messaging.Domain.Entities.ConversationMember", "Members", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<DateTime>("JoinedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("joined_at");
+
+                            b1.Property<DateTime?>("LeftAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("left_at");
+
+                            b1.Property<string>("Role")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("role");
+
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("user_id");
+
+                            b1.Property<Guid>("conversation_id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("conversation_id");
+
+                            b1.HasKey("Id")
+                                .HasName("pk_conversation_members");
+
+                            b1.HasIndex("UserId")
+                                .HasDatabaseName("ix_conversation_members_user_id");
+
+                            b1.HasIndex("conversation_id")
+                                .HasDatabaseName("ix_conversation_members_conversation_id");
+
+                            b1.ToTable("conversation_members", "messaging");
+
+                            b1.WithOwner()
+                                .HasForeignKey("conversation_id")
+                                .HasConstraintName("fk_conversation_members_conversations_conversation_id");
+                        });
+
+                    b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("FamilyHub.Api.Features.Messaging.Domain.Entities.Message", b =>
+                {
+                    b.OwnsMany("FamilyHub.Api.Features.Messaging.Domain.Entities.MessageAttachment", "Attachments", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<DateTime>("AttachedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("attached_at");
+
+                            b1.Property<Guid>("FileId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("file_id");
+
+                            b1.Property<string>("FileName")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
+                                .HasColumnName("file_name");
+
+                            b1.Property<long>("FileSize")
+                                .HasColumnType("bigint")
+                                .HasColumnName("file_size");
+
+                            b1.Property<string>("MimeType")
+                                .IsRequired()
+                                .HasMaxLength(127)
+                                .HasColumnType("character varying(127)")
+                                .HasColumnName("mime_type");
+
+                            b1.Property<string>("StorageKey")
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
+                                .HasColumnName("storage_key");
+
+                            b1.Property<Guid>("message_id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("message_id");
+
+                            b1.HasKey("Id")
+                                .HasName("pk_message_attachments");
+
+                            b1.HasIndex("message_id")
+                                .HasDatabaseName("ix_message_attachments_message_id");
+
+                            b1.ToTable("message_attachments", "messaging");
+
+                            b1.WithOwner()
+                                .HasForeignKey("message_id")
+                                .HasConstraintName("fk_message_attachments_messages_message_id");
+                        });
+
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("FamilyHub.EventChain.Domain.Entities.ChainDefinitionStep", b =>

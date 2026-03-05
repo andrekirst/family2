@@ -1,6 +1,8 @@
 import { Component, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AvatarDisplayComponent } from '../../../../core/avatar';
+import { FileCardComponent } from '../file-card/file-card.component';
+import { AttachmentDto } from '../../services/messaging.service';
 
 export interface MessageViewModel {
   id: string;
@@ -9,12 +11,13 @@ export interface MessageViewModel {
   senderAvatarId: string | null;
   content: string;
   sentAt: string;
+  attachments: AttachmentDto[];
 }
 
 @Component({
   selector: 'app-message-item',
   standalone: true,
-  imports: [CommonModule, AvatarDisplayComponent],
+  imports: [CommonModule, AvatarDisplayComponent, FileCardComponent],
   template: `
     <div class="flex gap-3 px-4 py-2 hover:bg-gray-50 transition-colors" data-testid="message-item">
       <app-avatar-display
@@ -32,12 +35,21 @@ export interface MessageViewModel {
             {{ formattedTime() }}
           </span>
         </div>
-        <p
-          class="text-sm text-gray-700 whitespace-pre-wrap break-words"
-          data-testid="message-content"
-        >
-          {{ message().content }}
-        </p>
+        @if (message().content) {
+          <p
+            class="text-sm text-gray-700 whitespace-pre-wrap break-words"
+            data-testid="message-content"
+          >
+            {{ message().content }}
+          </p>
+        }
+        @if (message().attachments?.length) {
+          <div class="mt-1 flex flex-wrap gap-2" data-testid="message-attachments">
+            @for (attachment of message().attachments; track attachment.fileId) {
+              <app-file-card [attachment]="attachment" />
+            }
+          </div>
+        }
       </div>
     </div>
   `,

@@ -11,6 +11,7 @@ public sealed class MessagingModule : IModule
     public void Register(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IConversationRepository, ConversationRepository>();
 
         // Search
         services.AddScoped<ISearchProvider, MessagingSearchProvider>();
