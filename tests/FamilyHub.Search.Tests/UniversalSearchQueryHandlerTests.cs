@@ -3,6 +3,7 @@ using FamilyHub.Api.Features.Search.Application.Queries.UniversalSearch;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FamilyHub.Search.Tests;
 
@@ -18,7 +19,7 @@ public class UniversalSearchQueryHandlerTests
         var provider1 = new FakeSearchProvider("family");
         var provider2 = new FakeSearchProvider("calendar");
         var registry = CreateEmptyRegistry();
-        var handler = new UniversalSearchQueryHandler([provider1, provider2], registry);
+        var handler = new UniversalSearchQueryHandler([provider1, provider2], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("test");
 
         // Act
@@ -56,7 +57,7 @@ public class UniversalSearchQueryHandlerTests
             .ToList();
         var provider = new FakeSearchProvider("family", results);
         var registry = CreateEmptyRegistry();
-        var handler = new UniversalSearchQueryHandler([provider], registry);
+        var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("test", limit: 5);
 
         // Act
@@ -72,7 +73,7 @@ public class UniversalSearchQueryHandlerTests
         // Arrange
         var provider = new FakeSearchProvider("family");
         var registry = CreateRegistryWithCommands();
-        var handler = new UniversalSearchQueryHandler([provider], registry);
+        var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("", permissions: ["family:invite"]);
 
         // Act
@@ -90,7 +91,7 @@ public class UniversalSearchQueryHandlerTests
         // Arrange
         var provider = new FakeSearchProvider("family");
         var registry = CreateRegistryWithCommands();
-        var handler = new UniversalSearchQueryHandler([provider], registry);
+        var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("invite", permissions: ["family:invite", "family:admin"]);
 
         // Act
@@ -107,7 +108,7 @@ public class UniversalSearchQueryHandlerTests
         // Arrange
         var provider = new FakeSearchProvider("family");
         var registry = CreateRegistryWithCommands();
-        var handler = new UniversalSearchQueryHandler([provider], registry);
+        var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("", permissions: ["family:invite", "family:admin"]);
 
         // Act
@@ -122,7 +123,7 @@ public class UniversalSearchQueryHandlerTests
     {
         // Arrange
         var registry = CreateEmptyRegistry();
-        var handler = new UniversalSearchQueryHandler([], registry);
+        var handler = new UniversalSearchQueryHandler([], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("test");
 
         // Act
@@ -142,7 +143,7 @@ public class UniversalSearchQueryHandlerTests
         };
         var provider = new FakeSearchProvider("family", results);
         var registry = CreateEmptyRegistry();
-        var handler = new UniversalSearchQueryHandler([provider], registry);
+        var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("john");
 
         // Act
@@ -173,7 +174,7 @@ public class UniversalSearchQueryHandlerTests
         var provider3 = new FakeSearchProvider("files", results3);
         var registry = CreateEmptyRegistry();
         var handler = new UniversalSearchQueryHandler(
-            [provider1, provider2, provider3], registry);
+            [provider1, provider2, provider3], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("test", limit: 15);
 
         // Act
@@ -189,7 +190,7 @@ public class UniversalSearchQueryHandlerTests
         // Arrange
         var provider = new FakeSearchProvider("family");
         var registry = CreateRegistryWithBilingualCommands();
-        var handler = new UniversalSearchQueryHandler([provider], registry);
+        var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("einladen",
             permissions: ["family:invite"],
             locale: "de");
@@ -207,7 +208,7 @@ public class UniversalSearchQueryHandlerTests
         // Arrange
         var provider = new FakeSearchProvider("family");
         var registry = CreateRegistryWithBilingualCommands();
-        var handler = new UniversalSearchQueryHandler([provider], registry);
+        var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("invite",
             permissions: ["family:invite"],
             locale: "en");
@@ -225,7 +226,7 @@ public class UniversalSearchQueryHandlerTests
         // Arrange
         var provider = new FakeSearchProvider("family");
         var registry = CreateRegistryWithBilingualCommands();
-        var handler = new UniversalSearchQueryHandler([provider], registry);
+        var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("mitglied",
             permissions: ["family:invite"],
             locale: "de");
