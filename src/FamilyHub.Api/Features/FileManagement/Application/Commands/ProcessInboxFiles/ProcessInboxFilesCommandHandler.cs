@@ -55,7 +55,9 @@ public sealed class ProcessInboxFilesCommandHandler(
         }
 
         if (logEntries.Count > 0)
+        {
             await logRepository.AddRangeAsync(logEntries, cancellationToken);
+        }
 
         return new ProcessInboxFilesResult(
             true,

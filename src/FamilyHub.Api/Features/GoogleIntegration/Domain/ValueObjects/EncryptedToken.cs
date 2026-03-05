@@ -8,7 +8,10 @@ public readonly partial struct EncryptedToken
     private static Validation Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return Validation.Invalid("Encrypted token cannot be empty");
+        }
+
         return Validation.Ok;
     }
 }

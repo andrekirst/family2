@@ -1,7 +1,6 @@
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Search.Models;
-using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Api.Features.Search.Application.Queries.UniversalSearch;
 
@@ -73,7 +72,9 @@ public sealed class UniversalSearchQueryHandler(
     private static bool MatchesKeyword(CommandDescriptor command, string query)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return true;
+        }
 
         return command.Label.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                command.Description.Contains(query, StringComparison.OrdinalIgnoreCase) ||

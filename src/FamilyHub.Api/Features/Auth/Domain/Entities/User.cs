@@ -233,7 +233,10 @@ public sealed class User : AggregateRoot<UserId>
     /// </summary>
     public void RemoveAvatar()
     {
-        if (AvatarId is null) return;
+        if (AvatarId is null)
+        {
+            return;
+        }
 
         var previousAvatarId = AvatarId.Value;
         AvatarId = null;

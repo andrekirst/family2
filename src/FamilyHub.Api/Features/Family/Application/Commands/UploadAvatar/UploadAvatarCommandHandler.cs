@@ -30,8 +30,7 @@ public sealed class UploadAvatarCommandHandler(
 
         // Build optional crop area
         CropArea? cropArea = null;
-        if (command.CropX.HasValue && command.CropY.HasValue &&
-            command.CropWidth.HasValue && command.CropHeight.HasValue)
+        if (command is { CropX: not null, CropY: not null, CropWidth: not null, CropHeight: not null })
         {
             cropArea = new CropArea(
                 command.CropX.Value, command.CropY.Value,

@@ -28,7 +28,9 @@ public class QueryType
         var user = await userRepository.GetByExternalIdAsync(
             ExternalUserId.From(externalUserIdString), cancellationToken);
         if (user is null)
+        {
             throw new UnauthorizedAccessException("User not found");
+        }
 
         // Resolve permissions from family membership
         string[]? permissions = null;

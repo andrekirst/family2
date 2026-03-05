@@ -16,7 +16,9 @@ public sealed class RenameAlbumCommandHandler(
             ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
 
         if (album.FamilyId != command.FamilyId)
+        {
             throw new DomainException("Album belongs to a different family", DomainErrorCodes.Forbidden);
+        }
 
         album.Rename(command.NewName);
 

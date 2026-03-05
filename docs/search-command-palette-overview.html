@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search Command Palette - Implementation Overview (#208)</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --border: #475569;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #3b82f6;
+    --accent2: #8b5cf6;
+    --green: #22c55e;
+    --orange: #f97316;
+    --pink: #ec4899;
+    --cyan: #06b6d4;
+    --yellow: #eab308;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+  h1 span { color: var(--accent); }
+  .subtitle { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2.5rem; }
+  h2 {
+    font-size: 1.4rem;
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  h2 .num {
+    background: var(--accent);
+    color: white;
+    width: 28px; height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  h3 { font-size: 1.1rem; margin: 1.5rem 0 0.75rem; color: var(--cyan); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .card-small {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+  .card-small h4 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .badge-blue { background: #1e40af; color: #93c5fd; }
+  .badge-green { background: #166534; color: #86efac; }
+  .badge-purple { background: #581c87; color: #d8b4fe; }
+  .badge-orange { background: #9a3412; color: #fdba74; }
+  .badge-pink { background: #831843; color: #f9a8d4; }
+  .badge-cyan { background: #164e63; color: #67e8f9; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  th {
+    background: var(--surface2);
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    font-weight: 600;
+    color: var(--cyan);
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  tr:hover td { color: var(--text); background: rgba(59,130,246,0.05); }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.85em;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--green);
+  }
+  pre {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin: 0.75rem 0;
+    color: var(--text-muted);
+  }
+  .mermaid {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    text-align: center;
+  }
+  ul, ol { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin: 0.3rem 0; color: var(--text-muted); }
+  li strong { color: var(--text); }
+  .flow-arrow { color: var(--accent); font-weight: bold; font-size: 1.2rem; }
+  .highlight { color: var(--yellow); font-weight: 600; }
+  .toc { columns: 2; column-gap: 2rem; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .layer-label {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .layer-fe { background: #1e3a5f; color: #7dd3fc; }
+  .layer-be { background: #3b1f5e; color: #d8b4fe; }
+  .layer-gql { background: #1e4038; color: #6ee7b7; }
+  .section-intro {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    max-width: 900px;
+  }
+  .emoji { font-size: 1.3rem; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1><span>#208</span> Universal Search &amp; Command Palette</h1>
+<p class="subtitle">Complete implementation overview &mdash; how data is collected, transferred, and displayed</p>
+
+<!-- ================================================================ -->
+<h2><span class="num">1</span> Architecture Overview</h2>
+
+<p class="section-intro">
+  The command palette (<kbd>Ctrl+K</kbd>) combines three data sources into a unified interface:
+  <strong>client-side NLP parsing</strong>, <strong>server-side GraphQL search</strong>, and
+  <strong>static default items</strong>. Each source contributes items with a specific type that
+  determines grouping, icons, and click behavior.
+</p>
+
+<div class="mermaid">
+flowchart TB
+    subgraph USER["User Interaction"]
+        K["Ctrl+K / Click"]
+        TYPE["Types query"]
+        SELECT["Selects item"]
+    end
+
+    subgraph FE["Frontend (Angular 19)"]
+        CP["CommandPaletteComponent"]
+        CPS["CommandPaletteService"]
+        NLP["NlpParserService"]
+        SS["SearchService"]
+        DEF["Default Items<br/>(hints + nav + commands)"]
+    end
+
+    subgraph GQL["GraphQL Layer"]
+        QUERY["search.universal(input)"]
+    end
+
+    subgraph BE["Backend (.NET 9)"]
+        QH["UniversalSearchQueryHandler"]
+        SP["ISearchProvider[]<br/>(8 modules)"]
+        CR["ICommandPaletteRegistry<br/>(22 commands)"]
+    end
+
+    subgraph DB["Data Layer"]
+        PG["PostgreSQL"]
+    end
+
+    K --> CP
+    TYPE --> CP
+    CP -->|debounce 300ms| CPS
+
+    CPS -->|"empty query"| DEF
+    CPS -->|"has query"| NLP
+    CPS -->|"has query"| SS
+
+    NLP -->|"regex match"| CPS
+    SS -->|"Apollo query"| QUERY
+    QUERY --> QH
+
+    QH --> SP
+    QH --> CR
+    SP --> PG
+    CR -->|"singleton cache"| QH
+
+    QH -->|"UniversalSearchResult"| SS
+    SS --> CPS
+
+    DEF --> CP
+    CPS -->|"PaletteItem[]"| CP
+
+    SELECT --> CP
+    CP -->|"router.navigateByUrl()"| ROUTE["Angular Router"]
+
+    style USER fill:#1e293b,stroke:#3b82f6,color:#e2e8f0
+    style FE fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
+    style GQL fill:#1e4038,stroke:#22c55e,color:#e2e8f0
+    style BE fill:#3b1f5e,stroke:#8b5cf6,color:#e2e8f0
+    style DB fill:#3b1f1f,stroke:#f97316,color:#e2e8f0
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">2</span> Data Collection &mdash; Three Sources</h2>
+
+<div class="card-grid">
+  <div class="card-small">
+    <h4><span class="emoji">&#x1F4A1;</span> Source 1: Default Items <span class="badge badge-cyan">Client-Side</span></h4>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:0.75rem;">
+      Shown immediately when the palette opens with an empty query. No network request needed.
+    </p>
+    <table>
+      <tr><th>Type</th><th>Count</th><th>Content</th></tr>
+      <tr><td><code>hint</code></td><td>2</td><td>Daily-rotating NLP example phrases (EN/DE pool of 10)</td></tr>
+      <tr><td><code>command</code></td><td>2</td><td>Create Event, Send Message</td></tr>
+      <tr><td><code>navigation</code></td><td>4</td><td>Dashboard, Calendar, Messages, Files</td></tr>
+    </table>
+    <pre>getDailyIndex(poolSize, offset) {
+  const day = Math.floor(Date.now() / 86_400_000);
+  return (day + offset) % poolSize;
+}</pre>
+  </div>
+
+  <div class="card-small">
+    <h4><span class="emoji">&#x2728;</span> Source 2: NLP Parser <span class="badge badge-green">Client-Side</span></h4>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:0.75rem;">
+      Regex-based pattern matching against locale-specific rules. Runs independently of GraphQL.
+    </p>
+    <table>
+      <tr><th>Category</th><th>Example (EN)</th><th>Confidence</th></tr>
+      <tr><td>Calendar event</td><td><code>tomorrow event at 3 PM</code></td><td>0.9</td></tr>
+      <tr><td>Navigation</td><td><code>open calendar</code></td><td>0.85</td></tr>
+      <tr><td>Invite</td><td><code>invite john@example.com</code></td><td>0.9</td></tr>
+      <tr><td>Create folder</td><td><code>create folder Vacation</code></td><td>0.8</td></tr>
+      <tr><td>Send message</td><td><code>send a message</code></td><td>0.75</td></tr>
+      <tr><td>Search files</td><td><code>find files report</code></td><td>0.7</td></tr>
+    </table>
+  </div>
+
+  <div class="card-small">
+    <h4><span class="emoji">&#x1F50D;</span> Source 3: GraphQL Search <span class="badge badge-purple">Server-Side</span></h4>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:0.75rem;">
+      Authenticated API call that fans out to 8 module search providers + command registry.
+    </p>
+    <table>
+      <tr><th>Returns</th><th>Source</th><th>Details</th></tr>
+      <tr><td><code>results[]</code></td><td>8 ISearchProvider</td><td>DB queries per module, capped at 30 total</td></tr>
+      <tr><td><code>commands[]</code></td><td>CommandPaletteRegistry</td><td>22 commands, filtered by permissions &amp; keywords</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">3</span> Data Transfer &mdash; What Gets Sent</h2>
+
+<h3>3.1 GraphQL Request</h3>
+<div class="card">
+<pre>query UniversalSearch($input: UniversalSearchRequestInput!) {
+  search {
+    universal(input: $input) {
+      results { title, description, module, icon, route }
+      commands { label, description, keywords, route,
+                 requiredPermissions, icon, group }
+    }
+  }
+}
+
+// Variables:
+{
+  "input": {
+    "query": "tomorrow event",   // User's search text
+    "modules": null,             // Optional module filter
+    "limit": 10,                 // Per-provider cap
+    "locale": "en"               // From LOCALE_ID
+  }
+}</pre>
+</div>
+
+<h3>3.2 Backend Processing Pipeline</h3>
+
+<div class="mermaid">
+sequenceDiagram
+    participant FE as Frontend
+    participant GQL as GraphQL QueryType
+    participant QH as QueryHandler
+    participant SP as SearchProviders
+    participant CR as CommandRegistry
+    participant DB as PostgreSQL
+
+    FE->>GQL: universal(input)
+    Note over GQL: Extract JWT claims<br/>Resolve user, family, permissions
+
+    GQL->>QH: UniversalSearchQuery
+    Note over QH: Build SearchContext<br/>(userId, familyId, query, limit, locale)
+
+    par Fan-out to providers
+        QH->>SP: FamilySearchProvider.SearchAsync()
+        SP->>DB: Query family, members, invitations
+        SP-->>QH: SearchResultItem[]
+    and
+        QH->>SP: CalendarSearchProvider.SearchAsync()
+        SP->>DB: Query events (9-month window)
+        SP-->>QH: SearchResultItem[]
+    and
+        QH->>SP: FileManagementSearchProvider.SearchAsync()
+        SP->>DB: Query files, folders, albums, tags
+        SP-->>QH: SearchResultItem[]
+    and
+        QH->>SP: MessagingSearchProvider.SearchAsync()
+        SP->>DB: Query messages
+        SP-->>QH: SearchResultItem[]
+    and
+        QH->>SP: ... (4 more providers)
+        SP-->>QH: SearchResultItem[]
+    end
+
+    Note over QH: Flatten + cap at 30 results
+
+    QH->>CR: GetAllCommands()
+    Note over CR: Singleton cache (22 commands)
+    CR-->>QH: CommandDescriptor[]
+
+    Note over QH: Filter by permissions<br/>Filter by keyword match<br/>Resolve locale labels (DE)
+
+    QH-->>GQL: UniversalSearchResult
+    GQL-->>FE: { results[], commands[] }
+</div>
+
+<h3>3.3 GraphQL Response</h3>
+<div class="card">
+<pre>{
+  "data": {
+    "search": {
+      "universal": {
+        "results": [
+          {
+            "title": "Weekly Team Standup",
+            "description": "Tomorrow at 10:00 AM",
+            "module": "calendar",
+            "icon": "calendar",
+            "route": "/family/calendar/events/abc-123"
+          }
+        ],
+        "commands": [
+          {
+            "label": "Create Event",
+            "description": "Add a new calendar event",
+            "keywords": ["create","new","event","add"],
+            "route": "/family/calendar?action=create",
+            "requiredPermissions": [],
+            "icon": "plus",
+            "group": "calendar"
+          }
+        ]
+      }
+    }
+  }
+}</pre>
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">4</span> Data Display &mdash; PaletteItem Mapping</h2>
+
+<p class="section-intro">
+  All three sources are normalized into a unified <code>PaletteItem[]</code> array.
+  The component groups items by consecutive <code>type</code> values and renders section headers automatically.
+</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph SOURCES["Data Sources"]
+        D["Default Items<br/>(8 items)"]
+        N["NLP Match<br/>(0-1 item)"]
+        R["GraphQL Results<br/>(0-30 items)"]
+        C["GraphQL Commands<br/>(0-22 items)"]
+    end
+
+    subgraph NORMALIZE["Normalize to PaletteItem"]
+        PI["PaletteItem {<br/>type, title, description,<br/>icon, route, module,<br/>confidence}"]
+    end
+
+    subgraph DISPLAY["Grouped Display"]
+        S1["&#x1F4A1; Try saying..."]
+        S2["&#x2728; Suggestions"]
+        S3["&#x1F50D; Search Results"]
+        S4["&#x26A1; Commands"]
+        S5["&#x1F3E0; Navigation"]
+    end
+
+    D --> PI
+    N --> PI
+    R --> PI
+    C --> PI
+
+    PI --> S1
+    PI --> S2
+    PI --> S3
+    PI --> S4
+    PI --> S5
+
+    style SOURCES fill:#1e293b,stroke:#3b82f6,color:#e2e8f0
+    style NORMALIZE fill:#1e4038,stroke:#22c55e,color:#e2e8f0
+    style DISPLAY fill:#3b1f5e,stroke:#8b5cf6,color:#e2e8f0
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>PaletteItemType</th>
+      <th>Section Label</th>
+      <th>Emoji</th>
+      <th>Source</th>
+      <th>Click Behavior</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>hint</code></td>
+      <td>Try saying...</td>
+      <td>&#x1F4A1;</td>
+      <td>Default items (daily rotation)</td>
+      <td>Fills input + triggers NLP search</td>
+    </tr>
+    <tr>
+      <td><code>nlp</code></td>
+      <td>Suggestions</td>
+      <td>&#x2728;</td>
+      <td>NlpParserService (client-side regex)</td>
+      <td>Navigate to route</td>
+    </tr>
+    <tr>
+      <td><code>result</code></td>
+      <td>Search Results</td>
+      <td>Module emoji</td>
+      <td>GraphQL: 8 ISearchProvider (DB queries)</td>
+      <td>Navigate to route</td>
+    </tr>
+    <tr>
+      <td><code>command</code></td>
+      <td>Commands</td>
+      <td>&#x26A1;</td>
+      <td>GraphQL: CommandPaletteRegistry (singleton)</td>
+      <td>Navigate to route</td>
+    </tr>
+    <tr>
+      <td><code>navigation</code></td>
+      <td>Navigation</td>
+      <td>Module emoji</td>
+      <td>Default items (static)</td>
+      <td>Navigate to route</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ================================================================ -->
+<h2><span class="num">5</span> Search Providers &mdash; Per-Module Data Collection</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Module</th>
+      <th>Provider Class</th>
+      <th>What It Searches</th>
+      <th>Commands</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="badge badge-blue">Family</span></td>
+      <td>FamilySearchProvider</td>
+      <td>Family name, members (name/email), pending invitations</td>
+      <td>3 (View, Invite, Settings)</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-green">Calendar</span></td>
+      <td>CalendarSearchProvider</td>
+      <td>Events in 9-month window (3 past, 6 future), sorts upcoming first</td>
+      <td>2 (Create Event, View Calendar)</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-purple">Files</span></td>
+      <td>FileManagementSearchProvider</td>
+      <td>Files, folders, albums, tags, secure notes, share links</td>
+      <td>8 (Create Folder, Upload, Albums, etc.)</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-pink">Messaging</span></td>
+      <td>MessagingSearchProvider</td>
+      <td>Messages by content, sorted newest first</td>
+      <td>2 (New Message, View Messages)</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-cyan">Dashboard</span></td>
+      <td>DashboardSearchProvider</td>
+      <td>Personal &amp; family dashboards</td>
+      <td>1 (Open Dashboard)</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-orange">EventChain</span></td>
+      <td>EventChainSearchProvider</td>
+      <td>Automation workflows by name/description</td>
+      <td>2 (Create Chain, View Chains)</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">Photos</span></td>
+      <td>PhotosSearchProvider</td>
+      <td>Photos by filename/caption, newest first</td>
+      <td>2 (Upload Photo, View Photos)</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-purple">Auth</span></td>
+      <td>&mdash; (no search provider)</td>
+      <td>&mdash;</td>
+      <td>2 (View Profile, Settings)</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ================================================================ -->
+<h2><span class="num">6</span> NLP Rules &mdash; Client-Side Intelligence</h2>
+
+<div class="mermaid">
+flowchart TD
+    Q["User Query<br/>'tomorrow event at 3 PM'"] --> MIN{"len >= 3?"}
+    MIN -->|No| NONE["Return null"]
+    MIN -->|Yes| LOCALE{"Locale?"}
+
+    LOCALE -->|"en"| EN["EN_RULES<br/>(17 regex patterns)"]
+    LOCALE -->|"de"| DE["DE_RULES<br/>(17 regex patterns)"]
+
+    EN --> MATCH["Try each pattern"]
+    DE --> MATCH
+
+    MATCH --> FOUND{"Match?"}
+    FOUND -->|No| NONE
+    FOUND -->|Yes| EXTRACT["extract(match)"]
+
+    EXTRACT --> CONF{"confidence > 0.5?"}
+    CONF -->|No| NONE
+    CONF -->|Yes| BEST["Return best NlpMatch"]
+
+    BEST --> RESULT["NlpMatch {<br/>type: 'create-event',<br/>confidence: 0.9,<br/>route: '/family/calendar?action=create<br/>&date=2026-03-06&time=15:00',<br/>description: 'Create event tomorrow at 3:00 PM'<br/>}"]
+
+    style Q fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
+    style RESULT fill:#1e4038,stroke:#22c55e,color:#e2e8f0
+</div>
+
+<div class="card-grid">
+  <div class="card-small">
+    <h4>English NLP Actions</h4>
+    <ul>
+      <li><strong>Calendar:</strong> <code>tomorrow event at 3 PM</code> &rarr; create event with date+time</li>
+      <li><strong>Navigate:</strong> <code>open calendar</code>, <code>go to dashboard</code> &rarr; route directly</li>
+      <li><strong>Invite:</strong> <code>invite john@example.com</code> &rarr; pre-fill email</li>
+      <li><strong>Files:</strong> <code>create folder Vacation</code>, <code>upload a file</code></li>
+      <li><strong>Message:</strong> <code>send a message</code> &rarr; open compose</li>
+      <li><strong>Search:</strong> <code>find files report</code> &rarr; file search with query</li>
+    </ul>
+  </div>
+  <div class="card-small">
+    <h4>German NLP Actions</h4>
+    <ul>
+      <li><strong>Kalender:</strong> <code>morgen Termin um 15 Uhr</code> &rarr; Termin erstellen</li>
+      <li><strong>Navigation:</strong> <code>Kalender &ouml;ffnen</code>, <code>zum Dashboard gehen</code></li>
+      <li><strong>Einladen:</strong> <code>john@example.com einladen</code></li>
+      <li><strong>Dateien:</strong> <code>Ordner Urlaub erstellen</code>, <code>Datei hochladen</code></li>
+      <li><strong>Nachricht:</strong> <code>eine Nachricht senden</code></li>
+      <li><strong>Suche:</strong> <code>Dateien Bericht finden</code></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">7</span> Default Items &mdash; Daily Rotation</h2>
+
+<div class="card">
+<h3>Hint Rotation Algorithm</h3>
+<p style="color:var(--text-muted);margin-bottom:1rem;">
+  Two NLP hints are selected daily from a pool of 10 per locale, using deterministic epoch-day math.
+  All users see the same hints on the same day. The pool rotates every 10 days.
+</p>
+
+<div class="mermaid">
+flowchart LR
+    POOL["Hint Pool (10 items)<br/>'tomorrow event at 3 PM'<br/>'invite john@example.com'<br/>'open calendar'<br/>'create folder Vacation'<br/>'send a message'<br/>'event friday at 10 AM'<br/>'find files report'<br/>'go to dashboard'<br/>'create album Summer'<br/>'upload a file'"] --> CALC["daysSinceEpoch =<br/>floor(Date.now() / 86,400,000)"]
+
+    CALC --> IDX1["hint1 = pool[day % 10]"]
+    CALC --> IDX2["hint2 = pool[(day + 1) % 10]"]
+
+    IDX1 --> ITEMS["Default Items (8)"]
+    IDX2 --> ITEMS
+
+    ITEMS --> H1["&#x1F4A1; hint: 'open calendar'"]
+    ITEMS --> H2["&#x1F4A1; hint: 'create folder Vacation'"]
+    ITEMS --> C1["&#x26A1; command: Create Event"]
+    ITEMS --> C2["&#x26A1; command: Send Message"]
+    ITEMS --> N1["&#x1F3E0; nav: Dashboard"]
+    ITEMS --> N2["&#x1F4C5; nav: Calendar"]
+    ITEMS --> N3["&#x1F4AC; nav: Messages"]
+    ITEMS --> N4["&#x1F4C1; nav: Files"]
+
+    style POOL fill:#1e293b,stroke:#eab308,color:#e2e8f0
+    style ITEMS fill:#1e4038,stroke:#22c55e,color:#e2e8f0
+</div>
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">8</span> Component &mdash; UI Rendering</h2>
+
+<div class="card">
+<h3>Visual Structure</h3>
+<pre>
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502; &#x1F50D; Search or type a command...          [Esc] &#x2502;
+&#x251C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2524;
+&#x2502;  TRY SAYING...                                    &#x2502;
+&#x2502;  &#x1F4A1; tomorrow event at 3 PM           [Enter] &#x2502;  &lt;-- hint (click = fill input)
+&#x2502;  &#x1F4A1; invite john@example.com                  &#x2502;  &lt;-- hint
+&#x2502;                                                    &#x2502;
+&#x2502;  COMMANDS                                          &#x2502;
+&#x2502;  &#x26A1; Create Event                     calendar &#x2502;  &lt;-- command
+&#x2502;     Add a new calendar event                       &#x2502;
+&#x2502;  &#x26A1; Send Message                     messages &#x2502;  &lt;-- command
+&#x2502;     Start a new conversation                       &#x2502;
+&#x2502;                                                    &#x2502;
+&#x2502;  NAVIGATION                                        &#x2502;
+&#x2502;  &#x1F3E0; Dashboard                       dashboard &#x2502;  &lt;-- navigation
+&#x2502;  &#x1F4C5; Calendar                        calendar &#x2502;  &lt;-- navigation
+&#x2502;  &#x1F4AC; Messages                        messages &#x2502;  &lt;-- navigation
+&#x2502;  &#x1F4C1; Files                              files &#x2502;  &lt;-- navigation
+&#x251C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2524;
+&#x2502; [&#x2191;][&#x2193;] navigate  [Enter] select  [Esc] close  &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+</pre>
+</div>
+
+<h3>Keyboard &amp; Interaction Model</h3>
+<table>
+  <tr><th>Input</th><th>Action</th></tr>
+  <tr><td><kbd>Ctrl+K</kbd> / <kbd>Cmd+K</kbd></td><td>Toggle palette open/closed</td></tr>
+  <tr><td><kbd>Esc</kbd></td><td>Close palette, restore previous focus</td></tr>
+  <tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Circular navigation through items</td></tr>
+  <tr><td><kbd>Enter</kbd></td><td>Execute selected item</td></tr>
+  <tr><td><kbd>Tab</kbd></td><td>Trapped (focus stays in modal)</td></tr>
+  <tr><td>Click item</td><td>Execute item</td></tr>
+  <tr><td>Click backdrop</td><td>Close palette</td></tr>
+  <tr><td>Type text (300ms debounce)</td><td>Trigger NLP + GraphQL search</td></tr>
+</table>
+
+<!-- ================================================================ -->
+<h2><span class="num">9</span> State Management &mdash; Signals</h2>
+
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> Closed
+
+    Closed --> Open : Ctrl+K / toggle()
+    Open --> Closed : Esc / backdrop click
+
+    state Open {
+        [*] --> ShowingDefaults : items = getDefaultItems()
+        ShowingDefaults --> Searching : user types (300ms debounce)
+        Searching --> ShowingResults : performSearch() completes
+        ShowingResults --> Searching : user types more
+        ShowingResults --> ShowingDefaults : user clears input
+        Searching --> ShowingDefaults : user clears input
+        ShowingResults --> HintSearch : click hint item
+        HintSearch --> ShowingResults : performSearch() completes
+
+        ShowingDefaults --> Navigating : click command/nav item
+        ShowingResults --> Navigating : click any non-hint item
+    }
+
+    Navigating --> Closed : router.navigateByUrl()
+</div>
+
+<table>
+  <tr><th>Signal</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td><code>isOpen</code></td><td><code>signal&lt;boolean&gt;</code></td><td>Palette visibility</td></tr>
+  <tr><td><code>query</code></td><td><code>signal&lt;string&gt;</code></td><td>Current search input text</td></tr>
+  <tr><td><code>selectedIndex</code></td><td><code>signal&lt;number&gt;</code></td><td>Keyboard-selected item index</td></tr>
+  <tr><td><code>isLoading</code></td><td><code>signal&lt;boolean&gt;</code></td><td>GraphQL request in flight</td></tr>
+  <tr><td><code>error</code></td><td><code>signal&lt;string | null&gt;</code></td><td>Error message for display</td></tr>
+  <tr><td><code>items</code></td><td><code>signal&lt;PaletteItem[]&gt;</code></td><td>Current items to render</td></tr>
+  <tr><td><code>hasItems</code></td><td><code>computed&lt;boolean&gt;</code></td><td>Derived: items.length &gt; 0</td></tr>
+</table>
+
+<!-- ================================================================ -->
+<h2><span class="num">10</span> Backend Registration &mdash; Module Pattern</h2>
+
+<div class="mermaid">
+flowchart TD
+    subgraph STARTUP["Application Startup"]
+        PM["Program.cs<br/>RegisterModule&lt;T&gt;()"]
+        SM["SearchModule<br/>(singleton registry)"]
+        INIT["CommandPaletteRegistryInitializer<br/>(IHostedService)"]
+    end
+
+    subgraph MODULES["Feature Modules (DI Registration)"]
+        FM["FamilyModule<br/>+ FamilySearchProvider (scoped)<br/>+ FamilyCommandPaletteProvider (singleton)"]
+        CM["CalendarModule<br/>+ CalendarSearchProvider (scoped)<br/>+ CalendarCommandPaletteProvider (singleton)"]
+        FMM["FileManagementModule<br/>+ FileManagementSearchProvider (scoped)<br/>+ FileManagementCommandPaletteProvider (singleton)"]
+        MM["MessagingModule<br/>+ MessagingSearchProvider (scoped)<br/>+ MessagingCommandPaletteProvider (singleton)"]
+        MORE["... (4 more modules)"]
+    end
+
+    subgraph REGISTRY["Runtime Registry"]
+        REG["CommandPaletteRegistry<br/>(22 commands cached)"]
+    end
+
+    PM --> SM
+    PM --> FM
+    PM --> CM
+    PM --> FMM
+    PM --> MM
+    PM --> MORE
+
+    SM --> INIT
+    INIT -->|"foreach provider<br/>registry.RegisterProvider()"| REG
+
+    FM -.->|provides| INIT
+    CM -.->|provides| INIT
+    FMM -.->|provides| INIT
+    MM -.->|provides| INIT
+    MORE -.->|provides| INIT
+
+    style STARTUP fill:#1e293b,stroke:#3b82f6,color:#e2e8f0
+    style MODULES fill:#3b1f5e,stroke:#8b5cf6,color:#e2e8f0
+    style REGISTRY fill:#1e4038,stroke:#22c55e,color:#e2e8f0
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">11</span> Internationalization (i18n)</h2>
+
+<div class="card-grid">
+  <div class="card-small">
+    <h4>Frontend i18n</h4>
+    <ul>
+      <li><strong>LOCALE_ID injection:</strong> selects EN or DE hint pool + NLP rules</li>
+      <li><strong>NLP rules:</strong> separate <code>en.rules.ts</code> / <code>de.rules.ts</code></li>
+      <li><strong>Date parsing:</strong> "tomorrow" vs "morgen", day names in both languages</li>
+      <li><strong>Time parsing:</strong> "3 PM" vs "15 Uhr"</li>
+      <li><strong>Hint pool:</strong> 10 EN phrases, 10 DE phrases</li>
+    </ul>
+  </div>
+  <div class="card-small">
+    <h4>Backend i18n</h4>
+    <ul>
+      <li><strong>CommandDescriptor:</strong> optional <code>LabelDe</code> + <code>DescriptionDe</code> fields</li>
+      <li><strong>Keywords:</strong> mixed-language arrays (e.g., <code>["invite", "einladen"]</code>)</li>
+      <li><strong>Locale parameter:</strong> passed through GraphQL, used for label resolution</li>
+      <li><strong>QueryHandler:</strong> <code>ResolveGermanLabels()</code> swaps labels when <code>locale=de</code></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">12</span> Error Resilience</h2>
+
+<table>
+  <tr><th>Layer</th><th>Error Handling</th><th>Impact</th></tr>
+  <tr>
+    <td><span class="layer-fe">Frontend</span> NLP Parser</td>
+    <td>try/catch around <code>parse()</code></td>
+    <td>NLP fails silently; GraphQL search continues</td>
+  </tr>
+  <tr>
+    <td><span class="layer-fe">Frontend</span> SearchService</td>
+    <td>Returns empty result on GraphQL error</td>
+    <td>Palette shows "Search failed" error message</td>
+  </tr>
+  <tr>
+    <td><span class="layer-be">Backend</span> Per-provider</td>
+    <td>try/catch per <code>SearchAsync()</code> call</td>
+    <td>One provider fails; other 7 continue normally</td>
+  </tr>
+  <tr>
+    <td><span class="layer-gql">GraphQL</span> Auth</td>
+    <td><code>[Authorize]</code> on QueryType</td>
+    <td>Unauthenticated requests return GraphQL error</td>
+  </tr>
+</table>
+
+<!-- ================================================================ -->
+<h2><span class="num">13</span> File Map</h2>
+
+<div class="card">
+<pre>
+src/
+&#x251C;&#x2500;&#x2500; FamilyHub.Api/
+&#x2502;   &#x251C;&#x2500;&#x2500; Common/Search/
+&#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; ISearchProvider.cs              &lt;-- interface: per-module search
+&#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; ICommandPaletteProvider.cs       &lt;-- interface: per-module commands
+&#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; ICommandPaletteRegistry.cs       &lt;-- interface: global registry
+&#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; CommandPaletteRegistry.cs        &lt;-- singleton command store
+&#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; CommandPaletteRegistryInit...cs  &lt;-- IHostedService startup
+&#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; CommandDescriptor.cs            &lt;-- command model (+ i18n)
+&#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; SearchContext.cs                &lt;-- provider input context
+&#x2502;   &#x2502;   &#x2514;&#x2500;&#x2500; SearchResultItem.cs             &lt;-- provider output model
+&#x2502;   &#x251C;&#x2500;&#x2500; Features/Search/
+&#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; SearchModule.cs                 &lt;-- IModule registration
+&#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; Models/
+&#x2502;   &#x2502;   &#x2502;   &#x251C;&#x2500;&#x2500; UniversalSearchRequest.cs   &lt;-- GraphQL input
+&#x2502;   &#x2502;   &#x2502;   &#x2514;&#x2500;&#x2500; SearchResultItemDto.cs      &lt;-- GraphQL output
+&#x2502;   &#x2502;   &#x2514;&#x2500;&#x2500; Application/Queries/
+&#x2502;   &#x2502;       &#x2514;&#x2500;&#x2500; UniversalSearch/
+&#x2502;   &#x2502;           &#x251C;&#x2500;&#x2500; QueryType.cs                &lt;-- GraphQL resolver
+&#x2502;   &#x2502;           &#x251C;&#x2500;&#x2500; UniversalSearchQuery.cs     &lt;-- Mediator query
+&#x2502;   &#x2502;           &#x251C;&#x2500;&#x2500; UniversalSearchQueryHandler &lt;-- orchestrator
+&#x2502;   &#x2502;           &#x2514;&#x2500;&#x2500; UniversalSearchResult.cs    &lt;-- handler return
+&#x2502;   &#x2514;&#x2500;&#x2500; Features/{Module}/Application/Search/
+&#x2502;       &#x251C;&#x2500;&#x2500; {Module}SearchProvider.cs        &lt;-- ISearchProvider impl
+&#x2502;       &#x2514;&#x2500;&#x2500; {Module}CommandPaletteProvider.cs &lt;-- ICommandPaletteProvider impl
+&#x2502;
+&#x2514;&#x2500;&#x2500; frontend/family-hub-web/src/app/
+    &#x251C;&#x2500;&#x2500; core/nlp/
+    &#x2502;   &#x251C;&#x2500;&#x2500; nlp-parser.service.ts           &lt;-- regex-based NLP engine
+    &#x2502;   &#x251C;&#x2500;&#x2500; models.ts                       &lt;-- NlpMatch, NlpRule types
+    &#x2502;   &#x2514;&#x2500;&#x2500; rules/
+    &#x2502;       &#x251C;&#x2500;&#x2500; en.rules.ts                 &lt;-- 17 English patterns
+    &#x2502;       &#x251C;&#x2500;&#x2500; de.rules.ts                 &lt;-- 17 German patterns
+    &#x2502;       &#x251C;&#x2500;&#x2500; date-parser.ts              &lt;-- relative date resolution
+    &#x2502;       &#x2514;&#x2500;&#x2500; time-parser.ts              &lt;-- 12h/24h time parsing
+    &#x2514;&#x2500;&#x2500; shared/
+        &#x251C;&#x2500;&#x2500; models/search.models.ts         &lt;-- PaletteItem, SearchResultItem
+        &#x251C;&#x2500;&#x2500; graphql/search.operations.ts    &lt;-- GraphQL query definition
+        &#x251C;&#x2500;&#x2500; services/
+        &#x2502;   &#x251C;&#x2500;&#x2500; search.service.ts           &lt;-- Apollo GraphQL client
+        &#x2502;   &#x2514;&#x2500;&#x2500; command-palette.service.ts  &lt;-- state + orchestration
+        &#x251C;&#x2500;&#x2500; components/command-palette/
+        &#x2502;   &#x2514;&#x2500;&#x2500; command-palette.component.ts &lt;-- UI + keyboard handling
+        &#x2514;&#x2500;&#x2500; layout/
+            &#x2514;&#x2500;&#x2500; layout.component.ts          &lt;-- app shell (hosts palette)
+</pre>
+</div>
+
+<footer>
+  <p>Family Hub &mdash; Issue #208: Universal Search Command Palette &mdash; Generated 2026-03-05</p>
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#1e3a5f',
+      primaryTextColor: '#e2e8f0',
+      primaryBorderColor: '#3b82f6',
+      lineColor: '#64748b',
+      secondaryColor: '#3b1f5e',
+      tertiaryColor: '#1e4038',
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '14px'
+    },
+    flowchart: { curve: 'basis' },
+    sequence: { actorMargin: 30 }
+  });
+</script>
+</body>
+</html>

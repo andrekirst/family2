@@ -1,5 +1,4 @@
 using FamilyHub.Api.Features.Auth.Domain.Entities;
-using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 

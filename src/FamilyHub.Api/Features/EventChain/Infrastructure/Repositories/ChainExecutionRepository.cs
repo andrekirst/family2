@@ -34,10 +34,14 @@ public sealed class ChainExecutionRepository(AppDbContext context) : IChainExecu
             .Where(e => e.FamilyId == familyId);
 
         if (chainDefinitionId.HasValue)
+        {
             query = query.Where(e => e.ChainDefinitionId == chainDefinitionId.Value);
+        }
 
         if (status.HasValue)
+        {
             query = query.Where(e => e.Status == status.Value);
+        }
 
         return await query.OrderByDescending(e => e.StartedAt).ToListAsync(ct);
     }
@@ -53,7 +57,9 @@ public sealed class ChainExecutionRepository(AppDbContext context) : IChainExecu
         var query = context.ChainEntityMappings.Where(m => m.EntityId == entityId);
 
         if (entityType is not null)
+        {
             query = query.Where(m => m.EntityType == entityType);
+        }
 
         return await query.ToListAsync(ct);
     }

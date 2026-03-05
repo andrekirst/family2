@@ -17,9 +17,11 @@ public sealed class ConnectExternalStorageCommandHandler(
             command.FamilyId, command.ProviderType, cancellationToken);
 
         if (existing is not null)
+        {
             throw new DomainException(
                 "Connection to this provider already exists",
                 DomainErrorCodes.ExternalConnectionAlreadyExists);
+        }
 
         var connection = ExternalConnection.Create(
             command.FamilyId,

@@ -1,5 +1,3 @@
-using HotChocolate.Authorization;
-
 namespace FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 
 /// <summary>

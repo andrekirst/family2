@@ -3,7 +3,6 @@ using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
-using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFileVersions;
 
@@ -20,7 +19,9 @@ public sealed class GetFileVersionsQueryHandler(
             ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
         if (file.FamilyId != query.FamilyId)
+        {
             throw new DomainException("File not found in this family", DomainErrorCodes.FileNotFound);
+        }
 
         var versions = await versionRepository.GetByFileIdAsync(query.FileId, cancellationToken);
 

@@ -21,12 +21,16 @@ public class QueryType
     {
         var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value;
         if (string.IsNullOrEmpty(externalUserIdString))
+        {
             return null;
+        }
 
         var user = await userRepository.GetByExternalIdAsync(
             ExternalUserId.From(externalUserIdString), cancellationToken);
         if (user?.FamilyId is null)
+        {
             return null;
+        }
 
         var query = new GetFamilyDashboardQuery(user.FamilyId.Value);
         return await queryBus.QueryAsync(query, cancellationToken);

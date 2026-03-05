@@ -20,7 +20,9 @@ public sealed class PreviewRuleMatchQueryHandler(
             ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
         if (file.FamilyId != query.FamilyId)
+        {
             throw new DomainException("File does not belong to this family", DomainErrorCodes.Forbidden);
+        }
 
         var rules = await ruleRepository.GetEnabledByFamilyIdAsync(query.FamilyId, cancellationToken);
 

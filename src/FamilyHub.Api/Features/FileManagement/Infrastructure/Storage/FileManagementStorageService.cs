@@ -31,12 +31,16 @@ public sealed class FileManagementStorageService(
 
         // Validate file size
         if (bytes.Length > _options.MaxFileSizeBytes)
+        {
             throw new InvalidOperationException(
                 $"File exceeds maximum size of {_options.MaxFileSizeBytes / (1024 * 1024)} MB");
+        }
 
         // Check quota
         if (!await quotaService.CanUploadAsync(familyId, bytes.Length, ct))
+        {
             throw new InvalidOperationException("Storage quota exceeded");
+        }
 
         // Detect MIME type from content (first 512 bytes)
         var headerLength = Math.Min(bytes.Length, 512);
@@ -64,7 +68,10 @@ public sealed class FileManagementStorageService(
     public async Task<FileDownloadResult?> GetFileAsync(string storageKey, CancellationToken ct = default)
     {
         var stream = await storageProvider.DownloadAsync(storageKey, ct);
-        if (stream is null) return null;
+        if (stream is null)
+        {
+            return null;
+        }
 
         var size = await storageProvider.GetSizeAsync(storageKey, ct);
 
@@ -131,7 +138,9 @@ public sealed class FileManagementStorageService(
             .ToListAsync(ct);
 
         if (chunks.Count == 0)
+        {
             throw new InvalidOperationException("No chunks found for upload ID");
+        }
 
         // Assemble chunks into a single stream
         using var assembledStream = new MemoryStream();

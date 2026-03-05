@@ -24,7 +24,7 @@ public class PhotoQueries
             skip,
             Math.Min(take, 30));
 
-        return await queryBus.QueryAsync<PhotosPageDto>(query, ct);
+        return await queryBus.QueryAsync(query, ct);
     }
 
     [Authorize]
@@ -34,7 +34,7 @@ public class PhotoQueries
         CancellationToken ct)
     {
         var query = new GetPhotoQuery(PhotoId.From(id));
-        return await queryBus.QueryAsync<PhotoDto?>(query, ct);
+        return await queryBus.QueryAsync(query, ct);
     }
 
     [Authorize]
@@ -50,6 +50,6 @@ public class PhotoQueries
             PhotoId.From(currentPhotoId),
             currentCreatedAt);
 
-        return await queryBus.QueryAsync<AdjacentPhotosDto>(query, ct);
+        return await queryBus.QueryAsync(query, ct);
     }
 }

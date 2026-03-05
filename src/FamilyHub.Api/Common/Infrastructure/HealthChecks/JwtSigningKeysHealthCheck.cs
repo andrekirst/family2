@@ -17,7 +17,9 @@ public class JwtSigningKeysHealthCheck(IOptionsMonitor<JwtBearerOptions> jwtOpti
         {
             var options = jwtOptions.Get(JwtBearerDefaults.AuthenticationScheme);
             if (options.ConfigurationManager is null)
+            {
                 return HealthCheckResult.Degraded("OIDC ConfigurationManager not configured");
+            }
 
             var config = await options.ConfigurationManager.GetConfigurationAsync(cancellationToken);
             var keyCount = config.SigningKeys.Count;

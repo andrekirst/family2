@@ -16,7 +16,9 @@ public sealed class DeleteOrganizationRuleCommandHandler(
             ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
 
         if (rule.FamilyId != command.FamilyId)
+        {
             throw new DomainException("Cannot delete rule from another family", DomainErrorCodes.Forbidden);
+        }
 
         await ruleRepository.RemoveAsync(rule, cancellationToken);
 

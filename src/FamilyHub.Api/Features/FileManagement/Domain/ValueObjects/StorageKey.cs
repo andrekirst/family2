@@ -13,9 +13,15 @@ public readonly partial struct StorageKey
     private static Validation Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return Validation.Invalid("Storage key cannot be empty");
+        }
+
         if (value.Length > 255)
+        {
             return Validation.Invalid("Storage key too long (max 255 characters)");
+        }
+
         return Validation.Ok;
     }
 }

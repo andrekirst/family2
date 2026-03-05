@@ -17,7 +17,9 @@ public sealed class RemovePermissionCommandHandler(
             ?? throw new DomainException("Permission not found", DomainErrorCodes.NotFound);
 
         if (permission.FamilyId != command.FamilyId)
+        {
             throw new DomainException("Permission belongs to a different family", DomainErrorCodes.Forbidden);
+        }
 
         await permissionRepository.RemoveAsync(permission, cancellationToken);
 

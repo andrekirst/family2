@@ -15,9 +15,15 @@ public readonly partial struct GoogleLinkStatus
     private static Validation Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return Validation.Invalid("Google link status cannot be empty");
+        }
+
         if (!ValidStatuses.Contains(value))
+        {
             return Validation.Invalid($"Invalid status '{value}'. Valid values: {string.Join(", ", ValidStatuses)}");
+        }
+
         return Validation.Ok;
     }
 

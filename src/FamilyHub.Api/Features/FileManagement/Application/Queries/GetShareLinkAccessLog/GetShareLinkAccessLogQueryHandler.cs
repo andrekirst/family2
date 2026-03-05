@@ -19,7 +19,9 @@ public sealed class GetShareLinkAccessLogQueryHandler(
             ?? throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
 
         if (link.FamilyId != query.FamilyId)
+        {
             throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
+        }
 
         var logs = await accessLogRepository.GetByShareLinkIdAsync(query.ShareLinkId, cancellationToken);
 

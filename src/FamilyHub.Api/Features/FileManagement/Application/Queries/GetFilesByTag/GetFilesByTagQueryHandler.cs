@@ -15,13 +15,17 @@ public sealed class GetFilesByTagQueryHandler(
         CancellationToken cancellationToken)
     {
         if (query.TagIds.Count == 0)
+        {
             return [];
+        }
 
         // Get file IDs that have ALL specified tags (AND logic)
         var fileIds = await fileTagRepository.GetFileIdsByTagIdsAsync(query.TagIds, cancellationToken);
 
         if (fileIds.Count == 0)
+        {
             return [];
+        }
 
         var files = await storedFileRepository.GetByIdsAsync(fileIds, cancellationToken);
 

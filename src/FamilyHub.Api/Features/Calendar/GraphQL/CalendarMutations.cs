@@ -9,6 +9,7 @@ using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Models;
 using HotChocolate.Authorization;
 using System.Security.Claims;
+using FamilyHub.Api.Common.Infrastructure;
 
 namespace FamilyHub.Api.Features.Calendar.GraphQL;
 
@@ -24,7 +25,7 @@ public class CalendarMutations
         [Service] IUserRepository userRepository,
         CancellationToken ct)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value
+        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
             ?? throw new UnauthorizedAccessException("User not authenticated");
 
         var externalUserId = ExternalUserId.From(externalUserIdString);
@@ -37,7 +38,7 @@ public class CalendarMutations
         }
 
         var title = EventTitle.From(input.Title.Trim());
-        var attendeeIds = input.AttendeeIds.Select(id => UserId.From(id)).ToList();
+        var attendeeIds = input.AttendeeIds.Select(UserId.From).ToList();
 
         var command = new CreateCalendarEventCommand(
             user.FamilyId.Value,
@@ -50,7 +51,7 @@ public class CalendarMutations
             input.IsAllDay,
             attendeeIds);
 
-        var result = await commandBus.SendAsync<CreateCalendarEventResult>(command, ct);
+        var result = await commandBus.SendAsync(command, ct);
 
         var created = await repository.GetByIdWithAttendeesAsync(result.CalendarEventId, ct)
             ?? throw new InvalidOperationException("Event creation failed");
@@ -68,7 +69,7 @@ public class CalendarMutations
         [Service] IUserRepository userRepository,
         CancellationToken ct)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value
+        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
             ?? throw new UnauthorizedAccessException("User not authenticated");
 
         var externalUserId = ExternalUserId.From(externalUserIdString);
@@ -77,7 +78,7 @@ public class CalendarMutations
 
         var calendarEventId = CalendarEventId.From(id);
         var title = EventTitle.From(input.Title.Trim());
-        var attendeeIds = input.AttendeeIds.Select(uid => UserId.From(uid)).ToList();
+        var attendeeIds = input.AttendeeIds.Select(UserId.From).ToList();
 
         var command = new UpdateCalendarEventCommand(
             calendarEventId,
@@ -89,7 +90,7 @@ public class CalendarMutations
             input.IsAllDay,
             attendeeIds);
 
-        var result = await commandBus.SendAsync<UpdateCalendarEventResult>(command, ct);
+        var result = await commandBus.SendAsync(command, ct);
 
         var updated = await repository.GetByIdWithAttendeesAsync(result.CalendarEventId, ct)
             ?? throw new InvalidOperationException("Event update failed");
@@ -105,7 +106,7 @@ public class CalendarMutations
         [Service] IUserRepository userRepository,
         CancellationToken ct)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value
+        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
             ?? throw new UnauthorizedAccessException("User not authenticated");
 
         var externalUserId = ExternalUserId.From(externalUserIdString);
@@ -115,7 +116,7 @@ public class CalendarMutations
         var calendarEventId = CalendarEventId.From(id);
         var command = new CancelCalendarEventCommand(calendarEventId);
 
-        var result = await commandBus.SendAsync<CancelCalendarEventResult>(command, ct);
+        var result = await commandBus.SendAsync(command, ct);
         return result.Success;
     }
 }

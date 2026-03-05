@@ -16,7 +16,9 @@ public sealed class DisconnectExternalStorageCommandHandler(
             ?? throw new DomainException("External connection not found", DomainErrorCodes.ExternalConnectionNotFound);
 
         if (connection.FamilyId != command.FamilyId)
+        {
             throw new DomainException("External connection not found", DomainErrorCodes.ExternalConnectionNotFound);
+        }
 
         connection.Disconnect();
         await connectionRepository.RemoveAsync(connection, cancellationToken);

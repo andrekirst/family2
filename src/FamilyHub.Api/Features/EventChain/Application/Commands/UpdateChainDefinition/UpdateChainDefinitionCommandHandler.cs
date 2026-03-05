@@ -27,8 +27,10 @@ public sealed class UpdateChainDefinitionCommandHandler(
             foreach (var stepCmd in command.Steps.OrderBy(s => s.Order))
             {
                 if (!registry.IsValidAction(stepCmd.ActionType, stepCmd.ActionVersion.Value))
+                {
                     throw new InvalidOperationException(
                         $"Unknown action: {stepCmd.ActionType}@{stepCmd.ActionVersion.Value}");
+                }
 
                 var action = registry.GetAction(stepCmd.ActionType, stepCmd.ActionVersion.Value)!;
 

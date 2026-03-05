@@ -26,7 +26,7 @@ public class GoogleIntegrationQueries
             claimsPrincipal, userRepository, cancellationToken);
 
         var query = new GetLinkedAccountsQuery(user.Id);
-        return await queryBus.QueryAsync<List<LinkedAccountDto>>(query, cancellationToken);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 
     [Authorize]
@@ -41,7 +41,7 @@ public class GoogleIntegrationQueries
             claimsPrincipal, userRepository, cancellationToken);
 
         var query = new GetCalendarSyncStatusQuery(user.Id);
-        return await queryBus.QueryAsync<GoogleCalendarSyncStatusDto>(query, cancellationToken);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 
     [Authorize]
@@ -56,6 +56,6 @@ public class GoogleIntegrationQueries
             claimsPrincipal, userRepository, cancellationToken);
 
         var query = new GetGoogleAuthUrlQuery(user.Id);
-        return await queryBus.QueryAsync<string>(query, cancellationToken);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

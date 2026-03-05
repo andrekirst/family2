@@ -8,10 +8,14 @@ public readonly partial struct WidgetTypeId
     private static Validation Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return Validation.Invalid("Widget type ID is required");
+        }
 
         if (value.Length > 100)
+        {
             return Validation.Invalid("Widget type ID too long (max 100 characters)");
+        }
 
         return Validation.Ok;
     }

@@ -21,7 +21,9 @@ public sealed class MetadataExtractionService : IMetadataExtractionService
     public Task<ExtractionResult?> ExtractAsync(Stream data, string mimeType, CancellationToken ct = default)
     {
         if (!SupportedMimeTypes.Contains(mimeType.ToLowerInvariant()))
+        {
             return Task.FromResult<ExtractionResult?>(null);
+        }
 
         try
         {
@@ -73,7 +75,9 @@ public sealed class MetadataExtractionService : IMetadataExtractionService
                 }
 
                 if (tags.Count > 0)
+                {
                     rawExif[directory.Name] = tags;
+                }
             }
 
             var rawExifJson = rawExif.Count > 0
@@ -84,7 +88,9 @@ public sealed class MetadataExtractionService : IMetadataExtractionService
 
             // Only return result if at least some metadata was extracted
             if (latitude is null && longitude is null && cameraModel is null && captureDate is null && rawExifJson is null)
+            {
                 return Task.FromResult<ExtractionResult?>(null);
+            }
 
             return Task.FromResult<ExtractionResult?>(result);
         }

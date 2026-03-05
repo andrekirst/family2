@@ -31,7 +31,7 @@ public class MeProfileQueryExtension
         var externalUserId = ExternalUserId.From(externalUserIdString);
         var query = new GetCurrentUserQuery(externalUserId);
 
-        return await queryBus.QueryAsync<UserDto?>(query, ct);
+        return await queryBus.QueryAsync(query, ct);
     }
 }
 
@@ -52,6 +52,6 @@ public class UsersQueryExtension
         var userIdVo = UserId.From(userId);
         var query = new GetUserByIdQuery(userIdVo);
 
-        return await queryBus.QueryAsync<UserDto?>(query, ct);
+        return await queryBus.QueryAsync(query, ct);
     }
 }

@@ -16,7 +16,9 @@ public sealed class DeleteSavedSearchCommandHandler(
             ?? throw new DomainException("Saved search not found", DomainErrorCodes.NotFound);
 
         if (search.UserId != command.UserId)
+        {
             throw new DomainException("Cannot delete another user's saved search", DomainErrorCodes.Forbidden);
+        }
 
         await savedSearchRepository.RemoveAsync(search, cancellationToken);
 

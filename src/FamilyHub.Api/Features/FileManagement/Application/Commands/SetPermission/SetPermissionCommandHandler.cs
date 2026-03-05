@@ -25,7 +25,9 @@ public sealed class SetPermissionCommandHandler(
                 ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
             if (file.FamilyId != command.FamilyId)
+            {
                 throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
+            }
         }
         else
         {
@@ -34,7 +36,9 @@ public sealed class SetPermissionCommandHandler(
                 ?? throw new DomainException("Folder not found", DomainErrorCodes.FolderNotFound);
 
             if (folder.FamilyId != command.FamilyId)
+            {
                 throw new DomainException("Folder belongs to a different family", DomainErrorCodes.Forbidden);
+            }
         }
 
         // Check for existing permission — update or create

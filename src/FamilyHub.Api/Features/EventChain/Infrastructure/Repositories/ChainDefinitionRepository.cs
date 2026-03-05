@@ -29,7 +29,9 @@ public sealed class ChainDefinitionRepository(AppDbContext context) : IChainDefi
             .Where(d => d.FamilyId == familyId);
 
         if (isEnabled.HasValue)
+        {
             query = query.Where(d => d.IsEnabled == isEnabled.Value);
+        }
 
         return await query.OrderBy(d => d.CreatedAt).ToListAsync(ct);
     }

@@ -17,17 +17,21 @@ public sealed class CreateZipJobCommandHandler(
         CancellationToken cancellationToken)
     {
         if (command.FileIds.Count > MaxFilesPerZip)
+        {
             throw new DomainException(
                 $"Cannot zip more than {MaxFilesPerZip} files at once",
                 DomainErrorCodes.ZipJobTooManyFiles);
+        }
 
         var activeJobs = await zipJobRepository.GetActiveJobCountAsync(
             command.FamilyId, cancellationToken);
 
         if (activeJobs >= MaxConcurrentJobs)
+        {
             throw new DomainException(
                 $"Maximum of {MaxConcurrentJobs} concurrent zip jobs per family",
                 DomainErrorCodes.ZipJobConcurrentLimitReached);
+        }
 
         var job = ZipJob.Create(command.FamilyId, command.InitiatedBy, command.FileIds);
         await zipJobRepository.AddAsync(job, cancellationToken);

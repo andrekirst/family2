@@ -18,7 +18,9 @@ public sealed class FileManagementSearchProvider(
         CancellationToken cancellationToken = default)
     {
         if (context.FamilyId is null || string.IsNullOrWhiteSpace(context.Query))
+        {
             return [];
+        }
 
         var queryLower = context.Query.ToLowerInvariant();
         var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;

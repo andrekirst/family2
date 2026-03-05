@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using System.Text.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -16,7 +17,7 @@ public static class HealthCheckResponseWriter
 
     public static async Task WriteResponse(HttpContext context, HealthReport report)
     {
-        context.Response.ContentType = "application/json";
+        context.Response.ContentType = MediaTypeNames.Application.Json;
 
         var checks = report.Entries.ToDictionary(
             entry => entry.Key,

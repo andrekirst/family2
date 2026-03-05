@@ -29,21 +29,29 @@ public sealed class GenerateThumbnailsCommandHandler(
             ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
         if (file.FamilyId != command.FamilyId)
+        {
             throw new DomainException("File not found in this family", DomainErrorCodes.FileNotFound);
+        }
 
         if (!thumbnailService.CanGenerateThumbnail(file.MimeType.Value))
+        {
             return new GenerateThumbnailsResult(true, 0);
+        }
 
         await using var sourceStream = await storageProvider.DownloadAsync(file.StorageKey.Value, cancellationToken);
         if (sourceStream is null)
+        {
             return new GenerateThumbnailsResult(false, 0);
+        }
 
         using var memoryStream = new MemoryStream();
         await sourceStream.CopyToAsync(memoryStream, cancellationToken);
         var sourceData = memoryStream.ToArray();
 
         if (sourceData.Length == 0)
+        {
             return new GenerateThumbnailsResult(false, 0);
+        }
 
         var generated = 0;
         foreach (var (width, height) in ThumbnailSizes)
@@ -51,7 +59,9 @@ public sealed class GenerateThumbnailsCommandHandler(
             var existing = await thumbnailRepository.GetByFileIdAndSizeAsync(
                 command.FileId, width, height, cancellationToken);
             if (existing is not null)
+            {
                 continue;
+            }
 
             var thumbnailData = await thumbnailService.GenerateThumbnailAsync(
                 sourceData, file.MimeType.Value, width, height, cancellationToken);

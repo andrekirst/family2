@@ -50,7 +50,7 @@ public class ChainMutations
                     s.Order)).ToList(),
                 input.IsEnabled);
 
-            var result = await commandBus.SendAsync<CreateChainDefinitionResult>(command, ct);
+            var result = await commandBus.SendAsync(command, ct);
             var definition = await definitionRepository.GetByIdWithStepsAsync(result.ChainDefinitionId, ct);
             return new CreateChainDefinitionPayload(definition is not null ? ChainMapper.ToDto(definition) : null);
         }
@@ -90,7 +90,7 @@ public class ChainMutations
                     s.Condition,
                     s.Order)).ToList());
 
-            var result = await commandBus.SendAsync<UpdateChainDefinitionResult>(command, ct);
+            var result = await commandBus.SendAsync(command, ct);
             var definition = await definitionRepository.GetByIdWithStepsAsync(result.ChainDefinitionId, ct);
             var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, ct);
             var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, ct);
@@ -116,7 +116,7 @@ public class ChainMutations
             var (userId, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
 
             var command = new DeleteChainDefinitionCommand(ChainDefinitionId.From(id));
-            var result = await commandBus.SendAsync<DeleteChainDefinitionResult>(command, ct);
+            var result = await commandBus.SendAsync(command, ct);
             return new DeleteChainDefinitionPayload(result.Success);
         }
         catch (Exception ex)
@@ -135,7 +135,7 @@ public class ChainMutations
         CancellationToken ct)
     {
         var command = new EnableChainDefinitionCommand(ChainDefinitionId.From(id));
-        var defId = await commandBus.SendAsync<ChainDefinitionId>(command, ct);
+        var defId = await commandBus.SendAsync(command, ct);
         var definition = await definitionRepository.GetByIdWithStepsAsync(defId, ct)
             ?? throw new InvalidOperationException("Chain definition not found");
         var count = await executionRepository.GetExecutionCountAsync(defId, ct);
@@ -152,7 +152,7 @@ public class ChainMutations
         CancellationToken ct)
     {
         var command = new DisableChainDefinitionCommand(ChainDefinitionId.From(id));
-        var defId = await commandBus.SendAsync<ChainDefinitionId>(command, ct);
+        var defId = await commandBus.SendAsync(command, ct);
         var definition = await definitionRepository.GetByIdWithStepsAsync(defId, ct)
             ?? throw new InvalidOperationException("Chain definition not found");
         var count = await executionRepository.GetExecutionCountAsync(defId, ct);
@@ -177,7 +177,7 @@ public class ChainMutations
             familyId,
             triggerPayload);
 
-        var result = await commandBus.SendAsync<ExecuteChainResult>(command, ct);
+        var result = await commandBus.SendAsync(command, ct);
 
         // Give execution a moment to start
         await Task.Delay(100, ct);
@@ -200,7 +200,9 @@ public class ChainMutations
             ?? throw new UnauthorizedAccessException("User not found");
 
         if (!user.FamilyId.HasValue)
+        {
             throw new InvalidOperationException("User is not assigned to a family");
+        }
 
         return (user.Id, user.FamilyId.Value);
     }

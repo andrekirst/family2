@@ -50,7 +50,9 @@ public sealed class PostgresStorageProvider(AppDbContext dbContext) : IStoragePr
             .FirstOrDefaultAsync(f => f.StorageKey == storageKey, ct);
 
         if (blob?.Data is null)
+        {
             return null;
+        }
 
         var totalSize = blob.Data.Length;
         var rangeEnd = Math.Min(to, totalSize - 1);

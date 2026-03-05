@@ -1,6 +1,5 @@
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
-using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Family.Application.Search;
 
@@ -16,7 +15,9 @@ public sealed class FamilySearchProvider(
         CancellationToken cancellationToken = default)
     {
         if (context.FamilyId is null)
+        {
             return [];
+        }
 
         var queryLower = context.Query.ToLowerInvariant();
         var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;

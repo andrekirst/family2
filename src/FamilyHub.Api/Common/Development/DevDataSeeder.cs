@@ -75,7 +75,9 @@ public sealed class DevDataSeeder(
         foreach (var kcUser in keycloakUsers)
         {
             if (string.IsNullOrWhiteSpace(kcUser.Email))
+            {
                 continue;
+            }
 
             var email = DomainEmail.From(kcUser.Email);
             var existingUser = await dbContext.Users
@@ -95,7 +97,10 @@ public sealed class DevDataSeeder(
             }
 
             var displayName = $"{kcUser.FirstName} {kcUser.LastName}".Trim();
-            if (displayName.Length < 2) displayName = kcUser.Username ?? kcUser.Email;
+            if (displayName.Length < 2)
+            {
+                displayName = kcUser.Username ?? kcUser.Email;
+            }
 
             var user = User.Register(
                 email,
@@ -155,12 +160,18 @@ public sealed class DevDataSeeder(
     private (string? BaseUrl, string? RealmName) ParseKeycloakAuthority()
     {
         var authority = configuration["Keycloak:Authority"];
-        if (string.IsNullOrWhiteSpace(authority)) return (null, null);
+        if (string.IsNullOrWhiteSpace(authority))
+        {
+            return (null, null);
+        }
 
         // Authority format: http://keycloak:8080/realms/FamilyHub-{env}
         const string realmsSegment = "/realms/";
         var realmsIndex = authority.IndexOf(realmsSegment, StringComparison.Ordinal);
-        if (realmsIndex < 0) return (null, null);
+        if (realmsIndex < 0)
+        {
+            return (null, null);
+        }
 
         var baseUrl = authority[..realmsIndex];
         var realmName = authority[(realmsIndex + realmsSegment.Length)..];

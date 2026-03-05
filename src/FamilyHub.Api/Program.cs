@@ -1,4 +1,3 @@
-using System.Net;
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure;

@@ -16,13 +16,14 @@ public class KeycloakHealthCheck(IOptionsMonitor<JwtBearerOptions> jwtOptions) :
         {
             var options = jwtOptions.Get(JwtBearerDefaults.AuthenticationScheme);
             if (options.ConfigurationManager is null)
+            {
                 return HealthCheckResult.Degraded("OIDC ConfigurationManager not configured");
+            }
 
             var config = await options.ConfigurationManager.GetConfigurationAsync(cancellationToken);
-            if (string.IsNullOrEmpty(config.Issuer))
-                return HealthCheckResult.Unhealthy("OIDC discovery returned empty issuer");
-
-            return HealthCheckResult.Healthy($"OIDC discovery loaded (issuer: {config.Issuer})");
+            return string.IsNullOrEmpty(config.Issuer)
+                ? HealthCheckResult.Unhealthy("OIDC discovery returned empty issuer")
+                : HealthCheckResult.Healthy($"OIDC discovery loaded (issuer: {config.Issuer})");
         }
         catch (Exception ex)
         {
