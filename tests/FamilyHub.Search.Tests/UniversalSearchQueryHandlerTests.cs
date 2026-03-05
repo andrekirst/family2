@@ -37,7 +37,7 @@ public class UniversalSearchQueryHandlerTests
         var familyProvider = new FakeSearchProvider("family");
         var calendarProvider = new FakeSearchProvider("calendar");
         var registry = CreateEmptyRegistry();
-        var handler = new UniversalSearchQueryHandler([familyProvider, calendarProvider], registry);
+        var handler = new UniversalSearchQueryHandler([familyProvider, calendarProvider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("test", modules: ["family"]);
 
         // Act
