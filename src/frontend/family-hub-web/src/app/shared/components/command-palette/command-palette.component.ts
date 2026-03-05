@@ -90,7 +90,7 @@ import { PaletteItem } from '../../models/search.models';
               <div class="px-4 py-8 text-center text-sm text-red-500">
                 {{ palette.error() }}
               </div>
-            } @else if (palette.query() && !palette.isLoading() && !palette.hasItems()) {
+            } @else if (palette.query()?.trim() && !palette.isLoading() && !palette.hasItems()) {
               <div class="px-4 py-8 text-center text-sm text-gray-500">No results found</div>
             } @else {
               @for (item of palette.items(); track $index) {
@@ -260,6 +260,10 @@ export class CommandPaletteComponent implements OnDestroy {
         return 'Search Results';
       case 'command':
         return 'Commands';
+      case 'hint':
+        return 'Try saying...';
+      case 'navigation':
+        return 'Navigation';
       default:
         return '';
     }
@@ -269,8 +273,12 @@ export class CommandPaletteComponent implements OnDestroy {
     switch (item.type) {
       case 'nlp':
         return '\u2728';
+      case 'hint':
+        return '\uD83D\uDCA1';
       case 'command':
         return '\u26A1';
+      case 'navigation':
+        return this.getModuleEmoji(item.module);
       default:
         return this.getModuleEmoji(item.module);
     }
@@ -278,10 +286,16 @@ export class CommandPaletteComponent implements OnDestroy {
 
   private getModuleEmoji(module?: string): string {
     switch (module) {
+      case 'dashboard':
+        return '\uD83C\uDFE0';
       case 'family':
         return '\uD83D\uDC64';
       case 'calendar':
         return '\uD83D\uDCC5';
+      case 'messages':
+        return '\uD83D\uDCAC';
+      case 'files':
+        return '\uD83D\uDCC1';
       default:
         return '\uD83D\uDD0D';
     }

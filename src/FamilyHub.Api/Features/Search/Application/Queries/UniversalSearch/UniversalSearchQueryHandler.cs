@@ -1,12 +1,14 @@
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Search.Models;
+using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.Api.Features.Search.Application.Queries.UniversalSearch;
 
 public sealed class UniversalSearchQueryHandler(
     IEnumerable<ISearchProvider> searchProviders,
-    ICommandPaletteRegistry commandRegistry)
+    ICommandPaletteRegistry commandRegistry,
+    ILogger<UniversalSearchQueryHandler> logger)
     : IQueryHandler<UniversalSearchQuery, UniversalSearchResult>
 {
     private const int OverallResultCap = 30;
@@ -29,7 +31,15 @@ public sealed class UniversalSearchQueryHandler(
         var searchResults = new List<IReadOnlyList<SearchResultItem>>();
         foreach (var provider in providers)
         {
-            searchResults.Add(await provider.SearchAsync(searchContext, cancellationToken));
+            try
+            {
+                searchResults.Add(await provider.SearchAsync(searchContext, cancellationToken));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Search provider {Module} failed for query '{Query}'",
+                    provider.ModuleName, searchContext.Query);
+            }
         }
 
         // Flatten and apply overall cap (30 total)

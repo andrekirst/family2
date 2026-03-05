@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed, LOCALE_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { SearchService } from './search.service';
 import { NlpParserService } from '../../core/nlp/nlp-parser.service';
@@ -9,6 +9,33 @@ export class CommandPaletteService {
   private readonly router = inject(Router);
   private readonly searchService = inject(SearchService);
   private readonly nlpParser = inject(NlpParserService);
+  private readonly localeId = inject(LOCALE_ID);
+
+  private readonly hintPoolEn = [
+    'tomorrow event at 3 PM',
+    'invite john@example.com',
+    'open calendar',
+    'create folder Vacation',
+    'send a message',
+    'event friday at 10 AM',
+    'find files report',
+    'go to dashboard',
+    'create album Summer',
+    'upload a file',
+  ];
+
+  private readonly hintPoolDe = [
+    'morgen Termin um 15 Uhr',
+    'john@example.com einladen',
+    'Kalender öffnen',
+    'Ordner Urlaub erstellen',
+    'eine Nachricht senden',
+    'Termin Freitag um 10 Uhr',
+    'Dateien Bericht finden',
+    'zum Dashboard gehen',
+    'Album Sommer erstellen',
+    'eine Datei hochladen',
+  ];
 
   readonly isOpen = signal(false);
   readonly query = signal('');
@@ -23,7 +50,7 @@ export class CommandPaletteService {
     this.isOpen.set(true);
     this.query.set('');
     this.selectedIndex.set(0);
-    this.items.set([]);
+    this.items.set(this.getDefaultItems());
     this.error.set(null);
   }
 
@@ -64,13 +91,18 @@ export class CommandPaletteService {
   }
 
   executeItem(item: PaletteItem): void {
+    if (item.type === 'hint') {
+      this.query.set(item.title);
+      this.performSearch(item.title);
+      return;
+    }
     this.close();
     this.router.navigateByUrl(item.route);
   }
 
   async performSearch(searchQuery: string): Promise<void> {
     if (!searchQuery.trim()) {
-      this.items.set([]);
+      this.items.set(this.getDefaultItems());
       return;
     }
 
@@ -78,10 +110,12 @@ export class CommandPaletteService {
     this.error.set(null);
 
     try {
-      // Parse NLP suggestions (client-side, before GraphQL call)
-      const nlpMatch = this.nlpParser.parse(searchQuery);
-      const nlpItems: PaletteItem[] = nlpMatch
-        ? [
+      // Parse NLP suggestions (client-side, independent of GraphQL)
+      let nlpItems: PaletteItem[] = [];
+      try {
+        const nlpMatch = this.nlpParser.parse(searchQuery);
+        if (nlpMatch) {
+          nlpItems = [
             {
               type: 'nlp',
               title: nlpMatch.description,
@@ -90,8 +124,11 @@ export class CommandPaletteService {
               route: nlpMatch.route,
               confidence: nlpMatch.confidence,
             },
-          ]
-        : [];
+          ];
+        }
+      } catch (nlpError) {
+        console.error('NLP parsing failed:', nlpError);
+      }
 
       const result = await this.searchService.search(searchQuery);
 
@@ -123,11 +160,72 @@ export class CommandPaletteService {
 
       this.items.set(paletteItems);
       this.selectedIndex.set(0);
-    } catch {
+    } catch (error) {
+      console.error('Command palette search failed:', error);
       this.error.set('Search failed. Please try again.');
       this.items.set([]);
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  private getDailyIndex(poolSize: number, offset: number = 0): number {
+    const daysSinceEpoch = Math.floor(Date.now() / 86_400_000);
+    return (daysSinceEpoch + offset) % poolSize;
+  }
+
+  private getDefaultItems(): PaletteItem[] {
+    const pool = this.localeId.startsWith('de') ? this.hintPoolDe : this.hintPoolEn;
+    const hint1 = pool[this.getDailyIndex(pool.length, 0)];
+    const hint2 = pool[this.getDailyIndex(pool.length, 1)];
+
+    return [
+      { type: 'hint', title: hint1, icon: 'lightbulb', route: '' },
+      { type: 'hint', title: hint2, icon: 'lightbulb', route: '' },
+      {
+        type: 'command',
+        title: 'Create Event',
+        description: 'Add a new calendar event',
+        icon: 'plus',
+        route: '/family/calendar?action=create',
+        module: 'calendar',
+      },
+      {
+        type: 'command',
+        title: 'Send Message',
+        description: 'Start a new conversation',
+        icon: 'chat',
+        route: '/messages?action=create',
+        module: 'messages',
+      },
+      {
+        type: 'navigation',
+        title: 'Dashboard',
+        icon: 'home',
+        route: '/dashboard',
+        module: 'dashboard',
+      },
+      {
+        type: 'navigation',
+        title: 'Calendar',
+        icon: 'calendar',
+        route: '/family/calendar',
+        module: 'calendar',
+      },
+      {
+        type: 'navigation',
+        title: 'Messages',
+        icon: 'chat',
+        route: '/messages',
+        module: 'messages',
+      },
+      {
+        type: 'navigation',
+        title: 'Files',
+        icon: 'folder',
+        route: '/files/browse',
+        module: 'files',
+      },
+    ];
   }
 }

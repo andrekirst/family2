@@ -29,7 +29,7 @@ export class NlpParserService {
   }
 
   private getRules(): NlpRule[] {
-    if (this.locale.startsWith('de')) {
+    if (this.locale?.startsWith('de')) {
       return DE_RULES;
     }
     return EN_RULES;

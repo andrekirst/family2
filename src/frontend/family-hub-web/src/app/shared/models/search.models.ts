@@ -21,7 +21,7 @@ export interface UniversalSearchResult {
   commands: CommandDescriptor[];
 }
 
-export type PaletteItemType = 'nlp' | 'result' | 'command';
+export type PaletteItemType = 'nlp' | 'result' | 'command' | 'hint' | 'navigation';
 
 export interface PaletteItem {
   type: PaletteItemType;
