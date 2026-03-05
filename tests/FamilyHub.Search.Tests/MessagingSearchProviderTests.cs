@@ -60,7 +60,7 @@ public class MessagingSearchProviderTests
 
         var results = await provider.SearchAsync(context);
 
-        results.Should().HaveCountLessOrEqualTo(3);
+        results.Should().HaveCountLessThanOrEqualTo(3);
     }
 
     [Fact]

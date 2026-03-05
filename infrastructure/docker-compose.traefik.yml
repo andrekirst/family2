@@ -3,7 +3,7 @@
 
 services:
   traefik:
-    image: traefik:v3.2
+    image: traefik:v3.6.9
     restart: always
     ports:
       - '4000:4000' # HTTP (redirects to HTTPS)
@@ -147,7 +147,9 @@ services:
           - infisical
 
   infisical-db:
-    image: postgres:14-alpine
+    # Infisical supports PG 14+; upgraded alongside other PG instances.
+    # NOTE: PG major version upgrade (14→18) requires pg_upgrade or volume recreation.
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: infisical
@@ -164,7 +166,7 @@ services:
       - traefik-public
 
   infisical-redis:
-    image: redis:7-alpine
+    image: redis:8.6-alpine
     restart: unless-stopped
     volumes:
       - fh-infisical-redis:/data

@@ -181,7 +181,7 @@ public class UniversalSearchQueryHandlerTests
         var result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
-        result.Results.Should().HaveCountLessOrEqualTo(30);
+        result.Results.Should().HaveCountLessThanOrEqualTo(30);
     }
 
     [Fact]

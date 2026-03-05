@@ -12,8 +12,9 @@ services:
   # --------------------------------------------------------------------------
   # PostgreSQL — Application database
   # --------------------------------------------------------------------------
+  # NOTE: PG major version upgrade (16→18) requires pg_upgrade or volume recreation.
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_DB: familyhub
       POSTGRES_USER: familyhub
@@ -45,8 +46,9 @@ services:
   # --------------------------------------------------------------------------
   # PostgreSQL — Keycloak database
   # --------------------------------------------------------------------------
+  # NOTE: PG major version upgrade (16→18) requires pg_upgrade or volume recreation.
   postgres-keycloak:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
@@ -79,14 +81,14 @@ services:
   # Keycloak — OAuth 2.0 / OIDC provider
   # --------------------------------------------------------------------------
   keycloak:
-    image: quay.io/keycloak/keycloak:23.0.4
+    image: quay.io/keycloak/keycloak:26.5.4
     command: ['start', '--optimized']
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: ${PROD_KC_DB_PASSWORD}
-      KC_PROXY: edge
+      KC_PROXY_HEADERS: xforwarded
       KC_HOSTNAME: auth.familyhub.local
       KC_HOSTNAME_STRICT: 'true'
       KC_HTTP_ENABLED: 'true'

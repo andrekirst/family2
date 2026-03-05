@@ -44,7 +44,7 @@ public class FamilySearchProviderTests
 
         var results = await provider.SearchAsync(context);
 
-        results.Count.Should().BeLessOrEqualTo(1);
+        results.Count.Should().BeLessThanOrEqualTo(1);
     }
 
     [Fact]

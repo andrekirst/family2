@@ -24,14 +24,14 @@ public class KeycloakContainerFixture : IAsyncLifetime
     public const string RealmName = "FamilyHub";
     public const string ClientId = "familyhub-web";
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         var realmPath = Path.GetFullPath(
             Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "..",
                 "infrastructure", "keycloak", "realm-base.json"));
 
         var containerBuilder = new KeycloakBuilder()
-            .WithImage("quay.io/keycloak/keycloak:26.0")
+            .WithImage("quay.io/keycloak/keycloak:26.5.4")
             .WithResourceMapping(realmPath, "/opt/keycloak/data/import/realm-base.json")
             .WithCommand("--import-realm")
             .WithWaitStrategy(Wait.ForUnixContainer()
@@ -67,7 +67,7 @@ public class KeycloakContainerFixture : IAsyncLifetime
         return json.GetProperty("access_token").GetString()!;
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _container.DisposeAsync();
     }

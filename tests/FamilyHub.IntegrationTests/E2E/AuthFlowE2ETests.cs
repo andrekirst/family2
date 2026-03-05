@@ -27,13 +27,13 @@ public class AuthFlowE2ETests : IAsyncLifetime
         _postgres = postgres;
     }
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         _factory = new FullStackWebApplicationFactory(_keycloak, _postgres);
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _factory.DisposeAsync();
     }

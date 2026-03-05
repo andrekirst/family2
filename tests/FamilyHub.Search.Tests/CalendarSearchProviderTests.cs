@@ -91,7 +91,7 @@ public class CalendarSearchProviderTests
 
         var results = await provider.SearchAsync(context);
 
-        results.Should().HaveCountLessOrEqualTo(5);
+        results.Should().HaveCountLessThanOrEqualTo(5);
     }
 
     [Fact]
