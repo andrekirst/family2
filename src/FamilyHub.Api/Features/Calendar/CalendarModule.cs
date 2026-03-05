@@ -1,4 +1,6 @@
 using FamilyHub.Api.Common.Modules;
+using FamilyHub.Api.Common.Search;
+using FamilyHub.Api.Features.Calendar.Application.Search;
 using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 using FamilyHub.Api.Features.Calendar.Infrastructure.Repositories;
 using FamilyHub.Api.Features.Calendar.Infrastructure.Services;
@@ -15,5 +17,9 @@ public sealed class CalendarModule : IModule
         services.Configure<CalendarCleanupOptions>(
             configuration.GetSection(CalendarCleanupOptions.SectionName));
         services.AddHostedService<CancelledEventCleanupService>();
+
+        // Search & command palette providers
+        services.AddScoped<ISearchProvider, CalendarSearchProvider>();
+        services.AddSingleton<ICommandPaletteProvider, CalendarCommandPaletteProvider>();
     }
 }

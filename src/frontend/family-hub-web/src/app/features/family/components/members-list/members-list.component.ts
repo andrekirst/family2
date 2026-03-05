@@ -43,9 +43,11 @@ import { AvatarDisplayComponent } from '../../../../core/avatar';
               >
                 {{ member.role }}
               </span>
-              <span class="text-xs text-gray-400" i18n="@@family.members.joined">
-                Joined {{ member.joinedAt | date: 'mediumDate' }}
-              </span>
+              @if (member.joinedAt) {
+                <span class="text-xs text-gray-400" i18n="@@family.members.joined">
+                  Joined {{ member.joinedAt | date: 'mediumDate' }}
+                </span>
+              }
             </div>
           </div>
         }

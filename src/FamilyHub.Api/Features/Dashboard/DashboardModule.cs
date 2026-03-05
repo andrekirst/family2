@@ -1,5 +1,7 @@
 using FamilyHub.Api.Common.Modules;
+using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Common.Widgets;
+using FamilyHub.Api.Features.Dashboard.Application.Search;
 using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Infrastructure.Repositories;
 
@@ -18,5 +20,9 @@ public sealed class DashboardModule : IModule
 
         // Built-in widget provider (welcome widget)
         services.AddSingleton<IWidgetProvider, DashboardWidgetProvider>();
+
+        // Search
+        services.AddScoped<ISearchProvider, DashboardSearchProvider>();
+        services.AddSingleton<ICommandPaletteProvider, DashboardCommandPaletteProvider>();
     }
 }

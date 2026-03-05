@@ -5,6 +5,7 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 import { TopBarComponent } from './top-bar/top-bar.component';
 import { ContextPanelComponent } from './context-panel/context-panel.component';
 import { ToastContainerComponent } from '../components/toast-container/toast-container.component';
+import { CommandPaletteComponent } from '../components/command-palette/command-palette.component';
 
 @Component({
   selector: 'app-layout',
@@ -15,6 +16,7 @@ import { ToastContainerComponent } from '../components/toast-container/toast-con
     TopBarComponent,
     ContextPanelComponent,
     ToastContainerComponent,
+    CommandPaletteComponent,
   ],
   template: `
     <div class="min-h-screen bg-gray-50 flex">
@@ -34,6 +36,7 @@ import { ToastContainerComponent } from '../components/toast-container/toast-con
         </div>
       </div>
     </div>
+    <app-command-palette />
     <app-toast-container />
   `,
 })

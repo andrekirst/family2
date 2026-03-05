@@ -20,10 +20,13 @@ using FamilyHub.Api.Features.GoogleIntegration;
 using FamilyHub.Api.Common.Development;
 using FamilyHub.Api.Features.Messaging;
 using FamilyHub.Api.Features.Photos;
+using FamilyHub.Api.Features.Search;
+using FamilyHub.Api.Common.Infrastructure.HealthChecks;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -139,6 +142,7 @@ builder.Services.RegisterModule<FileManagementModule>(builder.Configuration);
 builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
 builder.Services.RegisterModule<MessagingModule>(builder.Configuration);
 builder.Services.RegisterModule<PhotosModule>(builder.Configuration);
+builder.Services.RegisterModule<SearchModule>(builder.Configuration);
 
 // Development-only: seed database with Keycloak test users
 if (builder.Environment.IsDevelopment())
@@ -160,6 +164,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Health checks for auth infrastructure diagnostics
+builder.Services.AddHealthChecks()
+    .AddCheck<KeycloakHealthCheck>("keycloak_oidc")
+    .AddCheck<JwtSigningKeysHealthCheck>("jwt_signing_keys")
+    .AddCheck<GraphQLSchemaHealthCheck>("graphql_schema");
+
 // Configure GraphQL server with Hot Chocolate
 builder.Services
     .AddGraphQLServer()
@@ -171,7 +181,8 @@ builder.Services
     .AddSubscriptionType(d => d.Name("Subscription"))
     .AddInMemorySubscriptions()
     .AddTypeExtensionsFromAssembly(typeof(Program).Assembly)
-    .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment());
+    .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment())
+    .InitializeOnStartup();
 
 var app = builder.Build();
 
@@ -227,7 +238,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // PostgreSQL RLS middleware - must come AFTER authentication
-app.UseMiddleware<PostgresRlsMiddleware>();
+// Skipped in Testing environment where InMemoryDatabase doesn't support raw SQL
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.UseMiddleware<PostgresRlsMiddleware>();
+}
 
 app.MapControllers();
 app.UseWebSockets();
@@ -235,8 +250,12 @@ app.MapGraphQL();
 app.MapControllers(); // REST endpoints (avatar serving)
 app.MapFileEndpoints(); // REST endpoints (file upload/download/stream)
 
-// Health check endpoint
+// Health check endpoints
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+app.MapHealthChecks("/health/auth", new HealthCheckOptions
+{
+    ResponseWriter = HealthCheckResponseWriter.WriteResponse
+});
 
 // Frontend runtime configuration endpoint (served same-origin via Traefik proxy)
 app.MapGet("/config", (IConfiguration configuration) =>

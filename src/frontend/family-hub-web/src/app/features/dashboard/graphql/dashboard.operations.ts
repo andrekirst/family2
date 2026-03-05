@@ -70,7 +70,7 @@ export const GET_AVAILABLE_WIDGETS = gql`
 `;
 
 export const SAVE_DASHBOARD_LAYOUT = gql`
-  mutation SaveDashboardLayout($input: SaveDashboardLayoutInput!) {
+  mutation SaveDashboardLayout($input: SaveDashboardLayoutRequestInput!) {
     dashboard {
       saveLayout(input: $input) {
         id

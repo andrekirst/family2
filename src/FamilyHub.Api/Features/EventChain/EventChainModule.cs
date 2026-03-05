@@ -1,5 +1,7 @@
 using FamilyHub.Api.Common.Modules;
+using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.EventChain.Application.EventHandlers;
+using FamilyHub.Api.Features.EventChain.Application.Search;
 using FamilyHub.Api.Features.EventChain.Infrastructure.Repositories;
 using FamilyHub.Api.Features.EventChain.Infrastructure.Scheduler;
 using FamilyHub.Common.Application;
@@ -38,5 +40,9 @@ public sealed class EventChainModule : IModule
 
         // Chain scheduler background service
         services.AddHostedService<ChainSchedulerService>();
+
+        // Search
+        services.AddScoped<ISearchProvider, EventChainSearchProvider>();
+        services.AddSingleton<ICommandPaletteProvider, EventChainCommandPaletteProvider>();
     }
 }
