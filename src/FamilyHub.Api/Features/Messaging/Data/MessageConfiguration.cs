@@ -62,12 +62,22 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
             .HasMaxLength(MessageContent.MaxLength)
             .IsRequired();
 
+        builder.Property(m => m.ConversationId)
+            .HasConversion(
+                id => id!.Value.Value,
+                value => ConversationId.From(value))
+            .IsRequired(false);
+
         builder.Property(m => m.SentAt)
             .IsRequired()
             .HasDefaultValueSql("NOW()");
 
         // Composite index for efficient family timeline queries (ORDER BY sent_at DESC)
         builder.HasIndex(m => new { m.FamilyId, m.SentAt })
+            .IsDescending(false, true);
+
+        // Index for conversation-scoped timeline queries
+        builder.HasIndex(m => new { m.ConversationId, m.SentAt })
             .IsDescending(false, true);
 
         // Owned collection: message_attachments table in messaging schema

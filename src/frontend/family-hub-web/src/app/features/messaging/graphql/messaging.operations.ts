@@ -8,6 +8,7 @@ const MESSAGE_FIELDS = `
   senderAvatarId
   content
   sentAt
+  conversationId
   attachments {
     fileId
     fileName
@@ -15,6 +16,27 @@ const MESSAGE_FIELDS = `
     fileSize
     storageKey
     attachedAt
+  }
+`;
+
+const CONVERSATION_MEMBER_FIELDS = `
+  id
+  userId
+  role
+  joinedAt
+  leftAt
+`;
+
+const CONVERSATION_FIELDS = `
+  id
+  name
+  type
+  familyId
+  createdBy
+  folderId
+  createdAt
+  members {
+    ${CONVERSATION_MEMBER_FIELDS}
   }
 `;
 
@@ -42,6 +64,36 @@ export const MESSAGE_SENT_SUBSCRIPTION = gql`
   subscription MessageSent($familyId: UUID!) {
     messageSent(familyId: $familyId) {
       ${MESSAGE_FIELDS}
+    }
+  }
+`;
+
+export const GET_CONVERSATIONS = gql`
+  query GetConversations {
+    messaging {
+      conversations {
+        ${CONVERSATION_FIELDS}
+      }
+    }
+  }
+`;
+
+export const CREATE_CONVERSATION = gql`
+  mutation CreateConversation($input: CreateConversationRequestInput!) {
+    messaging {
+      createConversation(input: $input) {
+        ${CONVERSATION_FIELDS}
+      }
+    }
+  }
+`;
+
+export const GET_CONVERSATION_MESSAGES = gql`
+  query GetConversationMessages($conversationId: UUID!, $limit: Int, $before: DateTime) {
+    messaging {
+      conversationMessages(conversationId: $conversationId, limit: $limit, before: $before) {
+        ${MESSAGE_FIELDS}
+      }
     }
   }
 `;

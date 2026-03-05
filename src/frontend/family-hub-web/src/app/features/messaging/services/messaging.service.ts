@@ -5,6 +5,9 @@ import {
   GET_FAMILY_MESSAGES,
   SEND_MESSAGE,
   MESSAGE_SENT_SUBSCRIPTION,
+  GET_CONVERSATIONS,
+  CREATE_CONVERSATION,
+  GET_CONVERSATION_MESSAGES,
 } from '../graphql/messaging.operations';
 import { Observable, catchError, map, of } from 'rxjs';
 import { EnvironmentConfigService } from '../../../core/config/environment-config.service';
@@ -26,6 +29,7 @@ export interface MessageDto {
   senderAvatarId: string | null;
   content: string;
   sentAt: string;
+  conversationId: string | null;
   attachments: AttachmentDto[];
 }
 
@@ -47,6 +51,32 @@ export interface UploadResponse {
 export interface SendMessageInput {
   content: string;
   attachments?: AttachmentInput[];
+  conversationId?: string;
+}
+
+export interface ConversationMemberDto {
+  id: string;
+  userId: string;
+  role: string;
+  joinedAt: string;
+  leftAt: string | null;
+}
+
+export interface ConversationDto {
+  id: string;
+  name: string;
+  type: string;
+  familyId: string;
+  createdBy: string;
+  folderId: string | null;
+  createdAt: string;
+  members: ConversationMemberDto[];
+}
+
+export interface CreateConversationInput {
+  name: string;
+  type: string;
+  memberIds: string[];
 }
 
 @Injectable({
@@ -69,6 +99,27 @@ export class MessagingService {
         map((result: any) => [...(result.data?.messaging?.messages ?? [])].reverse()),
         catchError((error: unknown) => {
           console.error('Failed to fetch messages:', error);
+          return of([]);
+        }),
+      );
+  }
+
+  getConversationMessages(
+    conversationId: string,
+    limit = 50,
+    before?: string,
+  ): Observable<MessageDto[]> {
+    return this.apollo
+      .query<{ messaging: { conversationMessages: MessageDto[] } }>({
+        query: GET_CONVERSATION_MESSAGES,
+        variables: { conversationId, limit, before: before ?? null },
+        fetchPolicy: 'network-only',
+      })
+      .pipe(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        map((result: any) => [...(result.data?.messaging?.conversationMessages ?? [])].reverse()),
+        catchError((error: unknown) => {
+          console.error('Failed to fetch conversation messages:', error);
           return of([]);
         }),
       );
@@ -101,6 +152,38 @@ export class MessagingService {
         map((result: any) => result.data?.messageSent ?? null),
         catchError((error: unknown) => {
           console.error('Message subscription error:', error);
+          return of(null);
+        }),
+      );
+  }
+
+  getConversations(): Observable<ConversationDto[]> {
+    return this.apollo
+      .query<{ messaging: { conversations: ConversationDto[] } }>({
+        query: GET_CONVERSATIONS,
+        fetchPolicy: 'network-only',
+      })
+      .pipe(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        map((result: any) => result.data?.messaging?.conversations ?? []),
+        catchError((error: unknown) => {
+          console.error('Failed to fetch conversations:', error);
+          return of([]);
+        }),
+      );
+  }
+
+  createConversation(input: CreateConversationInput): Observable<ConversationDto | null> {
+    return this.apollo
+      .mutate<{ messaging: { createConversation: ConversationDto } }>({
+        mutation: CREATE_CONVERSATION,
+        variables: { input },
+      })
+      .pipe(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        map((result: any) => result.data?.messaging?.createConversation ?? null),
+        catchError((error: unknown) => {
+          console.error('Failed to create conversation:', error);
           return of(null);
         }),
       );

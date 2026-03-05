@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { EnvironmentConfigService } from '../config/environment-config.service';
 import { UserProfile, AuthTokens, JwtPayload } from './auth.models';
 import {
@@ -212,15 +213,11 @@ export class AuthService {
     });
 
     try {
-      const tokens = await this.http
-        .post<AuthTokens>(tokenUrl, body.toString(), {
+      const tokens = await firstValueFrom(
+        this.http.post<AuthTokens>(tokenUrl, body.toString(), {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        })
-        .toPromise();
-
-      if (!tokens) {
-        throw new Error('No tokens received from Keycloak');
-      }
+        }),
+      );
 
       // Store tokens
       this.storeTokens(tokens);
@@ -320,17 +317,14 @@ export class AuthService {
     });
 
     try {
-      const tokens = await this.http
-        .post<AuthTokens>(tokenUrl, body.toString(), {
+      const tokens = await firstValueFrom(
+        this.http.post<AuthTokens>(tokenUrl, body.toString(), {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        })
-        .toPromise();
+        }),
+      );
 
-      if (tokens) {
-        this.storeTokens(tokens);
-        return true;
-      }
-      return false;
+      this.storeTokens(tokens);
+      return true;
     } catch (error) {
       console.error('Token refresh failed:', error);
       this.clearTokens();

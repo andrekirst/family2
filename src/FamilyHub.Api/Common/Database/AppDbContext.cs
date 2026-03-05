@@ -121,6 +121,7 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     // Messaging entities
     public DbSet<Message> Messages { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

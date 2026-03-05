@@ -77,8 +77,8 @@ public class MessageAggregateTests
         var content = MessageContent.From("Check out these files!");
         var attachments = new[]
         {
-            MessageAttachment.Create(FileId.New(), "photo.jpg", "image/jpeg", 2048),
-            MessageAttachment.Create(FileId.New(), "doc.pdf", "application/pdf", 4096),
+            MessageAttachment.Create(FileId.New(), "photo.jpg", "image/jpeg", 2048, "uploads/photo.jpg"),
+            MessageAttachment.Create(FileId.New(), "doc.pdf", "application/pdf", 4096, "uploads/doc.pdf"),
         };
 
         // Act
@@ -101,8 +101,8 @@ public class MessageAggregateTests
         var fileId2 = FileId.New();
         var attachments = new[]
         {
-            MessageAttachment.Create(fileId1, "a.txt", "text/plain", 100),
-            MessageAttachment.Create(fileId2, "b.txt", "text/plain", 200),
+            MessageAttachment.Create(fileId1, "a.txt", "text/plain", 100, "uploads/a.txt"),
+            MessageAttachment.Create(fileId2, "b.txt", "text/plain", 200, "uploads/b.txt"),
         };
 
         // Act

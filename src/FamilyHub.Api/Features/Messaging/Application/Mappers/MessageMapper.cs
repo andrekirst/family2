@@ -20,6 +20,7 @@ public static class MessageMapper
             SenderAvatarId = senderAvatarId,
             Content = message.Content.Value,
             SentAt = message.SentAt,
+            ConversationId = message.ConversationId?.Value,
             Attachments = AttachmentMapper.ToDtoList(message.Attachments)
         };
     }

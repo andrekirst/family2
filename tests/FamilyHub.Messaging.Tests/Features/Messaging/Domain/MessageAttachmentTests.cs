@@ -16,7 +16,7 @@ public class MessageAttachmentTests
         var fileSize = 1024L * 512;
 
         // Act
-        var attachment = MessageAttachment.Create(fileId, fileName, mimeType, fileSize);
+        var attachment = MessageAttachment.Create(fileId, fileName, mimeType, fileSize, "uploads/family-photo.jpg");
 
         // Assert
         attachment.Id.Should().NotBe(Guid.Empty);
@@ -34,8 +34,8 @@ public class MessageAttachmentTests
         var fileId = FileId.New();
 
         // Act
-        var a1 = MessageAttachment.Create(fileId, "file1.txt", "text/plain", 100);
-        var a2 = MessageAttachment.Create(fileId, "file2.txt", "text/plain", 200);
+        var a1 = MessageAttachment.Create(fileId, "file1.txt", "text/plain", 100, "uploads/file1.txt");
+        var a2 = MessageAttachment.Create(fileId, "file2.txt", "text/plain", 200, "uploads/file2.txt");
 
         // Assert
         a1.Id.Should().NotBe(a2.Id);

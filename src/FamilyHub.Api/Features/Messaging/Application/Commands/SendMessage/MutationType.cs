@@ -8,6 +8,7 @@ using FamilyHub.Api.Features.Messaging.Application.Mappers;
 using FamilyHub.Api.Features.Messaging.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Models;
+using FamilyHub.Common.Domain.ValueObjects;
 using HotChocolate.Authorization;
 using HotChocolate.Subscriptions;
 
@@ -53,11 +54,16 @@ public class MutationType
             throw new InvalidOperationException("Message must have content or at least one attachment");
         }
 
+        var conversationId = input.ConversationId.HasValue
+            ? ConversationId.From(input.ConversationId.Value)
+            : (ConversationId?)null;
+
         var command = new SendMessageCommand(
             user.FamilyId.Value,
             user.Id,
             MessageContent.From(content),
-            attachments);
+            attachments,
+            conversationId);
 
         var result = await commandBus.SendAsync(command, cancellationToken);
 

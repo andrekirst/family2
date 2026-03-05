@@ -34,6 +34,28 @@ public class FakeMessageRepository(List<Message>? existingMessages = null) : IMe
         return Task.FromResult(result);
     }
 
+    public Task<List<Message>> GetByConversationAsync(
+        ConversationId conversationId,
+        int limit = 50,
+        DateTime? before = null,
+        CancellationToken ct = default)
+    {
+        var query = _messages.Concat(AddedMessages)
+            .Where(m => m.ConversationId == conversationId);
+
+        if (before.HasValue)
+        {
+            query = query.Where(m => m.SentAt < before.Value);
+        }
+
+        var result = query
+            .OrderByDescending(m => m.SentAt)
+            .Take(Math.Min(limit, 100))
+            .ToList();
+
+        return Task.FromResult(result);
+    }
+
     public Task AddAsync(Message message, CancellationToken ct = default)
     {
         AddedMessages.Add(message);

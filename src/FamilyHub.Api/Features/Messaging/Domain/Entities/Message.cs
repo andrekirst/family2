@@ -33,6 +33,11 @@ public sealed class Message : AggregateRoot<MessageId>
     public MessageContent Content { get; private set; }
 
     /// <summary>
+    /// The conversation this message belongs to (null for legacy messages).
+    /// </summary>
+    public ConversationId? ConversationId { get; private set; }
+
+    /// <summary>
     /// When the message was sent.
     /// </summary>
     public DateTime SentAt { get; private set; }
@@ -49,7 +54,8 @@ public sealed class Message : AggregateRoot<MessageId>
         FamilyId familyId,
         UserId senderId,
         MessageContent content,
-        IReadOnlyList<MessageAttachment>? attachments = null)
+        IReadOnlyList<MessageAttachment>? attachments = null,
+        ConversationId? conversationId = null)
     {
         var message = new Message
         {
@@ -57,6 +63,7 @@ public sealed class Message : AggregateRoot<MessageId>
             FamilyId = familyId,
             SenderId = senderId,
             Content = content,
+            ConversationId = conversationId,
             SentAt = DateTime.UtcNow
         };
 
