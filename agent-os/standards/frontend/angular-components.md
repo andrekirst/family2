@@ -49,6 +49,18 @@ app/
     └── family/
 ```
 
+## Overlay/Modal Components
+
+For keyboard-driven overlays (e.g., command palette):
+
+- Use `@HostListener('document:keydown')` for global keyboard shortcuts
+- Trap focus with Tab prevention
+- Restore focus to `document.activeElement` on close
+- Use signal-based service for state (not component state)
+- Backdrop click detection: check `event.target === event.currentTarget`
+- Use `viewChild()` signal queries for element refs
+- Use `effect()` for auto-focus on open
+
 ## Rules
 
 - Always use `standalone: true`

@@ -44,6 +44,20 @@ Modules/FamilyHub.Modules.{ModuleName}/
 - Reference IDs only (no FK constraints across modules)
 - IUserLookupService for cross-module queries
 
+## Cross-Cutting Concerns (Common/)
+
+Shared infrastructure used by all modules lives in `Common/`:
+
+```
+Common/
+├── Domain/           # AggregateRoot, IDomainEvent
+├── Database/         # AppDbContext
+├── Modules/          # IModule infrastructure
+└── Search/           # ISearchProvider, ICommandPaletteRegistry, CommandDescriptor
+```
+
+Modules register their search providers in their `IModule.RegisterServices()` method.
+
 ## Rules
 
 - One DbContext per module

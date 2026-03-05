@@ -77,9 +77,34 @@ private class Fake{Entity}Repository : I{Entity}Repository
 dotnet test tests/FamilyHub.UnitTests/FamilyHub.UnitTests.csproj --verbosity normal
 ```
 
+## Per-Module Test Projects
+
+Tests are in per-module projects: `tests/FamilyHub.{Module}.Tests/`
+
+```bash
+dotnet test tests/FamilyHub.Search.Tests/ --verbosity normal
+```
+
+## Shared Fakes
+
+Cross-cutting test doubles in `tests/FamilyHub.TestCommon/Fakes/`:
+
+- `FakeSearchProvider` — Configurable ISearchProvider with call counting
+- `FakeUserRepository`, `FakeFamilyRepository`, etc.
+
+## NullLogger
+
+For handlers with `ILogger<T>` dependency:
+
+```csharp
+using Microsoft.Extensions.Logging.Abstractions;
+NullLogger<HandlerClass>.Instance
+```
+
 ## Validation
 
 - [ ] Uses FluentAssertions (never xUnit Assert)
 - [ ] Fake repos as inner classes
 - [ ] Calls static Handle() directly
 - [ ] Tests happy path + error cases
+- [ ] Uses NullLogger<T>.Instance for ILogger dependencies

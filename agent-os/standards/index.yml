@@ -12,6 +12,8 @@ backend:
     description: Domain events as plain records, raised via RaiseDomainEvent() on aggregates
   graphql-input-command:
     description: ADR-003 pattern separating Input DTOs from Commands with subfolder-per-command layout
+  search-providers:
+    description: ISearchProvider + ICommandPaletteProvider pattern for universal search
   permission-system:
     description: Role-based permissions with VO methods, string format, defense-in-depth enforcement
   secure-token-pattern:
@@ -32,6 +34,8 @@ frontend:
     description: Standalone components with inject() DI and computed signals
   apollo-graphql:
     description: Apollo Client with typed GraphQL operations
+  command-palette:
+    description: Keyboard-first command palette with signal-based state and NLP parsing
 
 global:
   tech-stack:

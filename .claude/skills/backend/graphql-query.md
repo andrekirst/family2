@@ -62,9 +62,34 @@ public class QueryType
 }
 ```
 
+## Namespace Type Pattern (Cross-Module Queries)
+
+For queries that don't belong to a single auth-scoped module (e.g., Search):
+
+```csharp
+// Define namespace type
+[QueryType]
+public static class SearchQuery { }
+
+// Extend the namespace type
+[ExtendObjectType(typeof(SearchQuery))]
+public class UniversalSearchQueryType
+{
+    [Authorize]
+    public async Task<UniversalSearchResult> UniversalSearch(
+        ClaimsPrincipal claimsPrincipal,
+        [Service] IMediator mediator,
+        string query, ...) { ... }
+}
+```
+
+Use this pattern when: the query aggregates data from multiple modules (Search, Dashboard).
+Use `AuthQueries` pattern when: the query belongs to a single module.
+
 ## Validation
 
 - [ ] Query implements IQuery<TResult>
 - [ ] Handler is static class with static Handle()
 - [ ] QueryType extends AuthQueries
+- [ ] Cross-module queries use namespace type pattern (not AuthQueries)
 - [ ] Dispatches via IQueryBus.QueryAsync()

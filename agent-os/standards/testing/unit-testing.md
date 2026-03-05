@@ -66,10 +66,44 @@ typeof(FamilyInvitation).GetProperty("ExpiresAt")!
     .SetValue(invitation, DateTime.UtcNow.AddDays(-1));
 ```
 
+## Shared Test Fakes (FamilyHub.TestCommon)
+
+For cross-cutting concerns, shared fakes live in `tests/FamilyHub.TestCommon/Fakes/`:
+
+```csharp
+public sealed class FakeSearchProvider(
+    string moduleName, List<SearchResultItem>? results = null) : ISearchProvider
+{
+    public string ModuleName => moduleName;
+    public int SearchCallCount { get; private set; }
+
+    public Task<IReadOnlyList<SearchResultItem>> SearchAsync(
+        SearchContext context, CancellationToken ct)
+    {
+        SearchCallCount++;
+        return Task.FromResult<IReadOnlyList<SearchResultItem>>(
+            results?.AsReadOnly() ?? new List<SearchResultItem>().AsReadOnly());
+    }
+}
+```
+
+## NullLogger for ILogger Dependencies
+
+When handlers take `ILogger<T>`, use `NullLogger<T>.Instance`:
+
+```csharp
+using Microsoft.Extensions.Logging.Abstractions;
+
+var handler = new UniversalSearchQueryHandler(
+    [provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
+```
+
 ## Rules
 
 - FluentAssertions for all assertions (never xUnit Assert)
 - Fake repositories as inner classes (NSubstitute migration planned)
 - Arrange-Act-Assert pattern
 - Call static `Handler.Handle()` directly with fakes
-- Location: `tests/FamilyHub.UnitTests/Features/{Module}/`
+- `NullLogger<T>.Instance` for handlers with ILogger (from `Microsoft.Extensions.Logging.Abstractions`)
+- Shared cross-cutting fakes go in `FamilyHub.TestCommon/Fakes/`
+- Location: `tests/FamilyHub.{Module}.Tests/` (per-module test projects)

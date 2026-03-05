@@ -140,6 +140,23 @@ If the feature involves authorized actions:
 - Add permission string to `GetPermissions()` using format `{module}:{action}`
 - Use `FamilyAuthorizationService` (or equivalent) for backend enforcement
 
+## Phase 3.5: Search Integration (if module has searchable data)
+
+### 3.5.1 Search Provider
+
+Create `Application/Search/{Module}SearchProvider.cs`:
+
+- Implement `ISearchProvider`
+- Register as scoped in module's `RegisterServices()`
+
+### 3.5.2 Command Palette Provider
+
+Create `Application/Search/{Module}CommandPaletteProvider.cs`:
+
+- Implement `ICommandPaletteProvider`
+- Register as singleton in module's `RegisterServices()`
+- Include i18n labels (LabelDe, DescriptionDe) for German support
+
 ## Phase 4: Persistence Layer
 
 ### 4.1 EF Core Configuration
@@ -239,6 +256,8 @@ Invoke skill: testing/unit-test
 - module: {module}
 ```
 
+- [ ] Search provider tested with FakeSearchProvider
+
 ### 7.2 E2E Tests
 
 ```
@@ -294,4 +313,6 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 - [ ] Frontend uses `inject()` for DI
 - [ ] Unit tests with fake repositories pass
 - [ ] Build succeeds (backend + frontend)
+- [ ] Search provider registered (if searchable data)
+- [ ] Command palette provider registered (if module has commands)
 - [ ] Manual verification complete

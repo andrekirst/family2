@@ -31,6 +31,11 @@
         "description": "Create GraphQL query with handler"
       },
       {
+        "name": "search-provider",
+        "file": "backend/search-provider.md",
+        "description": "Create search provider and command palette provider for a module"
+      },
+      {
         "name": "repository",
         "file": "backend/repository.md",
         "description": "Create repository interface and implementation"
@@ -136,7 +141,8 @@
     "unit-test",
     "integration-test",
     "feature-implementation",
-    "serena-exploration"
+    "serena-exploration",
+    "search-provider"
   ],
   "agentOsIntegration": {
     "standardsPath": "agent-os/standards",
