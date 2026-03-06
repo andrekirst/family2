@@ -9,4 +9,4 @@ namespace FamilyHub.Api.Features.Family.Application.Queries.GetFamilyMembers;
 /// </summary>
 public sealed record GetFamilyMembersQuery(
     ExternalUserId ExternalUserId
-) : IQuery<List<UserDto>>;
+) : IReadOnlyQuery<List<UserDto>>;

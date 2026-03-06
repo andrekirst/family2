@@ -37,7 +37,7 @@ public sealed class DashboardLayoutRepository(AppDbContext context) : IDashboard
 
     public Task UpdateAsync(DashboardLayout layout, CancellationToken ct = default)
     {
-        context.DashboardLayouts.Update(layout);
+        // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
     }
 

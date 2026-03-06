@@ -87,10 +87,10 @@
 
 ### Database Work
 
-→ **[docs/guides/DATABASE_DEVELOPMENT.md](docs/guides/DATABASE_DEVELOPMENT.md)** - PostgreSQL, EF Core migrations, RLS
+→ **[docs/guides/DATABASE_DEVELOPMENT.md](docs/guides/DATABASE_DEVELOPMENT.md)** - PostgreSQL, DbUp migrations, RLS
 
 - When: Planning database schema, migrations, RLS policies
-- Covers: Migration workflows, schema design, RLS patterns
+- Covers: DbUp SQL migration workflow, schema design, RLS patterns
 
 ### Infrastructure & DevOps
 

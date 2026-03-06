@@ -31,6 +31,7 @@ public sealed class ChainExecutionRepository(AppDbContext context) : IChainExecu
     {
         var query = context.ChainExecutions
             .Include(e => e.StepExecutions)
+            .AsSplitQuery()
             .Where(e => e.FamilyId == familyId);
 
         if (chainDefinitionId.HasValue)
@@ -71,7 +72,7 @@ public sealed class ChainExecutionRepository(AppDbContext context) : IChainExecu
 
     public Task UpdateAsync(ChainExecution execution, CancellationToken ct = default)
     {
-        context.ChainExecutions.Update(execution);
+        // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
     }
 

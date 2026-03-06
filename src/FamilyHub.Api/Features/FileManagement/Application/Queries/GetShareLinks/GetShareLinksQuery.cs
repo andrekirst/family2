@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetShareLink
 
 public sealed record GetShareLinksQuery(
     FamilyId FamilyId
-) : IQuery<List<ShareLinkDto>>;
+) : IReadOnlyQuery<List<ShareLinkDto>>;

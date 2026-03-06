@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.Photos.Application.Queries;
 
 public sealed record GetPhotoQuery(
     PhotoId PhotoId
-) : IQuery<PhotoDto?>;
+) : IReadOnlyQuery<PhotoDto?>;

@@ -8,4 +8,4 @@ public sealed record GetPhotosQuery(
     FamilyId FamilyId,
     int Skip,
     int Take
-) : IQuery<PhotosPageDto>;
+) : IReadOnlyQuery<PhotosPageDto>;

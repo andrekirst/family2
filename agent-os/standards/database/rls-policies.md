@@ -2,6 +2,8 @@
 
 RLS enforces data isolation at database level. Defense in depth for multi-tenancy.
 
+**Migration scripts:** `src/FamilyHub.Api/Database/Migrations/rls/` (managed by DbUp)
+
 ## Enable RLS
 
 ```sql

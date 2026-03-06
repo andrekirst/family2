@@ -12,4 +12,4 @@ public sealed record SearchFilesQuery(
     string SortBy = "relevance",
     int Skip = 0,
     int Take = 20
-) : IQuery<List<FileSearchResultDto>>;
+) : IReadOnlyQuery<List<FileSearchResultDto>>;

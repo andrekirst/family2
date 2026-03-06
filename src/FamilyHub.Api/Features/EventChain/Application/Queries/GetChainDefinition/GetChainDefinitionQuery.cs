@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.EventChain.Application.Queries.GetChainDefiniti
 
 public sealed record GetChainDefinitionQuery(
     ChainDefinitionId Id
-) : IQuery<ChainDefinition?>;
+) : IReadOnlyQuery<ChainDefinition?>;

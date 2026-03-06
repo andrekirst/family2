@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetOrganizat
 
 public sealed record GetOrganizationRulesQuery(
     FamilyId FamilyId
-) : IQuery<List<OrganizationRuleDto>>;
+) : IReadOnlyQuery<List<OrganizationRuleDto>>;

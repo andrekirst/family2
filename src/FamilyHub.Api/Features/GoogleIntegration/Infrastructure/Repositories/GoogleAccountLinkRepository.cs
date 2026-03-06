@@ -28,7 +28,7 @@ public sealed class GoogleAccountLinkRepository(AppDbContext context) : IGoogleA
 
     public Task UpdateAsync(GoogleAccountLink link, CancellationToken ct = default)
     {
-        context.GoogleAccountLinks.Update(link);
+        // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
     }
 

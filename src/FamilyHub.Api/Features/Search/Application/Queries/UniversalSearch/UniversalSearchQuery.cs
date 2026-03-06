@@ -10,4 +10,4 @@ public sealed record UniversalSearchQuery(
     string[]? Modules = null,
     int Limit = 10,
     string[]? UserPermissions = null,
-    string? Locale = null) : IQuery<UniversalSearchResult>;
+    string? Locale = null) : IReadOnlyQuery<UniversalSearchResult>;

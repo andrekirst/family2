@@ -8,4 +8,4 @@ public sealed record GetCalendarEventsQuery(
     FamilyId FamilyId,
     DateTime StartDate,
     DateTime EndDate
-) : IQuery<List<CalendarEventDto>>;
+) : IReadOnlyQuery<List<CalendarEventDto>>;

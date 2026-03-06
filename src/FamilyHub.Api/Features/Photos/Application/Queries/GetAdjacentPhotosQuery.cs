@@ -9,4 +9,4 @@ public sealed record GetAdjacentPhotosQuery(
     FamilyId FamilyId,
     PhotoId CurrentPhotoId,
     DateTime CurrentCreatedAt
-) : IQuery<AdjacentPhotosDto>;
+) : IReadOnlyQuery<AdjacentPhotosDto>;

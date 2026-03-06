@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.EventChain.Application.Queries.GetChainExecutio
 
 public sealed record GetChainExecutionQuery(
     ChainExecutionId Id
-) : IQuery<ChainExecution?>;
+) : IReadOnlyQuery<ChainExecution?>;

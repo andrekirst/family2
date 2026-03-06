@@ -7,4 +7,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFilesByTa
 public sealed record GetFilesByTagQuery(
     List<TagId> TagIds,
     FamilyId FamilyId
-) : IQuery<List<StoredFileDto>>;
+) : IReadOnlyQuery<List<StoredFileDto>>;

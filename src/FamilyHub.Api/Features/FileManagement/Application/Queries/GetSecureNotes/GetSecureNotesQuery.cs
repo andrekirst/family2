@@ -9,4 +9,4 @@ public sealed record GetSecureNotesQuery(
     UserId UserId,
     FamilyId FamilyId,
     NoteCategory? Category
-) : IQuery<List<SecureNoteDto>>;
+) : IReadOnlyQuery<List<SecureNoteDto>>;

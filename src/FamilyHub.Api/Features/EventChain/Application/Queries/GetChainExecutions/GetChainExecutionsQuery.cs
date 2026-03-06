@@ -10,4 +10,4 @@ public sealed record GetChainExecutionsQuery(
     FamilyId FamilyId,
     ChainDefinitionId? ChainDefinitionId = null,
     ChainExecutionStatus? Status = null
-) : IQuery<IReadOnlyList<ChainExecution>>;
+) : IReadOnlyQuery<IReadOnlyList<ChainExecution>>;

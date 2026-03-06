@@ -11,4 +11,4 @@ public sealed record GetConversationMessagesQuery(
     ConversationId ConversationId,
     int Limit = 50,
     DateTime? Before = null
-) : IQuery<List<MessageDto>>;
+) : IReadOnlyQuery<List<MessageDto>>;

@@ -7,4 +7,4 @@ namespace FamilyHub.Api.Features.EventChain.Application.Queries.GetChainDefiniti
 public sealed record GetChainDefinitionsQuery(
     FamilyId FamilyId,
     bool? IsEnabled = null
-) : IQuery<IReadOnlyList<ChainDefinition>>;
+) : IReadOnlyQuery<IReadOnlyList<ChainDefinition>>;

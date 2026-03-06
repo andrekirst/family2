@@ -26,6 +26,7 @@ public sealed class CalendarEventRepository(AppDbContext context) : ICalendarEve
     {
         return await context.CalendarEvents
             .Include(e => e.Attendees)
+            .AsSplitQuery()
             .Where(e => e.FamilyId == familyId
                 && e.StartTime < end
                 && e.EndTime > start

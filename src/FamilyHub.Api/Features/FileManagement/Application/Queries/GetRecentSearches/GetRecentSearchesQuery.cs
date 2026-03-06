@@ -4,4 +4,4 @@ using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetRecentSearches;
 
-public sealed record GetRecentSearchesQuery(UserId UserId) : IQuery<List<RecentSearchDto>>;
+public sealed record GetRecentSearchesQuery(UserId UserId) : IReadOnlyQuery<List<RecentSearchDto>>;

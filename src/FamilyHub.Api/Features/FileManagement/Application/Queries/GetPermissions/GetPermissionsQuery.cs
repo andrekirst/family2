@@ -9,4 +9,4 @@ public sealed record GetPermissionsQuery(
     PermissionResourceType ResourceType,
     Guid ResourceId,
     FamilyId FamilyId
-) : IQuery<List<FilePermissionDto>>;
+) : IReadOnlyQuery<List<FilePermissionDto>>;

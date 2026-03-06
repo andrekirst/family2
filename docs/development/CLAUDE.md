@@ -268,29 +268,19 @@ test('should create family via API and verify in UI', async ({ page }) => {
 
 ## Development Workflows
 
-### Database Migrations (EF Core)
+### Database Migrations (DbUp)
 
 **Create Migration:**
 
 ```bash
-dotnet ef migrations add <MigrationName> \
-  --context AuthDbContext \
-  --project Modules/FamilyHub.Modules.Auth \
-  --startup-project FamilyHub.Api \
-  --output-dir Persistence/Migrations
+# Create SQL script in the appropriate module folder
+# Naming: {YYYYMMDDHHMMSS}_{kebab-case-description}.sql
+touch src/FamilyHub.Api/Database/Migrations/auth/20260305120000_add-user-preferences.sql
 ```
 
-**Apply Migration:**
+**Execution:** Automatic at application startup via `DatabaseMigrationRunner.Migrate()`.
 
-```bash
-# Development
-dotnet ef database update --context AuthDbContext
-
-# Production (in Program.cs)
-await context.Database.MigrateAsync();
-```
-
-**See:** [WORKFLOWS.md](WORKFLOWS.md#database-migrations-with-ef-core)
+**See:** [MIGRATION_REBASE_PROTOCOL.md](MIGRATION_REBASE_PROTOCOL.md) and [WORKFLOWS.md](WORKFLOWS.md#database-migrations-with-dbup)
 
 ---
 

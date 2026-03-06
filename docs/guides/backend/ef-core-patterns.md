@@ -217,50 +217,64 @@ Tables are organized into schemas by module:
 
 ---
 
-## Migration Commands
+## Database Migrations (DbUp)
 
-### Create Migration
+Database schema is managed with **DbUp** (not EF Core migrations). SQL scripts live in `src/FamilyHub.Api/Database/Migrations/{module}/` and are embedded as assembly resources.
 
-```bash
-dotnet ef migrations add MigrationName \
-  --context AppDbContext \
-  --project src/FamilyHub.Api/FamilyHub.Api.csproj \
-  --output-dir Common/Database/Migrations
+**See:** [MIGRATION_REBASE_PROTOCOL.md](../../development/MIGRATION_REBASE_PROTOCOL.md) for full DbUp protocol.
+
+EF Core is used **only as an ORM** — entity configurations, change tracking, and query execution.
+
+---
+
+## ORM Performance Optimizations
+
+### IReadOnlyQuery + NoTracking Behavior
+
+Read-only queries implement `IReadOnlyQuery<T>` instead of `IQuery<T>`. The `QueryAsNoTrackingBehavior` pipeline behavior (priority 350) automatically sets `ChangeTracker.QueryTrackingBehavior = NoTracking` for these queries:
+
+```csharp
+// Query definition
+public sealed record GetFamilyMembersQuery(FamilyId FamilyId) : IReadOnlyQuery<GetFamilyMembersResult>;
 ```
 
-### Apply Migration
+### Compiled Queries
 
-```bash
-# Development
-dotnet ef database update \
-  --context AppDbContext \
-  --project src/FamilyHub.Api/FamilyHub.Api.csproj
+Use `EF.CompileAsyncQuery` for frequently-called repository methods:
 
-# Production (in Program.cs)
-await context.Database.MigrateAsync();
+```csharp
+private static readonly Func<AppDbContext, string, CancellationToken, Task<User?>> GetByExternalIdCompiledQuery =
+    EF.CompileAsyncQuery((AppDbContext ctx, string externalId, CancellationToken ct) =>
+        ctx.Users.FirstOrDefault(u => u.ExternalUserId == ExternalUserId.From(externalId)));
 ```
 
-### Remove Last Migration
+### Split Queries
 
-```bash
-dotnet ef migrations remove \
-  --context AppDbContext \
-  --project src/FamilyHub.Api/FamilyHub.Api.csproj
+Use `.AsSplitQuery()` on queries with collection `.Include()` to prevent cartesian explosion:
+
+```csharp
+return await context.CalendarEvents
+    .Include(e => e.Attendees)
+    .AsSplitQuery()
+    .Where(e => e.FamilyId == familyId)
+    .ToListAsync(ct);
 ```
+
+### No Explicit Update() Calls
+
+EF Core's change tracker detects modifications automatically. Do not call `context.Update()` or `context.Entry().State = Modified` — just modify the entity and call `SaveChangesAsync()`.
 
 ---
 
 ## PostgreSQL RLS Policies
 
-Row-Level Security can be applied in migration `Up()` methods for multi-tenant isolation:
+RLS policies are defined in DbUp SQL scripts under `Database/Migrations/rls/`:
 
-```csharp
-migrationBuilder.Sql(@"
-    ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
+```sql
+ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
 
-    CREATE POLICY user_isolation_policy ON auth.users
-        USING (id = current_setting('app.current_user_id')::uuid);
-");
+CREATE POLICY user_isolation_policy ON auth.users
+    USING (id = current_setting('app.current_user_id', true)::uuid);
 ```
 
 The `PostgresRlsMiddleware` sets the current user context on each request:
@@ -299,4 +313,4 @@ await context.FamilyInvitations
 
 ---
 
-**Last Updated:** 2026-02-09
+**Last Updated:** 2026-03-05
