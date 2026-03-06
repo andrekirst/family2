@@ -43,4 +43,10 @@ public class RootMutation
     /// </summary>
     [Authorize]
     public MessagingMutation Messaging() => new();
+
+    /// <summary>
+    /// School module mutations (mark students, manage school data).
+    /// </summary>
+    [Authorize]
+    public SchoolMutation School() => new();
 }

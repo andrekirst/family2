@@ -62,6 +62,12 @@ public class RootQuery
     public MessagingQuery Messaging() => new();
 
     /// <summary>
+    /// School module queries (students, classes, schedules).
+    /// </summary>
+    [Authorize]
+    public SchoolQuery School() => new();
+
+    /// <summary>
     /// Universal search and command palette queries.
     /// </summary>
     [Authorize]

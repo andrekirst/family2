@@ -11,9 +11,9 @@ namespace FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
 /// </summary>
 public sealed class UserRepository(AppDbContext context) : IUserRepository
 {
-    private static readonly Func<AppDbContext, string, CancellationToken, Task<User?>> GetByExternalIdCompiledQuery =
-        EF.CompileAsyncQuery((AppDbContext ctx, string externalId, CancellationToken ct) =>
-            ctx.Users.FirstOrDefault(u => u.ExternalUserId == ExternalUserId.From(externalId)));
+    private static readonly Func<AppDbContext, ExternalUserId, CancellationToken, Task<User?>> GetByExternalIdCompiledQuery =
+        EF.CompileAsyncQuery((AppDbContext ctx, ExternalUserId externalId, CancellationToken ct) =>
+            ctx.Users.FirstOrDefault(u => u.ExternalUserId == externalId));
 
     public async Task<User?> GetByIdAsync(UserId id, CancellationToken ct = default)
     {
@@ -22,7 +22,7 @@ public sealed class UserRepository(AppDbContext context) : IUserRepository
 
     public async Task<User?> GetByExternalIdAsync(ExternalUserId externalId, CancellationToken ct = default)
     {
-        return await GetByExternalIdCompiledQuery(context, externalId.Value, ct);
+        return await GetByExternalIdCompiledQuery(context, externalId, ct);
     }
 
     public async Task<User?> GetByEmailAsync(Email email, CancellationToken ct = default)

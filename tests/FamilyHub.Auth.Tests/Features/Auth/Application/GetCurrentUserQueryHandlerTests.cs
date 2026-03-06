@@ -78,7 +78,8 @@ public class GetCurrentUserQueryHandlerTests
             "family:remove-members",
             "family:edit",
             "family:delete",
-            "family:manage-roles"
+            "family:manage-roles",
+            "school:manage-students"
         ]);
     }
 
@@ -135,7 +136,8 @@ public class GetCurrentUserQueryHandlerTests
             "family:invite",
             "family:revoke-invitation",
             "family:remove-members",
-            "family:edit"
+            "family:edit",
+            "school:manage-students"
         ]);
         result.Permissions.Should().NotContain("family:delete");
         result.Permissions.Should().NotContain("family:manage-roles");

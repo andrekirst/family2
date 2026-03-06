@@ -18,6 +18,9 @@ internal class ListFakeFamilyMemberRepository : IFamilyMemberRepository
 {
     public List<FamilyMember> Members { get; } = [];
 
+    public Task<FamilyMember?> GetByIdAsync(FamilyMemberId id, CancellationToken ct = default)
+        => Task.FromResult(Members.FirstOrDefault(m => m.Id == id));
+
     public Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default)
         => Task.FromResult(Members.FirstOrDefault(m => m.UserId == userId && m.FamilyId == familyId));
 

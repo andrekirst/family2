@@ -1,3 +1,4 @@
+import { ICON_ACADEMIC_CAP } from './defs/academic-cap';
 import { ICON_BOLT } from './defs/bolt';
 import { ICON_CALENDAR } from './defs/calendar';
 import { ICON_CHAT_BUBBLE } from './defs/chat-bubble';
@@ -36,6 +37,7 @@ import { ICON_USER_CIRCLE } from './defs/user-circle';
 import { ICON_USERS } from './defs/users';
 
 export const ICONS = {
+  ACADEMIC_CAP: ICON_ACADEMIC_CAP,
   BOLT: ICON_BOLT,
   CALENDAR: ICON_CALENDAR,
   CHAT_BUBBLE: ICON_CHAT_BUBBLE,
