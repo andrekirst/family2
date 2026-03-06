@@ -1,6 +1,5 @@
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
-using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Api.Features.Photos.Domain.Repositories;
 using FamilyHub.Api.Features.Photos.Models;
 using FamilyHub.Common.Domain.ValueObjects;

@@ -8,7 +8,10 @@ public readonly partial struct GoogleScopes
     private static Validation Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return Validation.Invalid("Google scopes cannot be empty");
+        }
+
         return Validation.Ok;
     }
 

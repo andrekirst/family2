@@ -24,12 +24,16 @@ public sealed class FileManagementAuthorizationService(
     {
         // 1. Family Owner/Admin bypass
         if (await IsFamilyAdminOrOwnerAsync(userId, familyId, ct))
+        {
             return true;
+        }
 
         // 2. File owner always has Manage
         var file = await storedFileRepository.GetByIdAsync(fileId, ct);
         if (file is not null && file.UploadedBy == userId)
+        {
             return true;
+        }
 
         // 3. Check if the file has any direct permissions (is it restricted?)
         var fileRestricted = await permissionRepository.HasAnyPermissionsAsync(
@@ -42,7 +46,9 @@ public sealed class FileManagementAuthorizationService(
                 userId, PermissionResourceType.File, fileId.Value, ct);
 
             if (directPerm is not null)
+            {
                 return directPerm.PermissionLevel >= requiredLevel;
+            }
 
             // Direct restriction exists but user has no grant — denied at file level
             // Still check folder inheritance below
@@ -55,7 +61,9 @@ public sealed class FileManagementAuthorizationService(
                 userId, file.FolderId, requiredLevel, ct);
 
             if (hasInherited.HasValue)
+            {
                 return hasInherited.Value;
+            }
         }
 
         // 5. No restrictions found anywhere → default unrestricted
@@ -68,12 +76,16 @@ public sealed class FileManagementAuthorizationService(
     {
         // 1. Family Owner/Admin bypass
         if (await IsFamilyAdminOrOwnerAsync(userId, familyId, ct))
+        {
             return true;
+        }
 
         // 2. Folder creator always has Manage
         var folder = await folderRepository.GetByIdAsync(folderId, ct);
         if (folder is not null && folder.CreatedBy == userId)
+        {
             return true;
+        }
 
         // 3. Check direct folder permission
         var folderRestricted = await permissionRepository.HasAnyPermissionsAsync(
@@ -85,7 +97,9 @@ public sealed class FileManagementAuthorizationService(
                 userId, PermissionResourceType.Folder, folderId.Value, ct);
 
             if (directPerm is not null)
+            {
                 return directPerm.PermissionLevel >= requiredLevel;
+            }
         }
 
         // 4. Walk up parent folders
@@ -95,7 +109,9 @@ public sealed class FileManagementAuthorizationService(
                 userId, folder.ParentFolderId.Value, requiredLevel, ct);
 
             if (hasInherited.HasValue)
+            {
                 return hasInherited.Value;
+            }
         }
 
         // 5. No restrictions found → default unrestricted
@@ -124,7 +140,9 @@ public sealed class FileManagementAuthorizationService(
         var folderChain = new List<FolderId>();
 
         if (startFolder is not null)
+        {
             folderChain.Add(startFolder.Id);
+        }
 
         folderChain.AddRange(ancestors.Select(a => a.Id));
 
@@ -135,7 +153,9 @@ public sealed class FileManagementAuthorizationService(
                 PermissionResourceType.Folder, folderId.Value, ct);
 
             if (!hasPermissions)
+            {
                 continue;
+            }
 
             // This folder is restricted — check user's grant
             var perm = await permissionRepository.GetByMemberAndResourceAsync(

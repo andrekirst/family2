@@ -1,5 +1,4 @@
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
-using FamilyHub.Api.Features.FileManagement.Domain.Events;
 using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
@@ -20,25 +19,37 @@ public sealed class AccessShareLinkCommandHandler(
             ?? throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
 
         if (link.IsRevoked)
+        {
             throw new DomainException("Share link has been revoked", DomainErrorCodes.ShareLinkRevoked);
+        }
 
         if (link.IsExpired)
+        {
             throw new DomainException("Share link has expired", DomainErrorCodes.ShareLinkExpired);
+        }
 
         if (link.IsDownloadLimitReached)
+        {
             throw new DomainException("Download limit reached", DomainErrorCodes.ShareLinkDownloadLimitReached);
+        }
 
         if (link.HasPassword)
         {
             if (string.IsNullOrEmpty(command.Password))
+            {
                 throw new DomainException("Password required", DomainErrorCodes.ShareLinkPasswordRequired);
+            }
 
             if (!BCrypt.Net.BCrypt.Verify(command.Password, link.PasswordHash))
+            {
                 throw new DomainException("Incorrect password", DomainErrorCodes.ShareLinkPasswordIncorrect);
+            }
         }
 
         if (command.Action == ShareAccessAction.Download)
+        {
             link.IncrementDownloadCount();
+        }
 
         var accessLog = ShareLinkAccessLog.Create(
             link.Id,

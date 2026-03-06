@@ -40,7 +40,9 @@ public class MutationType
 
         var permissionLevel = (FilePermissionLevel)input.PermissionLevel;
         if (!Enum.IsDefined(permissionLevel))
+        {
             throw new ArgumentException($"Invalid permission level: {input.PermissionLevel}");
+        }
 
         var command = new SetPermissionCommand(
             resourceType,

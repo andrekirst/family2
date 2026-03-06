@@ -17,7 +17,9 @@ public sealed class DeleteAlbumCommandHandler(
             ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
 
         if (album.FamilyId != command.FamilyId)
+        {
             throw new DomainException("Album belongs to a different family", DomainErrorCodes.Forbidden);
+        }
 
         // Remove all album items first
         await albumItemRepository.RemoveByAlbumIdAsync(command.AlbumId, cancellationToken);

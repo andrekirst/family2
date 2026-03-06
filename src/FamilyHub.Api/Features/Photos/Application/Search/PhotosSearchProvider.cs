@@ -12,7 +12,9 @@ public sealed class PhotosSearchProvider(IPhotoRepository photoRepository) : ISe
         CancellationToken cancellationToken = default)
     {
         if (context.FamilyId is null || string.IsNullOrWhiteSpace(context.Query))
+        {
             return [];
+        }
 
         // PhotoRepository already filters out deleted photos
         var photos = await photoRepository.GetByFamilyAsync(

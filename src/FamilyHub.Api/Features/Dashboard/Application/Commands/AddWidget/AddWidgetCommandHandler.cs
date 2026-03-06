@@ -17,10 +17,12 @@ public sealed class AddWidgetCommandHandler(
         CancellationToken cancellationToken)
     {
         if (!widgetRegistry.IsValidWidget(command.WidgetType.Value))
+        {
             throw new DomainException($"Invalid widget type: {command.WidgetType.Value}");
+        }
 
         var dashboard = await dashboardRepository.GetByIdAsync(command.DashboardId, cancellationToken)
-            ?? throw new DomainException($"Dashboard {command.DashboardId} not found");
+                        ?? throw new DomainException($"Dashboard {command.DashboardId} not found");
 
         var sortOrder = dashboard.Widgets.Count;
         var widget = dashboard.AddWidget(

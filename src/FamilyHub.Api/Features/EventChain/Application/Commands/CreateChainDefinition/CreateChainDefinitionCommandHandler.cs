@@ -16,7 +16,9 @@ public sealed class CreateChainDefinitionCommandHandler(
     {
         // Validate trigger exists in registry
         if (!registry.IsValidTrigger(command.TriggerEventType))
+        {
             throw new InvalidOperationException($"Unknown trigger event type: {command.TriggerEventType}");
+        }
 
         var trigger = registry.GetTrigger(command.TriggerEventType)!;
 
@@ -34,8 +36,10 @@ public sealed class CreateChainDefinitionCommandHandler(
         foreach (var stepCmd in command.Steps.OrderBy(s => s.Order))
         {
             if (!registry.IsValidAction(stepCmd.ActionType, stepCmd.ActionVersion.Value))
+            {
                 throw new InvalidOperationException(
                     $"Unknown action: {stepCmd.ActionType}@{stepCmd.ActionVersion.Value}");
+            }
 
             var action = registry.GetAction(stepCmd.ActionType, stepCmd.ActionVersion.Value)!;
 

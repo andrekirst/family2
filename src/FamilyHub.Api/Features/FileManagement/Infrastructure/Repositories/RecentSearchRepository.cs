@@ -27,6 +27,8 @@ public sealed class RecentSearchRepository(AppDbContext context) : IRecentSearch
             .ToListAsync(ct);
 
         if (toRemove.Count > 0)
+        {
             context.Set<RecentSearch>().RemoveRange(toRemove);
+        }
     }
 }

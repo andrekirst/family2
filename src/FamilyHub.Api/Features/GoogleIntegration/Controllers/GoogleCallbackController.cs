@@ -20,10 +20,14 @@ public class GoogleCallbackController(
         var frontendUrl = configuration["App:FrontendUrl"] ?? "http://localhost:4200";
 
         if (!string.IsNullOrEmpty(error))
+        {
             return Redirect($"{frontendUrl}/settings?google_error={Uri.EscapeDataString(error)}");
+        }
 
         if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
+        {
             return Redirect($"{frontendUrl}/settings?google_error=missing_parameters");
+        }
 
         try
         {

@@ -27,7 +27,9 @@ public sealed class GetMediaStreamInfoQueryHandler(
             ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
         if (file.FamilyId != query.FamilyId)
+        {
             throw new DomainException("File not found in this family", DomainErrorCodes.FileNotFound);
+        }
 
         var thumbnails = await thumbnailRepository.GetByFileIdAsync(query.FileId, cancellationToken);
 

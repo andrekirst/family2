@@ -16,12 +16,18 @@ public sealed class ToggleOrganizationRuleCommandHandler(
             ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
 
         if (rule.FamilyId != command.FamilyId)
+        {
             throw new DomainException("Cannot modify rule from another family", DomainErrorCodes.Forbidden);
+        }
 
         if (command.IsEnabled)
+        {
             rule.Enable();
+        }
         else
+        {
             rule.Disable();
+        }
 
         return new ToggleOrganizationRuleResult(true);
     }

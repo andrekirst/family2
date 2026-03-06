@@ -11,7 +11,10 @@ public readonly partial struct FileSize
     private static Validation Validate(long value)
     {
         if (value < 0)
+        {
             return Validation.Invalid("File size cannot be negative");
+        }
+
         return Validation.Ok;
     }
 

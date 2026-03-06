@@ -10,7 +10,10 @@ public readonly partial struct GoogleAccountLinkId
     private static Validation Validate(Guid value)
     {
         if (value == Guid.Empty)
+        {
             return Validation.Invalid("Google account link ID cannot be empty");
+        }
+
         return Validation.Ok;
     }
 }

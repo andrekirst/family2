@@ -12,7 +12,9 @@ public sealed class MessagingSearchProvider(IMessageRepository messageRepository
         CancellationToken cancellationToken = default)
     {
         if (context.FamilyId is null || string.IsNullOrWhiteSpace(context.Query))
+        {
             return [];
+        }
 
         var messages = await messageRepository.GetByFamilyAsync(
             context.FamilyId.Value, limit: 100, ct: cancellationToken);

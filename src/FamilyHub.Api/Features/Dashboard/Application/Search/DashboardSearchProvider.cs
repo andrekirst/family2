@@ -12,7 +12,9 @@ public sealed class DashboardSearchProvider(IDashboardLayoutRepository dashboard
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(context.Query))
+        {
             return [];
+        }
 
         var queryLower = context.Query.ToLowerInvariant();
         var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;

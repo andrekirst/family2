@@ -48,7 +48,9 @@ public class QueryType
         CancellationToken cancellationToken)
     {
         if (parentFolderId.HasValue && parentFolderId.Value != Guid.Empty)
+        {
             return FolderId.From(parentFolderId.Value);
+        }
 
         var rootFolder = await folderRepository.GetRootFolderAsync(familyId, cancellationToken);
         if (rootFolder is null)

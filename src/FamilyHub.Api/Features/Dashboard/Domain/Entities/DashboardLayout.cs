@@ -77,7 +77,9 @@ public sealed class DashboardLayout : AggregateRoot<DashboardId>
     {
         var widget = _widgets.FirstOrDefault(w => w.Id == widgetId);
         if (widget is null)
+        {
             throw new DomainException($"Widget {widgetId} not found in dashboard {Id}");
+        }
 
         _widgets.Remove(widget);
         UpdatedAt = DateTime.UtcNow;

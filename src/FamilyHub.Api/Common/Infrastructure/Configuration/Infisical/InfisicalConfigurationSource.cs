@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Configuration;
-
 namespace FamilyHub.Api.Common.Infrastructure.Configuration.Infisical;
 
 public sealed class InfisicalConfigurationSource(InfisicalOptions options) : IConfigurationSource

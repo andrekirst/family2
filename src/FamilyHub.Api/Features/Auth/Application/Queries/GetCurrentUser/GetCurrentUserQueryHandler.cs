@@ -20,7 +20,10 @@ public sealed class GetCurrentUserQueryHandler(
         CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByExternalIdAsync(query.ExternalUserId, cancellationToken);
-        if (user is null) return null;
+        if (user is null)
+        {
+            return null;
+        }
 
         var dto = UserMapper.ToDto(user);
 

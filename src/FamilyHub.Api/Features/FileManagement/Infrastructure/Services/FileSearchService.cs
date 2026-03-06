@@ -41,16 +41,24 @@ public sealed class FileSearchService(
         if (filters is not null)
         {
             if (filters.MimeTypes is { Count: > 0 })
+            {
                 matched = matched.Where(f => filters.MimeTypes.Contains(f.MimeType.Value)).ToList();
+            }
 
             if (filters.DateFrom.HasValue)
+            {
                 matched = matched.Where(f => f.CreatedAt >= filters.DateFrom.Value).ToList();
+            }
 
             if (filters.DateTo.HasValue)
+            {
                 matched = matched.Where(f => f.CreatedAt <= filters.DateTo.Value).ToList();
+            }
 
             if (filters.FolderId.HasValue)
+            {
                 matched = matched.Where(f => f.FolderId.Value == filters.FolderId.Value).ToList();
+            }
 
             if (filters.TagIds is { Count: > 0 })
             {
@@ -59,7 +67,7 @@ public sealed class FileSearchService(
                 matched = matched.Where(f => fileIdsWithTags.Contains(f.Id)).ToList();
             }
 
-            if (filters.GpsLatitude.HasValue && filters.GpsLongitude.HasValue && filters.GpsRadiusKm.HasValue)
+            if (filters is { GpsLatitude: not null, GpsLongitude: not null, GpsRadiusKm: not null })
             {
                 var filesWithGps = new List<Domain.Entities.StoredFile>();
                 foreach (var file in matched)
@@ -72,7 +80,9 @@ public sealed class FileSearchService(
                             (double)metadata.GpsLatitude.Value.Value, (double)metadata.GpsLongitude.Value.Value);
 
                         if (distance <= filters.GpsRadiusKm.Value)
+                        {
                             filesWithGps.Add(file);
+                        }
                     }
                 }
                 matched = filesWithGps;
@@ -110,7 +120,10 @@ public sealed class FileSearchService(
     private static string HighlightMatch(string text, string query)
     {
         var idx = text.IndexOf(query, StringComparison.OrdinalIgnoreCase);
-        if (idx < 0) return text;
+        if (idx < 0)
+        {
+            return text;
+        }
 
         var before = text[..idx];
         var match = text.Substring(idx, query.Length);
@@ -120,9 +133,21 @@ public sealed class FileSearchService(
 
     private static double CalculateRelevance(string text, string query)
     {
-        if (text.Equals(query, StringComparison.OrdinalIgnoreCase)) return 1.0;
-        if (text.StartsWith(query, StringComparison.OrdinalIgnoreCase)) return 0.8;
-        if (text.Contains(query, StringComparison.OrdinalIgnoreCase)) return 0.5;
+        if (text.Equals(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return 1.0;
+        }
+
+        if (text.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return 0.8;
+        }
+
+        if (text.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return 0.5;
+        }
+
         return 0.0;
     }
 

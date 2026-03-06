@@ -16,7 +16,9 @@ public sealed class RevokeShareLinkCommandHandler(
             ?? throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
 
         if (link.FamilyId != command.FamilyId)
+        {
             throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
+        }
 
         link.Revoke(command.RevokedBy);
 

@@ -45,7 +45,9 @@ public sealed class MimeDetector : IMimeDetector
     public string Detect(ReadOnlySpan<byte> header, string? fileNameHint = null)
     {
         if (header.Length == 0)
+        {
             return "application/octet-stream";
+        }
 
         // Check magic bytes
         foreach (var (signature, offset, mimeType) in Signatures)
@@ -73,11 +75,19 @@ public sealed class MimeDetector : IMimeDetector
                 {
                     var formatTag = header.Slice(8, 4);
                     if (formatTag.SequenceEqual("WEBP"u8))
+                    {
                         return "image/webp";
+                    }
+
                     if (formatTag.SequenceEqual("AVI "u8))
+                    {
                         return "video/x-msvideo";
+                    }
+
                     if (formatTag.SequenceEqual("WAVE"u8))
+                    {
                         return "audio/wav";
+                    }
                 }
 
                 // Refine MP4 variants (check for ftyp box)
@@ -88,7 +98,10 @@ public sealed class MimeDetector : IMimeDetector
                     {
                         var brand = header.Slice(8, 4);
                         if (brand.SequenceEqual("M4A "u8))
+                        {
                             return "audio/mp4";
+                        }
+
                         return "video/mp4";
                     }
                     // Not actually ftyp — fall through
@@ -130,8 +143,10 @@ public sealed class MimeDetector : IMimeDetector
         {
             var b = data[i];
             // Allow printable ASCII, tabs, newlines, carriage returns, and UTF-8 lead bytes
-            if (b < 0x09 || (b > 0x0D && b < 0x20 && b != 0x1B))
+            if (b < 0x09 || (b is > 0x0D and < 0x20 && b != 0x1B))
+            {
                 return false;
+            }
         }
         return true;
     }

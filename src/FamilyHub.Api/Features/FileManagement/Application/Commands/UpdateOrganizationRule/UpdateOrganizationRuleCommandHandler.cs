@@ -16,7 +16,9 @@ public sealed class UpdateOrganizationRuleCommandHandler(
             ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
 
         if (rule.FamilyId != command.FamilyId)
+        {
             throw new DomainException("Cannot modify rule from another family", DomainErrorCodes.Forbidden);
+        }
 
         rule.Update(
             command.Name,

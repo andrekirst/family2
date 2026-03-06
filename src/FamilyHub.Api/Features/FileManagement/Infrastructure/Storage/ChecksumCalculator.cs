@@ -39,7 +39,9 @@ public sealed class ChecksumCalculator : IChecksumCalculator
         var hash = await SHA256.HashDataAsync(data, ct);
 
         if (data.CanSeek)
+        {
             data.Position = startPosition;
+        }
 
         return Convert.ToHexStringLower(hash);
     }

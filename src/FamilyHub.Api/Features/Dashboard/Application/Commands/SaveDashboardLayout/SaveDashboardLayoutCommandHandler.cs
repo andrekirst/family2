@@ -3,7 +3,6 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Api.Common.Widgets;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
-using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Dashboard.Application.Commands.SaveDashboardLayout;
 
@@ -20,14 +19,16 @@ public sealed class SaveDashboardLayoutCommandHandler(
         foreach (var widget in command.Widgets)
         {
             if (!widgetRegistry.IsValidWidget(widget.WidgetType.Value))
+            {
                 throw new DomainException($"Invalid widget type: {widget.WidgetType.Value}");
+            }
         }
 
         // Get or create dashboard
         DashboardLayout? dashboard;
         var isNew = false;
 
-        if (command.IsShared && command.FamilyId.HasValue)
+        if (command is { IsShared: true, FamilyId: not null })
         {
             dashboard = await dashboardRepository.GetSharedDashboardAsync(command.FamilyId.Value, cancellationToken);
             if (dashboard is null)
@@ -60,9 +61,13 @@ public sealed class SaveDashboardLayoutCommandHandler(
 
         // Persist
         if (isNew)
+        {
             await dashboardRepository.AddAsync(dashboard, cancellationToken);
+        }
         else
+        {
             await dashboardRepository.UpdateAsync(dashboard, cancellationToken);
+        }
 
         await dashboardRepository.SaveChangesAsync(cancellationToken);
 

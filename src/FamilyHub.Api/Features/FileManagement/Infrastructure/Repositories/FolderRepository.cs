@@ -35,7 +35,9 @@ public sealed class FolderRepository(AppDbContext context) : IFolderRepository
     {
         var folder = await context.Set<Folder>().FindAsync([folderId], cancellationToken: ct);
         if (folder is null)
+        {
             return [];
+        }
 
         // Parse folder IDs from materialized path (e.g., "/id1/id2/" → [id1, id2])
         var pathSegments = folder.MaterializedPath
@@ -46,7 +48,9 @@ public sealed class FolderRepository(AppDbContext context) : IFolderRepository
             .ToList();
 
         if (pathSegments.Count == 0)
+        {
             return [];
+        }
 
         var ancestors = await context.Set<Folder>()
             .Where(f => pathSegments.Contains(f.Id))
@@ -69,7 +73,9 @@ public sealed class FolderRepository(AppDbContext context) : IFolderRepository
             .ToListAsync(ct);
 
         if (descendantFolderIds.Count == 0)
+        {
             return 0;
+        }
 
         return await context.Set<StoredFile>()
             .Where(f => descendantFolderIds.Contains(f.FolderId))

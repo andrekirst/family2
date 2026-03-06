@@ -43,7 +43,10 @@ public sealed class TokenRefreshBackgroundService(
         var expiringBefore = DateTime.UtcNow.AddMinutes(_options.RefreshBeforeExpiryMinutes);
         var expiringLinks = await linkRepository.GetExpiringTokensAsync(expiringBefore, ct);
 
-        if (expiringLinks.Count == 0) return;
+        if (expiringLinks.Count == 0)
+        {
+            return;
+        }
 
         logger.LogInformation("Found {Count} Google tokens to refresh", expiringLinks.Count);
 

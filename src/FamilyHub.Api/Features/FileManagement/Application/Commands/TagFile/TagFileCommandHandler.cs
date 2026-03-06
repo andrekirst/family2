@@ -1,5 +1,4 @@
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
-using FamilyHub.Api.Features.FileManagement.Domain.Events;
 using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;

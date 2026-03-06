@@ -15,32 +15,34 @@ public sealed class BusinessLogicExceptionErrorFilter(
 {
     public IError OnError(IError error)
     {
-        if (error.Exception is DomainException domainEx)
+        switch (error.Exception)
         {
-            var message = GetLocalizedMessage(domainEx);
+            case DomainException domainEx:
+            {
+                var message = GetLocalizedMessage(domainEx);
 
-            return ErrorBuilder.New()
-                .SetMessage(message)
-                .SetCode("BUSINESS_LOGIC_ERROR")
-                .SetExtension("errorCode", domainEx.ErrorCode)
-                .Build();
+                return ErrorBuilder.New()
+                    .SetMessage(message)
+                    .SetCode("BUSINESS_LOGIC_ERROR")
+                    .SetExtension("errorCode", domainEx.ErrorCode)
+                    .Build();
+            }
+            case InvalidOperationException ex:
+                return ErrorBuilder.New()
+                    .SetMessage(ex.Message)
+                    .SetCode("BUSINESS_LOGIC_ERROR")
+                    .Build();
+            default:
+                return error;
         }
-
-        if (error.Exception is InvalidOperationException ex)
-        {
-            return ErrorBuilder.New()
-                .SetMessage(ex.Message)
-                .SetCode("BUSINESS_LOGIC_ERROR")
-                .Build();
-        }
-
-        return error;
     }
 
     private string GetLocalizedMessage(DomainException ex)
     {
         if (ex.ErrorCode is null)
+        {
             return ex.Message;
+        }
 
         var localized = localizer[ex.ErrorCode];
         // If the key is not found, IStringLocalizer returns the key itself — fall back to exception message

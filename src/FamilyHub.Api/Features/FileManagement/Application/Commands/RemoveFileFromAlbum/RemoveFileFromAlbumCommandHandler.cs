@@ -17,13 +17,17 @@ public sealed class RemoveFileFromAlbumCommandHandler(
             ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
 
         if (album.FamilyId != command.FamilyId)
+        {
             throw new DomainException("Album belongs to a different family", DomainErrorCodes.Forbidden);
+        }
 
         var items = await albumItemRepository.GetByAlbumIdAsync(command.AlbumId, cancellationToken);
         var item = items.FirstOrDefault(ai => ai.FileId == command.FileId);
 
         if (item is null)
+        {
             return new RemoveFileFromAlbumResult(true); // Idempotent
+        }
 
         await albumItemRepository.RemoveAsync(item, cancellationToken);
 

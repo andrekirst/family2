@@ -10,7 +10,9 @@ public readonly partial struct DashboardWidgetId
     private static Validation Validate(Guid value)
     {
         if (value == Guid.Empty)
+        {
             return Validation.Invalid("Dashboard widget ID cannot be empty");
+        }
 
         return Validation.Ok;
     }

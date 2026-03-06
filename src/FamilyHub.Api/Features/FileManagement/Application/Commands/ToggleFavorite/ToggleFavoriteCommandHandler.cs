@@ -18,7 +18,9 @@ public sealed class ToggleFavoriteCommandHandler(
             ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
         if (file.FamilyId != command.FamilyId)
+        {
             throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
+        }
 
         var isFavorited = await userFavoriteRepository.ExistsAsync(command.UserId, command.FileId, cancellationToken);
 

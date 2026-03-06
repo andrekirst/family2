@@ -16,7 +16,9 @@ public sealed class DeleteSecureNoteCommandHandler(
             ?? throw new DomainException("Secure note not found", DomainErrorCodes.SecureNoteNotFound);
 
         if (note.UserId != command.UserId)
+        {
             throw new DomainException("Secure note not found", DomainErrorCodes.SecureNoteNotFound);
+        }
 
         note.MarkDeleted();
         await noteRepository.RemoveAsync(note, cancellationToken);

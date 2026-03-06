@@ -19,7 +19,9 @@ public sealed class OrganizationRuleEngine : IOrganizationRuleEngine
         foreach (var rule in rules)
         {
             if (!rule.IsEnabled)
+            {
                 continue;
+            }
 
             if (MatchesRule(file, rule))
             {
@@ -49,7 +51,9 @@ public sealed class OrganizationRuleEngine : IOrganizationRuleEngine
         }
 
         if (conditions.Count == 0)
+        {
             return false;
+        }
 
         return rule.ConditionLogic == ConditionLogic.And
             ? conditions.All(c => EvaluateCondition(file, c))
@@ -86,7 +90,10 @@ public sealed class OrganizationRuleEngine : IOrganizationRuleEngine
         return patterns.Any(pattern =>
         {
             if (pattern.EndsWith("/*"))
+            {
                 return mimeType.StartsWith(pattern[..^2], StringComparison.OrdinalIgnoreCase);
+            }
+
             return string.Equals(mimeType, pattern, StringComparison.OrdinalIgnoreCase);
         });
     }

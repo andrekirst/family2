@@ -23,7 +23,9 @@ public sealed class ZipJob : AggregateRoot<ZipJobId>
         TimeSpan ttl = default)
     {
         if (ttl == default)
+        {
             ttl = TimeSpan.FromHours(24);
+        }
 
         var job = new ZipJob
         {

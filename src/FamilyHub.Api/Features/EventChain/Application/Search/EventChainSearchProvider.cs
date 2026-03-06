@@ -12,7 +12,9 @@ public sealed class EventChainSearchProvider(IChainDefinitionRepository chainDef
         CancellationToken cancellationToken = default)
     {
         if (context.FamilyId is null || string.IsNullOrWhiteSpace(context.Query))
+        {
             return [];
+        }
 
         var definitions = await chainDefinitionRepository.GetByFamilyIdAsync(
             context.FamilyId.Value, ct: cancellationToken);

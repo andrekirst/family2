@@ -12,7 +12,9 @@ public sealed class CalendarSearchProvider(ICalendarEventRepository calendarEven
         CancellationToken cancellationToken = default)
     {
         if (context.FamilyId is null || string.IsNullOrWhiteSpace(context.Query))
+        {
             return [];
+        }
 
         var now = DateTime.UtcNow;
         var start = now.AddMonths(-3);

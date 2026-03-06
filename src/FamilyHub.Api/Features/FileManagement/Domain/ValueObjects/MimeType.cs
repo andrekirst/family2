@@ -13,11 +13,20 @@ public readonly partial struct MimeType
     private static Validation Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return Validation.Invalid("MIME type cannot be empty");
+        }
+
         if (value.Length > 255)
+        {
             return Validation.Invalid("MIME type too long (max 255 characters)");
+        }
+
         if (!value.Contains('/'))
+        {
             return Validation.Invalid("MIME type must contain a '/' separator");
+        }
+
         return Validation.Ok;
     }
 }

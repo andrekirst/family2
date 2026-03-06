@@ -24,13 +24,17 @@ public sealed class FamilyCreatedEventHandler(
         {
             var existingInbox = await folderRepository.GetInboxFolderAsync(@event.FamilyId, cancellationToken);
             if (existingInbox is not null)
+            {
                 return;
+            }
         }
 
         // Create root folder if needed
         var root = existingRoot ?? Folder.CreateRoot(@event.FamilyId, @event.OwnerId);
         if (existingRoot is null)
+        {
             await folderRepository.AddAsync(root, cancellationToken);
+        }
 
         // Create inbox folder
         var inbox = Folder.CreateInbox(root.Id, @event.FamilyId, @event.OwnerId);

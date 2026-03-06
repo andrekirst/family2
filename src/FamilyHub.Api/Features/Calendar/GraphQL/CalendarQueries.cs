@@ -24,7 +24,7 @@ public class CalendarQueries
             startDate,
             endDate);
 
-        return await queryBus.QueryAsync<List<CalendarEventDto>>(query, ct);
+        return await queryBus.QueryAsync(query, ct);
     }
 
     [Authorize]
@@ -34,6 +34,6 @@ public class CalendarQueries
         CancellationToken ct)
     {
         var query = new GetCalendarEventQuery(CalendarEventId.From(id));
-        return await queryBus.QueryAsync<CalendarEventDto?>(query, ct);
+        return await queryBus.QueryAsync(query, ct);
     }
 }

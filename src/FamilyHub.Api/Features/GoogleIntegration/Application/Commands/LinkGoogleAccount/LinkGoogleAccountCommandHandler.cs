@@ -38,7 +38,9 @@ public sealed class LinkGoogleAccountCommandHandler(
             command.Code, codeVerifier, cancellationToken);
 
         if (string.IsNullOrEmpty(tokenResponse.RefreshToken))
+        {
             throw new DomainException("Google did not provide a refresh token. Please try linking again.");
+        }
 
         // 3. Get user info from Google
         var userInfo = await oauthService.GetUserInfoAsync(tokenResponse.AccessToken, cancellationToken);
@@ -46,7 +48,9 @@ public sealed class LinkGoogleAccountCommandHandler(
         // 4. Check if user already has a linked account
         var existingLink = await linkRepository.GetByUserIdAsync(userId, cancellationToken);
         if (existingLink is not null)
+        {
             throw new DomainException("A Google account is already linked. Unlink it first.");
+        }
 
         // 5. Encrypt tokens
         var encryptedAccessToken = EncryptedToken.From(

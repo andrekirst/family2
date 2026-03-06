@@ -13,8 +13,8 @@ public static class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder, Assembly assembly)
     {
         var extensionTypes = assembly.GetTypes()
-            .Where(t => t.IsClass && !t.IsAbstract
-                && Attribute.IsDefined(t, typeof(ExtendObjectTypeAttribute), inherit: true));
+            .Where(t => t is { IsClass: true, IsAbstract: false }
+                        && Attribute.IsDefined(t, typeof(ExtendObjectTypeAttribute), inherit: true));
 
         foreach (var type in extensionTypes)
         {

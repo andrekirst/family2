@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;

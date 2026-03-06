@@ -17,7 +17,9 @@ public sealed class GetFavoritesQueryHandler(
         var favorites = await userFavoriteRepository.GetByUserIdAsync(query.UserId, cancellationToken);
 
         if (favorites.Count == 0)
+        {
             return [];
+        }
 
         var fileIds = favorites.Select(f => f.FileId).ToList();
         var files = await storedFileRepository.GetByIdsAsync(fileIds, cancellationToken);

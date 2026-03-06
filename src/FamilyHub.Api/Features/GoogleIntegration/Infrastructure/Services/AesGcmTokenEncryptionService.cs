@@ -15,13 +15,17 @@ public sealed class AesGcmTokenEncryptionService : ITokenEncryptionService
     {
         var keyBase64 = options.Value.EncryptionKey;
         if (string.IsNullOrWhiteSpace(keyBase64))
+        {
             throw new InvalidOperationException(
                 "GoogleIntegration:EncryptionKey must be configured. " +
                 "Generate with: Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))");
+        }
 
         _key = Convert.FromBase64String(keyBase64);
         if (_key.Length != 32)
+        {
             throw new InvalidOperationException("Encryption key must be exactly 256 bits (32 bytes).");
+        }
     }
 
     public string Encrypt(string plaintext)
@@ -48,7 +52,9 @@ public sealed class AesGcmTokenEncryptionService : ITokenEncryptionService
         var combined = Convert.FromBase64String(ciphertextBase64);
 
         if (combined.Length < NonceSizeBytes + TagSizeBytes)
+        {
             throw new CryptographicException("Invalid ciphertext: too short.");
+        }
 
         var nonce = combined[..NonceSizeBytes];
         var ciphertext = combined[NonceSizeBytes..^TagSizeBytes];

@@ -28,7 +28,7 @@ public class ChainQueries
         CancellationToken ct)
     {
         var query = new GetChainDefinitionsQuery(FamilyId.From(familyId), isEnabled);
-        var definitions = await queryBus.QueryAsync<IReadOnlyList<ChainDefinition>>(query, ct);
+        var definitions = await queryBus.QueryAsync(query, ct);
 
         var result = new List<ChainDefinitionDto>();
         foreach (var def in definitions)
@@ -49,9 +49,12 @@ public class ChainQueries
         CancellationToken ct)
     {
         var query = new GetChainDefinitionQuery(ChainDefinitionId.From(id));
-        var definition = await queryBus.QueryAsync<ChainDefinition?>(query, ct);
+        var definition = await queryBus.QueryAsync(query, ct);
 
-        if (definition is null) return null;
+        if (definition is null)
+        {
+            return null;
+        }
 
         var count = await executionRepository.GetExecutionCountAsync(definition.Id, ct);
         var lastExec = await executionRepository.GetLastExecutedAtAsync(definition.Id, ct);
@@ -71,7 +74,7 @@ public class ChainQueries
             chainDefinitionId.HasValue ? ChainDefinitionId.From(chainDefinitionId.Value) : null,
             status);
 
-        var executions = await queryBus.QueryAsync<IReadOnlyList<ChainExecution>>(query, ct);
+        var executions = await queryBus.QueryAsync(query, ct);
         return executions.Select(ChainMapper.ToDto).ToList();
     }
 
@@ -82,7 +85,7 @@ public class ChainQueries
         CancellationToken ct)
     {
         var query = new GetChainExecutionQuery(ChainExecutionId.From(id));
-        var execution = await queryBus.QueryAsync<ChainExecution?>(query, ct);
+        var execution = await queryBus.QueryAsync(query, ct);
         return execution is null ? null : ChainMapper.ToDto(execution);
     }
 

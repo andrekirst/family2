@@ -4,7 +4,6 @@ using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Storage;
 using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
 
@@ -42,12 +41,16 @@ public static class FileEndpoints
     {
         var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, ct);
         if (familyId is null)
+        {
             return Results.Unauthorized();
+        }
 
         var form = await httpContext.Request.ReadFormAsync(ct);
         var file = form.Files.FirstOrDefault();
         if (file is null || file.Length == 0)
+        {
             return Results.BadRequest(new { error = "No file provided" });
+        }
 
         using var stream = file.OpenReadStream();
         var result = await storageService.StoreFileAsync(familyId.Value, stream, file.FileName, ct);
@@ -68,7 +71,9 @@ public static class FileEndpoints
     {
         var result = await storageService.GetFileAsync(storageKey, ct);
         if (result is null)
+        {
             return Results.NotFound();
+        }
 
         return Results.File(result.Data, result.MimeType);
     }
@@ -86,7 +91,9 @@ public static class FileEndpoints
             // No range requested — return full file
             var result = await storageService.GetFileAsync(storageKey, ct);
             if (result is null)
+            {
                 return Results.NotFound();
+            }
 
             httpContext.Response.Headers["Accept-Ranges"] = "bytes";
             return Results.File(result.Data, result.MimeType);
@@ -95,12 +102,16 @@ public static class FileEndpoints
         // Parse "bytes=start-end"
         var (from, to) = ParseRangeHeader(rangeHeader);
         if (from is null)
+        {
             return Results.BadRequest(new { error = "Invalid range header" });
+        }
 
         var rangeResult = await storageService.GetFileRangeAsync(
             storageKey, from.Value, to ?? long.MaxValue, ct);
         if (rangeResult is null)
+        {
             return Results.NotFound();
+        }
 
         httpContext.Response.StatusCode = 206;
         httpContext.Response.Headers["Accept-Ranges"] = "bytes";
@@ -120,7 +131,9 @@ public static class FileEndpoints
     {
         var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, ct);
         if (familyId is null)
+        {
             return Results.Unauthorized();
+        }
 
         var uploadId = await storageService.InitiateChunkedUploadAsync(ct);
         return Results.Ok(new { uploadId });
@@ -136,7 +149,9 @@ public static class FileEndpoints
         var form = await httpContext.Request.ReadFormAsync(ct);
         var file = form.Files.FirstOrDefault();
         if (file is null || file.Length == 0)
+        {
             return Results.BadRequest(new { error = "No chunk data provided" });
+        }
 
         using var stream = file.OpenReadStream();
         await storageService.UploadChunkAsync(uploadId, chunkIndex, stream, ct);
@@ -154,7 +169,9 @@ public static class FileEndpoints
     {
         var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, ct);
         if (familyId is null)
+        {
             return Results.Unauthorized();
+        }
 
         var result = await storageService.CompleteChunkedUploadAsync(
             familyId.Value, uploadId, request.FileName, ct);
@@ -172,7 +189,10 @@ public static class FileEndpoints
         ClaimsPrincipal user, IUserRepository userRepository, CancellationToken ct)
     {
         var externalUserId = user.FindFirst(ClaimNames.Sub)?.Value;
-        if (externalUserId is null) return null;
+        if (externalUserId is null)
+        {
+            return null;
+        }
 
         var userEntity = await userRepository.GetByExternalIdAsync(
             ExternalUserId.From(externalUserId), ct);
@@ -183,14 +203,21 @@ public static class FileEndpoints
     {
         // Format: "bytes=start-end" or "bytes=start-"
         if (!rangeHeader.StartsWith("bytes=", StringComparison.OrdinalIgnoreCase))
+        {
             return (null, null);
+        }
 
         var range = rangeHeader["bytes=".Length..];
         var parts = range.Split('-');
-        if (parts.Length != 2) return (null, null);
+        if (parts.Length != 2)
+        {
+            return (null, null);
+        }
 
         if (!long.TryParse(parts[0], out var from))
+        {
             return (null, null);
+        }
 
         long? to = string.IsNullOrEmpty(parts[1]) ? null : long.Parse(parts[1]);
         return (from, to);

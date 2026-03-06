@@ -11,9 +11,15 @@ public readonly partial struct TagColor
     private static Validation Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return Validation.Invalid("Tag color cannot be empty");
+        }
+
         if (!HexColorPattern.IsMatch(value))
+        {
             return Validation.Invalid("Tag color must be a valid hex color (e.g., #FF5733)");
+        }
+
         return Validation.Ok;
     }
 }

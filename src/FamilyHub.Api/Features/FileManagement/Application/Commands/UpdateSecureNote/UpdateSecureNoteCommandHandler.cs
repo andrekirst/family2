@@ -16,7 +16,9 @@ public sealed class UpdateSecureNoteCommandHandler(
             ?? throw new DomainException("Secure note not found", DomainErrorCodes.SecureNoteNotFound);
 
         if (note.UserId != command.UserId)
+        {
             throw new DomainException("Secure note not found", DomainErrorCodes.SecureNoteNotFound);
+        }
 
         note.Update(
             command.Category,
