@@ -62,7 +62,8 @@ public class FamilyRoleTests
             "family:remove-members",
             "family:edit",
             "family:delete",
-            "family:manage-roles"
+            "family:manage-roles",
+            "school:manage-students"
         ]);
     }
 
@@ -75,7 +76,8 @@ public class FamilyRoleTests
             "family:invite",
             "family:revoke-invitation",
             "family:remove-members",
-            "family:edit"
+            "family:edit",
+            "school:manage-students"
         ]);
     }
 

@@ -1,0 +1,11 @@
+<div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">
+  <app-student-list [students]="students()" [isLoading]="isLoading()" />
+
+  @if (showMarkDialog()) {
+    <app-mark-as-student-dialog
+      [existingStudents]="students()"
+      (studentMarked)="onStudentMarked()"
+      (dialogClosed)="onDialogClosed()"
+    />
+  }
+</div>

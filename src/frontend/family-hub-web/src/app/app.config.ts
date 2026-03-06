@@ -18,6 +18,7 @@ import { provideMessagingFeature } from './features/messaging/messaging.provider
 import { provideSettingsFeature } from './features/settings/settings.providers';
 import { locale } from '../main';
 import { provideProfileFeature } from './features/profile/profile.providers';
+import { provideSchoolFeature } from './features/school/school.providers';
 import { EnvironmentConfigService } from './core/config/environment-config.service';
 
 export const appConfig: ApplicationConfig = {
@@ -32,6 +33,7 @@ export const appConfig: ApplicationConfig = {
     ...provideFamilyFeature(),
     ...provideFileManagementFeature(),
     ...provideMessagingFeature(),
+    ...provideSchoolFeature(),
     ...provideSettingsFeature(),
     ...provideProfileFeature(),
     { provide: LOCALE_ID, useValue: locale },

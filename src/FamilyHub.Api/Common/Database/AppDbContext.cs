@@ -7,6 +7,7 @@ using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Data;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
 using FamilyHub.Api.Features.Messaging.Domain.Entities;
+using FamilyHub.Api.Features.School.Domain.Entities;
 using FamilyHub.Api.Features.Photos.Domain.Entities;
 using FamilyHub.EventChain.Domain.Entities;
 using FileManagementStoredFile = FamilyHub.Api.Features.FileManagement.Domain.Entities.StoredFile;
@@ -122,6 +123,9 @@ public class AppDbContext : DbContext, IUnitOfWork
     // Messaging entities
     public DbSet<Message> Messages { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
+
+    // School entities
+    public DbSet<Student> Students { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

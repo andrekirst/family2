@@ -2,6 +2,7 @@ using FamilyHub.Api.Common.Database;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
+using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Features.Family.Infrastructure.Repositories;
@@ -11,6 +12,11 @@ namespace FamilyHub.Api.Features.Family.Infrastructure.Repositories;
 /// </summary>
 public sealed class FamilyMemberRepository(AppDbContext context) : IFamilyMemberRepository
 {
+    public async Task<FamilyMember?> GetByIdAsync(FamilyMemberId id, CancellationToken cancellationToken = default)
+    {
+        return await context.FamilyMembers.FindAsync([id], cancellationToken: cancellationToken);
+    }
+
     public async Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken cancellationToken = default)
     {
         return await context.FamilyMembers

@@ -13,6 +13,7 @@ export class FamilyPermissionService {
   canEditFamily = computed(() => this.permissions().includes('family:edit'));
   canDeleteFamily = computed(() => this.permissions().includes('family:delete'));
   canManageRoles = computed(() => this.permissions().includes('family:manage-roles'));
+  canManageStudents = computed(() => this.permissions().includes('school:manage-students'));
 
   hasPermission(permission: string): boolean {
     return this.permissions().includes(permission);

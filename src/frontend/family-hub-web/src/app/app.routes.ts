@@ -75,6 +75,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/family/family.routes').then((m) => m.FAMILY_ROUTES),
       },
       {
+        path: 'school',
+        canActivate: [familyMemberGuard],
+        loadChildren: () => import('./features/school/school.routes').then((m) => m.SCHOOL_ROUTES),
+      },
+      {
         path: 'settings',
         loadChildren: () =>
           import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),

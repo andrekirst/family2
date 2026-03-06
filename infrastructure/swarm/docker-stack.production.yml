@@ -20,7 +20,7 @@ services:
       POSTGRES_USER: familyhub
       POSTGRES_PASSWORD_FILE: /run/secrets/prod_db_password
     volumes:
-      - prod-postgres-data:/var/lib/postgresql/data
+      - prod-postgres-data:/var/lib/postgresql
     networks:
       - prod-internal
     secrets:
@@ -54,7 +54,7 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD_FILE: /run/secrets/prod_kc_db_password
     volumes:
-      - prod-kc-postgres-data:/var/lib/postgresql/data
+      - prod-kc-postgres-data:/var/lib/postgresql
     networks:
       - prod-internal
     secrets:

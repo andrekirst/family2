@@ -213,6 +213,12 @@ export class SidebarComponent {
       matchPrefix: '/family',
     },
     {
+      path: '/school',
+      label: $localize`:@@nav.school:School`,
+      icon: this.trustHtml(ICONS.ACADEMIC_CAP),
+      matchPrefix: '/school',
+    },
+    {
       path: '/calendar',
       label: $localize`:@@nav.calendar:Calendar`,
       icon: this.trustHtml(ICONS.CALENDAR),

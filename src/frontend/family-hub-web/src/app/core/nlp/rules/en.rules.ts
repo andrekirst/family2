@@ -143,6 +143,26 @@ export const EN_RULES: NlpRule[] = [
     }),
   },
 
+  // === School commands ===
+  {
+    pattern: /^(?:go\s+to|open|show|view)\s+(?:the\s+)?(?:school|students)/i,
+    extract: () => ({
+      type: 'navigate',
+      confidence: 0.85,
+      route: '/school',
+      description: 'Open School',
+    }),
+  },
+  {
+    pattern: /^(?:find|search)\s+students?\s+(.+)/i,
+    extract: (match) => ({
+      type: 'navigate',
+      confidence: 0.75,
+      route: `/school?search=${encodeURIComponent(match[1])}`,
+      description: `Search students: "${match[1]}"`,
+    }),
+  },
+
   // === Action commands ===
   {
     // "invite john@example.com"

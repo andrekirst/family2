@@ -1,0 +1,112 @@
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+  (click)="onDismiss()"
+>
+  <div
+    class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900" i18n="@@school.mark.title">
+        Mark as Student
+      </h2>
+      <button
+        class="text-gray-400 hover:text-gray-600 text-xl"
+        (click)="onDismiss()"
+        aria-label="Close"
+      >
+        &times;
+      </button>
+    </div>
+
+    <div class="px-6 py-4">
+      <p class="text-sm text-gray-600 mb-4" i18n="@@school.mark.description">
+        Select a family member to mark as a student.
+      </p>
+
+      @if (isLoadingMembers()) {
+        <div class="animate-pulse space-y-3 mb-4">
+          <div class="h-14 bg-gray-200 rounded-lg"></div>
+          <div class="h-14 bg-gray-200 rounded-lg"></div>
+        </div>
+      } @else if (availableMembers().length === 0) {
+        <p class="text-sm text-gray-500 mb-4" i18n="@@school.mark.noMembers">
+          All family members are already marked as students.
+        </p>
+      } @else {
+        <div class="space-y-2 mb-4 max-h-64 overflow-y-auto" role="listbox">
+          @for (member of availableMembers(); track member.id) {
+            <button
+              type="button"
+              role="option"
+              [attr.aria-selected]="selectedMemberId() === member.id"
+              [class]="
+                'w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ' +
+                (selectedMemberId() === member.id
+                  ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
+                  : 'border-gray-200 hover:bg-gray-50')
+              "
+              [disabled]="isSubmitting()"
+              (click)="selectMember(member.id)"
+              data-testid="member-option"
+            >
+              <div
+                class="flex-shrink-0 w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600"
+              >
+                {{ member.userName.charAt(0).toUpperCase() }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900 truncate">{{ member.userName }}</p>
+                <p class="text-xs text-gray-500 truncate">{{ member.userEmail }}</p>
+              </div>
+              @if (selectedMemberId() === member.id) {
+                <svg
+                  class="w-5 h-5 text-blue-600 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              }
+            </button>
+          }
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div
+          class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
+          role="alert"
+        >
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          (click)="onDismiss()"
+          [disabled]="isSubmitting()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          i18n="@@school.mark.cancel"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          data-testid="mark-student-button"
+          [disabled]="isSubmitting() || !selectedMemberId() || isLoadingMembers()"
+          (click)="onSubmit()"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          i18n="@@school.mark.mark"
+        >
+          Mark as Student
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

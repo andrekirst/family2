@@ -20,7 +20,7 @@ services:
       POSTGRES_USER: familyhub
       POSTGRES_PASSWORD_FILE: /run/secrets/staging_db_password
     volumes:
-      - staging-postgres-data:/var/lib/postgresql/data
+      - staging-postgres-data:/var/lib/postgresql
     networks:
       - staging-internal
     secrets:
@@ -54,7 +54,7 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD_FILE: /run/secrets/staging_kc_db_password
     volumes:
-      - staging-kc-postgres-data:/var/lib/postgresql/data
+      - staging-kc-postgres-data:/var/lib/postgresql
     networks:
       - staging-internal
     secrets:

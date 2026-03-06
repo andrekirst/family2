@@ -22,6 +22,7 @@ export class CommandPaletteService {
     'go to dashboard',
     'create album Summer',
     'upload a file',
+    'view students',
   ];
 
   private readonly hintPoolDe = [
@@ -35,6 +36,7 @@ export class CommandPaletteService {
     'zum Dashboard gehen',
     'Album Sommer erstellen',
     'eine Datei hochladen',
+    'Schüler anzeigen',
   ];
 
   readonly isOpen = signal(false);
@@ -225,6 +227,13 @@ export class CommandPaletteService {
         icon: 'folder',
         route: '/files/browse',
         module: 'files',
+      },
+      {
+        type: 'navigation',
+        title: 'School',
+        icon: 'graduation-cap',
+        route: '/school',
+        module: 'school',
       },
     ];
   }

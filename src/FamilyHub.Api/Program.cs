@@ -19,6 +19,7 @@ using FamilyHub.Api.Features.GoogleIntegration;
 using FamilyHub.Api.Common.Development;
 using FamilyHub.Api.Features.Messaging;
 using FamilyHub.Api.Features.Photos;
+using FamilyHub.Api.Features.School;
 using FamilyHub.Api.Features.Search;
 using FamilyHub.Api.Common.Infrastructure.HealthChecks;
 using FluentValidation;
@@ -142,6 +143,7 @@ builder.Services.RegisterModule<FileManagementModule>(builder.Configuration);
 builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
 builder.Services.RegisterModule<MessagingModule>(builder.Configuration);
 builder.Services.RegisterModule<PhotosModule>(builder.Configuration);
+builder.Services.RegisterModule<SchoolModule>(builder.Configuration);
 builder.Services.RegisterModule<SearchModule>(builder.Configuration);
 
 // Development-only: seed database with Keycloak test users
