@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.Dashboard.Application.Queries.GetFamilyDashboar
 
 public sealed record GetFamilyDashboardQuery(
     FamilyId FamilyId
-) : IQuery<DashboardLayoutDto?>;
+) : IReadOnlyQuery<DashboardLayoutDto?>;

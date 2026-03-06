@@ -9,4 +9,4 @@ namespace FamilyHub.Api.Features.Auth.Application.Queries.GetUserById;
 /// </summary>
 public sealed record GetUserByIdQuery(
     UserId UserId
-) : IQuery<UserDto?>;
+) : IReadOnlyQuery<UserDto?>;

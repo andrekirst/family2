@@ -56,6 +56,7 @@ builder.Services.AddMediator(options =>
         typeof(DomainEventPublishingBehavior<,>),  // outermost
         typeof(LoggingBehavior<,>),
         typeof(ValidationBehavior<,>),
+        typeof(QueryAsNoTrackingBehavior<,>),
         typeof(TransactionBehavior<,>),             // innermost before handler
     ];
 });
@@ -214,10 +215,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 
-    // Auto-apply EF Core migrations in development (supports Docker environments)
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
+    // Auto-apply database migrations in development (supports Docker environments)
+    var migrationResult = DatabaseMigrationRunner.Migrate(connectionString, app.Logger);
+    if (!migrationResult.Successful)
+    {
+        throw migrationResult.Error;
+    }
 }
 
 app.UseCors();

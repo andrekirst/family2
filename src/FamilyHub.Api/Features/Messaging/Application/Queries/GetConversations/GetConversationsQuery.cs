@@ -10,4 +10,4 @@ namespace FamilyHub.Api.Features.Messaging.Application.Queries.GetConversations;
 public sealed record GetConversationsQuery(
     FamilyId FamilyId,
     UserId UserId
-) : IQuery<List<ConversationDto>>;
+) : IReadOnlyQuery<List<ConversationDto>>;

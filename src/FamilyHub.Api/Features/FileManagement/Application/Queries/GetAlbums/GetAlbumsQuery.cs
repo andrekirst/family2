@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetAlbums;
 
 public sealed record GetAlbumsQuery(
     FamilyId FamilyId
-) : IQuery<List<AlbumDto>>;
+) : IReadOnlyQuery<List<AlbumDto>>;

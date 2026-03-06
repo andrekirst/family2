@@ -42,7 +42,7 @@ public sealed class FamilyRepository(AppDbContext context) : IFamilyRepository
 
     public Task UpdateAsync(FamilyEntity family, CancellationToken cancellationToken = default)
     {
-        context.Families.Update(family);
+        // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
     }
 

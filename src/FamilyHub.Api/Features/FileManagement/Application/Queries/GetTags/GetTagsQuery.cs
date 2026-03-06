@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetTags;
 
 public sealed record GetTagsQuery(
     FamilyId FamilyId
-) : IQuery<List<TagDto>>;
+) : IReadOnlyQuery<List<TagDto>>;

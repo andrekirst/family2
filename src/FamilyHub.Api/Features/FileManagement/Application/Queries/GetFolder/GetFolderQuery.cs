@@ -7,4 +7,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFolder;
 public sealed record GetFolderQuery(
     FolderId FolderId,
     FamilyId FamilyId
-) : IQuery<FolderDto?>;
+) : IReadOnlyQuery<FolderDto?>;

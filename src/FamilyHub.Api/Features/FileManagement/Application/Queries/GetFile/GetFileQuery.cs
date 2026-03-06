@@ -7,4 +7,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFile;
 public sealed record GetFileQuery(
     FileId FileId,
     FamilyId FamilyId
-) : IQuery<StoredFileDto?>;
+) : IReadOnlyQuery<StoredFileDto?>;

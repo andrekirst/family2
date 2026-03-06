@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetZipJobs;
 
 public sealed record GetZipJobsQuery(
     FamilyId FamilyId
-) : IQuery<List<ZipJobDto>>;
+) : IReadOnlyQuery<List<ZipJobDto>>;

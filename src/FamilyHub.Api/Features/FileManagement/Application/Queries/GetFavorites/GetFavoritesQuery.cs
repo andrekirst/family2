@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFavorites
 
 public sealed record GetFavoritesQuery(
     UserId UserId
-) : IQuery<List<StoredFileDto>>;
+) : IReadOnlyQuery<List<StoredFileDto>>;

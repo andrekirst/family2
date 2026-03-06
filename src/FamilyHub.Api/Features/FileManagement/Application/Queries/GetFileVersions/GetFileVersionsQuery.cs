@@ -7,4 +7,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFileVersi
 public sealed record GetFileVersionsQuery(
     FileId FileId,
     FamilyId FamilyId
-) : IQuery<List<FileVersionDto>>;
+) : IReadOnlyQuery<List<FileVersionDto>>;

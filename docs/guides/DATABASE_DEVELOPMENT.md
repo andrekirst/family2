@@ -2,7 +2,7 @@
 
 **Purpose:** Guide for PostgreSQL schema management, migrations, RLS policies, and database patterns in Family Hub.
 
-**Tech Stack:** PostgreSQL 16, EF Core 10, Row-Level Security (RLS), One schema per module
+**Tech Stack:** PostgreSQL 16, EF Core 10 (ORM only), DbUp (migrations), Row-Level Security (RLS), One schema per module
 
 ---
 
@@ -30,41 +30,49 @@ communication schema - Communication module (notifications)
 
 ## Critical Patterns (3)
 
-### 1. EF Core Migrations (Code-First)
+### 1. DbUp SQL Migrations
 
-**Use Code-First migrations for ALL schema changes.** Never write raw SQL scripts.
+**Use DbUp SQL scripts for ALL schema changes.** Scripts are embedded as assembly resources and executed at startup.
 
 **Create Migration:**
 
 ```bash
-# General pattern
-dotnet ef migrations add <MigrationName> \
-  --context <ModuleDbContext> \
-  --project Modules/FamilyHub.Modules.<Module> \
-  --startup-project FamilyHub.Api \
-  --output-dir Persistence/Migrations
+# Create a new SQL script in the appropriate module folder
+# Use timestamp prefix for ordering: YYYYMMDDHHMMSS_kebab-case-description.sql
 
-# Example: Auth module
-dotnet ef migrations add AddFamilyInvitations \
-  --context AuthDbContext \
-  --project Modules/FamilyHub.Modules.Auth \
-  --startup-project FamilyHub.Api \
-  --output-dir Persistence/Migrations
+# Example: Add a new table to the auth module
+touch src/FamilyHub.Api/Database/Migrations/auth/20260305120000_add-user-preferences.sql
 ```
 
-**Apply Migration:**
+**Script Organization:**
 
-```bash
-# Development
-dotnet ef database update --context AuthDbContext \
-  --project Modules/FamilyHub.Modules.Auth \
-  --startup-project FamilyHub.Api
-
-# Production (in Program.cs)
-await context.Database.MigrateAsync();
+```
+src/FamilyHub.Api/Database/Migrations/
+  _bridge/            - Bridge script (EF Core → DbUp transition)
+  auth/               - Auth module schemas
+  family/             - Family module schemas
+  calendar/           - Calendar module schemas
+  event_chain/        - Event chain module schemas
+  x_cross_schema/       - Cross-schema foreign keys
+  rls/                - Row-Level Security policies
+  ...                 - Other module folders
 ```
 
-**Vogen Value Object Integration:**
+**Execution (automatic at startup in Program.cs):**
+
+```csharp
+var migrationResult = DatabaseMigrationRunner.Migrate(connectionString, app.Logger);
+if (!migrationResult.Successful)
+{
+    throw migrationResult.Error;
+}
+```
+
+**Idempotency:** All DDL must use `IF NOT EXISTS` patterns. DbUp tracks executed scripts in a `schemaversions` table.
+
+**See:** [MIGRATION_REBASE_PROTOCOL.md](../development/MIGRATION_REBASE_PROTOCOL.md) for full protocol.
+
+**Vogen Value Object Integration (EF Core ORM):**
 
 ```csharp
 // In IEntityTypeConfiguration<User>
@@ -92,44 +100,20 @@ public void Configure(EntityTypeBuilder<User> builder)
 
 **Use PostgreSQL RLS** for multi-tenant isolation. Each module applies RLS to its tables.
 
-**Implementation (in migration Up() method):**
+**Implementation (in DbUp SQL script):**
 
-```csharp
-protected override void Up(MigrationBuilder migrationBuilder)
-{
-    // Create table
-    migrationBuilder.CreateTable(
-        name: "users",
-        schema: "auth",
-        columns: table => new
-        {
-            id = table.Column<Guid>(nullable: false),
-            email = table.Column<string>(maxLength: 320, nullable: false),
-            family_id = table.Column<Guid>(nullable: true)
-        });
+```sql
+-- src/FamilyHub.Api/Database/Migrations/rls/20260211103239_add-rls-policies.sql
 
-    // Enable RLS
-    migrationBuilder.Sql(@"
-        ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
 
-        CREATE POLICY user_isolation_policy ON auth.users
-            USING (id = current_setting('app.current_user_id', true)::uuid);
+DROP POLICY IF EXISTS user_isolation_policy ON auth.users;
+CREATE POLICY user_isolation_policy ON auth.users
+    USING (id = current_setting('app.current_user_id', true)::uuid);
 
-        CREATE POLICY family_isolation_policy ON auth.users
-            USING (family_id = current_setting('app.current_family_id', true)::uuid);
-    ");
-}
-
-protected override void Down(MigrationBuilder migrationBuilder)
-{
-    migrationBuilder.Sql(@"
-        DROP POLICY IF EXISTS user_isolation_policy ON auth.users;
-        DROP POLICY IF EXISTS family_isolation_policy ON auth.users;
-        ALTER TABLE auth.users DISABLE ROW LEVEL SECURITY;
-    ");
-
-    migrationBuilder.DropTable(name: "users", schema: "auth");
-}
+DROP POLICY IF EXISTS family_isolation_policy ON auth.users;
+CREATE POLICY family_isolation_policy ON auth.users
+    USING (family_id = current_setting('app.current_family_id', true)::uuid);
 ```
 
 **Setting Session Variables (in DbContext or interceptor):**
@@ -190,17 +174,16 @@ public UserId? UpdatedBy { get; private set; }
 
 1. Create entity in `Domain/Entities/`
 2. Create configuration in `Persistence/Configurations/`
-3. Add DbSet to DbContext
-4. Create migration: `dotnet ef migrations add AddTableName`
-5. Apply migration: `dotnet ef database update`
+3. Add DbSet to AppDbContext
+4. Create SQL script in `Database/Migrations/{module}/` with `CREATE TABLE IF NOT EXISTS`
+5. Run the application — DbUp executes new scripts automatically
 
 ### Add Column to Existing Table
 
 1. Add property to entity
 2. Update configuration (if needed)
-3. Create migration: `dotnet ef migrations add AddColumnName`
-4. Review generated migration
-5. Apply migration
+3. Create SQL script with `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`
+4. Run the application — DbUp executes new scripts automatically
 
 ### Add Index
 
@@ -224,15 +207,15 @@ builder.HasOne(e => e.Family)
 
 ## Migration Safety Checklist
 
-Before applying migrations:
+Before merging migration scripts:
 
-- [ ] Review generated SQL (check `Migrations/<Timestamp>_<Name>.cs`)
-- [ ] Test on local database
-- [ ] Verify no data loss (check Down() method)
+- [ ] Review SQL script for correctness
+- [ ] Ensure all DDL uses `IF NOT EXISTS` / idempotent patterns
+- [ ] Test on local database (run the application)
+- [ ] Verify no data loss
 - [ ] Test RLS policies (if applicable)
 - [ ] Check foreign key constraints
 - [ ] Verify indexes created
-- [ ] Test rollback (Down() method)
 - [ ] Backup production database (before production deploy)
 
 ---
@@ -255,12 +238,13 @@ psql -h localhost -U familyhub -d familyhub
 ### Migration Errors
 
 ```bash
-# Error: "Migration X already applied"
-# Solution: Check __EFMigrationsHistory table
-SELECT * FROM auth.__EFMigrationsHistory;
+# Error: "Script X already executed"
+# Solution: Check the schemaversions table
+SELECT * FROM public.schemaversions;
 
-# Error: "Sequence contains no elements"
-# Solution: Verify DbContext registered in Program.cs
+# Error: Script fails at startup
+# Solution: Check application logs for DbUp error output
+# Fix the SQL script and restart the application
 ```
 
 ### RLS Policy Issues
@@ -288,7 +272,7 @@ SELECT * FROM auth.users;
 
 **Location:** `database/docs/reference/sql-design/`
 
-**Purpose:** Historical reference only (NOT executed). These scripts were used for initial schema design. Actual schema is managed via EF Core migrations.
+**Purpose:** Historical reference only (NOT executed by DbUp). These scripts were used for initial schema design. Actual schema is managed via DbUp SQL scripts in `src/FamilyHub.Api/Database/Migrations/`.
 
 **Files:**
 
@@ -297,26 +281,27 @@ SELECT * FROM auth.users;
 - `02_module_tables.sql` - Module-specific tables
 - `03_rls_policies.sql` - RLS policy examples
 
-**IMPORTANT:** Do not execute these scripts directly. Use EF Core migrations instead.
+**IMPORTANT:** Do not execute these scripts directly. Use DbUp migration scripts instead.
 
 ---
 
 ## Related Documentation
 
-- **Workflows:** [docs/development/WORKFLOWS.md](../docs/development/WORKFLOWS.md#database-migrations-with-ef-core) - Migration commands
+- **Migration Protocol:** [docs/development/MIGRATION_REBASE_PROTOCOL.md](../development/MIGRATION_REBASE_PROTOCOL.md) - DbUp migration protocol
+- **Workflows:** [docs/development/WORKFLOWS.md](../docs/development/WORKFLOWS.md) - Development workflows
 - **Patterns:** [docs/development/PATTERNS.md](../docs/development/PATTERNS.md) - Domain patterns
 - **Security:** [docs/security/SECURITY.md](../docs/security/SECURITY.md) - RLS implementation
-- **Backend Guide:** [src/api/CLAUDE.md](../src/api/CLAUDE.md) - EF Core patterns
+- **Backend Guide:** [docs/guides/backend/ef-core-patterns.md](backend/ef-core-patterns.md) - EF Core ORM patterns
 
 ---
 
-**Last Updated:** 2026-01-09
-**Derived from:** Root CLAUDE.md v5.0.0
+**Last Updated:** 2026-03-05
+**Derived from:** Root CLAUDE.md v9.0.0
 **Canonical Sources:**
 
-- docs/development/WORKFLOWS.md (EF Core migration commands)
+- docs/development/MIGRATION_REBASE_PROTOCOL.md (DbUp migration protocol)
 - docs/security/SECURITY.md (RLS policies and implementation)
-- src/api/Persistence/Configurations/ (Entity configurations)
+- src/FamilyHub.Api/Database/Migrations/ (SQL migration scripts)
 
 **Sync Checklist:**
 

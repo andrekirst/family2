@@ -7,4 +7,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.PreviewRuleM
 public sealed record PreviewRuleMatchQuery(
     FileId FileId,
     FamilyId FamilyId
-) : IQuery<RuleMatchPreviewDto?>;
+) : IReadOnlyQuery<RuleMatchPreviewDto?>;

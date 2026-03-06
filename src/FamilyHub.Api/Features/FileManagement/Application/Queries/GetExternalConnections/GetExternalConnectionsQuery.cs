@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetExternalC
 
 public sealed record GetExternalConnectionsQuery(
     FamilyId FamilyId
-) : IQuery<List<ExternalConnectionDto>>;
+) : IReadOnlyQuery<List<ExternalConnectionDto>>;

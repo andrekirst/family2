@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Queries.GetLinked
 
 public sealed record GetLinkedAccountsQuery(
     UserId UserId
-) : IQuery<List<LinkedAccountDto>>;
+) : IReadOnlyQuery<List<LinkedAccountDto>>;

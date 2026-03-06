@@ -26,6 +26,7 @@ public sealed class ChainDefinitionRepository(AppDbContext context) : IChainDefi
     {
         var query = context.ChainDefinitions
             .Include(d => d.Steps)
+            .AsSplitQuery()
             .Where(d => d.FamilyId == familyId);
 
         if (isEnabled.HasValue)
@@ -41,6 +42,7 @@ public sealed class ChainDefinitionRepository(AppDbContext context) : IChainDefi
     {
         return await context.ChainDefinitions
             .Include(d => d.Steps)
+            .AsSplitQuery()
             .Where(d => d.IsEnabled && d.TriggerEventType == triggerEventType)
             .ToListAsync(ct);
     }
@@ -49,6 +51,7 @@ public sealed class ChainDefinitionRepository(AppDbContext context) : IChainDefi
     {
         return await context.ChainDefinitions
             .Include(d => d.Steps)
+            .AsSplitQuery()
             .Where(d => d.IsTemplate)
             .ToListAsync(ct);
     }
@@ -60,7 +63,7 @@ public sealed class ChainDefinitionRepository(AppDbContext context) : IChainDefi
 
     public Task UpdateAsync(ChainDefinition definition, CancellationToken ct = default)
     {
-        context.ChainDefinitions.Update(definition);
+        // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
     }
 

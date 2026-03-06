@@ -6,30 +6,25 @@
 
 ---
 
-## Database Migrations with EF Core
+## Database Migrations with DbUp
 
-**CRITICAL:** Use EF Core Code-First migrations for ALL schema changes (never custom SQL scripts).
+**CRITICAL:** Use DbUp SQL scripts for ALL schema changes. EF Core is used only as an ORM.
 
 ### Pattern
 
-One DbContext per module (Auth, Calendar, etc.), each targeting its own PostgreSQL schema. Fluent API configurations in `IEntityTypeConfiguration<T>` classes, PostgreSQL-specific features (RLS, triggers) via `migrationBuilder.Sql()`.
+SQL scripts are organized by module in `src/FamilyHub.Api/Database/Migrations/{module}/`. Scripts are embedded as assembly resources and executed at startup by `DatabaseMigrationRunner.Migrate()`. DbUp tracks executed scripts in a `schemaversions` table.
 
-### Commands
+### Adding a Migration
 
 ```bash
-# Create migration
-dotnet ef migrations add <Name> --context AuthDbContext \
-  --project Modules/FamilyHub.Modules.Auth \
-  --startup-project FamilyHub.Api
-
-# Apply migration (development)
-dotnet ef database update --context AuthDbContext
-
-# Production (in Program.cs)
-await context.Database.MigrateAsync();
+# Create a new SQL script in the appropriate module folder
+# Naming: {YYYYMMDDHHMMSS}_{kebab-case-description}.sql
+touch src/FamilyHub.Api/Database/Migrations/auth/20260305120000_add-user-preferences.sql
 ```
 
-### Vogen Integration
+All DDL must use `IF NOT EXISTS` for idempotency. The script is automatically embedded via the glob in `FamilyHub.Api.csproj`.
+
+### Vogen Integration (EF Core ORM)
 
 ```csharp
 // In IEntityTypeConfiguration<User>
@@ -40,7 +35,8 @@ builder.Property(u => u.Id)
 
 ### Reference
 
-Original SQL design scripts in `/database/docs/reference/sql-design/` (informational only, NOT executed).
+- Migration protocol: [MIGRATION_REBASE_PROTOCOL.md](MIGRATION_REBASE_PROTOCOL.md)
+- Original SQL design scripts in `/database/docs/reference/sql-design/` (informational only, NOT executed).
 
 ---
 
