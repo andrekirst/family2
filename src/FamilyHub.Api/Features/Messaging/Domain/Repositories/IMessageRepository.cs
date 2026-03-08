@@ -17,11 +17,11 @@ public interface IMessageRepository : IWriteRepository<Message, MessageId>
     /// <param name="familyId">The family whose messages to retrieve</param>
     /// <param name="limit">Max number of messages to return (capped at 100)</param>
     /// <param name="before">Optional cursor: only return messages sent before this timestamp</param>
-    /// <param name="ct">Cancellation token</param>
-    Task<List<Message>> GetByFamilyAsync(FamilyId familyId, int limit = 50, DateTime? before = null, CancellationToken ct = default);
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<List<Message>> GetByFamilyAsync(FamilyId familyId, int limit = 50, DateTime? before = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get messages for a conversation with cursor pagination.
     /// </summary>
-    Task<List<Message>> GetByConversationAsync(ConversationId conversationId, int limit = 50, DateTime? before = null, CancellationToken ct = default);
+    Task<List<Message>> GetByConversationAsync(ConversationId conversationId, int limit = 50, DateTime? before = null, CancellationToken cancellationToken = default);
 }

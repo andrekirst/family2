@@ -8,29 +8,29 @@ public class FakeFolderRepository : IFolderRepository
 {
     public List<Folder> Folders { get; } = [];
 
-    public Task<Folder?> GetByIdAsync(FolderId id, CancellationToken ct = default)
+    public Task<Folder?> GetByIdAsync(FolderId id, CancellationToken cancellationToken = default)
         => Task.FromResult(Folders.FirstOrDefault(f => f.Id == id));
 
-    public Task<bool> ExistsByIdAsync(FolderId id, CancellationToken ct = default)
+    public Task<bool> ExistsByIdAsync(FolderId id, CancellationToken cancellationToken = default)
         => Task.FromResult(Folders.Any(f => f.Id == id));
 
-    public Task<Folder?> GetRootFolderAsync(FamilyId familyId, CancellationToken ct = default)
+    public Task<Folder?> GetRootFolderAsync(FamilyId familyId, CancellationToken cancellationToken = default)
         => Task.FromResult(Folders.FirstOrDefault(f => f.FamilyId == familyId && f.ParentFolderId == null));
 
-    public Task<Folder?> GetInboxFolderAsync(FamilyId familyId, CancellationToken ct = default)
+    public Task<Folder?> GetInboxFolderAsync(FamilyId familyId, CancellationToken cancellationToken = default)
         => Task.FromResult(Folders.FirstOrDefault(f => f.FamilyId == familyId && f.IsInbox));
 
-    public Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken ct = default)
+    public Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken cancellationToken = default)
         => Task.FromResult(Folders.Where(f => f.ParentFolderId == parentId).ToList());
 
-    public Task<List<Folder>> GetDescendantsAsync(string materializedPathPrefix, FamilyId familyId, CancellationToken ct = default)
+    public Task<List<Folder>> GetDescendantsAsync(string materializedPathPrefix, FamilyId familyId, CancellationToken cancellationToken = default)
         => Task.FromResult(Folders
             .Where(f => f.FamilyId == familyId
                 && f.MaterializedPath.StartsWith(materializedPathPrefix))
             .OrderBy(f => f.MaterializedPath)
             .ToList());
 
-    public Task<List<Folder>> GetAncestorsAsync(FolderId folderId, CancellationToken ct = default)
+    public Task<List<Folder>> GetAncestorsAsync(FolderId folderId, CancellationToken cancellationToken = default)
     {
         var folder = Folders.FirstOrDefault(f => f.Id == folderId);
         if (folder is null)
@@ -51,27 +51,27 @@ public class FakeFolderRepository : IFolderRepository
         return Task.FromResult(ancestors!);
     }
 
-    public Task<long> GetTotalFileSizeAsync(FolderId folderId, string materializedPathPrefix, FamilyId familyId, CancellationToken ct = default)
+    public Task<long> GetTotalFileSizeAsync(FolderId folderId, string materializedPathPrefix, FamilyId familyId, CancellationToken cancellationToken = default)
         => Task.FromResult(0L); // Simplified for tests — override in specific tests if needed
 
-    public Task<int> GetDescendantCountAsync(string materializedPathPrefix, FamilyId familyId, CancellationToken ct = default)
+    public Task<int> GetDescendantCountAsync(string materializedPathPrefix, FamilyId familyId, CancellationToken cancellationToken = default)
         => Task.FromResult(Folders
             .Count(f => f.FamilyId == familyId
                 && f.MaterializedPath.StartsWith(materializedPathPrefix)));
 
-    public Task AddAsync(Folder folder, CancellationToken ct = default)
+    public Task AddAsync(Folder folder, CancellationToken cancellationToken = default)
     {
         Folders.Add(folder);
         return Task.CompletedTask;
     }
 
-    public Task RemoveAsync(Folder folder, CancellationToken ct = default)
+    public Task RemoveAsync(Folder folder, CancellationToken cancellationToken = default)
     {
         Folders.Remove(folder);
         return Task.CompletedTask;
     }
 
-    public Task RemoveRangeAsync(IEnumerable<Folder> folders, CancellationToken ct = default)
+    public Task RemoveRangeAsync(IEnumerable<Folder> folders, CancellationToken cancellationToken = default)
     {
         foreach (var folder in folders.ToList())
             Folders.Remove(folder);

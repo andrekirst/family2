@@ -10,7 +10,7 @@ namespace FamilyHub.Api.Features.Family.Domain.Repositories;
 /// </summary>
 public interface IFamilyMemberRepository : IWriteRepository<FamilyMember, FamilyMemberId>
 {
-    Task<bool> ExistsByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default);
-    Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default);
-    Task<List<FamilyMember>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
+    Task<bool> ExistsByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<List<FamilyMember>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
 }

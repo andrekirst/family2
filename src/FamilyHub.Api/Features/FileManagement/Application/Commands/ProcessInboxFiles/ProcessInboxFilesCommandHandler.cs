@@ -73,11 +73,11 @@ public sealed class ProcessInboxFilesCommandHandler(
         StoredFile file,
         RuleMatchPreviewDto match,
         ProcessInboxFilesCommand command,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         try
         {
-            return await fileProcessor.ProcessFileAsync(file, match, command.UserId, command.FamilyId, ct);
+            return await fileProcessor.ProcessFileAsync(file, match, command.UserId, command.FamilyId, cancellationToken);
         }
         catch (Exception ex)
         {

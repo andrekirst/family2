@@ -21,8 +21,8 @@ public sealed class AddWidgetBusinessValidator : AbstractValidator<AddWidgetComm
             .WithMessage(_ => localizer[DomainErrorCodes.InvalidWidgetType].Value);
 
         RuleFor(x => x.DashboardId)
-            .MustAsync(async (dashboardId, ct) =>
-                await dashboardRepository.ExistsByIdAsync(dashboardId, ct))
+            .MustAsync(async (dashboardId, cancellationToken) =>
+                await dashboardRepository.ExistsByIdAsync(dashboardId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.DashboardNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.DashboardNotFound].Value);
     }

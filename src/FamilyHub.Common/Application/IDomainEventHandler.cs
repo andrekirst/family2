@@ -8,5 +8,5 @@ public interface IDomainEventHandler<in TEvent>
     : Mediator.INotificationHandler<TEvent>
     where TEvent : Mediator.INotification
 {
-    // Inherited: ValueTask Handle(TEvent notification, CancellationToken ct);
+    // Inherited: ValueTask Handle(TEvent notification, CancellationToken cancellationToken);
 }

@@ -6,8 +6,8 @@ public interface IChainActionHandler
 {
     string ActionType { get; }
     string Version { get; }
-    Task<ActionResult> ExecuteAsync(ActionExecutionContext context, CancellationToken ct = default);
-    Task CompensateAsync(ActionExecutionContext context, CancellationToken ct = default);
+    Task<ActionResult> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken = default);
+    Task CompensateAsync(ActionExecutionContext context, CancellationToken cancellationToken = default);
 }
 
 public sealed record ActionExecutionContext(

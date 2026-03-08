@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 public interface IProcessingLogRepository
 {
     Task<List<ProcessingLogEntry>> GetByFamilyIdAsync(
-        FamilyId familyId, int skip = 0, int take = 50, CancellationToken ct = default);
-    Task AddAsync(ProcessingLogEntry entry, CancellationToken ct = default);
-    Task AddRangeAsync(IEnumerable<ProcessingLogEntry> entries, CancellationToken ct = default);
+        FamilyId familyId, int skip = 0, int take = 50, CancellationToken cancellationToken = default);
+    Task AddAsync(ProcessingLogEntry entry, CancellationToken cancellationToken = default);
+    Task AddRangeAsync(IEnumerable<ProcessingLogEntry> entries, CancellationToken cancellationToken = default);
 }

@@ -14,8 +14,8 @@ public sealed class UpdateUserLocaleBusinessValidator : AbstractValidator<Update
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
-                await userRepository.ExistsByIdAsync(command.UserId, ct))
+            .MustAsync(async (command, cancellationToken) =>
+                await userRepository.ExistsByIdAsync(command.UserId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.UserNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.UserNotFound].Value);
     }

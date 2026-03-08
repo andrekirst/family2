@@ -5,6 +5,6 @@ namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 
 public interface IAlbumRepository : IWriteRepository<Entities.Album, AlbumId>
 {
-    Task<List<Entities.Album>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
-    Task RemoveAsync(Entities.Album album, CancellationToken ct = default);
+    Task<List<Entities.Album>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task RemoveAsync(Entities.Album album, CancellationToken cancellationToken = default);
 }

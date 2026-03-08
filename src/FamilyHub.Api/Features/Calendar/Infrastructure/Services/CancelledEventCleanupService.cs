@@ -33,7 +33,7 @@ public sealed class CancelledEventCleanupService(
         }
     }
 
-    private async Task CleanupCancelledEventsAsync(CancellationToken ct)
+    private async Task CleanupCancelledEventsAsync(CancellationToken cancellationToken)
     {
         var cutoff = DateTime.UtcNow.AddDays(-_options.RetentionDays);
 
@@ -42,7 +42,7 @@ public sealed class CancelledEventCleanupService(
 
         var deleted = await dbContext.CalendarEvents
             .Where(e => e.IsCancelled && e.UpdatedAt < cutoff)
-            .ExecuteDeleteAsync(ct);
+            .ExecuteDeleteAsync(cancellationToken);
 
         if (deleted > 0)
         {

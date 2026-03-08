@@ -8,7 +8,7 @@ public class FakeFileManagementStorageService : IFileManagementStorageService
 {
     public List<string> DeletedStorageKeys { get; } = [];
 
-    public Task<FileStorageResult> StoreFileAsync(FamilyId familyId, Stream data, string fileName, CancellationToken ct = default)
+    public Task<FileStorageResult> StoreFileAsync(FamilyId familyId, Stream data, string fileName, CancellationToken cancellationToken = default)
     {
         var result = new FileStorageResult(
             $"fake-key-{Guid.NewGuid()}",
@@ -18,25 +18,25 @@ public class FakeFileManagementStorageService : IFileManagementStorageService
         return Task.FromResult(result);
     }
 
-    public Task<FileDownloadResult?> GetFileAsync(string storageKey, CancellationToken ct = default)
+    public Task<FileDownloadResult?> GetFileAsync(string storageKey, CancellationToken cancellationToken = default)
         => Task.FromResult<FileDownloadResult?>(null);
 
-    public Task<StorageRangeResult?> GetFileRangeAsync(string storageKey, long from, long to, CancellationToken ct = default)
+    public Task<StorageRangeResult?> GetFileRangeAsync(string storageKey, long from, long to, CancellationToken cancellationToken = default)
         => Task.FromResult<StorageRangeResult?>(null);
 
-    public Task DeleteFileAsync(FamilyId familyId, string storageKey, long fileSize, CancellationToken ct = default)
+    public Task DeleteFileAsync(FamilyId familyId, string storageKey, long fileSize, CancellationToken cancellationToken = default)
     {
         DeletedStorageKeys.Add(storageKey);
         return Task.CompletedTask;
     }
 
-    public Task<string> InitiateChunkedUploadAsync(CancellationToken ct = default)
+    public Task<string> InitiateChunkedUploadAsync(CancellationToken cancellationToken = default)
         => Task.FromResult($"upload-{Guid.NewGuid()}");
 
-    public Task UploadChunkAsync(string uploadId, int chunkIndex, Stream data, CancellationToken ct = default)
+    public Task UploadChunkAsync(string uploadId, int chunkIndex, Stream data, CancellationToken cancellationToken = default)
         => Task.CompletedTask;
 
-    public Task<FileStorageResult> CompleteChunkedUploadAsync(FamilyId familyId, string uploadId, string fileName, CancellationToken ct = default)
+    public Task<FileStorageResult> CompleteChunkedUploadAsync(FamilyId familyId, string uploadId, string fileName, CancellationToken cancellationToken = default)
     {
         var result = new FileStorageResult(
             $"fake-key-{Guid.NewGuid()}",

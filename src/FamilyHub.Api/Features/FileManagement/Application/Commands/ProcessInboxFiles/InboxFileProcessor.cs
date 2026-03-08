@@ -19,7 +19,7 @@ public sealed class InboxFileProcessor(
         RuleMatchPreviewDto match,
         UserId movedBy,
         FamilyId familyId,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         RuleActionDto? action = null;
         if (match.ActionsJson is not null)
@@ -47,7 +47,7 @@ public sealed class InboxFileProcessor(
                 foreach (var tagId in action.TagIds)
                 {
                     var fileTag = FileTag.Create(file.Id, TagId.From(tagId));
-                    await fileTagRepository.AddAsync(fileTag, ct);
+                    await fileTagRepository.AddAsync(fileTag, cancellationToken);
                     tagNames.Add(tagId.ToString());
                 }
                 appliedTagNames = string.Join(", ", tagNames);

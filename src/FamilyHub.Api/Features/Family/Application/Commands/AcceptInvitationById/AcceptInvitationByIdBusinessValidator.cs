@@ -23,27 +23,27 @@ public sealed class AcceptInvitationByIdBusinessValidator : AbstractValidator<Ac
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
-                await invitationRepository.ExistsByIdAsync(command.InvitationId!.Value, ct))
+            .MustAsync(async (command, cancellationToken) =>
+                await invitationRepository.ExistsByIdAsync(command.InvitationId!.Value, cancellationToken))
             .WithErrorCode(DomainErrorCodes.InvitationNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.InvitationNotFound].Value);
 
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
-                await userRepository.ExistsByIdAsync(command.UserId, ct))
+            .MustAsync(async (command, cancellationToken) =>
+                await userRepository.ExistsByIdAsync(command.UserId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.UserNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.UserNotFound].Value);
 
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
+            .MustAsync(async (command, cancellationToken) =>
             {
-                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, ct);
+                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, cancellationToken);
                 if (invitation is null)
                 {
                     return true;
                 }
 
-                return !await memberRepository.ExistsByUserAndFamilyAsync(command.UserId, invitation.FamilyId, ct);
+                return !await memberRepository.ExistsByUserAndFamilyAsync(command.UserId, invitation.FamilyId, cancellationToken);
             })
             .WithErrorCode(DomainErrorCodes.AlreadyFamilyMember)
             .WithMessage(_ => localizer[DomainErrorCodes.AlreadyFamilyMember].Value);

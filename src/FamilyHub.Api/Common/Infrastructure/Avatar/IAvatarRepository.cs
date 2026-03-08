@@ -8,5 +8,5 @@ namespace FamilyHub.Api.Common.Infrastructure.Avatar;
 /// </summary>
 public interface IAvatarRepository : IWriteRepository<AvatarAggregate, AvatarId>
 {
-    Task DeleteAsync(AvatarId id, CancellationToken ct = default);
+    Task DeleteAsync(AvatarId id, CancellationToken cancellationToken = default);
 }

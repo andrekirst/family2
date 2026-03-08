@@ -15,5 +15,5 @@ public interface IInboxFileProcessor
         RuleMatchPreviewDto match,
         UserId movedBy,
         FamilyId familyId,
-        CancellationToken ct);
+        CancellationToken cancellationToken);
 }

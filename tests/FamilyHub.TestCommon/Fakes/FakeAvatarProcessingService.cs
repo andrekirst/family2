@@ -7,7 +7,7 @@ public class FakeAvatarProcessingService : IAvatarProcessingService
     public bool ShouldFailValidation { get; set; }
     public string? ValidationErrorMessage { get; set; }
 
-    public Task ValidateImageAsync(Stream imageStream, string mimeType, CancellationToken ct = default)
+    public Task ValidateImageAsync(Stream imageStream, string mimeType, CancellationToken cancellationToken = default)
     {
         if (ShouldFailValidation)
         {
@@ -19,7 +19,7 @@ public class FakeAvatarProcessingService : IAvatarProcessingService
     public Task<Dictionary<AvatarSize, byte[]>> ProcessAvatarAsync(
         Stream imageStream,
         CropArea? cropArea = null,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         // Return fake processed bytes for each size variant
         var variants = new Dictionary<AvatarSize, byte[]>

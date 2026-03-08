@@ -20,10 +20,10 @@ public sealed class DeclineInvitationBusinessValidator : AbstractValidator<Decli
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
+            .MustAsync(async (command, cancellationToken) =>
             {
                 var tokenHash = SecureTokenHelper.ComputeSha256Hash(command.Token);
-                var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), ct);
+                var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken);
                 return invitation is not null;
             })
             .WithErrorCode(DomainErrorCodes.InvalidInvitationToken)

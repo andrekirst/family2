@@ -13,16 +13,16 @@ public class FakeCalendarEventRepository(List<CalendarEvent>? existingEvents = n
 
     private IEnumerable<CalendarEvent> All => _events.Concat(AddedEvents);
 
-    public Task<CalendarEvent?> GetByIdAsync(CalendarEventId id, CancellationToken ct = default) =>
+    public Task<CalendarEvent?> GetByIdAsync(CalendarEventId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.FirstOrDefault(e => e.Id == id));
 
-    public Task<CalendarEvent?> GetByIdWithAttendeesAsync(CalendarEventId id, CancellationToken ct = default) =>
-        GetByIdAsync(id, ct);
+    public Task<CalendarEvent?> GetByIdWithAttendeesAsync(CalendarEventId id, CancellationToken cancellationToken = default) =>
+        GetByIdAsync(id, cancellationToken);
 
-    public Task<bool> ExistsByIdAsync(CalendarEventId id, CancellationToken ct = default) =>
+    public Task<bool> ExistsByIdAsync(CalendarEventId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.Any(e => e.Id == id));
 
-    public Task<bool> IsCancelledAsync(CalendarEventId id, CancellationToken ct = default)
+    public Task<bool> IsCancelledAsync(CalendarEventId id, CancellationToken cancellationToken = default)
     {
         var calendarEvent = All.FirstOrDefault(e => e.Id == id)
             ?? throw new EntityNotFoundException<CalendarEvent>(id);
@@ -30,13 +30,13 @@ public class FakeCalendarEventRepository(List<CalendarEvent>? existingEvents = n
     }
 
     public Task<List<CalendarEvent>> GetByFamilyAndDateRangeAsync(
-        FamilyId familyId, DateTime start, DateTime end, CancellationToken ct = default) =>
+        FamilyId familyId, DateTime start, DateTime end, CancellationToken cancellationToken = default) =>
         Task.FromResult(All
             .Where(e => e.FamilyId == familyId && e.StartTime >= start && e.StartTime <= end)
             .OrderBy(e => e.StartTime)
             .ToList());
 
-    public Task AddAsync(CalendarEvent calendarEvent, CancellationToken ct = default)
+    public Task AddAsync(CalendarEvent calendarEvent, CancellationToken cancellationToken = default)
     {
         AddedEvents.Add(calendarEvent);
         return Task.CompletedTask;

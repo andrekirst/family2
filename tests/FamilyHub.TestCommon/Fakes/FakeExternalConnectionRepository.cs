@@ -9,30 +9,30 @@ public class FakeExternalConnectionRepository : IExternalConnectionRepository
 {
     public List<ExternalConnection> Connections { get; } = [];
 
-    public Task<ExternalConnection?> GetByIdAsync(ExternalConnectionId id, CancellationToken ct = default)
+    public Task<ExternalConnection?> GetByIdAsync(ExternalConnectionId id, CancellationToken cancellationToken = default)
         => Task.FromResult(Connections.FirstOrDefault(c => c.Id == id));
 
-    public Task<bool> ExistsByIdAsync(ExternalConnectionId id, CancellationToken ct = default)
+    public Task<bool> ExistsByIdAsync(ExternalConnectionId id, CancellationToken cancellationToken = default)
         => Task.FromResult(Connections.Any(c => c.Id == id));
 
-    public Task<List<ExternalConnection>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
+    public Task<List<ExternalConnection>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
         => Task.FromResult(Connections
             .Where(c => c.FamilyId == familyId)
             .OrderBy(c => c.ProviderType)
             .ToList());
 
     public Task<ExternalConnection?> GetByFamilyAndProviderAsync(
-        FamilyId familyId, ExternalProviderType providerType, CancellationToken ct = default)
+        FamilyId familyId, ExternalProviderType providerType, CancellationToken cancellationToken = default)
         => Task.FromResult(Connections.FirstOrDefault(c =>
             c.FamilyId == familyId && c.ProviderType == providerType));
 
-    public Task AddAsync(ExternalConnection connection, CancellationToken ct = default)
+    public Task AddAsync(ExternalConnection connection, CancellationToken cancellationToken = default)
     {
         Connections.Add(connection);
         return Task.CompletedTask;
     }
 
-    public Task RemoveAsync(ExternalConnection connection, CancellationToken ct = default)
+    public Task RemoveAsync(ExternalConnection connection, CancellationToken cancellationToken = default)
     {
         Connections.Remove(connection);
         return Task.CompletedTask;

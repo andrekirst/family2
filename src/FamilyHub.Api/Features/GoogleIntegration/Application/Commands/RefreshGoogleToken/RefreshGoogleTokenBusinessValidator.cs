@@ -14,9 +14,9 @@ public sealed class RefreshGoogleTokenBusinessValidator : AbstractValidator<Refr
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x.UserId)
-            .MustAsync(async (userId, ct) =>
+            .MustAsync(async (userId, cancellationToken) =>
             {
-                var link = await linkRepository.GetByUserIdAsync(userId, ct);
+                var link = await linkRepository.GetByUserIdAsync(userId, cancellationToken);
                 return link is not null;
             })
             .WithErrorCode(DomainErrorCodes.NoGoogleAccountLinked)

@@ -63,10 +63,10 @@ public sealed class CreateConversationCommandHandler(
     }
 
     private async Task<Folder> FindOrCreateMessagesFolderAsync(
-        Folder rootFolder, FamilyId familyId, UserId createdBy, CancellationToken ct)
+        Folder rootFolder, FamilyId familyId, UserId createdBy, CancellationToken cancellationToken)
     {
         // Look for existing "Messages" folder under root
-        var children = await folderRepository.GetChildrenAsync(rootFolder.Id, ct);
+        var children = await folderRepository.GetChildrenAsync(rootFolder.Id, cancellationToken);
         var messagesFolder = children.FirstOrDefault(f => f.Name.Value == "Messages");
 
         if (messagesFolder is not null)
@@ -80,7 +80,7 @@ public sealed class CreateConversationCommandHandler(
             familyId,
             createdBy);
 
-        await folderRepository.AddAsync(messagesFolder, ct);
+        await folderRepository.AddAsync(messagesFolder, cancellationToken);
         return messagesFolder;
     }
 }

@@ -14,8 +14,8 @@ public sealed class UpdateWidgetConfigBusinessValidator : AbstractValidator<Upda
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x.WidgetId)
-            .MustAsync(async (widgetId, ct) =>
-                await dashboardRepository.ExistsByWidgetIdAsync(widgetId, ct))
+            .MustAsync(async (widgetId, cancellationToken) =>
+                await dashboardRepository.ExistsByWidgetIdAsync(widgetId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.WidgetNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.WidgetNotFound].Value);
     }

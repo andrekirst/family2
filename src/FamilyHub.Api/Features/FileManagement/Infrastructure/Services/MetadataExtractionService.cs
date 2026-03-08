@@ -18,7 +18,7 @@ public sealed class MetadataExtractionService : IMetadataExtractionService
         "image/webp"
     ];
 
-    public Task<ExtractionResult?> ExtractAsync(Stream data, string mimeType, CancellationToken ct = default)
+    public Task<ExtractionResult?> ExtractAsync(Stream data, string mimeType, CancellationToken cancellationToken = default)
     {
         if (!SupportedMimeTypes.Contains(mimeType.ToLowerInvariant()))
         {

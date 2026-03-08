@@ -16,19 +16,19 @@ public class CalendarQueries
         DateTime startDate,
         DateTime endDate,
         [Service] IQueryBus queryBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var query = new GetCalendarEventsQuery(startDate, endDate);
-        return await queryBus.QueryAsync(query, ct);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 
     [Authorize]
     public async Task<CalendarEventDto?> GetCalendar(
         Guid id,
         [Service] IQueryBus queryBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var query = new GetCalendarEventQuery(CalendarEventId.From(id));
-        return await queryBus.QueryAsync(query, ct);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

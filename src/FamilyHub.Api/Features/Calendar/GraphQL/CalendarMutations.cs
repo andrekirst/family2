@@ -18,7 +18,7 @@ public class CalendarMutations
     public async Task<CalendarEventDto> Create(
         CreateCalendarEventRequest input,
         [Service] ICommandBus commandBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var title = EventTitle.From(input.Title.Trim());
         var attendeeIds = input.AttendeeIds.Select(UserId.From).ToList();
@@ -32,7 +32,7 @@ public class CalendarMutations
             input.IsAllDay,
             attendeeIds);
 
-        var result = await commandBus.SendAsync(command, ct);
+        var result = await commandBus.SendAsync(command, cancellationToken);
 
         return CalendarEventMapper.ToDto(result.CreatedEvent);
     }
@@ -42,7 +42,7 @@ public class CalendarMutations
         Guid id,
         UpdateCalendarEventRequest input,
         [Service] ICommandBus commandBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var calendarEventId = CalendarEventId.From(id);
         var title = EventTitle.From(input.Title.Trim());
@@ -58,7 +58,7 @@ public class CalendarMutations
             input.IsAllDay,
             attendeeIds);
 
-        var result = await commandBus.SendAsync(command, ct);
+        var result = await commandBus.SendAsync(command, cancellationToken);
 
         return CalendarEventMapper.ToDto(result.UpdatedEvent);
     }
@@ -67,12 +67,12 @@ public class CalendarMutations
     public async Task<bool> Cancel(
         Guid id,
         [Service] ICommandBus commandBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var calendarEventId = CalendarEventId.From(id);
         var command = new CancelCalendarEventCommand(calendarEventId);
 
-        var result = await commandBus.SendAsync(command, ct);
+        var result = await commandBus.SendAsync(command, cancellationToken);
         return result.Success;
     }
 }

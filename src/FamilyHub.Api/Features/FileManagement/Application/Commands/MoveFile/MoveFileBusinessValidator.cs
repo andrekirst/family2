@@ -15,14 +15,14 @@ public sealed class MoveFileBusinessValidator : AbstractValidator<MoveFileComman
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x.FileId)
-            .MustAsync(async (fileId, ct) =>
-                await storedFileRepository.ExistsByIdAsync(fileId, ct))
+            .MustAsync(async (fileId, cancellationToken) =>
+                await storedFileRepository.ExistsByIdAsync(fileId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.FileNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.FileNotFound].Value);
 
         RuleFor(x => x.TargetFolderId)
-            .MustAsync(async (targetFolderId, ct) =>
-                await folderRepository.ExistsByIdAsync(targetFolderId, ct))
+            .MustAsync(async (targetFolderId, cancellationToken) =>
+                await folderRepository.ExistsByIdAsync(targetFolderId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.FolderNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.FolderNotFound].Value);
     }

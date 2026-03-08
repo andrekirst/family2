@@ -17,7 +17,7 @@ public sealed class EventChainSearchProvider(IChainDefinitionRepository chainDef
         }
 
         var definitions = await chainDefinitionRepository.GetByFamilyIdAsync(
-            context.FamilyId.Value, ct: cancellationToken);
+            context.FamilyId.Value, cancellationToken: cancellationToken);
 
         var queryLower = context.Query.ToLowerInvariant();
         var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;

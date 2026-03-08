@@ -27,7 +27,7 @@ public sealed class ModuleRegistrationGenerator : IIncrementalGenerator
         var moduleDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (node, _) => IsModuleCandidate(node),
-                transform: static (ctx, ct) => GetModuleInfo(ctx, ct))
+                transform: static (ctx, cancellationToken) => GetModuleInfo(ctx, cancellationToken))
             .Where(static m => m is not null)
             .Select(static (m, _) => m!.Value);
 
@@ -57,11 +57,11 @@ public sealed class ModuleRegistrationGenerator : IIncrementalGenerator
     /// <summary>
     /// Semantic check: does this class implement IModule? Extract order from [ModuleOrder].
     /// </summary>
-    private static ModuleInfo? GetModuleInfo(GeneratorSyntaxContext context, CancellationToken ct)
+    private static ModuleInfo? GetModuleInfo(GeneratorSyntaxContext context, CancellationToken cancellationToken)
     {
         var classDecl = (ClassDeclarationSyntax)context.Node;
 
-        if (context.SemanticModel.GetDeclaredSymbol(classDecl, ct) is not INamedTypeSymbol symbol || symbol.IsAbstract)
+        if (context.SemanticModel.GetDeclaredSymbol(classDecl, cancellationToken) is not INamedTypeSymbol symbol || symbol.IsAbstract)
             return null;
 
         // Check if it implements IModule

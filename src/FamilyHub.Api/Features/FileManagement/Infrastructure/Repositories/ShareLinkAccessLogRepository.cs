@@ -8,12 +8,12 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 
 public sealed class ShareLinkAccessLogRepository(AppDbContext context) : IShareLinkAccessLogRepository
 {
-    public async Task<List<ShareLinkAccessLog>> GetByShareLinkIdAsync(ShareLinkId shareLinkId, CancellationToken ct = default)
+    public async Task<List<ShareLinkAccessLog>> GetByShareLinkIdAsync(ShareLinkId shareLinkId, CancellationToken cancellationToken = default)
         => await context.Set<ShareLinkAccessLog>()
             .Where(l => l.ShareLinkId == shareLinkId)
             .OrderByDescending(l => l.AccessedAt)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task AddAsync(ShareLinkAccessLog log, CancellationToken ct = default)
-        => await context.Set<ShareLinkAccessLog>().AddAsync(log, ct);
+    public async Task AddAsync(ShareLinkAccessLog log, CancellationToken cancellationToken = default)
+        => await context.Set<ShareLinkAccessLog>().AddAsync(log, cancellationToken);
 }

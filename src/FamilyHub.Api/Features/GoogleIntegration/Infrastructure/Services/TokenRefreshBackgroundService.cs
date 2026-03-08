@@ -34,7 +34,7 @@ public sealed class TokenRefreshBackgroundService(
         }
     }
 
-    private async Task RefreshExpiringTokensAsync(CancellationToken ct)
+    private async Task RefreshExpiringTokensAsync(CancellationToken cancellationToken)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var linkRepository = scope.ServiceProvider.GetRequiredService<IGoogleAccountLinkRepository>();
@@ -42,7 +42,7 @@ public sealed class TokenRefreshBackgroundService(
         var encryptionService = scope.ServiceProvider.GetRequiredService<ITokenEncryptionService>();
 
         var expiringBefore = DateTime.UtcNow.AddMinutes(_options.RefreshBeforeExpiryMinutes);
-        var expiringLinks = await linkRepository.GetExpiringTokensAsync(expiringBefore, ct);
+        var expiringLinks = await linkRepository.GetExpiringTokensAsync(expiringBefore, cancellationToken);
 
         if (expiringLinks.Count == 0)
         {
@@ -56,14 +56,14 @@ public sealed class TokenRefreshBackgroundService(
             try
             {
                 var refreshToken = encryptionService.Decrypt(link.EncryptedRefreshToken.Value);
-                var tokenResponse = await oauthService.RefreshAccessTokenAsync(refreshToken, ct);
+                var tokenResponse = await oauthService.RefreshAccessTokenAsync(refreshToken, cancellationToken);
 
                 var encryptedAccessToken = EncryptedToken.From(
                     encryptionService.Encrypt(tokenResponse.AccessToken));
                 var newExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
 
                 link.RefreshAccessToken(encryptedAccessToken, newExpiresAt);
-                await linkRepository.UpdateAsync(link, ct);
+                await linkRepository.UpdateAsync(link, cancellationToken);
 
                 logger.LogInformation(
                     "Refreshed Google token for user {UserId}, new expiry: {ExpiresAt}",
@@ -74,11 +74,11 @@ public sealed class TokenRefreshBackgroundService(
                 logger.LogWarning(ex,
                     "Failed to refresh Google token for user {UserId}", link.UserId);
                 link.MarkRefreshFailed(ex.Message);
-                await linkRepository.UpdateAsync(link, ct);
+                await linkRepository.UpdateAsync(link, cancellationToken);
             }
         }
 
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.SaveChangesAsync(ct);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

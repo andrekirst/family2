@@ -16,11 +16,11 @@ public sealed partial class ChainOrchestrator(
     StepPipeline pipeline,
     ILogger<ChainOrchestrator> logger) : IChainOrchestrator
 {
-    public async Task TryTriggerChainsAsync(IDomainEvent domainEvent, CancellationToken ct = default)
+    public async Task TryTriggerChainsAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
         var eventType = domainEvent.GetType().FullName ?? domainEvent.GetType().Name;
 
-        var matchingDefinitions = await definitionRepository.GetEnabledByTriggerEventTypeAsync(eventType, ct);
+        var matchingDefinitions = await definitionRepository.GetEnabledByTriggerEventTypeAsync(eventType, cancellationToken);
 
         if (matchingDefinitions.Count == 0)
         {
@@ -54,11 +54,11 @@ public sealed partial class ChainOrchestrator(
                     execution.AddStepExecution(stepExecution);
                 }
 
-                await executionRepository.AddAsync(execution, ct);
-                await unitOfWork.SaveChangesAsync(ct);
+                await executionRepository.AddAsync(execution, cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
 
                 // Execute asynchronously (fire and forget for dual dispatch)
-                _ = Task.Run(() => ExecuteChainAsync(execution, definition, ct), ct);
+                _ = Task.Run(() => ExecuteChainAsync(execution, definition, cancellationToken), cancellationToken);
 
                 LogChainChainnameTriggeredByEventtypeExecutionidExecutionidCorrelationidCorrelationid(logger, definition.Name.Value, eventType, execution.Id.Value, execution.CorrelationId);
             }
@@ -69,13 +69,13 @@ public sealed partial class ChainOrchestrator(
         }
     }
 
-    public async Task ExecuteChainAsync(ChainExecution execution, ChainDefinition definition, CancellationToken ct = default)
+    public async Task ExecuteChainAsync(ChainExecution execution, ChainDefinition definition, CancellationToken cancellationToken = default)
     {
         try
         {
             execution.MarkRunning();
-            await executionRepository.UpdateAsync(execution, ct);
-            await unitOfWork.SaveChangesAsync(ct);
+            await executionRepository.UpdateAsync(execution, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var context = new ChainExecutionContext(execution.Context);
             context.SetTriggerData(execution.TriggerPayload);
@@ -116,7 +116,7 @@ public sealed partial class ChainOrchestrator(
 
                 try
                 {
-                    await pipeline.ExecuteAsync(pipelineContext, ct);
+                    await pipeline.ExecuteAsync(pipelineContext, cancellationToken);
 
                     // Store entity mappings if any
                     if (pipelineContext.Result?.CreatedEntities is { Count: > 0 } entities)
@@ -129,7 +129,7 @@ public sealed partial class ChainOrchestrator(
                                 entity.EntityType,
                                 entity.EntityId,
                                 entity.Module);
-                            await executionRepository.AddEntityMappingAsync(mapping, ct);
+                            await executionRepository.AddEntityMappingAsync(mapping, cancellationToken);
                         }
                     }
                 }
@@ -165,34 +165,34 @@ public sealed partial class ChainOrchestrator(
                 execution.MarkCompleted();
             }
 
-            await executionRepository.UpdateAsync(execution, ct);
-            await unitOfWork.SaveChangesAsync(ct);
+            await executionRepository.UpdateAsync(execution, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
             LogChainExecutionExecutionidFailedUnexpectedly(logger, execution.Id.Value);
 
             execution.MarkFailed(ex.Message);
-            await executionRepository.UpdateAsync(execution, ct);
-            await unitOfWork.SaveChangesAsync(ct);
+            await executionRepository.UpdateAsync(execution, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 
-    public async Task ResumeStepAsync(Guid stepExecutionId, CancellationToken ct = default)
+    public async Task ResumeStepAsync(Guid stepExecutionId, CancellationToken cancellationToken = default)
     {
-        var stepExecution = await executionRepository.GetStepExecutionAsync(stepExecutionId, ct);
+        var stepExecution = await executionRepository.GetStepExecutionAsync(stepExecutionId, cancellationToken);
         if (stepExecution is null)
         {
             return;
         }
 
-        var execution = await executionRepository.GetByIdWithStepsAsync(stepExecution.ChainExecutionId, ct);
+        var execution = await executionRepository.GetByIdWithStepsAsync(stepExecution.ChainExecutionId, cancellationToken);
         if (execution is null)
         {
             return;
         }
 
-        var definition = await definitionRepository.GetByIdWithStepsAsync(execution.ChainDefinitionId, ct);
+        var definition = await definitionRepository.GetByIdWithStepsAsync(execution.ChainDefinitionId, cancellationToken);
         if (definition is null)
         {
             return;
@@ -220,7 +220,7 @@ public sealed partial class ChainOrchestrator(
 
         try
         {
-            await pipeline.ExecuteAsync(pipelineContext, ct);
+            await pipeline.ExecuteAsync(pipelineContext, cancellationToken);
         }
         catch (Exception)
         {
@@ -228,8 +228,8 @@ public sealed partial class ChainOrchestrator(
         }
 
         execution.UpdateContext(context.ToJson());
-        await executionRepository.UpdateAsync(execution, ct);
-        await unitOfWork.SaveChangesAsync(ct);
+        await executionRepository.UpdateAsync(execution, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     [LoggerMessage(LogLevel.Debug, "No chain definitions match event {eventType}")]

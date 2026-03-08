@@ -23,32 +23,32 @@ public sealed class AcceptInvitationBusinessValidator : AbstractValidator<Accept
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
+            .MustAsync(async (command, cancellationToken) =>
             {
                 var tokenHash = SecureTokenHelper.ComputeSha256Hash(command.Token);
-                var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), ct);
+                var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken);
                 return invitation is not null;
             })
             .WithErrorCode(DomainErrorCodes.InvalidInvitationToken)
             .WithMessage(_ => localizer[DomainErrorCodes.InvalidInvitationToken].Value);
 
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
-                await userRepository.ExistsByIdAsync(command.UserId, ct))
+            .MustAsync(async (command, cancellationToken) =>
+                await userRepository.ExistsByIdAsync(command.UserId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.UserNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.UserNotFound].Value);
 
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
+            .MustAsync(async (command, cancellationToken) =>
             {
                 var tokenHash = SecureTokenHelper.ComputeSha256Hash(command.Token);
-                var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), ct);
+                var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken);
                 if (invitation is null)
                 {
                     return true;
                 }
 
-                return !await memberRepository.ExistsByUserAndFamilyAsync(command.UserId, invitation.FamilyId, ct);
+                return !await memberRepository.ExistsByUserAndFamilyAsync(command.UserId, invitation.FamilyId, cancellationToken);
             })
             .WithErrorCode(DomainErrorCodes.AlreadyFamilyMember)
             .WithMessage(_ => localizer[DomainErrorCodes.AlreadyFamilyMember].Value);

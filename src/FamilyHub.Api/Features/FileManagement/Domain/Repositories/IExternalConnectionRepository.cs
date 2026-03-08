@@ -7,7 +7,7 @@ namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 
 public interface IExternalConnectionRepository : IWriteRepository<ExternalConnection, ExternalConnectionId>
 {
-    Task<List<ExternalConnection>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
-    Task<ExternalConnection?> GetByFamilyAndProviderAsync(FamilyId familyId, ExternalProviderType providerType, CancellationToken ct = default);
-    Task RemoveAsync(ExternalConnection connection, CancellationToken ct = default);
+    Task<List<ExternalConnection>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<ExternalConnection?> GetByFamilyAndProviderAsync(FamilyId familyId, ExternalProviderType providerType, CancellationToken cancellationToken = default);
+    Task RemoveAsync(ExternalConnection connection, CancellationToken cancellationToken = default);
 }

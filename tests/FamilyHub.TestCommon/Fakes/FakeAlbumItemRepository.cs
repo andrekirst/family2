@@ -8,35 +8,35 @@ public class FakeAlbumItemRepository : IAlbumItemRepository
 {
     public List<AlbumItem> Items { get; } = [];
 
-    public Task<List<AlbumItem>> GetByAlbumIdAsync(AlbumId albumId, CancellationToken ct = default)
+    public Task<List<AlbumItem>> GetByAlbumIdAsync(AlbumId albumId, CancellationToken cancellationToken = default)
         => Task.FromResult(Items.Where(ai => ai.AlbumId == albumId).OrderByDescending(ai => ai.AddedAt).ToList());
 
-    public Task<bool> ExistsAsync(AlbumId albumId, FileId fileId, CancellationToken ct = default)
+    public Task<bool> ExistsAsync(AlbumId albumId, FileId fileId, CancellationToken cancellationToken = default)
         => Task.FromResult(Items.Any(ai => ai.AlbumId == albumId && ai.FileId == fileId));
 
-    public Task AddAsync(AlbumItem item, CancellationToken ct = default)
+    public Task AddAsync(AlbumItem item, CancellationToken cancellationToken = default)
     {
         Items.Add(item);
         return Task.CompletedTask;
     }
 
-    public Task RemoveAsync(AlbumItem item, CancellationToken ct = default)
+    public Task RemoveAsync(AlbumItem item, CancellationToken cancellationToken = default)
     {
         var existing = Items.FirstOrDefault(ai => ai.AlbumId == item.AlbumId && ai.FileId == item.FileId);
         if (existing is not null) Items.Remove(existing);
         return Task.CompletedTask;
     }
 
-    public Task RemoveByAlbumIdAsync(AlbumId albumId, CancellationToken ct = default)
+    public Task RemoveByAlbumIdAsync(AlbumId albumId, CancellationToken cancellationToken = default)
     {
         Items.RemoveAll(ai => ai.AlbumId == albumId);
         return Task.CompletedTask;
     }
 
-    public Task<int> GetItemCountAsync(AlbumId albumId, CancellationToken ct = default)
+    public Task<int> GetItemCountAsync(AlbumId albumId, CancellationToken cancellationToken = default)
         => Task.FromResult(Items.Count(ai => ai.AlbumId == albumId));
 
-    public Task<FileId?> GetFirstImageFileIdAsync(AlbumId albumId, CancellationToken ct = default)
+    public Task<FileId?> GetFirstImageFileIdAsync(AlbumId albumId, CancellationToken cancellationToken = default)
     {
         var item = Items
             .Where(ai => ai.AlbumId == albumId)

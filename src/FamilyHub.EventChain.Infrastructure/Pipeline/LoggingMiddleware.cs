@@ -5,7 +5,7 @@ namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
 public sealed partial class LoggingMiddleware(ILogger<LoggingMiddleware> logger) : IStepMiddleware
 {
-    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken ct)
+    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken cancellationToken)
     {
         var sw = Stopwatch.StartNew();
 
@@ -13,7 +13,7 @@ public sealed partial class LoggingMiddleware(ILogger<LoggingMiddleware> logger)
 
         try
         {
-            await next(context, ct);
+            await next(context, cancellationToken);
             sw.Stop();
 
             if (context.ShouldSkip)

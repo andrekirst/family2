@@ -15,20 +15,20 @@ public class PhotoQueries
         int skip,
         int take,
         [Service] IQueryBus queryBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var query = new GetPhotosQuery(skip, Math.Min(take, 30));
-        return await queryBus.QueryAsync(query, ct);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 
     [Authorize]
     public async Task<PhotoDto?> GetPhoto(
         Guid id,
         [Service] IQueryBus queryBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var query = new GetPhotoQuery(PhotoId.From(id));
-        return await queryBus.QueryAsync(query, ct);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 
     [Authorize]
@@ -36,12 +36,12 @@ public class PhotoQueries
         Guid currentPhotoId,
         DateTime currentCreatedAt,
         [Service] IQueryBus queryBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var query = new GetAdjacentPhotosQuery(
             PhotoId.From(currentPhotoId),
             currentCreatedAt);
 
-        return await queryBus.QueryAsync(query, ct);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

@@ -17,7 +17,7 @@ public sealed class AvatarProcessingService : IAvatarProcessingService
     private const int MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
     private const int MaxDimension = 4096;
 
-    public async Task ValidateImageAsync(Stream imageStream, string mimeType, CancellationToken ct = default)
+    public async Task ValidateImageAsync(Stream imageStream, string mimeType, CancellationToken cancellationToken = default)
     {
         if (!AllowedMimeTypes.Contains(mimeType.ToLowerInvariant()))
         {
@@ -33,7 +33,7 @@ public sealed class AvatarProcessingService : IAvatarProcessingService
         imageStream.Position = 0;
         try
         {
-            using var image = await Image.LoadAsync(imageStream, ct);
+            using var image = await Image.LoadAsync(imageStream, cancellationToken);
             if (image.Width > MaxDimension || image.Height > MaxDimension)
             {
                 throw new DomainException($"Image dimensions exceed maximum of {MaxDimension}x{MaxDimension}.");
@@ -50,10 +50,10 @@ public sealed class AvatarProcessingService : IAvatarProcessingService
     public async Task<Dictionary<AvatarSize, byte[]>> ProcessAvatarAsync(
         Stream imageStream,
         CropArea? cropArea = null,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         imageStream.Position = 0;
-        using var image = await Image.LoadAsync(imageStream, ct);
+        using var image = await Image.LoadAsync(imageStream, cancellationToken);
 
         // Apply crop if provided
         if (cropArea is not null)
@@ -75,7 +75,7 @@ public sealed class AvatarProcessingService : IAvatarProcessingService
             using var variant = image.Clone(x => x.Resize(pixels, pixels));
 
             using var ms = new MemoryStream();
-            await variant.SaveAsync(ms, new JpegEncoder { Quality = 85 }, ct);
+            await variant.SaveAsync(ms, new JpegEncoder { Quality = 85 }, cancellationToken);
             variants[size] = ms.ToArray();
         }
 

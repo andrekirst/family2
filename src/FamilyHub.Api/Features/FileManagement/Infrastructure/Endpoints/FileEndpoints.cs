@@ -37,15 +37,15 @@ public static class FileEndpoints
         HttpContext httpContext,
         [FromServices] IFileManagementStorageService storageService,
         [FromServices] IUserRepository userRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, ct);
+        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
         if (familyId is null)
         {
             return Results.Unauthorized();
         }
 
-        var form = await httpContext.Request.ReadFormAsync(ct);
+        var form = await httpContext.Request.ReadFormAsync(cancellationToken);
         var file = form.Files.FirstOrDefault();
         if (file is null || file.Length == 0)
         {
@@ -53,7 +53,7 @@ public static class FileEndpoints
         }
 
         using var stream = file.OpenReadStream();
-        var result = await storageService.StoreFileAsync(familyId.Value, stream, file.FileName, ct);
+        var result = await storageService.StoreFileAsync(familyId.Value, stream, file.FileName, cancellationToken);
 
         return Results.Ok(new
         {
@@ -67,9 +67,9 @@ public static class FileEndpoints
     private static async Task<IResult> DownloadFileAsync(
         string storageKey,
         [FromServices] IFileManagementStorageService storageService,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var result = await storageService.GetFileAsync(storageKey, ct);
+        var result = await storageService.GetFileAsync(storageKey, cancellationToken);
         if (result is null)
         {
             return Results.NotFound();
@@ -82,14 +82,14 @@ public static class FileEndpoints
         string storageKey,
         HttpContext httpContext,
         [FromServices] IFileManagementStorageService storageService,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         // Parse Range header for partial content
         var rangeHeader = httpContext.Request.Headers.Range.FirstOrDefault();
         if (rangeHeader is null)
         {
             // No range requested — return full file
-            var result = await storageService.GetFileAsync(storageKey, ct);
+            var result = await storageService.GetFileAsync(storageKey, cancellationToken);
             if (result is null)
             {
                 return Results.NotFound();
@@ -107,7 +107,7 @@ public static class FileEndpoints
         }
 
         var rangeResult = await storageService.GetFileRangeAsync(
-            storageKey, from.Value, to ?? long.MaxValue, ct);
+            storageKey, from.Value, to ?? long.MaxValue, cancellationToken);
         if (rangeResult is null)
         {
             return Results.NotFound();
@@ -119,7 +119,7 @@ public static class FileEndpoints
             $"bytes {rangeResult.RangeStart}-{rangeResult.RangeEnd}/{rangeResult.TotalSize}";
         httpContext.Response.ContentLength = rangeResult.RangeEnd - rangeResult.RangeStart + 1;
 
-        await rangeResult.Data.CopyToAsync(httpContext.Response.Body, ct);
+        await rangeResult.Data.CopyToAsync(httpContext.Response.Body, cancellationToken);
         return Results.Empty;
     }
 
@@ -127,15 +127,15 @@ public static class FileEndpoints
         HttpContext httpContext,
         [FromServices] IFileManagementStorageService storageService,
         [FromServices] IUserRepository userRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, ct);
+        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
         if (familyId is null)
         {
             return Results.Unauthorized();
         }
 
-        var uploadId = await storageService.InitiateChunkedUploadAsync(ct);
+        var uploadId = await storageService.InitiateChunkedUploadAsync(cancellationToken);
         return Results.Ok(new { uploadId });
     }
 
@@ -144,9 +144,9 @@ public static class FileEndpoints
         [FromQuery] int chunkIndex,
         HttpContext httpContext,
         [FromServices] IFileManagementStorageService storageService,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var form = await httpContext.Request.ReadFormAsync(ct);
+        var form = await httpContext.Request.ReadFormAsync(cancellationToken);
         var file = form.Files.FirstOrDefault();
         if (file is null || file.Length == 0)
         {
@@ -154,7 +154,7 @@ public static class FileEndpoints
         }
 
         using var stream = file.OpenReadStream();
-        await storageService.UploadChunkAsync(uploadId, chunkIndex, stream, ct);
+        await storageService.UploadChunkAsync(uploadId, chunkIndex, stream, cancellationToken);
 
         return Results.Ok(new { uploadId, chunkIndex, size = file.Length });
     }
@@ -165,16 +165,16 @@ public static class FileEndpoints
         HttpContext httpContext,
         [FromServices] IFileManagementStorageService storageService,
         [FromServices] IUserRepository userRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, ct);
+        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
         if (familyId is null)
         {
             return Results.Unauthorized();
         }
 
         var result = await storageService.CompleteChunkedUploadAsync(
-            familyId.Value, uploadId, request.FileName, ct);
+            familyId.Value, uploadId, request.FileName, cancellationToken);
 
         return Results.Ok(new
         {
@@ -186,7 +186,7 @@ public static class FileEndpoints
     }
 
     private static async Task<FamilyId?> GetFamilyIdAsync(
-        ClaimsPrincipal user, IUserRepository userRepository, CancellationToken ct)
+        ClaimsPrincipal user, IUserRepository userRepository, CancellationToken cancellationToken)
     {
         var externalUserId = user.FindFirst(ClaimNames.Sub)?.Value;
         if (externalUserId is null)
@@ -195,7 +195,7 @@ public static class FileEndpoints
         }
 
         var userEntity = await userRepository.GetByExternalIdAsync(
-            ExternalUserId.From(externalUserId), ct);
+            ExternalUserId.From(externalUserId), cancellationToken);
         return userEntity?.FamilyId;
     }
 

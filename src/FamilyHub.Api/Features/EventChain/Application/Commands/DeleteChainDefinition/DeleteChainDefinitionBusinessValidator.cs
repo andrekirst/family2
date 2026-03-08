@@ -14,8 +14,8 @@ public sealed class DeleteChainDefinitionBusinessValidator : AbstractValidator<D
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x.Id)
-            .MustAsync(async (id, ct) =>
-                await repository.ExistsByIdAsync(id, ct))
+            .MustAsync(async (id, cancellationToken) =>
+                await repository.ExistsByIdAsync(id, cancellationToken))
             .WithErrorCode(DomainErrorCodes.ChainDefinitionNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.ChainDefinitionNotFound].Value);
     }

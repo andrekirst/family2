@@ -15,21 +15,21 @@ public sealed class LinkGoogleAccountBusinessValidator : AbstractValidator<LinkG
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x.State)
-            .MustAsync(async (state, ct) =>
+            .MustAsync(async (state, cancellationToken) =>
             {
-                var oauthState = await stateRepository.GetByStateAsync(state, ct);
+                var oauthState = await stateRepository.GetByStateAsync(state, cancellationToken);
                 return oauthState is not null;
             })
             .WithErrorCode(DomainErrorCodes.InvalidOAuthState)
             .WithMessage(_ => localizer[DomainErrorCodes.InvalidOAuthState].Value);
 
         RuleFor(x => x.State)
-            .MustAsync(async (state, ct) =>
+            .MustAsync(async (state, cancellationToken) =>
             {
-                var oauthState = await stateRepository.GetByStateAsync(state, ct);
+                var oauthState = await stateRepository.GetByStateAsync(state, cancellationToken);
                 if (oauthState is null) return true;
 
-                var existingLink = await linkRepository.GetByUserIdAsync(oauthState.UserId, ct);
+                var existingLink = await linkRepository.GetByUserIdAsync(oauthState.UserId, cancellationToken);
                 return existingLink is null;
             })
             .WithErrorCode(DomainErrorCodes.GoogleAccountAlreadyLinked)

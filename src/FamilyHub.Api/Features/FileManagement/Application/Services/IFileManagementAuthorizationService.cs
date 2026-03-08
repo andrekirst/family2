@@ -17,7 +17,7 @@ public interface IFileManagementAuthorizationService
     /// </summary>
     Task<bool> HasFilePermissionAsync(
         UserId userId, FileId fileId, FilePermissionLevel requiredLevel,
-        FamilyId familyId, CancellationToken ct = default);
+        FamilyId familyId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks whether a user has at least the specified permission level on a folder.
@@ -25,11 +25,11 @@ public interface IFileManagementAuthorizationService
     /// </summary>
     Task<bool> HasFolderPermissionAsync(
         UserId userId, FolderId folderId, FilePermissionLevel requiredLevel,
-        FamilyId familyId, CancellationToken ct = default);
+        FamilyId familyId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns true if the resource has any explicit permissions (i.e. is restricted).
     /// </summary>
     Task<bool> IsResourceRestrictedAsync(
-        PermissionResourceType resourceType, Guid resourceId, CancellationToken ct = default);
+        PermissionResourceType resourceType, Guid resourceId, CancellationToken cancellationToken = default);
 }

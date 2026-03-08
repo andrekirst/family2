@@ -6,8 +6,8 @@ namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 
 public interface IOrganizationRuleRepository : IWriteRepository<OrganizationRule, OrganizationRuleId>
 {
-    Task<List<OrganizationRule>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
-    Task<List<OrganizationRule>> GetEnabledByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
-    Task<int> GetMaxPriorityAsync(FamilyId familyId, CancellationToken ct = default);
-    Task RemoveAsync(OrganizationRule rule, CancellationToken ct = default);
+    Task<List<OrganizationRule>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<List<OrganizationRule>> GetEnabledByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<int> GetMaxPriorityAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task RemoveAsync(OrganizationRule rule, CancellationToken cancellationToken = default);
 }

@@ -14,14 +14,14 @@ public sealed class UpdateCalendarEventBusinessValidator : AbstractValidator<Upd
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
-                await repository.ExistsByIdAsync(command.CalendarEventId, ct))
+            .MustAsync(async (command, cancellationToken) =>
+                await repository.ExistsByIdAsync(command.CalendarEventId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.CalendarEventNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.CalendarEventNotFound].Value);
 
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
-                !await repository.IsCancelledAsync(command.CalendarEventId, ct))
+            .MustAsync(async (command, cancellationToken) =>
+                !await repository.IsCancelledAsync(command.CalendarEventId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.CannotUpdateCancelledEvent)
             .WithMessage(_ => localizer[DomainErrorCodes.CannotUpdateCancelledEvent].Value);
     }

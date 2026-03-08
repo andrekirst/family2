@@ -45,20 +45,20 @@ public sealed class GetConversationsQueryHandler(
     /// Idempotent: checks repository-level to avoid duplicates from concurrent requests.
     /// </summary>
     private async Task<Conversation?> EnsureFamilyConversationAsync(
-        GetConversationsQuery query, CancellationToken ct)
+        GetConversationsQuery query, CancellationToken cancellationToken)
     {
         // Double-check at repository level (another request may have created it)
-        var existing = await conversationRepository.GetFamilyConversationAsync(query.FamilyId, ct);
+        var existing = await conversationRepository.GetFamilyConversationAsync(query.FamilyId, cancellationToken);
         if (existing is not null)
             return existing;
 
         var conversation = Conversation.CreateFamily(query.FamilyId, query.UserId);
 
         // Create folder hierarchy: root → Messages → General
-        var rootFolder = await folderRepository.GetRootFolderAsync(query.FamilyId, ct);
+        var rootFolder = await folderRepository.GetRootFolderAsync(query.FamilyId, cancellationToken);
         if (rootFolder is not null)
         {
-            var children = await folderRepository.GetChildrenAsync(rootFolder.Id, ct);
+            var children = await folderRepository.GetChildrenAsync(rootFolder.Id, cancellationToken);
             var messagesFolder = children.FirstOrDefault(f => f.Name.Value == "Messages");
 
             if (messagesFolder is null)
@@ -70,7 +70,7 @@ public sealed class GetConversationsQueryHandler(
                     query.FamilyId,
                     query.UserId);
 
-                await folderRepository.AddAsync(messagesFolder, ct);
+                await folderRepository.AddAsync(messagesFolder, cancellationToken);
             }
 
             var generalFolder = Folder.Create(
@@ -80,11 +80,11 @@ public sealed class GetConversationsQueryHandler(
                 query.FamilyId,
                 query.UserId);
 
-            await folderRepository.AddAsync(generalFolder, ct);
+            await folderRepository.AddAsync(generalFolder, cancellationToken);
             conversation.SetFolderId(generalFolder.Id);
         }
 
-        await conversationRepository.AddAsync(conversation, ct);
+        await conversationRepository.AddAsync(conversation, cancellationToken);
 
         return conversation;
     }

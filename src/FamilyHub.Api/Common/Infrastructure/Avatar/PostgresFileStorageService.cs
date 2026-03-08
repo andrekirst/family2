@@ -9,7 +9,7 @@ namespace FamilyHub.Api.Common.Infrastructure.Avatar;
 /// </summary>
 public sealed class PostgresFileStorageService(AppDbContext dbContext) : IFileStorageService
 {
-    public async Task<string> SaveAsync(byte[] data, string mimeType, CancellationToken ct = default)
+    public async Task<string> SaveAsync(byte[] data, string mimeType, CancellationToken cancellationToken = default)
     {
         var storageKey = Guid.NewGuid().ToString();
         var fileRecord = new StoredFile
@@ -21,24 +21,24 @@ public sealed class PostgresFileStorageService(AppDbContext dbContext) : IFileSt
         };
 
         dbContext.StoredFiles.Add(fileRecord);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return storageKey;
     }
 
-    public async Task<byte[]?> GetAsync(string storageKey, CancellationToken ct = default)
+    public async Task<byte[]?> GetAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         var file = await dbContext.StoredFiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, ct);
+            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, cancellationToken);
 
         return file?.Data;
     }
 
-    public async Task DeleteAsync(string storageKey, CancellationToken ct = default)
+    public async Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         var file = await dbContext.StoredFiles
-            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, ct);
+            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, cancellationToken);
 
         if (file is not null)
         {

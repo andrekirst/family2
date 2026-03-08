@@ -11,12 +11,12 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Storage;
 /// </summary>
 public sealed class PostgresStorageProvider(AppDbContext dbContext, IUnitOfWork unitOfWork) : IStorageProvider
 {
-    public async Task<string> UploadAsync(Stream data, string mimeType, CancellationToken ct = default)
+    public async Task<string> UploadAsync(Stream data, string mimeType, CancellationToken cancellationToken = default)
     {
         var storageKey = Guid.NewGuid().ToString();
 
         using var memoryStream = new MemoryStream();
-        await data.CopyToAsync(memoryStream, ct);
+        await data.CopyToAsync(memoryStream, cancellationToken);
         var bytes = memoryStream.ToArray();
 
         var blob = new Data.FileBlob
@@ -29,26 +29,26 @@ public sealed class PostgresStorageProvider(AppDbContext dbContext, IUnitOfWork 
         };
 
         dbContext.Set<Data.FileBlob>().Add(blob);
-        await unitOfWork.SaveChangesAsync(ct);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return storageKey;
     }
 
-    public async Task<Stream?> DownloadAsync(string storageKey, CancellationToken ct = default)
+    public async Task<Stream?> DownloadAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         var blob = await dbContext.Set<Data.FileBlob>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, ct);
+            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, cancellationToken);
 
         return blob?.Data is not null ? new MemoryStream(blob.Data) : null;
     }
 
     public async Task<StorageRangeResult?> DownloadRangeAsync(
-        string storageKey, long from, long to, CancellationToken ct = default)
+        string storageKey, long from, long to, CancellationToken cancellationToken = default)
     {
         var blob = await dbContext.Set<Data.FileBlob>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, ct);
+            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, cancellationToken);
 
         if (blob?.Data is null)
         {
@@ -69,31 +69,31 @@ public sealed class PostgresStorageProvider(AppDbContext dbContext, IUnitOfWork 
             totalSize);
     }
 
-    public async Task DeleteAsync(string storageKey, CancellationToken ct = default)
+    public async Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         var blob = await dbContext.Set<Data.FileBlob>()
-            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, ct);
+            .FirstOrDefaultAsync(f => f.StorageKey == storageKey, cancellationToken);
 
         if (blob is not null)
         {
             dbContext.Set<Data.FileBlob>().Remove(blob);
-            await unitOfWork.SaveChangesAsync(ct);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 
-    public async Task<bool> ExistsAsync(string storageKey, CancellationToken ct = default)
+    public async Task<bool> ExistsAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         return await dbContext.Set<Data.FileBlob>()
             .AsNoTracking()
-            .AnyAsync(f => f.StorageKey == storageKey, ct);
+            .AnyAsync(f => f.StorageKey == storageKey, cancellationToken);
     }
 
-    public async Task<long?> GetSizeAsync(string storageKey, CancellationToken ct = default)
+    public async Task<long?> GetSizeAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         return await dbContext.Set<Data.FileBlob>()
             .AsNoTracking()
             .Where(f => f.StorageKey == storageKey)
             .Select(f => (long?)f.Size)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

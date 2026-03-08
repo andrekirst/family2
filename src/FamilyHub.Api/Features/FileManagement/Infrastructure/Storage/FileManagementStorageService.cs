@@ -22,11 +22,11 @@ public sealed class FileManagementStorageService(
     private readonly StorageQuotaOptions _options = options.Value;
 
     public async Task<FileStorageResult> StoreFileAsync(
-        FamilyId familyId, Stream data, string fileName, CancellationToken ct = default)
+        FamilyId familyId, Stream data, string fileName, CancellationToken cancellationToken = default)
     {
         // Read stream into memory for processing
         using var memoryStream = new MemoryStream();
-        await data.CopyToAsync(memoryStream, ct);
+        await data.CopyToAsync(memoryStream, cancellationToken);
         var bytes = memoryStream.ToArray();
 
         // Validate file size
@@ -37,7 +37,7 @@ public sealed class FileManagementStorageService(
         }
 
         // Check quota
-        if (!await quotaService.CanUploadAsync(familyId, bytes.Length, ct))
+        if (!await quotaService.CanUploadAsync(familyId, bytes.Length, cancellationToken))
         {
             throw new InvalidOperationException("Storage quota exceeded");
         }
@@ -53,10 +53,10 @@ public sealed class FileManagementStorageService(
 
         // Store via provider
         memoryStream.Position = 0;
-        var storageKey = await storageProvider.UploadAsync(memoryStream, detectedMime, ct);
+        var storageKey = await storageProvider.UploadAsync(memoryStream, detectedMime, cancellationToken);
 
         // Update quota
-        await quotaService.IncrementUsageAsync(familyId, bytes.Length, ct);
+        await quotaService.IncrementUsageAsync(familyId, bytes.Length, cancellationToken);
 
         return new FileStorageResult(
             storageKey,
@@ -65,22 +65,22 @@ public sealed class FileManagementStorageService(
             checksum);
     }
 
-    public async Task<FileDownloadResult?> GetFileAsync(string storageKey, CancellationToken ct = default)
+    public async Task<FileDownloadResult?> GetFileAsync(string storageKey, CancellationToken cancellationToken = default)
     {
-        var stream = await storageProvider.DownloadAsync(storageKey, ct);
+        var stream = await storageProvider.DownloadAsync(storageKey, cancellationToken);
         if (stream is null)
         {
             return null;
         }
 
-        var size = await storageProvider.GetSizeAsync(storageKey, ct);
+        var size = await storageProvider.GetSizeAsync(storageKey, cancellationToken);
 
         // Get MIME type from blob metadata
         var blob = await dbContext.Set<FileBlob>()
             .AsNoTracking()
             .Where(f => f.StorageKey == storageKey)
             .Select(f => new { f.MimeType })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         return new FileDownloadResult(
             stream,
@@ -89,29 +89,29 @@ public sealed class FileManagementStorageService(
     }
 
     public Task<StorageRangeResult?> GetFileRangeAsync(
-        string storageKey, long from, long to, CancellationToken ct = default)
+        string storageKey, long from, long to, CancellationToken cancellationToken = default)
     {
-        return storageProvider.DownloadRangeAsync(storageKey, from, to, ct);
+        return storageProvider.DownloadRangeAsync(storageKey, from, to, cancellationToken);
     }
 
     public async Task DeleteFileAsync(
-        FamilyId familyId, string storageKey, long fileSize, CancellationToken ct = default)
+        FamilyId familyId, string storageKey, long fileSize, CancellationToken cancellationToken = default)
     {
-        await storageProvider.DeleteAsync(storageKey, ct);
-        await quotaService.DecrementUsageAsync(familyId, fileSize, ct);
+        await storageProvider.DeleteAsync(storageKey, cancellationToken);
+        await quotaService.DecrementUsageAsync(familyId, fileSize, cancellationToken);
     }
 
-    public Task<string> InitiateChunkedUploadAsync(CancellationToken ct = default)
+    public Task<string> InitiateChunkedUploadAsync(CancellationToken cancellationToken = default)
     {
         var uploadId = Guid.NewGuid().ToString();
         return Task.FromResult(uploadId);
     }
 
     public async Task UploadChunkAsync(
-        string uploadId, int chunkIndex, Stream data, CancellationToken ct = default)
+        string uploadId, int chunkIndex, Stream data, CancellationToken cancellationToken = default)
     {
         using var memoryStream = new MemoryStream();
-        await data.CopyToAsync(memoryStream, ct);
+        await data.CopyToAsync(memoryStream, cancellationToken);
         var bytes = memoryStream.ToArray();
 
         var chunk = new UploadChunk
@@ -125,17 +125,17 @@ public sealed class FileManagementStorageService(
         };
 
         dbContext.Set<UploadChunk>().Add(chunk);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<FileStorageResult> CompleteChunkedUploadAsync(
-        FamilyId familyId, string uploadId, string fileName, CancellationToken ct = default)
+        FamilyId familyId, string uploadId, string fileName, CancellationToken cancellationToken = default)
     {
         // Retrieve all chunks in order
         var chunks = await dbContext.Set<UploadChunk>()
             .Where(c => c.UploadId == uploadId)
             .OrderBy(c => c.ChunkIndex)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         if (chunks.Count == 0)
         {
@@ -146,16 +146,16 @@ public sealed class FileManagementStorageService(
         using var assembledStream = new MemoryStream();
         foreach (var chunk in chunks)
         {
-            await assembledStream.WriteAsync(chunk.Data, ct);
+            await assembledStream.WriteAsync(chunk.Data, cancellationToken);
         }
         assembledStream.Position = 0;
 
         // Store the assembled file
-        var result = await StoreFileAsync(familyId, assembledStream, fileName, ct);
+        var result = await StoreFileAsync(familyId, assembledStream, fileName, cancellationToken);
 
         // Clean up chunks
         dbContext.Set<UploadChunk>().RemoveRange(chunks);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return result;
     }

@@ -31,20 +31,20 @@ public class FakeGoogleOAuthService : IGoogleOAuthService
         => (ConsentUrl, GeneratedState, GeneratedCodeVerifier);
 
     public Task<GoogleTokenResponse> ExchangeCodeForTokensAsync(
-        string code, string codeVerifier, CancellationToken ct = default)
+        string code, string codeVerifier, CancellationToken cancellationToken = default)
         => Task.FromResult(TokenResponse);
 
     public Task<GoogleTokenResponse> RefreshAccessTokenAsync(
-        string refreshToken, CancellationToken ct = default)
+        string refreshToken, CancellationToken cancellationToken = default)
         => Task.FromResult(TokenResponse);
 
-    public Task RevokeTokenAsync(string token, CancellationToken ct = default)
+    public Task RevokeTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         TokenRevoked = true;
         RevokedToken = token;
         return Task.CompletedTask;
     }
 
-    public Task<GoogleUserInfo> GetUserInfoAsync(string accessToken, CancellationToken ct = default)
+    public Task<GoogleUserInfo> GetUserInfoAsync(string accessToken, CancellationToken cancellationToken = default)
         => Task.FromResult(UserInfo);
 }

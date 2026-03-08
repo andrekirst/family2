@@ -10,7 +10,7 @@ public sealed partial class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddl
     private const int FailureThreshold = 5;
     private static readonly TimeSpan RecoveryTimeout = TimeSpan.FromMinutes(1);
 
-    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken ct)
+    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken cancellationToken)
     {
         var actionType = context.StepExecution.ActionType;
         var state = Circuits.GetOrAdd(actionType, _ => new CircuitState());
@@ -33,7 +33,7 @@ public sealed partial class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddl
 
         try
         {
-            await next(context, ct);
+            await next(context, cancellationToken);
 
             // Success: reset failure count
             state.FailureCount = 0;

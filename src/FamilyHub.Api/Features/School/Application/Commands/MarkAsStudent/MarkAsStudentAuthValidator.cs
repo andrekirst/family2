@@ -16,20 +16,20 @@ public sealed class MarkAsStudentAuthValidator : AbstractValidator<MarkAsStudent
         ClassLevelCascadeMode = CascadeMode.Stop;
 
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
+            .MustAsync(async (command, cancellationToken) =>
             {
                 var callerMember = await familyMemberRepository.GetByUserAndFamilyAsync(
-                    command.UserId, command.FamilyId, ct);
+                    command.UserId, command.FamilyId, cancellationToken);
                 return callerMember is not null;
             })
             .WithErrorCode(DomainErrorCodes.UserNotInFamily)
             .WithMessage(_ => localizer[DomainErrorCodes.UserNotInFamily].Value);
 
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
+            .MustAsync(async (command, cancellationToken) =>
             {
                 var callerMember = await familyMemberRepository.GetByUserAndFamilyAsync(
-                    command.UserId, command.FamilyId, ct);
+                    command.UserId, command.FamilyId, cancellationToken);
                 return callerMember is not null && callerMember.Role.CanManageStudents();
             })
             .WithErrorCode(DomainErrorCodes.Forbidden)

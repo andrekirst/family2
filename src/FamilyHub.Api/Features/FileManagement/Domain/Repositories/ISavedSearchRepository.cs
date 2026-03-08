@@ -6,6 +6,6 @@ namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 
 public interface ISavedSearchRepository : IWriteRepository<SavedSearch, SavedSearchId>
 {
-    Task<List<SavedSearch>> GetByUserIdAsync(UserId userId, CancellationToken ct = default);
-    Task RemoveAsync(SavedSearch search, CancellationToken ct = default);
+    Task<List<SavedSearch>> GetByUserIdAsync(UserId userId, CancellationToken cancellationToken = default);
+    Task RemoveAsync(SavedSearch search, CancellationToken cancellationToken = default);
 }

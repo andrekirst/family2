@@ -18,9 +18,9 @@ public sealed class SendInvitationAuthValidator : AbstractValidator<SendInvitati
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
+            .MustAsync(async (command, cancellationToken) =>
             {
-                return await authService.CanInviteAsync(command.UserId, command.FamilyId, ct);
+                return await authService.CanInviteAsync(command.UserId, command.FamilyId, cancellationToken);
             })
             .WithErrorCode(DomainErrorCodes.InsufficientPermissionToSendInvitation)
             .WithMessage(_ => localizer[DomainErrorCodes.InsufficientPermissionToSendInvitation].Value);

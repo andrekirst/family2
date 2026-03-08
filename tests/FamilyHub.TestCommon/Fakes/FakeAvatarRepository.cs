@@ -8,7 +8,7 @@ public class FakeAvatarRepository(AvatarAggregate? existingAvatar = null) : IAva
     public List<AvatarAggregate> AddedAvatars { get; } = [];
     public List<AvatarId> DeletedAvatarIds { get; } = [];
 
-    public Task<AvatarAggregate?> GetByIdAsync(AvatarId id, CancellationToken ct = default)
+    public Task<AvatarAggregate?> GetByIdAsync(AvatarId id, CancellationToken cancellationToken = default)
     {
         var added = AddedAvatars.FirstOrDefault(a => a.Id == id);
         if (added is not null) return Task.FromResult<AvatarAggregate?>(added);
@@ -16,19 +16,19 @@ public class FakeAvatarRepository(AvatarAggregate? existingAvatar = null) : IAva
         return Task.FromResult(existingAvatar?.Id == id ? existingAvatar : null);
     }
 
-    public Task<bool> ExistsByIdAsync(AvatarId id, CancellationToken ct = default)
+    public Task<bool> ExistsByIdAsync(AvatarId id, CancellationToken cancellationToken = default)
     {
         if (AddedAvatars.Any(a => a.Id == id)) return Task.FromResult(true);
         return Task.FromResult(existingAvatar?.Id == id);
     }
 
-    public Task AddAsync(AvatarAggregate avatar, CancellationToken ct = default)
+    public Task AddAsync(AvatarAggregate avatar, CancellationToken cancellationToken = default)
     {
         AddedAvatars.Add(avatar);
         return Task.CompletedTask;
     }
 
-    public Task DeleteAsync(AvatarId id, CancellationToken ct = default)
+    public Task DeleteAsync(AvatarId id, CancellationToken cancellationToken = default)
     {
         DeletedAvatarIds.Add(id);
         return Task.CompletedTask;

@@ -21,7 +21,7 @@ public class ChainMutations
     public async Task<CreateChainDefinitionPayload> CreateChainDefinition(
         CreateChainDefinitionInput input,
         [Service] ICommandBus commandBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -39,7 +39,7 @@ public class ChainMutations
                     s.Order)).ToList(),
                 input.IsEnabled);
 
-            var result = await commandBus.SendAsync(command, ct);
+            var result = await commandBus.SendAsync(command, cancellationToken);
             return new CreateChainDefinitionPayload(ChainMapper.ToDto(result.CreatedDefinition));
         }
         catch (Exception ex)
@@ -55,7 +55,7 @@ public class ChainMutations
         UpdateChainDefinitionInput input,
         [Service] ICommandBus commandBus,
         [Service] IChainExecutionRepository executionRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -73,9 +73,9 @@ public class ChainMutations
                     s.Condition,
                     s.Order)).ToList());
 
-            var result = await commandBus.SendAsync(command, ct);
-            var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, ct);
-            var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, ct);
+            var result = await commandBus.SendAsync(command, cancellationToken);
+            var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, cancellationToken);
+            var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, cancellationToken);
             return new UpdateChainDefinitionPayload(ChainMapper.ToDto(result.UpdatedDefinition, count, lastExec));
         }
         catch (Exception ex)
@@ -89,12 +89,12 @@ public class ChainMutations
     public async Task<DeleteChainDefinitionPayload> DeleteChainDefinition(
         Guid id,
         [Service] ICommandBus commandBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         try
         {
             var command = new DeleteChainDefinitionCommand(ChainDefinitionId.From(id));
-            var result = await commandBus.SendAsync(command, ct);
+            var result = await commandBus.SendAsync(command, cancellationToken);
             return new DeleteChainDefinitionPayload(result.Success);
         }
         catch (Exception ex)
@@ -109,12 +109,12 @@ public class ChainMutations
         Guid id,
         [Service] ICommandBus commandBus,
         [Service] IChainExecutionRepository executionRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var command = new EnableChainDefinitionCommand(ChainDefinitionId.From(id));
-        var result = await commandBus.SendAsync(command, ct);
-        var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, ct);
-        var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, ct);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, cancellationToken);
+        var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, cancellationToken);
         return ChainMapper.ToDto(result.Definition, count, lastExec);
     }
 
@@ -123,12 +123,12 @@ public class ChainMutations
         Guid id,
         [Service] ICommandBus commandBus,
         [Service] IChainExecutionRepository executionRepository,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var command = new DisableChainDefinitionCommand(ChainDefinitionId.From(id));
-        var result = await commandBus.SendAsync(command, ct);
-        var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, ct);
-        var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, ct);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, cancellationToken);
+        var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, cancellationToken);
         return ChainMapper.ToDto(result.Definition, count, lastExec);
     }
 
@@ -137,13 +137,13 @@ public class ChainMutations
         Guid chainDefinitionId,
         string triggerPayload,
         [Service] ICommandBus commandBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var command = new ExecuteChainCommand(
             ChainDefinitionId.From(chainDefinitionId),
             triggerPayload);
 
-        var result = await commandBus.SendAsync(command, ct);
+        var result = await commandBus.SendAsync(command, cancellationToken);
 
         return ChainMapper.ToDto(result.Execution);
     }

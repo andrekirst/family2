@@ -5,7 +5,7 @@ namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 public sealed class ActionHandlerMiddleware(
     IChainRegistry registry) : IStepMiddleware
 {
-    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken ct)
+    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken cancellationToken)
     {
         if (context.ShouldSkip)
         {
@@ -30,7 +30,7 @@ public sealed class ActionHandlerMiddleware(
             context.ExecutionContext,
             context.CorrelationId);
 
-        var result = await handler.ExecuteAsync(actionContext, ct);
+        var result = await handler.ExecuteAsync(actionContext, cancellationToken);
         context.Result = result;
 
         if (result.Success)
@@ -51,6 +51,6 @@ public sealed class ActionHandlerMiddleware(
         }
 
         // Continue pipeline (no-op at this point since this is the innermost middleware)
-        await next(context, ct);
+        await next(context, cancellationToken);
     }
 }

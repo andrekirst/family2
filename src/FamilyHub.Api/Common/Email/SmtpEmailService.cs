@@ -13,7 +13,7 @@ public partial class SmtpEmailService(IOptions<EmailConfiguration> config, ILogg
 {
     private readonly EmailConfiguration _config = config.Value;
 
-    public async Task SendEmailAsync(string to, string subject, string htmlBody, string textBody, CancellationToken ct = default)
+    public async Task SendEmailAsync(string to, string subject, string htmlBody, string textBody, CancellationToken cancellationToken = default)
     {
         var message = new MimeMessage();
         message.From.Add(MailboxAddress.FromConfig(_config));
@@ -31,19 +31,19 @@ public partial class SmtpEmailService(IOptions<EmailConfiguration> config, ILogg
 
         try
         {
-            await client.ConnectAsync(_config.Host, _config.Port, _config.UseSsl, ct);
+            await client.ConnectAsync(_config.Host, _config.Port, _config.UseSsl, cancellationToken);
 
             if (!string.IsNullOrEmpty(_config.Username))
             {
-                await client.AuthenticateAsync(_config.Username, _config.Password, ct);
+                await client.AuthenticateAsync(_config.Username, _config.Password, cancellationToken);
             }
 
-            await client.SendAsync(message, ct);
+            await client.SendAsync(message, cancellationToken);
             LogEmailSentToToWithSubjectSubject(logger, to, subject);
         }
         finally
         {
-            await client.DisconnectAsync(true, ct);
+            await client.DisconnectAsync(true, cancellationToken);
         }
     }
 

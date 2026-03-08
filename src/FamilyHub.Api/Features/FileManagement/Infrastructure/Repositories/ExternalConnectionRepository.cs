@@ -9,27 +9,27 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 
 public sealed class ExternalConnectionRepository(AppDbContext context) : IExternalConnectionRepository
 {
-    public async Task<ExternalConnection?> GetByIdAsync(ExternalConnectionId id, CancellationToken ct = default)
-        => await context.Set<ExternalConnection>().FirstOrDefaultAsync(c => c.Id == id, ct);
+    public async Task<ExternalConnection?> GetByIdAsync(ExternalConnectionId id, CancellationToken cancellationToken = default)
+        => await context.Set<ExternalConnection>().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
-    public async Task<bool> ExistsByIdAsync(ExternalConnectionId id, CancellationToken ct = default)
-        => await context.Set<ExternalConnection>().AnyAsync(c => c.Id == id, ct);
+    public async Task<bool> ExistsByIdAsync(ExternalConnectionId id, CancellationToken cancellationToken = default)
+        => await context.Set<ExternalConnection>().AnyAsync(c => c.Id == id, cancellationToken);
 
-    public async Task<List<ExternalConnection>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
+    public async Task<List<ExternalConnection>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
         => await context.Set<ExternalConnection>()
             .Where(c => c.FamilyId == familyId)
             .OrderBy(c => c.ProviderType)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
     public async Task<ExternalConnection?> GetByFamilyAndProviderAsync(
-        FamilyId familyId, ExternalProviderType providerType, CancellationToken ct = default)
+        FamilyId familyId, ExternalProviderType providerType, CancellationToken cancellationToken = default)
         => await context.Set<ExternalConnection>()
-            .FirstOrDefaultAsync(c => c.FamilyId == familyId && c.ProviderType == providerType, ct);
+            .FirstOrDefaultAsync(c => c.FamilyId == familyId && c.ProviderType == providerType, cancellationToken);
 
-    public async Task AddAsync(ExternalConnection connection, CancellationToken ct = default)
-        => await context.Set<ExternalConnection>().AddAsync(connection, ct);
+    public async Task AddAsync(ExternalConnection connection, CancellationToken cancellationToken = default)
+        => await context.Set<ExternalConnection>().AddAsync(connection, cancellationToken);
 
-    public Task RemoveAsync(ExternalConnection connection, CancellationToken ct = default)
+    public Task RemoveAsync(ExternalConnection connection, CancellationToken cancellationToken = default)
     {
         context.Set<ExternalConnection>().Remove(connection);
         return Task.CompletedTask;

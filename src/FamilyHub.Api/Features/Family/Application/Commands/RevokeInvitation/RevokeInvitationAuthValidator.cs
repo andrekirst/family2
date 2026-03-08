@@ -21,15 +21,15 @@ public sealed class RevokeInvitationAuthValidator : AbstractValidator<RevokeInvi
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
+            .MustAsync(async (command, cancellationToken) =>
             {
-                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, ct);
+                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, cancellationToken);
                 if (invitation is null)
                 {
                     return false;
                 }
 
-                return await authService.CanInviteAsync(command.UserId, invitation.FamilyId, ct);
+                return await authService.CanInviteAsync(command.UserId, invitation.FamilyId, cancellationToken);
             })
             .WithErrorCode(DomainErrorCodes.InsufficientPermissionToRevokeInvitation)
             .WithMessage(_ => localizer[DomainErrorCodes.InsufficientPermissionToRevokeInvitation].Value);

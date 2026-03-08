@@ -14,8 +14,8 @@ public sealed class ResetDashboardBusinessValidator : AbstractValidator<ResetDas
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x.DashboardId)
-            .MustAsync(async (dashboardId, ct) =>
-                await dashboardRepository.ExistsByIdAsync(dashboardId, ct))
+            .MustAsync(async (dashboardId, cancellationToken) =>
+                await dashboardRepository.ExistsByIdAsync(dashboardId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.DashboardNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.DashboardNotFound].Value);
     }

@@ -13,20 +13,20 @@ public interface IFamilyRepository : IWriteRepository<FamilyEntity, FamilyId>
     /// <summary>
     /// Get family by its unique identifier with members included.
     /// </summary>
-    Task<FamilyEntity?> GetByIdWithMembersAsync(FamilyId id, CancellationToken ct = default);
+    Task<FamilyEntity?> GetByIdWithMembersAsync(FamilyId id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get family by owner ID.
     /// </summary>
-    Task<FamilyEntity?> GetByOwnerIdAsync(UserId ownerId, CancellationToken ct = default);
+    Task<FamilyEntity?> GetByOwnerIdAsync(UserId ownerId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Check if a user already owns a family.
     /// </summary>
-    Task<bool> UserHasFamilyAsync(UserId userId, CancellationToken ct = default);
+    Task<bool> UserHasFamilyAsync(UserId userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Update an existing family.
     /// </summary>
-    Task UpdateAsync(FamilyEntity family, CancellationToken ct = default);
+    Task UpdateAsync(FamilyEntity family, CancellationToken cancellationToken = default);
 }

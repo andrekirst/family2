@@ -12,36 +12,36 @@ namespace FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
 public sealed class UserRepository(AppDbContext context) : IUserRepository
 {
     private static readonly Func<AppDbContext, ExternalUserId, CancellationToken, Task<User?>> GetByExternalIdCompiledQuery =
-        EF.CompileAsyncQuery((AppDbContext ctx, ExternalUserId externalId, CancellationToken ct) =>
+        EF.CompileAsyncQuery((AppDbContext ctx, ExternalUserId externalId, CancellationToken cancellationToken) =>
             ctx.Users.FirstOrDefault(u => u.ExternalUserId == externalId));
 
-    public async Task<User?> GetByIdAsync(UserId id, CancellationToken ct = default)
+    public async Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
     {
-        return await context.Users.FindAsync([id], cancellationToken: ct);
+        return await context.Users.FindAsync([id], cancellationToken: cancellationToken);
     }
 
-    public async Task<User?> GetByExternalIdAsync(ExternalUserId externalId, CancellationToken ct = default)
+    public async Task<User?> GetByExternalIdAsync(ExternalUserId externalId, CancellationToken cancellationToken = default)
     {
-        return await GetByExternalIdCompiledQuery(context, externalId, ct);
+        return await GetByExternalIdCompiledQuery(context, externalId, cancellationToken);
     }
 
-    public async Task<User?> GetByEmailAsync(Email email, CancellationToken ct = default)
+    public async Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
         return await context.Users
-            .FirstOrDefaultAsync(u => u.Email == email, ct);
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
-    public async Task<bool> ExistsByIdAsync(UserId id, CancellationToken ct = default)
+    public async Task<bool> ExistsByIdAsync(UserId id, CancellationToken cancellationToken = default)
     {
-        return await context.Users.AnyAsync(u => u.Id == id, ct);
+        return await context.Users.AnyAsync(u => u.Id == id, cancellationToken);
     }
 
-    public async Task AddAsync(User user, CancellationToken ct = default)
+    public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
-        await context.Users.AddAsync(user, ct);
+        await context.Users.AddAsync(user, cancellationToken);
     }
 
-    public Task UpdateAsync(User user, CancellationToken ct = default)
+    public Task UpdateAsync(User user, CancellationToken cancellationToken = default)
     {
         // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;

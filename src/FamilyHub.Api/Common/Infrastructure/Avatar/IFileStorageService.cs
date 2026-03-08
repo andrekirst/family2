@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Common.Infrastructure.Avatar;
 /// </summary>
 public interface IFileStorageService
 {
-    Task<string> SaveAsync(byte[] data, string mimeType, CancellationToken ct = default);
-    Task<byte[]?> GetAsync(string storageKey, CancellationToken ct = default);
-    Task DeleteAsync(string storageKey, CancellationToken ct = default);
+    Task<string> SaveAsync(byte[] data, string mimeType, CancellationToken cancellationToken = default);
+    Task<byte[]?> GetAsync(string storageKey, CancellationToken cancellationToken = default);
+    Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default);
 }

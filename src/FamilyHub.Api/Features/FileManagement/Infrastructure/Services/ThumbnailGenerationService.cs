@@ -13,7 +13,7 @@ public sealed class ThumbnailGenerationService : IThumbnailGenerationService
 
     public async Task<byte[]> GenerateThumbnailAsync(
         byte[] sourceData, string mimeType, int targetWidth, int targetHeight,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         using var image = Image.Load(sourceData);
 
@@ -28,7 +28,7 @@ public sealed class ThumbnailGenerationService : IThumbnailGenerationService
         }));
 
         using var outputStream = new MemoryStream();
-        await image.SaveAsWebpAsync(outputStream, ct);
+        await image.SaveAsWebpAsync(outputStream, cancellationToken);
         return outputStream.ToArray();
     }
 

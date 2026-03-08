@@ -10,8 +10,8 @@ namespace FamilyHub.Api.Features.Family.Domain.Repositories;
 /// </summary>
 public interface IFamilyInvitationRepository : IWriteRepository<FamilyInvitation, InvitationId>
 {
-    Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken tokenHash, CancellationToken ct = default);
-    Task<List<FamilyInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
-    Task<FamilyInvitation?> GetByEmailAndFamilyAsync(Email email, FamilyId familyId, CancellationToken ct = default);
-    Task<List<FamilyInvitation>> GetPendingByEmailAsync(Email email, CancellationToken ct = default);
+    Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken tokenHash, CancellationToken cancellationToken = default);
+    Task<List<FamilyInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<FamilyInvitation?> GetByEmailAndFamilyAsync(Email email, FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<List<FamilyInvitation>> GetPendingByEmailAsync(Email email, CancellationToken cancellationToken = default);
 }

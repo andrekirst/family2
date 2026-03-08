@@ -13,25 +13,25 @@ public class FakeStudentRepository(List<Student>? seededStudents = null) : IStud
 
     private IEnumerable<Student> All => All;
 
-    public Task<Student?> GetByIdAsync(StudentId id, CancellationToken ct = default) =>
+    public Task<Student?> GetByIdAsync(StudentId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.FirstOrDefault(s => s.Id == id));
 
-    public Task<bool> ExistsByIdAsync(StudentId id, CancellationToken ct = default) =>
+    public Task<bool> ExistsByIdAsync(StudentId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.Any(s => s.Id == id));
 
-    public Task<List<Student>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
+    public Task<List<Student>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
         var students = All.Where(s => s.FamilyId == familyId).ToList();
         return Task.FromResult(students);
     }
 
-    public Task<bool> ExistsByFamilyMemberIdAsync(FamilyMemberId familyMemberId, CancellationToken ct = default)
+    public Task<bool> ExistsByFamilyMemberIdAsync(FamilyMemberId familyMemberId, CancellationToken cancellationToken = default)
     {
         var exists = All.Any(s => s.FamilyMemberId == familyMemberId);
         return Task.FromResult(exists);
     }
 
-    public Task AddAsync(Student student, CancellationToken ct = default)
+    public Task AddAsync(Student student, CancellationToken cancellationToken = default)
     {
         AddedStudents.Add(student);
         return Task.CompletedTask;

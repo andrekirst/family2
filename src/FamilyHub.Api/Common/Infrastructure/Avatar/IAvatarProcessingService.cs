@@ -10,7 +10,7 @@ public interface IAvatarProcessingService
     /// Validates the uploaded image (MIME type, dimensions, content integrity).
     /// Throws if validation fails.
     /// </summary>
-    Task ValidateImageAsync(Stream imageStream, string mimeType, CancellationToken ct = default);
+    Task ValidateImageAsync(Stream imageStream, string mimeType, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Processes an uploaded image: crops to square (if crop area provided)
@@ -20,7 +20,7 @@ public interface IAvatarProcessingService
     Task<Dictionary<AvatarSize, byte[]>> ProcessAvatarAsync(
         Stream imageStream,
         CropArea? cropArea = null,
-        CancellationToken ct = default);
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

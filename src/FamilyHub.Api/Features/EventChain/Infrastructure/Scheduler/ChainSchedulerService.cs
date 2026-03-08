@@ -31,7 +31,7 @@ public sealed class ChainSchedulerService(
         }
     }
 
-    private async Task ProcessReadyJobsAsync(CancellationToken ct)
+    private async Task ProcessReadyJobsAsync(CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -49,19 +49,19 @@ public sealed class ChainSchedulerService(
                 LIMIT 10
                 FOR UPDATE SKIP LOCKED
                 """)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         foreach (var job in readyJobs)
         {
             try
             {
                 job.PickUp();
-                await context.SaveChangesAsync(ct);
+                await context.SaveChangesAsync(cancellationToken);
 
-                await orchestrator.ResumeStepAsync(job.StepExecutionId, ct);
+                await orchestrator.ResumeStepAsync(job.StepExecutionId, cancellationToken);
 
                 job.MarkCompleted();
-                await context.SaveChangesAsync(ct);
+                await context.SaveChangesAsync(cancellationToken);
 
                 logger.LogInformation(
                     "Scheduled job {JobId} completed for step {StepId}",
@@ -74,12 +74,12 @@ public sealed class ChainSchedulerService(
                     job.Id, job.StepExecutionId);
 
                 job.MarkFailed(ex.Message);
-                await context.SaveChangesAsync(ct);
+                await context.SaveChangesAsync(cancellationToken);
             }
         }
     }
 
-    private async Task ProcessStaleJobsAsync(CancellationToken ct)
+    private async Task ProcessStaleJobsAsync(CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -93,7 +93,7 @@ public sealed class ChainSchedulerService(
                   AND picked_up_at < now() - INTERVAL '5 minutes'
                 FOR UPDATE SKIP LOCKED
                 """)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         foreach (var job in staleJobs)
         {
@@ -102,7 +102,7 @@ public sealed class ChainSchedulerService(
                 job.Id, job.PickedUpAt);
 
             job.Reset();
-            await context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(cancellationToken);
         }
     }
 }

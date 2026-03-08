@@ -13,7 +13,7 @@ public sealed class MinioStorageProvider(IMinioClient minioClient, IOptions<Mini
 {
     private readonly string _bucket = options.Value.BucketName;
 
-    public async Task<string> UploadAsync(Stream data, string mimeType, CancellationToken ct = default)
+    public async Task<string> UploadAsync(Stream data, string mimeType, CancellationToken cancellationToken = default)
     {
         var storageKey = Guid.NewGuid().ToString();
 
@@ -24,14 +24,14 @@ public sealed class MinioStorageProvider(IMinioClient minioClient, IOptions<Mini
             .WithObjectSize(data.Length)
             .WithContentType(mimeType);
 
-        await minioClient.PutObjectAsync(args, ct);
+        await minioClient.PutObjectAsync(args, cancellationToken);
 
         return storageKey;
     }
 
-    public async Task<Stream?> DownloadAsync(string storageKey, CancellationToken ct = default)
+    public async Task<Stream?> DownloadAsync(string storageKey, CancellationToken cancellationToken = default)
     {
-        if (!await ExistsAsync(storageKey, ct))
+        if (!await ExistsAsync(storageKey, cancellationToken))
             return null;
 
         var ms = new MemoryStream();
@@ -44,15 +44,15 @@ public sealed class MinioStorageProvider(IMinioClient minioClient, IOptions<Mini
                 await stream.CopyToAsync(ms, cancellationToken);
             });
 
-        await minioClient.GetObjectAsync(args, ct);
+        await minioClient.GetObjectAsync(args, cancellationToken);
         ms.Position = 0;
         return ms;
     }
 
     public async Task<StorageRangeResult?> DownloadRangeAsync(
-        string storageKey, long from, long to, CancellationToken ct = default)
+        string storageKey, long from, long to, CancellationToken cancellationToken = default)
     {
-        var totalSize = await GetSizeAsync(storageKey, ct);
+        var totalSize = await GetSizeAsync(storageKey, cancellationToken);
         if (totalSize is null)
             return null;
 
@@ -70,22 +70,22 @@ public sealed class MinioStorageProvider(IMinioClient minioClient, IOptions<Mini
                 await stream.CopyToAsync(ms, cancellationToken);
             });
 
-        await minioClient.GetObjectAsync(args, ct);
+        await minioClient.GetObjectAsync(args, cancellationToken);
         ms.Position = 0;
 
         return new StorageRangeResult(ms, from, rangeEnd, totalSize.Value);
     }
 
-    public async Task DeleteAsync(string storageKey, CancellationToken ct = default)
+    public async Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         var args = new RemoveObjectArgs()
             .WithBucket(_bucket)
             .WithObject(storageKey);
 
-        await minioClient.RemoveObjectAsync(args, ct);
+        await minioClient.RemoveObjectAsync(args, cancellationToken);
     }
 
-    public async Task<bool> ExistsAsync(string storageKey, CancellationToken ct = default)
+    public async Task<bool> ExistsAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -93,7 +93,7 @@ public sealed class MinioStorageProvider(IMinioClient minioClient, IOptions<Mini
                 .WithBucket(_bucket)
                 .WithObject(storageKey);
 
-            await minioClient.StatObjectAsync(args, ct);
+            await minioClient.StatObjectAsync(args, cancellationToken);
             return true;
         }
         catch (Minio.Exceptions.ObjectNotFoundException)
@@ -102,7 +102,7 @@ public sealed class MinioStorageProvider(IMinioClient minioClient, IOptions<Mini
         }
     }
 
-    public async Task<long?> GetSizeAsync(string storageKey, CancellationToken ct = default)
+    public async Task<long?> GetSizeAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -110,7 +110,7 @@ public sealed class MinioStorageProvider(IMinioClient minioClient, IOptions<Mini
                 .WithBucket(_bucket)
                 .WithObject(storageKey);
 
-            var stat = await minioClient.StatObjectAsync(args, ct);
+            var stat = await minioClient.StatObjectAsync(args, cancellationToken);
             return stat.Size;
         }
         catch (Minio.Exceptions.ObjectNotFoundException)

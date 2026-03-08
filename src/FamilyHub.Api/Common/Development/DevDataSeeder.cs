@@ -56,13 +56,13 @@ public sealed class DevDataSeeder(
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private async Task SeedUsersAsync(string baseUrl, string realmName, CancellationToken ct)
+    private async Task SeedUsersAsync(string baseUrl, string realmName, CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        var adminToken = await GetAdminTokenAsync(baseUrl, ct);
-        var keycloakUsers = await GetRealmUsersAsync(baseUrl, realmName, adminToken, ct);
+        var adminToken = await GetAdminTokenAsync(baseUrl, cancellationToken);
+        var keycloakUsers = await GetRealmUsersAsync(baseUrl, realmName, adminToken, cancellationToken);
 
         if (keycloakUsers.Count == 0)
         {
@@ -82,7 +82,7 @@ public sealed class DevDataSeeder(
 
             var email = DomainEmail.From(kcUser.Email);
             var existingUser = await dbContext.Users
-                .FirstOrDefaultAsync(u => u.Email == email, ct);
+                .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 
             if (existingUser is not null)
             {
@@ -118,7 +118,7 @@ public sealed class DevDataSeeder(
         if (seeded > 0 || updated > 0)
         {
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            await unitOfWork.SaveChangesAsync(ct);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         logger.LogInformation(
@@ -126,7 +126,7 @@ public sealed class DevDataSeeder(
             seeded, updated, realmName);
     }
 
-    private async Task<string> GetAdminTokenAsync(string baseUrl, CancellationToken ct)
+    private async Task<string> GetAdminTokenAsync(string baseUrl, CancellationToken cancellationToken)
     {
         using var http = new HttpClient();
         var tokenUrl = $"{baseUrl}/realms/master/protocol/openid-connect/token";
@@ -137,26 +137,26 @@ public sealed class DevDataSeeder(
             ["grant_type"] = "password",
             ["username"] = "admin",
             ["password"] = "admin",
-        }), ct);
+        }), cancellationToken);
 
         response.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
         return json.GetProperty("access_token").GetString()
             ?? throw new InvalidOperationException("No access_token in Keycloak admin token response");
     }
 
     private async Task<List<KeycloakUser>> GetRealmUsersAsync(
-        string baseUrl, string realmName, string adminToken, CancellationToken ct)
+        string baseUrl, string realmName, string adminToken, CancellationToken cancellationToken)
     {
         using var http = new HttpClient();
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
         var usersUrl = $"{baseUrl}/admin/realms/{realmName}/users?max=100";
-        var response = await http.GetAsync(usersUrl, ct);
+        var response = await http.GetAsync(usersUrl, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<List<KeycloakUser>>(JsonOptions, ct) ?? [];
+        return await response.Content.ReadFromJsonAsync<List<KeycloakUser>>(JsonOptions, cancellationToken) ?? [];
     }
 
     private (string? BaseUrl, string? RealmName) ParseKeycloakAuthority()

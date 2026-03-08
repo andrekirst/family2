@@ -16,25 +16,25 @@ public class FakeFamilyInvitationRepository(
 
     public void Seed(FamilyInvitation invitation) => _seeded.Add(invitation);
 
-    public Task<FamilyInvitation?> GetByIdAsync(InvitationId id, CancellationToken ct = default) =>
+    public Task<FamilyInvitation?> GetByIdAsync(InvitationId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(existingById ?? _seeded.FirstOrDefault(i => i.Id == id));
 
-    public Task<bool> ExistsByIdAsync(InvitationId id, CancellationToken ct = default) =>
+    public Task<bool> ExistsByIdAsync(InvitationId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(existingById is not null || _seeded.Any(i => i.Id == id));
 
-    public Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken tokenHash, CancellationToken ct = default) =>
+    public Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken tokenHash, CancellationToken cancellationToken = default) =>
         Task.FromResult(existingByTokenHash);
 
-    public Task<List<FamilyInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default) =>
+    public Task<List<FamilyInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default) =>
         Task.FromResult(_seeded.Where(i => i.FamilyId == familyId).ToList());
 
-    public Task<FamilyInvitation?> GetByEmailAndFamilyAsync(Email email, FamilyId familyId, CancellationToken ct = default) =>
+    public Task<FamilyInvitation?> GetByEmailAndFamilyAsync(Email email, FamilyId familyId, CancellationToken cancellationToken = default) =>
         Task.FromResult(existingByEmail ?? _seeded.FirstOrDefault(i => i.InviteeEmail == email && i.FamilyId == familyId));
 
-    public Task<List<FamilyInvitation>> GetPendingByEmailAsync(Email email, CancellationToken ct = default) =>
+    public Task<List<FamilyInvitation>> GetPendingByEmailAsync(Email email, CancellationToken cancellationToken = default) =>
         Task.FromResult(_seeded.Where(i => i.InviteeEmail == email).ToList());
 
-    public Task AddAsync(FamilyInvitation invitation, CancellationToken ct = default)
+    public Task AddAsync(FamilyInvitation invitation, CancellationToken cancellationToken = default)
     {
         AddedInvitations.Add(invitation);
         return Task.CompletedTask;

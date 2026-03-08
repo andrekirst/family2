@@ -8,22 +8,22 @@ public class FakeAlbumRepository : IAlbumRepository
 {
     public List<Album> Albums { get; } = [];
 
-    public Task<Album?> GetByIdAsync(AlbumId id, CancellationToken ct = default)
+    public Task<Album?> GetByIdAsync(AlbumId id, CancellationToken cancellationToken = default)
         => Task.FromResult(Albums.FirstOrDefault(a => a.Id == id));
 
-    public Task<bool> ExistsByIdAsync(AlbumId id, CancellationToken ct = default)
+    public Task<bool> ExistsByIdAsync(AlbumId id, CancellationToken cancellationToken = default)
         => Task.FromResult(Albums.Any(a => a.Id == id));
 
-    public Task<List<Album>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
+    public Task<List<Album>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
         => Task.FromResult(Albums.Where(a => a.FamilyId == familyId).OrderBy(a => a.Name).ToList());
 
-    public Task AddAsync(Album album, CancellationToken ct = default)
+    public Task AddAsync(Album album, CancellationToken cancellationToken = default)
     {
         Albums.Add(album);
         return Task.CompletedTask;
     }
 
-    public Task RemoveAsync(Album album, CancellationToken ct = default)
+    public Task RemoveAsync(Album album, CancellationToken cancellationToken = default)
     {
         Albums.Remove(album);
         return Task.CompletedTask;

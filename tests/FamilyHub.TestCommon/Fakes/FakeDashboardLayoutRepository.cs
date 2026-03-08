@@ -17,37 +17,37 @@ public class FakeDashboardLayoutRepository : IDashboardLayoutRepository
 
     private IEnumerable<DashboardLayout> All => All;
 
-    public Task<DashboardLayout?> GetByIdAsync(DashboardId id, CancellationToken ct = default) =>
+    public Task<DashboardLayout?> GetByIdAsync(DashboardId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.FirstOrDefault(d => d.Id == id));
 
-    public Task<bool> ExistsByIdAsync(DashboardId id, CancellationToken ct = default) =>
+    public Task<bool> ExistsByIdAsync(DashboardId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.Any(d => d.Id == id));
 
-    public Task<bool> ExistsByWidgetIdAsync(DashboardWidgetId widgetId, CancellationToken ct = default) =>
+    public Task<bool> ExistsByWidgetIdAsync(DashboardWidgetId widgetId, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.Any(d => d.Widgets.Any(w => w.Id == widgetId)));
 
-    public Task<DashboardLayout?> GetPersonalDashboardAsync(UserId userId, CancellationToken ct = default) =>
+    public Task<DashboardLayout?> GetPersonalDashboardAsync(UserId userId, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.FirstOrDefault(d => d.UserId == userId && !d.IsShared));
 
-    public Task<DashboardLayout?> GetSharedDashboardAsync(FamilyId familyId, CancellationToken ct = default) =>
+    public Task<DashboardLayout?> GetSharedDashboardAsync(FamilyId familyId, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.FirstOrDefault(d => d.FamilyId == familyId && d.IsShared));
 
-    public Task<DashboardLayout?> GetByWidgetIdAsync(DashboardWidgetId widgetId, CancellationToken ct = default) =>
+    public Task<DashboardLayout?> GetByWidgetIdAsync(DashboardWidgetId widgetId, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.FirstOrDefault(d => d.Widgets.Any(w => w.Id == widgetId)));
 
-    public Task AddAsync(DashboardLayout layout, CancellationToken ct = default)
+    public Task AddAsync(DashboardLayout layout, CancellationToken cancellationToken = default)
     {
         AddedLayouts.Add(layout);
         return Task.CompletedTask;
     }
 
-    public Task UpdateAsync(DashboardLayout layout, CancellationToken ct = default)
+    public Task UpdateAsync(DashboardLayout layout, CancellationToken cancellationToken = default)
     {
         UpdatedLayouts.Add(layout);
         return Task.CompletedTask;
     }
 
-    public Task DeleteAsync(DashboardLayout layout, CancellationToken ct = default)
+    public Task DeleteAsync(DashboardLayout layout, CancellationToken cancellationToken = default)
     {
         DeletedLayouts.Add(layout);
         return Task.CompletedTask;

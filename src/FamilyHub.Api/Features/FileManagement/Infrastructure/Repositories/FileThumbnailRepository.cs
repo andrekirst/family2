@@ -8,24 +8,24 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 
 public sealed class FileThumbnailRepository(AppDbContext context) : IFileThumbnailRepository
 {
-    public async Task<List<FileThumbnail>> GetByFileIdAsync(FileId fileId, CancellationToken ct = default)
+    public async Task<List<FileThumbnail>> GetByFileIdAsync(FileId fileId, CancellationToken cancellationToken = default)
         => await context.Set<FileThumbnail>()
             .Where(t => t.FileId == fileId)
             .OrderBy(t => t.Width)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task<FileThumbnail?> GetByFileIdAndSizeAsync(FileId fileId, int width, int height, CancellationToken ct = default)
+    public async Task<FileThumbnail?> GetByFileIdAndSizeAsync(FileId fileId, int width, int height, CancellationToken cancellationToken = default)
         => await context.Set<FileThumbnail>()
-            .FirstOrDefaultAsync(t => t.FileId == fileId && t.Width == width && t.Height == height, ct);
+            .FirstOrDefaultAsync(t => t.FileId == fileId && t.Width == width && t.Height == height, cancellationToken);
 
-    public async Task AddAsync(FileThumbnail thumbnail, CancellationToken ct = default)
-        => await context.Set<FileThumbnail>().AddAsync(thumbnail, ct);
+    public async Task AddAsync(FileThumbnail thumbnail, CancellationToken cancellationToken = default)
+        => await context.Set<FileThumbnail>().AddAsync(thumbnail, cancellationToken);
 
-    public async Task RemoveByFileIdAsync(FileId fileId, CancellationToken ct = default)
+    public async Task RemoveByFileIdAsync(FileId fileId, CancellationToken cancellationToken = default)
     {
         var thumbnails = await context.Set<FileThumbnail>()
             .Where(t => t.FileId == fileId)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
         context.Set<FileThumbnail>().RemoveRange(thumbnails);
     }
 }

@@ -7,5 +7,5 @@ namespace FamilyHub.Common.Application;
 /// </summary>
 public interface IDomainEventObserver
 {
-    Task OnEventPublishedAsync(Domain.IDomainEvent @event, CancellationToken ct = default);
+    Task OnEventPublishedAsync(Domain.IDomainEvent @event, CancellationToken cancellationToken = default);
 }

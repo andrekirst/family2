@@ -8,43 +8,43 @@ public class FakeStoredFileRepository : IStoredFileRepository
 {
     public List<StoredFile> Files { get; } = [];
 
-    public Task<StoredFile?> GetByIdAsync(FileId id, CancellationToken ct = default)
+    public Task<StoredFile?> GetByIdAsync(FileId id, CancellationToken cancellationToken = default)
         => Task.FromResult(Files.FirstOrDefault(f => f.Id == id));
 
-    public Task<bool> ExistsByIdAsync(FileId id, CancellationToken ct = default)
+    public Task<bool> ExistsByIdAsync(FileId id, CancellationToken cancellationToken = default)
         => Task.FromResult(Files.Any(f => f.Id == id));
 
-    public Task<List<StoredFile>> GetByFolderIdAsync(FolderId folderId, CancellationToken ct = default)
+    public Task<List<StoredFile>> GetByFolderIdAsync(FolderId folderId, CancellationToken cancellationToken = default)
         => Task.FromResult(Files.Where(f => f.FolderId == folderId).ToList());
 
-    public Task<List<StoredFile>> GetByFolderIdsAsync(IEnumerable<FolderId> folderIds, CancellationToken ct = default)
+    public Task<List<StoredFile>> GetByFolderIdsAsync(IEnumerable<FolderId> folderIds, CancellationToken cancellationToken = default)
     {
         var ids = folderIds.ToList();
         return Task.FromResult(Files.Where(f => ids.Contains(f.FolderId)).ToList());
     }
 
-    public Task<List<StoredFile>> GetByIdsAsync(IEnumerable<FileId> ids, CancellationToken ct = default)
+    public Task<List<StoredFile>> GetByIdsAsync(IEnumerable<FileId> ids, CancellationToken cancellationToken = default)
     {
         var idList = ids.ToList();
         return Task.FromResult(Files.Where(f => idList.Contains(f.Id)).ToList());
     }
 
-    public Task<List<StoredFile>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
+    public Task<List<StoredFile>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default)
         => Task.FromResult(Files.Where(f => f.FamilyId == familyId).ToList());
 
-    public Task AddAsync(StoredFile file, CancellationToken ct = default)
+    public Task AddAsync(StoredFile file, CancellationToken cancellationToken = default)
     {
         Files.Add(file);
         return Task.CompletedTask;
     }
 
-    public Task RemoveAsync(StoredFile file, CancellationToken ct = default)
+    public Task RemoveAsync(StoredFile file, CancellationToken cancellationToken = default)
     {
         Files.Remove(file);
         return Task.CompletedTask;
     }
 
-    public Task RemoveRangeAsync(IEnumerable<StoredFile> files, CancellationToken ct = default)
+    public Task RemoveRangeAsync(IEnumerable<StoredFile> files, CancellationToken cancellationToken = default)
     {
         foreach (var file in files.ToList())
             Files.Remove(file);

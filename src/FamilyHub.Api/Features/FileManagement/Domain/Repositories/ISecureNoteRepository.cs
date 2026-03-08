@@ -7,7 +7,7 @@ namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 
 public interface ISecureNoteRepository : IWriteRepository<SecureNote, SecureNoteId>
 {
-    Task<List<SecureNote>> GetByUserIdAsync(UserId userId, FamilyId familyId, CancellationToken ct = default);
-    Task<List<SecureNote>> GetByUserIdAndCategoryAsync(UserId userId, FamilyId familyId, NoteCategory category, CancellationToken ct = default);
-    Task RemoveAsync(SecureNote note, CancellationToken ct = default);
+    Task<List<SecureNote>> GetByUserIdAsync(UserId userId, FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<List<SecureNote>> GetByUserIdAndCategoryAsync(UserId userId, FamilyId familyId, NoteCategory category, CancellationToken cancellationToken = default);
+    Task RemoveAsync(SecureNote note, CancellationToken cancellationToken = default);
 }

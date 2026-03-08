@@ -19,7 +19,7 @@ public class MeProfileQueryExtension
     public async Task<UserDto?> GetProfile(
         [Service] ICurrentUserContext currentUserContext,
         [Service] IQueryBus queryBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         if (!currentUserContext.IsAuthenticated)
         {
@@ -29,7 +29,7 @@ public class MeProfileQueryExtension
         var claims = currentUserContext.GetRawClaims();
         var query = new GetCurrentUserQuery(claims.ExternalUserId);
 
-        return await queryBus.QueryAsync(query, ct);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 }
 
@@ -45,11 +45,11 @@ public class UsersQueryExtension
     public async Task<UserDto?> GetById(
         Guid userId,
         [Service] IQueryBus queryBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var userIdVo = UserId.From(userId);
         var query = new GetUserByIdQuery(userIdVo);
 
-        return await queryBus.QueryAsync(query, ct);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

@@ -8,8 +8,8 @@ namespace FamilyHub.Api.Features.School.Domain.Repositories;
 
 public interface IStudentRepository : IWriteRepository<Student, StudentId>
 {
-    Task<List<Student>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
+    Task<List<Student>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
 
-    Task<bool> ExistsByFamilyMemberIdAsync(FamilyMemberId familyMemberId, CancellationToken ct = default);
+    Task<bool> ExistsByFamilyMemberIdAsync(FamilyMemberId familyMemberId, CancellationToken cancellationToken = default);
 
 }

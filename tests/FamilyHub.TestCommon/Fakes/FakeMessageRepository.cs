@@ -9,17 +9,17 @@ public class FakeMessageRepository(List<Message>? existingMessages = null) : IMe
     private readonly List<Message> _messages = existingMessages ?? [];
     public List<Message> AddedMessages { get; } = [];
 
-    public Task<Message?> GetByIdAsync(MessageId id, CancellationToken ct = default) =>
+    public Task<Message?> GetByIdAsync(MessageId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(_messages.Concat(AddedMessages).FirstOrDefault(m => m.Id == id));
 
-    public Task<bool> ExistsByIdAsync(MessageId id, CancellationToken ct = default) =>
+    public Task<bool> ExistsByIdAsync(MessageId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(_messages.Concat(AddedMessages).Any(m => m.Id == id));
 
     public Task<List<Message>> GetByFamilyAsync(
         FamilyId familyId,
         int limit = 50,
         DateTime? before = null,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         var query = _messages.Concat(AddedMessages)
             .Where(m => m.FamilyId == familyId);
@@ -41,7 +41,7 @@ public class FakeMessageRepository(List<Message>? existingMessages = null) : IMe
         ConversationId conversationId,
         int limit = 50,
         DateTime? before = null,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         var query = _messages.Concat(AddedMessages)
             .Where(m => m.ConversationId == conversationId);
@@ -59,7 +59,7 @@ public class FakeMessageRepository(List<Message>? existingMessages = null) : IMe
         return Task.FromResult(result);
     }
 
-    public Task AddAsync(Message message, CancellationToken ct = default)
+    public Task AddAsync(Message message, CancellationToken cancellationToken = default)
     {
         AddedMessages.Add(message);
         return Task.CompletedTask;

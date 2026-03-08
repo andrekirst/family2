@@ -9,6 +9,6 @@ namespace FamilyHub.Api.Features.Messaging.Domain.Repositories;
 /// </summary>
 public interface IConversationRepository : IWriteRepository<Conversation, ConversationId>
 {
-    Task<Conversation?> GetFamilyConversationAsync(FamilyId familyId, CancellationToken ct = default);
-    Task<List<Conversation>> GetByUserAsync(FamilyId familyId, UserId userId, CancellationToken ct = default);
+    Task<Conversation?> GetFamilyConversationAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<List<Conversation>> GetByUserAsync(FamilyId familyId, UserId userId, CancellationToken cancellationToken = default);
 }

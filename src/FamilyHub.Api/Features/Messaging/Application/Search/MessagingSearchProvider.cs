@@ -17,7 +17,7 @@ public sealed class MessagingSearchProvider(IMessageRepository messageRepository
         }
 
         var messages = await messageRepository.GetByFamilyAsync(
-            context.FamilyId.Value, limit: 100, ct: cancellationToken);
+            context.FamilyId.Value, limit: 100, cancellationToken: cancellationToken);
 
         var queryLower = context.Query.ToLowerInvariant();
         var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;

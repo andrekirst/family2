@@ -6,6 +6,6 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Services;
 /// </summary>
 public interface IThumbnailGenerationService
 {
-    Task<byte[]> GenerateThumbnailAsync(byte[] sourceData, string mimeType, int targetWidth, int targetHeight, CancellationToken ct = default);
+    Task<byte[]> GenerateThumbnailAsync(byte[] sourceData, string mimeType, int targetWidth, int targetHeight, CancellationToken cancellationToken = default);
     bool CanGenerateThumbnail(string mimeType);
 }

@@ -15,7 +15,7 @@ public class FakeFileSearchService : IFileSearchService
         string sortBy = "relevance",
         int skip = 0,
         int take = 20,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         var filtered = Results
             .Where(r => r.Name.Contains(query, StringComparison.OrdinalIgnoreCase))

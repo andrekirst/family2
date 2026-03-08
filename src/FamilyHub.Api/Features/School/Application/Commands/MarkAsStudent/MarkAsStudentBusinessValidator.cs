@@ -16,14 +16,14 @@ public sealed class MarkAsStudentBusinessValidator : AbstractValidator<MarkAsStu
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
-                !await studentRepository.ExistsByFamilyMemberIdAsync(command.FamilyMemberId, ct))
+            .MustAsync(async (command, cancellationToken) =>
+                !await studentRepository.ExistsByFamilyMemberIdAsync(command.FamilyMemberId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.FamilyMemberAlreadyStudent)
             .WithMessage(_ => localizer[DomainErrorCodes.FamilyMemberAlreadyStudent].Value);
 
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
-                await familyMemberRepository.ExistsByIdAsync(command.FamilyMemberId, ct))
+            .MustAsync(async (command, cancellationToken) =>
+                await familyMemberRepository.ExistsByIdAsync(command.FamilyMemberId, cancellationToken))
             .WithErrorCode(DomainErrorCodes.FamilyMemberNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.FamilyMemberNotFound].Value);
     }

@@ -18,9 +18,9 @@ public sealed class SendInvitationBusinessValidator : AbstractValidator<SendInvi
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x)
-            .MustAsync(async (command, ct) =>
+            .MustAsync(async (command, cancellationToken) =>
             {
-                var existing = await invitationRepository.GetByEmailAndFamilyAsync(command.InviteeEmail, command.FamilyId, ct);
+                var existing = await invitationRepository.GetByEmailAndFamilyAsync(command.InviteeEmail, command.FamilyId, cancellationToken);
                 return existing is null;
             })
             .WithErrorCode(DomainErrorCodes.DuplicateInvitation)

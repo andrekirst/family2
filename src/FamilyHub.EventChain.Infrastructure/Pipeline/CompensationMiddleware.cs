@@ -7,11 +7,11 @@ public sealed partial class CompensationMiddleware(
     IChainRegistry registry,
     ILogger<CompensationMiddleware> logger) : IStepMiddleware
 {
-    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken ct)
+    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken cancellationToken)
     {
         try
         {
-            await next(context, ct);
+            await next(context, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -41,7 +41,7 @@ public sealed partial class CompensationMiddleware(
                         context.ExecutionContext,
                         context.CorrelationId);
 
-                    await handler.CompensateAsync(compensationContext, ct);
+                    await handler.CompensateAsync(compensationContext, cancellationToken);
                     context.StepExecution.MarkCompensated();
                 }
             }

@@ -24,11 +24,11 @@ public sealed class FileSearchService(
         string sortBy = "relevance",
         int skip = 0,
         int take = 20,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         // Get all files for the family's folders
         // In production, this would be a PostgreSQL FTS query with tsvector
-        var allFiles = await storedFileRepository.GetByFamilyIdAsync(familyId, ct);
+        var allFiles = await storedFileRepository.GetByFamilyIdAsync(familyId, cancellationToken);
 
         var queryLower = query.ToLowerInvariant();
 
@@ -63,7 +63,7 @@ public sealed class FileSearchService(
             if (filters.TagIds is { Count: > 0 })
             {
                 var tagIds = filters.TagIds.Select(id => TagId.From(id)).ToList();
-                var fileIdsWithTags = await fileTagRepository.GetFileIdsByTagIdsAsync(tagIds, ct);
+                var fileIdsWithTags = await fileTagRepository.GetFileIdsByTagIdsAsync(tagIds, cancellationToken);
                 matched = matched.Where(f => fileIdsWithTags.Contains(f.Id)).ToList();
             }
 
@@ -72,7 +72,7 @@ public sealed class FileSearchService(
                 var filesWithGps = new List<Domain.Entities.StoredFile>();
                 foreach (var file in matched)
                 {
-                    var metadata = await fileMetadataRepository.GetByFileIdAsync(file.Id, ct);
+                    var metadata = await fileMetadataRepository.GetByFileIdAsync(file.Id, cancellationToken);
                     if (metadata?.GpsLatitude is not null && metadata.GpsLongitude is not null)
                     {
                         var distance = HaversineDistance(

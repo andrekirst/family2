@@ -8,23 +8,23 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 
 public sealed class RecentSearchRepository(AppDbContext context) : IRecentSearchRepository
 {
-    public async Task<List<RecentSearch>> GetByUserIdAsync(UserId userId, int limit = 10, CancellationToken ct = default)
+    public async Task<List<RecentSearch>> GetByUserIdAsync(UserId userId, int limit = 10, CancellationToken cancellationToken = default)
         => await context.Set<RecentSearch>()
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.SearchedAt)
             .Take(limit)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task AddAsync(RecentSearch search, CancellationToken ct = default)
-        => await context.Set<RecentSearch>().AddAsync(search, ct);
+    public async Task AddAsync(RecentSearch search, CancellationToken cancellationToken = default)
+        => await context.Set<RecentSearch>().AddAsync(search, cancellationToken);
 
-    public async Task RemoveOldestAsync(UserId userId, int keepCount = 10, CancellationToken ct = default)
+    public async Task RemoveOldestAsync(UserId userId, int keepCount = 10, CancellationToken cancellationToken = default)
     {
         var toRemove = await context.Set<RecentSearch>()
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.SearchedAt)
             .Skip(keepCount)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         if (toRemove.Count > 0)
         {

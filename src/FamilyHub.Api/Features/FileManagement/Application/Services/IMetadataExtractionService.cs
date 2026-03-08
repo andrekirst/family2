@@ -11,7 +11,7 @@ public interface IMetadataExtractionService
     /// Extracts metadata from the given image stream.
     /// Returns null if the file is not a supported image format or has no extractable metadata.
     /// </summary>
-    Task<ExtractionResult?> ExtractAsync(Stream data, string mimeType, CancellationToken ct = default);
+    Task<ExtractionResult?> ExtractAsync(Stream data, string mimeType, CancellationToken cancellationToken = default);
 }
 
 public sealed record ExtractionResult(

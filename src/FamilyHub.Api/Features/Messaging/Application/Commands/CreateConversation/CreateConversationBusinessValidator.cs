@@ -14,9 +14,9 @@ public sealed class CreateConversationBusinessValidator : AbstractValidator<Crea
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x.FamilyId)
-            .MustAsync(async (familyId, ct) =>
+            .MustAsync(async (familyId, cancellationToken) =>
             {
-                var rootFolder = await folderRepository.GetRootFolderAsync(familyId, ct);
+                var rootFolder = await folderRepository.GetRootFolderAsync(familyId, cancellationToken);
                 return rootFolder is not null;
             })
             .WithErrorCode(DomainErrorCodes.FolderNotFound)

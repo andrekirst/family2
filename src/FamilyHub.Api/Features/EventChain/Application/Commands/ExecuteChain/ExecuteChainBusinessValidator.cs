@@ -14,9 +14,9 @@ public sealed class ExecuteChainBusinessValidator : AbstractValidator<ExecuteCha
         IStringLocalizer<DomainErrors> localizer)
     {
         RuleFor(x => x.ChainDefinitionId)
-            .MustAsync(async (chainDefinitionId, ct) =>
+            .MustAsync(async (chainDefinitionId, cancellationToken) =>
             {
-                var definition = await definitionRepository.GetByIdWithStepsAsync(chainDefinitionId, ct);
+                var definition = await definitionRepository.GetByIdWithStepsAsync(chainDefinitionId, cancellationToken);
                 return definition is not null;
             })
             .WithErrorCode(DomainErrorCodes.ChainDefinitionNotFound)
