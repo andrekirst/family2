@@ -61,6 +61,6 @@ public sealed class CreateChainDefinitionCommandHandler(
 
         await repository.AddAsync(definition, cancellationToken);
 
-        return new CreateChainDefinitionResult(definition.Id);
+        return new CreateChainDefinitionResult(definition.Id, definition);
     }
 }

@@ -1,6 +1,5 @@
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Application.Mappers;
-using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -15,7 +14,6 @@ public class MutationType
     public async Task<StoredFileDto> MoveFile(
         MoveFileRequest input,
         [Service] ICommandBus commandBus,
-        [Service] IStoredFileRepository storedFileRepository,
         CancellationToken cancellationToken)
     {
         var command = new MoveFileCommand(
@@ -24,9 +22,6 @@ public class MutationType
 
         var result = await commandBus.SendAsync(command, cancellationToken);
 
-        var file = await storedFileRepository.GetByIdAsync(result.FileId, cancellationToken)
-            ?? throw new InvalidOperationException("File move failed");
-
-        return FileManagementMapper.ToDto(file);
+        return FileManagementMapper.ToDto(result.MovedFile);
     }
 }

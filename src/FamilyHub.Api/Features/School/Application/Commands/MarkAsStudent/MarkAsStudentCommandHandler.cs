@@ -27,6 +27,6 @@ public sealed class MarkAsStudentCommandHandler(
         var student = Student.Create(command.FamilyMemberId, command.FamilyId, command.UserId);
         await studentRepository.AddAsync(student, cancellationToken);
 
-        return new MarkAsStudentResult(student.Id);
+        return new MarkAsStudentResult(student.Id, student);
     }
 }

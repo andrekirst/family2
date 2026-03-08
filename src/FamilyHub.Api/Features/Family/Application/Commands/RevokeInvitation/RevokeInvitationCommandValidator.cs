@@ -9,8 +9,8 @@ public class RevokeInvitationCommandValidator : AbstractValidator<RevokeInvitati
 {
     public RevokeInvitationCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {
-        RuleFor(x => x.InvitationId.Value)
-            .NotEmpty().WithMessage(_ => localizer["InvitationIdRequired"]);
+        RuleFor(x => x.InvitationId)
+            .NotNull().WithMessage(_ => localizer["InvitationIdRequired"]);
 
         RuleFor(x => x.UserId.Value)
             .NotEmpty().WithMessage(_ => localizer["RevokingUserIdRequired"]);

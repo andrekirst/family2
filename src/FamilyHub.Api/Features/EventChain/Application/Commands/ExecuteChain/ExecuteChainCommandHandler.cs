@@ -42,6 +42,6 @@ public sealed class ExecuteChainCommandHandler(
         // Execute the chain asynchronously
         _ = Task.Run(() => orchestrator.ExecuteChainAsync(execution, definition, cancellationToken), cancellationToken);
 
-        return new ExecuteChainResult(execution.Id);
+        return new ExecuteChainResult(execution.Id, execution);
     }
 }

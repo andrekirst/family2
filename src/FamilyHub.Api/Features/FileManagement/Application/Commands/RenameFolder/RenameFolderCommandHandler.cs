@@ -22,6 +22,6 @@ public sealed class RenameFolderCommandHandler(
 
         folder.Rename(command.NewName);
 
-        return new RenameFolderResult(folder.Id);
+        return new RenameFolderResult(folder.Id, folder);
     }
 }

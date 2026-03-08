@@ -1,6 +1,5 @@
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Application.Mappers;
-using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -16,7 +15,6 @@ public class MutationType
     public async Task<FolderDto> CreateFolder(
         CreateFolderRequest input,
         [Service] ICommandBus commandBus,
-        [Service] IFolderRepository folderRepository,
         CancellationToken cancellationToken)
     {
         var command = new CreateFolderCommand(
@@ -25,9 +23,6 @@ public class MutationType
 
         var result = await commandBus.SendAsync(command, cancellationToken);
 
-        var folder = await folderRepository.GetByIdAsync(result.FolderId, cancellationToken)
-            ?? throw new InvalidOperationException("Folder creation failed");
-
-        return FileManagementMapper.ToDto(folder);
+        return FileManagementMapper.ToDto(result.CreatedFolder);
     }
 }

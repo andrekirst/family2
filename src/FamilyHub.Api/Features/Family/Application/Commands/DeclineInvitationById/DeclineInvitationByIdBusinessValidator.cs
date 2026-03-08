@@ -24,7 +24,7 @@ public sealed class DeclineInvitationByIdBusinessValidator : AbstractValidator<D
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
             {
-                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, ct);
+                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, ct);
                 return invitation is not null;
             })
             .WithErrorCode(DomainErrorCodes.InvitationNotFound)

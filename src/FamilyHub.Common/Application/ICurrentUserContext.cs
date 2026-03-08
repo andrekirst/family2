@@ -15,6 +15,13 @@ public interface ICurrentUserContext
     Task<CurrentUserInfo> GetCurrentUserAsync();
 
     /// <summary>
+    /// Gets raw JWT claim values without any database lookup.
+    /// Use this for operations where the user may not exist in the database yet
+    /// (e.g., user registration). Throws if the request is not authenticated.
+    /// </summary>
+    RawClaimsInfo GetRawClaims();
+
+    /// <summary>
     /// Whether the current HTTP request has an authenticated identity.
     /// Does NOT trigger a database lookup.
     /// </summary>

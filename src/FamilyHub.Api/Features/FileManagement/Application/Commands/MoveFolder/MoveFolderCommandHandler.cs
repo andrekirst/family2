@@ -60,6 +60,6 @@ public sealed class MoveFolderCommandHandler(
             descendant.UpdateMaterializedPath(updatedPath);
         }
 
-        return new MoveFolderResult(folder.Id);
+        return new MoveFolderResult(folder.Id, folder);
     }
 }

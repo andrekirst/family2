@@ -25,5 +25,9 @@ public sealed class SendMessageCommandValidator : AbstractValidator<SendMessageC
         RuleFor(x => x.UserId)
             .NotNull()
             .WithMessage(_ => localizer["SenderIdRequired"]);
+
+        RuleFor(x => x)
+            .Must(cmd => cmd.Content.Value.Length > 0 || (cmd.Attachments is not null && cmd.Attachments.Count > 0))
+            .WithMessage("Message must have content or at least one attachment");
     }
 }

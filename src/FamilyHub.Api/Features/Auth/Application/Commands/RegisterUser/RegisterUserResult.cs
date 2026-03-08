@@ -1,4 +1,5 @@
 using FamilyHub.Common.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.Domain.Entities;
 
 namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 
@@ -7,5 +8,6 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 /// </summary>
 public sealed record RegisterUserResult(
     UserId UserId,
-    bool IsNewUser
+    bool IsNewUser,
+    User RegisteredUser
 );

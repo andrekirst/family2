@@ -55,6 +55,6 @@ public sealed class SaveDashboardLayoutCommandHandler(
 
         await dashboardRepository.SaveChangesAsync(cancellationToken);
 
-        return new SaveDashboardLayoutResult(dashboard.Id);
+        return new SaveDashboardLayoutResult(dashboard.Id, dashboard);
     }
 }

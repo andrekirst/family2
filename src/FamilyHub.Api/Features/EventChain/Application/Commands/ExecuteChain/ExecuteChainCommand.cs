@@ -1,4 +1,5 @@
 using FamilyHub.Common.Application;
+using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -13,4 +14,7 @@ public sealed record ExecuteChainCommand(
     public FamilyId FamilyId { get; init; }
 }
 
-public sealed record ExecuteChainResult(ChainExecutionId ChainExecutionId);
+public sealed record ExecuteChainResult(
+    ChainExecutionId ChainExecutionId,
+    ChainExecution Execution
+);

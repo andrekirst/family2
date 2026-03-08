@@ -1,4 +1,5 @@
 using FamilyHub.Common.Domain.ValueObjects;
+using FamilyEntity = FamilyHub.Api.Features.Family.Domain.Entities.Family;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 
@@ -6,5 +7,6 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 /// Result of family creation command.
 /// </summary>
 public sealed record CreateFamilyResult(
-    FamilyId FamilyId
+    FamilyId FamilyId,
+    FamilyEntity CreatedFamily
 );

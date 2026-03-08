@@ -24,7 +24,7 @@ public sealed class RegisterUserCommandHandler(IUserRepository userRepository)
             existingUser.UpdateProfile(command.Email, command.Name, command.EmailVerified);
             existingUser.UpdateLastLogin(DateTime.UtcNow);
 
-            return new RegisterUserResult(existingUser.Id, IsNewUser: false);
+            return new RegisterUserResult(existingUser.Id, IsNewUser: false, existingUser);
         }
 
         // Check if user exists by email (e.g. Keycloak realm was recreated, external ID changed)
@@ -36,7 +36,7 @@ public sealed class RegisterUserCommandHandler(IUserRepository userRepository)
             emailExists.UpdateProfile(command.Email, command.Name, command.EmailVerified);
             emailExists.UpdateLastLogin(DateTime.UtcNow);
 
-            return new RegisterUserResult(emailExists.Id, IsNewUser: false);
+            return new RegisterUserResult(emailExists.Id, IsNewUser: false, emailExists);
         }
 
         // Register new user
@@ -50,6 +50,6 @@ public sealed class RegisterUserCommandHandler(IUserRepository userRepository)
 
         await userRepository.AddAsync(newUser, cancellationToken);
 
-        return new RegisterUserResult(newUser.Id, IsNewUser: true);
+        return new RegisterUserResult(newUser.Id, IsNewUser: true, newUser);
     }
 }

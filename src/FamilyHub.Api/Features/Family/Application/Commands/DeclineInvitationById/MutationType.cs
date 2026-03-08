@@ -18,10 +18,11 @@ public class MutationType
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
-        var invitationId = parent.InvitationId
-            ?? throw new GraphQLException("Invitation ID required. Use invitation(id: \"...\") { decline }");
+        var invitationId = parent.InvitationId.HasValue
+            ? InvitationId.From(parent.InvitationId.Value)
+            : (InvitationId?)null;
 
-        var command = new DeclineInvitationByIdCommand(InvitationId.From(invitationId));
+        var command = new DeclineInvitationByIdCommand(invitationId);
         return await commandBus.SendAsync(command, cancellationToken);
     }
 }

@@ -28,7 +28,7 @@ public sealed class CreateConversationCommandHandler(
         {
             var existing = await conversationRepository.GetFamilyConversationAsync(command.FamilyId, cancellationToken);
             if (existing is not null)
-                return new CreateConversationResult(existing.Id);
+                return new CreateConversationResult(existing.Id, existing);
         }
 
         // Create the conversation aggregate
@@ -59,7 +59,7 @@ public sealed class CreateConversationCommandHandler(
 
         await conversationRepository.AddAsync(conversation, cancellationToken);
 
-        return new CreateConversationResult(conversation.Id);
+        return new CreateConversationResult(conversation.Id, conversation);
     }
 
     private async Task<Folder> FindOrCreateMessagesFolderAsync(

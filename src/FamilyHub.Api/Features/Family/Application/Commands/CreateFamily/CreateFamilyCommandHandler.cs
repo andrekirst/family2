@@ -38,6 +38,6 @@ public sealed class CreateFamilyCommandHandler(
         // Assign user to family (raises UserFamilyAssignedEvent)
         user.AssignToFamily(family.Id);
 
-        return new CreateFamilyResult(family.Id);
+        return new CreateFamilyResult(family.Id, family);
     }
 }

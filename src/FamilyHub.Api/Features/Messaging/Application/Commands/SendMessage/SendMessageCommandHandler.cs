@@ -68,7 +68,7 @@ public sealed class SendMessageCommandHandler(
 
         await messageRepository.AddAsync(message, cancellationToken);
 
-        return new SendMessageResult(message.Id);
+        return new SendMessageResult(message.Id, message);
     }
 
     private async Task<FolderId> ResolveTargetFolderAsync(

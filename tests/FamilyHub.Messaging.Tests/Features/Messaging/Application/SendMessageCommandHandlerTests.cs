@@ -27,6 +27,7 @@ public class SendMessageCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.MessageId.Value.Should().NotBe(Guid.Empty);
+        result.SentMessage.Should().NotBeNull();
     }
 
     [Fact]

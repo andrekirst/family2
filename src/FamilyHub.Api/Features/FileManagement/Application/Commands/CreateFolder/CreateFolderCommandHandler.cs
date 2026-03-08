@@ -58,6 +58,6 @@ public sealed class CreateFolderCommandHandler(
 
         await folderRepository.AddAsync(folder, cancellationToken);
 
-        return new CreateFolderResult(folder.Id);
+        return new CreateFolderResult(folder.Id, folder);
     }
 }

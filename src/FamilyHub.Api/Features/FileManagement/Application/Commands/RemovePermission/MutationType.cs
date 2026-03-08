@@ -11,21 +11,14 @@ public class MutationType
 {
     [Authorize]
     public async Task<RemovePermissionResult> RemovePermission(
-        string resourceType,
+        PermissionResourceType resourceType,
         Guid resourceId,
         Guid memberId,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
-        var parsedResourceType = resourceType.ToLowerInvariant() switch
-        {
-            "file" => PermissionResourceType.File,
-            "folder" => PermissionResourceType.Folder,
-            _ => throw new ArgumentException($"Invalid resource type: {resourceType}")
-        };
-
         var command = new RemovePermissionCommand(
-            parsedResourceType,
+            resourceType,
             resourceId,
             UserId.From(memberId));
 

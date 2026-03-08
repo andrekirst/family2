@@ -25,7 +25,7 @@ public sealed class AcceptInvitationByIdBusinessValidator : AbstractValidator<Ac
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
             {
-                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, ct);
+                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, ct);
                 return invitation is not null;
             })
             .WithErrorCode(DomainErrorCodes.InvitationNotFound)
@@ -43,7 +43,7 @@ public sealed class AcceptInvitationByIdBusinessValidator : AbstractValidator<Ac
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
             {
-                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, ct);
+                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, ct);
                 if (invitation is null)
                 {
                     return true;

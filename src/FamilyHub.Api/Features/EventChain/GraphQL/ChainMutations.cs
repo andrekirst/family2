@@ -21,7 +21,6 @@ public class ChainMutations
     public async Task<CreateChainDefinitionPayload> CreateChainDefinition(
         CreateChainDefinitionInput input,
         [Service] ICommandBus commandBus,
-        [Service] IChainDefinitionRepository definitionRepository,
         CancellationToken ct)
     {
         try
@@ -41,8 +40,7 @@ public class ChainMutations
                 input.IsEnabled);
 
             var result = await commandBus.SendAsync(command, ct);
-            var definition = await definitionRepository.GetByIdWithStepsAsync(result.ChainDefinitionId, ct);
-            return new CreateChainDefinitionPayload(definition is not null ? ChainMapper.ToDto(definition) : null);
+            return new CreateChainDefinitionPayload(ChainMapper.ToDto(result.CreatedDefinition));
         }
         catch (Exception ex)
         {
@@ -56,7 +54,6 @@ public class ChainMutations
         Guid id,
         UpdateChainDefinitionInput input,
         [Service] ICommandBus commandBus,
-        [Service] IChainDefinitionRepository definitionRepository,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
@@ -77,10 +74,9 @@ public class ChainMutations
                     s.Order)).ToList());
 
             var result = await commandBus.SendAsync(command, ct);
-            var definition = await definitionRepository.GetByIdWithStepsAsync(result.ChainDefinitionId, ct);
             var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, ct);
             var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, ct);
-            return new UpdateChainDefinitionPayload(definition is not null ? ChainMapper.ToDto(definition, count, lastExec) : null);
+            return new UpdateChainDefinitionPayload(ChainMapper.ToDto(result.UpdatedDefinition, count, lastExec));
         }
         catch (Exception ex)
         {
@@ -112,34 +108,28 @@ public class ChainMutations
     public async Task<ChainDefinitionDto> EnableChainDefinition(
         Guid id,
         [Service] ICommandBus commandBus,
-        [Service] IChainDefinitionRepository definitionRepository,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
         var command = new EnableChainDefinitionCommand(ChainDefinitionId.From(id));
-        var defId = await commandBus.SendAsync(command, ct);
-        var definition = await definitionRepository.GetByIdWithStepsAsync(defId, ct)
-            ?? throw new InvalidOperationException("Chain definition not found");
-        var count = await executionRepository.GetExecutionCountAsync(defId, ct);
-        var lastExec = await executionRepository.GetLastExecutedAtAsync(defId, ct);
-        return ChainMapper.ToDto(definition, count, lastExec);
+        var result = await commandBus.SendAsync(command, ct);
+        var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, ct);
+        var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, ct);
+        return ChainMapper.ToDto(result.Definition, count, lastExec);
     }
 
     [Authorize]
     public async Task<ChainDefinitionDto> DisableChainDefinition(
         Guid id,
         [Service] ICommandBus commandBus,
-        [Service] IChainDefinitionRepository definitionRepository,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
         var command = new DisableChainDefinitionCommand(ChainDefinitionId.From(id));
-        var defId = await commandBus.SendAsync(command, ct);
-        var definition = await definitionRepository.GetByIdWithStepsAsync(defId, ct)
-            ?? throw new InvalidOperationException("Chain definition not found");
-        var count = await executionRepository.GetExecutionCountAsync(defId, ct);
-        var lastExec = await executionRepository.GetLastExecutedAtAsync(defId, ct);
-        return ChainMapper.ToDto(definition, count, lastExec);
+        var result = await commandBus.SendAsync(command, ct);
+        var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, ct);
+        var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, ct);
+        return ChainMapper.ToDto(result.Definition, count, lastExec);
     }
 
     [Authorize]
@@ -147,7 +137,6 @@ public class ChainMutations
         Guid chainDefinitionId,
         string triggerPayload,
         [Service] ICommandBus commandBus,
-        [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
         var command = new ExecuteChainCommand(
@@ -156,11 +145,6 @@ public class ChainMutations
 
         var result = await commandBus.SendAsync(command, ct);
 
-        // Give execution a moment to start
-        await Task.Delay(100, ct);
-
-        var execution = await executionRepository.GetByIdWithStepsAsync(result.ChainExecutionId, ct)
-            ?? throw new InvalidOperationException("Chain execution not found");
-        return ChainMapper.ToDto(execution);
+        return ChainMapper.ToDto(result.Execution);
     }
 }

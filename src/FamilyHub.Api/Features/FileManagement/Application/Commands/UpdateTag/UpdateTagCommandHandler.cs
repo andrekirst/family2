@@ -37,6 +37,6 @@ public sealed class UpdateTagCommandHandler(
             tag.ChangeColor(command.NewColor.Value);
         }
 
-        return new UpdateTagResult(tag.Id);
+        return new UpdateTagResult(tag.Id, tag);
     }
 }

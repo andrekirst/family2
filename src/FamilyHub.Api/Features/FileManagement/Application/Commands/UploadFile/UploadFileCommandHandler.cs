@@ -35,6 +35,6 @@ public sealed class UploadFileCommandHandler(
 
         await storedFileRepository.AddAsync(file, cancellationToken);
 
-        return new UploadFileResult(file.Id);
+        return new UploadFileResult(file.Id, file);
     }
 }

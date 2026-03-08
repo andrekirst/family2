@@ -16,7 +16,7 @@ public sealed class RevokeInvitationCommandHandler(
         CancellationToken cancellationToken)
     {
         // Fetch invitation (auth validator guarantees existence and permission)
-        var invitation = (await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken))!;
+        var invitation = (await invitationRepository.GetByIdAsync(command.InvitationId!.Value, cancellationToken))!;
 
         invitation.Revoke();
 

@@ -1,6 +1,5 @@
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Application.Mappers;
-using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -16,7 +15,6 @@ public class MutationType
     public async Task<TagDto> UpdateTag(
         UpdateTagRequest input,
         [Service] ICommandBus commandBus,
-        [Service] ITagRepository tagRepository,
         CancellationToken cancellationToken)
     {
         var command = new UpdateTagCommand(
@@ -26,9 +24,6 @@ public class MutationType
 
         var result = await commandBus.SendAsync(command, cancellationToken);
 
-        var tag = await tagRepository.GetByIdAsync(result.TagId, cancellationToken)
-            ?? throw new InvalidOperationException("Tag update failed");
-
-        return FileManagementMapper.ToDto(tag);
+        return FileManagementMapper.ToDto(result.UpdatedTag);
     }
 }

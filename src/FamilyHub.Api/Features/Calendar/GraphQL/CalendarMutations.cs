@@ -4,7 +4,6 @@ using FamilyHub.Api.Features.Calendar.Application.Commands.CancelCalendarEvent;
 using FamilyHub.Api.Features.Calendar.Application.Commands.CreateCalendarEvent;
 using FamilyHub.Api.Features.Calendar.Application.Commands.UpdateCalendarEvent;
 using FamilyHub.Api.Features.Calendar.Application.Mappers;
-using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Models;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -19,7 +18,6 @@ public class CalendarMutations
     public async Task<CalendarEventDto> Create(
         CreateCalendarEventRequest input,
         [Service] ICommandBus commandBus,
-        [Service] ICalendarEventRepository repository,
         CancellationToken ct)
     {
         var title = EventTitle.From(input.Title.Trim());
@@ -36,10 +34,7 @@ public class CalendarMutations
 
         var result = await commandBus.SendAsync(command, ct);
 
-        var created = await repository.GetByIdWithAttendeesAsync(result.CalendarEventId, ct)
-            ?? throw new InvalidOperationException("Event creation failed");
-
-        return CalendarEventMapper.ToDto(created);
+        return CalendarEventMapper.ToDto(result.CreatedEvent);
     }
 
     [Authorize]
@@ -47,7 +42,6 @@ public class CalendarMutations
         Guid id,
         UpdateCalendarEventRequest input,
         [Service] ICommandBus commandBus,
-        [Service] ICalendarEventRepository repository,
         CancellationToken ct)
     {
         var calendarEventId = CalendarEventId.From(id);
@@ -66,10 +60,7 @@ public class CalendarMutations
 
         var result = await commandBus.SendAsync(command, ct);
 
-        var updated = await repository.GetByIdWithAttendeesAsync(result.CalendarEventId, ct)
-            ?? throw new InvalidOperationException("Event update failed");
-
-        return CalendarEventMapper.ToDto(updated);
+        return CalendarEventMapper.ToDto(result.UpdatedEvent);
     }
 
     [Authorize]

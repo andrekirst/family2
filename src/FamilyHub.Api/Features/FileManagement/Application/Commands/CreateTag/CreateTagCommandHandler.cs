@@ -23,6 +23,6 @@ public sealed class CreateTagCommandHandler(
         var tag = Tag.Create(command.Name, command.Color, command.FamilyId, command.UserId);
         await tagRepository.AddAsync(tag, cancellationToken);
 
-        return new CreateTagResult(tag.Id);
+        return new CreateTagResult(tag.Id, tag);
     }
 }

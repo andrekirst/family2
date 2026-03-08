@@ -1,5 +1,9 @@
+using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.Dashboard.Application.Commands.SaveDashboardLayout;
 
-public sealed record SaveDashboardLayoutResult(DashboardId DashboardId);
+public sealed record SaveDashboardLayoutResult(
+    DashboardId DashboardId,
+    DashboardLayout Layout
+);

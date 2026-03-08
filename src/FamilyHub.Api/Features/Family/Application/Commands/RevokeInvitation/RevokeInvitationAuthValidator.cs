@@ -23,7 +23,7 @@ public sealed class RevokeInvitationAuthValidator : AbstractValidator<RevokeInvi
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
             {
-                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, ct);
+                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, ct);
                 if (invitation is null)
                 {
                     return false;

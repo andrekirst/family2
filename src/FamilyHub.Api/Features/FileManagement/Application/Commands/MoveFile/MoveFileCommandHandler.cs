@@ -30,6 +30,6 @@ public sealed class MoveFileCommandHandler(
 
         file.MoveTo(command.TargetFolderId, command.UserId);
 
-        return new MoveFileResult(file.Id);
+        return new MoveFileResult(file.Id, file);
     }
 }

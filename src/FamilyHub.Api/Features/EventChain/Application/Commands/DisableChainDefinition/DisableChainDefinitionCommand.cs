@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Features.EventChain.Application.Commands.DisableChainDef
 
 public sealed record DisableChainDefinitionCommand(
     ChainDefinitionId Id
-) : ICommand<ChainDefinitionId>, IRequireFamily
+) : ICommand<DisableChainDefinitionResult>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

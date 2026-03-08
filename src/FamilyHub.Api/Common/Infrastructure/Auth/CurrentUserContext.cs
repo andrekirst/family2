@@ -29,6 +29,32 @@ public sealed class CurrentUserContext : ICurrentUserContext
 
     public Task<CurrentUserInfo> GetCurrentUserAsync() => _lazyUser.Value;
 
+    public RawClaimsInfo GetRawClaims()
+    {
+        var httpContext = _httpContextAccessor.HttpContext
+            ?? throw new UserNotAuthenticatedException();
+
+        var externalUserIdString = httpContext.User.FindFirst(ClaimNames.Sub)?.Value;
+        if (string.IsNullOrEmpty(externalUserIdString))
+        {
+            throw new UserNotAuthenticatedException();
+        }
+
+        var email = httpContext.User.FindFirst(ClaimNames.Email)?.Value
+            ?? throw new UserNotAuthenticatedException();
+
+        var emailVerifiedString = httpContext.User.FindFirst(ClaimNames.EmailVerified)?.Value;
+        var emailVerified = bool.TryParse(emailVerifiedString, out var ev) && ev;
+
+        var userName = httpContext.User.FindFirst(ClaimNames.Name)?.Value;
+
+        return new RawClaimsInfo(
+            ExternalUserId.From(externalUserIdString),
+            email,
+            emailVerified,
+            userName);
+    }
+
     private async Task<CurrentUserInfo> ResolveUserAsync()
     {
         var httpContext = _httpContextAccessor.HttpContext

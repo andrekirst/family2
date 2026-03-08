@@ -11,7 +11,7 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.AcceptInvitationByI
 /// Requires email verification to ensure only the intended recipient can accept.
 /// </summary>
 public sealed record AcceptInvitationByIdCommand(
-    InvitationId InvitationId
+    InvitationId? InvitationId
 ) : ICommand<AcceptInvitationResult>, IRequireUser
 {
     public UserId UserId { get; init; }

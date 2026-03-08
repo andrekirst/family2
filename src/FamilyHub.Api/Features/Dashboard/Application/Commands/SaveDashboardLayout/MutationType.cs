@@ -1,7 +1,6 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Dashboard.Application.Mappers;
-using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
 using FamilyHub.Api.Features.Dashboard.Models;
 using HotChocolate.Authorization;
@@ -15,7 +14,6 @@ public class MutationType
     public async Task<DashboardLayoutDto> SaveLayout(
         SaveDashboardLayoutRequest input,
         [Service] ICommandBus commandBus,
-        [Service] IDashboardLayoutRepository dashboardRepository,
         CancellationToken cancellationToken)
     {
         var widgets = input.Widgets.Select(w => new WidgetPositionData(
@@ -29,10 +27,7 @@ public class MutationType
             widgets);
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-        var dashboard = await dashboardRepository.GetByIdAsync(result.DashboardId, cancellationToken);
 
-        return dashboard is null
-            ? throw new InvalidOperationException("Dashboard save failed")
-            : DashboardMapper.ToDto(dashboard);
+        return DashboardMapper.ToDto(result.Layout);
     }
 }

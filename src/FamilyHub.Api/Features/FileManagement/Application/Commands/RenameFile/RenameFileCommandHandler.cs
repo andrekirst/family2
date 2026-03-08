@@ -22,6 +22,6 @@ public sealed class RenameFileCommandHandler(
 
         file.Rename(command.NewName, command.UserId);
 
-        return new RenameFileResult(file.Id);
+        return new RenameFileResult(file.Id, file);
     }
 }

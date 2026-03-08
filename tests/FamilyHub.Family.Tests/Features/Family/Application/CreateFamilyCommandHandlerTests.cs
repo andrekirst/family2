@@ -25,6 +25,8 @@ public class CreateFamilyCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.FamilyId.Value.Should().NotBe(Guid.Empty);
+        result.CreatedFamily.Should().NotBeNull();
+        result.CreatedFamily.Name.Should().Be(command.Name);
     }
 
     [Fact]

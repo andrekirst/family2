@@ -1,11 +1,8 @@
-using System.Security.Claims;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
-using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Auth.Application.Mappers;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Models;
 using HotChocolate.Authorization;
 
@@ -21,35 +18,22 @@ public class MutationType
     [Authorize]
     public async Task<UserDto> RegisterUser(
         RegisterUserRequest input,
-        ClaimsPrincipal claimsPrincipal,
+        [Service] ICurrentUserContext currentUserContext,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
-        // Extract OAuth claims from JWT
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
-                                   ?? throw new UnauthorizedAccessException("Invalid token: missing sub claim");
+        // Extract OAuth claims from JWT via ICurrentUserContext
+        var claims = currentUserContext.GetRawClaims();
 
-        var emailString = claimsPrincipal.FindFirst(ClaimNames.Email)?.Value
-                          ?? throw new UnauthorizedAccessException("Invalid token: missing email claim");
-
-        var nameString = claimsPrincipal.FindFirst(ClaimNames.Name)?.Value ?? emailString;
-        var emailVerified = bool.Parse(claimsPrincipal.FindFirst(ClaimNames.EmailVerified)?.Value ?? "false");
+        var nameString = claims.UserName ?? claims.Email;
 
         var command = new RegisterUserCommand(
-            Email.From(emailString),
+            Email.From(claims.Email),
             UserName.From(nameString),
-            ExternalUserId.From(externalUserIdString),
-            emailVerified);
+            claims.ExternalUserId,
+            claims.EmailVerified);
         var result = await commandBus.SendAsync(command, cancellationToken);
 
-        // Query the registered user and map to DTO
-        var registeredUser = await userRepository.GetByIdAsync(result.UserId, cancellationToken);
-        if (registeredUser is null)
-        {
-            throw new InvalidOperationException("User registration failed");
-        }
-
-        return UserMapper.ToDto(registeredUser);
+        return UserMapper.ToDto(result.RegisteredUser);
     }
 }

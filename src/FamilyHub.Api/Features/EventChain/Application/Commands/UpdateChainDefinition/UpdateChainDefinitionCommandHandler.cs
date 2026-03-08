@@ -53,6 +53,6 @@ public sealed class UpdateChainDefinitionCommandHandler(
 
         await repository.UpdateAsync(definition, cancellationToken);
 
-        return new UpdateChainDefinitionResult(definition.Id);
+        return new UpdateChainDefinitionResult(definition.Id, definition);
     }
 }
