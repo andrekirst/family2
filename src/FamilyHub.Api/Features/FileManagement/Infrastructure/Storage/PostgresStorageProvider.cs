@@ -1,3 +1,4 @@
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Storage;
 /// Stores binary data in the file_management.file_blobs table.
 /// Supports files up to 100MB.
 /// </summary>
-public sealed class PostgresStorageProvider(AppDbContext dbContext) : IStorageProvider
+public sealed class PostgresStorageProvider(AppDbContext dbContext, IUnitOfWork unitOfWork) : IStorageProvider
 {
     public async Task<string> UploadAsync(Stream data, string mimeType, CancellationToken ct = default)
     {
@@ -28,7 +29,7 @@ public sealed class PostgresStorageProvider(AppDbContext dbContext) : IStoragePr
         };
 
         dbContext.Set<Data.FileBlob>().Add(blob);
-        await dbContext.SaveChangesAsync(ct);
+        await unitOfWork.SaveChangesAsync(ct);
 
         return storageKey;
     }
@@ -76,7 +77,7 @@ public sealed class PostgresStorageProvider(AppDbContext dbContext) : IStoragePr
         if (blob is not null)
         {
             dbContext.Set<Data.FileBlob>().Remove(blob);
-            await dbContext.SaveChangesAsync(ct);
+            await unitOfWork.SaveChangesAsync(ct);
         }
     }
 

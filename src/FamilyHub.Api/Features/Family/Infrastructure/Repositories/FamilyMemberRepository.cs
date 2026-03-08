@@ -46,9 +46,4 @@ public sealed class FamilyMemberRepository(AppDbContext context) : IFamilyMember
     {
         await context.FamilyMembers.AddAsync(member, cancellationToken);
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.SaveChangesAsync(cancellationToken);
-    }
 }

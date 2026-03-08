@@ -99,9 +99,4 @@ public sealed class ChainExecutionRepository(AppDbContext context) : IChainExecu
             .Select(e => (DateTime?)e.StartedAt)
             .FirstOrDefaultAsync(ct);
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-    {
-        return await context.SaveChangesAsync(ct);
-    }
 }

@@ -62,9 +62,4 @@ public sealed class FamilyInvitationRepository(AppDbContext context) : IFamilyIn
     {
         await context.FamilyInvitations.AddAsync(invitation, cancellationToken);
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.SaveChangesAsync(cancellationToken);
-    }
 }

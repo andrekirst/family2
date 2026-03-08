@@ -46,9 +46,4 @@ public sealed class UserRepository(AppDbContext context) : IUserRepository
         // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-    {
-        return await context.SaveChangesAsync(ct);
-    }
 }

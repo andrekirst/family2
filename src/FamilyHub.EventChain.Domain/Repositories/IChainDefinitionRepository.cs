@@ -13,5 +13,4 @@ public interface IChainDefinitionRepository : IWriteRepository<ChainDefinition, 
     Task<IReadOnlyList<ChainDefinition>> GetTemplatesAsync(CancellationToken ct = default);
     Task UpdateAsync(ChainDefinition definition, CancellationToken ct = default);
     Task DeleteAsync(ChainDefinition definition, CancellationToken ct = default);
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

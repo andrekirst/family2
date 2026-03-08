@@ -41,7 +41,4 @@ public class FakeCalendarEventRepository(List<CalendarEvent>? existingEvents = n
         AddedEvents.Add(calendarEvent);
         return Task.CompletedTask;
     }
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

@@ -19,7 +19,6 @@ public sealed class UpdateWidgetConfigCommandHandler(
 
         widget.UpdateConfig(command.ConfigJson);
         await dashboardRepository.UpdateAsync(dashboard, cancellationToken);
-        await dashboardRepository.SaveChangesAsync(cancellationToken);
 
         return DashboardMapper.ToDto(widget);
     }

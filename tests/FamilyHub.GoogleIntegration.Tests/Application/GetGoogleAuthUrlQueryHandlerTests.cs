@@ -12,7 +12,8 @@ public class GetGoogleAuthUrlQueryHandlerTests
     {
         var oauthService = new FakeGoogleOAuthService();
         var stateRepo = new FakeOAuthStateRepository();
-        var handler = new GetGoogleAuthUrlQueryHandler(oauthService, stateRepo);
+        var unitOfWork = new FakeUnitOfWork();
+        var handler = new GetGoogleAuthUrlQueryHandler(oauthService, stateRepo, unitOfWork);
 
         var query = new GetGoogleAuthUrlQuery(UserId.New());
         var result = await handler.Handle(query, CancellationToken.None);
@@ -26,7 +27,8 @@ public class GetGoogleAuthUrlQueryHandlerTests
         var userId = UserId.New();
         var oauthService = new FakeGoogleOAuthService();
         var stateRepo = new FakeOAuthStateRepository();
-        var handler = new GetGoogleAuthUrlQueryHandler(oauthService, stateRepo);
+        var unitOfWork = new FakeUnitOfWork();
+        var handler = new GetGoogleAuthUrlQueryHandler(oauthService, stateRepo, unitOfWork);
 
         var query = new GetGoogleAuthUrlQuery(userId);
         await handler.Handle(query, CancellationToken.None);
@@ -42,11 +44,12 @@ public class GetGoogleAuthUrlQueryHandlerTests
     {
         var oauthService = new FakeGoogleOAuthService();
         var stateRepo = new FakeOAuthStateRepository();
-        var handler = new GetGoogleAuthUrlQueryHandler(oauthService, stateRepo);
+        var unitOfWork = new FakeUnitOfWork();
+        var handler = new GetGoogleAuthUrlQueryHandler(oauthService, stateRepo, unitOfWork);
 
         var query = new GetGoogleAuthUrlQuery(UserId.New());
         await handler.Handle(query, CancellationToken.None);
 
-        stateRepo.SaveChangesCount.Should().Be(1);
+        unitOfWork.SaveChangesCallCount.Should().Be(1);
     }
 }

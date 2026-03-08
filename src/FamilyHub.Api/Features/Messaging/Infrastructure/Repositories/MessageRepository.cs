@@ -66,9 +66,4 @@ public sealed class MessageRepository(AppDbContext context) : IMessageRepository
     {
         await context.Messages.AddAsync(message, cancellationToken);
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.SaveChangesAsync(cancellationToken);
-    }
 }

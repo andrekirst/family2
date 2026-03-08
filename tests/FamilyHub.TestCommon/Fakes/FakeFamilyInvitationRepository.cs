@@ -39,7 +39,4 @@ public class FakeFamilyInvitationRepository(
         AddedInvitations.Add(invitation);
         return Task.CompletedTask;
     }
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

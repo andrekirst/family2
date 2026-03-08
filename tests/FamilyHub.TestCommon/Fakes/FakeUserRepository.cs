@@ -25,7 +25,4 @@ public class FakeUserRepository(User? existingUser = null) : IUserRepository
 
     public Task UpdateAsync(User user, CancellationToken ct = default) =>
         Task.CompletedTask;
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

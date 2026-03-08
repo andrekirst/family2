@@ -33,7 +33,6 @@ public sealed class CreateCalendarEventCommandHandler(
         }
 
         await repository.AddAsync(calendarEvent, cancellationToken);
-        await repository.SaveChangesAsync(cancellationToken);
 
         return new CreateCalendarEventResult(calendarEvent.Id, calendarEvent);
     }

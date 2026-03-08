@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Enums;
@@ -11,6 +12,7 @@ namespace FamilyHub.EventChain.Infrastructure.Orchestrator;
 public sealed partial class ChainOrchestrator(
     IChainDefinitionRepository definitionRepository,
     IChainExecutionRepository executionRepository,
+    IUnitOfWork unitOfWork,
     StepPipeline pipeline,
     ILogger<ChainOrchestrator> logger) : IChainOrchestrator
 {
@@ -53,7 +55,7 @@ public sealed partial class ChainOrchestrator(
                 }
 
                 await executionRepository.AddAsync(execution, ct);
-                await executionRepository.SaveChangesAsync(ct);
+                await unitOfWork.SaveChangesAsync(ct);
 
                 // Execute asynchronously (fire and forget for dual dispatch)
                 _ = Task.Run(() => ExecuteChainAsync(execution, definition, ct), ct);
@@ -73,7 +75,7 @@ public sealed partial class ChainOrchestrator(
         {
             execution.MarkRunning();
             await executionRepository.UpdateAsync(execution, ct);
-            await executionRepository.SaveChangesAsync(ct);
+            await unitOfWork.SaveChangesAsync(ct);
 
             var context = new ChainExecutionContext(execution.Context);
             context.SetTriggerData(execution.TriggerPayload);
@@ -164,7 +166,7 @@ public sealed partial class ChainOrchestrator(
             }
 
             await executionRepository.UpdateAsync(execution, ct);
-            await executionRepository.SaveChangesAsync(ct);
+            await unitOfWork.SaveChangesAsync(ct);
         }
         catch (Exception ex)
         {
@@ -172,7 +174,7 @@ public sealed partial class ChainOrchestrator(
 
             execution.MarkFailed(ex.Message);
             await executionRepository.UpdateAsync(execution, ct);
-            await executionRepository.SaveChangesAsync(ct);
+            await unitOfWork.SaveChangesAsync(ct);
         }
     }
 
@@ -227,7 +229,7 @@ public sealed partial class ChainOrchestrator(
 
         execution.UpdateContext(context.ToJson());
         await executionRepository.UpdateAsync(execution, ct);
-        await executionRepository.SaveChangesAsync(ct);
+        await unitOfWork.SaveChangesAsync(ct);
     }
 
     [LoggerMessage(LogLevel.Debug, "No chain definitions match event {eventType}")]

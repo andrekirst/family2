@@ -50,9 +50,4 @@ public sealed class FamilyRepository(AppDbContext context) : IFamilyRepository
         // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.SaveChangesAsync(cancellationToken);
-    }
 }

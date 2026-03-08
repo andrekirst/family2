@@ -64,9 +64,4 @@ public sealed class DashboardLayoutRepository(AppDbContext context) : IDashboard
         context.DashboardLayouts.Remove(layout);
         return Task.CompletedTask;
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-    {
-        return await context.SaveChangesAsync(ct);
-    }
 }

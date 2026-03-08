@@ -36,7 +36,4 @@ public class FakeStudentRepository(List<Student>? seededStudents = null) : IStud
         AddedStudents.Add(student);
         return Task.CompletedTask;
     }
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

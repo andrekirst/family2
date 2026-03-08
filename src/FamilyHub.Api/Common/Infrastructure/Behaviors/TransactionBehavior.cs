@@ -18,14 +18,24 @@ public sealed class TransactionBehavior<TMessage, TResponse>(IUnitOfWork unitOfW
         MessageHandlerDelegate<TMessage, TResponse> next,
         CancellationToken cancellationToken)
     {
-        var response = await next(message, cancellationToken);
-
-        // Skip SaveChanges for read-only queries — no state to persist
-        if (message is not IReadOnlyQuery<TResponse>)
+        // Skip transactions for read-only queries — no state to persist
+        if (message is IReadOnlyQuery<TResponse>)
         {
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return await next(message, cancellationToken);
         }
 
-        return response;
+        await unitOfWork.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var response = await next(message, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.CommitAsync(cancellationToken);
+            return response;
+        }
+        catch
+        {
+            await unitOfWork.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 }

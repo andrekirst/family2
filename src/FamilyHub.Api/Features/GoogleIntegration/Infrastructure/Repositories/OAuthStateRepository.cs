@@ -23,7 +23,4 @@ public sealed class OAuthStateRepository(AppDbContext context) : IOAuthStateRepo
         => await context.OAuthStates
             .Where(s => s.ExpiresAt <= DateTime.UtcNow)
             .ExecuteDeleteAsync(ct);
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-        => await context.SaveChangesAsync(ct);
 }

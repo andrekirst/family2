@@ -29,9 +29,4 @@ public interface IFamilyRepository : IWriteRepository<FamilyEntity, FamilyId>
     /// Update an existing family.
     /// </summary>
     Task UpdateAsync(FamilyEntity family, CancellationToken ct = default);
-
-    /// <summary>
-    /// Save all pending changes.
-    /// </summary>
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

@@ -15,7 +15,6 @@ public sealed class RemoveWidgetCommandHandler(
 
         dashboard.RemoveWidget(command.WidgetId);
         await dashboardRepository.UpdateAsync(dashboard, cancellationToken);
-        await dashboardRepository.SaveChangesAsync(cancellationToken);
 
         return true;
     }

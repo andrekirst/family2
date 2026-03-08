@@ -13,5 +13,4 @@ public interface IFamilyMemberRepository : IWriteRepository<FamilyMember, Family
     Task<bool> ExistsByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default);
     Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default);
     Task<List<FamilyMember>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

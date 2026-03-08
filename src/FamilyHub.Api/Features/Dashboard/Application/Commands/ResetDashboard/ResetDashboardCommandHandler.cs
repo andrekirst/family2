@@ -15,7 +15,6 @@ public sealed class ResetDashboardCommandHandler(
 
         dashboard.ReplaceAllWidgets([]);
         await dashboardRepository.UpdateAsync(dashboard, cancellationToken);
-        await dashboardRepository.SaveChangesAsync(cancellationToken);
 
         return true;
     }

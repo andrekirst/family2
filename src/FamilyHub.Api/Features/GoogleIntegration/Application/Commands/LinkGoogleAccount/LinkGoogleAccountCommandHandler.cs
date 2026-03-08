@@ -27,7 +27,6 @@ public sealed class LinkGoogleAccountCommandHandler(
         if (oauthState.IsExpired())
         {
             await stateRepository.DeleteAsync(oauthState, cancellationToken);
-            await stateRepository.SaveChangesAsync(cancellationToken);
             throw new DomainException("OAuth state has expired. Please try linking again.");
         }
 

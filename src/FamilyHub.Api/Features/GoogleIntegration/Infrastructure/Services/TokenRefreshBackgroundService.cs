@@ -1,3 +1,4 @@
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Repositories;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects;
 using FamilyHub.Api.Features.GoogleIntegration.Models;
@@ -77,6 +78,7 @@ public sealed class TokenRefreshBackgroundService(
             }
         }
 
-        await linkRepository.SaveChangesAsync(ct);
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        await unitOfWork.SaveChangesAsync(ct);
     }
 }

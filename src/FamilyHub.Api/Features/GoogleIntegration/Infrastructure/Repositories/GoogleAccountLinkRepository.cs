@@ -37,7 +37,4 @@ public sealed class GoogleAccountLinkRepository(AppDbContext context) : IGoogleA
         context.GoogleAccountLinks.Remove(link);
         return Task.CompletedTask;
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-        => await context.SaveChangesAsync(ct);
 }

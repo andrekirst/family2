@@ -12,5 +12,4 @@ public interface IStudentRepository : IWriteRepository<Student, StudentId>
 
     Task<bool> ExistsByFamilyMemberIdAsync(FamilyMemberId familyMemberId, CancellationToken ct = default);
 
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

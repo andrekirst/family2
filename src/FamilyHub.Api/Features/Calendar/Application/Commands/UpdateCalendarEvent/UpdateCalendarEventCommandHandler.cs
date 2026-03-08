@@ -33,8 +33,6 @@ public sealed class UpdateCalendarEventCommandHandler(
             });
         }
 
-        await repository.SaveChangesAsync(cancellationToken);
-
         return new UpdateCalendarEventResult(calendarEvent.Id, calendarEvent);
     }
 }

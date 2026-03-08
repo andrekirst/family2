@@ -33,7 +33,4 @@ public class FakeFamilyMemberRepository(FamilyMember? existingMember = null, Lis
         AddedMembers.Add(member);
         return Task.CompletedTask;
     }
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

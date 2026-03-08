@@ -56,9 +56,4 @@ public sealed class CalendarEventRepository(AppDbContext context) : ICalendarEve
     {
         await context.CalendarEvents.AddAsync(calendarEvent, ct);
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-    {
-        return await context.SaveChangesAsync(ct);
-    }
 }

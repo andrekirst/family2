@@ -7,9 +7,6 @@ public class FakeOAuthStateRepository(OAuthState? existingState = null) : IOAuth
 {
     public List<OAuthState> AddedStates { get; } = [];
     public List<OAuthState> DeletedStates { get; } = [];
-    private int _saveChangesCount;
-    public int SaveChangesCount => _saveChangesCount;
-
     public Task<OAuthState?> GetByStateAsync(string state, CancellationToken ct = default)
     {
         var result = existingState?.State == state ? existingState
@@ -32,9 +29,4 @@ public class FakeOAuthStateRepository(OAuthState? existingState = null) : IOAuth
     public Task DeleteExpiredAsync(CancellationToken ct = default) =>
         Task.CompletedTask;
 
-    public Task<int> SaveChangesAsync(CancellationToken ct = default)
-    {
-        _saveChangesCount++;
-        return Task.FromResult(1);
-    }
 }

@@ -14,7 +14,6 @@ public sealed class CancelCalendarEventCommandHandler(
         var calendarEvent = (await repository.GetByIdAsync(command.CalendarEventId, cancellationToken))!;
 
         calendarEvent.Cancel();
-        await repository.SaveChangesAsync(cancellationToken);
 
         return new CancelCalendarEventResult(true);
     }

@@ -10,9 +10,6 @@ public class FakeGoogleAccountLinkRepository(GoogleAccountLink? existingLink = n
     public List<GoogleAccountLink> AddedLinks { get; } = [];
     public List<GoogleAccountLink> DeletedLinks { get; } = [];
     public GoogleAccountLink? StoredLink => existingLink;
-    private int _saveChangesCount;
-    public int SaveChangesCount => _saveChangesCount;
-
     public Task<GoogleAccountLink?> GetByUserIdAsync(UserId userId, CancellationToken ct = default)
     {
         var result = existingLink?.UserId == userId ? existingLink
@@ -54,9 +51,4 @@ public class FakeGoogleAccountLinkRepository(GoogleAccountLink? existingLink = n
         return Task.CompletedTask;
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken ct = default)
-    {
-        _saveChangesCount++;
-        return Task.FromResult(1);
-    }
 }

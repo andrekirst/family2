@@ -25,9 +25,4 @@ public interface IUserRepository : IWriteRepository<User, UserId>
     /// Note: EF Core tracks changes automatically, this is mainly for explicit saves.
     /// </summary>
     Task UpdateAsync(User user, CancellationToken ct = default);
-
-    /// <summary>
-    /// Save all pending changes.
-    /// </summary>
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

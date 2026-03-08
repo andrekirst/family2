@@ -146,6 +146,38 @@ public class AppDbContext : DbContext, IUnitOfWork
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 
+    // IUnitOfWork: explicit transaction support
+
+    public bool HasChanges => ChangeTracker.HasChanges();
+
+    public bool HasActiveTransaction => Database.CurrentTransaction is not null;
+
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        if (Database.CurrentTransaction is not null)
+            return;
+
+        await Database.BeginTransactionAsync(cancellationToken);
+    }
+
+    public async Task CommitAsync(CancellationToken cancellationToken = default)
+    {
+        var transaction = Database.CurrentTransaction;
+        if (transaction is null)
+            return;
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task RollbackAsync(CancellationToken cancellationToken = default)
+    {
+        var transaction = Database.CurrentTransaction;
+        if (transaction is null)
+            return;
+
+        await transaction.RollbackAsync(cancellationToken);
+    }
+
     /// <summary>
     /// Override SaveChanges to automatically update UpdatedAt timestamps.
     /// Note: Aggregates (User, Family) manage their own timestamps via domain methods.

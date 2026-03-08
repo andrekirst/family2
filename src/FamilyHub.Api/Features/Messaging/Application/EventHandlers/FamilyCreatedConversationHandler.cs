@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Features.Family.Domain.Events;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
 using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
@@ -17,7 +16,7 @@ namespace FamilyHub.Api.Features.Messaging.Application.EventHandlers;
 public sealed class FamilyCreatedConversationHandler(
     IConversationRepository conversationRepository,
     IFolderRepository folderRepository,
-    AppDbContext context,
+    IUnitOfWork unitOfWork,
     ILogger<FamilyCreatedConversationHandler> logger)
     : IDomainEventHandler<FamilyCreatedEvent>
 {
@@ -66,7 +65,7 @@ public sealed class FamilyCreatedConversationHandler(
         await conversationRepository.AddAsync(conversation, cancellationToken);
 
         // Explicit save — event handlers run outside the TransactionBehavior pipeline
-        await context.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
             "Created General conversation with folder for family {FamilyId}",

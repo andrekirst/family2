@@ -13,5 +13,4 @@ public interface IDashboardLayoutRepository : IWriteRepository<DashboardLayout, 
     Task UpdateAsync(DashboardLayout layout, CancellationToken ct = default);
     Task DeleteAsync(DashboardLayout layout, CancellationToken ct = default);
     Task<DashboardLayout?> GetByWidgetIdAsync(DashboardWidgetId widgetId, CancellationToken ct = default);
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

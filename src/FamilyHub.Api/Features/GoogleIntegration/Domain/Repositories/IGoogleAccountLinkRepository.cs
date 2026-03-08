@@ -12,5 +12,4 @@ public interface IGoogleAccountLinkRepository
     Task AddAsync(GoogleAccountLink link, CancellationToken ct = default);
     Task UpdateAsync(GoogleAccountLink link, CancellationToken ct = default);
     Task DeleteAsync(GoogleAccountLink link, CancellationToken ct = default);
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

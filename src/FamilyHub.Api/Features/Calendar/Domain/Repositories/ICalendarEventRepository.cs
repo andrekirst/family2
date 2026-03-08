@@ -10,5 +10,4 @@ public interface ICalendarEventRepository : IWriteRepository<CalendarEvent, Cale
     Task<CalendarEvent?> GetByIdWithAttendeesAsync(CalendarEventId id, CancellationToken ct = default);
     Task<bool> IsCancelledAsync(CalendarEventId id, CancellationToken ct = default);
     Task<List<CalendarEvent>> GetByFamilyAndDateRangeAsync(FamilyId familyId, DateTime start, DateTime end, CancellationToken ct = default);
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

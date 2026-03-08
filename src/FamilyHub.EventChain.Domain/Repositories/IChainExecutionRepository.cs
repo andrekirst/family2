@@ -16,5 +16,4 @@ public interface IChainExecutionRepository : IWriteRepository<ChainExecution, Ch
     Task AddEntityMappingAsync(ChainEntityMapping mapping, CancellationToken ct = default);
     Task<int> GetExecutionCountAsync(ChainDefinitionId definitionId, CancellationToken ct = default);
     Task<DateTime?> GetLastExecutedAtAsync(ChainDefinitionId definitionId, CancellationToken ct = default);
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

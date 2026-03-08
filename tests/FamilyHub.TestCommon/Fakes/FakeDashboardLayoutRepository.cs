@@ -52,7 +52,4 @@ public class FakeDashboardLayoutRepository : IDashboardLayoutRepository
         DeletedLayouts.Add(layout);
         return Task.CompletedTask;
     }
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

@@ -21,7 +21,6 @@ public sealed class AddWidgetCommandHandler(
             command.Width, command.Height, sortOrder, command.ConfigJson);
 
         await dashboardRepository.UpdateAsync(dashboard, cancellationToken);
-        await dashboardRepository.SaveChangesAsync(cancellationToken);
 
         return DashboardMapper.ToDto(widget);
     }

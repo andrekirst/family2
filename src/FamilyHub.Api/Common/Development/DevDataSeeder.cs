@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
@@ -116,7 +117,8 @@ public sealed class DevDataSeeder(
 
         if (seeded > 0 || updated > 0)
         {
-            await dbContext.SaveChangesAsync(ct);
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            await unitOfWork.SaveChangesAsync(ct);
         }
 
         logger.LogInformation(

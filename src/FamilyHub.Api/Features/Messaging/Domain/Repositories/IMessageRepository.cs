@@ -24,9 +24,4 @@ public interface IMessageRepository : IWriteRepository<Message, MessageId>
     /// Get messages for a conversation with cursor pagination.
     /// </summary>
     Task<List<Message>> GetByConversationAsync(ConversationId conversationId, int limit = 50, DateTime? before = null, CancellationToken ct = default);
-
-    /// <summary>
-    /// Save all pending changes.
-    /// </summary>
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

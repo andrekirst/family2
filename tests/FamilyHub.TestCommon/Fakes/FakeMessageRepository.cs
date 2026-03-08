@@ -64,7 +64,4 @@ public class FakeMessageRepository(List<Message>? existingMessages = null) : IMe
         AddedMessages.Add(message);
         return Task.CompletedTask;
     }
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

@@ -34,7 +34,4 @@ public class FakeFamilyRepository(FamilyEntity? existingFamilyForOwner = null) :
 
     public Task UpdateAsync(FamilyEntity family, CancellationToken ct = default) =>
         Task.CompletedTask;
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

@@ -77,9 +77,4 @@ public sealed class ChainDefinitionRepository(AppDbContext context) : IChainDefi
         context.ChainDefinitions.Remove(definition);
         return Task.CompletedTask;
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-    {
-        return await context.SaveChangesAsync(ct);
-    }
 }

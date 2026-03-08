@@ -37,9 +37,4 @@ public sealed class StudentRepository(AppDbContext context) : IStudentRepository
     {
         await context.Students.AddAsync(student, ct);
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-    {
-        return await context.SaveChangesAsync(ct);
-    }
 }

@@ -55,7 +55,4 @@ public class FakeChainDefinitionRepository(List<ChainDefinition>? existingDefini
 
     public Task DeleteAsync(ChainDefinition definition, CancellationToken ct = default) =>
         Task.CompletedTask;
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }
