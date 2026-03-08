@@ -20,6 +20,7 @@
 8. **[MODULE_EXTRACTION_QUICKSTART.md](MODULE_EXTRACTION_QUICKSTART.md)** - Bounded context extraction
 9. **[CLAUDE_CODE_GUIDE.md](CLAUDE_CODE_GUIDE.md)** - AI-assisted development workflow
 10. **[HOOKS.md](HOOKS.md)** - Automatic code formatting and quality checks
+11. **[AGENT_RESOURCE_MANAGEMENT.md](AGENT_RESOURCE_MANAGEMENT.md)** - Resource coordination for parallel agent sessions
 
 ---
 

@@ -192,6 +192,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 - **"plan infrastructure"** → Load [docs/guides/INFRASTRUCTURE_DEVELOPMENT.md](docs/guides/INFRASTRUCTURE_DEVELOPMENT.md) → Docker, K8s patterns
 - **"review domain model"** → Load [docs/architecture/domain-model-microservices-map.md](docs/architecture/domain-model-microservices-map.md)
 - **"review event chains"** → Load [docs/architecture/event-chains-reference.md](docs/architecture/event-chains-reference.md)
+- **"parallel agents"** or **"multi-agent testing"** → Load [docs/development/AGENT_RESOURCE_MANAGEMENT.md](docs/development/AGENT_RESOURCE_MANAGEMENT.md) → Per-project locking, convention-based test targeting
 
 ---
 
