@@ -1,4 +1,5 @@
 using FamilyHub.Api.Common.Database;
+using FamilyHub.Api.Common.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Middleware;
@@ -21,7 +22,7 @@ public class PostgresRlsMiddleware(RequestDelegate next, ILogger<PostgresRlsMidd
         if (context.User.Identity?.IsAuthenticated == true)
         {
             // Extract user ID from JWT 'sub' claim (Keycloak user ID)
-            var externalUserId = context.User.FindFirst("sub")?.Value;
+            var externalUserId = context.User.FindFirst(ClaimNames.Standard.Sub)?.Value;
 
             // Validate as GUID to guarantee safe SQL embedding (Keycloak sub claims are UUIDs).
             // Canonical GUID format (hex + hyphens) cannot contain SQL injection characters.

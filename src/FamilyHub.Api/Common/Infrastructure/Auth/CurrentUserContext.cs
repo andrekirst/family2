@@ -34,19 +34,19 @@ public sealed class CurrentUserContext : ICurrentUserContext
         var httpContext = _httpContextAccessor.HttpContext
             ?? throw new UserNotAuthenticatedException();
 
-        var externalUserIdString = httpContext.User.FindFirst(ClaimNames.Sub)?.Value;
+        var externalUserIdString = httpContext.User.FindFirst(ClaimNames.Standard.Sub)?.Value;
         if (string.IsNullOrEmpty(externalUserIdString))
         {
             throw new UserNotAuthenticatedException();
         }
 
-        var email = httpContext.User.FindFirst(ClaimNames.Email)?.Value
+        var email = httpContext.User.FindFirst(ClaimNames.Standard.Email)?.Value
             ?? throw new UserNotAuthenticatedException();
 
-        var emailVerifiedString = httpContext.User.FindFirst(ClaimNames.EmailVerified)?.Value;
+        var emailVerifiedString = httpContext.User.FindFirst(ClaimNames.Standard.EmailVerified)?.Value;
         var emailVerified = bool.TryParse(emailVerifiedString, out var ev) && ev;
 
-        var userName = httpContext.User.FindFirst(ClaimNames.Name)?.Value;
+        var userName = httpContext.User.FindFirst(ClaimNames.Standard.Name)?.Value;
 
         return new RawClaimsInfo(
             ExternalUserId.From(externalUserIdString),
@@ -60,7 +60,7 @@ public sealed class CurrentUserContext : ICurrentUserContext
         var httpContext = _httpContextAccessor.HttpContext
             ?? throw new UserNotAuthenticatedException();
 
-        var externalUserIdString = httpContext.User.FindFirst(ClaimNames.Sub)?.Value;
+        var externalUserIdString = httpContext.User.FindFirst(ClaimNames.Standard.Sub)?.Value;
         if (string.IsNullOrEmpty(externalUserIdString))
         {
             throw new UserNotAuthenticatedException();

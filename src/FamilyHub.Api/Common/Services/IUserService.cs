@@ -20,7 +20,7 @@ public class UserService : IUserService
         IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
+        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Standard.Sub)?.Value
                                    ?? throw new UnauthorizedAccessException("User not authenticated");
 
         var externalUserId = ExternalUserId.From(externalUserIdString);

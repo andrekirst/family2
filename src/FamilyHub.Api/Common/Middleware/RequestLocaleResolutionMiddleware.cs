@@ -1,4 +1,5 @@
 using System.Globalization;
+using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.Extensions.Caching.Memory;
@@ -23,7 +24,7 @@ public class RequestLocaleResolutionMiddleware(RequestDelegate next)
 
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            var externalUserId = context.User.FindFirst("sub")?.Value;
+            var externalUserId = context.User.FindFirst(ClaimNames.Standard.Sub)?.Value;
             if (!string.IsNullOrEmpty(externalUserId) && Guid.TryParse(externalUserId, out var parsedId))
             {
                 var cacheKey = $"{CacheKeyPrefix}{parsedId}";

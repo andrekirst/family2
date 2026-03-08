@@ -188,7 +188,7 @@ public static class FileEndpoints
     private static async Task<FamilyId?> GetFamilyIdAsync(
         ClaimsPrincipal user, IUserRepository userRepository, CancellationToken cancellationToken)
     {
-        var externalUserId = user.FindFirst(ClaimNames.Sub)?.Value;
+        var externalUserId = user.FindFirst(ClaimNames.Standard.Sub)?.Value;
         if (externalUserId is null)
         {
             return null;

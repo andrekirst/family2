@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
+using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
@@ -31,7 +32,7 @@ public class RequestLocaleResolutionMiddlewareTests
     {
         var context = new DefaultHttpContext();
         var identity = new ClaimsIdentity(
-            [new Claim("sub", subClaimValue)],
+            [new Claim(ClaimNames.Standard.Sub, subClaimValue)],
             authenticationType: "Bearer");
         context.User = new ClaimsPrincipal(identity);
         return context;
