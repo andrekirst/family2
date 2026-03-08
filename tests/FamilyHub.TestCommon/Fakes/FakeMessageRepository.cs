@@ -12,6 +12,9 @@ public class FakeMessageRepository(List<Message>? existingMessages = null) : IMe
     public Task<Message?> GetByIdAsync(MessageId id, CancellationToken ct = default) =>
         Task.FromResult(_messages.Concat(AddedMessages).FirstOrDefault(m => m.Id == id));
 
+    public Task<bool> ExistsByIdAsync(MessageId id, CancellationToken ct = default) =>
+        Task.FromResult(_messages.Concat(AddedMessages).Any(m => m.Id == id));
+
     public Task<List<Message>> GetByFamilyAsync(
         FamilyId familyId,
         int limit = 50,

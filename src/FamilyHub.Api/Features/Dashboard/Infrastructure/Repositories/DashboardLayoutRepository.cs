@@ -16,6 +16,17 @@ public sealed class DashboardLayoutRepository(AppDbContext context) : IDashboard
             .FirstOrDefaultAsync(d => d.Id == id, ct);
     }
 
+    public async Task<bool> ExistsByIdAsync(DashboardId id, CancellationToken ct = default)
+    {
+        return await context.DashboardLayouts.AnyAsync(d => d.Id == id, ct);
+    }
+
+    public async Task<bool> ExistsByWidgetIdAsync(DashboardWidgetId widgetId, CancellationToken ct = default)
+    {
+        return await context.DashboardLayouts
+            .AnyAsync(d => d.Widgets.Any(w => w.Id == widgetId), ct);
+    }
+
     public async Task<DashboardLayout?> GetPersonalDashboardAsync(UserId userId, CancellationToken ct = default)
     {
         return await context.DashboardLayouts

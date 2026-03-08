@@ -15,19 +15,13 @@ public sealed class UpdateCalendarEventBusinessValidator : AbstractValidator<Upd
     {
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
-            {
-                var calendarEvent = await repository.GetByIdWithAttendeesAsync(command.CalendarEventId, ct);
-                return calendarEvent is not null;
-            })
+                await repository.ExistsByIdAsync(command.CalendarEventId, ct))
             .WithErrorCode(DomainErrorCodes.CalendarEventNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.CalendarEventNotFound].Value);
 
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
-            {
-                var calendarEvent = await repository.GetByIdWithAttendeesAsync(command.CalendarEventId, ct);
-                return calendarEvent is null || !calendarEvent.IsCancelled;
-            })
+                !await repository.IsCancelledAsync(command.CalendarEventId, ct))
             .WithErrorCode(DomainErrorCodes.CannotUpdateCancelledEvent)
             .WithMessage(_ => localizer[DomainErrorCodes.CannotUpdateCancelledEvent].Value);
     }

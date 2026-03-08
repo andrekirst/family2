@@ -17,6 +17,9 @@ public class FakeUserRepository(User? existingUser = null) : IUserRepository
     public Task<User?> GetByEmailAsync(Email email, CancellationToken ct = default) =>
         Task.FromResult(existingUser?.Email == email ? existingUser : null);
 
+    public Task<bool> ExistsByIdAsync(UserId id, CancellationToken ct = default) =>
+        Task.FromResult(existingUser is not null);
+
     public Task AddAsync(User user, CancellationToken ct = default) =>
         Task.CompletedTask;
 

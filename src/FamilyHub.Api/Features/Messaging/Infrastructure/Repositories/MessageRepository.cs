@@ -17,6 +17,11 @@ public sealed class MessageRepository(AppDbContext context) : IMessageRepository
         return await context.Messages.FindAsync([id], cancellationToken: cancellationToken);
     }
 
+    public async Task<bool> ExistsByIdAsync(MessageId id, CancellationToken cancellationToken = default)
+    {
+        return await context.Messages.AnyAsync(m => m.Id == id, cancellationToken);
+    }
+
     public async Task<List<Message>> GetByFamilyAsync(
         FamilyId familyId,
         int limit = 50,

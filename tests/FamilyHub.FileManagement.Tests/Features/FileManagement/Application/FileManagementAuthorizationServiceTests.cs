@@ -21,6 +21,9 @@ internal class ListFakeFamilyMemberRepository : IFamilyMemberRepository
     public Task<FamilyMember?> GetByIdAsync(FamilyMemberId id, CancellationToken ct = default)
         => Task.FromResult(Members.FirstOrDefault(m => m.Id == id));
 
+    public Task<bool> ExistsByIdAsync(FamilyMemberId id, CancellationToken ct = default)
+        => Task.FromResult(Members.Any(m => m.Id == id));
+
     public Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default)
         => Task.FromResult(Members.FirstOrDefault(m => m.UserId == userId && m.FamilyId == familyId));
 
@@ -32,6 +35,9 @@ internal class ListFakeFamilyMemberRepository : IFamilyMemberRepository
         Members.Add(member);
         return Task.CompletedTask;
     }
+
+    public Task<bool> ExistsByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default)
+        => Task.FromResult(Members.Any(m => m.UserId == userId && m.FamilyId == familyId));
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default) => Task.FromResult(1);
 }

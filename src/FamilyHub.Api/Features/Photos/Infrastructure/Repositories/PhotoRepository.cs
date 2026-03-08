@@ -44,6 +44,12 @@ public sealed class PhotoRepository(AppDbContext context) : IPhotoRepository
         return file is not null ? ToDto(file) : null;
     }
 
+    public async Task<bool> ExistsByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var fileId = FileId.From(id);
+        return await ImageFiles().AnyAsync(f => f.Id == fileId, ct);
+    }
+
     public async Task<List<PhotoDto>> GetByFamilyAsync(
         FamilyId familyId, int skip, int take, CancellationToken ct = default)
     {

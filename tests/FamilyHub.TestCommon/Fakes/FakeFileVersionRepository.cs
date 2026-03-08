@@ -11,6 +11,9 @@ public class FakeFileVersionRepository : IFileVersionRepository
     public Task<FileVersion?> GetByIdAsync(FileVersionId id, CancellationToken ct = default)
         => Task.FromResult(Versions.FirstOrDefault(v => v.Id == id));
 
+    public Task<bool> ExistsByIdAsync(FileVersionId id, CancellationToken ct = default)
+        => Task.FromResult(Versions.Any(v => v.Id == id));
+
     public Task<List<FileVersion>> GetByFileIdAsync(FileId fileId, CancellationToken ct = default)
         => Task.FromResult(Versions
             .Where(v => v.FileId == fileId)

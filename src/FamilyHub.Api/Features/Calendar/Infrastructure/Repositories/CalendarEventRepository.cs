@@ -2,6 +2,7 @@ using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
+using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +20,22 @@ public sealed class CalendarEventRepository(AppDbContext context) : ICalendarEve
         return await context.CalendarEvents
             .Include(e => e.Attendees)
             .FirstOrDefaultAsync(e => e.Id == id, ct);
+    }
+
+    public async Task<bool> ExistsByIdAsync(CalendarEventId id, CancellationToken ct = default)
+    {
+        return await context.CalendarEvents.AnyAsync(e => e.Id == id, ct);
+    }
+
+    public async Task<bool> IsCancelledAsync(CalendarEventId id, CancellationToken ct = default)
+    {
+        var calendarEvent = await context.CalendarEvents
+            .Where(e => e.Id == id)
+            .Select(e => new { e.IsCancelled })
+            .FirstOrDefaultAsync(ct);
+
+        return calendarEvent?.IsCancelled
+            ?? throw new EntityNotFoundException<CalendarEvent>(id);
     }
 
     public async Task<List<CalendarEvent>> GetByFamilyAndDateRangeAsync(

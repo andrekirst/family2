@@ -30,10 +30,7 @@ public sealed class CreateFamilyBusinessValidator : AbstractValidator<CreateFami
 
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
-            {
-                var user = await userRepository.GetByIdAsync(command.UserId, ct);
-                return user is not null;
-            })
+                await userRepository.ExistsByIdAsync(command.UserId, ct))
             .WithErrorCode(DomainErrorCodes.UserNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.UserNotFound].Value);
     }

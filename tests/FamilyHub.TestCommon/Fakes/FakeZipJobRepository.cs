@@ -12,6 +12,9 @@ public class FakeZipJobRepository : IZipJobRepository
     public Task<ZipJob?> GetByIdAsync(ZipJobId id, CancellationToken ct = default)
         => Task.FromResult(Jobs.FirstOrDefault(j => j.Id == id));
 
+    public Task<bool> ExistsByIdAsync(ZipJobId id, CancellationToken ct = default)
+        => Task.FromResult(Jobs.Any(j => j.Id == id));
+
     public Task<List<ZipJob>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => Task.FromResult(Jobs
             .Where(j => j.FamilyId == familyId)

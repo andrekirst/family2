@@ -11,6 +11,9 @@ public class FakePhotoRepository(List<PhotoDto>? existingPhotos = null) : IPhoto
     public Task<PhotoDto?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         Task.FromResult(_allPhotos.FirstOrDefault(p => p.Id == id));
 
+    public Task<bool> ExistsByIdAsync(Guid id, CancellationToken ct = default) =>
+        Task.FromResult(_allPhotos.Any(p => p.Id == id));
+
     public Task<List<PhotoDto>> GetByFamilyAsync(FamilyId familyId, int skip, int take, CancellationToken ct = default) =>
         Task.FromResult(_allPhotos
             .Where(p => p.FamilyId == familyId.Value)

@@ -1,13 +1,12 @@
+using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 
-public interface IFilePermissionRepository
+public interface IFilePermissionRepository : IWriteRepository<FilePermission, FilePermissionId>
 {
-    Task<FilePermission?> GetByIdAsync(FilePermissionId id, CancellationToken ct = default);
-
     Task<List<FilePermission>> GetByResourceAsync(
         PermissionResourceType resourceType, Guid resourceId, CancellationToken ct = default);
 
@@ -22,8 +21,6 @@ public interface IFilePermissionRepository
 
     Task<List<FilePermission>> GetByFolderIdsAsync(
         IEnumerable<Guid> folderIds, CancellationToken ct = default);
-
-    Task AddAsync(FilePermission permission, CancellationToken ct = default);
 
     Task RemoveAsync(FilePermission permission, CancellationToken ct = default);
 

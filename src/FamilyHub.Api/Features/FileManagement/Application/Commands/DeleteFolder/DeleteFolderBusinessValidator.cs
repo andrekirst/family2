@@ -15,10 +15,7 @@ public sealed class DeleteFolderBusinessValidator : AbstractValidator<DeleteFold
     {
         RuleFor(x => x.FolderId)
             .MustAsync(async (folderId, ct) =>
-            {
-                var folder = await folderRepository.GetByIdAsync(folderId, ct);
-                return folder is not null;
-            })
+                await folderRepository.ExistsByIdAsync(folderId, ct))
             .WithErrorCode(DomainErrorCodes.FolderNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.FolderNotFound].Value);
     }

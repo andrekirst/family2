@@ -15,10 +15,7 @@ public sealed class DeleteChainDefinitionBusinessValidator : AbstractValidator<D
     {
         RuleFor(x => x.Id)
             .MustAsync(async (id, ct) =>
-            {
-                var definition = await repository.GetByIdAsync(id, ct);
-                return definition is not null;
-            })
+                await repository.ExistsByIdAsync(id, ct))
             .WithErrorCode(DomainErrorCodes.ChainDefinitionNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.ChainDefinitionNotFound].Value);
     }

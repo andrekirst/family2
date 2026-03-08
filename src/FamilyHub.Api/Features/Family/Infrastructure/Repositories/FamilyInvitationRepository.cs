@@ -20,6 +20,11 @@ public sealed class FamilyInvitationRepository(AppDbContext context) : IFamilyIn
             .FirstOrDefaultAsync(fi => fi.Id == id, cancellationToken);
     }
 
+    public async Task<bool> ExistsByIdAsync(InvitationId id, CancellationToken cancellationToken = default)
+    {
+        return await context.FamilyInvitations.AnyAsync(fi => fi.Id == id, cancellationToken);
+    }
+
     public async Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken invitationToken, CancellationToken cancellationToken = default)
     {
         return await context.FamilyInvitations

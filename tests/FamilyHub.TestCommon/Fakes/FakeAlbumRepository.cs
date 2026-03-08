@@ -11,6 +11,9 @@ public class FakeAlbumRepository : IAlbumRepository
     public Task<Album?> GetByIdAsync(AlbumId id, CancellationToken ct = default)
         => Task.FromResult(Albums.FirstOrDefault(a => a.Id == id));
 
+    public Task<bool> ExistsByIdAsync(AlbumId id, CancellationToken ct = default)
+        => Task.FromResult(Albums.Any(a => a.Id == id));
+
     public Task<List<Album>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => Task.FromResult(Albums.Where(a => a.FamilyId == familyId).OrderBy(a => a.Name).ToList());
 

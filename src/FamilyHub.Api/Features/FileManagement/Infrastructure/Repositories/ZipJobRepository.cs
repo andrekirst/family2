@@ -12,6 +12,9 @@ public sealed class ZipJobRepository(AppDbContext context) : IZipJobRepository
     public async Task<ZipJob?> GetByIdAsync(ZipJobId id, CancellationToken ct = default)
         => await context.Set<ZipJob>().FirstOrDefaultAsync(j => j.Id == id, ct);
 
+    public async Task<bool> ExistsByIdAsync(ZipJobId id, CancellationToken ct = default)
+        => await context.Set<ZipJob>().AnyAsync(j => j.Id == id, ct);
+
     public async Task<List<ZipJob>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => await context.Set<ZipJob>()
             .Where(j => j.FamilyId == familyId)

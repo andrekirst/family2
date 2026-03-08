@@ -15,10 +15,7 @@ public sealed class ResetDashboardBusinessValidator : AbstractValidator<ResetDas
     {
         RuleFor(x => x.DashboardId)
             .MustAsync(async (dashboardId, ct) =>
-            {
-                var dashboard = await dashboardRepository.GetByIdAsync(dashboardId, ct);
-                return dashboard is not null;
-            })
+                await dashboardRepository.ExistsByIdAsync(dashboardId, ct))
             .WithErrorCode(DomainErrorCodes.DashboardNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.DashboardNotFound].Value);
     }

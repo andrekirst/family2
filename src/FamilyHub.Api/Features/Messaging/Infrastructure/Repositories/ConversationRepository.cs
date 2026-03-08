@@ -17,6 +17,11 @@ public sealed class ConversationRepository(AppDbContext context) : IConversation
         return await context.Conversations.FindAsync([id], cancellationToken: ct);
     }
 
+    public async Task<bool> ExistsByIdAsync(ConversationId id, CancellationToken ct = default)
+    {
+        return await context.Conversations.AnyAsync(c => c.Id == id, ct);
+    }
+
     public async Task<Conversation?> GetFamilyConversationAsync(FamilyId familyId, CancellationToken ct = default)
     {
         return await context.Conversations

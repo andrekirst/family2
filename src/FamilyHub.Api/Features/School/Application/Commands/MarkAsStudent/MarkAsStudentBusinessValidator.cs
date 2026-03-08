@@ -17,19 +17,13 @@ public sealed class MarkAsStudentBusinessValidator : AbstractValidator<MarkAsStu
     {
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
-            {
-                var alreadyExists = await studentRepository.ExistsByFamilyMemberIdAsync(command.FamilyMemberId, ct);
-                return !alreadyExists;
-            })
+                !await studentRepository.ExistsByFamilyMemberIdAsync(command.FamilyMemberId, ct))
             .WithErrorCode(DomainErrorCodes.FamilyMemberAlreadyStudent)
             .WithMessage(_ => localizer[DomainErrorCodes.FamilyMemberAlreadyStudent].Value);
 
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
-            {
-                var targetMember = await familyMemberRepository.GetByIdAsync(command.FamilyMemberId, ct);
-                return targetMember is not null;
-            })
+                await familyMemberRepository.ExistsByIdAsync(command.FamilyMemberId, ct))
             .WithErrorCode(DomainErrorCodes.FamilyMemberNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.FamilyMemberNotFound].Value);
     }

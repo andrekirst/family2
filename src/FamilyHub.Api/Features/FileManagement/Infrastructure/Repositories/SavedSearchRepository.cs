@@ -11,6 +11,9 @@ public sealed class SavedSearchRepository(AppDbContext context) : ISavedSearchRe
     public async Task<SavedSearch?> GetByIdAsync(SavedSearchId id, CancellationToken ct = default)
         => await context.Set<SavedSearch>().FindAsync([id], cancellationToken: ct);
 
+    public async Task<bool> ExistsByIdAsync(SavedSearchId id, CancellationToken ct = default)
+        => await context.Set<SavedSearch>().AnyAsync(s => s.Id == id, ct);
+
     public async Task<List<SavedSearch>> GetByUserIdAsync(UserId userId, CancellationToken ct = default)
         => await context.Set<SavedSearch>()
             .Where(s => s.UserId == userId)

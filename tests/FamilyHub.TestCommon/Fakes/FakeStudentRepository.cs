@@ -11,21 +11,23 @@ public class FakeStudentRepository(List<Student>? seededStudents = null) : IStud
     private readonly List<Student> _seeded = seededStudents ?? [];
     public List<Student> AddedStudents { get; } = [];
 
-    public Task<Student?> GetByIdAsync(StudentId id, CancellationToken ct = default)
-    {
-        var student = _seeded.Concat(AddedStudents).FirstOrDefault(s => s.Id == id);
-        return Task.FromResult(student);
-    }
+    private IEnumerable<Student> All => All;
+
+    public Task<Student?> GetByIdAsync(StudentId id, CancellationToken ct = default) =>
+        Task.FromResult(All.FirstOrDefault(s => s.Id == id));
+
+    public Task<bool> ExistsByIdAsync(StudentId id, CancellationToken ct = default) =>
+        Task.FromResult(All.Any(s => s.Id == id));
 
     public Task<List<Student>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
     {
-        var students = _seeded.Concat(AddedStudents).Where(s => s.FamilyId == familyId).ToList();
+        var students = All.Where(s => s.FamilyId == familyId).ToList();
         return Task.FromResult(students);
     }
 
     public Task<bool> ExistsByFamilyMemberIdAsync(FamilyMemberId familyMemberId, CancellationToken ct = default)
     {
-        var exists = _seeded.Concat(AddedStudents).Any(s => s.FamilyMemberId == familyMemberId);
+        var exists = All.Any(s => s.FamilyMemberId == familyMemberId);
         return Task.FromResult(exists);
     }
 

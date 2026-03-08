@@ -12,6 +12,9 @@ public class FakeConversationRepository(List<Conversation>? existingConversation
     public Task<Conversation?> GetByIdAsync(ConversationId id, CancellationToken ct = default) =>
         Task.FromResult(_conversations.Concat(AddedConversations).FirstOrDefault(c => c.Id == id));
 
+    public Task<bool> ExistsByIdAsync(ConversationId id, CancellationToken ct = default) =>
+        Task.FromResult(_conversations.Concat(AddedConversations).Any(c => c.Id == id));
+
     public Task<Conversation?> GetFamilyConversationAsync(FamilyId familyId, CancellationToken ct = default) =>
         Task.FromResult(_conversations.Concat(AddedConversations).FirstOrDefault(c => c.FamilyId == familyId));
 

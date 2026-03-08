@@ -12,6 +12,9 @@ public class FakeExternalConnectionRepository : IExternalConnectionRepository
     public Task<ExternalConnection?> GetByIdAsync(ExternalConnectionId id, CancellationToken ct = default)
         => Task.FromResult(Connections.FirstOrDefault(c => c.Id == id));
 
+    public Task<bool> ExistsByIdAsync(ExternalConnectionId id, CancellationToken ct = default)
+        => Task.FromResult(Connections.Any(c => c.Id == id));
+
     public Task<List<ExternalConnection>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => Task.FromResult(Connections
             .Where(c => c.FamilyId == familyId)

@@ -15,17 +15,25 @@ public class FakeDashboardLayoutRepository : IDashboardLayoutRepository
 
     public void Seed(DashboardLayout layout) => _layouts.Add(layout);
 
+    private IEnumerable<DashboardLayout> All => All;
+
     public Task<DashboardLayout?> GetByIdAsync(DashboardId id, CancellationToken ct = default) =>
-        Task.FromResult(_layouts.Concat(AddedLayouts).FirstOrDefault(d => d.Id == id));
+        Task.FromResult(All.FirstOrDefault(d => d.Id == id));
+
+    public Task<bool> ExistsByIdAsync(DashboardId id, CancellationToken ct = default) =>
+        Task.FromResult(All.Any(d => d.Id == id));
+
+    public Task<bool> ExistsByWidgetIdAsync(DashboardWidgetId widgetId, CancellationToken ct = default) =>
+        Task.FromResult(All.Any(d => d.Widgets.Any(w => w.Id == widgetId)));
 
     public Task<DashboardLayout?> GetPersonalDashboardAsync(UserId userId, CancellationToken ct = default) =>
-        Task.FromResult(_layouts.Concat(AddedLayouts).FirstOrDefault(d => d.UserId == userId && !d.IsShared));
+        Task.FromResult(All.FirstOrDefault(d => d.UserId == userId && !d.IsShared));
 
     public Task<DashboardLayout?> GetSharedDashboardAsync(FamilyId familyId, CancellationToken ct = default) =>
-        Task.FromResult(_layouts.Concat(AddedLayouts).FirstOrDefault(d => d.FamilyId == familyId && d.IsShared));
+        Task.FromResult(All.FirstOrDefault(d => d.FamilyId == familyId && d.IsShared));
 
     public Task<DashboardLayout?> GetByWidgetIdAsync(DashboardWidgetId widgetId, CancellationToken ct = default) =>
-        Task.FromResult(_layouts.Concat(AddedLayouts).FirstOrDefault(d => d.Widgets.Any(w => w.Id == widgetId)));
+        Task.FromResult(All.FirstOrDefault(d => d.Widgets.Any(w => w.Id == widgetId)));
 
     public Task AddAsync(DashboardLayout layout, CancellationToken ct = default)
     {

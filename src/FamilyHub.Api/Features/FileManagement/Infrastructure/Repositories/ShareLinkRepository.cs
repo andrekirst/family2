@@ -11,6 +11,9 @@ public sealed class ShareLinkRepository(AppDbContext context) : IShareLinkReposi
     public async Task<ShareLink?> GetByIdAsync(ShareLinkId id, CancellationToken ct = default)
         => await context.Set<ShareLink>().FindAsync([id], cancellationToken: ct);
 
+    public async Task<bool> ExistsByIdAsync(ShareLinkId id, CancellationToken ct = default)
+        => await context.Set<ShareLink>().AnyAsync(s => s.Id == id, ct);
+
     public async Task<ShareLink?> GetByTokenAsync(string token, CancellationToken ct = default)
         => await context.Set<ShareLink>()
             .FirstOrDefaultAsync(s => s.Token == token, ct);

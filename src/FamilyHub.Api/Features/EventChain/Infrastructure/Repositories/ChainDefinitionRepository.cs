@@ -14,6 +14,11 @@ public sealed class ChainDefinitionRepository(AppDbContext context) : IChainDefi
         return await context.ChainDefinitions.FindAsync([id], cancellationToken: ct);
     }
 
+    public async Task<bool> ExistsByIdAsync(ChainDefinitionId id, CancellationToken ct = default)
+    {
+        return await context.ChainDefinitions.AnyAsync(d => d.Id == id, ct);
+    }
+
     public async Task<ChainDefinition?> GetByIdWithStepsAsync(ChainDefinitionId id, CancellationToken ct = default)
     {
         return await context.ChainDefinitions

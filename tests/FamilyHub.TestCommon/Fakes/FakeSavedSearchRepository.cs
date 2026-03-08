@@ -11,6 +11,9 @@ public class FakeSavedSearchRepository : ISavedSearchRepository
     public Task<SavedSearch?> GetByIdAsync(SavedSearchId id, CancellationToken ct = default)
         => Task.FromResult(Searches.FirstOrDefault(s => s.Id == id));
 
+    public Task<bool> ExistsByIdAsync(SavedSearchId id, CancellationToken ct = default)
+        => Task.FromResult(Searches.Any(s => s.Id == id));
+
     public Task<List<SavedSearch>> GetByUserIdAsync(UserId userId, CancellationToken ct = default)
         => Task.FromResult(Searches
             .Where(s => s.UserId == userId)

@@ -11,6 +11,9 @@ public class FakeOrganizationRuleRepository : IOrganizationRuleRepository
     public Task<OrganizationRule?> GetByIdAsync(OrganizationRuleId id, CancellationToken ct = default)
         => Task.FromResult(Rules.FirstOrDefault(r => r.Id == id));
 
+    public Task<bool> ExistsByIdAsync(OrganizationRuleId id, CancellationToken ct = default)
+        => Task.FromResult(Rules.Any(r => r.Id == id));
+
     public Task<List<OrganizationRule>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => Task.FromResult(Rules
             .Where(r => r.FamilyId == familyId)

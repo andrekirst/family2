@@ -12,6 +12,9 @@ public sealed class SecureNoteRepository(AppDbContext context) : ISecureNoteRepo
     public async Task<SecureNote?> GetByIdAsync(SecureNoteId id, CancellationToken ct = default)
         => await context.Set<SecureNote>().FirstOrDefaultAsync(n => n.Id == id, ct);
 
+    public async Task<bool> ExistsByIdAsync(SecureNoteId id, CancellationToken ct = default)
+        => await context.Set<SecureNote>().AnyAsync(n => n.Id == id, ct);
+
     public async Task<List<SecureNote>> GetByUserIdAsync(UserId userId, FamilyId familyId, CancellationToken ct = default)
         => await context.Set<SecureNote>()
             .Where(n => n.UserId == userId && n.FamilyId == familyId)

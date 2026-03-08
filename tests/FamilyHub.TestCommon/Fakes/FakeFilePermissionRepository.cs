@@ -12,6 +12,9 @@ public class FakeFilePermissionRepository : IFilePermissionRepository
     public Task<FilePermission?> GetByIdAsync(FilePermissionId id, CancellationToken ct = default)
         => Task.FromResult(Permissions.FirstOrDefault(p => p.Id == id));
 
+    public Task<bool> ExistsByIdAsync(FilePermissionId id, CancellationToken ct = default)
+        => Task.FromResult(Permissions.Any(p => p.Id == id));
+
     public Task<List<FilePermission>> GetByResourceAsync(
         PermissionResourceType resourceType, Guid resourceId, CancellationToken ct = default)
         => Task.FromResult(Permissions

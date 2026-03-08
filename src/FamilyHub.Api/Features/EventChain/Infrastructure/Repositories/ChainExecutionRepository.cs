@@ -15,6 +15,11 @@ public sealed class ChainExecutionRepository(AppDbContext context) : IChainExecu
         return await context.ChainExecutions.FindAsync([id], cancellationToken: ct);
     }
 
+    public async Task<bool> ExistsByIdAsync(ChainExecutionId id, CancellationToken ct = default)
+    {
+        return await context.ChainExecutions.AnyAsync(e => e.Id == id, ct);
+    }
+
     public async Task<ChainExecution?> GetByIdWithStepsAsync(ChainExecutionId id, CancellationToken ct = default)
     {
         return await context.ChainExecutions

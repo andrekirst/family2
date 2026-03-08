@@ -11,6 +11,9 @@ public class FakeStoredFileRepository : IStoredFileRepository
     public Task<StoredFile?> GetByIdAsync(FileId id, CancellationToken ct = default)
         => Task.FromResult(Files.FirstOrDefault(f => f.Id == id));
 
+    public Task<bool> ExistsByIdAsync(FileId id, CancellationToken ct = default)
+        => Task.FromResult(Files.Any(f => f.Id == id));
+
     public Task<List<StoredFile>> GetByFolderIdAsync(FolderId folderId, CancellationToken ct = default)
         => Task.FromResult(Files.Where(f => f.FolderId == folderId).ToList());
 

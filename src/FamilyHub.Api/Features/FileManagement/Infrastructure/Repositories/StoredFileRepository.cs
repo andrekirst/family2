@@ -11,6 +11,9 @@ public sealed class StoredFileRepository(AppDbContext context) : IStoredFileRepo
     public async Task<StoredFile?> GetByIdAsync(FileId id, CancellationToken ct = default)
         => await context.Set<StoredFile>().FindAsync([id], cancellationToken: ct);
 
+    public async Task<bool> ExistsByIdAsync(FileId id, CancellationToken ct = default)
+        => await context.Set<StoredFile>().AnyAsync(f => f.Id == id, ct);
+
     public async Task<List<StoredFile>> GetByFolderIdAsync(FolderId folderId, CancellationToken ct = default)
         => await context.Set<StoredFile>()
             .Where(f => f.FolderId == folderId)

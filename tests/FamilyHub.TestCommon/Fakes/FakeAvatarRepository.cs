@@ -16,6 +16,12 @@ public class FakeAvatarRepository(AvatarAggregate? existingAvatar = null) : IAva
         return Task.FromResult(existingAvatar?.Id == id ? existingAvatar : null);
     }
 
+    public Task<bool> ExistsByIdAsync(AvatarId id, CancellationToken ct = default)
+    {
+        if (AddedAvatars.Any(a => a.Id == id)) return Task.FromResult(true);
+        return Task.FromResult(existingAvatar?.Id == id);
+    }
+
     public Task AddAsync(AvatarAggregate avatar, CancellationToken ct = default)
     {
         AddedAvatars.Add(avatar);

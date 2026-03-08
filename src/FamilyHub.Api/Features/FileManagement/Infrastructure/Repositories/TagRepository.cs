@@ -12,6 +12,9 @@ public sealed class TagRepository(AppDbContext context) : ITagRepository
     public async Task<Tag?> GetByIdAsync(TagId id, CancellationToken ct = default)
         => await context.Set<Tag>().FindAsync([id], cancellationToken: ct);
 
+    public async Task<bool> ExistsByIdAsync(TagId id, CancellationToken ct = default)
+        => await context.Set<Tag>().AnyAsync(t => t.Id == id, ct);
+
     public async Task<List<Tag>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => await context.Set<Tag>()
             .Where(t => t.FamilyId == familyId)

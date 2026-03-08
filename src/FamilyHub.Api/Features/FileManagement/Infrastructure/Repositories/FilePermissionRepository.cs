@@ -12,6 +12,9 @@ public sealed class FilePermissionRepository(AppDbContext context) : IFilePermis
     public async Task<FilePermission?> GetByIdAsync(FilePermissionId id, CancellationToken ct = default)
         => await context.Set<FilePermission>().FindAsync([id], cancellationToken: ct);
 
+    public async Task<bool> ExistsByIdAsync(FilePermissionId id, CancellationToken ct = default)
+        => await context.Set<FilePermission>().AnyAsync(p => p.Id == id, ct);
+
     public async Task<List<FilePermission>> GetByResourceAsync(
         PermissionResourceType resourceType, Guid resourceId, CancellationToken ct = default)
         => await context.Set<FilePermission>()

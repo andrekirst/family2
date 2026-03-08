@@ -24,19 +24,13 @@ public sealed class AcceptInvitationByIdBusinessValidator : AbstractValidator<Ac
     {
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
-            {
-                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, ct);
-                return invitation is not null;
-            })
+                await invitationRepository.ExistsByIdAsync(command.InvitationId!.Value, ct))
             .WithErrorCode(DomainErrorCodes.InvitationNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.InvitationNotFound].Value);
 
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
-            {
-                var user = await userRepository.GetByIdAsync(command.UserId, ct);
-                return user is not null;
-            })
+                await userRepository.ExistsByIdAsync(command.UserId, ct))
             .WithErrorCode(DomainErrorCodes.UserNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.UserNotFound].Value);
 
@@ -49,8 +43,7 @@ public sealed class AcceptInvitationByIdBusinessValidator : AbstractValidator<Ac
                     return true;
                 }
 
-                var existingMember = await memberRepository.GetByUserAndFamilyAsync(command.UserId, invitation.FamilyId, ct);
-                return existingMember is null;
+                return !await memberRepository.ExistsByUserAndFamilyAsync(command.UserId, invitation.FamilyId, ct);
             })
             .WithErrorCode(DomainErrorCodes.AlreadyFamilyMember)
             .WithMessage(_ => localizer[DomainErrorCodes.AlreadyFamilyMember].Value);

@@ -15,6 +15,11 @@ public sealed class StudentRepository(AppDbContext context) : IStudentRepository
         return await context.Students.FindAsync([id], cancellationToken: ct);
     }
 
+    public async Task<bool> ExistsByIdAsync(StudentId id, CancellationToken ct = default)
+    {
+        return await context.Students.AnyAsync(s => s.Id == id, ct);
+    }
+
     public async Task<List<Student>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
     {
         return await context.Students

@@ -15,10 +15,7 @@ public sealed class UpdateWidgetConfigBusinessValidator : AbstractValidator<Upda
     {
         RuleFor(x => x.WidgetId)
             .MustAsync(async (widgetId, ct) =>
-            {
-                var dashboard = await dashboardRepository.GetByWidgetIdAsync(widgetId, ct);
-                return dashboard is not null;
-            })
+                await dashboardRepository.ExistsByWidgetIdAsync(widgetId, ct))
             .WithErrorCode(DomainErrorCodes.WidgetNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.WidgetNotFound].Value);
     }

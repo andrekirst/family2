@@ -11,6 +11,9 @@ public sealed class AlbumRepository(AppDbContext context) : IAlbumRepository
     public async Task<Album?> GetByIdAsync(AlbumId id, CancellationToken ct = default)
         => await context.Set<Album>().FindAsync([id], cancellationToken: ct);
 
+    public async Task<bool> ExistsByIdAsync(AlbumId id, CancellationToken ct = default)
+        => await context.Set<Album>().AnyAsync(a => a.Id == id, ct);
+
     public async Task<List<Album>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => await context.Set<Album>()
             .Where(a => a.FamilyId == familyId)

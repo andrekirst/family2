@@ -12,6 +12,9 @@ public class FakeTagRepository : ITagRepository
     public Task<Tag?> GetByIdAsync(TagId id, CancellationToken ct = default)
         => Task.FromResult(Tags.FirstOrDefault(t => t.Id == id));
 
+    public Task<bool> ExistsByIdAsync(TagId id, CancellationToken ct = default)
+        => Task.FromResult(Tags.Any(t => t.Id == id));
+
     public Task<List<Tag>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => Task.FromResult(Tags.Where(t => t.FamilyId == familyId).OrderBy(t => t.Name).ToList());
 

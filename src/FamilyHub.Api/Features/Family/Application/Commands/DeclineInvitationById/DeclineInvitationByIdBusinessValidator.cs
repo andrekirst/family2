@@ -23,19 +23,13 @@ public sealed class DeclineInvitationByIdBusinessValidator : AbstractValidator<D
     {
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
-            {
-                var invitation = await invitationRepository.GetByIdAsync(command.InvitationId!.Value, ct);
-                return invitation is not null;
-            })
+                await invitationRepository.ExistsByIdAsync(command.InvitationId!.Value, ct))
             .WithErrorCode(DomainErrorCodes.InvitationNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.InvitationNotFound].Value);
 
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
-            {
-                var user = await userRepository.GetByIdAsync(command.UserId, ct);
-                return user is not null;
-            })
+                await userRepository.ExistsByIdAsync(command.UserId, ct))
             .WithErrorCode(DomainErrorCodes.UserNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.UserNotFound].Value);
     }

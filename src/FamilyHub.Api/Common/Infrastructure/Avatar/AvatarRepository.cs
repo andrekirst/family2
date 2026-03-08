@@ -16,6 +16,11 @@ public sealed class AvatarRepository(AppDbContext dbContext) : IAvatarRepository
             .FirstOrDefaultAsync(a => a.Id == id, ct);
     }
 
+    public async Task<bool> ExistsByIdAsync(AvatarId id, CancellationToken ct = default)
+    {
+        return await dbContext.Avatars.AnyAsync(a => a.Id == id, ct);
+    }
+
     public async Task AddAsync(AvatarAggregate avatar, CancellationToken ct = default)
     {
         await dbContext.Avatars.AddAsync(avatar, ct);

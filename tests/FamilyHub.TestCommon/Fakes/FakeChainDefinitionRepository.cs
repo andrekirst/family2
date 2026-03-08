@@ -10,8 +10,13 @@ public class FakeChainDefinitionRepository(List<ChainDefinition>? existingDefini
     private readonly List<ChainDefinition> _definitions = existingDefinitions ?? [];
     public List<ChainDefinition> AddedDefinitions { get; } = [];
 
+    private IEnumerable<ChainDefinition> All => All;
+
     public Task<ChainDefinition?> GetByIdAsync(ChainDefinitionId id, CancellationToken ct = default) =>
-        Task.FromResult(_definitions.Concat(AddedDefinitions).FirstOrDefault(d => d.Id == id));
+        Task.FromResult(All.FirstOrDefault(d => d.Id == id));
+
+    public Task<bool> ExistsByIdAsync(ChainDefinitionId id, CancellationToken ct = default) =>
+        Task.FromResult(All.Any(d => d.Id == id));
 
     public Task<ChainDefinition?> GetByIdWithStepsAsync(ChainDefinitionId id, CancellationToken ct = default) =>
         GetByIdAsync(id, ct);
@@ -19,7 +24,7 @@ public class FakeChainDefinitionRepository(List<ChainDefinition>? existingDefini
     public Task<IReadOnlyList<ChainDefinition>> GetByFamilyIdAsync(
         FamilyId familyId, bool? isEnabled = null, CancellationToken ct = default)
     {
-        var query = _definitions.Concat(AddedDefinitions)
+        var query = All
             .Where(d => d.FamilyId == familyId);
 
         if (isEnabled.HasValue)
@@ -30,12 +35,12 @@ public class FakeChainDefinitionRepository(List<ChainDefinition>? existingDefini
 
     public Task<IReadOnlyList<ChainDefinition>> GetEnabledByTriggerEventTypeAsync(
         string triggerEventType, CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<ChainDefinition>>(_definitions.Concat(AddedDefinitions)
+        Task.FromResult<IReadOnlyList<ChainDefinition>>(All
             .Where(d => d.IsEnabled && d.TriggerEventType == triggerEventType)
             .ToList().AsReadOnly());
 
     public Task<IReadOnlyList<ChainDefinition>> GetTemplatesAsync(CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<ChainDefinition>>(_definitions.Concat(AddedDefinitions)
+        Task.FromResult<IReadOnlyList<ChainDefinition>>(All
             .Where(d => d.IsTemplate)
             .ToList().AsReadOnly());
 

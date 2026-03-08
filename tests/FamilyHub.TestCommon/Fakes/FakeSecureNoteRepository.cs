@@ -12,6 +12,9 @@ public class FakeSecureNoteRepository : ISecureNoteRepository
     public Task<SecureNote?> GetByIdAsync(SecureNoteId id, CancellationToken ct = default)
         => Task.FromResult(Notes.FirstOrDefault(n => n.Id == id));
 
+    public Task<bool> ExistsByIdAsync(SecureNoteId id, CancellationToken ct = default)
+        => Task.FromResult(Notes.Any(n => n.Id == id));
+
     public Task<List<SecureNote>> GetByUserIdAsync(UserId userId, FamilyId familyId, CancellationToken ct = default)
         => Task.FromResult(Notes
             .Where(n => n.UserId == userId && n.FamilyId == familyId)

@@ -16,6 +16,12 @@ public class FakeFamilyMemberRepository(FamilyMember? existingMember = null, Lis
         return Task.FromResult(member);
     }
 
+    public Task<bool> ExistsByIdAsync(FamilyMemberId id, CancellationToken ct = default) =>
+        Task.FromResult(_allMembers.Concat(AddedMembers).Any(m => m.Id == id));
+
+    public Task<bool> ExistsByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default) =>
+        Task.FromResult(existingMember is not null);
+
     public Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default) =>
         Task.FromResult(existingMember);
 

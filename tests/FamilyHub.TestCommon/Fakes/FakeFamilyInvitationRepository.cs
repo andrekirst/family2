@@ -19,6 +19,9 @@ public class FakeFamilyInvitationRepository(
     public Task<FamilyInvitation?> GetByIdAsync(InvitationId id, CancellationToken ct = default) =>
         Task.FromResult(existingById ?? _seeded.FirstOrDefault(i => i.Id == id));
 
+    public Task<bool> ExistsByIdAsync(InvitationId id, CancellationToken ct = default) =>
+        Task.FromResult(existingById is not null || _seeded.Any(i => i.Id == id));
+
     public Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken tokenHash, CancellationToken ct = default) =>
         Task.FromResult(existingByTokenHash);
 

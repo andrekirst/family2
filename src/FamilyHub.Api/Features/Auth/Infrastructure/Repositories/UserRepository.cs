@@ -31,6 +31,11 @@ public sealed class UserRepository(AppDbContext context) : IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email, ct);
     }
 
+    public async Task<bool> ExistsByIdAsync(UserId id, CancellationToken ct = default)
+    {
+        return await context.Users.AnyAsync(u => u.Id == id, ct);
+    }
+
     public async Task AddAsync(User user, CancellationToken ct = default)
     {
         await context.Users.AddAsync(user, ct);

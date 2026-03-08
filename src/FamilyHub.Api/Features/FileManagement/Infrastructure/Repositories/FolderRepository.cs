@@ -11,6 +11,9 @@ public sealed class FolderRepository(AppDbContext context) : IFolderRepository
     public async Task<Folder?> GetByIdAsync(FolderId id, CancellationToken ct = default)
         => await context.Set<Folder>().FindAsync([id], cancellationToken: ct);
 
+    public async Task<bool> ExistsByIdAsync(FolderId id, CancellationToken ct = default)
+        => await context.Set<Folder>().AnyAsync(f => f.Id == id, ct);
+
     public async Task<Folder?> GetRootFolderAsync(FamilyId familyId, CancellationToken ct = default)
         => await context.Set<Folder>()
             .FirstOrDefaultAsync(f => f.FamilyId == familyId && f.ParentFolderId == null, ct);

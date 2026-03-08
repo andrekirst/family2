@@ -12,6 +12,9 @@ public sealed class ExternalConnectionRepository(AppDbContext context) : IExtern
     public async Task<ExternalConnection?> GetByIdAsync(ExternalConnectionId id, CancellationToken ct = default)
         => await context.Set<ExternalConnection>().FirstOrDefaultAsync(c => c.Id == id, ct);
 
+    public async Task<bool> ExistsByIdAsync(ExternalConnectionId id, CancellationToken ct = default)
+        => await context.Set<ExternalConnection>().AnyAsync(c => c.Id == id, ct);
+
     public async Task<List<ExternalConnection>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => await context.Set<ExternalConnection>()
             .Where(c => c.FamilyId == familyId)

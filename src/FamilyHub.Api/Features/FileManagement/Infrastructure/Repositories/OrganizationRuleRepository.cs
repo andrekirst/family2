@@ -11,6 +11,9 @@ public sealed class OrganizationRuleRepository(AppDbContext context) : IOrganiza
     public async Task<OrganizationRule?> GetByIdAsync(OrganizationRuleId id, CancellationToken ct = default)
         => await context.Set<OrganizationRule>().FindAsync([id], cancellationToken: ct);
 
+    public async Task<bool> ExistsByIdAsync(OrganizationRuleId id, CancellationToken ct = default)
+        => await context.Set<OrganizationRule>().AnyAsync(r => r.Id == id, ct);
+
     public async Task<List<OrganizationRule>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
         => await context.Set<OrganizationRule>()
             .Where(r => r.FamilyId == familyId)

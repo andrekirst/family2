@@ -1,3 +1,4 @@
+using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 
@@ -7,13 +8,8 @@ namespace FamilyHub.Api.Features.Auth.Domain.Repositories;
 /// Repository interface for User aggregate.
 /// Abstracts data access from domain logic.
 /// </summary>
-public interface IUserRepository
+public interface IUserRepository : IWriteRepository<User, UserId>
 {
-    /// <summary>
-    /// Get user by their unique identifier.
-    /// </summary>
-    Task<User?> GetByIdAsync(UserId id, CancellationToken ct = default);
-
     /// <summary>
     /// Get user by their OAuth provider external ID.
     /// </summary>
@@ -23,11 +19,6 @@ public interface IUserRepository
     /// Get user by their email address.
     /// </summary>
     Task<User?> GetByEmailAsync(Email email, CancellationToken ct = default);
-
-    /// <summary>
-    /// Add a new user to the repository.
-    /// </summary>
-    Task AddAsync(User user, CancellationToken ct = default);
 
     /// <summary>
     /// Update an existing user.

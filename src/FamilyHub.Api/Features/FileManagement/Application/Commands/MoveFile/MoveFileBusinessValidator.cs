@@ -16,19 +16,13 @@ public sealed class MoveFileBusinessValidator : AbstractValidator<MoveFileComman
     {
         RuleFor(x => x.FileId)
             .MustAsync(async (fileId, ct) =>
-            {
-                var file = await storedFileRepository.GetByIdAsync(fileId, ct);
-                return file is not null;
-            })
+                await storedFileRepository.ExistsByIdAsync(fileId, ct))
             .WithErrorCode(DomainErrorCodes.FileNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.FileNotFound].Value);
 
         RuleFor(x => x.TargetFolderId)
             .MustAsync(async (targetFolderId, ct) =>
-            {
-                var folder = await folderRepository.GetByIdAsync(targetFolderId, ct);
-                return folder is not null;
-            })
+                await folderRepository.ExistsByIdAsync(targetFolderId, ct))
             .WithErrorCode(DomainErrorCodes.FolderNotFound)
             .WithMessage(_ => localizer[DomainErrorCodes.FolderNotFound].Value);
     }

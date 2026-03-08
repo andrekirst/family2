@@ -11,6 +11,9 @@ public sealed class FileVersionRepository(AppDbContext context) : IFileVersionRe
     public async Task<FileVersion?> GetByIdAsync(FileVersionId id, CancellationToken ct = default)
         => await context.Set<FileVersion>().FindAsync([id], cancellationToken: ct);
 
+    public async Task<bool> ExistsByIdAsync(FileVersionId id, CancellationToken ct = default)
+        => await context.Set<FileVersion>().AnyAsync(v => v.Id == id, ct);
+
     public async Task<List<FileVersion>> GetByFileIdAsync(FileId fileId, CancellationToken ct = default)
         => await context.Set<FileVersion>()
             .Where(v => v.FileId == fileId)
