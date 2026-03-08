@@ -29,6 +29,8 @@ builder.Configuration.AddInfisical();
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.SectionName));
 builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection(KeycloakOptions.SectionName));
 builder.Services.Configure<FrontendConfigOptions>(builder.Configuration.GetSection(FrontendConfigOptions.SectionName));
+builder.Services.Configure<FamilyHub.Api.Common.Configuration.LocalizationOptions>(
+    builder.Configuration.GetSection(FamilyHub.Api.Common.Configuration.LocalizationOptions.SectionName));
 
 // Configure forwarded headers for reverse proxy (Traefik)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -222,10 +224,10 @@ app.UseExceptionHandler();
 // Must come before authentication so IStringLocalizer resolves the correct locale per-request.
 app.UseRequestLocalization(options =>
 {
-    var supportedCultures = new[] { "en", "de" };
-    options.SetDefaultCulture("en");
-    options.AddSupportedCultures(supportedCultures);
-    options.AddSupportedUICultures(supportedCultures);
+    var localizationConfig = app.Services.GetRequiredService<IOptions<FamilyHub.Api.Common.Configuration.LocalizationOptions>>().Value;
+    options.SetDefaultCulture(localizationConfig.DefaultLocale);
+    options.AddSupportedCultures(localizationConfig.SupportedLocales);
+    options.AddSupportedUICultures(localizationConfig.SupportedLocales);
     options.ApplyCurrentCultureToResponseHeaders = true;
 });
 

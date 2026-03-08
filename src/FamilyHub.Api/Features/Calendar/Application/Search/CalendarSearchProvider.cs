@@ -24,7 +24,7 @@ public sealed class CalendarSearchProvider(ICalendarEventRepository calendarEven
             context.FamilyId.Value, start, end, cancellationToken);
 
         var queryLower = context.Query.ToLowerInvariant();
-        var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;
+        var isGerman = context.IsLocale("de");
 
         var filtered = events
             .Where(e => !e.IsCancelled)

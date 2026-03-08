@@ -72,7 +72,7 @@ public sealed class SchoolSearchProvider(
             }
         }
 
-        var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;
+        var isGerman = context.IsLocale("de");
         var sinceLabel = isGerman ? "Schüler seit" : "Student since";
 
         var results = tier1

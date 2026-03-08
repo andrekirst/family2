@@ -9,6 +9,8 @@ using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using LocalizationOptions = FamilyHub.Api.Common.Configuration.LocalizationOptions;
 
 namespace FamilyHub.Auth.Tests.Common.Middleware;
 
@@ -16,6 +18,9 @@ public class RequestLocaleResolutionMiddlewareTests
 {
     private static readonly ExternalUserId TestExternalUserId =
         ExternalUserId.From(Guid.NewGuid().ToString());
+
+    private static readonly IOptions<LocalizationOptions> DefaultLocalizationOptions =
+        Options.Create(new LocalizationOptions());
 
     private static User CreateUser(string preferredLocale = "en")
     {
@@ -57,7 +62,7 @@ public class RequestLocaleResolutionMiddlewareTests
         });
         var context = CreateUnauthenticatedContext();
 
-        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache());
+        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache(), DefaultLocalizationOptions);
 
         capturedCulture!.Name.Should().Be("en");
     }
@@ -75,7 +80,7 @@ public class RequestLocaleResolutionMiddlewareTests
         var context = CreateUnauthenticatedContext();
         context.Request.Headers.AcceptLanguage = "de,en;q=0.9";
 
-        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache());
+        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache(), DefaultLocalizationOptions);
 
         capturedCulture!.Name.Should().Be("de");
     }
@@ -93,7 +98,7 @@ public class RequestLocaleResolutionMiddlewareTests
         });
         var context = CreateAuthenticatedContext(TestExternalUserId.Value);
 
-        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache());
+        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache(), DefaultLocalizationOptions);
 
         capturedCulture!.Name.Should().Be("de");
     }
@@ -113,7 +118,7 @@ public class RequestLocaleResolutionMiddlewareTests
         var context = CreateAuthenticatedContext(TestExternalUserId.Value);
         context.Request.Headers.AcceptLanguage = "de";
 
-        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache());
+        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache(), DefaultLocalizationOptions);
 
         capturedCulture!.Name.Should().Be("de");
     }
@@ -130,7 +135,7 @@ public class RequestLocaleResolutionMiddlewareTests
         });
         var context = CreateAuthenticatedContext(TestExternalUserId.Value);
 
-        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache());
+        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache(), DefaultLocalizationOptions);
 
         capturedCulture!.Name.Should().Be("en");
     }
@@ -150,7 +155,7 @@ public class RequestLocaleResolutionMiddlewareTests
         });
         var context = CreateAuthenticatedContext(TestExternalUserId.Value);
 
-        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache());
+        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache(), DefaultLocalizationOptions);
 
         capturedCulture!.Name.Should().Be("de");
         capturedUiCulture!.Name.Should().Be("de");
@@ -168,7 +173,7 @@ public class RequestLocaleResolutionMiddlewareTests
         });
         var context = CreateUnauthenticatedContext();
 
-        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache());
+        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache(), DefaultLocalizationOptions);
 
         nextCalled.Should().BeTrue();
     }
@@ -185,7 +190,7 @@ public class RequestLocaleResolutionMiddlewareTests
         });
         var context = CreateAuthenticatedContext("not-a-guid");
 
-        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache());
+        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache(), DefaultLocalizationOptions);
 
         capturedCulture!.Name.Should().Be("en");
     }
@@ -203,7 +208,7 @@ public class RequestLocaleResolutionMiddlewareTests
         var context = CreateUnauthenticatedContext();
         context.Request.Headers.AcceptLanguage = "fr-FR, de;q=0.8, en;q=0.5";
 
-        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache());
+        await middleware.InvokeAsync(context, userRepo, CreateMemoryCache(), DefaultLocalizationOptions);
 
         capturedCulture!.Name.Should().Be("fr-FR");
     }
@@ -223,13 +228,13 @@ public class RequestLocaleResolutionMiddlewareTests
 
         // First request — populates cache
         var context1 = CreateAuthenticatedContext(TestExternalUserId.Value);
-        await middleware.InvokeAsync(context1, userRepo, cache);
+        await middleware.InvokeAsync(context1, userRepo, cache, DefaultLocalizationOptions);
         capturedCulture!.Name.Should().Be("de");
 
         // Second request with same cache — should still return "de" even if repo is empty
         var emptyRepo = new FakeUserRepository();
         var context2 = CreateAuthenticatedContext(TestExternalUserId.Value);
-        await middleware.InvokeAsync(context2, emptyRepo, cache);
+        await middleware.InvokeAsync(context2, emptyRepo, cache, DefaultLocalizationOptions);
         capturedCulture!.Name.Should().Be("de");
     }
 }

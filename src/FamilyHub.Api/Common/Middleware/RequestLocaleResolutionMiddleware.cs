@@ -1,8 +1,12 @@
 using System.Globalization;
+using FamilyHub.Api.Common.Configuration;
 using FamilyHub.Api.Common.Infrastructure;
+using FamilyHub.Api.Common.Infrastructure.Extensions;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Common.Domain.ValueObjects;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using LocalizationOptions = FamilyHub.Api.Common.Configuration.LocalizationOptions;
 
 namespace FamilyHub.Api.Common.Middleware;
 
@@ -11,16 +15,21 @@ namespace FamilyHub.Api.Common.Middleware;
 /// 1. Cached user locale preference (5-minute sliding expiration)
 /// 2. Authenticated user's DB preference (PreferredLocale)
 /// 3. Accept-Language header
-/// 4. Default "en"
+/// 4. Configured default locale
 /// Sets CultureInfo.CurrentCulture and CultureInfo.CurrentUICulture for the request.
 /// </summary>
 public class RequestLocaleResolutionMiddleware(RequestDelegate next)
 {
     internal const string CacheKeyPrefix = "user-locale:";
 
-    public async Task InvokeAsync(HttpContext context, IUserRepository userRepository, IMemoryCache memoryCache)
+    public async Task InvokeAsync(
+        HttpContext context,
+        IUserRepository userRepository,
+        IMemoryCache memoryCache,
+        IOptions<LocalizationOptions> localizationOptions)
     {
-        string locale = "en";
+        var defaultLocale = localizationOptions.Value.DefaultLocale;
+        string locale = defaultLocale;
 
         if (context.User.Identity?.IsAuthenticated == true)
         {
@@ -47,12 +56,12 @@ public class RequestLocaleResolutionMiddleware(RequestDelegate next)
                     }
                 }
 
-                locale = cachedLocale ?? ResolveFromAcceptLanguage(context) ?? "en";
+                locale = cachedLocale ?? context.Request.GetPreferredLocale() ?? defaultLocale;
             }
         }
         else
         {
-            locale = ResolveFromAcceptLanguage(context) ?? "en";
+            locale = context.Request.GetPreferredLocale() ?? defaultLocale;
         }
 
         var culture = new CultureInfo(locale);
@@ -60,17 +69,5 @@ public class RequestLocaleResolutionMiddleware(RequestDelegate next)
         CultureInfo.CurrentUICulture = culture;
 
         await next(context);
-    }
-
-    private static string? ResolveFromAcceptLanguage(HttpContext context)
-    {
-        var acceptLanguage = context.Request.Headers.AcceptLanguage.ToString();
-        if (string.IsNullOrEmpty(acceptLanguage)) return null;
-
-        var languages = acceptLanguage.Split(',')
-            .Select(l => l.Split(';')[0].Trim())
-            .ToArray();
-
-        return languages.Length > 0 ? languages[0] : null;
     }
 }

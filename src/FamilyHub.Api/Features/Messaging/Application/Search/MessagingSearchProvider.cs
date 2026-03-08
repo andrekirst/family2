@@ -20,7 +20,7 @@ public sealed class MessagingSearchProvider(IMessageRepository messageRepository
             context.FamilyId.Value, limit: 100, cancellationToken: cancellationToken);
 
         var queryLower = context.Query.ToLowerInvariant();
-        var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;
+        var isGerman = context.IsLocale("de");
 
         return messages
             .Where(m => m.Content.Value.Contains(queryLower, StringComparison.OrdinalIgnoreCase))

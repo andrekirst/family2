@@ -23,7 +23,7 @@ public sealed class FileManagementSearchProvider(
         }
 
         var queryLower = context.Query.ToLowerInvariant();
-        var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;
+        var isGerman = context.IsLocale("de");
         var results = new List<SearchResultItem>();
         var familyId = context.FamilyId.Value;
 

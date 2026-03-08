@@ -20,7 +20,7 @@ public sealed class EventChainSearchProvider(IChainDefinitionRepository chainDef
             context.FamilyId.Value, cancellationToken: cancellationToken);
 
         var queryLower = context.Query.ToLowerInvariant();
-        var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;
+        var isGerman = context.IsLocale("de");
 
         return definitions
             .Where(d => d.Name.Value.Contains(queryLower, StringComparison.OrdinalIgnoreCase) ||

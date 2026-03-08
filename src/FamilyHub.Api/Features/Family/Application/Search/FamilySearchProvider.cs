@@ -20,7 +20,7 @@ public sealed class FamilySearchProvider(
         }
 
         var queryLower = context.Query.ToLowerInvariant();
-        var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;
+        var isGerman = context.IsLocale("de");
         var results = new List<SearchResultItem>();
 
         // Search family name
