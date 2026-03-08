@@ -20,7 +20,7 @@ public sealed class RenameFileCommandHandler(
             throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
         }
 
-        file.Rename(command.NewName, command.RenamedBy);
+        file.Rename(command.NewName, command.UserId);
 
         return new RenameFileResult(file.Id);
     }

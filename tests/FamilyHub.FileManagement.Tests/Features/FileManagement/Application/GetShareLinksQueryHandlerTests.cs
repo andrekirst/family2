@@ -19,7 +19,11 @@ public class GetShareLinksQueryHandlerTests
         repo.Links.Add(ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null));
         repo.Links.Add(ShareLink.Create(ShareResourceType.Folder, Guid.NewGuid(), familyId, UserId.New(), null, null, null));
 
-        var query = new GetShareLinksQuery(familyId);
+        var query = new GetShareLinksQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -31,7 +35,11 @@ public class GetShareLinksQueryHandlerTests
         var repo = new FakeShareLinkRepository();
         var handler = new GetShareLinksQueryHandler(repo);
 
-        var query = new GetShareLinksQuery(FamilyId.New());
+        var query = new GetShareLinksQuery()
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -48,7 +56,11 @@ public class GetShareLinksQueryHandlerTests
         repo.Links.Add(ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId1, UserId.New(), null, null, null));
         repo.Links.Add(ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId2, UserId.New(), null, null, null));
 
-        var query = new GetShareLinksQuery(familyId1);
+        var query = new GetShareLinksQuery()
+        {
+            FamilyId = familyId1,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);

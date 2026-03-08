@@ -39,7 +39,11 @@ public class DeleteFolderCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')), folder.Id, familyId, userId);
         fileRepo.Files.Add(file);
 
-        var command = new DeleteFolderCommand(folder.Id, familyId, userId);
+        var command = new DeleteFolderCommand(folder.Id)
+        {
+            FamilyId = familyId,
+            UserId = userId
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -76,7 +80,11 @@ public class DeleteFolderCommandHandlerTests
         fileRepo.Files.Add(file);
 
         // Delete A — should cascade to B and its file
-        var command = new DeleteFolderCommand(folderA.Id, familyId, userId);
+        var command = new DeleteFolderCommand(folderA.Id)
+        {
+            FamilyId = familyId,
+            UserId = userId
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -96,7 +104,11 @@ public class DeleteFolderCommandHandlerTests
         var root = Folder.CreateRoot(familyId, userId);
         folderRepo.Folders.Add(root);
 
-        var command = new DeleteFolderCommand(root.Id, familyId, userId);
+        var command = new DeleteFolderCommand(root.Id)
+        {
+            FamilyId = familyId,
+            UserId = userId
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -116,7 +128,11 @@ public class DeleteFolderCommandHandlerTests
         var folder = Folder.Create(FileName.From("Docs"), root.Id, $"/{root.Id.Value}/", familyId, userId);
         folderRepo.Folders.Add(folder);
 
-        var command = new DeleteFolderCommand(folder.Id, FamilyId.New(), userId);
+        var command = new DeleteFolderCommand(folder.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = userId
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

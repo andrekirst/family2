@@ -21,7 +21,7 @@ public class SetFamilyAvatarCommandHandlerTests
         var avatar = CreateTestAvatar();
 
         var (handler, _, _) = CreateHandler(member, avatar);
-        var command = new SetFamilyAvatarCommand(userId, familyId, avatar.Id);
+        var command = new SetFamilyAvatarCommand(avatar.Id) { UserId = userId, FamilyId = familyId };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -37,7 +37,7 @@ public class SetFamilyAvatarCommandHandlerTests
         // Arrange
         var avatar = CreateTestAvatar();
         var (handler, _, _) = CreateHandler(member: null, avatar);
-        var command = new SetFamilyAvatarCommand(UserId.New(), FamilyId.New(), avatar.Id);
+        var command = new SetFamilyAvatarCommand(avatar.Id) { UserId = UserId.New(), FamilyId = FamilyId.New() };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
@@ -54,7 +54,7 @@ public class SetFamilyAvatarCommandHandlerTests
         var member = FamilyMember.Create(familyId, userId, FamilyRole.Member);
 
         var (handler, _, _) = CreateHandler(member, existingAvatar: null);
-        var command = new SetFamilyAvatarCommand(userId, familyId, AvatarId.New());
+        var command = new SetFamilyAvatarCommand(AvatarId.New()) { UserId = userId, FamilyId = familyId };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();

@@ -17,11 +17,13 @@ public class CreateShareLinkCommandHandlerTests
         var command = new CreateShareLinkCommand(
             ShareResourceType.File,
             Guid.NewGuid(),
-            FamilyId.New(),
-            UserId.New(),
             DateTime.UtcNow.AddDays(7),
             null,
-            null);
+            null)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -39,11 +41,13 @@ public class CreateShareLinkCommandHandlerTests
         var command = new CreateShareLinkCommand(
             ShareResourceType.File,
             Guid.NewGuid(),
-            FamilyId.New(),
-            UserId.New(),
             null,
             "my-secret-password",
-            null);
+            null)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -62,11 +66,13 @@ public class CreateShareLinkCommandHandlerTests
         var command = new CreateShareLinkCommand(
             ShareResourceType.Folder,
             Guid.NewGuid(),
-            FamilyId.New(),
-            UserId.New(),
             null,
             null,
-            10);
+            10)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 

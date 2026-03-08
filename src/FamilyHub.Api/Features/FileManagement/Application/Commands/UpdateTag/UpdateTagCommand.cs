@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -8,6 +7,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UpdateTag;
 public sealed record UpdateTagCommand(
     TagId TagId,
     TagName? NewName,
-    TagColor? NewColor,
-    FamilyId FamilyId
-) : ICommand<UpdateTagResult>, IFamilyScoped;
+    TagColor? NewColor
+) : ICommand<UpdateTagResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

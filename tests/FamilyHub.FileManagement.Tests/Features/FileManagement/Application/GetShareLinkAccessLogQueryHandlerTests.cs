@@ -24,7 +24,11 @@ public class GetShareLinkAccessLogQueryHandlerTests
         logRepo.Logs.Add(ShareLinkAccessLog.Create(link.Id, "10.0.0.1", "Mozilla/5.0", ShareAccessAction.View));
         logRepo.Logs.Add(ShareLinkAccessLog.Create(link.Id, "10.0.0.2", null, ShareAccessAction.Download));
 
-        var query = new GetShareLinkAccessLogQuery(link.Id, familyId);
+        var query = new GetShareLinkAccessLogQuery(link.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -37,7 +41,11 @@ public class GetShareLinkAccessLogQueryHandlerTests
         var logRepo = new FakeShareLinkAccessLogRepository();
         var handler = new GetShareLinkAccessLogQueryHandler(linkRepo, logRepo);
 
-        var query = new GetShareLinkAccessLogQuery(ShareLinkId.New(), FamilyId.New());
+        var query = new GetShareLinkAccessLogQuery(ShareLinkId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -54,7 +62,11 @@ public class GetShareLinkAccessLogQueryHandlerTests
         var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null);
         linkRepo.Links.Add(link);
 
-        var query = new GetShareLinkAccessLogQuery(link.Id, FamilyId.New()); // Different family
+        var query = new GetShareLinkAccessLogQuery(link.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        }; // Different family
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

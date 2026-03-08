@@ -30,7 +30,7 @@ public class GetPhotosQueryHandlerTests
         var photos = Enumerable.Range(0, 5).Select(CreateTestPhoto).ToList();
         var repository = new FakePhotoRepository(photos);
         var handler = new GetPhotosQueryHandler(repository);
-        var query = new GetPhotosQuery(TestFamilyId, 0, 3);
+        var query = new GetPhotosQuery(0, 3) { FamilyId = TestFamilyId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -47,7 +47,7 @@ public class GetPhotosQueryHandlerTests
         // Arrange
         var repository = new FakePhotoRepository();
         var handler = new GetPhotosQueryHandler(repository);
-        var query = new GetPhotosQuery(TestFamilyId, 0, 30);
+        var query = new GetPhotosQuery(0, 30) { FamilyId = TestFamilyId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);

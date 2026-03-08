@@ -41,7 +41,11 @@ public class ToggleFavoriteCommandHandlerTests
         var file = CreateTestFile(familyId);
         fileRepo.Files.Add(file);
 
-        var command = new ToggleFavoriteCommand(file.Id, userId, familyId);
+        var command = new ToggleFavoriteCommand(file.Id)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFavorited.Should().BeTrue();
@@ -61,7 +65,11 @@ public class ToggleFavoriteCommandHandlerTests
         // Pre-add favorite
         favRepo.Favorites.Add(UserFavorite.Create(userId, file.Id));
 
-        var command = new ToggleFavoriteCommand(file.Id, userId, familyId);
+        var command = new ToggleFavoriteCommand(file.Id)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFavorited.Should().BeFalse();
@@ -73,7 +81,11 @@ public class ToggleFavoriteCommandHandlerTests
     {
         var (handler, _, _) = CreateHandler();
 
-        var command = new ToggleFavoriteCommand(FileId.New(), UserId.New(), FamilyId.New());
+        var command = new ToggleFavoriteCommand(FileId.New())
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -88,7 +100,11 @@ public class ToggleFavoriteCommandHandlerTests
         var file = CreateTestFile(FamilyId.New());
         fileRepo.Files.Add(file);
 
-        var command = new ToggleFavoriteCommand(file.Id, UserId.New(), FamilyId.New());
+        var command = new ToggleFavoriteCommand(file.Id)
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

@@ -10,6 +10,6 @@ public sealed class CreateFolderCommandValidator : AbstractValidator<CreateFolde
     {
         RuleFor(x => x.Name).NotNull();
         RuleFor(x => x.FamilyId).NotNull();
-        RuleFor(x => x.CreatedBy).NotNull();
+        RuleFor(x => x.UserId).NotNull();
     }
 }

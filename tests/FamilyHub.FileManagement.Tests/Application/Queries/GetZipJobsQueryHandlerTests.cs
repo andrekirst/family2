@@ -27,7 +27,11 @@ public class GetZipJobsQueryHandlerTests
         _zipJobRepository.Jobs.Add(
             ZipJob.Create(_familyId, _userId, [Guid.NewGuid()]));
 
-        var query = new GetZipJobsQuery(_familyId);
+        var query = new GetZipJobsQuery()
+        {
+            FamilyId = _familyId,
+            UserId = UserId.New()
+        };
         var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -37,7 +41,11 @@ public class GetZipJobsQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnEmptyForUnknownFamily()
     {
-        var query = new GetZipJobsQuery(FamilyId.From(Guid.NewGuid()));
+        var query = new GetZipJobsQuery()
+        {
+            FamilyId = FamilyId.From(Guid.NewGuid()),
+            UserId = UserId.New()
+        };
         var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -50,7 +58,11 @@ public class GetZipJobsQueryHandlerTests
         _zipJobRepository.Jobs.Add(
             ZipJob.Create(otherFamilyId, _userId, [Guid.NewGuid()]));
 
-        var query = new GetZipJobsQuery(_familyId);
+        var query = new GetZipJobsQuery()
+        {
+            FamilyId = _familyId,
+            UserId = UserId.New()
+        };
         var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();

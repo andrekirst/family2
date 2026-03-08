@@ -1,9 +1,5 @@
-using System.Security.Claims;
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Application.Mappers;
 using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
@@ -18,24 +14,10 @@ public class MutationType
     [Authorize]
     public async Task<DashboardLayoutDto> SaveLayout(
         SaveDashboardLayoutRequest input,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         [Service] IDashboardLayoutRepository dashboardRepository,
         CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
-
-        var user = await userRepository.GetByExternalIdAsync(
-            ExternalUserId.From(externalUserIdString), cancellationToken)
-            ?? throw new UnauthorizedAccessException("User not found");
-
-        if (user.FamilyId is null)
-        {
-            throw new InvalidOperationException("User must belong to a family");
-        }
-
         var widgets = input.Widgets.Select(w => new WidgetPositionData(
             WidgetTypeId.From(w.WidgetType),
             w.X, w.Y, w.Width, w.Height, w.SortOrder, w.ConfigJson))
@@ -43,8 +25,6 @@ public class MutationType
 
         var command = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From(input.Name.Trim()),
-            input.IsShared ? null : user.Id,
-            user.FamilyId.Value,
             input.IsShared,
             widgets);
 

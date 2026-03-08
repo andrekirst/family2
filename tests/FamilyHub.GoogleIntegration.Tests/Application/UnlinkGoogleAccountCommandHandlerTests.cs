@@ -35,7 +35,7 @@ public class UnlinkGoogleAccountCommandHandlerTests
         var encryptionService = new FakeTokenEncryptionService();
         var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService);
 
-        var command = new UnlinkGoogleAccountCommand(userId);
+        var command = new UnlinkGoogleAccountCommand { UserId = userId };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Should().BeTrue();
@@ -52,7 +52,7 @@ public class UnlinkGoogleAccountCommandHandlerTests
         var encryptionService = new FakeTokenEncryptionService();
         var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService);
 
-        var command = new UnlinkGoogleAccountCommand(userId);
+        var command = new UnlinkGoogleAccountCommand { UserId = userId };
         await handler.Handle(command, CancellationToken.None);
 
         oauthService.TokenRevoked.Should().BeTrue();
@@ -68,7 +68,7 @@ public class UnlinkGoogleAccountCommandHandlerTests
         var encryptionService = new FakeTokenEncryptionService();
         var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService);
 
-        var command = new UnlinkGoogleAccountCommand(userId);
+        var command = new UnlinkGoogleAccountCommand { UserId = userId };
         await handler.Handle(command, CancellationToken.None);
 
         existingLink.DomainEvents.Should().HaveCount(1);

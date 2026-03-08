@@ -8,6 +8,6 @@ public sealed class CreateAlbumCommandValidator : AbstractValidator<CreateAlbumC
     {
         RuleFor(x => x.Name).NotEmpty();
         RuleFor(x => x.FamilyId).NotEmpty();
-        RuleFor(x => x.CreatedBy).NotEmpty();
+        RuleFor(x => x.UserId).NotEmpty();
     }
 }

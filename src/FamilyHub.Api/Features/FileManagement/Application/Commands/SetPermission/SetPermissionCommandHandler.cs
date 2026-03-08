@@ -47,7 +47,7 @@ public sealed class SetPermissionCommandHandler(
 
         if (existing is not null)
         {
-            existing.UpdateLevel(command.PermissionLevel, command.GrantedBy);
+            existing.UpdateLevel(command.PermissionLevel, command.UserId);
             return new SetPermissionResult(true, existing.Id.Value);
         }
 
@@ -57,7 +57,7 @@ public sealed class SetPermissionCommandHandler(
             command.MemberId,
             command.PermissionLevel,
             command.FamilyId,
-            command.GrantedBy);
+            command.UserId);
 
         await permissionRepository.AddAsync(permission, cancellationToken);
 

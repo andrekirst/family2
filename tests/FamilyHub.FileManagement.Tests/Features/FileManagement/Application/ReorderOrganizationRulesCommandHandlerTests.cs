@@ -25,8 +25,11 @@ public class ReorderOrganizationRulesCommandHandlerTests
 
         // Reverse order: C, B, A
         var command = new ReorderOrganizationRulesCommand(
-            [rule3.Id.Value, rule2.Id.Value, rule1.Id.Value],
-            familyId);
+            [rule3.Id.Value, rule2.Id.Value, rule1.Id.Value])
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -43,8 +46,11 @@ public class ReorderOrganizationRulesCommandHandlerTests
         var handler = new ReorderOrganizationRulesCommandHandler(ruleRepo);
 
         var command = new ReorderOrganizationRulesCommand(
-            [Guid.NewGuid()],
-            FamilyId.New());
+            [Guid.NewGuid()])
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

@@ -33,7 +33,7 @@ public sealed class CreateZipJobCommandHandler(
                 DomainErrorCodes.ZipJobConcurrentLimitReached);
         }
 
-        var job = ZipJob.Create(command.FamilyId, command.InitiatedBy, command.FileIds);
+        var job = ZipJob.Create(command.FamilyId, command.UserId, command.FileIds);
         await zipJobRepository.AddAsync(job, cancellationToken);
 
         return new CreateZipJobResult(job.Id.Value, job.Status.ToString());

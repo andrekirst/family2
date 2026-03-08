@@ -22,7 +22,7 @@ public sealed class CreateShareLinkCommandHandler(
             command.ResourceType,
             command.ResourceId,
             command.FamilyId,
-            command.CreatedBy,
+            command.UserId,
             command.ExpiresAt,
             passwordHash,
             command.MaxDownloads);

@@ -34,7 +34,11 @@ public class PreviewRuleMatchQueryHandlerTests
             """[{"Type":2,"Value":"image/*"}]""",
             ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1));
 
-        var query = new PreviewRuleMatchQuery(file.Id, _familyId);
+        var query = new PreviewRuleMatchQuery(file.Id)
+        {
+            FamilyId = _familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().NotBeNull();
@@ -62,7 +66,11 @@ public class PreviewRuleMatchQueryHandlerTests
             """[{"Type":2,"Value":"image/*"}]""",
             ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1));
 
-        var query = new PreviewRuleMatchQuery(file.Id, _familyId);
+        var query = new PreviewRuleMatchQuery(file.Id)
+        {
+            FamilyId = _familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeNull();
@@ -76,7 +84,11 @@ public class PreviewRuleMatchQueryHandlerTests
         var engine = new OrganizationRuleEngine();
         var handler = new PreviewRuleMatchQueryHandler(fileRepo, ruleRepo, engine);
 
-        var query = new PreviewRuleMatchQuery(FileId.New(), _familyId);
+        var query = new PreviewRuleMatchQuery(FileId.New())
+        {
+            FamilyId = _familyId,
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -98,7 +110,11 @@ public class PreviewRuleMatchQueryHandlerTests
             FolderId.New(), FamilyId.New(), _userId); // Different family
         fileRepo.Files.Add(file);
 
-        var query = new PreviewRuleMatchQuery(file.Id, _familyId);
+        var query = new PreviewRuleMatchQuery(file.Id)
+        {
+            FamilyId = _familyId,
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

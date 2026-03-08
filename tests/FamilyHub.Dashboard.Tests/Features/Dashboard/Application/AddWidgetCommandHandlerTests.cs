@@ -22,8 +22,7 @@ public class AddWidgetCommandHandlerTests
         var command = new AddWidgetCommand(
             layout.Id,
             WidgetTypeId.From("test:widget"),
-            0, 0, 6, 4, null,
-            FamilyId.New());
+            0, 0, 6, 4, null) { FamilyId = FamilyId.New() };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);

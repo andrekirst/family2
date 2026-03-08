@@ -8,6 +8,7 @@ namespace FamilyHub.Common.Domain;
 public static class DomainErrorCodes
 {
     // General
+    public const string UserNotAuthenticated = "USER_NOT_AUTHENTICATED";
     public const string FamilyMembershipRequired = "FAMILY_MEMBERSHIP_REQUIRED";
 
     // Auth

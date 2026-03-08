@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -7,10 +6,12 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateOrgan
 
 public sealed record CreateOrganizationRuleCommand(
     string Name,
-    FamilyId FamilyId,
-    UserId UserId,
     string ConditionsJson,
     ConditionLogic ConditionLogic,
     RuleActionType ActionType,
     string ActionsJson
-) : ICommand<CreateOrganizationRuleResult>, IFamilyScoped;
+) : ICommand<CreateOrganizationRuleResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

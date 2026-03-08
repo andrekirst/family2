@@ -20,7 +20,7 @@ public sealed class SendInvitationAuthValidator : AbstractValidator<SendInvitati
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
             {
-                return await authService.CanInviteAsync(command.InvitedBy, command.FamilyId, ct);
+                return await authService.CanInviteAsync(command.UserId, command.FamilyId, ct);
             })
             .WithErrorCode(DomainErrorCodes.InsufficientPermissionToSendInvitation)
             .WithMessage(_ => localizer[DomainErrorCodes.InsufficientPermissionToSendInvitation].Value);

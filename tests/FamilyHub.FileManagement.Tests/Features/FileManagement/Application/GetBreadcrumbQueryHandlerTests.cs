@@ -37,7 +37,11 @@ public class GetBreadcrumbQueryHandlerTests
             familyId, userId);
         folderRepo.Folders.Add(taxes);
 
-        var query = new GetBreadcrumbQuery(taxes.Id, familyId);
+        var query = new GetBreadcrumbQuery(taxes.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(3);
@@ -60,7 +64,11 @@ public class GetBreadcrumbQueryHandlerTests
             FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId);
         folderRepo.Folders.Add(folder);
 
-        var query = new GetBreadcrumbQuery(folder.Id, familyId);
+        var query = new GetBreadcrumbQuery(folder.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         // Root ancestor + the folder itself
@@ -74,7 +82,11 @@ public class GetBreadcrumbQueryHandlerTests
     {
         var (handler, _) = CreateHandler();
 
-        var query = new GetBreadcrumbQuery(FolderId.New(), FamilyId.New());
+        var query = new GetBreadcrumbQuery(FolderId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -95,7 +107,11 @@ public class GetBreadcrumbQueryHandlerTests
             FileName.From("Docs"), root.Id, $"/{root.Id.Value}/", familyId, userId);
         folderRepo.Folders.Add(folder);
 
-        var query = new GetBreadcrumbQuery(folder.Id, FamilyId.New());
+        var query = new GetBreadcrumbQuery(folder.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

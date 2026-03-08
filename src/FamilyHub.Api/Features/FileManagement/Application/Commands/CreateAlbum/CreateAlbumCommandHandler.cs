@@ -12,7 +12,7 @@ public sealed class CreateAlbumCommandHandler(
         CreateAlbumCommand command,
         CancellationToken cancellationToken)
     {
-        var album = Album.Create(command.Name, command.Description, command.FamilyId, command.CreatedBy);
+        var album = Album.Create(command.Name, command.Description, command.FamilyId, command.UserId);
         await albumRepository.AddAsync(album, cancellationToken);
 
         return new CreateAlbumResult(album.Id);

@@ -5,13 +5,11 @@ using FamilyHub.Api.Features.EventChain.Application.Queries.GetChainDefinitions;
 using FamilyHub.Api.Features.EventChain.Application.Queries.GetChainDefinition;
 using FamilyHub.Api.Features.EventChain.Application.Queries.GetChainExecutions;
 using FamilyHub.Api.Features.EventChain.Application.Queries.GetChainExecution;
-using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Enums;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Domain.ValueObjects;
 using FamilyHub.EventChain.Infrastructure.Registry;
 using FamilyHub.Api.Features.EventChain.Models;
-using FamilyHub.Common.Domain.ValueObjects;
 using HotChocolate.Authorization;
 
 namespace FamilyHub.Api.Features.EventChain.GraphQL;
@@ -21,13 +19,12 @@ public class ChainQueries
 {
     [Authorize]
     public async Task<IReadOnlyList<ChainDefinitionDto>> GetChainDefinitions(
-        Guid familyId,
         bool? isEnabled,
         [Service] IQueryBus queryBus,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
-        var query = new GetChainDefinitionsQuery(FamilyId.From(familyId), isEnabled);
+        var query = new GetChainDefinitionsQuery(isEnabled);
         var definitions = await queryBus.QueryAsync(query, ct);
 
         var result = new List<ChainDefinitionDto>();
@@ -44,12 +41,11 @@ public class ChainQueries
     [Authorize]
     public async Task<ChainDefinitionDto?> GetChainDefinition(
         Guid id,
-        Guid familyId,
         [Service] IQueryBus queryBus,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
-        var query = new GetChainDefinitionQuery(ChainDefinitionId.From(id), FamilyId.From(familyId));
+        var query = new GetChainDefinitionQuery(ChainDefinitionId.From(id));
         var definition = await queryBus.QueryAsync(query, ct);
 
         if (definition is null)
@@ -64,14 +60,12 @@ public class ChainQueries
 
     [Authorize]
     public async Task<IReadOnlyList<ChainExecutionDto>> GetChainExecutions(
-        Guid familyId,
         Guid? chainDefinitionId,
         ChainExecutionStatus? status,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
     {
         var query = new GetChainExecutionsQuery(
-            FamilyId.From(familyId),
             chainDefinitionId.HasValue ? ChainDefinitionId.From(chainDefinitionId.Value) : null,
             status);
 
@@ -82,11 +76,10 @@ public class ChainQueries
     [Authorize]
     public async Task<ChainExecutionDto?> GetChainExecution(
         Guid id,
-        Guid familyId,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
     {
-        var query = new GetChainExecutionQuery(ChainExecutionId.From(id), FamilyId.From(familyId));
+        var query = new GetChainExecutionQuery(ChainExecutionId.From(id));
         var execution = await queryBus.QueryAsync(query, ct);
         return execution is null ? null : ChainMapper.ToDto(execution);
     }

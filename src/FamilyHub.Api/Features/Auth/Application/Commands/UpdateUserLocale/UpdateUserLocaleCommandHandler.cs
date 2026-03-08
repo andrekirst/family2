@@ -7,7 +7,7 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateUserLocale;
 
 /// <summary>
 /// Handler for UpdateUserLocaleCommand.
-/// Looks up the user by external ID and updates their preferred locale.
+/// Looks up the user by ID and updates their preferred locale.
 /// Invalidates the locale cache so the middleware picks up the new value.
 /// </summary>
 public sealed class UpdateUserLocaleCommandHandler(
@@ -19,11 +19,11 @@ public sealed class UpdateUserLocaleCommandHandler(
         UpdateUserLocaleCommand command,
         CancellationToken cancellationToken)
     {
-        var user = (await userRepository.GetByExternalIdAsync(command.ExternalUserId, cancellationToken))!;
+        var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
         user.UpdateLocale(command.Locale);
 
-        memoryCache.Remove($"{RequestLocaleResolutionMiddleware.CacheKeyPrefix}{command.ExternalUserId.Value}");
+        memoryCache.Remove($"{RequestLocaleResolutionMiddleware.CacheKeyPrefix}{user.ExternalUserId.Value}");
 
         return new UpdateUserLocaleResult(true);
     }

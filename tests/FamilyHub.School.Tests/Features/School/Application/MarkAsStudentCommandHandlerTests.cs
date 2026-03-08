@@ -17,7 +17,7 @@ public class MarkAsStudentCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
         var (handler, _, _, targetMember) = CreateHandler(familyId, userId);
-        var command = new MarkAsStudentCommand(targetMember.Id, familyId, userId);
+        var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyId, UserId = userId };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -34,7 +34,7 @@ public class MarkAsStudentCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
         var (handler, studentRepo, _, targetMember) = CreateHandler(familyId, userId);
-        var command = new MarkAsStudentCommand(targetMember.Id, familyId, userId);
+        var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyId, UserId = userId };
 
         // Act
         await handler.Handle(command, CancellationToken.None);
@@ -61,7 +61,7 @@ public class MarkAsStudentCommandHandlerTests
         var memberRepo = new FakeFamilyMemberRepository(callerMember, [callerMember, targetMember]);
         var handler = new MarkAsStudentCommandHandler(studentRepo, memberRepo);
 
-        var command = new MarkAsStudentCommand(targetMember.Id, familyIdA, userId);
+        var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyIdA, UserId = userId };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();

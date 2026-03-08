@@ -3,7 +3,6 @@ using FamilyHub.Api.Features.Calendar.Application.Queries.GetCalendarEvent;
 using FamilyHub.Api.Features.Calendar.Application.Queries.GetCalendarEvents;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Models;
-using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using HotChocolate.Authorization;
 
@@ -14,28 +13,22 @@ public class CalendarQueries
 {
     [Authorize]
     public async Task<List<CalendarEventDto>> GetCalendars(
-        Guid familyId,
         DateTime startDate,
         DateTime endDate,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
     {
-        var query = new GetCalendarEventsQuery(
-            FamilyId.From(familyId),
-            startDate,
-            endDate);
-
+        var query = new GetCalendarEventsQuery(startDate, endDate);
         return await queryBus.QueryAsync(query, ct);
     }
 
     [Authorize]
     public async Task<CalendarEventDto?> GetCalendar(
         Guid id,
-        Guid familyId,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
     {
-        var query = new GetCalendarEventQuery(CalendarEventId.From(id), FamilyId.From(familyId));
+        var query = new GetCalendarEventQuery(CalendarEventId.From(id));
         return await queryBus.QueryAsync(query, ct);
     }
 }

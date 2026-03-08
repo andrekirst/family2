@@ -13,7 +13,7 @@ public sealed class MarkAsStudentCommandValidator : AbstractValidator<MarkAsStud
             .NotNull()
             .WithMessage(_ => localizer["FamilyMemberIdRequired"]);
 
-        RuleFor(x => x.MarkedByUserId)
+        RuleFor(x => x.UserId)
             .NotNull()
             .WithMessage(_ => localizer["MarkedByUserIdRequired"]);
     }

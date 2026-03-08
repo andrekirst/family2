@@ -45,7 +45,11 @@ public class TagFileCommandHandlerTests
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
         tagRepo.Tags.Add(tag);
 
-        var command = new TagFileCommand(file.Id, tag.Id, familyId);
+        var command = new TagFileCommand(file.Id, tag.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -69,7 +73,11 @@ public class TagFileCommandHandlerTests
         // Pre-add the file-tag association
         fileTagRepo.FileTags.Add(FileTag.Create(file.Id, tag.Id));
 
-        var command = new TagFileCommand(file.Id, tag.Id, familyId);
+        var command = new TagFileCommand(file.Id, tag.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -85,7 +93,11 @@ public class TagFileCommandHandlerTests
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
         tagRepo.Tags.Add(tag);
 
-        var command = new TagFileCommand(FileId.New(), tag.Id, familyId);
+        var command = new TagFileCommand(FileId.New(), tag.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -101,7 +113,11 @@ public class TagFileCommandHandlerTests
         var file = CreateTestFile(familyId);
         fileRepo.Files.Add(file);
 
-        var command = new TagFileCommand(file.Id, TagId.New(), familyId);
+        var command = new TagFileCommand(file.Id, TagId.New())
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -120,7 +136,11 @@ public class TagFileCommandHandlerTests
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), differentFamily, UserId.New());
         tagRepo.Tags.Add(tag);
 
-        var command = new TagFileCommand(file.Id, tag.Id, differentFamily);
+        var command = new TagFileCommand(file.Id, tag.Id)
+        {
+            FamilyId = differentFamily,
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

@@ -1,6 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
-using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 using FamilyHub.Api.Features.EventChain.Application.Commands.UpdateChainDefinition;
@@ -13,7 +11,6 @@ using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Domain.ValueObjects;
 using FamilyHub.Api.Features.EventChain.Models;
 using HotChocolate.Authorization;
-using System.Security.Claims;
 
 namespace FamilyHub.Api.Features.EventChain.GraphQL;
 
@@ -23,22 +20,15 @@ public class ChainMutations
     [Authorize]
     public async Task<CreateChainDefinitionPayload> CreateChainDefinition(
         CreateChainDefinitionInput input,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         [Service] IChainDefinitionRepository definitionRepository,
-        [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
         try
         {
-            var (userId, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
-
             var command = new CreateChainDefinitionCommand(
                 ChainName.From(input.Name),
                 input.Description,
-                familyId,
-                userId,
                 input.TriggerEventType,
                 input.Steps.Select(s => new CreateStepCommand(
                     StepAlias.From(s.Alias),
@@ -65,17 +55,13 @@ public class ChainMutations
     public async Task<UpdateChainDefinitionPayload> UpdateChainDefinition(
         Guid id,
         UpdateChainDefinitionInput input,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         [Service] IChainDefinitionRepository definitionRepository,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
         try
         {
-            var (userId, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
-
             var command = new UpdateChainDefinitionCommand(
                 ChainDefinitionId.From(id),
                 input.Name is not null ? ChainName.From(input.Name) : null,
@@ -88,8 +74,7 @@ public class ChainMutations
                     ActionVersion.From(s.ActionVersion),
                     s.InputMappings,
                     s.Condition,
-                    s.Order)).ToList(),
-                familyId);
+                    s.Order)).ToList());
 
             var result = await commandBus.SendAsync(command, ct);
             var definition = await definitionRepository.GetByIdWithStepsAsync(result.ChainDefinitionId, ct);
@@ -107,16 +92,12 @@ public class ChainMutations
     [Authorize]
     public async Task<DeleteChainDefinitionPayload> DeleteChainDefinition(
         Guid id,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         CancellationToken ct)
     {
         try
         {
-            var (userId, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
-
-            var command = new DeleteChainDefinitionCommand(ChainDefinitionId.From(id), familyId);
+            var command = new DeleteChainDefinitionCommand(ChainDefinitionId.From(id));
             var result = await commandBus.SendAsync(command, ct);
             return new DeleteChainDefinitionPayload(result.Success);
         }
@@ -130,16 +111,12 @@ public class ChainMutations
     [Authorize]
     public async Task<ChainDefinitionDto> EnableChainDefinition(
         Guid id,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         [Service] IChainDefinitionRepository definitionRepository,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
-        var (_, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
-
-        var command = new EnableChainDefinitionCommand(ChainDefinitionId.From(id), familyId);
+        var command = new EnableChainDefinitionCommand(ChainDefinitionId.From(id));
         var defId = await commandBus.SendAsync(command, ct);
         var definition = await definitionRepository.GetByIdWithStepsAsync(defId, ct)
             ?? throw new InvalidOperationException("Chain definition not found");
@@ -151,16 +128,12 @@ public class ChainMutations
     [Authorize]
     public async Task<ChainDefinitionDto> DisableChainDefinition(
         Guid id,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         [Service] IChainDefinitionRepository definitionRepository,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
-        var (_, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
-
-        var command = new DisableChainDefinitionCommand(ChainDefinitionId.From(id), familyId);
+        var command = new DisableChainDefinitionCommand(ChainDefinitionId.From(id));
         var defId = await commandBus.SendAsync(command, ct);
         var definition = await definitionRepository.GetByIdWithStepsAsync(defId, ct)
             ?? throw new InvalidOperationException("Chain definition not found");
@@ -173,17 +146,12 @@ public class ChainMutations
     public async Task<ChainExecutionDto> ExecuteChainManually(
         Guid chainDefinitionId,
         string triggerPayload,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
-        var (_, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
-
         var command = new ExecuteChainCommand(
             ChainDefinitionId.From(chainDefinitionId),
-            familyId,
             triggerPayload);
 
         var result = await commandBus.SendAsync(command, ct);
@@ -194,25 +162,5 @@ public class ChainMutations
         var execution = await executionRepository.GetByIdWithStepsAsync(result.ChainExecutionId, ct)
             ?? throw new InvalidOperationException("Chain execution not found");
         return ChainMapper.ToDto(execution);
-    }
-
-    private static async Task<(UserId UserId, FamilyId FamilyId)> ResolveUserContext(
-        ClaimsPrincipal claimsPrincipal,
-        IUserRepository userRepository,
-        CancellationToken ct)
-    {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
-
-        var externalUserId = ExternalUserId.From(externalUserIdString);
-        var user = await userRepository.GetByExternalIdAsync(externalUserId, ct)
-            ?? throw new UnauthorizedAccessException("User not found");
-
-        if (!user.FamilyId.HasValue)
-        {
-            throw new InvalidOperationException("User is not assigned to a family");
-        }
-
-        return (user.Id, user.FamilyId.Value);
     }
 }

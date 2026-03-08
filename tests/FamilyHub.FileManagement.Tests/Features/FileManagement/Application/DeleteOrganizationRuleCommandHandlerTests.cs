@@ -22,7 +22,11 @@ public class DeleteOrganizationRuleCommandHandlerTests
             "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
         ruleRepo.Rules.Add(rule);
 
-        var command = new DeleteOrganizationRuleCommand(rule.Id, familyId);
+        var command = new DeleteOrganizationRuleCommand(rule.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -35,7 +39,11 @@ public class DeleteOrganizationRuleCommandHandlerTests
         var ruleRepo = new FakeOrganizationRuleRepository();
         var handler = new DeleteOrganizationRuleCommandHandler(ruleRepo);
 
-        var command = new DeleteOrganizationRuleCommand(OrganizationRuleId.New(), FamilyId.New());
+        var command = new DeleteOrganizationRuleCommand(OrganizationRuleId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -53,7 +61,11 @@ public class DeleteOrganizationRuleCommandHandlerTests
             "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
         ruleRepo.Rules.Add(rule);
 
-        var command = new DeleteOrganizationRuleCommand(rule.Id, FamilyId.New());
+        var command = new DeleteOrganizationRuleCommand(rule.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

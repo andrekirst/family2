@@ -30,7 +30,11 @@ public class RenameFolderCommandHandlerTests
         var folder = Folder.Create(FileName.From("OldName"), root.Id, $"/{root.Id.Value}/", familyId, userId);
         folderRepo.Folders.Add(folder);
 
-        var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"), familyId, userId);
+        var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"))
+        {
+            FamilyId = familyId,
+            UserId = userId
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.FolderId.Should().Be(folder.Id);
@@ -42,7 +46,11 @@ public class RenameFolderCommandHandlerTests
     {
         var (handler, _) = CreateHandler();
 
-        var command = new RenameFolderCommand(FolderId.New(), FileName.From("NewName"), FamilyId.New(), UserId.New());
+        var command = new RenameFolderCommand(FolderId.New(), FileName.From("NewName"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -62,7 +70,11 @@ public class RenameFolderCommandHandlerTests
         var folder = Folder.Create(FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId);
         folderRepo.Folders.Add(folder);
 
-        var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"), FamilyId.New(), userId);
+        var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = userId
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

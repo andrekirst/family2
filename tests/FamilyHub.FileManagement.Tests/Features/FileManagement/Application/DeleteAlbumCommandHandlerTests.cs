@@ -27,7 +27,11 @@ public class DeleteAlbumCommandHandlerTests
         var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
         albumRepo.Albums.Add(album);
 
-        var command = new DeleteAlbumCommand(album.Id, familyId);
+        var command = new DeleteAlbumCommand(album.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -46,7 +50,11 @@ public class DeleteAlbumCommandHandlerTests
         itemRepo.Items.Add(AlbumItem.Create(album.Id, FileId.New(), UserId.New()));
         itemRepo.Items.Add(AlbumItem.Create(album.Id, FileId.New(), UserId.New()));
 
-        var command = new DeleteAlbumCommand(album.Id, familyId);
+        var command = new DeleteAlbumCommand(album.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         await handler.Handle(command, CancellationToken.None);
 
         itemRepo.Items.Should().BeEmpty();
@@ -57,7 +65,11 @@ public class DeleteAlbumCommandHandlerTests
     {
         var (handler, _, _) = CreateHandler();
 
-        var command = new DeleteAlbumCommand(AlbumId.New(), FamilyId.New());
+        var command = new DeleteAlbumCommand(AlbumId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -72,7 +84,11 @@ public class DeleteAlbumCommandHandlerTests
         var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New());
         albumRepo.Albums.Add(album);
 
-        var command = new DeleteAlbumCommand(album.Id, FamilyId.New());
+        var command = new DeleteAlbumCommand(album.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

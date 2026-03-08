@@ -38,7 +38,7 @@ public sealed class AddFileToAlbumCommandHandler(
             return new AddFileToAlbumResult(true);
         }
 
-        var item = AlbumItem.Create(command.AlbumId, command.FileId, command.AddedBy);
+        var item = AlbumItem.Create(command.AlbumId, command.FileId, command.UserId);
         await albumItemRepository.AddAsync(item, cancellationToken);
 
         // Auto-set cover image if not set

@@ -24,7 +24,11 @@ public class GetSecureNotesQueryHandlerTests
             familyId, userId, NoteCategory.Financial,
             "note2", "content2", "iv2", "salt2", "sentinel2"));
 
-        var query = new GetSecureNotesQuery(userId, familyId, null);
+        var query = new GetSecureNotesQuery(null)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -48,7 +52,11 @@ public class GetSecureNotesQueryHandlerTests
             familyId, userId, NoteCategory.Passwords,
             "pass2", "content3", "iv3", "salt3", "sentinel3"));
 
-        var query = new GetSecureNotesQuery(userId, familyId, NoteCategory.Passwords);
+        var query = new GetSecureNotesQuery(NoteCategory.Passwords)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -66,7 +74,11 @@ public class GetSecureNotesQueryHandlerTests
             familyId, UserId.New(), NoteCategory.Passwords,
             "note1", "content1", "iv1", "salt1", "sentinel1"));
 
-        var query = new GetSecureNotesQuery(UserId.New(), familyId, null);
+        var query = new GetSecureNotesQuery(null)
+        {
+            UserId = UserId.New(),
+            FamilyId = familyId
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -84,7 +96,11 @@ public class GetSecureNotesQueryHandlerTests
             familyId, userId, NoteCategory.Medical,
             "enc-title", "enc-content", "my-iv", "my-salt", "my-sentinel"));
 
-        var query = new GetSecureNotesQuery(userId, familyId, null);
+        var query = new GetSecureNotesQuery(null)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         var dto = result.Single();

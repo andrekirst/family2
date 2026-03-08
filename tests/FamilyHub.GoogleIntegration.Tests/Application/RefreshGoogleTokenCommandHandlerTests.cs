@@ -43,7 +43,7 @@ public class RefreshGoogleTokenCommandHandlerTests
         var encryptionService = new FakeTokenEncryptionService();
         var handler = new RefreshGoogleTokenCommandHandler(linkRepo, oauthService, encryptionService);
 
-        var command = new RefreshGoogleTokenCommand(userId);
+        var command = new RefreshGoogleTokenCommand { UserId = userId };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();

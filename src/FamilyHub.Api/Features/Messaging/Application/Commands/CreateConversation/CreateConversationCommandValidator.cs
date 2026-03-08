@@ -18,7 +18,7 @@ public sealed class CreateConversationCommandValidator : AbstractValidator<Creat
             .NotNull()
             .WithMessage(_ => localizer["FamilyIdRequired"]);
 
-        RuleFor(x => x.CreatedBy)
+        RuleFor(x => x.UserId)
             .NotNull()
             .WithMessage(_ => localizer["SenderIdRequired"]);
 

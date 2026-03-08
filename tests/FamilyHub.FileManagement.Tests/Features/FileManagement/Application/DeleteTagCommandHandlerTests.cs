@@ -28,7 +28,11 @@ public class DeleteTagCommandHandlerTests
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
         tagRepo.Tags.Add(tag);
 
-        var command = new DeleteTagCommand(tag.Id, familyId);
+        var command = new DeleteTagCommand(tag.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -49,7 +53,11 @@ public class DeleteTagCommandHandlerTests
         fileTagRepo.FileTags.Add(fileTag1);
         fileTagRepo.FileTags.Add(fileTag2);
 
-        var command = new DeleteTagCommand(tag.Id, familyId);
+        var command = new DeleteTagCommand(tag.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         await handler.Handle(command, CancellationToken.None);
 
         fileTagRepo.FileTags.Should().BeEmpty();
@@ -60,7 +68,11 @@ public class DeleteTagCommandHandlerTests
     {
         var (handler, _, _) = CreateHandler();
 
-        var command = new DeleteTagCommand(TagId.New(), FamilyId.New());
+        var command = new DeleteTagCommand(TagId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -75,7 +87,11 @@ public class DeleteTagCommandHandlerTests
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), FamilyId.New(), UserId.New());
         tagRepo.Tags.Add(tag);
 
-        var command = new DeleteTagCommand(tag.Id, FamilyId.New());
+        var command = new DeleteTagCommand(tag.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

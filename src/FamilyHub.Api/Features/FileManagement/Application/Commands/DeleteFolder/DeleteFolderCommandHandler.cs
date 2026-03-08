@@ -43,14 +43,14 @@ public sealed class DeleteFolderCommandHandler(
         {
             await storageService.DeleteFileAsync(
                 command.FamilyId, file.StorageKey.Value, file.Size.Value, cancellationToken);
-            file.MarkDeleted(command.DeletedBy);
+            file.MarkDeleted(command.UserId);
         }
 
         // Remove all files
         await storedFileRepository.RemoveRangeAsync(files, cancellationToken);
 
         // Raise domain event on the folder being deleted
-        folder.MarkDeleted(command.DeletedBy);
+        folder.MarkDeleted(command.UserId);
 
         // Remove all descendant folders, then the folder itself
         await folderRepository.RemoveRangeAsync(descendants, cancellationToken);

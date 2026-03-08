@@ -17,7 +17,7 @@ public sealed class CreateCalendarEventCommandValidator : AbstractValidator<Crea
             .NotNull()
             .WithMessage(_ => localizer["FamilyIdRequired"]);
 
-        RuleFor(x => x.CreatedBy)
+        RuleFor(x => x.UserId)
             .NotNull()
             .WithMessage(_ => localizer["CreatorIdRequired"]);
 

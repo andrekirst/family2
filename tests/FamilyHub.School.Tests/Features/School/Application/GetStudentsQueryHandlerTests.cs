@@ -22,7 +22,7 @@ public class GetStudentsQueryHandlerTests
         var studentRepo = new FakeStudentRepository([student]);
         var memberRepo = new FakeFamilyMemberRepository(allMembers: [targetMember]);
         var handler = new GetStudentsQueryHandler(studentRepo, memberRepo);
-        var query = new GetStudentsQuery(familyId);
+        var query = new GetStudentsQuery { FamilyId = familyId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -43,7 +43,7 @@ public class GetStudentsQueryHandlerTests
         var studentRepo = new FakeStudentRepository();
         var memberRepo = new FakeFamilyMemberRepository();
         var handler = new GetStudentsQueryHandler(studentRepo, memberRepo);
-        var query = new GetStudentsQuery(familyId);
+        var query = new GetStudentsQuery { FamilyId = familyId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);

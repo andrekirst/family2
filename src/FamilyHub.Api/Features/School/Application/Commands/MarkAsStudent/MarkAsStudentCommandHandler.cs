@@ -24,7 +24,7 @@ public sealed class MarkAsStudentCommandHandler(
         }
 
         // Create student aggregate
-        var student = Student.Create(command.FamilyMemberId, command.FamilyId, command.MarkedByUserId);
+        var student = Student.Create(command.FamilyMemberId, command.FamilyId, command.UserId);
         await studentRepository.AddAsync(student, cancellationToken);
 
         return new MarkAsStudentResult(student.Id);

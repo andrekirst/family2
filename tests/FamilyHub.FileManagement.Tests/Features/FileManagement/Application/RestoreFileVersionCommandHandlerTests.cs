@@ -45,7 +45,11 @@ public class RestoreFileVersionCommandHandlerTests
         versionRepo.Versions.Add(v2);
 
         // Restore v1
-        var command = new RestoreFileVersionCommand(v1.Id, file.Id, UserId.New(), FamilyId.New());
+        var command = new RestoreFileVersionCommand(v1.Id, file.Id)
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -69,7 +73,12 @@ public class RestoreFileVersionCommandHandlerTests
         var handler = new RestoreFileVersionCommandHandler(versionRepo, fileRepo);
 
         var command = new RestoreFileVersionCommand(
-            FileVersionId.New(), FileId.New(), UserId.New(), FamilyId.New());
+            FileVersionId.New(),
+            FileId.New())
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -88,7 +97,12 @@ public class RestoreFileVersionCommandHandlerTests
         fileRepo.Files.Add(file);
 
         var command = new RestoreFileVersionCommand(
-            FileVersionId.New(), file.Id, UserId.New(), FamilyId.New());
+            FileVersionId.New(),
+            file.Id)
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -113,7 +127,11 @@ public class RestoreFileVersionCommandHandlerTests
         versionRepo.Versions.Add(version);
 
         // Try to restore it as if it belongs to file1
-        var command = new RestoreFileVersionCommand(version.Id, file1.Id, UserId.New(), FamilyId.New());
+        var command = new RestoreFileVersionCommand(version.Id, file1.Id)
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

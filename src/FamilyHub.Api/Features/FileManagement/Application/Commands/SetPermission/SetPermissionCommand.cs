@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -9,7 +8,9 @@ public sealed record SetPermissionCommand(
     PermissionResourceType ResourceType,
     Guid ResourceId,
     UserId MemberId,
-    FilePermissionLevel PermissionLevel,
-    FamilyId FamilyId,
-    UserId GrantedBy
-) : ICommand<SetPermissionResult>, IFamilyScoped;
+    FilePermissionLevel PermissionLevel
+) : ICommand<SetPermissionResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

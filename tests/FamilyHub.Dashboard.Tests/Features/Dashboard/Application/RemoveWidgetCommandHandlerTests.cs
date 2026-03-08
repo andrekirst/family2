@@ -25,7 +25,7 @@ public class RemoveWidgetCommandHandlerTests
 
         // Act
         var result = await handler.Handle(
-            new RemoveWidgetCommand(widget.Id, FamilyId.New()), CancellationToken.None);
+            new RemoveWidgetCommand(widget.Id) { FamilyId = FamilyId.New() }, CancellationToken.None);
 
         // Assert
         result.Should().BeTrue();

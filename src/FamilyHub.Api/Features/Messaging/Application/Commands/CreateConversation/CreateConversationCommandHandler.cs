@@ -35,8 +35,8 @@ public sealed class CreateConversationCommandHandler(
         var memberUserIds = command.MemberIds.Select(UserId.From).ToList();
 
         var conversation = command.Type == ConversationType.Family
-            ? Conversation.CreateFamily(command.FamilyId, command.CreatedBy)
-            : Conversation.Create(command.Name, command.Type, command.FamilyId, command.CreatedBy, memberUserIds);
+            ? Conversation.CreateFamily(command.FamilyId, command.UserId)
+            : Conversation.Create(command.Name, command.Type, command.FamilyId, command.UserId, memberUserIds);
 
         // Create folder hierarchy: root → Messages → {ConversationName}
         // Root folder existence guaranteed by validator
@@ -44,7 +44,7 @@ public sealed class CreateConversationCommandHandler(
 
         // Find or create the "Messages" parent folder
         var messagesFolder = await FindOrCreateMessagesFolderAsync(
-            rootFolder, command.FamilyId, command.CreatedBy, cancellationToken);
+            rootFolder, command.FamilyId, command.UserId, cancellationToken);
 
         // Create the conversation-specific subfolder
         var conversationFolder = Folder.Create(
@@ -52,7 +52,7 @@ public sealed class CreateConversationCommandHandler(
             messagesFolder.Id,
             $"{messagesFolder.MaterializedPath}{messagesFolder.Id.Value}/",
             command.FamilyId,
-            command.CreatedBy);
+            command.UserId);
 
         await folderRepository.AddAsync(conversationFolder, cancellationToken);
         conversation.SetFolderId(conversationFolder.Id);

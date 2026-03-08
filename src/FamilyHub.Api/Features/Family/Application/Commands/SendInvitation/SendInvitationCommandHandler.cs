@@ -26,7 +26,7 @@ public sealed class SendInvitationCommandHandler(
         // Create invitation aggregate (raises InvitationSentEvent with plaintext token)
         var invitation = FamilyInvitation.Create(
             command.FamilyId,
-            command.InvitedBy,
+            command.UserId,
             command.InviteeEmail,
             command.Role,
             InvitationToken.From(tokenHash),

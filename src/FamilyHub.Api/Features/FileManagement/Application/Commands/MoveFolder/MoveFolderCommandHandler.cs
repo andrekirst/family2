@@ -50,7 +50,7 @@ public sealed class MoveFolderCommandHandler(
         var descendants = await folderRepository.GetDescendantsAsync(currentFolderPath, command.FamilyId, cancellationToken);
 
         // Move the folder itself
-        folder.MoveTo(command.TargetParentFolderId, newParentPath, command.MovedBy);
+        folder.MoveTo(command.TargetParentFolderId, newParentPath, command.UserId);
 
         // Update all descendants' materialized paths
         var newFolderPath = newParentPath + folder.Id.Value + "/";

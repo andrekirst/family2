@@ -1,10 +1,12 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ReorderOrganizationRules;
 
 public sealed record ReorderOrganizationRulesCommand(
-    List<Guid> RuleIdsInOrder,
-    FamilyId FamilyId
-) : ICommand<ReorderOrganizationRulesResult>, IFamilyScoped;
+    List<Guid> RuleIdsInOrder
+) : ICommand<ReorderOrganizationRulesResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

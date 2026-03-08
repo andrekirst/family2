@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
@@ -7,11 +6,13 @@ namespace FamilyHub.Api.Features.Dashboard.Application.Commands.SaveDashboardLay
 
 public sealed record SaveDashboardLayoutCommand(
     DashboardLayoutName Name,
-    UserId? UserId,
-    FamilyId FamilyId,
     bool IsShared,
     IReadOnlyList<WidgetPositionData> Widgets
-) : ICommand<SaveDashboardLayoutResult>, IFamilyScoped;
+) : ICommand<SaveDashboardLayoutResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}
 
 public sealed record WidgetPositionData(
     WidgetTypeId WidgetType,

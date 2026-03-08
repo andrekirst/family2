@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -9,7 +8,9 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.RevokeInvitation;
 /// Command to revoke a pending family invitation (by an admin/owner).
 /// </summary>
 public sealed record RevokeInvitationCommand(
-    InvitationId InvitationId,
-    UserId RevokedBy,
-    FamilyId FamilyId
-) : ICommand<bool>, IFamilyScoped;
+    InvitationId InvitationId
+) : ICommand<bool>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

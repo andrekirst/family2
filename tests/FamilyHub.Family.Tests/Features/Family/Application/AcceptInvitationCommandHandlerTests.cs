@@ -43,7 +43,7 @@ public class AcceptInvitationCommandHandlerTests
         // Assert
         memberRepo.AddedMembers.Should().HaveCount(1);
         var member = memberRepo.AddedMembers[0];
-        member.UserId.Should().Be(command.AcceptingUserId);
+        member.UserId.Should().Be(command.UserId);
         member.Role.Should().Be(FamilyRole.Member);
     }
 
@@ -70,7 +70,7 @@ public class AcceptInvitationCommandHandlerTests
         var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
         var userRepo = new FakeUserRepository(user);
         var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationCommand(PlaintextToken, user.Id);
+        var command = new AcceptInvitationCommand(PlaintextToken) { UserId = user.Id };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
@@ -89,7 +89,7 @@ public class AcceptInvitationCommandHandlerTests
         var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
         var userRepo = new FakeUserRepository(user);
         var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationCommand(PlaintextToken, user.Id);
+        var command = new AcceptInvitationCommand(PlaintextToken) { UserId = user.Id };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
@@ -107,7 +107,7 @@ public class AcceptInvitationCommandHandlerTests
         var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
         var userRepo = new FakeUserRepository(user);
         var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationCommand(PlaintextToken, user.Id);
+        var command = new AcceptInvitationCommand(PlaintextToken) { UserId = user.Id };
 
         return (handler, command, invitationRepo, memberRepo, userRepo);
     }

@@ -14,7 +14,7 @@ public sealed class CreateCalendarEventCommandHandler(
     {
         var calendarEvent = CalendarEvent.Create(
             command.FamilyId,
-            command.CreatedBy,
+            command.UserId,
             command.Title,
             command.Description,
             command.Location,

@@ -35,9 +35,11 @@ public class CreateFileVersionCommandHandlerTests
             file.Id,
             StorageKey.From("version-key-1"),
             FileSize.From(1000),
-            Checksum.From(ValidChecksum),
-            UserId.New(),
-            FamilyId.New());
+            Checksum.From(ValidChecksum))
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -70,18 +72,22 @@ public class CreateFileVersionCommandHandlerTests
             file.Id,
             StorageKey.From("version-key-1"),
             FileSize.From(1000),
-            Checksum.From(ValidChecksum),
-            UserId.New(),
-            FamilyId.New()), CancellationToken.None);
+            Checksum.From(ValidChecksum))
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        }, CancellationToken.None);
 
         // Create second version
         var result = await handler.Handle(new CreateFileVersionCommand(
             file.Id,
             StorageKey.From("version-key-2"),
             FileSize.From(2000),
-            Checksum.From(AnotherChecksum),
-            UserId.New(),
-            FamilyId.New()), CancellationToken.None);
+            Checksum.From(AnotherChecksum))
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        }, CancellationToken.None);
 
         result.VersionNumber.Should().Be(2);
         versionRepo.Versions.Should().HaveCount(2);
@@ -100,9 +106,11 @@ public class CreateFileVersionCommandHandlerTests
             FileId.New(),
             StorageKey.From("key"),
             FileSize.From(100),
-            Checksum.From(ValidChecksum),
-            UserId.New(),
-            FamilyId.New());
+            Checksum.From(ValidChecksum))
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

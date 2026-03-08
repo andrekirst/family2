@@ -28,9 +28,11 @@ public class CreateFolderCommandHandlerTests
 
         var command = new CreateFolderCommand(
             FileName.From("Documents"),
-            parentFolder.Id,
-            familyId,
-            UserId.New());
+            parentFolder.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -50,9 +52,11 @@ public class CreateFolderCommandHandlerTests
 
         var command = new CreateFolderCommand(
             FileName.From("Documents"),
-            null,
-            familyId,
-            UserId.New());
+            null)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -72,9 +76,11 @@ public class CreateFolderCommandHandlerTests
 
         var command = new CreateFolderCommand(
             FileName.From("SubFolder"),
-            FolderId.New(),
-            FamilyId.New(),
-            UserId.New());
+            FolderId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -91,9 +97,12 @@ public class CreateFolderCommandHandlerTests
 
         var command = new CreateFolderCommand(
             FileName.From("SubFolder"),
-            parentFolder.Id,
-            FamilyId.New(), // different family
-            UserId.New());
+            parentFolder.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = // different family
+            UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -112,9 +121,11 @@ public class CreateFolderCommandHandlerTests
 
         var command = new CreateFolderCommand(
             FileName.From("Documents"),
-            null,
-            familyId,
-            UserId.New());
+            null)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         await handler.Handle(command, CancellationToken.None);
 

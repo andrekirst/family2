@@ -25,7 +25,7 @@ public sealed class AcceptInvitationByIdCommandHandler(
         CancellationToken cancellationToken)
     {
         var invitation = (await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken))!;
-        var user = (await userRepository.GetByIdAsync(command.AcceptingUserId, cancellationToken))!;
+        var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
         if (user.Email != invitation.InviteeEmail)
         {
@@ -33,10 +33,10 @@ public sealed class AcceptInvitationByIdCommandHandler(
         }
 
         // Accept the invitation (validates status + expiry, raises InvitationAcceptedEvent)
-        invitation.Accept(command.AcceptingUserId);
+        invitation.Accept(command.UserId);
 
         // Create FamilyMember record
-        var member = FamilyMember.Create(invitation.FamilyId, command.AcceptingUserId, invitation.Role);
+        var member = FamilyMember.Create(invitation.FamilyId, command.UserId, invitation.Role);
         await memberRepository.AddAsync(member, cancellationToken);
 
         // Assign user to family

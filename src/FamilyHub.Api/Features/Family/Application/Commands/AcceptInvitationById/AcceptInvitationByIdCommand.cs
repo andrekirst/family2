@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Application.Commands.Shared;
@@ -12,6 +11,8 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.AcceptInvitationByI
 /// Requires email verification to ensure only the intended recipient can accept.
 /// </summary>
 public sealed record AcceptInvitationByIdCommand(
-    InvitationId InvitationId,
-    UserId AcceptingUserId
-) : ICommand<AcceptInvitationResult>, IIgnoreFamilyMembership;
+    InvitationId InvitationId
+) : ICommand<AcceptInvitationResult>, IRequireUser
+{
+    public UserId UserId { get; init; }
+}

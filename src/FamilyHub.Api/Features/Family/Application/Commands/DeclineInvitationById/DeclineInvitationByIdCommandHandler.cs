@@ -21,7 +21,7 @@ public sealed class DeclineInvitationByIdCommandHandler(
         CancellationToken cancellationToken)
     {
         var invitation = (await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken))!;
-        var user = (await userRepository.GetByIdAsync(command.DeclininingUserId, cancellationToken))!;
+        var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
         if (user.Email != invitation.InviteeEmail)
         {

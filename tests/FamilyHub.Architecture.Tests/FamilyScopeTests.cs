@@ -1,40 +1,16 @@
 using System.Reflection;
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FluentAssertions;
 
 namespace FamilyHub.Architecture.Tests;
 
 /// <summary>
-/// Ensures all commands and queries declare their family membership intent
-/// via IFamilyScoped, IIgnoreFamilyMembership, or are in the known fallback set.
+/// Ensures all commands and queries declare their user/family intent
+/// via IRequireFamily, IRequireUser, or IAnonymousOperation.
 /// </summary>
 public class FamilyScopeTests
 {
     private static readonly Assembly ApiAssembly = typeof(Program).Assembly;
-
-    /// <summary>
-    /// Commands/queries that intentionally use the fallback path
-    /// (user must belong to ANY family, but no FamilyId is available on the message).
-    /// </summary>
-    private static readonly HashSet<string> AllowedFallbackTypes =
-    [
-        // GoogleIntegration — implicitly family-scoped via authenticated user
-        "LinkGoogleAccountCommand",
-        "RefreshGoogleTokenCommand",
-        "UnlinkGoogleAccountCommand",
-        "GetGoogleAuthUrlQuery",
-        // Dashboard — scoped via user's dashboard, not FamilyId
-        "AddWidgetCommand",
-        "RemoveWidgetCommand",
-        "ResetDashboardCommand",
-        "UpdateWidgetConfigCommand",
-        // Calendar — scoped via event ID, not FamilyId
-        "CancelCalendarEventCommand",
-        "UpdateCalendarEventCommand",
-        // Dashboard
-        "SaveDashboardLayoutCommand",
-    ];
 
     [Fact]
     public void All_commands_should_declare_family_scope_intent()
@@ -65,17 +41,17 @@ public class FamilyScopeTests
 
         foreach (var type in types)
         {
-            var isFamilyScoped = typeof(IFamilyScoped).IsAssignableFrom(type);
-            var isIgnored = typeof(IIgnoreFamilyMembership).IsAssignableFrom(type);
-            var isAllowedFallback = AllowedFallbackTypes.Contains(type.Name);
+            var isRequireFamily = typeof(IRequireFamily).IsAssignableFrom(type);
+            var isRequireUser = typeof(IRequireUser).IsAssignableFrom(type);
+            var isAnonymousOperation = typeof(IAnonymousOperation).IsAssignableFrom(type);
 
-            if (!isFamilyScoped && !isIgnored && !isAllowedFallback)
+            if (!isRequireFamily && !isRequireUser && !isAnonymousOperation)
             {
-                violations.Add($"{type.Name} must implement IFamilyScoped, IIgnoreFamilyMembership, or be in AllowedFallbackTypes");
+                violations.Add($"{type.Name} must implement IRequireFamily, IRequireUser, or IAnonymousOperation");
             }
         }
 
         violations.Should().BeEmpty(
-            "all commands/queries must declare their family membership intent");
+            "all commands/queries must declare their user/family intent");
     }
 }

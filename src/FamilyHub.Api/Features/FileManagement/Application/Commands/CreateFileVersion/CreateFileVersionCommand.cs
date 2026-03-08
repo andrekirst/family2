@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -9,7 +8,9 @@ public sealed record CreateFileVersionCommand(
     FileId FileId,
     StorageKey StorageKey,
     FileSize FileSize,
-    Checksum Checksum,
-    UserId UploadedBy,
-    FamilyId FamilyId
-) : ICommand<CreateFileVersionResult>, IFamilyScoped;
+    Checksum Checksum
+) : ICommand<CreateFileVersionResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

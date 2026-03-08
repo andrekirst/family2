@@ -25,7 +25,11 @@ public class SearchFilesQueryHandlerTests
             CreatedAt = DateTime.UtcNow
         });
 
-        var query = new SearchFilesQuery("vacation", FamilyId.New(), UserId.New());
+        var query = new SearchFilesQuery("vacation")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);
@@ -40,7 +44,11 @@ public class SearchFilesQueryHandlerTests
         var handler = new SearchFilesQueryHandler(searchService, recentRepo);
 
         var userId = UserId.New();
-        var query = new SearchFilesQuery("test", FamilyId.New(), userId);
+        var query = new SearchFilesQuery("test")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = userId
+        };
         await handler.Handle(query, CancellationToken.None);
 
         recentRepo.Searches.Should().HaveCount(1);
@@ -55,7 +63,11 @@ public class SearchFilesQueryHandlerTests
         var recentRepo = new FakeRecentSearchRepository();
         var handler = new SearchFilesQueryHandler(searchService, recentRepo);
 
-        var query = new SearchFilesQuery("nonexistent", FamilyId.New(), UserId.New());
+        var query = new SearchFilesQuery("nonexistent")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();

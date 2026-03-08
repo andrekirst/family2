@@ -24,9 +24,11 @@ public class CreateTagCommandHandlerTests
 
         var command = new CreateTagCommand(
             TagName.From("Photos"),
-            TagColor.From("#FF0000"),
-            familyId,
-            UserId.New());
+            TagColor.From("#FF0000"))
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -48,9 +50,11 @@ public class CreateTagCommandHandlerTests
 
         var command = new CreateTagCommand(
             TagName.From("Photos"),
-            TagColor.From("#00FF00"),
-            familyId,
-            UserId.New());
+            TagColor.From("#00FF00"))
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -71,9 +75,11 @@ public class CreateTagCommandHandlerTests
 
         var command = new CreateTagCommand(
             TagName.From("Photos"),
-            TagColor.From("#00FF00"),
-            family2,
-            UserId.New());
+            TagColor.From("#00FF00"))
+        {
+            FamilyId = family2,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 

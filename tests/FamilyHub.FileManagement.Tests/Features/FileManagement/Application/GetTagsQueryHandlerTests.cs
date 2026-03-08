@@ -35,7 +35,11 @@ public class GetTagsQueryHandlerTests
         fileTagRepo.FileTags.Add(FileTag.Create(FileId.New(), tag1.Id));
         fileTagRepo.FileTags.Add(FileTag.Create(FileId.New(), tag2.Id));
 
-        var query = new GetTagsQuery(familyId);
+        var query = new GetTagsQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -52,7 +56,11 @@ public class GetTagsQueryHandlerTests
     {
         var (handler, _, _) = CreateHandler();
 
-        var query = new GetTagsQuery(FamilyId.New());
+        var query = new GetTagsQuery()
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -68,7 +76,11 @@ public class GetTagsQueryHandlerTests
         tagRepo.Tags.Add(Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New()));
         tagRepo.Tags.Add(Tag.Create(TagName.From("Other"), TagColor.From("#00FF00"), otherFamilyId, UserId.New()));
 
-        var query = new GetTagsQuery(familyId);
+        var query = new GetTagsQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);

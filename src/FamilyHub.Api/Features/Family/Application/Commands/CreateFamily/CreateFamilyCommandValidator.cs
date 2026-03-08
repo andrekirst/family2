@@ -18,7 +18,7 @@ public sealed class CreateFamilyCommandValidator : AbstractValidator<CreateFamil
             .NotNull()
             .WithMessage(_ => localizer["FamilyNameRequired"]);
 
-        RuleFor(x => x.OwnerId)
+        RuleFor(x => x.UserId)
             .NotNull()
             .WithMessage(_ => localizer["OwnerIdRequired"]);
     }

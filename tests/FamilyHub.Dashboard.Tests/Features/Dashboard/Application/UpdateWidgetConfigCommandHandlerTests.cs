@@ -27,7 +27,7 @@ public class UpdateWidgetConfigCommandHandlerTests
 
         // Act
         var result = await handler.Handle(
-            new UpdateWidgetConfigCommand(widget.Id, newConfig, FamilyId.New()), CancellationToken.None);
+            new UpdateWidgetConfigCommand(widget.Id, newConfig) { FamilyId = FamilyId.New() }, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -50,7 +50,7 @@ public class UpdateWidgetConfigCommandHandlerTests
 
         // Act
         var result = await handler.Handle(
-            new UpdateWidgetConfigCommand(widget.Id, null, FamilyId.New()), CancellationToken.None);
+            new UpdateWidgetConfigCommand(widget.Id, null) { FamilyId = FamilyId.New() }, CancellationToken.None);
 
         // Assert
         result.ConfigJson.Should().BeNull();

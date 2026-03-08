@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -6,7 +5,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.AddFileToAl
 
 public sealed record AddFileToAlbumCommand(
     AlbumId AlbumId,
-    FileId FileId,
-    FamilyId FamilyId,
-    UserId AddedBy
-) : ICommand<AddFileToAlbumResult>, IFamilyScoped;
+    FileId FileId
+) : ICommand<AddFileToAlbumResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

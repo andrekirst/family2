@@ -244,7 +244,7 @@ public class UniversalSearchQueryHandlerTests
         int limit = 10,
         string[]? permissions = null,
         string? locale = null) =>
-        new(TestUserId, TestFamilyId, searchQuery, modules, limit, permissions, locale);
+        new(searchQuery, modules, limit, permissions, locale) { UserId = TestUserId, FamilyId = TestFamilyId };
 
     private static ICommandPaletteRegistry CreateEmptyRegistry() =>
         new CommandPaletteRegistry();

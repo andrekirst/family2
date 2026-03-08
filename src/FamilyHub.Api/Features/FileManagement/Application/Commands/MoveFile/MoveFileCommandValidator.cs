@@ -12,6 +12,6 @@ public sealed class MoveFileCommandValidator : AbstractValidator<MoveFileCommand
         RuleFor(x => x.FileId).NotNull();
         RuleFor(x => x.TargetFolderId).NotNull();
         RuleFor(x => x.FamilyId).NotNull();
-        RuleFor(x => x.MovedBy).NotNull();
+        RuleFor(x => x.UserId).NotNull();
     }
 }

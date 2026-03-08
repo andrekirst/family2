@@ -23,16 +23,16 @@ public sealed class CreateFamilyCommandHandler(
         CancellationToken cancellationToken)
     {
         // Get the user to link them to the new family (validator guarantees existence)
-        var user = (await userRepository.GetByIdAsync(command.OwnerId, cancellationToken))!;
+        var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
         // Create family aggregate (raises FamilyCreatedEvent)
-        var family = FamilyEntity.Create(command.Name, command.OwnerId);
+        var family = FamilyEntity.Create(command.Name, command.UserId);
 
         // Add family to repository
         await familyRepository.AddAsync(family, cancellationToken);
 
         // Create FamilyMember record with Owner role
-        var ownerMember = FamilyMember.Create(family.Id, command.OwnerId, FamilyRole.Owner);
+        var ownerMember = FamilyMember.Create(family.Id, command.UserId, FamilyRole.Owner);
         await familyMemberRepository.AddAsync(ownerMember, cancellationToken);
 
         // Assign user to family (raises UserFamilyAssignedEvent)

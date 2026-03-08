@@ -22,7 +22,11 @@ public class DeleteSecureNoteCommandHandlerTests
             "title", "content", "iv", "salt", "sentinel");
         noteRepo.Notes.Add(note);
 
-        var command = new DeleteSecureNoteCommand(note.Id, userId, FamilyId.New());
+        var command = new DeleteSecureNoteCommand(note.Id)
+        {
+            UserId = userId,
+            FamilyId = FamilyId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -35,7 +39,11 @@ public class DeleteSecureNoteCommandHandlerTests
         var noteRepo = new FakeSecureNoteRepository();
         var handler = new DeleteSecureNoteCommandHandler(noteRepo);
 
-        var command = new DeleteSecureNoteCommand(SecureNoteId.New(), UserId.New(), FamilyId.New());
+        var command = new DeleteSecureNoteCommand(SecureNoteId.New())
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -54,7 +62,11 @@ public class DeleteSecureNoteCommandHandlerTests
             "title", "content", "iv", "salt", "sentinel");
         noteRepo.Notes.Add(note);
 
-        var command = new DeleteSecureNoteCommand(note.Id, UserId.New(), FamilyId.New());
+        var command = new DeleteSecureNoteCommand(note.Id)
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

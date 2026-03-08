@@ -16,12 +16,14 @@ public class CreateOrganizationRuleCommandHandlerTests
 
         var command = new CreateOrganizationRuleCommand(
             "Move photos",
-            FamilyId.New(),
-            UserId.New(),
             """[{"Type":1,"Value":".jpg"}]""",
             ConditionLogic.And,
             RuleActionType.MoveToFolder,
-            """{"DestinationFolderId":"00000000-0000-0000-0000-000000000001"}""");
+            """{"DestinationFolderId":"00000000-0000-0000-0000-000000000001"}""")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -40,14 +42,26 @@ public class CreateOrganizationRuleCommandHandlerTests
         var userId = UserId.New();
 
         await handler.Handle(new CreateOrganizationRuleCommand(
-            "Rule 1", familyId, userId,
+            "Rule 1",
             """[{"Type":1,"Value":".jpg"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}"), CancellationToken.None);
+            ConditionLogic.And,
+            RuleActionType.MoveToFolder,
+            "{}")
+        {
+            FamilyId = familyId,
+            UserId = userId
+        }, CancellationToken.None);
 
         await handler.Handle(new CreateOrganizationRuleCommand(
-            "Rule 2", familyId, userId,
+            "Rule 2",
             """[{"Type":1,"Value":".png"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}"), CancellationToken.None);
+            ConditionLogic.And,
+            RuleActionType.MoveToFolder,
+            "{}")
+        {
+            FamilyId = familyId,
+            UserId = userId
+        }, CancellationToken.None);
 
         ruleRepo.Rules.Should().HaveCount(2);
         ruleRepo.Rules[0].Priority.Should().Be(1);

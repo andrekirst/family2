@@ -17,7 +17,7 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var (handler, _, _, _) = CreateHandler(user);
-        var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
+        var command = new CreateFamilyCommand(FamilyName.From("Smith Family")) { UserId = user.Id };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -33,7 +33,7 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var (handler, _, _, _) = CreateHandler(user);
-        var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
+        var command = new CreateFamilyCommand(FamilyName.From("Smith Family")) { UserId = user.Id };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -49,7 +49,7 @@ public class CreateFamilyCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var (handler, familyRepo, _, _) = CreateHandler(user);
-        var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), user.Id);
+        var command = new CreateFamilyCommand(FamilyName.From("Smith Family")) { UserId = user.Id };
 
         // Act
         await handler.Handle(command, CancellationToken.None);

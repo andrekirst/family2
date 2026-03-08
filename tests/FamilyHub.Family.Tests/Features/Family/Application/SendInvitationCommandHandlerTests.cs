@@ -16,7 +16,7 @@ public class SendInvitationCommandHandlerTests
         var inviterId = UserId.New();
         var invitationRepo = new FakeFamilyInvitationRepository();
         var handler = new SendInvitationCommandHandler(invitationRepo);
-        var command = new SendInvitationCommand(familyId, inviterId, Email.From("newmember@example.com"), FamilyRole.Member);
+        var command = new SendInvitationCommand(Email.From("newmember@example.com"), FamilyRole.Member) { UserId = inviterId, FamilyId = familyId };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -34,7 +34,7 @@ public class SendInvitationCommandHandlerTests
         var inviterId = UserId.New();
         var invitationRepo = new FakeFamilyInvitationRepository();
         var handler = new SendInvitationCommandHandler(invitationRepo);
-        var command = new SendInvitationCommand(familyId, inviterId, Email.From("newmember@example.com"), FamilyRole.Member);
+        var command = new SendInvitationCommand(Email.From("newmember@example.com"), FamilyRole.Member) { UserId = inviterId, FamilyId = familyId };
 
         // Act
         await handler.Handle(command, CancellationToken.None);

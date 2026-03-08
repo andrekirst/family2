@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
@@ -11,6 +10,9 @@ public sealed record AddWidgetCommand(
     WidgetTypeId WidgetType,
     int X, int Y,
     int Width, int Height,
-    string? ConfigJson,
-    FamilyId FamilyId
-) : ICommand<DashboardWidgetDto>, IFamilyScoped;
+    string? ConfigJson
+) : ICommand<DashboardWidgetDto>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

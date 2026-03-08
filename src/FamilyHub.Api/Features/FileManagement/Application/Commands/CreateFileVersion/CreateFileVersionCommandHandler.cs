@@ -30,7 +30,7 @@ public sealed class CreateFileVersionCommandHandler(
             command.StorageKey,
             command.FileSize,
             command.Checksum,
-            command.UploadedBy);
+            command.UserId);
 
         await versionRepository.AddAsync(version, cancellationToken);
 

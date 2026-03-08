@@ -34,9 +34,11 @@ public class RenameFileCommandHandlerTests
 
         var command = new RenameFileCommand(
             file.Id,
-            FileName.From("renamed.pdf"),
-            familyId,
-            UserId.New());
+            FileName.From("renamed.pdf"))
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -52,9 +54,11 @@ public class RenameFileCommandHandlerTests
 
         var command = new RenameFileCommand(
             FileId.New(),
-            FileName.From("renamed.pdf"),
-            FamilyId.New(),
-            UserId.New());
+            FileName.From("renamed.pdf"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -72,9 +76,12 @@ public class RenameFileCommandHandlerTests
 
         var command = new RenameFileCommand(
             file.Id,
-            FileName.From("renamed.pdf"),
-            FamilyId.New(), // different family
-            UserId.New());
+            FileName.From("renamed.pdf"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = // different family
+            UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

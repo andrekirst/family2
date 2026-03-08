@@ -22,7 +22,7 @@ public sealed class SendMessageCommandValidator : AbstractValidator<SendMessageC
             .NotNull()
             .WithMessage(_ => localizer["FamilyIdRequired"]);
 
-        RuleFor(x => x.SenderId)
+        RuleFor(x => x.UserId)
             .NotNull()
             .WithMessage(_ => localizer["SenderIdRequired"]);
     }

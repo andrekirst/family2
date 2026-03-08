@@ -45,7 +45,11 @@ public class GetFilesByTagQueryHandlerTests
         fileTagRepo.FileTags.Add(FileTag.Create(file1.Id, tagId));
         fileTagRepo.FileTags.Add(FileTag.Create(file2.Id, tagId));
 
-        var query = new GetFilesByTagQuery([tagId], familyId);
+        var query = new GetFilesByTagQuery([tagId])
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -69,7 +73,11 @@ public class GetFilesByTagQueryHandlerTests
         fileTagRepo.FileTags.Add(FileTag.Create(file1.Id, tag2));
         fileTagRepo.FileTags.Add(FileTag.Create(file2.Id, tag1));
 
-        var query = new GetFilesByTagQuery([tag1, tag2], familyId);
+        var query = new GetFilesByTagQuery([tag1, tag2])
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);
@@ -81,7 +89,11 @@ public class GetFilesByTagQueryHandlerTests
     {
         var (handler, _, _) = CreateHandler();
 
-        var query = new GetFilesByTagQuery([], FamilyId.New());
+        var query = new GetFilesByTagQuery([])
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -103,7 +115,11 @@ public class GetFilesByTagQueryHandlerTests
         fileTagRepo.FileTags.Add(FileTag.Create(myFile.Id, tagId));
         fileTagRepo.FileTags.Add(FileTag.Create(otherFile.Id, tagId));
 
-        var query = new GetFilesByTagQuery([tagId], familyId);
+        var query = new GetFilesByTagQuery([tagId])
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);
@@ -115,7 +131,11 @@ public class GetFilesByTagQueryHandlerTests
     {
         var (handler, _, _) = CreateHandler();
 
-        var query = new GetFilesByTagQuery([TagId.New()], FamilyId.New());
+        var query = new GetFilesByTagQuery([TagId.New()])
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();

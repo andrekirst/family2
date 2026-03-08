@@ -26,7 +26,11 @@ public class RenameAlbumCommandHandlerTests
         var album = Album.Create(AlbumName.From("Old Name"), null, familyId, UserId.New());
         albumRepo.Albums.Add(album);
 
-        var command = new RenameAlbumCommand(album.Id, AlbumName.From("New Name"), familyId);
+        var command = new RenameAlbumCommand(album.Id, AlbumName.From("New Name"))
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.AlbumId.Should().Be(album.Id);
@@ -38,7 +42,11 @@ public class RenameAlbumCommandHandlerTests
     {
         var (handler, _) = CreateHandler();
 
-        var command = new RenameAlbumCommand(AlbumId.New(), AlbumName.From("New"), FamilyId.New());
+        var command = new RenameAlbumCommand(AlbumId.New(), AlbumName.From("New"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -53,7 +61,11 @@ public class RenameAlbumCommandHandlerTests
         var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New());
         albumRepo.Albums.Add(album);
 
-        var command = new RenameAlbumCommand(album.Id, AlbumName.From("New"), FamilyId.New());
+        var command = new RenameAlbumCommand(album.Id, AlbumName.From("New"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

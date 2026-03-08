@@ -22,7 +22,11 @@ public class DisconnectExternalStorageCommandHandlerTests
             "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New());
         repo.Connections.Add(connection);
 
-        var command = new DisconnectExternalStorageCommand(connection.Id, familyId);
+        var command = new DisconnectExternalStorageCommand(connection.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -36,7 +40,11 @@ public class DisconnectExternalStorageCommandHandlerTests
         var handler = new DisconnectExternalStorageCommandHandler(repo);
 
         var command = new DisconnectExternalStorageCommand(
-            ExternalConnectionId.New(), FamilyId.New());
+            ExternalConnectionId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -55,7 +63,11 @@ public class DisconnectExternalStorageCommandHandlerTests
             "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New());
         repo.Connections.Add(connection);
 
-        var command = new DisconnectExternalStorageCommand(connection.Id, FamilyId.New());
+        var command = new DisconnectExternalStorageCommand(connection.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

@@ -22,9 +22,11 @@ public class CreateAlbumCommandHandlerTests
 
         var command = new CreateAlbumCommand(
             AlbumName.From("Summer 2025"),
-            "Beach photos",
-            FamilyId.New(),
-            UserId.New());
+            "Beach photos")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -41,9 +43,11 @@ public class CreateAlbumCommandHandlerTests
 
         var command = new CreateAlbumCommand(
             AlbumName.From("Quick Album"),
-            null,
-            FamilyId.New(),
-            UserId.New());
+            null)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 

@@ -20,7 +20,7 @@ public sealed class RevokeShareLinkCommandHandler(
             throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
         }
 
-        link.Revoke(command.RevokedBy);
+        link.Revoke(command.UserId);
 
         return new RevokeShareLinkResult(true);
     }

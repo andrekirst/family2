@@ -47,9 +47,11 @@ public class SetPermissionCommandHandlerTests
             PermissionResourceType.File,
             file.Id.Value,
             memberId,
-            FilePermissionLevel.View,
-            familyId,
-            grantedBy);
+            FilePermissionLevel.View)
+        {
+            FamilyId = familyId,
+            UserId = grantedBy
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -72,9 +74,11 @@ public class SetPermissionCommandHandlerTests
             PermissionResourceType.Folder,
             folder.Id.Value,
             UserId.New(),
-            FilePermissionLevel.Edit,
-            familyId,
-            UserId.New());
+            FilePermissionLevel.Edit)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -102,9 +106,11 @@ public class SetPermissionCommandHandlerTests
             PermissionResourceType.File,
             file.Id.Value,
             memberId,
-            FilePermissionLevel.Manage,
-            familyId,
-            UserId.New());
+            FilePermissionLevel.Manage)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -122,9 +128,11 @@ public class SetPermissionCommandHandlerTests
             PermissionResourceType.File,
             Guid.NewGuid(),
             UserId.New(),
-            FilePermissionLevel.View,
-            FamilyId.New(),
-            UserId.New());
+            FilePermissionLevel.View)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -141,9 +149,11 @@ public class SetPermissionCommandHandlerTests
             PermissionResourceType.Folder,
             Guid.NewGuid(),
             UserId.New(),
-            FilePermissionLevel.View,
-            FamilyId.New(),
-            UserId.New());
+            FilePermissionLevel.View)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -163,9 +173,12 @@ public class SetPermissionCommandHandlerTests
             PermissionResourceType.File,
             file.Id.Value,
             UserId.New(),
-            FilePermissionLevel.View,
-            FamilyId.New(), // Different family
-            UserId.New());
+            FilePermissionLevel.View)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = // Different family
+            UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

@@ -43,18 +43,19 @@ builder.Services.AddMediator(options =>
     options.Assemblies = [typeof(Program).Assembly];
     options.PipelineBehaviors =
     [
-        typeof(DomainEventPublishingBehavior<,>),  // outermost
-        typeof(FamilyMembershipBehavior<,>),       // family membership gate
-        typeof(LoggingBehavior<,>),
-        typeof(ValidationBehavior<,>),
-        typeof(QueryAsNoTrackingBehavior<,>),
-        typeof(TransactionBehavior<,>),             // innermost before handler
+        typeof(DomainEventPublishingBehavior<,>),  // outermost (100)
+        typeof(LoggingBehavior<,>),                // logs original command (200)
+        typeof(UserResolutionBehavior<,>),         // resolves user, populates UserId/FamilyId (250)
+        typeof(ValidationBehavior<,>),             // validates enriched command (300)
+        typeof(QueryAsNoTrackingBehavior<,>),      // EF Core no-tracking (360)
+        typeof(TransactionBehavior<,>),            // innermost before handler (400)
     ];
 });
 
 // Infrastructure services
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserContext, FamilyHub.Api.Common.Infrastructure.Auth.CurrentUserContext>();
 builder.Services.AddScoped<IDomainEventCollector, DomainEventCollector>();
 builder.Services.AddScoped<DomainEventInterceptor>();
 builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());

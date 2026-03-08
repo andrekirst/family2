@@ -26,7 +26,11 @@ public class UpdateTagCommandHandlerTests
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
         tagRepo.Tags.Add(tag);
 
-        var command = new UpdateTagCommand(tag.Id, TagName.From("Images"), null, familyId);
+        var command = new UpdateTagCommand(tag.Id, TagName.From("Images"), null)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.TagId.Should().Be(tag.Id);
@@ -42,7 +46,11 @@ public class UpdateTagCommandHandlerTests
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
         tagRepo.Tags.Add(tag);
 
-        var command = new UpdateTagCommand(tag.Id, null, TagColor.From("#00FF00"), familyId);
+        var command = new UpdateTagCommand(tag.Id, null, TagColor.From("#00FF00"))
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.TagId.Should().Be(tag.Id);
@@ -58,7 +66,11 @@ public class UpdateTagCommandHandlerTests
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
         tagRepo.Tags.Add(tag);
 
-        var command = new UpdateTagCommand(tag.Id, TagName.From("Images"), TagColor.From("#00FF00"), familyId);
+        var command = new UpdateTagCommand(tag.Id, TagName.From("Images"), TagColor.From("#00FF00"))
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         await handler.Handle(command, CancellationToken.None);
 
         tag.Name.Value.Should().Be("Images");
@@ -70,7 +82,11 @@ public class UpdateTagCommandHandlerTests
     {
         var (handler, _) = CreateHandler();
 
-        var command = new UpdateTagCommand(TagId.New(), TagName.From("New"), null, FamilyId.New());
+        var command = new UpdateTagCommand(TagId.New(), TagName.From("New"), null)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -85,7 +101,11 @@ public class UpdateTagCommandHandlerTests
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), FamilyId.New(), UserId.New());
         tagRepo.Tags.Add(tag);
 
-        var command = new UpdateTagCommand(tag.Id, TagName.From("New"), null, FamilyId.New());
+        var command = new UpdateTagCommand(tag.Id, TagName.From("New"), null)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -103,7 +123,11 @@ public class UpdateTagCommandHandlerTests
         tagRepo.Tags.Add(tag1);
         tagRepo.Tags.Add(tag2);
 
-        var command = new UpdateTagCommand(tag2.Id, TagName.From("Photos"), null, familyId);
+        var command = new UpdateTagCommand(tag2.Id, TagName.From("Photos"), null)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

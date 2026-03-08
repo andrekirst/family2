@@ -48,7 +48,7 @@ public sealed class SendMessageCommandHandler(
                     Checksum.From(a.Checksum),
                     targetFolderId,
                     command.FamilyId,
-                    command.SenderId);
+                    command.UserId);
 
                 await storedFileRepository.AddAsync(storedFile, cancellationToken);
 
@@ -63,7 +63,7 @@ public sealed class SendMessageCommandHandler(
 
         // Create message aggregate (raises MessageSentEvent + attachment events)
         var message = Message.Create(
-            command.FamilyId, command.SenderId, command.Content,
+            command.FamilyId, command.UserId, command.Content,
             attachments, command.ConversationId);
 
         await messageRepository.AddAsync(message, cancellationToken);
@@ -117,7 +117,7 @@ public sealed class SendMessageCommandHandler(
                 rootFolder.Id,
                 $"/{rootFolder.Id.Value}/",
                 command.FamilyId,
-                command.SenderId);
+                command.UserId);
 
             await folderRepository.AddAsync(messagesFolder, ct);
         }
@@ -128,7 +128,7 @@ public sealed class SendMessageCommandHandler(
             messagesFolder.Id,
             $"{messagesFolder.MaterializedPath}{messagesFolder.Id.Value}/",
             command.FamilyId,
-            command.SenderId);
+            command.UserId);
 
         await folderRepository.AddAsync(conversationFolder, ct);
 

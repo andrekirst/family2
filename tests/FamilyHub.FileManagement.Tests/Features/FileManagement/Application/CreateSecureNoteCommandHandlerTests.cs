@@ -15,14 +15,16 @@ public class CreateSecureNoteCommandHandlerTests
         var handler = new CreateSecureNoteCommandHandler(noteRepo);
 
         var command = new CreateSecureNoteCommand(
-            FamilyId.New(),
-            UserId.New(),
             NoteCategory.Passwords,
             "enc-title",
             "enc-content",
             "iv-123",
             "salt-456",
-            "sentinel-789");
+            "sentinel-789")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -39,14 +41,16 @@ public class CreateSecureNoteCommandHandlerTests
         var handler = new CreateSecureNoteCommandHandler(noteRepo);
 
         var command = new CreateSecureNoteCommand(
-            FamilyId.New(),
-            UserId.New(),
             NoteCategory.Financial,
             "enc-title",
             "enc-content",
             "iv-123",
             "my-salt",
-            "my-sentinel");
+            "my-sentinel")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         await handler.Handle(command, CancellationToken.None);
 
@@ -64,12 +68,28 @@ public class CreateSecureNoteCommandHandlerTests
         var familyId = FamilyId.New();
 
         await handler.Handle(new CreateSecureNoteCommand(
-            familyId, userId, NoteCategory.Passwords,
-            "note1", "content1", "iv1", "salt1", "sentinel1"), CancellationToken.None);
+            NoteCategory.Passwords,
+            "note1",
+            "content1",
+            "iv1",
+            "salt1",
+            "sentinel1")
+        {
+            FamilyId = familyId,
+            UserId = userId
+        }, CancellationToken.None);
 
         await handler.Handle(new CreateSecureNoteCommand(
-            familyId, userId, NoteCategory.Medical,
-            "note2", "content2", "iv2", "salt2", "sentinel2"), CancellationToken.None);
+            NoteCategory.Medical,
+            "note2",
+            "content2",
+            "iv2",
+            "salt2",
+            "sentinel2")
+        {
+            FamilyId = familyId,
+            UserId = userId
+        }, CancellationToken.None);
 
         noteRepo.Notes.Should().HaveCount(2);
     }

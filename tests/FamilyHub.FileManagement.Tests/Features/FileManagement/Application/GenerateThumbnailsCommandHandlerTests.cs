@@ -35,7 +35,11 @@ public class GenerateThumbnailsCommandHandlerTests
         fileRepo.Files.Add(file);
         storageProvider.SeedFile("files/photo.jpg", new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 });
 
-        var command = new GenerateThumbnailsCommand(file.Id, familyId);
+        var command = new GenerateThumbnailsCommand(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -65,7 +69,11 @@ public class GenerateThumbnailsCommandHandlerTests
             UserId.New());
         fileRepo.Files.Add(file);
 
-        var command = new GenerateThumbnailsCommand(file.Id, familyId);
+        var command = new GenerateThumbnailsCommand(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -101,7 +109,11 @@ public class GenerateThumbnailsCommandHandlerTests
             file.Id, 200, 200, StorageKey.From("thumbnails/existing/200x200.webp"));
         thumbnailRepo.Thumbnails.Add(existingThumb);
 
-        var command = new GenerateThumbnailsCommand(file.Id, familyId);
+        var command = new GenerateThumbnailsCommand(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -119,7 +131,11 @@ public class GenerateThumbnailsCommandHandlerTests
         var handler = new GenerateThumbnailsCommandHandler(
             fileRepo, thumbnailRepo, thumbnailService, storageProvider);
 
-        var command = new GenerateThumbnailsCommand(FileId.New(), FamilyId.New());
+        var command = new GenerateThumbnailsCommand(FileId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -148,7 +164,11 @@ public class GenerateThumbnailsCommandHandlerTests
             UserId.New());
         fileRepo.Files.Add(file);
 
-        var command = new GenerateThumbnailsCommand(file.Id, FamilyId.New());
+        var command = new GenerateThumbnailsCommand(file.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -179,7 +199,11 @@ public class GenerateThumbnailsCommandHandlerTests
         fileRepo.Files.Add(file);
         // Do NOT seed storage — file is missing from storage
 
-        var command = new GenerateThumbnailsCommand(file.Id, familyId);
+        var command = new GenerateThumbnailsCommand(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeFalse();

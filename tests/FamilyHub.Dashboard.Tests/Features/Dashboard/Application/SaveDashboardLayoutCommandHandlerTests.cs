@@ -16,8 +16,8 @@ public class SaveDashboardLayoutCommandHandlerTests
         var (handler, repo) = CreateHandler();
         var command = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From("My Dashboard"),
-            UserId.New(), FamilyId.New(), false,
-            [new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, null)]);
+            false,
+            [new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, null)]) { UserId = UserId.New(), FamilyId = FamilyId.New() };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -39,18 +39,18 @@ public class SaveDashboardLayoutCommandHandlerTests
         var familyId = FamilyId.New();
         var createCommand = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From("My Dashboard"),
-            userId, familyId, false,
-            [new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, null)]);
+            false,
+            [new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, null)]) { UserId = userId, FamilyId = familyId };
         await handler.Handle(createCommand, CancellationToken.None);
 
         // Update with new widgets
         var updateCommand = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From("Updated Dashboard"),
-            userId, familyId, false,
+            false,
             [
                 new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 12, 2, 0, null),
                 new WidgetPositionData(WidgetTypeId.From("test:widget2"), 0, 2, 6, 4, 1, null)
-            ]);
+            ]) { UserId = userId, FamilyId = familyId };
 
         // Act
         var result = await handler.Handle(updateCommand, CancellationToken.None);
@@ -70,8 +70,8 @@ public class SaveDashboardLayoutCommandHandlerTests
 
         var command = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From("Family Dashboard"),
-            userId, familyId, true,
-            [new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 12, 2, 0, null)]);
+            true,
+            [new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 12, 2, 0, null)]) { UserId = userId, FamilyId = familyId };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);

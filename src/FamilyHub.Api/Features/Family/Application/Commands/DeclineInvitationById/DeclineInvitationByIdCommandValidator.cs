@@ -12,7 +12,7 @@ public class DeclineInvitationByIdCommandValidator : AbstractValidator<DeclineIn
         RuleFor(x => x.InvitationId.Value)
             .NotEmpty().WithMessage(_ => localizer["InvitationIdRequired"]);
 
-        RuleFor(x => x.DeclininingUserId.Value)
+        RuleFor(x => x.UserId.Value)
             .NotEmpty().WithMessage(_ => localizer["DecliningUserIdRequired"]);
     }
 }

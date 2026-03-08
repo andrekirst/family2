@@ -19,7 +19,7 @@ public sealed class MarkAsStudentAuthValidator : AbstractValidator<MarkAsStudent
             .MustAsync(async (command, ct) =>
             {
                 var callerMember = await familyMemberRepository.GetByUserAndFamilyAsync(
-                    command.MarkedByUserId, command.FamilyId, ct);
+                    command.UserId, command.FamilyId, ct);
                 return callerMember is not null;
             })
             .WithErrorCode(DomainErrorCodes.UserNotInFamily)
@@ -29,7 +29,7 @@ public sealed class MarkAsStudentAuthValidator : AbstractValidator<MarkAsStudent
             .MustAsync(async (command, ct) =>
             {
                 var callerMember = await familyMemberRepository.GetByUserAndFamilyAsync(
-                    command.MarkedByUserId, command.FamilyId, ct);
+                    command.UserId, command.FamilyId, ct);
                 return callerMember is not null && callerMember.Role.CanManageStudents();
             })
             .WithErrorCode(DomainErrorCodes.Forbidden)

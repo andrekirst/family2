@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -6,4 +5,4 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Queries.GetGoogle
 
 public sealed record GetGoogleAuthUrlQuery(
     UserId UserId
-) : IQuery<string>, IIgnoreFamilyMembership;
+) : IQuery<string>, IAnonymousOperation;

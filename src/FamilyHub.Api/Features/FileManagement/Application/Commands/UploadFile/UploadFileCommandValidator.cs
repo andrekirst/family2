@@ -14,6 +14,6 @@ public sealed class UploadFileCommandValidator : AbstractValidator<UploadFileCom
         RuleFor(x => x.Checksum).NotNull();
         RuleFor(x => x.FolderId).NotNull();
         RuleFor(x => x.FamilyId).NotNull();
-        RuleFor(x => x.UploadedBy).NotNull();
+        RuleFor(x => x.UserId).NotNull();
     }
 }

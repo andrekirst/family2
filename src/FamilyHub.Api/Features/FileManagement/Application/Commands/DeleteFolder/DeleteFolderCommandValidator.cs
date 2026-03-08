@@ -11,6 +11,6 @@ public sealed class DeleteFolderCommandValidator : AbstractValidator<DeleteFolde
     {
         RuleFor(x => x.FolderId).NotNull();
         RuleFor(x => x.FamilyId).NotNull();
-        RuleFor(x => x.DeletedBy).NotNull();
+        RuleFor(x => x.UserId).NotNull();
     }
 }

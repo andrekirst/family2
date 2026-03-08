@@ -21,7 +21,7 @@ public class MarkAsStudentAuthValidatorTests
 
         var memberRepo = new FakeFamilyMemberRepository(); // No existing member
         var validator = new MarkAsStudentAuthValidator(memberRepo, new StubStringLocalizer<DomainErrors>());
-        var command = new MarkAsStudentCommand(familyMemberId, familyId, userId);
+        var command = new MarkAsStudentCommand(familyMemberId) { FamilyId = familyId, UserId = userId };
 
         // Act
         var result = await validator.ValidateAsync(command);
@@ -42,7 +42,7 @@ public class MarkAsStudentAuthValidatorTests
 
         var memberRepo = new FakeFamilyMemberRepository(callerMember, [callerMember, targetMember]);
         var validator = new MarkAsStudentAuthValidator(memberRepo, new StubStringLocalizer<DomainErrors>());
-        var command = new MarkAsStudentCommand(targetMember.Id, familyId, userId);
+        var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyId, UserId = userId };
 
         // Act
         var result = await validator.ValidateAsync(command);
@@ -63,7 +63,7 @@ public class MarkAsStudentAuthValidatorTests
 
         var memberRepo = new FakeFamilyMemberRepository(callerMember, [callerMember, targetMember]);
         var validator = new MarkAsStudentAuthValidator(memberRepo, new StubStringLocalizer<DomainErrors>());
-        var command = new MarkAsStudentCommand(targetMember.Id, familyId, userId);
+        var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyId, UserId = userId };
 
         // Act
         var result = await validator.ValidateAsync(command);

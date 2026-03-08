@@ -28,7 +28,7 @@ public sealed class MoveFileCommandHandler(
             throw new DomainException("Target folder belongs to a different family", DomainErrorCodes.Forbidden);
         }
 
-        file.MoveTo(command.TargetFolderId, command.MovedBy);
+        file.MoveTo(command.TargetFolderId, command.UserId);
 
         return new MoveFileResult(file.Id);
     }

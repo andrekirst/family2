@@ -41,7 +41,7 @@ public sealed class CreateFolderCommandHandler(
             if (rootFolder is null)
             {
                 // Auto-create root folder
-                rootFolder = Folder.CreateRoot(command.FamilyId, command.CreatedBy);
+                rootFolder = Folder.CreateRoot(command.FamilyId, command.UserId);
                 await folderRepository.AddAsync(rootFolder, cancellationToken);
             }
 
@@ -54,7 +54,7 @@ public sealed class CreateFolderCommandHandler(
             effectiveParentId,
             materializedPath,
             command.FamilyId,
-            command.CreatedBy);
+            command.UserId);
 
         await folderRepository.AddAsync(folder, cancellationToken);
 

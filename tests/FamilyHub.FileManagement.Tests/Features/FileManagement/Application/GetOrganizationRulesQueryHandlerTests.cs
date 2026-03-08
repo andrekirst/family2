@@ -19,7 +19,11 @@ public class GetOrganizationRulesQueryHandlerTests
         ruleRepo.Rules.Add(OrganizationRule.Create("A", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1));
         ruleRepo.Rules.Add(OrganizationRule.Create("B", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 2));
 
-        var query = new GetOrganizationRulesQuery(familyId);
+        var query = new GetOrganizationRulesQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -31,7 +35,11 @@ public class GetOrganizationRulesQueryHandlerTests
         var ruleRepo = new FakeOrganizationRuleRepository();
         var handler = new GetOrganizationRulesQueryHandler(ruleRepo);
 
-        var query = new GetOrganizationRulesQuery(FamilyId.New());
+        var query = new GetOrganizationRulesQuery()
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();

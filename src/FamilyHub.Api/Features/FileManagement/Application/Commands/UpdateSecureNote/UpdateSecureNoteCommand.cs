@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -7,10 +6,12 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UpdateSecur
 
 public sealed record UpdateSecureNoteCommand(
     SecureNoteId NoteId,
-    UserId UserId,
     NoteCategory Category,
     string EncryptedTitle,
     string EncryptedContent,
-    string Iv,
-    FamilyId FamilyId
-) : ICommand<UpdateSecureNoteResult>, IFamilyScoped;
+    string Iv
+) : ICommand<UpdateSecureNoteResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

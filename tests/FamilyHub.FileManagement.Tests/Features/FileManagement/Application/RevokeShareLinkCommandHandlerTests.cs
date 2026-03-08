@@ -20,7 +20,11 @@ public class RevokeShareLinkCommandHandlerTests
         var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null);
         repo.Links.Add(link);
 
-        var command = new RevokeShareLinkCommand(link.Id, familyId, UserId.New());
+        var command = new RevokeShareLinkCommand(link.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -33,7 +37,11 @@ public class RevokeShareLinkCommandHandlerTests
         var repo = new FakeShareLinkRepository();
         var handler = new RevokeShareLinkCommandHandler(repo);
 
-        var command = new RevokeShareLinkCommand(ShareLinkId.New(), FamilyId.New(), UserId.New());
+        var command = new RevokeShareLinkCommand(ShareLinkId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -49,7 +57,11 @@ public class RevokeShareLinkCommandHandlerTests
         var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null);
         repo.Links.Add(link);
 
-        var command = new RevokeShareLinkCommand(link.Id, FamilyId.New(), UserId.New());
+        var command = new RevokeShareLinkCommand(link.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

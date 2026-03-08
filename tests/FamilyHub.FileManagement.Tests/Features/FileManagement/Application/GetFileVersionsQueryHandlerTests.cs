@@ -36,7 +36,11 @@ public class GetFileVersionsQueryHandlerTests
         versionRepo.Versions.Add(v1);
         versionRepo.Versions.Add(v2);
 
-        var query = new GetFileVersionsQuery(file.Id, familyId);
+        var query = new GetFileVersionsQuery(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -63,7 +67,11 @@ public class GetFileVersionsQueryHandlerTests
             UserId.New());
         fileRepo.Files.Add(file);
 
-        var query = new GetFileVersionsQuery(file.Id, familyId);
+        var query = new GetFileVersionsQuery(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -76,7 +84,11 @@ public class GetFileVersionsQueryHandlerTests
         var versionRepo = new FakeFileVersionRepository();
         var handler = new GetFileVersionsQueryHandler(versionRepo, fileRepo);
 
-        var query = new GetFileVersionsQuery(FileId.New(), FamilyId.New());
+        var query = new GetFileVersionsQuery(FileId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -101,7 +113,11 @@ public class GetFileVersionsQueryHandlerTests
             UserId.New());
         fileRepo.Files.Add(file);
 
-        var query = new GetFileVersionsQuery(file.Id, FamilyId.New()); // Different family
+        var query = new GetFileVersionsQuery(file.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        }; // Different family
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

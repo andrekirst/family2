@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -6,6 +5,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFolder;
 
 public sealed record GetFolderQuery(
-    FolderId FolderId,
-    FamilyId FamilyId
-) : IReadOnlyQuery<FolderDto?>, IFamilyScoped;
+    FolderId FolderId
+) : IReadOnlyQuery<FolderDto?>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

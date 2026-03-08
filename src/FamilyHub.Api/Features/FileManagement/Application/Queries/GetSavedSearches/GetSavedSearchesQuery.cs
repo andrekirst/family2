@@ -1,8 +1,12 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetSavedSearches;
 
-public sealed record GetSavedSearchesQuery(UserId UserId, FamilyId FamilyId) : IReadOnlyQuery<List<SavedSearchDto>>, IFamilyScoped;
+public sealed record GetSavedSearchesQuery
+    : IReadOnlyQuery<List<SavedSearchDto>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

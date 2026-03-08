@@ -17,13 +17,15 @@ public class ConnectExternalStorageCommandHandlerTests
         var handler = new ConnectExternalStorageCommandHandler(repo);
 
         var command = new ConnectExternalStorageCommand(
-            FamilyId.New(),
             ExternalProviderType.OneDrive,
             "My OneDrive",
             "enc-access-token",
             "enc-refresh-token",
-            DateTime.UtcNow.AddHours(1),
-            UserId.New());
+            DateTime.UtcNow.AddHours(1))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -46,13 +48,15 @@ public class ConnectExternalStorageCommandHandlerTests
         repo.Connections.Add(existing);
 
         var command = new ConnectExternalStorageCommand(
-            familyId,
             ExternalProviderType.GoogleDrive,
             "Another Drive",
             "new-token",
             "new-refresh",
-            DateTime.UtcNow.AddHours(1),
-            UserId.New());
+            DateTime.UtcNow.AddHours(1))
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -67,13 +71,15 @@ public class ConnectExternalStorageCommandHandlerTests
         var handler = new ConnectExternalStorageCommandHandler(repo);
 
         var command = new ConnectExternalStorageCommand(
-            FamilyId.New(),
             ExternalProviderType.PaperlessNgx,
             "Paperless-ngx",
             "api-token-encrypted",
             null,
-            null,
-            UserId.New());
+            null)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 

@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
@@ -17,9 +16,11 @@ public sealed record AttachmentData(
 /// Command to send a message in a family channel.
 /// </summary>
 public sealed record SendMessageCommand(
-    FamilyId FamilyId,
-    UserId SenderId,
     MessageContent Content,
     IReadOnlyList<AttachmentData>? Attachments = null,
     ConversationId? ConversationId = null
-) : ICommand<SendMessageResult>, IFamilyScoped;
+) : ICommand<SendMessageResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

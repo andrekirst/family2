@@ -43,7 +43,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         // Assert
         memberRepo.AddedMembers.Should().HaveCount(1);
         var member = memberRepo.AddedMembers[0];
-        member.UserId.Should().Be(command.AcceptingUserId);
+        member.UserId.Should().Be(command.UserId);
         member.Role.Should().Be(FamilyRole.Member);
     }
 
@@ -70,7 +70,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
         var userRepo = new FakeUserRepository(differentUser);
         var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationByIdCommand(invitation.Id, differentUser.Id);
+        var command = new AcceptInvitationByIdCommand(invitation.Id) { UserId = differentUser.Id };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
@@ -88,7 +88,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
         var userRepo = new FakeUserRepository(user);
         var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationByIdCommand(invitation.Id, user.Id);
+        var command = new AcceptInvitationByIdCommand(invitation.Id) { UserId = user.Id };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
@@ -107,7 +107,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
         var userRepo = new FakeUserRepository(user);
         var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationByIdCommand(invitation.Id, user.Id);
+        var command = new AcceptInvitationByIdCommand(invitation.Id) { UserId = user.Id };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
@@ -125,7 +125,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
         var userRepo = new FakeUserRepository(user);
         var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationByIdCommand(invitation.Id, user.Id);
+        var command = new AcceptInvitationByIdCommand(invitation.Id) { UserId = user.Id };
 
         return (handler, command, invitationRepo, memberRepo, userRepo);
     }

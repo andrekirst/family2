@@ -32,7 +32,11 @@ public class GetAlbumsQueryHandlerTests
         itemRepo.Items.Add(AlbumItem.Create(album1.Id, FileId.New(), UserId.New()));
         itemRepo.Items.Add(AlbumItem.Create(album2.Id, FileId.New(), UserId.New()));
 
-        var query = new GetAlbumsQuery(familyId);
+        var query = new GetAlbumsQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -45,7 +49,11 @@ public class GetAlbumsQueryHandlerTests
     {
         var (handler, _, _) = CreateHandler();
 
-        var query = new GetAlbumsQuery(FamilyId.New());
+        var query = new GetAlbumsQuery()
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -61,7 +69,11 @@ public class GetAlbumsQueryHandlerTests
         albumRepo.Albums.Add(Album.Create(AlbumName.From("Mine"), null, familyId, UserId.New()));
         albumRepo.Albums.Add(Album.Create(AlbumName.From("Other"), null, otherFamilyId, UserId.New()));
 
-        var query = new GetAlbumsQuery(familyId);
+        var query = new GetAlbumsQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);

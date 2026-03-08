@@ -30,7 +30,7 @@ public sealed class ConnectExternalStorageCommandHandler(
             command.EncryptedAccessToken,
             command.EncryptedRefreshToken,
             command.TokenExpiresAt,
-            command.ConnectedBy);
+            command.UserId);
 
         await connectionRepository.AddAsync(connection, cancellationToken);
 

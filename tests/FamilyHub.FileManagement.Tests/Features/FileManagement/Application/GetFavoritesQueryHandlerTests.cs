@@ -45,7 +45,11 @@ public class GetFavoritesQueryHandlerTests
         favRepo.Favorites.Add(UserFavorite.Create(userId, file1.Id));
         favRepo.Favorites.Add(UserFavorite.Create(userId, file2.Id));
 
-        var query = new GetFavoritesQuery(userId, familyId);
+        var query = new GetFavoritesQuery()
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -56,7 +60,11 @@ public class GetFavoritesQueryHandlerTests
     {
         var (handler, _, _) = CreateHandler();
 
-        var query = new GetFavoritesQuery(UserId.New(), FamilyId.New());
+        var query = new GetFavoritesQuery()
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -78,7 +86,11 @@ public class GetFavoritesQueryHandlerTests
         favRepo.Favorites.Add(UserFavorite.Create(userId, myFile.Id));
         favRepo.Favorites.Add(UserFavorite.Create(otherUserId, otherFile.Id));
 
-        var query = new GetFavoritesQuery(userId, familyId);
+        var query = new GetFavoritesQuery()
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);

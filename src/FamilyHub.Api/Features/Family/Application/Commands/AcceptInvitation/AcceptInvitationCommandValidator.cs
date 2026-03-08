@@ -12,7 +12,7 @@ public class AcceptInvitationCommandValidator : AbstractValidator<AcceptInvitati
         RuleFor(x => x.Token)
             .NotEmpty().WithMessage(_ => localizer["InvitationTokenRequired"]);
 
-        RuleFor(x => x.AcceptingUserId.Value)
+        RuleFor(x => x.UserId.Value)
             .NotEmpty().WithMessage(_ => localizer["AcceptingUserIdRequired"]);
     }
 }

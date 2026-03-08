@@ -47,9 +47,11 @@ public class MoveFileCommandHandlerTests
 
         var command = new MoveFileCommand(
             file.Id,
-            targetFolder.Id,
-            familyId,
-            UserId.New());
+            targetFolder.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -77,9 +79,11 @@ public class MoveFileCommandHandlerTests
 
         var command = new MoveFileCommand(
             file.Id,
-            targetFolder.Id,
-            familyId,
-            UserId.New());
+            targetFolder.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

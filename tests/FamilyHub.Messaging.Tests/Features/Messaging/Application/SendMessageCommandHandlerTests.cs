@@ -15,9 +15,11 @@ public class SendMessageCommandHandlerTests
         // Arrange
         var (handler, _) = CreateHandler();
         var command = new SendMessageCommand(
-            FamilyId.New(),
-            UserId.New(),
-            MessageContent.From("Hello, family!"));
+            MessageContent.From("Hello, family!"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -35,7 +37,11 @@ public class SendMessageCommandHandlerTests
         var senderId = UserId.New();
         var content = MessageContent.From("Test message");
         var (handler, messageRepo) = CreateHandler();
-        var command = new SendMessageCommand(familyId, senderId, content);
+        var command = new SendMessageCommand(content)
+        {
+            FamilyId = familyId,
+            UserId = senderId
+        };
 
         // Act
         await handler.Handle(command, CancellationToken.None);
@@ -54,9 +60,11 @@ public class SendMessageCommandHandlerTests
         // Arrange
         var (handler, messageRepo) = CreateHandler();
         var command = new SendMessageCommand(
-            FamilyId.New(),
-            UserId.New(),
-            MessageContent.From("Event test"));
+            MessageContent.From("Event test"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         // Act
         await handler.Handle(command, CancellationToken.None);
@@ -74,13 +82,15 @@ public class SendMessageCommandHandlerTests
         var senderId = UserId.New();
         var (handler, messageRepo) = CreateHandler(familyId, senderId);
         var command = new SendMessageCommand(
-            familyId,
-            senderId,
             MessageContent.From("See attached"),
             [
                 new AttachmentData("uploads/photo.jpg", "photo.jpg", "image/jpeg", 1024, "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"),
                 new AttachmentData("uploads/doc.pdf", "doc.pdf", "application/pdf", 2048, "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3")
-            ]);
+            ])
+        {
+            FamilyId = familyId,
+            UserId = senderId
+        };
 
         // Act
         await handler.Handle(command, CancellationToken.None);
@@ -100,9 +110,11 @@ public class SendMessageCommandHandlerTests
         // Arrange
         var (handler, messageRepo) = CreateHandler();
         var command = new SendMessageCommand(
-            FamilyId.New(),
-            UserId.New(),
-            MessageContent.From("No files here"));
+            MessageContent.From("No files here"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         // Act
         await handler.Handle(command, CancellationToken.None);

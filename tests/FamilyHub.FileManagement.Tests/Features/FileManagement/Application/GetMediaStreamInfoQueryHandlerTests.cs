@@ -31,7 +31,11 @@ public class GetMediaStreamInfoQueryHandlerTests
             UserId.New());
         fileRepo.Files.Add(file);
 
-        var query = new GetMediaStreamInfoQuery(file.Id, familyId);
+        var query = new GetMediaStreamInfoQuery(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.FileId.Should().Be(file.Id.Value);
@@ -61,7 +65,11 @@ public class GetMediaStreamInfoQueryHandlerTests
             UserId.New());
         fileRepo.Files.Add(file);
 
-        var query = new GetMediaStreamInfoQuery(file.Id, familyId);
+        var query = new GetMediaStreamInfoQuery(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.IsStreamable.Should().BeFalse();
@@ -91,7 +99,11 @@ public class GetMediaStreamInfoQueryHandlerTests
         thumbnailRepo.Thumbnails.Add(FileThumbnail.Create(
             file.Id, 800, 800, StorageKey.From("thumbs/800x800.webp")));
 
-        var query = new GetMediaStreamInfoQuery(file.Id, familyId);
+        var query = new GetMediaStreamInfoQuery(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Thumbnails.Should().HaveCount(2);
@@ -106,7 +118,11 @@ public class GetMediaStreamInfoQueryHandlerTests
         var thumbnailRepo = new FakeFileThumbnailRepository();
         var handler = new GetMediaStreamInfoQueryHandler(fileRepo, thumbnailRepo);
 
-        var query = new GetMediaStreamInfoQuery(FileId.New(), FamilyId.New());
+        var query = new GetMediaStreamInfoQuery(FileId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 
@@ -132,7 +148,11 @@ public class GetMediaStreamInfoQueryHandlerTests
             UserId.New());
         fileRepo.Files.Add(file);
 
-        var query = new GetMediaStreamInfoQuery(file.Id, FamilyId.New());
+        var query = new GetMediaStreamInfoQuery(file.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(query, CancellationToken.None).AsTask();
 

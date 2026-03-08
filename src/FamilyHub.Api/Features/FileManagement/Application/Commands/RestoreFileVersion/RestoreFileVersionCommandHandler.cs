@@ -39,7 +39,7 @@ public sealed class RestoreFileVersionCommandHandler(
             sourceVersion.StorageKey,
             sourceVersion.FileSize,
             sourceVersion.Checksum,
-            command.RestoredBy);
+            command.UserId);
 
         await versionRepository.AddAsync(newVersion, cancellationToken);
 

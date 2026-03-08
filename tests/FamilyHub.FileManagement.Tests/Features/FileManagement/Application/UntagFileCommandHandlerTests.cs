@@ -43,7 +43,11 @@ public class UntagFileCommandHandlerTests
         var tagId = TagId.New();
         fileTagRepo.FileTags.Add(FileTag.Create(file.Id, tagId));
 
-        var command = new UntagFileCommand(file.Id, tagId, familyId);
+        var command = new UntagFileCommand(file.Id, tagId)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -59,7 +63,11 @@ public class UntagFileCommandHandlerTests
         var file = CreateTestFile(familyId);
         fileRepo.Files.Add(file);
 
-        var command = new UntagFileCommand(file.Id, TagId.New(), familyId);
+        var command = new UntagFileCommand(file.Id, TagId.New())
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -70,7 +78,11 @@ public class UntagFileCommandHandlerTests
     {
         var (handler, _, _) = CreateHandler();
 
-        var command = new UntagFileCommand(FileId.New(), TagId.New(), FamilyId.New());
+        var command = new UntagFileCommand(FileId.New(), TagId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -85,7 +97,11 @@ public class UntagFileCommandHandlerTests
         var file = CreateTestFile(FamilyId.New());
         fileRepo.Files.Add(file);
 
-        var command = new UntagFileCommand(file.Id, TagId.New(), FamilyId.New());
+        var command = new UntagFileCommand(file.Id, TagId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

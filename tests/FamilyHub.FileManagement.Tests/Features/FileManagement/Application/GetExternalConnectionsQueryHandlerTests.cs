@@ -23,7 +23,11 @@ public class GetExternalConnectionsQueryHandlerTests
             familyId, ExternalProviderType.GoogleDrive, "Google Drive",
             "token2", "refresh2", DateTime.UtcNow.AddHours(1), UserId.New()));
 
-        var query = new GetExternalConnectionsQuery(familyId);
+        var query = new GetExternalConnectionsQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -39,7 +43,11 @@ public class GetExternalConnectionsQueryHandlerTests
             FamilyId.New(), ExternalProviderType.Dropbox, "Dropbox",
             "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New()));
 
-        var query = new GetExternalConnectionsQuery(FamilyId.New());
+        var query = new GetExternalConnectionsQuery()
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -56,7 +64,11 @@ public class GetExternalConnectionsQueryHandlerTests
             familyId, ExternalProviderType.PaperlessNgx, "My Paperless",
             "api-token", null, null, UserId.New()));
 
-        var query = new GetExternalConnectionsQuery(familyId);
+        var query = new GetExternalConnectionsQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         var dto = result.Single();

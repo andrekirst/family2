@@ -37,9 +37,11 @@ public class UploadFileCommandHandlerTests
             FileSize.From(1024),
             StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            folder.Id,
-            familyId,
-            UserId.New());
+            folder.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -59,9 +61,11 @@ public class UploadFileCommandHandlerTests
             FileSize.From(1024),
             StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            FolderId.New(),
-            FamilyId.New(),
-            UserId.New());
+            FolderId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -82,9 +86,12 @@ public class UploadFileCommandHandlerTests
             FileSize.From(1024),
             StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            folder.Id,
-            FamilyId.New(), // different family
-            UserId.New());
+            folder.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = // different family
+            UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

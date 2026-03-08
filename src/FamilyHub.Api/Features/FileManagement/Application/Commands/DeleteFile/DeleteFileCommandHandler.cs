@@ -26,7 +26,7 @@ public sealed class DeleteFileCommandHandler(
         await storageService.DeleteFileAsync(command.FamilyId, file.StorageKey.Value, file.Size.Value, cancellationToken);
 
         // Raise domain event and remove metadata
-        file.MarkDeleted(command.DeletedBy);
+        file.MarkDeleted(command.UserId);
         await storedFileRepository.RemoveAsync(file, cancellationToken);
 
         return new DeleteFileResult(true);

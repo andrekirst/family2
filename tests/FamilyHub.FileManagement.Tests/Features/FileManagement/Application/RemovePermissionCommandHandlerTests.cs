@@ -33,8 +33,11 @@ public class RemovePermissionCommandHandlerTests
         var command = new RemovePermissionCommand(
             PermissionResourceType.File,
             resourceId,
-            memberId,
-            familyId);
+            memberId)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -50,8 +53,11 @@ public class RemovePermissionCommandHandlerTests
         var command = new RemovePermissionCommand(
             PermissionResourceType.File,
             Guid.NewGuid(),
-            UserId.New(),
-            FamilyId.New());
+            UserId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -74,8 +80,11 @@ public class RemovePermissionCommandHandlerTests
         var command = new RemovePermissionCommand(
             PermissionResourceType.File,
             resourceId,
-            memberId,
-            FamilyId.New()); // Different family
+            memberId)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        }; // Different family
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

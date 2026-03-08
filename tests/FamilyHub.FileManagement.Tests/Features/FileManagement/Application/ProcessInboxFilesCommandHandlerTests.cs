@@ -76,7 +76,11 @@ public class ProcessInboxFilesCommandHandlerTests
             $$$"""{"DestinationFolderId":"{{{destFolderId.Value}}}"}""",
             1));
 
-        var command = new ProcessInboxFilesCommand(_familyId, _userId);
+        var command = new ProcessInboxFilesCommand()
+        {
+            FamilyId = _familyId,
+            UserId = _userId
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -102,7 +106,11 @@ public class ProcessInboxFilesCommandHandlerTests
             """[{"Type":1,"Value":".jpg"}]""",
             ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1));
 
-        var command = new ProcessInboxFilesCommand(_familyId, _userId);
+        var command = new ProcessInboxFilesCommand()
+        {
+            FamilyId = _familyId,
+            UserId = _userId
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.FilesProcessed.Should().Be(1);
@@ -130,7 +138,11 @@ public class ProcessInboxFilesCommandHandlerTests
             $$$"""{"TagIds":["{{{tagId.Value}}}"]}""",
             1));
 
-        var command = new ProcessInboxFilesCommand(_familyId, _userId);
+        var command = new ProcessInboxFilesCommand()
+        {
+            FamilyId = _familyId,
+            UserId = _userId
+        };
         await handler.Handle(command, CancellationToken.None);
 
         tagRepo.FileTags.Should().HaveCount(1);
@@ -143,7 +155,11 @@ public class ProcessInboxFilesCommandHandlerTests
     {
         var (handler, _, _, _, _, _) = CreateHandler();
 
-        var command = new ProcessInboxFilesCommand(_familyId, _userId);
+        var command = new ProcessInboxFilesCommand()
+        {
+            FamilyId = _familyId,
+            UserId = _userId
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -157,7 +173,11 @@ public class ProcessInboxFilesCommandHandlerTests
         var inbox = CreateInbox();
         folderRepo.Folders.Add(inbox);
 
-        var command = new ProcessInboxFilesCommand(_familyId, _userId);
+        var command = new ProcessInboxFilesCommand()
+        {
+            FamilyId = _familyId,
+            UserId = _userId
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.FilesProcessed.Should().Be(0);

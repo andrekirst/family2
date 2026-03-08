@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 
@@ -22,22 +21,18 @@ public sealed class SaveDashboardLayoutCommandHandler(
             dashboard = await dashboardRepository.GetSharedDashboardAsync(command.FamilyId, cancellationToken);
             if (dashboard is null)
             {
-                dashboard = DashboardLayout.CreateShared(command.Name, command.FamilyId, command.UserId!.Value);
-                isNew = true;
-            }
-        }
-        else if (command.UserId.HasValue)
-        {
-            dashboard = await dashboardRepository.GetPersonalDashboardAsync(command.UserId.Value, cancellationToken);
-            if (dashboard is null)
-            {
-                dashboard = DashboardLayout.CreatePersonal(command.Name, command.UserId.Value);
+                dashboard = DashboardLayout.CreateShared(command.Name, command.FamilyId, command.UserId);
                 isNew = true;
             }
         }
         else
         {
-            throw new DomainException("Either UserId or FamilyId must be provided");
+            dashboard = await dashboardRepository.GetPersonalDashboardAsync(command.UserId, cancellationToken);
+            if (dashboard is null)
+            {
+                dashboard = DashboardLayout.CreatePersonal(command.Name, command.UserId);
+                isNew = true;
+            }
         }
 
         // Build new widget list

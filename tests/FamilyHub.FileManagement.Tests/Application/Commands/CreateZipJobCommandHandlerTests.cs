@@ -24,7 +24,11 @@ public class CreateZipJobCommandHandlerTests
     public async Task Handle_ShouldCreateZipJob()
     {
         var fileIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
-        var command = new CreateZipJobCommand(_familyId, _userId, fileIds);
+        var command = new CreateZipJobCommand(fileIds)
+        {
+            FamilyId = _familyId,
+            UserId = _userId
+        };
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -38,7 +42,11 @@ public class CreateZipJobCommandHandlerTests
     public async Task Handle_ShouldRejectWhenTooManyFiles()
     {
         var fileIds = Enumerable.Range(0, 1001).Select(_ => Guid.NewGuid()).ToList();
-        var command = new CreateZipJobCommand(_familyId, _userId, fileIds);
+        var command = new CreateZipJobCommand(fileIds)
+        {
+            FamilyId = _familyId,
+            UserId = _userId
+        };
 
         var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -57,7 +65,11 @@ public class CreateZipJobCommandHandlerTests
             _zipJobRepository.Jobs.Add(job);
         }
 
-        var command = new CreateZipJobCommand(_familyId, _userId, [Guid.NewGuid()]);
+        var command = new CreateZipJobCommand([Guid.NewGuid()])
+        {
+            FamilyId = _familyId,
+            UserId = _userId
+        };
 
         var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 

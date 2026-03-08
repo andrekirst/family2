@@ -26,7 +26,7 @@ public sealed class CreateChainDefinitionCommandHandler(
             command.Name,
             command.Description,
             command.FamilyId,
-            command.CreatedByUserId,
+            command.UserId,
             command.TriggerEventType,
             trigger.Module,
             trigger.Description,

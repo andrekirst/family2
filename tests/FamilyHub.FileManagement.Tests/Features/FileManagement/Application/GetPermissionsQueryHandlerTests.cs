@@ -25,7 +25,11 @@ public class GetPermissionsQueryHandlerTests
             PermissionResourceType.File, resourceId, UserId.New(),
             FilePermissionLevel.Edit, familyId, UserId.New()));
 
-        var query = new GetPermissionsQuery(PermissionResourceType.File, resourceId, familyId);
+        var query = new GetPermissionsQuery(PermissionResourceType.File, resourceId)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -37,7 +41,11 @@ public class GetPermissionsQueryHandlerTests
         var permRepo = new FakeFilePermissionRepository();
         var handler = new GetPermissionsQueryHandler(permRepo);
 
-        var query = new GetPermissionsQuery(PermissionResourceType.File, Guid.NewGuid(), FamilyId.New());
+        var query = new GetPermissionsQuery(PermissionResourceType.File, Guid.NewGuid())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -60,7 +68,11 @@ public class GetPermissionsQueryHandlerTests
             PermissionResourceType.File, resourceId, UserId.New(),
             FilePermissionLevel.Edit, otherFamilyId, UserId.New()));
 
-        var query = new GetPermissionsQuery(PermissionResourceType.File, resourceId, familyId);
+        var query = new GetPermissionsQuery(PermissionResourceType.File, resourceId)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);

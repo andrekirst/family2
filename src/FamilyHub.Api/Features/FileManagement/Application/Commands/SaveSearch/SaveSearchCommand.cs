@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -7,7 +6,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.SaveSearch;
 public sealed record SaveSearchCommand(
     string Name,
     string Query,
-    string? FiltersJson,
-    UserId UserId,
-    FamilyId FamilyId
-) : ICommand<SaveSearchResult>, IFamilyScoped;
+    string? FiltersJson
+) : ICommand<SaveSearchResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

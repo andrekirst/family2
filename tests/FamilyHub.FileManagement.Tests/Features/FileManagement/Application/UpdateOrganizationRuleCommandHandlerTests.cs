@@ -24,12 +24,16 @@ public class UpdateOrganizationRuleCommandHandlerTests
         ruleRepo.Rules.Add(rule);
 
         var command = new UpdateOrganizationRuleCommand(
-            rule.Id, "New name",
+            rule.Id,
+            "New name",
             """[{"Type":2,"Value":"image/*"}]""",
             ConditionLogic.Or,
             RuleActionType.ApplyTags,
-            """{"TagIds":[]}""",
-            familyId);
+            """{"TagIds":[]}""")
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -45,8 +49,16 @@ public class UpdateOrganizationRuleCommandHandlerTests
         var handler = new UpdateOrganizationRuleCommandHandler(ruleRepo);
 
         var command = new UpdateOrganizationRuleCommand(
-            OrganizationRuleId.New(), "Name", "[]",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", FamilyId.New());
+            OrganizationRuleId.New(),
+            "Name",
+            "[]",
+            ConditionLogic.And,
+            RuleActionType.MoveToFolder,
+            "{}")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -66,8 +78,16 @@ public class UpdateOrganizationRuleCommandHandlerTests
         ruleRepo.Rules.Add(rule);
 
         var command = new UpdateOrganizationRuleCommand(
-            rule.Id, "Name", "[]",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", FamilyId.New());
+            rule.Id,
+            "Name",
+            "[]",
+            ConditionLogic.And,
+            RuleActionType.MoveToFolder,
+            "{}")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

@@ -29,7 +29,7 @@ public sealed class RevokeInvitationAuthValidator : AbstractValidator<RevokeInvi
                     return false;
                 }
 
-                return await authService.CanInviteAsync(command.RevokedBy, invitation.FamilyId, ct);
+                return await authService.CanInviteAsync(command.UserId, invitation.FamilyId, ct);
             })
             .WithErrorCode(DomainErrorCodes.InsufficientPermissionToRevokeInvitation)
             .WithMessage(_ => localizer[DomainErrorCodes.InsufficientPermissionToRevokeInvitation].Value);

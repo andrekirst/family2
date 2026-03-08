@@ -1,6 +1,5 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.Auth.Application.Mappers;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Models;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 
@@ -11,7 +10,6 @@ namespace FamilyHub.Api.Features.Family.Application.Queries.GetFamilyMembers;
 /// Retrieves all members of the current user's family.
 /// </summary>
 public sealed class GetFamilyMembersQueryHandler(
-    IUserRepository userRepository,
     IFamilyRepository familyRepository)
     : IQueryHandler<GetFamilyMembersQuery, List<UserDto>>
 {
@@ -19,13 +17,7 @@ public sealed class GetFamilyMembersQueryHandler(
         GetFamilyMembersQuery query,
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByExternalIdAsync(query.ExternalUserId, cancellationToken);
-        if (user?.FamilyId == null)
-        {
-            return [];
-        }
-
-        var family = await familyRepository.GetByIdWithMembersAsync(user.FamilyId.Value, cancellationToken);
+        var family = await familyRepository.GetByIdWithMembersAsync(query.FamilyId, cancellationToken);
         return family is null ? [] : family.Members.Select(UserMapper.ToDto).ToList();
     }
 }

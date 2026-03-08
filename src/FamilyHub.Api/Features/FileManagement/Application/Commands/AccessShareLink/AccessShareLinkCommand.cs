@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 
@@ -10,4 +9,4 @@ public sealed record AccessShareLinkCommand(
     string IpAddress,
     string? UserAgent,
     ShareAccessAction Action
-) : ICommand<AccessShareLinkResult>, IIgnoreFamilyMembership;
+) : ICommand<AccessShareLinkResult>, IAnonymousOperation;

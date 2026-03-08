@@ -16,7 +16,7 @@ public sealed class UpdateUserLocaleBusinessValidator : AbstractValidator<Update
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
             {
-                var user = await userRepository.GetByExternalIdAsync(command.ExternalUserId, ct);
+                var user = await userRepository.GetByIdAsync(command.UserId, ct);
                 return user is not null;
             })
             .WithErrorCode(DomainErrorCodes.UserNotFound)

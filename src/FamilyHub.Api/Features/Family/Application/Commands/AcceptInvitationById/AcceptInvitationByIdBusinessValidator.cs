@@ -34,7 +34,7 @@ public sealed class AcceptInvitationByIdBusinessValidator : AbstractValidator<Ac
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
             {
-                var user = await userRepository.GetByIdAsync(command.AcceptingUserId, ct);
+                var user = await userRepository.GetByIdAsync(command.UserId, ct);
                 return user is not null;
             })
             .WithErrorCode(DomainErrorCodes.UserNotFound)
@@ -49,7 +49,7 @@ public sealed class AcceptInvitationByIdBusinessValidator : AbstractValidator<Ac
                     return true;
                 }
 
-                var existingMember = await memberRepository.GetByUserAndFamilyAsync(command.AcceptingUserId, invitation.FamilyId, ct);
+                var existingMember = await memberRepository.GetByUserAndFamilyAsync(command.UserId, invitation.FamilyId, ct);
                 return existingMember is null;
             })
             .WithErrorCode(DomainErrorCodes.AlreadyFamilyMember)

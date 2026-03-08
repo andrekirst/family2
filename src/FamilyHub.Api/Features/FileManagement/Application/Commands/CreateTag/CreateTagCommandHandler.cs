@@ -20,7 +20,7 @@ public sealed class CreateTagCommandHandler(
             throw new DomainException("A tag with this name already exists", DomainErrorCodes.Conflict);
         }
 
-        var tag = Tag.Create(command.Name, command.Color, command.FamilyId, command.CreatedBy);
+        var tag = Tag.Create(command.Name, command.Color, command.FamilyId, command.UserId);
         await tagRepository.AddAsync(tag, cancellationToken);
 
         return new CreateTagResult(tag.Id);

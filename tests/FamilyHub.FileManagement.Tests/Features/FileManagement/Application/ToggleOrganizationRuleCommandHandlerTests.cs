@@ -22,7 +22,11 @@ public class ToggleOrganizationRuleCommandHandlerTests
             "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
         ruleRepo.Rules.Add(rule);
 
-        var command = new ToggleOrganizationRuleCommand(rule.Id, false, familyId);
+        var command = new ToggleOrganizationRuleCommand(rule.Id, false)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -42,7 +46,11 @@ public class ToggleOrganizationRuleCommandHandlerTests
         rule.Disable();
         ruleRepo.Rules.Add(rule);
 
-        var command = new ToggleOrganizationRuleCommand(rule.Id, true, familyId);
+        var command = new ToggleOrganizationRuleCommand(rule.Id, true)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -60,7 +68,11 @@ public class ToggleOrganizationRuleCommandHandlerTests
             "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
         ruleRepo.Rules.Add(rule);
 
-        var command = new ToggleOrganizationRuleCommand(rule.Id, false, FamilyId.New());
+        var command = new ToggleOrganizationRuleCommand(rule.Id, false)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

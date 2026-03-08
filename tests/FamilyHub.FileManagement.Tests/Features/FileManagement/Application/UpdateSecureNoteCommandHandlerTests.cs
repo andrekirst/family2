@@ -23,8 +23,15 @@ public class UpdateSecureNoteCommandHandlerTests
         noteRepo.Notes.Add(note);
 
         var command = new UpdateSecureNoteCommand(
-            note.Id, userId, NoteCategory.Financial,
-            "new-title", "new-content", "new-iv", FamilyId.New());
+            note.Id,
+            NoteCategory.Financial,
+            "new-title",
+            "new-content",
+            "new-iv")
+        {
+            UserId = userId,
+            FamilyId = FamilyId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -42,8 +49,15 @@ public class UpdateSecureNoteCommandHandlerTests
         var handler = new UpdateSecureNoteCommandHandler(noteRepo);
 
         var command = new UpdateSecureNoteCommand(
-            SecureNoteId.New(), UserId.New(), NoteCategory.Personal,
-            "title", "content", "iv", FamilyId.New());
+            SecureNoteId.New(),
+            NoteCategory.Personal,
+            "title",
+            "content",
+            "iv")
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -63,8 +77,15 @@ public class UpdateSecureNoteCommandHandlerTests
         noteRepo.Notes.Add(note);
 
         var command = new UpdateSecureNoteCommand(
-            note.Id, UserId.New(), NoteCategory.Personal,
-            "new-title", "new-content", "new-iv", FamilyId.New());
+            note.Id,
+            NoteCategory.Personal,
+            "new-title",
+            "new-content",
+            "new-iv")
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

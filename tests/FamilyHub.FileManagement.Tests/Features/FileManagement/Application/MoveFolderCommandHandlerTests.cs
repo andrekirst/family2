@@ -41,7 +41,11 @@ public class MoveFolderCommandHandlerTests
         folderRepo.Folders.Add(folderC);
 
         // Move A under C
-        var command = new MoveFolderCommand(folderA.Id, folderC.Id, familyId, userId);
+        var command = new MoveFolderCommand(folderA.Id, folderC.Id)
+        {
+            FamilyId = familyId,
+            UserId = userId
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.FolderId.Should().Be(folderA.Id);
@@ -67,7 +71,11 @@ public class MoveFolderCommandHandlerTests
         var folder = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId);
         folderRepo.Folders.Add(folder);
 
-        var command = new MoveFolderCommand(folder.Id, folder.Id, familyId, userId);
+        var command = new MoveFolderCommand(folder.Id, folder.Id)
+        {
+            FamilyId = familyId,
+            UserId = userId
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -94,7 +102,11 @@ public class MoveFolderCommandHandlerTests
         folderRepo.Folders.Add(folderB);
 
         // Try to move A into B (its child) — should fail
-        var command = new MoveFolderCommand(folderA.Id, folderB.Id, familyId, userId);
+        var command = new MoveFolderCommand(folderA.Id, folderB.Id)
+        {
+            FamilyId = familyId,
+            UserId = userId
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -106,7 +118,11 @@ public class MoveFolderCommandHandlerTests
     {
         var (handler, _) = CreateHandler();
 
-        var command = new MoveFolderCommand(FolderId.New(), FolderId.New(), FamilyId.New(), UserId.New());
+        var command = new MoveFolderCommand(FolderId.New(), FolderId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -126,7 +142,11 @@ public class MoveFolderCommandHandlerTests
         var folder = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId);
         folderRepo.Folders.Add(folder);
 
-        var command = new MoveFolderCommand(folder.Id, FolderId.New(), familyId, userId);
+        var command = new MoveFolderCommand(folder.Id, FolderId.New())
+        {
+            FamilyId = familyId,
+            UserId = userId
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -150,7 +170,11 @@ public class MoveFolderCommandHandlerTests
         var root2 = Folder.CreateRoot(familyId2, userId);
         folderRepo.Folders.Add(root2);
 
-        var command = new MoveFolderCommand(folder.Id, root2.Id, familyId1, userId);
+        var command = new MoveFolderCommand(folder.Id, root2.Id)
+        {
+            FamilyId = familyId1,
+            UserId = userId
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

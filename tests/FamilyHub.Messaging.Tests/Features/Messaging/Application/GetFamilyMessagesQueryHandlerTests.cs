@@ -24,7 +24,7 @@ public class GetFamilyMessagesQueryHandlerTests
         };
         var user = CreateTestUser(senderId);
         var (handler, _, _) = CreateHandler(messages, user);
-        var query = new GetFamilyMessagesQuery(familyId);
+        var query = new GetFamilyMessagesQuery() { FamilyId = familyId, UserId = senderId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -41,7 +41,7 @@ public class GetFamilyMessagesQueryHandlerTests
         // Arrange
         var user = CreateTestUser();
         var (handler, _, _) = CreateHandler([], user);
-        var query = new GetFamilyMessagesQuery(FamilyId.New());
+        var query = new GetFamilyMessagesQuery() { FamilyId = FamilyId.New(), UserId = UserId.New() };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -62,7 +62,7 @@ public class GetFamilyMessagesQueryHandlerTests
         };
         var user = CreateTestUser(senderId);
         var (handler, _, _) = CreateHandler(messages, user);
-        var query = new GetFamilyMessagesQuery(familyId);
+        var query = new GetFamilyMessagesQuery() { FamilyId = familyId, UserId = senderId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -83,7 +83,7 @@ public class GetFamilyMessagesQueryHandlerTests
             .ToList();
         var user = CreateTestUser(senderId);
         var (handler, _, _) = CreateHandler(messages, user);
-        var query = new GetFamilyMessagesQuery(familyId, Limit: 3);
+        var query = new GetFamilyMessagesQuery(Limit: 3) { FamilyId = familyId, UserId = senderId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);

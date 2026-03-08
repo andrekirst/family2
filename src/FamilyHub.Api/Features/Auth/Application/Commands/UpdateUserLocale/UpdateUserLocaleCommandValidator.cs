@@ -19,10 +19,6 @@ public sealed class UpdateUserLocaleCommandValidator : AbstractValidator<UpdateU
         var supportedLocales = localizationOptions.Value.SupportedUICultures?
             .Select(c => c.Name).ToArray() ?? ["en"];
 
-        RuleFor(x => x.ExternalUserId)
-            .NotNull()
-            .WithMessage(_ => localizer["ExternalUserIdRequired"].Value);
-
         RuleFor(x => x.Locale)
             .NotEmpty()
             .WithMessage(_ => localizer["LocaleRequired"].Value)

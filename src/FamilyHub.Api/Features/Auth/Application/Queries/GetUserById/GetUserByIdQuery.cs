@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Models;
@@ -10,4 +9,4 @@ namespace FamilyHub.Api.Features.Auth.Application.Queries.GetUserById;
 /// </summary>
 public sealed record GetUserByIdQuery(
     UserId UserId
-) : IReadOnlyQuery<UserDto?>, IIgnoreFamilyMembership;
+) : IReadOnlyQuery<UserDto?>, IAnonymousOperation;

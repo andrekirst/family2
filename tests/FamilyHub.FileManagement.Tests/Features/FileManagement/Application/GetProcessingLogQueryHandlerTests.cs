@@ -28,7 +28,11 @@ public class GetProcessingLogQueryHandlerTests
             null, null, null, null, null,
             true, null, familyId));
 
-        var query = new GetProcessingLogQuery(familyId);
+        var query = new GetProcessingLogQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -40,7 +44,11 @@ public class GetProcessingLogQueryHandlerTests
         var logRepo = new FakeProcessingLogRepository();
         var handler = new GetProcessingLogQueryHandler(logRepo);
 
-        var query = new GetProcessingLogQuery(FamilyId.New());
+        var query = new GetProcessingLogQuery()
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -63,7 +71,11 @@ public class GetProcessingLogQueryHandlerTests
             null, null, null, null, null,
             true, null, FamilyId.New()));
 
-        var query = new GetProcessingLogQuery(familyId);
+        var query = new GetProcessingLogQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);

@@ -31,7 +31,7 @@ public sealed class UploadFileCommandHandler(
             command.Checksum,
             command.FolderId,
             command.FamilyId,
-            command.UploadedBy);
+            command.UserId);
 
         await storedFileRepository.AddAsync(file, cancellationToken);
 

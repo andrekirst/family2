@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -11,6 +10,9 @@ public sealed record UpdateOrganizationRuleCommand(
     string ConditionsJson,
     ConditionLogic ConditionLogic,
     RuleActionType ActionType,
-    string ActionsJson,
-    FamilyId FamilyId
-) : ICommand<UpdateOrganizationRuleResult>, IFamilyScoped;
+    string ActionsJson
+) : ICommand<UpdateOrganizationRuleResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

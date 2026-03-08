@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
@@ -13,6 +12,9 @@ public sealed record UpdateCalendarEventCommand(
     DateTime StartTime,
     DateTime EndTime,
     bool IsAllDay,
-    List<UserId> AttendeeIds,
-    FamilyId FamilyId
-) : ICommand<UpdateCalendarEventResult>, IFamilyScoped;
+    List<UserId> AttendeeIds
+) : ICommand<UpdateCalendarEventResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

@@ -44,7 +44,11 @@ public class AddFileToAlbumCommandHandlerTests
         var file = CreateTestFile(familyId);
         fileRepo.Files.Add(file);
 
-        var command = new AddFileToAlbumCommand(album.Id, file.Id, familyId, UserId.New());
+        var command = new AddFileToAlbumCommand(album.Id, file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -63,7 +67,11 @@ public class AddFileToAlbumCommandHandlerTests
         var file = CreateTestFile(familyId);
         fileRepo.Files.Add(file);
 
-        var command = new AddFileToAlbumCommand(album.Id, file.Id, familyId, UserId.New());
+        var command = new AddFileToAlbumCommand(album.Id, file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         await handler.Handle(command, CancellationToken.None);
 
         album.CoverFileId.Should().Be(file.Id);
@@ -84,7 +92,11 @@ public class AddFileToAlbumCommandHandlerTests
         // Pre-add the item
         itemRepo.Items.Add(AlbumItem.Create(album.Id, file.Id, UserId.New()));
 
-        var command = new AddFileToAlbumCommand(album.Id, file.Id, familyId, UserId.New());
+        var command = new AddFileToAlbumCommand(album.Id, file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -100,7 +112,11 @@ public class AddFileToAlbumCommandHandlerTests
         var file = CreateTestFile(familyId);
         fileRepo.Files.Add(file);
 
-        var command = new AddFileToAlbumCommand(AlbumId.New(), file.Id, familyId, UserId.New());
+        var command = new AddFileToAlbumCommand(AlbumId.New(), file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -116,7 +132,11 @@ public class AddFileToAlbumCommandHandlerTests
         var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
         albumRepo.Albums.Add(album);
 
-        var command = new AddFileToAlbumCommand(album.Id, FileId.New(), familyId, UserId.New());
+        var command = new AddFileToAlbumCommand(album.Id, FileId.New())
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
