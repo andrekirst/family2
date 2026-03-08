@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Application.Commands.Shared;
@@ -10,4 +11,4 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.AcceptInvitation;
 public sealed record AcceptInvitationCommand(
     string Token,
     UserId AcceptingUserId
-) : ICommand<AcceptInvitationResult>;
+) : ICommand<AcceptInvitationResult>, IIgnoreFamilyMembership;

@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -12,4 +13,4 @@ public sealed record SearchFilesQuery(
     string SortBy = "relevance",
     int Skip = 0,
     int Take = 20
-) : IReadOnlyQuery<List<FileSearchResultDto>>;
+) : IReadOnlyQuery<List<FileSearchResultDto>>, IFamilyScoped;

@@ -15,8 +15,7 @@ public sealed class DeleteFolderCommandHandler(
         DeleteFolderCommand command,
         CancellationToken cancellationToken)
     {
-        var folder = await folderRepository.GetByIdAsync(command.FolderId, cancellationToken)
-            ?? throw new DomainException("Folder not found", DomainErrorCodes.FolderNotFound);
+        var folder = (await folderRepository.GetByIdAsync(command.FolderId, cancellationToken))!;
 
         if (folder.FamilyId != command.FamilyId)
         {

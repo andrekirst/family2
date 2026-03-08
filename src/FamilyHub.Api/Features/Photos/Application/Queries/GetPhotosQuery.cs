@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Photos.Models;
@@ -8,4 +9,4 @@ public sealed record GetPhotosQuery(
     FamilyId FamilyId,
     int Skip,
     int Take
-) : IReadOnlyQuery<PhotosPageDto>;
+) : IReadOnlyQuery<PhotosPageDto>, IFamilyScoped;

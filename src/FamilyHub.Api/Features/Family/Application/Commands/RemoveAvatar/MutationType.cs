@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
+using FamilyHub.Api.Common.Services;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Common.Domain.ValueObjects;
 using HotChocolate.Authorization;
@@ -19,16 +20,17 @@ public class MutationType
         ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
         [Service] IUserRepository userRepository,
+        [Service] IUserService userService,
         CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
-                                   ?? throw new UnauthorizedAccessException("User not authenticated");
+        var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, cancellationToken);
 
-        var externalUserId = ExternalUserId.From(externalUserIdString);
-        var user = await userRepository.GetByExternalIdAsync(externalUserId, cancellationToken)
-                   ?? throw new UnauthorizedAccessException("User not found");
+        if (user.FamilyId is null)
+        {
+            throw new InvalidOperationException("You must be part of a family to remove an avatar");
+        }
 
-        var command = new RemoveAvatarCommand(user.Id);
+        var command = new RemoveAvatarCommand(user.Id, user.FamilyId.Value);
         var result = await commandBus.SendAsync(command, cancellationToken);
 
         return result.Success;

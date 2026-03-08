@@ -1,10 +1,11 @@
+using FamilyHub.Api.Common.Infrastructure.Validation;
 using FamilyHub.Api.Resources;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 
-public sealed class CreateChainDefinitionCommandValidator : AbstractValidator<CreateChainDefinitionCommand>
+public sealed class CreateChainDefinitionCommandValidator : AbstractValidator<CreateChainDefinitionCommand>, IInputValidator<CreateChainDefinitionCommand>
 {
     public CreateChainDefinitionCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {

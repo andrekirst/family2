@@ -36,11 +36,14 @@
   <data name="UsernameMinLength" xml:space="preserve"><value>Username must be at least 3 characters</value></data>
   <data name="UsernameMaxLength" xml:space="preserve"><value>Username cannot exceed 50 characters</value></data>
   <data name="UsernameInvalidFormat" xml:space="preserve"><value>Username can only contain letters, numbers, underscores, and hyphens</value></data>
+  <data name="LocaleRequired" xml:space="preserve"><value>Locale is required</value></data>
+  <data name="LocaleNotSupported" xml:space="preserve"><value>The specified locale is not supported</value></data>
   <data name="LoginTimeCannotBeFuture" xml:space="preserve"><value>Login time cannot be in the future</value></data>
   <!-- Calendar -->
   <data name="EventTitleRequired" xml:space="preserve"><value>Event title is required</value></data>
   <data name="FamilyIdRequired" xml:space="preserve"><value>Family ID is required</value></data>
   <data name="CreatorIdRequired" xml:space="preserve"><value>Creator ID is required</value></data>
+  <data name="CalendarEventIdRequired" xml:space="preserve"><value>Calendar event ID is required</value></data>
   <data name="EndTimeMustBeAfterStartTime" xml:space="preserve"><value>End time must be after start time</value></data>
   <!-- EventChain -->
   <data name="ChainNameRequired" xml:space="preserve"><value>Chain name is required</value></data>

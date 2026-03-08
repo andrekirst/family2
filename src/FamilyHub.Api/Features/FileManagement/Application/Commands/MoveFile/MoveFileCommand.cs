@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -8,4 +9,4 @@ public sealed record MoveFileCommand(
     FolderId TargetFolderId,
     FamilyId FamilyId,
     UserId MovedBy
-) : ICommand<MoveFileResult>;
+) : ICommand<MoveFileResult>, IFamilyScoped;

@@ -1,5 +1,4 @@
 using FluentAssertions;
-using FamilyHub.Api.Features.Photos.Application.Handlers;
 using FamilyHub.Api.Features.Photos.Application.Queries;
 using FamilyHub.Api.Features.Photos.Models;
 using FamilyHub.Common.Domain.ValueObjects;

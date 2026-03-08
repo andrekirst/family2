@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -14,5 +15,6 @@ public sealed record UploadAvatarCommand(
     float? CropX,
     float? CropY,
     float? CropWidth,
-    float? CropHeight
-) : ICommand<UploadAvatarResult>;
+    float? CropHeight,
+    FamilyId FamilyId
+) : ICommand<UploadAvatarResult>, IFamilyScoped;

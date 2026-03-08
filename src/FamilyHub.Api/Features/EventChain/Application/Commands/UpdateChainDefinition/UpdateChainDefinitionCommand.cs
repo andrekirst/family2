@@ -1,4 +1,6 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
+using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 using FamilyHub.EventChain.Domain.ValueObjects;
 
@@ -9,7 +11,8 @@ public sealed record UpdateChainDefinitionCommand(
     ChainName? Name,
     string? Description,
     bool? IsEnabled,
-    IReadOnlyList<CreateStepCommand>? Steps
-) : ICommand<UpdateChainDefinitionResult>;
+    IReadOnlyList<CreateStepCommand>? Steps,
+    FamilyId FamilyId
+) : ICommand<UpdateChainDefinitionResult>, IFamilyScoped;
 
 public sealed record UpdateChainDefinitionResult(ChainDefinitionId ChainDefinitionId);

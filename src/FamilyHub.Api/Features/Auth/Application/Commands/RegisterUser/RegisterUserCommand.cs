@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
@@ -13,4 +14,4 @@ public sealed record RegisterUserCommand(
     ExternalUserId ExternalUserId,
     bool EmailVerified,
     string? Username = null
-) : ICommand<RegisterUserResult>;
+) : ICommand<RegisterUserResult>, IIgnoreFamilyMembership;

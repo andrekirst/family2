@@ -1,5 +1,6 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Features.Calendar.Application.Queries;
+using FamilyHub.Api.Features.Calendar.Application.Queries.GetCalendarEvent;
+using FamilyHub.Api.Features.Calendar.Application.Queries.GetCalendarEvents;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Models;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -30,10 +31,11 @@ public class CalendarQueries
     [Authorize]
     public async Task<CalendarEventDto?> GetCalendar(
         Guid id,
+        Guid familyId,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
     {
-        var query = new GetCalendarEventQuery(CalendarEventId.From(id));
+        var query = new GetCalendarEventQuery(CalendarEventId.From(id), FamilyId.From(familyId));
         return await queryBus.QueryAsync(query, ct);
     }
 }

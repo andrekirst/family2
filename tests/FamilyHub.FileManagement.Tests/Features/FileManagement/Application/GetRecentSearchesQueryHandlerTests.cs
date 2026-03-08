@@ -18,7 +18,7 @@ public class GetRecentSearchesQueryHandlerTests
         recentRepo.Searches.Add(RecentSearch.Create(userId, "photos"));
         recentRepo.Searches.Add(RecentSearch.Create(userId, "documents"));
 
-        var query = new GetRecentSearchesQuery(userId);
+        var query = new GetRecentSearchesQuery(userId, FamilyId.New());
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -30,7 +30,7 @@ public class GetRecentSearchesQueryHandlerTests
         var recentRepo = new FakeRecentSearchRepository();
         var handler = new GetRecentSearchesQueryHandler(recentRepo);
 
-        var query = new GetRecentSearchesQuery(UserId.New());
+        var query = new GetRecentSearchesQuery(UserId.New(), FamilyId.New());
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -46,7 +46,7 @@ public class GetRecentSearchesQueryHandlerTests
         recentRepo.Searches.Add(RecentSearch.Create(userId, "mine"));
         recentRepo.Searches.Add(RecentSearch.Create(UserId.New(), "other"));
 
-        var query = new GetRecentSearchesQuery(userId);
+        var query = new GetRecentSearchesQuery(userId, FamilyId.New());
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);

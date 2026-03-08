@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.Security;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -8,6 +9,7 @@ using FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Services;
 
 namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.LinkGoogleAccount;
 
+[SecurityCheck("IDOR")]
 public sealed class LinkGoogleAccountCommandHandler(
     IOAuthStateRepository stateRepository,
     IGoogleAccountLinkRepository linkRepository,
@@ -19,9 +21,8 @@ public sealed class LinkGoogleAccountCommandHandler(
         LinkGoogleAccountCommand command,
         CancellationToken cancellationToken)
     {
-        // 1. Validate state against OAuthState table
-        var oauthState = await stateRepository.GetByStateAsync(command.State, cancellationToken)
-            ?? throw new DomainException("Invalid or expired OAuth state");
+        // 1. Retrieve OAuth state (existence guaranteed by validator)
+        var oauthState = (await stateRepository.GetByStateAsync(command.State, cancellationToken))!;
 
         if (oauthState.IsExpired())
         {
@@ -45,20 +46,13 @@ public sealed class LinkGoogleAccountCommandHandler(
         // 3. Get user info from Google
         var userInfo = await oauthService.GetUserInfoAsync(tokenResponse.AccessToken, cancellationToken);
 
-        // 4. Check if user already has a linked account
-        var existingLink = await linkRepository.GetByUserIdAsync(userId, cancellationToken);
-        if (existingLink is not null)
-        {
-            throw new DomainException("A Google account is already linked. Unlink it first.");
-        }
-
-        // 5. Encrypt tokens
+        // 4. Encrypt tokens (already-linked check guaranteed by validator)
         var encryptedAccessToken = EncryptedToken.From(
             encryptionService.Encrypt(tokenResponse.AccessToken));
         var encryptedRefreshToken = EncryptedToken.From(
             encryptionService.Encrypt(tokenResponse.RefreshToken));
 
-        // 6. Create aggregate
+        // 5. Create aggregate
         var link = GoogleAccountLink.Create(
             userId,
             GoogleAccountId.From(userInfo.Sub),
@@ -70,7 +64,7 @@ public sealed class LinkGoogleAccountCommandHandler(
 
         await linkRepository.AddAsync(link, cancellationToken);
 
-        // 7. Clean up OAuth state
+        // 6. Clean up OAuth state
         await stateRepository.DeleteAsync(oauthState, cancellationToken);
 
         return new LinkGoogleAccountResult(true);

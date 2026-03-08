@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -9,4 +10,4 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateLastLogin;
 public sealed record UpdateLastLoginCommand(
     ExternalUserId ExternalUserId,
     DateTime LoginTime
-) : ICommand<bool>;
+) : ICommand<bool>, IIgnoreFamilyMembership;

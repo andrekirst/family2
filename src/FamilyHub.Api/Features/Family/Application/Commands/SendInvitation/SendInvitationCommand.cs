@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -12,4 +13,4 @@ public sealed record SendInvitationCommand(
     UserId InvitedBy,
     Email InviteeEmail,
     FamilyRole Role
-) : ICommand<SendInvitationResult>;
+) : ICommand<SendInvitationResult>, IFamilyScoped;

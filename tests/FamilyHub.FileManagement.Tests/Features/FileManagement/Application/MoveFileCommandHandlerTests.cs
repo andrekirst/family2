@@ -58,52 +58,6 @@ public class MoveFileCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowWhenFileNotFound()
-    {
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
-        var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
-
-        var command = new MoveFileCommand(
-            FileId.New(),
-            FolderId.New(),
-            FamilyId.New(),
-            UserId.New());
-
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowWhenTargetFolderNotFound()
-    {
-        var familyId = FamilyId.New();
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
-
-        var sourceFolder = Folder.CreateRoot(familyId, UserId.New());
-        folderRepo.Folders.Add(sourceFolder);
-
-        var file = CreateTestFile(familyId, sourceFolder.Id);
-        fileRepo.Files.Add(file);
-
-        var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
-
-        var command = new MoveFileCommand(
-            file.Id,
-            FolderId.New(), // non-existent target
-            familyId,
-            UserId.New());
-
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
-    }
-
-    [Fact]
     public async Task Handle_ShouldThrowWhenTargetFolderBelongsToDifferentFamily()
     {
         var familyId = FamilyId.New();

@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -6,4 +7,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetExternalC
 
 public sealed record GetExternalConnectionsQuery(
     FamilyId FamilyId
-) : IReadOnlyQuery<List<ExternalConnectionDto>>;
+) : IReadOnlyQuery<List<ExternalConnectionDto>>, IFamilyScoped;

@@ -1,4 +1,3 @@
-using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
@@ -59,35 +58,6 @@ public class CreateFamilyCommandHandlerTests
         familyRepo.AddedFamilies.Should().HaveCount(1);
         familyRepo.AddedFamilies[0].Name.Should().Be(command.Name);
         familyRepo.AddedFamilies[0].OwnerId.Should().Be(user.Id);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowDomainException_WhenUserAlreadyOwnsFamily()
-    {
-        // Arrange
-        var user = CreateTestUser();
-        var existingFamily = FamilyEntity.Create(FamilyName.From("Existing Family"), user.Id);
-        var (handler, _, _, _) = CreateHandler(user, existingFamilyForOwner: existingFamily);
-        var command = new CreateFamilyCommand(FamilyName.From("New Family"), user.Id);
-
-        // Act & Assert
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("User already owns a family");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowDomainException_WhenUserNotFound()
-    {
-        // Arrange
-        var userId = UserId.New();
-        var (handler, _, _, _) = CreateHandler(user: null);
-        var command = new CreateFamilyCommand(FamilyName.From("Smith Family"), userId);
-
-        // Act & Assert
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("User not found");
     }
 
     // --- Helpers ---

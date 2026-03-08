@@ -1,8 +1,9 @@
+using FamilyHub.Api.Common.Infrastructure.Validation;
 using FluentValidation;
 
 namespace FamilyHub.Api.Features.Dashboard.Application.Commands.SaveDashboardLayout;
 
-public sealed class SaveDashboardLayoutCommandValidator : AbstractValidator<SaveDashboardLayoutCommand>
+public sealed class SaveDashboardLayoutCommandValidator : AbstractValidator<SaveDashboardLayoutCommand>, IInputValidator<SaveDashboardLayoutCommand>
 {
     public SaveDashboardLayoutCommandValidator()
     {

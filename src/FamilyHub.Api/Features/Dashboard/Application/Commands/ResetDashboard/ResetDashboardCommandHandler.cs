@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Dashboard.Application.Commands.ResetDashboard;
@@ -12,8 +11,7 @@ public sealed class ResetDashboardCommandHandler(
         ResetDashboardCommand command,
         CancellationToken cancellationToken)
     {
-        var dashboard = await dashboardRepository.GetByIdAsync(command.DashboardId, cancellationToken)
-            ?? throw new DomainException($"Dashboard {command.DashboardId} not found");
+        var dashboard = (await dashboardRepository.GetByIdAsync(command.DashboardId, cancellationToken))!;
 
         dashboard.ReplaceAllWidgets([]);
         await dashboardRepository.UpdateAsync(dashboard, cancellationToken);

@@ -8,6 +8,7 @@ using FamilyHub.Api.Features.Calendar.Models;
 
 namespace FamilyHub.Api.Features.Calendar;
 
+[ModuleOrder(300)]
 public sealed class CalendarModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)

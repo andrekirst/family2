@@ -6,6 +6,7 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -27,9 +28,11 @@ public class ProcessInboxFilesCommandHandlerTests
         var tagRepo = new FakeFileTagRepository();
         var logRepo = new FakeProcessingLogRepository();
         var engine = new OrganizationRuleEngine();
+        var fileProcessor = new InboxFileProcessor(tagRepo);
+        var logger = NullLogger<ProcessInboxFilesCommandHandler>.Instance;
 
         var handler = new ProcessInboxFilesCommandHandler(
-            folderRepo, fileRepo, ruleRepo, tagRepo, logRepo, engine);
+            folderRepo, fileRepo, ruleRepo, logRepo, engine, fileProcessor, logger);
 
         return (handler, folderRepo, fileRepo, ruleRepo, tagRepo, logRepo);
     }

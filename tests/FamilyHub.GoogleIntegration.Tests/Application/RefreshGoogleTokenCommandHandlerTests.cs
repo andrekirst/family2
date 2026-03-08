@@ -54,19 +54,4 @@ public class RefreshGoogleTokenCommandHandlerTests
         existingLink.EncryptedAccessToken.Value.Should().Contain("new-access-token");
         existingLink.Status.Should().Be(GoogleLinkStatus.Active);
     }
-
-    [Fact]
-    public async Task Handle_WhenNoLinkedAccount_ShouldThrow()
-    {
-        var linkRepo = new FakeGoogleAccountLinkRepository();
-        var oauthService = new FakeGoogleOAuthService();
-        var encryptionService = new FakeTokenEncryptionService();
-        var handler = new RefreshGoogleTokenCommandHandler(linkRepo, oauthService, encryptionService);
-
-        var command = new RefreshGoogleTokenCommand(UserId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*No Google account linked*");
-    }
 }

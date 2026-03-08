@@ -140,7 +140,7 @@ public class UploadAvatarCommandHandlerTests
 
     private static UploadAvatarCommand CreateCommand(UserId userId) =>
         new(userId, new byte[] { 0xFF, 0xD8, 0xFF }, "test.jpg", "image/jpeg",
-            null, null, null, null);
+            null, null, null, null, FamilyId.New());
 
     private static (
         UploadAvatarCommandHandler Handler,

@@ -30,4 +30,6 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
   <data name="ValidationFailed" xml:space="preserve"><value>Validierung fehlgeschlagen</value></data>
+  <data name="AuthorizationFailed" xml:space="preserve"><value>Autorisierung fehlgeschlagen</value></data>
+  <data name="BusinessValidationFailed" xml:space="preserve"><value>Geschäftsvalidierung fehlgeschlagen</value></data>
 </root>

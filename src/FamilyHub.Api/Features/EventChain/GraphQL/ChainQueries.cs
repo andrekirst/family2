@@ -44,11 +44,12 @@ public class ChainQueries
     [Authorize]
     public async Task<ChainDefinitionDto?> GetChainDefinition(
         Guid id,
+        Guid familyId,
         [Service] IQueryBus queryBus,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
-        var query = new GetChainDefinitionQuery(ChainDefinitionId.From(id));
+        var query = new GetChainDefinitionQuery(ChainDefinitionId.From(id), FamilyId.From(familyId));
         var definition = await queryBus.QueryAsync(query, ct);
 
         if (definition is null)
@@ -81,10 +82,11 @@ public class ChainQueries
     [Authorize]
     public async Task<ChainExecutionDto?> GetChainExecution(
         Guid id,
+        Guid familyId,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
     {
-        var query = new GetChainExecutionQuery(ChainExecutionId.From(id));
+        var query = new GetChainExecutionQuery(ChainExecutionId.From(id), FamilyId.From(familyId));
         var execution = await queryBus.QueryAsync(query, ct);
         return execution is null ? null : ChainMapper.ToDto(execution);
     }

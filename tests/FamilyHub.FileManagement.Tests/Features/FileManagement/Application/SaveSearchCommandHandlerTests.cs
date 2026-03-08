@@ -17,7 +17,8 @@ public class SaveSearchCommandHandlerTests
             "My Photos",
             "vacation",
             """{"mimeTypes":["image/jpeg"]}""",
-            UserId.New());
+            UserId.New(),
+            FamilyId.New());
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -33,7 +34,7 @@ public class SaveSearchCommandHandlerTests
         var savedRepo = new FakeSavedSearchRepository();
         var handler = new SaveSearchCommandHandler(savedRepo);
 
-        var command = new SaveSearchCommand("Simple", "query", null, UserId.New());
+        var command = new SaveSearchCommand("Simple", "query", null, UserId.New(), FamilyId.New());
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();

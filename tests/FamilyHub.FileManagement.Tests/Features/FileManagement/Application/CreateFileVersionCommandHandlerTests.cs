@@ -36,7 +36,8 @@ public class CreateFileVersionCommandHandlerTests
             StorageKey.From("version-key-1"),
             FileSize.From(1000),
             Checksum.From(ValidChecksum),
-            UserId.New());
+            UserId.New(),
+            FamilyId.New());
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -70,7 +71,8 @@ public class CreateFileVersionCommandHandlerTests
             StorageKey.From("version-key-1"),
             FileSize.From(1000),
             Checksum.From(ValidChecksum),
-            UserId.New()), CancellationToken.None);
+            UserId.New(),
+            FamilyId.New()), CancellationToken.None);
 
         // Create second version
         var result = await handler.Handle(new CreateFileVersionCommand(
@@ -78,7 +80,8 @@ public class CreateFileVersionCommandHandlerTests
             StorageKey.From("version-key-2"),
             FileSize.From(2000),
             Checksum.From(AnotherChecksum),
-            UserId.New()), CancellationToken.None);
+            UserId.New(),
+            FamilyId.New()), CancellationToken.None);
 
         result.VersionNumber.Should().Be(2);
         versionRepo.Versions.Should().HaveCount(2);
@@ -98,7 +101,8 @@ public class CreateFileVersionCommandHandlerTests
             StorageKey.From("key"),
             FileSize.From(100),
             Checksum.From(ValidChecksum),
-            UserId.New());
+            UserId.New(),
+            FamilyId.New());
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

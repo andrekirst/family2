@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -8,4 +9,4 @@ public sealed record MarkAsStudentCommand(
     FamilyMemberId FamilyMemberId,
     FamilyId FamilyId,
     UserId MarkedByUserId
-) : ICommand<MarkAsStudentResult>;
+) : ICommand<MarkAsStudentResult>, IFamilyScoped;

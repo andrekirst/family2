@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -10,4 +11,4 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 public sealed record CreateFamilyCommand(
     FamilyName Name,
     UserId OwnerId
-) : ICommand<CreateFamilyResult>;
+) : ICommand<CreateFamilyResult>, IIgnoreFamilyMembership;

@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Common.Infrastructure.Security;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -18,9 +17,9 @@ public sealed class DeclineInvitationCommandHandler(
         DeclineInvitationCommand command,
         CancellationToken cancellationToken)
     {
+        // Fetch invitation by token hash (validator guarantees existence)
         var tokenHash = SecureTokenHelper.ComputeSha256Hash(command.Token);
-        var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken)
-            ?? throw new DomainException("Invalid invitation token", DomainErrorCodes.InvalidInvitationToken);
+        var invitation = (await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken))!;
 
         invitation.Decline();
 

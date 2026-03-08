@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.Validation;
 using FamilyHub.Api.Resources;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
@@ -9,7 +10,7 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 /// Note: Vogen value objects already enforce basic validation,
 /// this validator provides additional business rules.
 /// </summary>
-public sealed class CreateFamilyCommandValidator : AbstractValidator<CreateFamilyCommand>
+public sealed class CreateFamilyCommandValidator : AbstractValidator<CreateFamilyCommand>, IInputValidator<CreateFamilyCommand>
 {
     public CreateFamilyCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {

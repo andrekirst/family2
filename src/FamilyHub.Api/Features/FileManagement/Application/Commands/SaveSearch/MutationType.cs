@@ -28,7 +28,10 @@ public class MutationType
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
-        var command = new SaveSearchCommand(name, query, filtersJson, user.Id);
+        var familyId = user.FamilyId
+            ?? throw new UnauthorizedAccessException("User is not a member of any family");
+
+        var command = new SaveSearchCommand(name, query, filtersJson, user.Id, familyId);
         return await commandBus.SendAsync(command, cancellationToken);
     }
 }

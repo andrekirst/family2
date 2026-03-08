@@ -8,20 +8,9 @@ using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
 using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Common.Modules;
-using FamilyHub.Api.Features.Auth;
-using FamilyHub.Api.Features.Calendar;
-using FamilyHub.Api.Features.Dashboard;
-using FamilyHub.Api.Features.EventChain;
-using FamilyHub.Api.Features.Family;
-using FamilyHub.Api.Features.FileManagement;
-using FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
-using FamilyHub.Api.Features.GoogleIntegration;
 using FamilyHub.Api.Common.Development;
-using FamilyHub.Api.Features.Messaging;
-using FamilyHub.Api.Features.Photos;
-using FamilyHub.Api.Features.School;
-using FamilyHub.Api.Features.Search;
 using FamilyHub.Api.Common.Infrastructure.HealthChecks;
+using FamilyHub.Api.Common.Infrastructure.Validation;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -55,6 +44,7 @@ builder.Services.AddMediator(options =>
     options.PipelineBehaviors =
     [
         typeof(DomainEventPublishingBehavior<,>),  // outermost
+        typeof(FamilyMembershipBehavior<,>),       // family membership gate
         typeof(LoggingBehavior<,>),
         typeof(ValidationBehavior<,>),
         typeof(QueryAsNoTrackingBehavior<,>),
@@ -63,6 +53,8 @@ builder.Services.AddMediator(options =>
 });
 
 // Infrastructure services
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IDomainEventCollector, DomainEventCollector>();
 builder.Services.AddScoped<DomainEventInterceptor>();
 builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
@@ -81,6 +73,9 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 
 // Register FluentValidation validators from assembly
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+// Register validator groups (Input, Auth, Business marker interfaces)
+builder.Services.AddValidatorGroups();
 
 // Localization (.resx-based IStringLocalizer for backend error messages)
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -130,21 +125,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Add controllers for REST endpoints (avatar serving)
-builder.Services.AddControllers();
+// Exception handlers (IExceptionHandler pipeline)
+builder.Services.AddExceptionHandler<FamilyHub.Api.Features.GoogleIntegration.Infrastructure.GoogleOAuthExceptionHandler>();
+builder.Services.AddProblemDetails();
 
-// Feature Modules (explicit ordering - dependencies flow downward)
-builder.Services.RegisterModule<AuthModule>(builder.Configuration);
-builder.Services.RegisterModule<FamilyModule>(builder.Configuration);
-builder.Services.RegisterModule<CalendarModule>(builder.Configuration);
-builder.Services.RegisterModule<DashboardModule>(builder.Configuration);
-builder.Services.RegisterModule<EventChainModule>(builder.Configuration);
-builder.Services.RegisterModule<FileManagementModule>(builder.Configuration);
-builder.Services.RegisterModule<GoogleIntegrationModule>(builder.Configuration);
-builder.Services.RegisterModule<MessagingModule>(builder.Configuration);
-builder.Services.RegisterModule<PhotosModule>(builder.Configuration);
-builder.Services.RegisterModule<SchoolModule>(builder.Configuration);
-builder.Services.RegisterModule<SearchModule>(builder.Configuration);
+// Controllers removed — all REST endpoints use Minimal API via IEndpointModule
+
+// Feature Modules (auto-discovered via source generator, ordered by [ModuleOrder] attribute)
+builder.Services.RegisterAllModules(builder.Configuration);
 
 // Development-only: seed database with Keycloak test users
 if (builder.Environment.IsDevelopment())
@@ -226,6 +214,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.UseExceptionHandler();
 
 // Request localization — sets CultureInfo.CurrentUICulture from Accept-Language header.
 // Must come before authentication so IStringLocalizer resolves the correct locale per-request.
@@ -241,6 +230,9 @@ app.UseRequestLocalization(options =>
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Locale resolution: DB preference > Accept-Language > "en"
+app.UseMiddleware<RequestLocaleResolutionMiddleware>();
+
 // PostgreSQL RLS middleware - must come AFTER authentication
 // Skipped in Testing environment where InMemoryDatabase doesn't support raw SQL
 if (!app.Environment.IsEnvironment("Testing"))
@@ -248,11 +240,13 @@ if (!app.Environment.IsEnvironment("Testing"))
     app.UseMiddleware<PostgresRlsMiddleware>();
 }
 
-app.MapControllers();
 app.UseWebSockets();
 app.MapGraphQL();
-app.MapControllers(); // REST endpoints (avatar serving)
-app.MapFileEndpoints(); // REST endpoints (file upload/download/stream)
+
+// Minimal API endpoints — avatar (common) + module endpoints (IEndpointModule)
+app.MapGet("/api/avatars/{avatarId:guid}/{size}",
+    FamilyHub.Api.Common.Infrastructure.Avatar.AvatarEndpoints.GetAvatar);
+app.MapModuleEndpoints();
 
 // Health check endpoints
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));

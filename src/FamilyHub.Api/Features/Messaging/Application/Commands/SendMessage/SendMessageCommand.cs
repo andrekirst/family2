@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
@@ -21,4 +22,4 @@ public sealed record SendMessageCommand(
     MessageContent Content,
     IReadOnlyList<AttachmentData>? Attachments = null,
     ConversationId? ConversationId = null
-) : ICommand<SendMessageResult>;
+) : ICommand<SendMessageResult>, IFamilyScoped;

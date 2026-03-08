@@ -19,7 +19,7 @@ public class DeleteSavedSearchCommandHandlerTests
         var search = SavedSearch.Create(userId, "Test", "query", null);
         savedRepo.Searches.Add(search);
 
-        var command = new DeleteSavedSearchCommand(search.Id, userId);
+        var command = new DeleteSavedSearchCommand(search.Id, userId, FamilyId.New());
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
@@ -32,7 +32,7 @@ public class DeleteSavedSearchCommandHandlerTests
         var savedRepo = new FakeSavedSearchRepository();
         var handler = new DeleteSavedSearchCommandHandler(savedRepo);
 
-        var command = new DeleteSavedSearchCommand(SavedSearchId.New(), UserId.New());
+        var command = new DeleteSavedSearchCommand(SavedSearchId.New(), UserId.New(), FamilyId.New());
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
@@ -48,7 +48,7 @@ public class DeleteSavedSearchCommandHandlerTests
         var search = SavedSearch.Create(UserId.New(), "Test", "query", null);
         savedRepo.Searches.Add(search);
 
-        var command = new DeleteSavedSearchCommand(search.Id, UserId.New()); // Different user
+        var command = new DeleteSavedSearchCommand(search.Id, UserId.New(), FamilyId.New()); // Different user
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()

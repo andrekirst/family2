@@ -21,7 +21,7 @@ public class RemoveAvatarCommandHandlerTests
         user.ClearDomainEvents();
 
         var (handler, _, _, _) = CreateHandler(user, existingAvatar: avatar);
-        var command = new RemoveAvatarCommand(user.Id);
+        var command = new RemoveAvatarCommand(user.Id, FamilyId.New());
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -41,7 +41,7 @@ public class RemoveAvatarCommandHandlerTests
         user.ClearDomainEvents();
 
         var (handler, _, fileStorage, _) = CreateHandler(user, existingAvatar: avatar);
-        var command = new RemoveAvatarCommand(user.Id);
+        var command = new RemoveAvatarCommand(user.Id, FamilyId.New());
 
         // Act
         await handler.Handle(command, CancellationToken.None);
@@ -60,7 +60,7 @@ public class RemoveAvatarCommandHandlerTests
         user.ClearDomainEvents();
 
         var (handler, avatarRepo, _, _) = CreateHandler(user, existingAvatar: avatar);
-        var command = new RemoveAvatarCommand(user.Id);
+        var command = new RemoveAvatarCommand(user.Id, FamilyId.New());
 
         // Act
         await handler.Handle(command, CancellationToken.None);
@@ -75,7 +75,7 @@ public class RemoveAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var (handler, _, _, _) = CreateHandler(user);
-        var command = new RemoveAvatarCommand(user.Id);
+        var command = new RemoveAvatarCommand(user.Id, FamilyId.New());
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -91,7 +91,7 @@ public class RemoveAvatarCommandHandlerTests
         // Arrange
         var userId = UserId.New();
         var (handler, _, _, _) = CreateHandler(user: null);
-        var command = new RemoveAvatarCommand(userId);
+        var command = new RemoveAvatarCommand(userId, FamilyId.New());
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();

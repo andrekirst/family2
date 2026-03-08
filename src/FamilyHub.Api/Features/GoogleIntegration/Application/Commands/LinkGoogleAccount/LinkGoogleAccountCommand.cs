@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 
 namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.LinkGoogleAccount;
@@ -5,4 +6,4 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.LinkGoog
 public sealed record LinkGoogleAccountCommand(
     string Code,
     string State
-) : ICommand<LinkGoogleAccountResult>;
+) : ICommand<LinkGoogleAccountResult>, IIgnoreFamilyMembership;

@@ -44,9 +44,14 @@ public class QueryType
             }
         }
 
+        if (user.FamilyId is null)
+        {
+            throw new UnauthorizedAccessException("User must be part of a family");
+        }
+
         var query = new UniversalSearchQuery(
             UserId: user.Id,
-            FamilyId: user.FamilyId,
+            FamilyId: user.FamilyId.Value,
             Query: input.Query,
             Modules: input.Modules,
             Limit: input.Limit ?? 10,

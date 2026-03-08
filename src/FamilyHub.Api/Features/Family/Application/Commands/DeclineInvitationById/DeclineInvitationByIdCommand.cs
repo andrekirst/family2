@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -11,4 +12,4 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.DeclineInvitationBy
 public sealed record DeclineInvitationByIdCommand(
     InvitationId InvitationId,
     UserId DeclininingUserId
-) : ICommand<bool>;
+) : ICommand<bool>, IIgnoreFamilyMembership;

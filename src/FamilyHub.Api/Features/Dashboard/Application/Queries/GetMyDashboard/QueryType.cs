@@ -32,7 +32,12 @@ public class QueryType
             return null;
         }
 
-        var query = new GetMyDashboardQuery(user.Id);
+        if (user.FamilyId is null)
+        {
+            return null;
+        }
+
+        var query = new GetMyDashboardQuery(user.Id, user.FamilyId.Value);
         return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

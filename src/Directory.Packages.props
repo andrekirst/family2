@@ -29,6 +29,9 @@
     <PackageVersion Include="HotChocolate.AspNetCore" Version="15.1.12" />
     <PackageVersion Include="HotChocolate.AspNetCore.Authorization" Version="15.1.12" />
 
+    <!-- Source Generators (Roslyn) -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
+
     <!-- Mediator (source-generated CQRS) -->
     <PackageVersion Include="Mediator.Abstractions" Version="3.0.1" />
     <PackageVersion Include="Mediator.SourceGenerator" Version="3.0.1" />

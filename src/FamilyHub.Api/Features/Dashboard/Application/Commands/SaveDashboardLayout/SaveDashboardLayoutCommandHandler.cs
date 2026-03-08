@@ -1,39 +1,28 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
-using FamilyHub.Api.Common.Widgets;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
 using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Dashboard.Application.Commands.SaveDashboardLayout;
 
 public sealed class SaveDashboardLayoutCommandHandler(
-    IDashboardLayoutRepository dashboardRepository,
-    IWidgetRegistry widgetRegistry)
+    IDashboardLayoutRepository dashboardRepository)
     : ICommandHandler<SaveDashboardLayoutCommand, SaveDashboardLayoutResult>
 {
     public async ValueTask<SaveDashboardLayoutResult> Handle(
         SaveDashboardLayoutCommand command,
         CancellationToken cancellationToken)
     {
-        // Validate all widget types
-        foreach (var widget in command.Widgets)
-        {
-            if (!widgetRegistry.IsValidWidget(widget.WidgetType.Value))
-            {
-                throw new DomainException($"Invalid widget type: {widget.WidgetType.Value}");
-            }
-        }
-
         // Get or create dashboard
         DashboardLayout? dashboard;
         var isNew = false;
 
-        if (command is { IsShared: true, FamilyId: not null })
+        if (command.IsShared)
         {
-            dashboard = await dashboardRepository.GetSharedDashboardAsync(command.FamilyId.Value, cancellationToken);
+            dashboard = await dashboardRepository.GetSharedDashboardAsync(command.FamilyId, cancellationToken);
             if (dashboard is null)
             {
-                dashboard = DashboardLayout.CreateShared(command.Name, command.FamilyId.Value, command.UserId!.Value);
+                dashboard = DashboardLayout.CreateShared(command.Name, command.FamilyId, command.UserId!.Value);
                 isNew = true;
             }
         }

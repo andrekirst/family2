@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -13,4 +14,4 @@ public sealed record UploadFileCommand(
     FolderId FolderId,
     FamilyId FamilyId,
     UserId UploadedBy
-) : ICommand<UploadFileResult>;
+) : ICommand<UploadFileResult>, IFamilyScoped;

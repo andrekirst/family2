@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -7,4 +8,4 @@ public sealed record ToggleFavoriteCommand(
     FileId FileId,
     UserId UserId,
     FamilyId FamilyId
-) : ICommand<ToggleFavoriteResult>;
+) : ICommand<ToggleFavoriteResult>, IFamilyScoped;

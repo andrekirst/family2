@@ -6,6 +6,7 @@ using FamilyHub.Api.Features.School.Infrastructure.Repositories;
 
 namespace FamilyHub.Api.Features.School;
 
+[ModuleOrder(1000)]
 public sealed class SchoolModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)

@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.Validation;
 using FamilyHub.Api.Resources;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
@@ -9,7 +10,7 @@ namespace FamilyHub.Api.Features.Messaging.Application.Commands.SendMessage;
 /// Vogen already enforces basic MessageContent validation;
 /// this provides additional business rules.
 /// </summary>
-public sealed class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
+public sealed class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>, IInputValidator<SendMessageCommand>
 {
     public SendMessageCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {

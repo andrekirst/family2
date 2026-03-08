@@ -18,7 +18,7 @@ public class GetSavedSearchesQueryHandlerTests
         savedRepo.Searches.Add(SavedSearch.Create(userId, "Photos", "vacation", null));
         savedRepo.Searches.Add(SavedSearch.Create(userId, "Docs", "invoice", null));
 
-        var query = new GetSavedSearchesQuery(userId);
+        var query = new GetSavedSearchesQuery(userId, FamilyId.New());
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -30,7 +30,7 @@ public class GetSavedSearchesQueryHandlerTests
         var savedRepo = new FakeSavedSearchRepository();
         var handler = new GetSavedSearchesQueryHandler(savedRepo);
 
-        var query = new GetSavedSearchesQuery(UserId.New());
+        var query = new GetSavedSearchesQuery(UserId.New(), FamilyId.New());
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();

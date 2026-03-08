@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.DeclineInvitation;
@@ -7,4 +8,4 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.DeclineInvitation;
 /// </summary>
 public sealed record DeclineInvitationCommand(
     string Token
-) : ICommand<bool>;
+) : ICommand<bool>, IIgnoreFamilyMembership;

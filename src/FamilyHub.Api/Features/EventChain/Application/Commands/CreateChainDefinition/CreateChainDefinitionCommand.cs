@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.EventChain.Domain.ValueObjects;
@@ -12,7 +13,7 @@ public sealed record CreateChainDefinitionCommand(
     string TriggerEventType,
     IReadOnlyList<CreateStepCommand> Steps,
     bool IsEnabled = true
-) : ICommand<CreateChainDefinitionResult>;
+) : ICommand<CreateChainDefinitionResult>, IFamilyScoped;
 
 public sealed record CreateStepCommand(
     StepAlias Alias,

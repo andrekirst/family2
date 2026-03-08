@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -9,6 +10,6 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateUserLocale;
 public sealed record UpdateUserLocaleCommand(
     ExternalUserId ExternalUserId,
     string Locale
-) : ICommand<UpdateUserLocaleResult>;
+) : ICommand<UpdateUserLocaleResult>, IIgnoreFamilyMembership;
 
 public sealed record UpdateUserLocaleResult(bool Success);

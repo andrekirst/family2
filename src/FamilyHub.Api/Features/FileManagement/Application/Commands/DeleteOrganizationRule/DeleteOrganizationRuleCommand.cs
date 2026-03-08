@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -6,4 +7,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteOrgan
 public sealed record DeleteOrganizationRuleCommand(
     OrganizationRuleId RuleId,
     FamilyId FamilyId
-) : ICommand<DeleteOrganizationRuleResult>;
+) : ICommand<DeleteOrganizationRuleResult>, IFamilyScoped;

@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.Dashboard.Application.Mappers;
 using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Models;
@@ -14,11 +13,9 @@ public sealed class UpdateWidgetConfigCommandHandler(
         UpdateWidgetConfigCommand command,
         CancellationToken cancellationToken)
     {
-        var dashboard = await dashboardRepository.GetByWidgetIdAsync(command.WidgetId, cancellationToken)
-            ?? throw new DomainException($"Widget {command.WidgetId} not found");
+        var dashboard = (await dashboardRepository.GetByWidgetIdAsync(command.WidgetId, cancellationToken))!;
 
-        var widget = dashboard.Widgets.FirstOrDefault(w => w.Id == command.WidgetId)
-            ?? throw new DomainException($"Widget {command.WidgetId} not found");
+        var widget = dashboard.Widgets.First(w => w.Id == command.WidgetId);
 
         widget.UpdateConfig(command.ConfigJson);
         await dashboardRepository.UpdateAsync(dashboard, cancellationToken);

@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -7,4 +8,4 @@ namespace FamilyHub.Api.Features.EventChain.Application.Queries.GetChainDefiniti
 public sealed record GetChainDefinitionsQuery(
     FamilyId FamilyId,
     bool? IsEnabled = null
-) : IReadOnlyQuery<IReadOnlyList<ChainDefinition>>;
+) : IReadOnlyQuery<IReadOnlyList<ChainDefinition>>, IFamilyScoped;

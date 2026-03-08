@@ -26,7 +26,12 @@ public class QueryType
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
-        var query = new GetRecentSearchesQuery(user.Id);
+        if (user.FamilyId is null)
+        {
+            throw new UnauthorizedAccessException("User must be part of a family");
+        }
+
+        var query = new GetRecentSearchesQuery(user.Id, user.FamilyId.Value);
         return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

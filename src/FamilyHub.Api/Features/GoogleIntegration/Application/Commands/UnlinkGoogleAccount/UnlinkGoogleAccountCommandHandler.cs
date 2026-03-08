@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Repositories;
 using FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Services;
 
@@ -15,8 +14,7 @@ public sealed class UnlinkGoogleAccountCommandHandler(
         UnlinkGoogleAccountCommand command,
         CancellationToken cancellationToken)
     {
-        var link = await linkRepository.GetByUserIdAsync(command.UserId, cancellationToken)
-            ?? throw new DomainException("No Google account linked");
+        var link = (await linkRepository.GetByUserIdAsync(command.UserId, cancellationToken))!;
 
         // Revoke token at Google (best-effort)
         try

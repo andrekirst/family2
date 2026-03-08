@@ -37,6 +37,9 @@
     <ProjectReference Include="..\FamilyHub.Common\FamilyHub.Common.csproj" />
     <ProjectReference Include="..\FamilyHub.EventChain.Domain\FamilyHub.EventChain.Domain.csproj" />
     <ProjectReference Include="..\FamilyHub.EventChain.Infrastructure\FamilyHub.EventChain.Infrastructure.csproj" />
+    <ProjectReference Include="..\FamilyHub.SourceGenerators\FamilyHub.SourceGenerators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <Target Name="CopyDevModule" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">

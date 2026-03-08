@@ -7,6 +7,9 @@ namespace FamilyHub.Common.Domain;
 /// </summary>
 public static class DomainErrorCodes
 {
+    // General
+    public const string FamilyMembershipRequired = "FAMILY_MEMBERSHIP_REQUIRED";
+
     // Auth
     public const string UserAlreadyAssignedToFamily = "USER_ALREADY_ASSIGNED_TO_FAMILY";
     public const string UserNotAssignedToFamily = "USER_NOT_ASSIGNED_TO_FAMILY";
@@ -79,4 +82,15 @@ public static class DomainErrorCodes
     public const string UnknownTriggerEventType = "UNKNOWN_TRIGGER_EVENT_TYPE";
     public const string UnknownActionType = "UNKNOWN_ACTION_TYPE";
     public const string UserNotInFamily = "USER_NOT_IN_FAMILY";
+
+    // Dashboard
+    public const string DashboardNotFound = "DASHBOARD_NOT_FOUND";
+    public const string WidgetNotFound = "WIDGET_NOT_FOUND";
+    public const string InvalidWidgetType = "INVALID_WIDGET_TYPE";
+
+    // GoogleIntegration
+    public const string InvalidOAuthState = "INVALID_OAUTH_STATE";
+    public const string OAuthStateExpired = "OAUTH_STATE_EXPIRED";
+    public const string GoogleAccountAlreadyLinked = "GOOGLE_ACCOUNT_ALREADY_LINKED";
+    public const string NoGoogleAccountLinked = "NO_GOOGLE_ACCOUNT_LINKED";
 }

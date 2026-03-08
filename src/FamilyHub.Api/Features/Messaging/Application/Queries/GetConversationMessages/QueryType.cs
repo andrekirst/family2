@@ -46,7 +46,7 @@ public class GetConversationMessagesQueryType
             throw new UnauthorizedAccessException("You are not a member of this conversation");
         }
 
-        var query = new GetConversationMessagesQuery(convId, limit, before);
+        var query = new GetConversationMessagesQuery(convId, user.FamilyId.Value, limit, before);
         return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

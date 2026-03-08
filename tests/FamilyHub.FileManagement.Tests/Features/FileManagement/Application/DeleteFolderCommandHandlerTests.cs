@@ -104,18 +104,6 @@ public class DeleteFolderCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowWhenFolderNotFound()
-    {
-        var (handler, _, _, _) = CreateHandler();
-
-        var command = new DeleteFolderCommand(FolderId.New(), FamilyId.New(), UserId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FolderNotFound);
-    }
-
-    [Fact]
     public async Task Handle_ShouldThrowWhenFolderBelongsToDifferentFamily()
     {
         var familyId = FamilyId.New();

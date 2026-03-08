@@ -12,6 +12,7 @@ using FamilyHub.EventChain.Infrastructure.Registry;
 
 namespace FamilyHub.Api.Features.EventChain;
 
+[ModuleOrder(500)]
 public sealed class EventChainModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)

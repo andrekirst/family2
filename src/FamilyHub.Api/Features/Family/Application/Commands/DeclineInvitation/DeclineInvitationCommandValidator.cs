@@ -1,10 +1,11 @@
+using FamilyHub.Api.Common.Infrastructure.Validation;
 using FamilyHub.Api.Resources;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.DeclineInvitation;
 
-public class DeclineInvitationCommandValidator : AbstractValidator<DeclineInvitationCommand>
+public class DeclineInvitationCommandValidator : AbstractValidator<DeclineInvitationCommand>, IInputValidator<DeclineInvitationCommand>
 {
     public DeclineInvitationCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {

@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Infrastructure.Orchestrator;
@@ -16,8 +15,7 @@ public sealed class ExecuteChainCommandHandler(
         ExecuteChainCommand command,
         CancellationToken cancellationToken)
     {
-        var definition = await definitionRepository.GetByIdWithStepsAsync(command.ChainDefinitionId, cancellationToken)
-            ?? throw new DomainException("Chain definition not found", DomainErrorCodes.ChainDefinitionNotFound);
+        var definition = (await definitionRepository.GetByIdWithStepsAsync(command.ChainDefinitionId, cancellationToken))!;
 
         var execution = ChainExecution.Start(
             definition.Id,

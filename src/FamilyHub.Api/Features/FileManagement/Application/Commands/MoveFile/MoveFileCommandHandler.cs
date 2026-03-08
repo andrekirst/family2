@@ -13,17 +13,15 @@ public sealed class MoveFileCommandHandler(
         MoveFileCommand command,
         CancellationToken cancellationToken)
     {
-        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.NotFound);
+        var file = (await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken))!;
 
         if (file.FamilyId != command.FamilyId)
         {
             throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
         }
 
-        // Validate target folder exists and belongs to the same family
-        var targetFolder = await folderRepository.GetByIdAsync(command.TargetFolderId, cancellationToken)
-            ?? throw new DomainException("Target folder not found", DomainErrorCodes.NotFound);
+        // Validate target folder belongs to the same family (existence guaranteed by validator)
+        var targetFolder = (await folderRepository.GetByIdAsync(command.TargetFolderId, cancellationToken))!;
 
         if (targetFolder.FamilyId != command.FamilyId)
         {

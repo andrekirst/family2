@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -8,4 +9,4 @@ public sealed record GetProcessingLogQuery(
     FamilyId FamilyId,
     int Skip = 0,
     int Take = 50
-) : IReadOnlyQuery<List<ProcessingLogEntryDto>>;
+) : IReadOnlyQuery<List<ProcessingLogEntryDto>>, IFamilyScoped;

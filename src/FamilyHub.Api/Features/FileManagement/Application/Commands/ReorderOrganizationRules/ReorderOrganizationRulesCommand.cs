@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -6,4 +7,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ReorderOrga
 public sealed record ReorderOrganizationRulesCommand(
     List<Guid> RuleIdsInOrder,
     FamilyId FamilyId
-) : ICommand<ReorderOrganizationRulesResult>;
+) : ICommand<ReorderOrganizationRulesResult>, IFamilyScoped;

@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Dashboard.Models;
@@ -5,5 +6,6 @@ using FamilyHub.Api.Features.Dashboard.Models;
 namespace FamilyHub.Api.Features.Dashboard.Application.Queries.GetMyDashboard;
 
 public sealed record GetMyDashboardQuery(
-    UserId UserId
-) : IReadOnlyQuery<DashboardLayoutDto?>;
+    UserId UserId,
+    FamilyId FamilyId
+) : IReadOnlyQuery<DashboardLayoutDto?>, IFamilyScoped;

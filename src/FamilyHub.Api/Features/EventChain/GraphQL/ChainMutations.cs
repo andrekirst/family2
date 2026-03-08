@@ -88,7 +88,8 @@ public class ChainMutations
                     ActionVersion.From(s.ActionVersion),
                     s.InputMappings,
                     s.Condition,
-                    s.Order)).ToList());
+                    s.Order)).ToList(),
+                familyId);
 
             var result = await commandBus.SendAsync(command, ct);
             var definition = await definitionRepository.GetByIdWithStepsAsync(result.ChainDefinitionId, ct);
@@ -115,7 +116,7 @@ public class ChainMutations
         {
             var (userId, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
 
-            var command = new DeleteChainDefinitionCommand(ChainDefinitionId.From(id));
+            var command = new DeleteChainDefinitionCommand(ChainDefinitionId.From(id), familyId);
             var result = await commandBus.SendAsync(command, ct);
             return new DeleteChainDefinitionPayload(result.Success);
         }
@@ -129,12 +130,16 @@ public class ChainMutations
     [Authorize]
     public async Task<ChainDefinitionDto> EnableChainDefinition(
         Guid id,
+        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
+        [Service] IUserRepository userRepository,
         [Service] IChainDefinitionRepository definitionRepository,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
-        var command = new EnableChainDefinitionCommand(ChainDefinitionId.From(id));
+        var (_, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
+
+        var command = new EnableChainDefinitionCommand(ChainDefinitionId.From(id), familyId);
         var defId = await commandBus.SendAsync(command, ct);
         var definition = await definitionRepository.GetByIdWithStepsAsync(defId, ct)
             ?? throw new InvalidOperationException("Chain definition not found");
@@ -146,12 +151,16 @@ public class ChainMutations
     [Authorize]
     public async Task<ChainDefinitionDto> DisableChainDefinition(
         Guid id,
+        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
+        [Service] IUserRepository userRepository,
         [Service] IChainDefinitionRepository definitionRepository,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken ct)
     {
-        var command = new DisableChainDefinitionCommand(ChainDefinitionId.From(id));
+        var (_, familyId) = await ResolveUserContext(claimsPrincipal, userRepository, ct);
+
+        var command = new DisableChainDefinitionCommand(ChainDefinitionId.From(id), familyId);
         var defId = await commandBus.SendAsync(command, ct);
         var definition = await definitionRepository.GetByIdWithStepsAsync(defId, ct)
             ?? throw new InvalidOperationException("Chain definition not found");

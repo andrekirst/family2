@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Models;
@@ -11,4 +12,4 @@ public sealed record GetFamilyMessagesQuery(
     FamilyId FamilyId,
     int Limit = 50,
     DateTime? Before = null
-) : IReadOnlyQuery<List<MessageDto>>;
+) : IReadOnlyQuery<List<MessageDto>>, IFamilyScoped;

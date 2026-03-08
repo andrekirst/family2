@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -5,4 +6,4 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.UnlinkGo
 
 public sealed record UnlinkGoogleAccountCommand(
     UserId UserId
-) : ICommand<bool>;
+) : ICommand<bool>, IIgnoreFamilyMembership;

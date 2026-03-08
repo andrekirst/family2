@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
 using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
@@ -40,8 +39,8 @@ public sealed class CreateConversationCommandHandler(
             : Conversation.Create(command.Name, command.Type, command.FamilyId, command.CreatedBy, memberUserIds);
 
         // Create folder hierarchy: root → Messages → {ConversationName}
-        var rootFolder = await folderRepository.GetRootFolderAsync(command.FamilyId, cancellationToken)
-            ?? throw new DomainException("Family root folder not found", DomainErrorCodes.NotFound);
+        // Root folder existence guaranteed by validator
+        var rootFolder = (await folderRepository.GetRootFolderAsync(command.FamilyId, cancellationToken))!;
 
         // Find or create the "Messages" parent folder
         var messagesFolder = await FindOrCreateMessagesFolderAsync(

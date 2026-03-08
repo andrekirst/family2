@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -6,4 +7,4 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ProcessInbo
 public sealed record ProcessInboxFilesCommand(
     FamilyId FamilyId,
     UserId UserId
-) : ICommand<ProcessInboxFilesResult>;
+) : ICommand<ProcessInboxFilesResult>, IFamilyScoped;

@@ -26,7 +26,12 @@ public class QueryType
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
-        var query = new GetFavoritesQuery(user.Id);
+        if (user.FamilyId is null)
+        {
+            throw new UnauthorizedAccessException("User must be part of a family");
+        }
+
+        var query = new GetFavoritesQuery(user.Id, user.FamilyId.Value);
         return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

@@ -24,7 +24,7 @@ public class UpdateSecureNoteCommandHandlerTests
 
         var command = new UpdateSecureNoteCommand(
             note.Id, userId, NoteCategory.Financial,
-            "new-title", "new-content", "new-iv");
+            "new-title", "new-content", "new-iv", FamilyId.New());
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -43,7 +43,7 @@ public class UpdateSecureNoteCommandHandlerTests
 
         var command = new UpdateSecureNoteCommand(
             SecureNoteId.New(), UserId.New(), NoteCategory.Personal,
-            "title", "content", "iv");
+            "title", "content", "iv", FamilyId.New());
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 
@@ -64,7 +64,7 @@ public class UpdateSecureNoteCommandHandlerTests
 
         var command = new UpdateSecureNoteCommand(
             note.Id, UserId.New(), NoteCategory.Personal,
-            "new-title", "new-content", "new-iv");
+            "new-title", "new-content", "new-iv", FamilyId.New());
 
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
 

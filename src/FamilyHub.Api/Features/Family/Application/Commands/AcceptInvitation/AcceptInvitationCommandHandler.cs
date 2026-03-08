@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Common.Infrastructure.Security;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Commands.Shared;
@@ -23,21 +22,12 @@ public sealed class AcceptInvitationCommandHandler(
         AcceptInvitationCommand command,
         CancellationToken cancellationToken)
     {
-        // Hash the plaintext token to look up the invitation
+        // Hash the plaintext token to look up the invitation (validator guarantees existence)
         var tokenHash = SecureTokenHelper.ComputeSha256Hash(command.Token);
-        var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken)
-            ?? throw new DomainException("Invalid invitation token", DomainErrorCodes.InvalidInvitationToken);
+        var invitation = (await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken))!;
 
-        // Get the accepting user
-        var user = await userRepository.GetByIdAsync(command.AcceptingUserId, cancellationToken)
-            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
-
-        // Check if user is already a member of this family
-        var existingMember = await memberRepository.GetByUserAndFamilyAsync(command.AcceptingUserId, invitation.FamilyId, cancellationToken);
-        if (existingMember is not null)
-        {
-            throw new DomainException("You are already a member of this family", DomainErrorCodes.AlreadyFamilyMember);
-        }
+        // Get the accepting user (validator guarantees existence)
+        var user = (await userRepository.GetByIdAsync(command.AcceptingUserId, cancellationToken))!;
 
         // Accept the invitation (validates status + expiry, raises InvitationAcceptedEvent)
         invitation.Accept(command.AcceptingUserId);

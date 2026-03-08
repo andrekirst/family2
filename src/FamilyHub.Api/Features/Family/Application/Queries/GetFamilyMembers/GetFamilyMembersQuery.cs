@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Models;
@@ -8,5 +9,6 @@ namespace FamilyHub.Api.Features.Family.Application.Queries.GetFamilyMembers;
 /// Query to get all members of the current user's family.
 /// </summary>
 public sealed record GetFamilyMembersQuery(
-    ExternalUserId ExternalUserId
-) : IReadOnlyQuery<List<UserDto>>;
+    ExternalUserId ExternalUserId,
+    FamilyId FamilyId
+) : IReadOnlyQuery<List<UserDto>>, IFamilyScoped;

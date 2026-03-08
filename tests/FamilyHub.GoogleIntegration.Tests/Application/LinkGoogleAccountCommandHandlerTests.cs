@@ -88,45 +88,4 @@ public class LinkGoogleAccountCommandHandlerTests
 
         stateRepo.DeletedStates.Should().HaveCount(1);
     }
-
-    [Fact]
-    public async Task Handle_WithInvalidState_ShouldThrow()
-    {
-        var (handler, _, _, _, _) = CreateHandler(existingState: null);
-
-        var command = new LinkGoogleAccountCommand("code", "nonexistent-state");
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Invalid or expired OAuth state*");
-    }
-
-    [Fact]
-    public async Task Handle_WhenAlreadyLinked_ShouldThrow()
-    {
-        var userId = UserId.New();
-        var state = OAuthState.Create("state", userId, "verifier");
-
-        var existingLink = FamilyHub.Api.Features.GoogleIntegration.Domain.Entities.GoogleAccountLink.Create(
-            userId,
-            FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects.GoogleAccountId.From("existing-sub"),
-            Email.From("existing@gmail.com"),
-            FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects.EncryptedToken.From("enc-access"),
-            FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects.EncryptedToken.From("enc-refresh"),
-            DateTime.UtcNow.AddHours(1),
-            FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects.GoogleScopes.From("openid"));
-
-        var stateRepo = new FakeOAuthStateRepository(state);
-        var linkRepo = new FakeGoogleAccountLinkRepository(existingLink);
-        var oauthService = new FakeGoogleOAuthService();
-        var encryptionService = new FakeTokenEncryptionService();
-        var handler = new LinkGoogleAccountCommandHandler(
-            stateRepo, linkRepo, oauthService, encryptionService);
-
-        var command = new LinkGoogleAccountCommand("code", "state");
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*already linked*");
-    }
 }

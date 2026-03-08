@@ -1,4 +1,8 @@
+using FamilyHub.Api.Common.Infrastructure.Validation;
+using FamilyHub.Api.Resources;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 
 namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateUserLocale;
 
@@ -6,20 +10,23 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateUserLocale;
 /// Validator for UpdateUserLocaleCommand.
 /// Ensures the locale is one of the supported values.
 /// </summary>
-public sealed class UpdateUserLocaleCommandValidator : AbstractValidator<UpdateUserLocaleCommand>
+public sealed class UpdateUserLocaleCommandValidator : AbstractValidator<UpdateUserLocaleCommand>, IInputValidator<UpdateUserLocaleCommand>
 {
-    private static readonly string[] SupportedLocales = ["en", "de"];
-
-    public UpdateUserLocaleCommandValidator()
+    public UpdateUserLocaleCommandValidator(
+        IStringLocalizer<ValidationMessages> localizer,
+        IOptions<RequestLocalizationOptions> localizationOptions)
     {
+        var supportedLocales = localizationOptions.Value.SupportedUICultures?
+            .Select(c => c.Name).ToArray() ?? ["en"];
+
         RuleFor(x => x.ExternalUserId)
             .NotNull()
-            .WithMessage("External user ID is required");
+            .WithMessage(_ => localizer["ExternalUserIdRequired"].Value);
 
         RuleFor(x => x.Locale)
             .NotEmpty()
-            .WithMessage("Locale is required")
-            .Must(locale => SupportedLocales.Contains(locale))
-            .WithMessage("Locale must be one of: en, de");
+            .WithMessage(_ => localizer["LocaleRequired"].Value)
+            .Must(locale => supportedLocales.Contains(locale))
+            .WithMessage(_ => localizer["LocaleNotSupported"].Value);
     }
 }

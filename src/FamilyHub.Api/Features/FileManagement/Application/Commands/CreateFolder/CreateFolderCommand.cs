@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -9,4 +10,4 @@ public sealed record CreateFolderCommand(
     FolderId? ParentFolderId,
     FamilyId FamilyId,
     UserId CreatedBy
-) : ICommand<CreateFolderResult>;
+) : ICommand<CreateFolderResult>, IFamilyScoped;

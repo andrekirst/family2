@@ -31,6 +31,11 @@ public class MutationType
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
+        if (user.FamilyId is null)
+        {
+            throw new InvalidOperationException("User must belong to a family");
+        }
+
         var widgets = input.Widgets.Select(w => new WidgetPositionData(
             WidgetTypeId.From(w.WidgetType),
             w.X, w.Y, w.Width, w.Height, w.SortOrder, w.ConfigJson))
@@ -39,7 +44,7 @@ public class MutationType
         var command = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From(input.Name.Trim()),
             input.IsShared ? null : user.Id,
-            input.IsShared ? user.FamilyId : null,
+            user.FamilyId.Value,
             input.IsShared,
             widgets);
 

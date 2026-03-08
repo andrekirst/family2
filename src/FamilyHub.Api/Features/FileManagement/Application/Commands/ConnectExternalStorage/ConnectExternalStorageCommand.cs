@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -12,4 +13,4 @@ public sealed record ConnectExternalStorageCommand(
     string? EncryptedRefreshToken,
     DateTime? TokenExpiresAt,
     UserId ConnectedBy
-) : ICommand<ConnectExternalStorageResult>;
+) : ICommand<ConnectExternalStorageResult>, IFamilyScoped;

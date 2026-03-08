@@ -25,25 +25,10 @@ public class RemoveWidgetCommandHandlerTests
 
         // Act
         var result = await handler.Handle(
-            new RemoveWidgetCommand(widget.Id), CancellationToken.None);
+            new RemoveWidgetCommand(widget.Id, FamilyId.New()), CancellationToken.None);
 
         // Assert
         result.Should().BeTrue();
         layout.Widgets.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrow_WhenWidgetNotFound()
-    {
-        // Arrange
-        var repo = new FakeDashboardLayoutRepository();
-        var handler = new RemoveWidgetCommandHandler(repo);
-
-        // Act
-        var act = async () => await handler.Handle(
-            new RemoveWidgetCommand(DashboardWidgetId.New()), CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<DomainException>();
     }
 }

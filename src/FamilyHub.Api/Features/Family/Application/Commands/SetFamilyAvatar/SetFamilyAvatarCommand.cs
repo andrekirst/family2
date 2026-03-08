@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -10,4 +11,4 @@ public sealed record SetFamilyAvatarCommand(
     UserId UserId,
     FamilyId FamilyId,
     AvatarId AvatarId
-) : ICommand<SetFamilyAvatarResult>;
+) : ICommand<SetFamilyAvatarResult>, IFamilyScoped;

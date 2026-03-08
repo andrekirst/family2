@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -9,5 +10,6 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.RevokeInvitation;
 /// </summary>
 public sealed record RevokeInvitationCommand(
     InvitationId InvitationId,
-    UserId RevokedBy
-) : ICommand<bool>;
+    UserId RevokedBy,
+    FamilyId FamilyId
+) : ICommand<bool>, IFamilyScoped;

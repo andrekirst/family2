@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 
@@ -8,4 +9,4 @@ public sealed record AddFileToAlbumCommand(
     FileId FileId,
     FamilyId FamilyId,
     UserId AddedBy
-) : ICommand<AddFileToAlbumResult>;
+) : ICommand<AddFileToAlbumResult>, IFamilyScoped;

@@ -74,19 +74,4 @@ public class UnlinkGoogleAccountCommandHandlerTests
         existingLink.DomainEvents.Should().HaveCount(1);
         existingLink.DomainEvents.First().Should().BeOfType<GoogleAccountUnlinkedEvent>();
     }
-
-    [Fact]
-    public async Task Handle_WhenNoLinkedAccount_ShouldThrow()
-    {
-        var linkRepo = new FakeGoogleAccountLinkRepository();
-        var oauthService = new FakeGoogleOAuthService();
-        var encryptionService = new FakeTokenEncryptionService();
-        var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService);
-
-        var command = new UnlinkGoogleAccountCommand(UserId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*No Google account linked*");
-    }
 }

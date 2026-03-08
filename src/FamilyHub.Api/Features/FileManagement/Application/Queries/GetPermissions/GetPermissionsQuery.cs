@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -9,4 +10,4 @@ public sealed record GetPermissionsQuery(
     PermissionResourceType ResourceType,
     Guid ResourceId,
     FamilyId FamilyId
-) : IReadOnlyQuery<List<FilePermissionDto>>;
+) : IReadOnlyQuery<List<FilePermissionDto>>, IFamilyScoped;

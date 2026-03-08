@@ -27,7 +27,7 @@ public class UpdateWidgetConfigCommandHandlerTests
 
         // Act
         var result = await handler.Handle(
-            new UpdateWidgetConfigCommand(widget.Id, newConfig), CancellationToken.None);
+            new UpdateWidgetConfigCommand(widget.Id, newConfig, FamilyId.New()), CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -50,24 +50,9 @@ public class UpdateWidgetConfigCommandHandlerTests
 
         // Act
         var result = await handler.Handle(
-            new UpdateWidgetConfigCommand(widget.Id, null), CancellationToken.None);
+            new UpdateWidgetConfigCommand(widget.Id, null, FamilyId.New()), CancellationToken.None);
 
         // Assert
         result.ConfigJson.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrow_WhenWidgetNotFound()
-    {
-        // Arrange
-        var repo = new FakeDashboardLayoutRepository();
-        var handler = new UpdateWidgetConfigCommandHandler(repo);
-
-        // Act
-        var act = async () => await handler.Handle(
-            new UpdateWidgetConfigCommand(DashboardWidgetId.New(), "{}"), CancellationToken.None);
-
-        // Assert
-        await act.Should().ThrowAsync<DomainException>();
     }
 }

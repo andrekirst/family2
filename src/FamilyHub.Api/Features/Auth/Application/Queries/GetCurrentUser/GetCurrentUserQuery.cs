@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Models;
@@ -10,4 +11,4 @@ namespace FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
 /// </summary>
 public sealed record GetCurrentUserQuery(
     ExternalUserId ExternalUserId
-) : IReadOnlyQuery<UserDto?>;
+) : IReadOnlyQuery<UserDto?>, IIgnoreFamilyMembership;

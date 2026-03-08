@@ -3,6 +3,7 @@ using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Common.Domain.ValueObjects;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Models;
 
 namespace FamilyHub.Api.Features.Family.Application.Queries.GetMyFamily;
@@ -16,6 +17,7 @@ public class QueryType
     public async Task<FamilyDto?> GetFamily(
         ClaimsPrincipal claimsPrincipal,
         [Service] IQueryBus queryBus,
+        [Service] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
         var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value;
@@ -25,7 +27,14 @@ public class QueryType
         }
 
         var externalUserId = ExternalUserId.From(externalUserIdString);
-        var query = new GetMyFamilyQuery(externalUserId);
+
+        var user = await userRepository.GetByExternalIdAsync(externalUserId, cancellationToken);
+        if (user?.FamilyId is null)
+        {
+            return null;
+        }
+
+        var query = new GetMyFamilyQuery(externalUserId, user.FamilyId.Value);
 
         return await queryBus.QueryAsync(query, cancellationToken);
     }

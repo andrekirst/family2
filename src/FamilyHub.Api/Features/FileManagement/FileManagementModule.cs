@@ -1,8 +1,10 @@
 using FamilyHub.Api.Common.Modules;
 using FamilyHub.Api.Common.Search;
+using FamilyHub.Api.Features.FileManagement.Application.Commands.ProcessInboxFiles;
 using FamilyHub.Api.Features.FileManagement.Application.Search;
 using FamilyHub.Api.Features.FileManagement.Application.Services;
 using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
+using FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Services;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Storage;
@@ -14,7 +16,8 @@ namespace FamilyHub.Api.Features.FileManagement;
 /// File Management module registration.
 /// Registers storage infrastructure, services, and repositories for the file management domain.
 /// </summary>
-public sealed class FileManagementModule : IModule
+[ModuleOrder(600)]
+public sealed class FileManagementModule : IModule, IEndpointModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)
     {
@@ -73,6 +76,7 @@ public sealed class FileManagementModule : IModule
         services.AddScoped<IOrganizationRuleRepository, OrganizationRuleRepository>();
         services.AddScoped<IProcessingLogRepository, ProcessingLogRepository>();
         services.AddSingleton<IOrganizationRuleEngine, OrganizationRuleEngine>();
+        services.AddScoped<IInboxFileProcessor, InboxFileProcessor>();
         services.AddScoped<IFileVersionRepository, FileVersionRepository>();
         services.AddScoped<IShareLinkRepository, ShareLinkRepository>();
         services.AddScoped<IShareLinkAccessLogRepository, ShareLinkAccessLogRepository>();
@@ -85,5 +89,10 @@ public sealed class FileManagementModule : IModule
         // Search
         services.AddScoped<ISearchProvider, FileManagementSearchProvider>();
         services.AddSingleton<ICommandPaletteProvider, FileManagementCommandPaletteProvider>();
+    }
+
+    public void MapEndpoints(WebApplication app)
+    {
+        app.MapFileEndpoints();
     }
 }

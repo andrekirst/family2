@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Photos.Domain.ValueObjects;
@@ -9,4 +10,4 @@ public sealed record GetAdjacentPhotosQuery(
     FamilyId FamilyId,
     PhotoId CurrentPhotoId,
     DateTime CurrentCreatedAt
-) : IReadOnlyQuery<AdjacentPhotosDto>;
+) : IReadOnlyQuery<AdjacentPhotosDto>, IFamilyScoped;

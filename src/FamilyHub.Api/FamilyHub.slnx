@@ -4,6 +4,7 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Project Path="../../tests/FamilyHub.Architecture.Tests/FamilyHub.Architecture.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.Auth.Tests/FamilyHub.Auth.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.Calendar.Tests/FamilyHub.Calendar.Tests.csproj" />
   <Project Path="../../tests/FamilyHub.Dashboard.Tests/FamilyHub.Dashboard.Tests.csproj" />
@@ -23,5 +24,6 @@
   <Project Path="../FamilyHub.Dev/FamilyHub.Dev.csproj" />
   <Project Path="../FamilyHub.EventChain.Domain/FamilyHub.EventChain.Domain.csproj" />
   <Project Path="../FamilyHub.EventChain.Infrastructure/FamilyHub.EventChain.Infrastructure.csproj" />
+  <Project Path="../FamilyHub.SourceGenerators/FamilyHub.SourceGenerators.csproj" />
   <Project Path="FamilyHub.Api.csproj" />
 </Solution>

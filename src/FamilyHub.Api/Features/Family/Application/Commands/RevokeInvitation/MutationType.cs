@@ -28,7 +28,12 @@ public class MutationType
 
         var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, cancellationToken);
 
-        var command = new RevokeInvitationCommand(InvitationId.From(invitationId), user.Id);
+        if (user.FamilyId is null)
+        {
+            throw new InvalidOperationException("You must be part of a family to revoke invitations");
+        }
+
+        var command = new RevokeInvitationCommand(InvitationId.From(invitationId), user.Id, user.FamilyId.Value);
         return await commandBus.SendAsync(command, cancellationToken);
     }
 }

@@ -17,8 +17,7 @@ public sealed class RefreshGoogleTokenCommandHandler(
         RefreshGoogleTokenCommand command,
         CancellationToken cancellationToken)
     {
-        var link = await linkRepository.GetByUserIdAsync(command.UserId, cancellationToken)
-            ?? throw new DomainException("No Google account linked");
+        var link = (await linkRepository.GetByUserIdAsync(command.UserId, cancellationToken))!;
 
         try
         {

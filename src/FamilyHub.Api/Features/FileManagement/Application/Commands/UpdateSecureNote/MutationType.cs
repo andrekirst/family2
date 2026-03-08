@@ -31,6 +31,9 @@ public class MutationType
             ExternalUserId.From(externalUserIdString), cancellationToken)
             ?? throw new UnauthorizedAccessException("User not found");
 
+        var familyId = user.FamilyId
+            ?? throw new UnauthorizedAccessException("User is not a member of any family");
+
         var noteCategory = Enum.Parse<NoteCategory>(category, ignoreCase: true);
 
         var command = new UpdateSecureNoteCommand(
@@ -39,7 +42,8 @@ public class MutationType
             noteCategory,
             encryptedTitle,
             encryptedContent,
-            iv);
+            iv,
+            familyId);
 
         return await commandBus.SendAsync(command, cancellationToken);
     }

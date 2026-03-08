@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -8,4 +9,4 @@ public sealed record RenameAlbumCommand(
     AlbumId AlbumId,
     AlbumName NewName,
     FamilyId FamilyId
-) : ICommand<RenameAlbumResult>;
+) : ICommand<RenameAlbumResult>, IFamilyScoped;

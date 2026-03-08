@@ -1,10 +1,11 @@
+using FamilyHub.Api.Common.Infrastructure.Validation;
 using FamilyHub.Api.Resources;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.MoveFile;
 
-public sealed class MoveFileCommandValidator : AbstractValidator<MoveFileCommand>
+public sealed class MoveFileCommandValidator : AbstractValidator<MoveFileCommand>, IInputValidator<MoveFileCommand>
 {
     public MoveFileCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {

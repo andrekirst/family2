@@ -61,23 +61,6 @@ public class AcceptInvitationByIdCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenInvitationNotFound()
-    {
-        // Arrange — no invitation found for ID
-        var user = CreateTestUser();
-        var memberRepo = new FakeFamilyMemberRepository();
-        var invitationRepo = new FakeFamilyInvitationRepository(existingById: null);
-        var userRepo = new FakeUserRepository(user);
-        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationByIdCommand(InvitationId.New(), user.Id);
-
-        // Act & Assert
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("Invitation not found");
-    }
-
-    [Fact]
     public async Task Handle_ShouldThrow_WhenEmailMismatch()
     {
         // Arrange — user has a different email than the invitation
@@ -93,43 +76,6 @@ public class AcceptInvitationByIdCommandHandlerTests
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("This invitation was sent to a different email address");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrow_WhenUserNotFound()
-    {
-        // Arrange
-        var invitation = CreateTestInvitation();
-        var memberRepo = new FakeFamilyMemberRepository();
-        var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
-        var userRepo = new FakeUserRepository(existingUser: null);
-        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationByIdCommand(invitation.Id, UserId.New());
-
-        // Act & Assert
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("User not found");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrow_WhenAlreadyFamilyMember()
-    {
-        // Arrange — user is already a member of the family
-        var familyId = FamilyId.New();
-        var user = CreateTestUser();
-        var invitation = CreateTestInvitation(familyId: familyId);
-        var existingMember = FamilyMember.Create(familyId, user.Id, FamilyRole.Member);
-        var memberRepo = new FakeFamilyMemberRepository(existingMember: existingMember);
-        var invitationRepo = new FakeFamilyInvitationRepository(existingById: invitation);
-        var userRepo = new FakeUserRepository(user);
-        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationByIdCommand(invitation.Id, user.Id);
-
-        // Act & Assert
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("You are already a member of this family");
     }
 
     [Fact]

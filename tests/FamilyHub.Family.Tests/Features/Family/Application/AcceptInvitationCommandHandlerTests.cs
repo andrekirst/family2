@@ -61,60 +61,6 @@ public class AcceptInvitationCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenTokenInvalid()
-    {
-        // Arrange — no invitation found for token
-        var user = CreateTestUser();
-        var memberRepo = new FakeFamilyMemberRepository();
-        var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: null);
-        var userRepo = new FakeUserRepository(user);
-        var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationCommand("invalid-token", user.Id);
-
-        // Act & Assert
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("Invalid invitation token");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrow_WhenUserNotFound()
-    {
-        // Arrange — user doesn't exist
-        var invitation = CreateTestInvitation();
-        var memberRepo = new FakeFamilyMemberRepository();
-        var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
-        var userRepo = new FakeUserRepository(existingUser: null);
-        var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationCommand(PlaintextToken, UserId.New());
-
-        // Act & Assert
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("User not found");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrow_WhenAlreadyFamilyMember()
-    {
-        // Arrange — user is already a member of the family
-        var familyId = FamilyId.New();
-        var user = CreateTestUser();
-        var invitation = CreateTestInvitation(familyId: familyId);
-        var existingMember = FamilyMember.Create(familyId, user.Id, FamilyRole.Member);
-        var memberRepo = new FakeFamilyMemberRepository(existingMember: existingMember);
-        var invitationRepo = new FakeFamilyInvitationRepository(existingByTokenHash: invitation);
-        var userRepo = new FakeUserRepository(user);
-        var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo);
-        var command = new AcceptInvitationCommand(PlaintextToken, user.Id);
-
-        // Act & Assert
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("You are already a member of this family");
-    }
-
-    [Fact]
     public async Task Handle_ShouldThrow_WhenInvitationExpired()
     {
         // Arrange — invitation is expired

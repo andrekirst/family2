@@ -10,6 +10,7 @@ using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
 
 namespace FamilyHub.Api.Features.Family;
 
+[ModuleOrder(200)]
 public sealed class FamilyModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)

@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.EventChain.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -8,6 +9,6 @@ public sealed record ExecuteChainCommand(
     ChainDefinitionId ChainDefinitionId,
     FamilyId FamilyId,
     string TriggerPayload
-) : ICommand<ExecuteChainResult>;
+) : ICommand<ExecuteChainResult>, IFamilyScoped;
 
 public sealed record ExecuteChainResult(ChainExecutionId ChainExecutionId);

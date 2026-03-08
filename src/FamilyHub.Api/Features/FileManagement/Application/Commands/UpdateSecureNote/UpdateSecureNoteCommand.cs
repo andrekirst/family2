@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -10,5 +11,6 @@ public sealed record UpdateSecureNoteCommand(
     NoteCategory Category,
     string EncryptedTitle,
     string EncryptedContent,
-    string Iv
-) : ICommand<UpdateSecureNoteResult>;
+    string Iv,
+    FamilyId FamilyId
+) : ICommand<UpdateSecureNoteResult>, IFamilyScoped;

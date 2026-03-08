@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -9,4 +10,4 @@ public sealed record UpdateTagCommand(
     TagName? NewName,
     TagColor? NewColor,
     FamilyId FamilyId
-) : ICommand<UpdateTagResult>;
+) : ICommand<UpdateTagResult>, IFamilyScoped;

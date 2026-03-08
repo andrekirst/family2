@@ -1,6 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
-using FamilyHub.Api.Common.Widgets;
 using FamilyHub.Api.Features.Dashboard.Application.Mappers;
 using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Models;
@@ -8,21 +6,14 @@ using FamilyHub.Api.Features.Dashboard.Models;
 namespace FamilyHub.Api.Features.Dashboard.Application.Commands.AddWidget;
 
 public sealed class AddWidgetCommandHandler(
-    IDashboardLayoutRepository dashboardRepository,
-    IWidgetRegistry widgetRegistry)
+    IDashboardLayoutRepository dashboardRepository)
     : ICommandHandler<AddWidgetCommand, DashboardWidgetDto>
 {
     public async ValueTask<DashboardWidgetDto> Handle(
         AddWidgetCommand command,
         CancellationToken cancellationToken)
     {
-        if (!widgetRegistry.IsValidWidget(command.WidgetType.Value))
-        {
-            throw new DomainException($"Invalid widget type: {command.WidgetType.Value}");
-        }
-
-        var dashboard = await dashboardRepository.GetByIdAsync(command.DashboardId, cancellationToken)
-                        ?? throw new DomainException($"Dashboard {command.DashboardId} not found");
+        var dashboard = (await dashboardRepository.GetByIdAsync(command.DashboardId, cancellationToken))!;
 
         var sortOrder = dashboard.Widgets.Count;
         var widget = dashboard.AddWidget(

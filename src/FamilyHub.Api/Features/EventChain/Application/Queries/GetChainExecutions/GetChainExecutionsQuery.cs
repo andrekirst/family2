@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.FamilyScope;
 using FamilyHub.Common.Application;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Enums;
@@ -10,4 +11,4 @@ public sealed record GetChainExecutionsQuery(
     FamilyId FamilyId,
     ChainDefinitionId? ChainDefinitionId = null,
     ChainExecutionStatus? Status = null
-) : IReadOnlyQuery<IReadOnlyList<ChainExecution>>;
+) : IReadOnlyQuery<IReadOnlyList<ChainExecution>>, IFamilyScoped;

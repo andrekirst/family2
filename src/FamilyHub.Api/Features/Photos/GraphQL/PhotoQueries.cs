@@ -30,10 +30,11 @@ public class PhotoQueries
     [Authorize]
     public async Task<PhotoDto?> GetPhoto(
         Guid id,
+        Guid familyId,
         [Service] IQueryBus queryBus,
         CancellationToken ct)
     {
-        var query = new GetPhotoQuery(PhotoId.From(id));
+        var query = new GetPhotoQuery(PhotoId.From(id), FamilyId.From(familyId));
         return await queryBus.QueryAsync(query, ct);
     }
 
