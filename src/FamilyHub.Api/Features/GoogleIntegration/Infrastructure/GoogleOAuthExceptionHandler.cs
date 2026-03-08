@@ -1,4 +1,6 @@
+using FamilyHub.Api.Common.Configuration;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.Extensions.Options;
 
 namespace FamilyHub.Api.Features.GoogleIntegration.Infrastructure;
 
@@ -8,7 +10,7 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Infrastructure;
 /// with an error query parameter instead of returning a 500 error.
 /// </summary>
 public sealed class GoogleOAuthExceptionHandler(
-    IConfiguration configuration,
+    IOptions<AppOptions> appOptions,
     ILogger<GoogleOAuthExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
@@ -23,7 +25,7 @@ public sealed class GoogleOAuthExceptionHandler(
 
         logger.LogError(exception, "Google OAuth callback failed");
 
-        var frontendUrl = configuration["App:FrontendUrl"] ?? "http://localhost:4200";
+        var frontendUrl = appOptions.Value.FrontendUrl;
         var errorMessage = Uri.EscapeDataString(exception.Message);
 
         httpContext.Response.Redirect($"{frontendUrl}/settings?google_error={errorMessage}");

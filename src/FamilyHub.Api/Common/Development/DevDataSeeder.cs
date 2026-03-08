@@ -1,10 +1,12 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using FamilyHub.Common.Application;
+using FamilyHub.Api.Common.Configuration;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using DomainEmail = FamilyHub.Common.Domain.ValueObjects.Email;
 using DomainExternalUserId = FamilyHub.Common.Domain.ValueObjects.ExternalUserId;
 
@@ -18,7 +20,7 @@ namespace FamilyHub.Api.Common.Development;
 /// </summary>
 public sealed class DevDataSeeder(
     IServiceScopeFactory scopeFactory,
-    IConfiguration configuration,
+    IOptions<KeycloakOptions> keycloakOptions,
     ILogger<DevDataSeeder> logger) : IHostedService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
@@ -161,7 +163,7 @@ public sealed class DevDataSeeder(
 
     private (string? BaseUrl, string? RealmName) ParseKeycloakAuthority()
     {
-        var authority = configuration["Keycloak:Authority"];
+        var authority = keycloakOptions.Value.Authority;
         if (string.IsNullOrWhiteSpace(authority))
         {
             return (null, null);

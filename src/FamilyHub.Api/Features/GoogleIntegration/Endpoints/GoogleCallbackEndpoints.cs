@@ -1,5 +1,7 @@
+using FamilyHub.Api.Common.Configuration;
 using FamilyHub.Api.Features.GoogleIntegration.Application.Commands.LinkGoogleAccount;
 using FamilyHub.Common.Application;
+using Microsoft.Extensions.Options;
 
 namespace FamilyHub.Api.Features.GoogleIntegration.Endpoints;
 
@@ -14,10 +16,10 @@ public static class GoogleCallbackEndpoints
         string? state,
         string? error,
         ICommandBus commandBus,
-        IConfiguration configuration,
+        IOptions<AppOptions> appOptions,
         CancellationToken cancellationToken)
     {
-        var frontendUrl = configuration["App:FrontendUrl"] ?? "http://localhost:4200";
+        var frontendUrl = appOptions.Value.FrontendUrl;
 
         if (!string.IsNullOrEmpty(error))
         {

@@ -1,9 +1,11 @@
 using FamilyHub.Common.Application;
+using FamilyHub.Api.Common.Configuration;
 using FamilyHub.Api.Common.Email;
 using FamilyHub.Api.Common.Email.Templates;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Events;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
+using Microsoft.Extensions.Options;
 
 namespace FamilyHub.Api.Features.Family.Application.EventHandlers;
 
@@ -15,7 +17,7 @@ public sealed class InvitationSentEventHandler(
     IEmailService emailService,
     IFamilyRepository familyRepository,
     IUserRepository userRepository,
-    IConfiguration configuration)
+    IOptions<AppOptions> appOptions)
     : IDomainEventHandler<InvitationSentEvent>
 {
     public async ValueTask Handle(
@@ -28,7 +30,7 @@ public sealed class InvitationSentEventHandler(
         var familyName = family?.Name.Value ?? "Unknown Family";
         var inviterName = inviter?.Name.Value ?? "A family member";
 
-        var frontendUrl = configuration["App:FrontendUrl"] ?? "http://localhost:4200";
+        var frontendUrl = appOptions.Value.FrontendUrl;
         var acceptUrl = $"{frontendUrl}/invitation/accept?token={Uri.EscapeDataString(@event.PlaintextToken)}";
 
         var htmlBody = InvitationEmailTemplate.GenerateHtml(

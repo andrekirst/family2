@@ -1,4 +1,5 @@
 using FamilyHub.Common.Application;
+using FamilyHub.Api.Common.Configuration;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.Behaviors;
@@ -23,6 +24,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Infisical secrets management (loads secrets from vault into IConfiguration)
 builder.Configuration.AddInfisical();
+
+// Strongly-typed configuration options
+builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.SectionName));
+builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection(KeycloakOptions.SectionName));
+builder.Services.Configure<FrontendConfigOptions>(builder.Configuration.GetSection(FrontendConfigOptions.SectionName));
 
 // Configure forwarded headers for reverse proxy (Traefik)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -82,24 +88,19 @@ builder.Services.AddValidatorGroups();
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // Configure JWT Bearer authentication with Keycloak
+var keycloakOptions = builder.Configuration.GetSection(KeycloakOptions.SectionName).Get<KeycloakOptions>()!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
-            ?? "http://localhost:8080/realms/FamilyHub";
-        var keycloakAudience = builder.Configuration["Keycloak:Audience"]
-            ?? "account"; // Keycloak default audience
-
         // Authority = internal URL for OIDC discovery (e.g. http://keycloak:8080/realms/...)
         // Issuer = public URL that appears in JWT "iss" claim (e.g. https://kc-{env}.localhost:4443/realms/...)
         // When running behind a reverse proxy, these differ. If Issuer is not set, it defaults to Authority.
         // Support multiple issuers for dual-domain (*.localhost + *.dev.andrekirst.de)
-        var keycloakIssuers = builder.Configuration["Keycloak:Issuers"]?
+        var keycloakIssuers = keycloakOptions.Issuers?
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var keycloakIssuer = builder.Configuration["Keycloak:Issuer"];
 
-        options.Authority = keycloakAuthority;
-        options.Audience = keycloakAudience;
+        options.Authority = keycloakOptions.Authority;
+        options.Audience = keycloakOptions.Audience;
         options.RequireHttpsMetadata = false; // Development only - set to true in production
         options.MapInboundClaims = false; // Use original JWT claim names (sub, email, etc.)
 
@@ -119,7 +120,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         else
         {
             options.TokenValidationParameters.ValidIssuer =
-                string.IsNullOrEmpty(keycloakIssuer) ? keycloakAuthority : keycloakIssuer;
+                string.IsNullOrEmpty(keycloakOptions.Issuer) ? keycloakOptions.Authority : keycloakOptions.Issuer;
         }
 
     });
@@ -257,19 +258,18 @@ app.MapHealthChecks("/health/auth", new HealthCheckOptions
 });
 
 // Frontend runtime configuration endpoint (served same-origin via Traefik proxy)
-app.MapGet("/config", (IConfiguration configuration) =>
+app.MapGet("/config", (IOptions<FrontendConfigOptions> options) =>
 {
-    var section = configuration.GetSection("FrontendConfig");
-    var appUrl = section["AppUrl"] ?? "http://localhost:4200";
+    var config = options.Value;
     return Results.Ok(new
     {
-        apiUrl = section["ApiUrl"] ?? "http://localhost:5152/graphql",
+        apiUrl = config.ApiUrl,
         keycloak = new
         {
-            issuer = section["KeycloakIssuer"] ?? "http://localhost:8080/realms/FamilyHub",
-            clientId = section["KeycloakClientId"] ?? "familyhub-web",
-            redirectUri = $"{appUrl}/callback",
-            postLogoutRedirectUri = appUrl,
+            issuer = config.KeycloakIssuer,
+            clientId = config.KeycloakClientId,
+            redirectUri = $"{config.AppUrl}/callback",
+            postLogoutRedirectUri = config.AppUrl,
             scope = "openid profile email"
         }
     });
