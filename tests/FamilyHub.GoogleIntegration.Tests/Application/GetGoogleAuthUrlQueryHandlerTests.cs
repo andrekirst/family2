@@ -29,7 +29,7 @@ public class GetGoogleAuthUrlQueryHandlerTests
         unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
             .Returns(1);
 
-        var handler = new GetGoogleAuthUrlQueryHandler(oauthService, stateRepo, unitOfWork);
+        var handler = new GetGoogleAuthUrlQueryHandler(oauthService, stateRepo, unitOfWork, TimeProvider.System);
         return (handler, oauthService, stateRepo, unitOfWork);
     }
 

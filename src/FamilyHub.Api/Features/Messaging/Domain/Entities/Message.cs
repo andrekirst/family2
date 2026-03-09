@@ -54,11 +54,11 @@ public sealed class Message : AggregateRoot<MessageId>
         FamilyId familyId,
         UserId senderId,
         MessageContent content,
+        DateTimeOffset utcNow,
         IReadOnlyList<MessageAttachment>? attachments = null,
-        ConversationId? conversationId = null,
-        DateTimeOffset? utcNow = null)
+        ConversationId? conversationId = null)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         var message = new Message
         {
             Id = MessageId.New(),

@@ -12,7 +12,8 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateUserLocale;
 /// </summary>
 public sealed class UpdateUserLocaleCommandHandler(
     IUserRepository userRepository,
-    IMemoryCache memoryCache)
+    IMemoryCache memoryCache,
+    TimeProvider timeProvider)
     : ICommandHandler<UpdateUserLocaleCommand, UpdateUserLocaleResult>
 {
     public async ValueTask<UpdateUserLocaleResult> Handle(
@@ -21,7 +22,7 @@ public sealed class UpdateUserLocaleCommandHandler(
     {
         var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
-        user.UpdateLocale(command.Locale);
+        user.UpdateLocale(command.Locale, timeProvider.GetUtcNow());
 
         memoryCache.Remove($"{RequestLocaleResolutionMiddleware.CacheKeyPrefix}{user.ExternalUserId.Value}");
 

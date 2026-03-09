@@ -146,7 +146,7 @@ public class SchoolSearchProviderTests
             Email.From($"{name.Replace(" ", "").ToLowerInvariant()}@test.com"),
             UserName.From(name),
             ExternalUserId.From(Guid.NewGuid().ToString()),
-            emailVerified: true);
+            emailVerified: true, utcNow: DateTimeOffset.UtcNow);
 
         typeof(FamilyMember)
             .GetProperty("User")!

@@ -47,8 +47,8 @@ public sealed class RegisterUserCommandHandler(IUserRepository userRepository, T
             command.Name,
             command.ExternalUserId,
             command.EmailVerified,
-            command.Username,
-            utcNow
+            utcNow,
+            command.Username
         );
 
         await userRepository.AddAsync(newUser, cancellationToken);

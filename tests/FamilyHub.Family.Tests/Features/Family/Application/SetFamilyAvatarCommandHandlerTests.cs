@@ -78,7 +78,7 @@ public class SetFamilyAvatarCommandHandlerTests
             [AvatarSize.Large] = new("key-large", "image/jpeg", 1000, 512, 512),
         };
 
-        return AvatarAggregate.Create("avatar.jpg", "image/jpeg", variants);
+        return AvatarAggregate.Create("avatar.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
     }
 
     private static (

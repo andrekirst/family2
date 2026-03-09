@@ -129,7 +129,7 @@ public class GetFamilyMessagesQueryHandlerTests
             Email.From("test@example.com"),
             UserName.From("Test User"),
             ExternalUserId.From("test-external-id"),
-            emailVerified: true);
+            emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
         return user;
     }

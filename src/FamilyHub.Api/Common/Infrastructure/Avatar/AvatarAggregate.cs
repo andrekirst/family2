@@ -29,9 +29,9 @@ public sealed class AvatarAggregate
         string originalFileName,
         string originalMimeType,
         Dictionary<AvatarSize, AvatarVariantData> variants,
-        DateTimeOffset? utcNow = null)
+        DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         var avatar = new AvatarAggregate
         {
             Id = AvatarId.New(),

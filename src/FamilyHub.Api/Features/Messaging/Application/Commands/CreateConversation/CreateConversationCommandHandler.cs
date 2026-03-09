@@ -37,8 +37,8 @@ public sealed class CreateConversationCommandHandler(
         var memberUserIds = command.MemberIds.Select(UserId.From).ToList();
 
         var conversation = command.Type == ConversationType.Family
-            ? Conversation.CreateFamily(command.FamilyId, command.UserId)
-            : Conversation.Create(command.Name, command.Type, command.FamilyId, command.UserId, memberUserIds);
+            ? Conversation.CreateFamily(command.FamilyId, command.UserId, utcNow)
+            : Conversation.Create(command.Name, command.Type, command.FamilyId, command.UserId, memberUserIds, utcNow);
 
         // Create folder hierarchy: root → Messages → {ConversationName}
         // Root folder existence guaranteed by validator

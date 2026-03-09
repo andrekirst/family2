@@ -90,7 +90,7 @@ public class ZipJobTests
     {
         var job = ZipJob.Create(_familyId, _userId, _fileIds, DateTimeOffset.UtcNow);
 
-        job.MarkFailed("Storage error");
+        job.MarkFailed(DateTimeOffset.UtcNow, "Storage error");
 
         job.Status.Should().Be(ZipJobStatus.Failed);
         job.ErrorMessage.Should().Be("Storage error");

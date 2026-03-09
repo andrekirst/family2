@@ -64,7 +64,7 @@ public class GoogleAccountLinkAggregateTests
         var newToken = EncryptedToken.From("new-encrypted-access");
         var newExpiry = DateTime.UtcNow.AddHours(2);
 
-        link.RefreshAccessToken(newToken, newExpiry);
+        link.RefreshAccessToken(newToken, newExpiry, DateTimeOffset.UtcNow);
 
         link.EncryptedAccessToken.Should().Be(newToken);
         link.AccessTokenExpiresAt.Should().Be(newExpiry);
@@ -79,7 +79,7 @@ public class GoogleAccountLinkAggregateTests
         link.ClearDomainEvents();
 
         var newExpiry = DateTime.UtcNow.AddHours(2);
-        link.RefreshAccessToken(EncryptedToken.From("new"), newExpiry);
+        link.RefreshAccessToken(EncryptedToken.From("new"), newExpiry, DateTimeOffset.UtcNow);
 
         link.DomainEvents.Should().HaveCount(1);
         var evt = link.DomainEvents.First().Should().BeOfType<GoogleTokenRefreshedEvent>().Subject;
@@ -92,7 +92,7 @@ public class GoogleAccountLinkAggregateTests
         var link = CreateTestLink();
         link.ClearDomainEvents();
 
-        link.MarkRefreshFailed("Token expired permanently");
+        link.MarkRefreshFailed("Token expired permanently", DateTimeOffset.UtcNow);
 
         link.Status.Should().Be(GoogleLinkStatus.Error);
         link.LastError.Should().Be("Token expired permanently");
@@ -104,7 +104,7 @@ public class GoogleAccountLinkAggregateTests
         var link = CreateTestLink();
         link.ClearDomainEvents();
 
-        link.MarkRefreshFailed("error message");
+        link.MarkRefreshFailed("error message", DateTimeOffset.UtcNow);
 
         link.DomainEvents.Should().HaveCount(1);
         var evt = link.DomainEvents.First().Should().BeOfType<GoogleTokenRefreshFailedEvent>().Subject;
@@ -117,7 +117,7 @@ public class GoogleAccountLinkAggregateTests
         var link = CreateTestLink();
         link.ClearDomainEvents();
 
-        link.MarkRevoked();
+        link.MarkRevoked(DateTimeOffset.UtcNow);
 
         link.Status.Should().Be(GoogleLinkStatus.Revoked);
     }
@@ -128,7 +128,7 @@ public class GoogleAccountLinkAggregateTests
         var link = CreateTestLink();
         link.ClearDomainEvents();
 
-        link.MarkRevoked();
+        link.MarkRevoked(DateTimeOffset.UtcNow);
 
         link.DomainEvents.Should().HaveCount(1);
         link.DomainEvents.First().Should().BeOfType<GoogleAccountUnlinkedEvent>();
@@ -174,7 +174,7 @@ public class GoogleAccountLinkAggregateTests
     {
         var link = CreateTestLink();
 
-        link.RecordSync();
+        link.RecordSync(DateTimeOffset.UtcNow);
 
         link.LastSyncAt.Should().NotBeNull();
         link.LastSyncAt!.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));

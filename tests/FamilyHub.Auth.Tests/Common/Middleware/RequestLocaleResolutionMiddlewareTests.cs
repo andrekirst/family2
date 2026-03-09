@@ -29,8 +29,8 @@ public class RequestLocaleResolutionMiddlewareTests
             Email.From("test@example.com"),
             UserName.From("Test User"),
             TestExternalUserId,
-            emailVerified: true);
-        user.UpdateLocale(preferredLocale);
+            emailVerified: true, utcNow: DateTimeOffset.UtcNow);
+        user.UpdateLocale(preferredLocale, DateTimeOffset.UtcNow);
         return user;
     }
 

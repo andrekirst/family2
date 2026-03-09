@@ -53,7 +53,7 @@ public sealed class GetConversationsQueryHandler(
         if (existing is not null)
             return existing;
 
-        var conversation = Conversation.CreateFamily(query.FamilyId, query.UserId);
+        var conversation = Conversation.CreateFamily(query.FamilyId, query.UserId, timeProvider.GetUtcNow());
 
         // Create folder hierarchy: root → Messages → General
         var rootFolder = await folderRepository.GetRootFolderAsync(query.FamilyId, cancellationToken);

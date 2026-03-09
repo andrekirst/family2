@@ -63,7 +63,7 @@ public class LinkGoogleAccountCommandHandlerTests
     public async Task Handle_WithValidState_ShouldCreateLink()
     {
         var userId = UserId.New();
-        var state = OAuthState.Create("valid-state", userId, "code-verifier");
+        var state = OAuthState.Create("valid-state", userId, "code-verifier", DateTimeOffset.UtcNow);
         var (handler, linkRepo, _, _, _) = CreateHandler(state);
 
         GoogleAccountLink? capturedLink = null;
@@ -85,7 +85,7 @@ public class LinkGoogleAccountCommandHandlerTests
     public async Task Handle_WithValidState_ShouldEncryptTokens()
     {
         var userId = UserId.New();
-        var state = OAuthState.Create("state", userId, "verifier");
+        var state = OAuthState.Create("state", userId, "verifier", DateTimeOffset.UtcNow);
         var (handler, linkRepo, _, _, _) = CreateHandler(state);
 
         GoogleAccountLink? capturedLink = null;
@@ -103,7 +103,7 @@ public class LinkGoogleAccountCommandHandlerTests
     public async Task Handle_WithValidState_ShouldRaiseDomainEvent()
     {
         var userId = UserId.New();
-        var state = OAuthState.Create("state", userId, "verifier");
+        var state = OAuthState.Create("state", userId, "verifier", DateTimeOffset.UtcNow);
         var (handler, linkRepo, _, _, _) = CreateHandler(state);
 
         GoogleAccountLink? capturedLink = null;
@@ -121,7 +121,7 @@ public class LinkGoogleAccountCommandHandlerTests
     public async Task Handle_WithValidState_ShouldDeleteOAuthState()
     {
         var userId = UserId.New();
-        var state = OAuthState.Create("state", userId, "verifier");
+        var state = OAuthState.Create("state", userId, "verifier", DateTimeOffset.UtcNow);
         var (handler, _, stateRepo, _, _) = CreateHandler(state);
 
         var command = new LinkGoogleAccountCommand("code", "state");

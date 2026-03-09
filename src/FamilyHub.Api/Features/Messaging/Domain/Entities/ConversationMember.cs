@@ -21,9 +21,9 @@ public sealed class ConversationMember
 
     public bool IsActive => LeftAt is null;
 
-    public static ConversationMember Create(UserId userId, string role = "Member", DateTimeOffset? utcNow = null)
+    public static ConversationMember Create(UserId userId, DateTimeOffset utcNow, string role = "Member")
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         return new ConversationMember
         {
             Id = ConversationMemberId.New(),
@@ -33,9 +33,9 @@ public sealed class ConversationMember
         };
     }
 
-    public void Leave(DateTimeOffset? utcNow = null)
+    public void Leave(DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         LeftAt = now.UtcDateTime;
     }
 }

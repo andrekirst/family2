@@ -7,7 +7,8 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.UnlinkGo
 public sealed class UnlinkGoogleAccountCommandHandler(
     IGoogleAccountLinkRepository linkRepository,
     IGoogleOAuthService oauthService,
-    ITokenEncryptionService encryptionService)
+    ITokenEncryptionService encryptionService,
+    TimeProvider timeProvider)
     : ICommandHandler<UnlinkGoogleAccountCommand, bool>
 {
     public async ValueTask<bool> Handle(
@@ -28,7 +29,7 @@ public sealed class UnlinkGoogleAccountCommandHandler(
         }
 
         // Mark as revoked (raises domain event) then hard-delete
-        link.MarkRevoked();
+        link.MarkRevoked(timeProvider.GetUtcNow());
         await linkRepository.DeleteAsync(link, cancellationToken);
 
         return true;

@@ -43,7 +43,7 @@ public class GetCurrentUserQueryHandlerTests
             Email.From("test@example.com"),
             UserName.From("Test User"),
             ExternalUserId.From("ext-123"),
-            emailVerified: true);
+            emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         var userRepo = Substitute.For<IUserRepository>();
         userRepo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
             .ReturnsForAnyArgs(user);
@@ -67,9 +67,9 @@ public class GetCurrentUserQueryHandlerTests
             Email.From("owner@example.com"),
             UserName.From("Family Owner"),
             ExternalUserId.From("ext-owner"),
-            emailVerified: true);
+            emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         var familyId = FamilyId.New();
-        user.AssignToFamily(familyId);
+        user.AssignToFamily(familyId, DateTimeOffset.UtcNow);
 
         var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Owner, DateTimeOffset.UtcNow);
         var userRepo = Substitute.For<IUserRepository>();
@@ -105,9 +105,9 @@ public class GetCurrentUserQueryHandlerTests
             Email.From("member@example.com"),
             UserName.From("Family Member"),
             ExternalUserId.From("ext-member"),
-            emailVerified: true);
+            emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         var familyId = FamilyId.New();
-        user.AssignToFamily(familyId);
+        user.AssignToFamily(familyId, DateTimeOffset.UtcNow);
 
         var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Member, DateTimeOffset.UtcNow);
         var userRepo = Substitute.For<IUserRepository>();
@@ -135,9 +135,9 @@ public class GetCurrentUserQueryHandlerTests
             Email.From("admin@example.com"),
             UserName.From("Family Admin"),
             ExternalUserId.From("ext-admin"),
-            emailVerified: true);
+            emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         var familyId = FamilyId.New();
-        user.AssignToFamily(familyId);
+        user.AssignToFamily(familyId, DateTimeOffset.UtcNow);
 
         var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Admin, DateTimeOffset.UtcNow);
         var userRepo = Substitute.For<IUserRepository>();

@@ -7,7 +7,9 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateLastLogin;
 /// Handler for UpdateLastLoginCommand.
 /// Updates a user's last login timestamp.
 /// </summary>
-public sealed class UpdateLastLoginCommandHandler(IUserRepository userRepository)
+public sealed class UpdateLastLoginCommandHandler(
+    IUserRepository userRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<UpdateLastLoginCommand, bool>
 {
     public async ValueTask<bool> Handle(
@@ -20,7 +22,8 @@ public sealed class UpdateLastLoginCommandHandler(IUserRepository userRepository
             return false;
         }
 
-        user.UpdateLastLogin(command.LoginTime);
+        var utcNow = timeProvider.GetUtcNow();
+        user.UpdateLastLogin(command.LoginTime, utcNow);
 
         return true;
     }

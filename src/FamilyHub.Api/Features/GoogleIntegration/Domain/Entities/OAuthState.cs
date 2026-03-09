@@ -14,9 +14,9 @@ public sealed class OAuthState
     public DateTime CreatedAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
 
-    public static OAuthState Create(string state, UserId userId, string codeVerifier, DateTimeOffset? utcNow = null)
+    public static OAuthState Create(string state, UserId userId, string codeVerifier, DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         return new OAuthState
         {
             State = state,
@@ -27,9 +27,9 @@ public sealed class OAuthState
         };
     }
 
-    public bool IsExpired(DateTimeOffset? utcNow = null)
+    public bool IsExpired(DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         return now.UtcDateTime >= ExpiresAt;
     }
 }

@@ -73,7 +73,7 @@ public class CreateFamilyCommandHandlerTests
         var name = UserName.From("Test User");
         var externalId = ExternalUserId.From("test-external-id");
 
-        var user = User.Register(email, name, externalId, emailVerified: true);
+        var user = User.Register(email, name, externalId, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         return user;

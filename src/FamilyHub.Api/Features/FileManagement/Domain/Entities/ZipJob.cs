@@ -65,9 +65,9 @@ public sealed class ZipJob : AggregateRoot<ZipJobId>
             Id, FileIds.Count, zipSize, FamilyId));
     }
 
-    public void MarkFailed(string? errorMessage = null, DateTimeOffset? utcNow = null)
+    public void MarkFailed(DateTimeOffset utcNow, string? errorMessage = null)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         Status = ZipJobStatus.Failed;
         ErrorMessage = errorMessage;
         CompletedAt = now.UtcDateTime;

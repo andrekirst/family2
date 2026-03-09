@@ -18,10 +18,10 @@ public sealed class Photo : AggregateRoot<PhotoId>
         string contentType,
         long fileSizeBytes,
         string storagePath,
-        PhotoCaption? caption = null,
-        DateTimeOffset? utcNow = null)
+        DateTimeOffset utcNow,
+        PhotoCaption? caption = null)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         var photo = new Photo
         {
             Id = PhotoId.New(),
@@ -48,14 +48,14 @@ public sealed class Photo : AggregateRoot<PhotoId>
         return photo;
     }
 
-    public void UpdateCaption(PhotoCaption? caption, DateTimeOffset? utcNow = null)
+    public void UpdateCaption(PhotoCaption? caption, DateTimeOffset utcNow)
     {
         if (IsDeleted)
         {
             throw new DomainException("Cannot update a deleted photo", DomainErrorCodes.PhotoAlreadyDeleted);
         }
 
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         Caption = caption;
         UpdatedAt = now.UtcDateTime;
 
@@ -69,14 +69,14 @@ public sealed class Photo : AggregateRoot<PhotoId>
         }
     }
 
-    public void SoftDelete(UserId deletedBy, DateTimeOffset? utcNow = null)
+    public void SoftDelete(UserId deletedBy, DateTimeOffset utcNow)
     {
         if (IsDeleted)
         {
             throw new DomainException("Photo is already deleted", DomainErrorCodes.PhotoAlreadyDeleted);
         }
 
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         IsDeleted = true;
         UpdatedAt = now.UtcDateTime;
 

@@ -159,7 +159,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         var name = UserName.From("Invitee User");
         var externalId = ExternalUserId.From("invitee-external-id-" + Guid.NewGuid().ToString()[..8]);
 
-        var user = User.Register(emailVo, name, externalId, emailVerified: true);
+        var user = User.Register(emailVo, name, externalId, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         return user;

@@ -42,7 +42,7 @@ public class UnlinkGoogleAccountCommandHandlerTests
         encryptionService.Decrypt(Arg.Any<string>())
             .Returns(callInfo => callInfo.ArgAt<string>(0).Replace("encrypted:", ""));
 
-        var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService);
+        var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService, TimeProvider.System);
         return (handler, linkRepo, oauthService);
     }
 

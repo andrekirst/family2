@@ -34,9 +34,9 @@ public sealed class Conversation : AggregateRoot<ConversationId>
         FamilyId familyId,
         UserId createdBy,
         IReadOnlyList<UserId> memberIds,
-        DateTimeOffset? utcNow = null)
+        DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         var conversation = new Conversation
         {
             Id = ConversationId.New(),
@@ -48,12 +48,12 @@ public sealed class Conversation : AggregateRoot<ConversationId>
         };
 
         // Creator is always an Owner
-        conversation._members.Add(ConversationMember.Create(createdBy, "Owner"));
+        conversation._members.Add(ConversationMember.Create(createdBy, now, "Owner"));
 
         // Add other members
         foreach (var memberId in memberIds.Where(id => id != createdBy))
         {
-            conversation._members.Add(ConversationMember.Create(memberId));
+            conversation._members.Add(ConversationMember.Create(memberId, now));
         }
 
         conversation.RaiseDomainEvent(new ConversationCreatedEvent(
@@ -69,9 +69,9 @@ public sealed class Conversation : AggregateRoot<ConversationId>
     /// <summary>
     /// Creates the default "General" family conversation.
     /// </summary>
-    public static Conversation CreateFamily(FamilyId familyId, UserId createdBy, DateTimeOffset? utcNow = null)
+    public static Conversation CreateFamily(FamilyId familyId, UserId createdBy, DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         var conversation = new Conversation
         {
             Id = ConversationId.New(),
@@ -82,7 +82,7 @@ public sealed class Conversation : AggregateRoot<ConversationId>
             CreatedAt = now.UtcDateTime
         };
 
-        conversation._members.Add(ConversationMember.Create(createdBy, "Owner"));
+        conversation._members.Add(ConversationMember.Create(createdBy, now, "Owner"));
 
         conversation.RaiseDomainEvent(new ConversationCreatedEvent(
             conversation.Id,
@@ -94,23 +94,23 @@ public sealed class Conversation : AggregateRoot<ConversationId>
         return conversation;
     }
 
-    public void AddMember(UserId userId)
+    public void AddMember(UserId userId, DateTimeOffset utcNow)
     {
         if (_members.Any(m => m.UserId == userId && m.IsActive))
             return;
 
-        _members.Add(ConversationMember.Create(userId));
+        _members.Add(ConversationMember.Create(userId, utcNow));
 
         RaiseDomainEvent(new ConversationMemberAddedEvent(Id, userId, FamilyId));
     }
 
-    public void RemoveMember(UserId userId)
+    public void RemoveMember(UserId userId, DateTimeOffset utcNow)
     {
         var member = _members.FirstOrDefault(m => m.UserId == userId && m.IsActive);
         if (member is null)
             return;
 
-        member.Leave();
+        member.Leave(utcNow);
 
         RaiseDomainEvent(new ConversationMemberRemovedEvent(Id, userId, FamilyId));
     }

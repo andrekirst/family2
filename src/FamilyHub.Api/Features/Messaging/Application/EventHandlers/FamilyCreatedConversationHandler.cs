@@ -30,7 +30,7 @@ public sealed class FamilyCreatedConversationHandler(
             return;
 
         // Create the "General" family conversation
-        var conversation = Conversation.CreateFamily(@event.FamilyId, @event.OwnerId);
+        var conversation = Conversation.CreateFamily(@event.FamilyId, @event.OwnerId, utcNow);
 
         // Create folder hierarchy: root → Messages → General
         var rootFolder = await folderRepository.GetRootFolderAsync(@event.FamilyId, cancellationToken);

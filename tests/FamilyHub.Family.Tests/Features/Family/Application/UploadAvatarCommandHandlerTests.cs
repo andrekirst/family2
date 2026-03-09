@@ -85,7 +85,7 @@ public class UploadAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var previousAvatar = CreateTestAvatar();
-        user.SetAvatar(previousAvatar.Id);
+        user.SetAvatar(previousAvatar.Id, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         var (handler, avatarRepo, _, fileStorage, _) = CreateHandler(user, existingAvatar: previousAvatar);
@@ -122,7 +122,7 @@ public class UploadAvatarCommandHandlerTests
         var name = UserName.From("Test User");
         var externalId = ExternalUserId.From("test-external-id");
 
-        var user = User.Register(email, name, externalId, emailVerified: true);
+        var user = User.Register(email, name, externalId, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         return user;
@@ -138,7 +138,7 @@ public class UploadAvatarCommandHandlerTests
             [AvatarSize.Large] = new("key-large", "image/jpeg", 1000, 512, 512),
         };
 
-        return AvatarAggregate.Create("previous.jpg", "image/jpeg", variants);
+        return AvatarAggregate.Create("previous.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
     }
 
     private static UploadAvatarCommand CreateCommand(UserId userId) =>
@@ -177,7 +177,7 @@ public class UploadAvatarCommandHandlerTests
                 [AvatarSize.Large] = new byte[] { 10, 11, 12 }
             });
 
-        var handler = new UploadAvatarCommandHandler(userRepo, avatarRepo, processing, fileStorage);
+        var handler = new UploadAvatarCommandHandler(userRepo, avatarRepo, processing, fileStorage, TimeProvider.System);
         return (handler, avatarRepo, userRepo, fileStorage, processing);
     }
 }

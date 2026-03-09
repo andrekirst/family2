@@ -60,14 +60,15 @@ public sealed class SendMessageCommandHandler(
                     a.FileName,
                     a.MimeType,
                     a.FileSize,
-                    a.StorageKey));
+                    a.StorageKey,
+                    utcNow));
             }
         }
 
         // Create message aggregate (raises MessageSentEvent + attachment events)
         var message = Message.Create(
             command.FamilyId, command.UserId, command.Content,
-            attachments, command.ConversationId);
+            timeProvider.GetUtcNow(), attachments, command.ConversationId);
 
         await messageRepository.AddAsync(message, cancellationToken);
 

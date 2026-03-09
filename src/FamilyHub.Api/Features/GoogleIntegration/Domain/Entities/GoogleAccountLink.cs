@@ -58,9 +58,9 @@ public sealed class GoogleAccountLink : AggregateRoot<GoogleAccountLinkId>
     public void RefreshAccessToken(
         EncryptedToken newEncryptedAccessToken,
         DateTime newExpiresAt,
-        DateTimeOffset? utcNow = null)
+        DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         EncryptedAccessToken = newEncryptedAccessToken;
         AccessTokenExpiresAt = newExpiresAt;
         Status = GoogleLinkStatus.Active;
@@ -70,9 +70,9 @@ public sealed class GoogleAccountLink : AggregateRoot<GoogleAccountLinkId>
         RaiseDomainEvent(new GoogleTokenRefreshedEvent(Id, UserId, newExpiresAt));
     }
 
-    public void MarkRefreshFailed(string error, DateTimeOffset? utcNow = null)
+    public void MarkRefreshFailed(string error, DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         Status = GoogleLinkStatus.Error;
         LastError = error;
         UpdatedAt = now.UtcDateTime;
@@ -80,18 +80,18 @@ public sealed class GoogleAccountLink : AggregateRoot<GoogleAccountLinkId>
         RaiseDomainEvent(new GoogleTokenRefreshFailedEvent(Id, UserId, error));
     }
 
-    public void MarkRevoked(DateTimeOffset? utcNow = null)
+    public void MarkRevoked(DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         Status = GoogleLinkStatus.Revoked;
         UpdatedAt = now.UtcDateTime;
 
         RaiseDomainEvent(new GoogleAccountUnlinkedEvent(Id, UserId, GoogleAccountId));
     }
 
-    public void RecordSync(DateTimeOffset? utcNow = null)
+    public void RecordSync(DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         LastSyncAt = now.UtcDateTime;
         UpdatedAt = now.UtcDateTime;
     }

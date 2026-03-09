@@ -63,7 +63,7 @@ public sealed class TokenRefreshBackgroundService(
                     encryptionService.Encrypt(tokenResponse.AccessToken));
                 var newExpiresAt = timeProvider.GetUtcNow().UtcDateTime.AddSeconds(tokenResponse.ExpiresIn);
 
-                link.RefreshAccessToken(encryptedAccessToken, newExpiresAt);
+                link.RefreshAccessToken(encryptedAccessToken, newExpiresAt, timeProvider.GetUtcNow());
                 await linkRepository.UpdateAsync(link, cancellationToken);
 
                 logger.LogInformation(
@@ -74,7 +74,7 @@ public sealed class TokenRefreshBackgroundService(
             {
                 logger.LogWarning(ex,
                     "Failed to refresh Google token for user {UserId}", link.UserId);
-                link.MarkRefreshFailed(ex.Message);
+                link.MarkRefreshFailed(ex.Message, timeProvider.GetUtcNow());
                 await linkRepository.UpdateAsync(link, cancellationToken);
             }
         }

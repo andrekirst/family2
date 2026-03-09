@@ -96,10 +96,10 @@ public sealed class User : AggregateRoot<UserId>
         UserName name,
         ExternalUserId externalUserId,
         bool emailVerified,
-        string? username = null,
-        DateTimeOffset? utcNow = null)
+        DateTimeOffset utcNow,
+        string? username = null)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         var user = new User
         {
             Id = UserId.New(),
@@ -131,9 +131,9 @@ public sealed class User : AggregateRoot<UserId>
     /// Update the user's last login timestamp.
     /// Called when user authenticates via OAuth.
     /// </summary>
-    public void UpdateLastLogin(DateTime loginTime, DateTimeOffset? utcNow = null)
+    public void UpdateLastLogin(DateTime loginTime, DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         LastLoginAt = loginTime;
         UpdatedAt = now.UtcDateTime;
     }
@@ -142,9 +142,9 @@ public sealed class User : AggregateRoot<UserId>
     /// Re-link the user to a new external identity provider ID.
     /// Used when the OAuth provider (e.g. Keycloak realm) is recreated.
     /// </summary>
-    public void UpdateExternalId(ExternalUserId externalUserId, DateTimeOffset? utcNow = null)
+    public void UpdateExternalId(ExternalUserId externalUserId, DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         ExternalUserId = externalUserId;
         UpdatedAt = now.UtcDateTime;
     }
@@ -152,9 +152,9 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Update user's basic profile information from OAuth provider.
     /// </summary>
-    public void UpdateProfile(Email email, UserName name, bool emailVerified, DateTimeOffset? utcNow = null)
+    public void UpdateProfile(Email email, UserName name, bool emailVerified, DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         Email = email;
         Name = name;
         EmailVerified = emailVerified;
@@ -166,14 +166,14 @@ public sealed class User : AggregateRoot<UserId>
     /// Raises UserFamilyAssignedEvent.
     /// </summary>
     /// <exception cref="DomainException">If user is already assigned to a family</exception>
-    public void AssignToFamily(FamilyId familyId, DateTimeOffset? utcNow = null)
+    public void AssignToFamily(FamilyId familyId, DateTimeOffset utcNow)
     {
         if (FamilyId is not null)
         {
             throw new DomainException("User is already assigned to a family", DomainErrorCodes.UserAlreadyAssignedToFamily);
         }
 
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         FamilyId = familyId;
         UpdatedAt = now.UtcDateTime;
 
@@ -188,14 +188,14 @@ public sealed class User : AggregateRoot<UserId>
     /// Remove user from their current family.
     /// </summary>
     /// <exception cref="DomainException">If user is not assigned to any family</exception>
-    public void RemoveFromFamily(DateTimeOffset? utcNow = null)
+    public void RemoveFromFamily(DateTimeOffset utcNow)
     {
         if (FamilyId is null)
         {
             throw new DomainException("User is not assigned to any family", DomainErrorCodes.UserNotAssignedToFamily);
         }
 
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         var previousFamilyId = FamilyId.Value;
         FamilyId = null;
         UpdatedAt = now.UtcDateTime;
@@ -210,9 +210,9 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Update user's preferred locale for UI language.
     /// </summary>
-    public void UpdateLocale(string locale, DateTimeOffset? utcNow = null)
+    public void UpdateLocale(string locale, DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         PreferredLocale = locale;
         UpdatedAt = now.UtcDateTime;
     }
@@ -221,9 +221,9 @@ public sealed class User : AggregateRoot<UserId>
     /// Set or update the user's global avatar.
     /// Raises UserAvatarChangedEvent.
     /// </summary>
-    public void SetAvatar(AvatarId avatarId, DateTimeOffset? utcNow = null)
+    public void SetAvatar(AvatarId avatarId, DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         var previousAvatarId = AvatarId;
         AvatarId = avatarId;
         UpdatedAt = now.UtcDateTime;
@@ -240,14 +240,14 @@ public sealed class User : AggregateRoot<UserId>
     /// Remove the user's global avatar.
     /// Raises UserAvatarRemovedEvent.
     /// </summary>
-    public void RemoveAvatar(DateTimeOffset? utcNow = null)
+    public void RemoveAvatar(DateTimeOffset utcNow)
     {
         if (AvatarId is null)
         {
             return;
         }
 
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         var previousAvatarId = AvatarId.Value;
         AvatarId = null;
         UpdatedAt = now.UtcDateTime;
@@ -262,9 +262,9 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Deactivate the user account.
     /// </summary>
-    public void Deactivate(DateTimeOffset? utcNow = null)
+    public void Deactivate(DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         IsActive = false;
         UpdatedAt = now.UtcDateTime;
     }
@@ -272,9 +272,9 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Reactivate the user account.
     /// </summary>
-    public void Reactivate(DateTimeOffset? utcNow = null)
+    public void Reactivate(DateTimeOffset utcNow)
     {
-        var now = utcNow ?? DateTimeOffset.UtcNow;
+        var now = utcNow;
         IsActive = true;
         UpdatedAt = now.UtcDateTime;
     }

@@ -18,7 +18,7 @@ public class RemoveAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var avatar = CreateTestAvatar();
-        user.SetAvatar(avatar.Id);
+        user.SetAvatar(avatar.Id, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         var (handler, _, _, _) = CreateHandler(user, existingAvatar: avatar);
@@ -38,7 +38,7 @@ public class RemoveAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var avatar = CreateTestAvatar();
-        user.SetAvatar(avatar.Id);
+        user.SetAvatar(avatar.Id, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         var (handler, _, fileStorage, _) = CreateHandler(user, existingAvatar: avatar);
@@ -57,7 +57,7 @@ public class RemoveAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var avatar = CreateTestAvatar();
-        user.SetAvatar(avatar.Id);
+        user.SetAvatar(avatar.Id, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         var (handler, avatarRepo, _, _) = CreateHandler(user, existingAvatar: avatar);
@@ -108,7 +108,7 @@ public class RemoveAvatarCommandHandlerTests
         var name = UserName.From("Test User");
         var externalId = ExternalUserId.From("test-external-id");
 
-        var user = User.Register(email, name, externalId, emailVerified: true);
+        var user = User.Register(email, name, externalId, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         return user;
@@ -124,7 +124,7 @@ public class RemoveAvatarCommandHandlerTests
             [AvatarSize.Large] = new("key-large", "image/jpeg", 1000, 512, 512),
         };
 
-        return AvatarAggregate.Create("avatar.jpg", "image/jpeg", variants);
+        return AvatarAggregate.Create("avatar.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
     }
 
     private static (
@@ -145,7 +145,7 @@ public class RemoveAvatarCommandHandlerTests
         }
 
         var fileStorage = Substitute.For<IFileStorageService>();
-        var handler = new RemoveAvatarCommandHandler(userRepo, avatarRepo, fileStorage);
+        var handler = new RemoveAvatarCommandHandler(userRepo, avatarRepo, fileStorage, TimeProvider.System);
         return (handler, avatarRepo, fileStorage, userRepo);
     }
 }

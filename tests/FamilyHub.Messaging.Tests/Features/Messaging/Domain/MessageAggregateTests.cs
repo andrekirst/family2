@@ -82,7 +82,7 @@ public class MessageAggregateTests
         };
 
         // Act
-        var message = Message.Create(familyId, senderId, content, attachments, utcNow: DateTimeOffset.UtcNow);
+        var message = Message.Create(familyId, senderId, content, DateTimeOffset.UtcNow, attachments);
 
         // Assert
         message.Attachments.Should().HaveCount(2);
@@ -106,7 +106,7 @@ public class MessageAggregateTests
         };
 
         // Act
-        var message = Message.Create(familyId, senderId, content, attachments, utcNow: DateTimeOffset.UtcNow);
+        var message = Message.Create(familyId, senderId, content, DateTimeOffset.UtcNow, attachments);
 
         // Assert — 1 MessageSentEvent + 2 MessageAttachmentAddedEvent
         message.DomainEvents.Should().HaveCount(3);

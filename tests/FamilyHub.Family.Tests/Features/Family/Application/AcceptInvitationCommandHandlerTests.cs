@@ -140,7 +140,7 @@ public class AcceptInvitationCommandHandlerTests
         var name = UserName.From("Invitee User");
         var externalId = ExternalUserId.From("invitee-external-id");
 
-        var user = User.Register(email, name, externalId, emailVerified: true);
+        var user = User.Register(email, name, externalId, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         return user;

@@ -92,7 +92,7 @@ public sealed class DevDataSeeder(
                 var currentExternalId = DomainExternalUserId.From(kcUser.Id);
                 if (existingUser.ExternalUserId != currentExternalId)
                 {
-                    existingUser.UpdateExternalId(currentExternalId);
+                    existingUser.UpdateExternalId(currentExternalId, DateTimeOffset.UtcNow);
                     existingUser.ClearDomainEvents();
                     updated++;
                 }
@@ -110,6 +110,7 @@ public sealed class DevDataSeeder(
                 UserName.From(displayName),
                 DomainExternalUserId.From(kcUser.Id),
                 kcUser.EmailVerified,
+                DateTimeOffset.UtcNow,
                 kcUser.Username);
 
             user.ClearDomainEvents();

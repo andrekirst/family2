@@ -13,7 +13,7 @@ public class AvatarAggregateTests
         var variants = CreateTestVariantData();
 
         // Act
-        var avatar = AvatarAggregate.Create("photo.jpg", "image/jpeg", variants);
+        var avatar = AvatarAggregate.Create("photo.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
 
         // Assert
         avatar.Should().NotBeNull();
@@ -31,8 +31,8 @@ public class AvatarAggregateTests
         var variants = CreateTestVariantData();
 
         // Act
-        var avatar1 = AvatarAggregate.Create("a.jpg", "image/jpeg", variants);
-        var avatar2 = AvatarAggregate.Create("b.jpg", "image/jpeg", variants);
+        var avatar1 = AvatarAggregate.Create("a.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
+        var avatar2 = AvatarAggregate.Create("b.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
 
         // Assert
         avatar1.Id.Should().NotBe(avatar2.Id);
@@ -43,7 +43,7 @@ public class AvatarAggregateTests
     {
         // Arrange
         var variants = CreateTestVariantData();
-        var avatar = AvatarAggregate.Create("photo.jpg", "image/jpeg", variants);
+        var avatar = AvatarAggregate.Create("photo.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
 
         // Act
         var tinyVariant = avatar.GetVariant(AvatarSize.Tiny);
@@ -68,7 +68,7 @@ public class AvatarAggregateTests
     {
         // Arrange
         var variants = CreateTestVariantData();
-        var avatar = AvatarAggregate.Create("photo.jpg", "image/jpeg", variants);
+        var avatar = AvatarAggregate.Create("photo.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
 
         // Assert
         foreach (var variant in avatar.Variants)

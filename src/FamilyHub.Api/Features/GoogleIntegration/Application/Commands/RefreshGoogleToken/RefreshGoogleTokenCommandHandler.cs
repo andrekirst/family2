@@ -35,14 +35,14 @@ public sealed class RefreshGoogleTokenCommandHandler(
             var newExpiresAt = timeProvider.GetUtcNow().UtcDateTime.AddSeconds(tokenResponse.ExpiresIn);
 
             // Update aggregate
-            link.RefreshAccessToken(encryptedAccessToken, newExpiresAt);
+            link.RefreshAccessToken(encryptedAccessToken, newExpiresAt, timeProvider.GetUtcNow());
             await linkRepository.UpdateAsync(link, cancellationToken);
 
             return new RefreshTokenResultDto(true, newExpiresAt);
         }
         catch (Exception ex) when (ex is not DomainException)
         {
-            link.MarkRefreshFailed(ex.Message);
+            link.MarkRefreshFailed(ex.Message, timeProvider.GetUtcNow());
             await linkRepository.UpdateAsync(link, cancellationToken);
             return new RefreshTokenResultDto(false, null);
         }
