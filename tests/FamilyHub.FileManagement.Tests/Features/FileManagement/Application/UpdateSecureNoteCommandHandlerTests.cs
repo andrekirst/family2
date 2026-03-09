@@ -38,7 +38,7 @@ public class UpdateSecureNoteCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         note.Category.Should().Be(NoteCategory.Financial);
         note.EncryptedTitle.Should().Be("new-title");
         note.EncryptedContent.Should().Be("new-content");
@@ -59,10 +59,10 @@ public class UpdateSecureNoteCommandHandlerTests
             FamilyId = FamilyId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Secure note not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Secure note not found*");
     }
 
     [Fact]
@@ -81,9 +81,9 @@ public class UpdateSecureNoteCommandHandlerTests
             FamilyId = FamilyId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Secure note not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Secure note not found*");
     }
 }

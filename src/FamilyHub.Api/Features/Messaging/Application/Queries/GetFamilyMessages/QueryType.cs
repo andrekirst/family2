@@ -13,6 +13,7 @@ public class QueryType
     /// Supports cursor-based pagination via 'before' timestamp.
     /// </summary>
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<MessageDto>> Messages(
         int limit = 50,
         DateTime? before = null,

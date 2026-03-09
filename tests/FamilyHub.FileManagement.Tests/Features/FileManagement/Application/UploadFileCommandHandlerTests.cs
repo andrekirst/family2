@@ -46,8 +46,8 @@ public class UploadFileCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Should().NotBeNull();
-        result.FileId.Value.Should().NotBe(Guid.Empty);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.FileId.Value.Should().NotBe(Guid.Empty);
         await _fileRepo.Received(1).AddAsync(Arg.Any<StoredFile>(), Arg.Any<CancellationToken>());
     }
 
@@ -69,10 +69,10 @@ public class UploadFileCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.NotFound);
     }
 
     [Fact]
@@ -94,9 +94,9 @@ public class UploadFileCommandHandlerTests
             UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

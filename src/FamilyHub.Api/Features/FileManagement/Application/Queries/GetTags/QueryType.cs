@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetTags;
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<TagDto>> GetTags(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

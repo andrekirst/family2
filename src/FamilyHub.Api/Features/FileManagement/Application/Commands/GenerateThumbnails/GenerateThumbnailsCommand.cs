@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.GenerateThu
 
 public sealed record GenerateThumbnailsCommand(
     FileId FileId
-) : ICommand<GenerateThumbnailsResult>, IRequireFamily
+) : ICommand<Result<GenerateThumbnailsResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

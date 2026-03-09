@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -9,7 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RestoreFile
 public class MutationType
 {
     [Authorize]
-    public async Task<RestoreFileVersionResult> RestoreFileVersion(
+    public async Task<object> RestoreFileVersion(
         Guid versionId,
         Guid fileId,
         [Service] ICommandBus commandBus,
@@ -19,6 +20,9 @@ public class MutationType
             FileVersionId.From(versionId),
             FileId.From(fileId));
 
-        return await commandBus.SendAsync(command, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

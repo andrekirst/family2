@@ -31,7 +31,7 @@ public class SaveSearchCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _savedRepo.Received(1).AddAsync(
             Arg.Is<SavedSearch>(s => s.Name == "My Photos" && s.Query == "vacation"),
             Arg.Any<CancellationToken>());
@@ -47,7 +47,7 @@ public class SaveSearchCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _savedRepo.Received(1).AddAsync(
             Arg.Is<SavedSearch>(s => s.FiltersJson == null),
             Arg.Any<CancellationToken>());

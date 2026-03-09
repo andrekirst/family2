@@ -1,4 +1,5 @@
 using FamilyHub.Common.Application;
+using FamilyHub.Common.Domain;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Infrastructure.Registry;
@@ -9,9 +10,9 @@ public sealed class CreateChainDefinitionCommandHandler(
     IChainDefinitionRepository repository,
     IChainRegistry registry,
     TimeProvider timeProvider)
-    : ICommandHandler<CreateChainDefinitionCommand, CreateChainDefinitionResult>
+    : ICommandHandler<CreateChainDefinitionCommand, Result<CreateChainDefinitionResult>>
 {
-    public async ValueTask<CreateChainDefinitionResult> Handle(
+    public async ValueTask<Result<CreateChainDefinitionResult>> Handle(
         CreateChainDefinitionCommand command,
         CancellationToken cancellationToken)
     {
@@ -20,7 +21,9 @@ public sealed class CreateChainDefinitionCommandHandler(
         // Validate trigger exists in registry
         if (!registry.IsValidTrigger(command.TriggerEventType))
         {
-            throw new InvalidOperationException($"Unknown trigger event type: {command.TriggerEventType}");
+            return DomainError.BusinessRule(
+                DomainErrorCodes.UnknownTriggerEventType,
+                $"Unknown trigger event type: {command.TriggerEventType}");
         }
 
         var trigger = registry.GetTrigger(command.TriggerEventType)!;
@@ -41,7 +44,8 @@ public sealed class CreateChainDefinitionCommandHandler(
         {
             if (!registry.IsValidAction(stepCmd.ActionType, stepCmd.ActionVersion.Value))
             {
-                throw new InvalidOperationException(
+                return DomainError.BusinessRule(
+                    DomainErrorCodes.UnknownActionType,
                     $"Unknown action: {stepCmd.ActionType}@{stepCmd.ActionVersion.Value}");
             }
 

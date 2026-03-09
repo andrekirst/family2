@@ -6,18 +6,21 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteOrgan
 
 public sealed class DeleteOrganizationRuleCommandHandler(
     IOrganizationRuleRepository ruleRepository)
-    : ICommandHandler<DeleteOrganizationRuleCommand, DeleteOrganizationRuleResult>
+    : ICommandHandler<DeleteOrganizationRuleCommand, Result<DeleteOrganizationRuleResult>>
 {
-    public async ValueTask<DeleteOrganizationRuleResult> Handle(
+    public async ValueTask<Result<DeleteOrganizationRuleResult>> Handle(
         DeleteOrganizationRuleCommand command,
         CancellationToken cancellationToken)
     {
-        var rule = await ruleRepository.GetByIdAsync(command.RuleId, cancellationToken)
-            ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
+        var rule = await ruleRepository.GetByIdAsync(command.RuleId, cancellationToken);
+        if (rule is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.OrganizationRuleNotFound, "Organization rule not found");
+        }
 
         if (rule.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Cannot delete rule from another family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Cannot delete rule from another family");
         }
 
         await ruleRepository.RemoveAsync(rule, cancellationToken);

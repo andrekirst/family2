@@ -7,7 +7,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RenameFolde
 public sealed record RenameFolderCommand(
     FolderId FolderId,
     FileName NewName
-) : ICommand<RenameFolderResult>, IRequireFamily
+) : ICommand<Result<RenameFolderResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

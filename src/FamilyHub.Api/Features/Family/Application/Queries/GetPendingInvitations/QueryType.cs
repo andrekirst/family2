@@ -12,6 +12,7 @@ public class QueryType
     /// Get pending invitations for the current user's family (admin/family view).
     /// </summary>
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<InvitationDto>> GetPendings(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

@@ -35,7 +35,7 @@ public class RenameFolderCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.FolderId.Should().Be(folder.Id);
+        result.Value.FolderId.Should().Be(folder.Id);
         folder.Name.Value.Should().Be("NewName");
     }
 
@@ -50,10 +50,10 @@ public class RenameFolderCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FolderNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FolderNotFound);
     }
 
     [Fact]
@@ -70,9 +70,9 @@ public class RenameFolderCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = userId
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

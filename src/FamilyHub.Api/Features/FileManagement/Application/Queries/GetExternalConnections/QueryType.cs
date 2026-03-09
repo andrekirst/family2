@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetExternalC
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<ExternalConnectionDto>> GetExternalConnections(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

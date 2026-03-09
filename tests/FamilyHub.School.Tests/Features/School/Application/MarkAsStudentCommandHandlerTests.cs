@@ -1,3 +1,4 @@
+using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Entities;
@@ -26,8 +27,8 @@ public class MarkAsStudentCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.StudentId.Value.Should().NotBe(Guid.Empty);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.StudentId.Value.Should().NotBe(Guid.Empty);
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public class MarkAsStudentCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowDomainException_WhenFamilyMemberBelongsToDifferentFamily()
+    public async Task Handle_ShouldReturnForbiddenError_WhenFamilyMemberBelongsToDifferentFamily()
     {
         // Arrange — target member belongs to Family B, but command says Family A
         var familyIdA = FamilyId.New();
@@ -71,10 +72,13 @@ public class MarkAsStudentCommandHandlerTests
 
         var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyIdA, UserId = userId };
 
-        // Act & Assert
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("Family member does not belong to this family");
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Category.Should().Be(DomainErrorCategory.Forbidden);
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FamilyMemberNotFound);
     }
 
     // --- Helpers ---

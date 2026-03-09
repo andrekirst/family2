@@ -8,18 +8,17 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateTag;
 public sealed class CreateTagCommandHandler(
     ITagRepository tagRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<CreateTagCommand, CreateTagResult>
+    : ICommandHandler<CreateTagCommand, Result<CreateTagResult>>
 {
-    public async ValueTask<CreateTagResult> Handle(
+    public async ValueTask<Result<CreateTagResult>> Handle(
         CreateTagCommand command,
         CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        // Check for duplicate tag name within the family
         var existing = await tagRepository.GetByNameAsync(command.Name, command.FamilyId, cancellationToken);
         if (existing is not null)
         {
-            throw new DomainException("A tag with this name already exists", DomainErrorCodes.Conflict);
+            return DomainError.Conflict(DomainErrorCodes.Conflict, "A tag with this name already exists");
         }
 
         var tag = Tag.Create(command.Name, command.Color, command.FamilyId, command.UserId, utcNow);

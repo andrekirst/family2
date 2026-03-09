@@ -8,9 +8,9 @@ public sealed class MoveFileCommandHandler(
     IStoredFileRepository storedFileRepository,
     IFolderRepository folderRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<MoveFileCommand, MoveFileResult>
+    : ICommandHandler<MoveFileCommand, Result<MoveFileResult>>
 {
-    public async ValueTask<MoveFileResult> Handle(
+    public async ValueTask<Result<MoveFileResult>> Handle(
         MoveFileCommand command,
         CancellationToken cancellationToken)
     {
@@ -18,15 +18,14 @@ public sealed class MoveFileCommandHandler(
 
         if (file.FamilyId != command.FamilyId)
         {
-            throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "File belongs to a different family");
         }
 
-        // Validate target folder belongs to the same family (existence guaranteed by validator)
         var targetFolder = (await folderRepository.GetByIdAsync(command.TargetFolderId, cancellationToken))!;
 
         if (targetFolder.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Target folder belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Target folder belongs to a different family");
         }
 
         var utcNow = timeProvider.GetUtcNow();

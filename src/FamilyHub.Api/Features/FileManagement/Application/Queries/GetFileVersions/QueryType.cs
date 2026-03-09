@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -10,13 +11,18 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFileVersi
 public class QueryType
 {
     [Authorize]
-    public async Task<List<FileVersionDto>> GetFileVersions(
+    [HotChocolate.Types.UsePaging]
+    public async Task<object> GetFileVersions(
         Guid fileId,
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)
     {
         var query = new GetFileVersionsQuery(
             FileId.From(fileId));
-        return await queryBus.QueryAsync(query, cancellationToken);
+
+        var result = await queryBus.QueryAsync(query, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

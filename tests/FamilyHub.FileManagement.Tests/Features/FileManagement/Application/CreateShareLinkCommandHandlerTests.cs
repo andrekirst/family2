@@ -34,8 +34,8 @@ public class CreateShareLinkCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        result.Token.Should().NotBeNullOrEmpty();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Token.Should().NotBeNullOrEmpty();
         await _repo.Received(1).AddAsync(Arg.Any<ShareLink>(), Arg.Any<CancellationToken>());
     }
 
@@ -55,7 +55,7 @@ public class CreateShareLinkCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _repo.Received(1).AddAsync(
             Arg.Is<ShareLink>(l =>
                 l.PasswordHash != null &&
@@ -80,7 +80,7 @@ public class CreateShareLinkCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _repo.Received(1).AddAsync(
             Arg.Is<ShareLink>(l =>
                 l.MaxDownloads == 10 &&

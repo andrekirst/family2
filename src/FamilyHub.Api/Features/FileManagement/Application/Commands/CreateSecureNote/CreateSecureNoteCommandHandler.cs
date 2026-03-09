@@ -7,9 +7,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateSecur
 public sealed class CreateSecureNoteCommandHandler(
     ISecureNoteRepository noteRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<CreateSecureNoteCommand, CreateSecureNoteResult>
+    : ICommandHandler<CreateSecureNoteCommand, Result<CreateSecureNoteResult>>
 {
-    public async ValueTask<CreateSecureNoteResult> Handle(
+    public async ValueTask<Result<CreateSecureNoteResult>> Handle(
         CreateSecureNoteCommand command,
         CancellationToken cancellationToken)
     {

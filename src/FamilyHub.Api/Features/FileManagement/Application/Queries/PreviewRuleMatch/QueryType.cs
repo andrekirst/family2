@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -10,13 +11,17 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.PreviewRuleM
 public class QueryType
 {
     [Authorize]
-    public async Task<RuleMatchPreviewDto?> PreviewRuleMatch(
+    public async Task<object?> PreviewRuleMatch(
         Guid fileId,
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)
     {
         var query = new PreviewRuleMatchQuery(
             FileId.From(fileId));
-        return await queryBus.QueryAsync(query, cancellationToken);
+
+        var result = await queryBus.QueryAsync(query, cancellationToken);
+        return result.Match<object?>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

@@ -7,24 +7,25 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteAlbum
 public sealed class DeleteAlbumCommandHandler(
     IAlbumRepository albumRepository,
     IAlbumItemRepository albumItemRepository)
-    : ICommandHandler<DeleteAlbumCommand, DeleteAlbumResult>
+    : ICommandHandler<DeleteAlbumCommand, Result<DeleteAlbumResult>>
 {
-    public async ValueTask<DeleteAlbumResult> Handle(
+    public async ValueTask<Result<DeleteAlbumResult>> Handle(
         DeleteAlbumCommand command,
         CancellationToken cancellationToken)
     {
-        var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken)
-            ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
+        var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken);
+        if (album is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.AlbumNotFound, "Album not found");
+        }
 
         if (album.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Album belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Album belongs to a different family");
         }
 
-        // Remove all album items first
         await albumItemRepository.RemoveByAlbumIdAsync(command.AlbumId, cancellationToken);
 
-        // Remove the album
         await albumRepository.RemoveAsync(album, cancellationToken);
 
         return new DeleteAlbumResult(true);

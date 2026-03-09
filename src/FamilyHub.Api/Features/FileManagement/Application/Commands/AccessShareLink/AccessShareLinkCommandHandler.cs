@@ -10,41 +10,44 @@ public sealed class AccessShareLinkCommandHandler(
     IShareLinkRepository shareLinkRepository,
     IShareLinkAccessLogRepository accessLogRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<AccessShareLinkCommand, AccessShareLinkResult>
+    : ICommandHandler<AccessShareLinkCommand, Result<AccessShareLinkResult>>
 {
-    public async ValueTask<AccessShareLinkResult> Handle(
+    public async ValueTask<Result<AccessShareLinkResult>> Handle(
         AccessShareLinkCommand command,
         CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var link = await shareLinkRepository.GetByTokenAsync(command.Token, cancellationToken)
-            ?? throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
+        var link = await shareLinkRepository.GetByTokenAsync(command.Token, cancellationToken);
+        if (link is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.ShareLinkNotFound, "Share link not found");
+        }
 
         if (link.IsRevoked)
         {
-            throw new DomainException("Share link has been revoked", DomainErrorCodes.ShareLinkRevoked);
+            return DomainError.BusinessRule(DomainErrorCodes.ShareLinkRevoked, "Share link has been revoked");
         }
 
         if (link.IsExpired(utcNow))
         {
-            throw new DomainException("Share link has expired", DomainErrorCodes.ShareLinkExpired);
+            return DomainError.BusinessRule(DomainErrorCodes.ShareLinkExpired, "Share link has expired");
         }
 
         if (link.IsDownloadLimitReached)
         {
-            throw new DomainException("Download limit reached", DomainErrorCodes.ShareLinkDownloadLimitReached);
+            return DomainError.BusinessRule(DomainErrorCodes.ShareLinkDownloadLimitReached, "Download limit reached");
         }
 
         if (link.HasPassword)
         {
             if (string.IsNullOrEmpty(command.Password))
             {
-                throw new DomainException("Password required", DomainErrorCodes.ShareLinkPasswordRequired);
+                return DomainError.Validation(DomainErrorCodes.ShareLinkPasswordRequired, "Password required");
             }
 
             if (!BCrypt.Net.BCrypt.Verify(command.Password, link.PasswordHash))
             {
-                throw new DomainException("Incorrect password", DomainErrorCodes.ShareLinkPasswordIncorrect);
+                return DomainError.Validation(DomainErrorCodes.ShareLinkPasswordIncorrect, "Incorrect password");
             }
         }
 

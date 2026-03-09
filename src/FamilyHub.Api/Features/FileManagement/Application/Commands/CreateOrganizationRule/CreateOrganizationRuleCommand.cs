@@ -10,7 +10,7 @@ public sealed record CreateOrganizationRuleCommand(
     ConditionLogic ConditionLogic,
     RuleActionType ActionType,
     string ActionsJson
-) : ICommand<CreateOrganizationRuleResult>, IRequireFamily
+) : ICommand<Result<CreateOrganizationRuleResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

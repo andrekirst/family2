@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetBreadcrum
 
 public sealed record GetBreadcrumbQuery(
     FolderId FolderId
-) : IReadOnlyQuery<List<FolderDto>>, IRequireFamily
+) : IReadOnlyQuery<Result<List<FolderDto>>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

@@ -8,9 +8,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ReorderOrga
 public sealed class ReorderOrganizationRulesCommandHandler(
     IOrganizationRuleRepository ruleRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<ReorderOrganizationRulesCommand, ReorderOrganizationRulesResult>
+    : ICommandHandler<ReorderOrganizationRulesCommand, Result<ReorderOrganizationRulesResult>>
 {
-    public async ValueTask<ReorderOrganizationRulesResult> Handle(
+    public async ValueTask<Result<ReorderOrganizationRulesResult>> Handle(
         ReorderOrganizationRulesCommand command,
         CancellationToken cancellationToken)
     {
@@ -20,8 +20,11 @@ public sealed class ReorderOrganizationRulesCommandHandler(
         for (var i = 0; i < command.RuleIdsInOrder.Count; i++)
         {
             var ruleId = OrganizationRuleId.From(command.RuleIdsInOrder[i]);
-            var rule = rules.FirstOrDefault(r => r.Id == ruleId)
-                ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
+            var rule = rules.FirstOrDefault(r => r.Id == ruleId);
+            if (rule is null)
+            {
+                return DomainError.NotFound(DomainErrorCodes.OrganizationRuleNotFound, "Organization rule not found");
+            }
 
             rule.SetPriority(i + 1, utcNow);
         }

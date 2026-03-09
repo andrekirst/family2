@@ -36,7 +36,7 @@ public class ReorderOrganizationRulesCommandHandlerTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         rule3.Priority.Should().Be(1);
         rule2.Priority.Should().Be(2);
         rule1.Priority.Should().Be(3);
@@ -59,9 +59,9 @@ public class ReorderOrganizationRulesCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.OrganizationRuleNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.OrganizationRuleNotFound);
     }
 }

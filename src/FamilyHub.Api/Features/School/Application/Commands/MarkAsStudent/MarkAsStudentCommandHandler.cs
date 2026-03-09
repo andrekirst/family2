@@ -10,9 +10,9 @@ public sealed class MarkAsStudentCommandHandler(
     IStudentRepository studentRepository,
     IFamilyMemberRepository familyMemberRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<MarkAsStudentCommand, MarkAsStudentResult>
+    : ICommandHandler<MarkAsStudentCommand, Result<MarkAsStudentResult>>
 {
-    public async ValueTask<MarkAsStudentResult> Handle(
+    public async ValueTask<Result<MarkAsStudentResult>> Handle(
         MarkAsStudentCommand command,
         CancellationToken cancellationToken)
     {
@@ -21,7 +21,7 @@ public sealed class MarkAsStudentCommandHandler(
 
         if (targetMember.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Family member does not belong to this family", DomainErrorCodes.FamilyMemberNotFound);
+            return DomainError.Forbidden(DomainErrorCodes.FamilyMemberNotFound, "Family member does not belong to this family");
         }
 
         // Create student aggregate

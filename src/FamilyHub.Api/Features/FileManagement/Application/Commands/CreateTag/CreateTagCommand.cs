@@ -7,7 +7,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateTag;
 public sealed record CreateTagCommand(
     TagName Name,
     TagColor Color
-) : ICommand<CreateTagResult>, IRequireFamily
+) : ICommand<Result<CreateTagResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

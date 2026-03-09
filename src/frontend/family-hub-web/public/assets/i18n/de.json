@@ -1,0 +1,437 @@
+{
+  "app": {
+    "name": "Family Hub"
+  },
+  "nav": {
+    "dashboard": "Übersicht",
+    "family": "Familie",
+    "calendar": "Kalender",
+    "automations": "Automatisierungen",
+    "expandSidebar": "Seitenleiste einblenden",
+    "collapseSidebar": "Seitenleiste ausblenden",
+    "logout": "Abmelden",
+    "language": "Sprache",
+    "settings": "Einstellungen",
+    "files": "Dateien"
+  },
+  "login": {
+    "title": "Family Hub",
+    "subtitle": "Organisiere dein Familienleben an einem Ort",
+    "signIn": "Mit Keycloak anmelden",
+    "terms": "Mit der Anmeldung stimmst du unseren Nutzungsbedingungen und der Datenschutzrichtlinie zu"
+  },
+  "callback": {
+    "authFailed": "Authentifizierung fehlgeschlagen",
+    "tryAgain": "Erneut versuchen",
+    "exchangingCode": "Autorisierungscode wird ausgetauscht...",
+    "syncingBackend": "Synchronisierung mit dem Backend...",
+    "loadingDashboard": "Übersicht wird geladen...",
+    "authError": "Authentifizierungsfehler",
+    "missingParams": "Autorisierungscode oder State-Parameter fehlt",
+    "failedAuth": "Authentifizierung konnte nicht abgeschlossen werden"
+  },
+  "dashboard": {
+    "welcome": "Willkommen, {{name}}!",
+    "loginSuccess": "Erfolgreich angemeldet!",
+    "emailVerified": "E-Mail bestätigt",
+    "emailNotVerified": "E-Mail nicht bestätigt",
+    "familyMember": "Familienmitglied",
+    "familyMemberDesc": "Du bist Teil einer Familie. Verwalte deine Familie unten.",
+    "familySettings": "Familieneinstellungen",
+    "pendingInvitations": "Offene Einladungen",
+    "joinFamily": "{{familyName}} beitreten",
+    "invitedBy": "Eingeladen von",
+    "role": "Rolle",
+    "expires": "Läuft ab",
+    "decline": "Ablehnen",
+    "processing": "Wird verarbeitet...",
+    "accept": "Annehmen",
+    "orCreateFamily": "Oder erstelle deine eigene Familie",
+    "createFamilyDesc": "Erstelle eine neue Familie, anstatt einer bestehenden beizutreten.",
+    "createFamily": "Familie erstellen",
+    "noFamily": "Noch keine Familie",
+    "noFamilyDesc": "Erstelle deine Familie, um gemeinsam euer Leben zu organisieren.",
+    "loadError": "Benutzerdaten konnten nicht geladen werden. Bitte melde dich erneut an."
+  },
+  "family": {
+    "settings": {
+      "title": "Familieneinstellungen",
+      "members": "Mitglieder",
+      "pendingInvitations": "Offene Einladungen",
+      "inviteMember": "Mitglied einladen"
+    },
+    "members": {
+      "noMembers": "Keine Mitglieder gefunden.",
+      "joined": "Beigetreten"
+    },
+    "invitations": {
+      "noPending": "Keine offenen Einladungen.",
+      "role": "Rolle",
+      "expires": "Läuft ab",
+      "revoking": "Wird widerrufen...",
+      "revoke": "Widerrufen"
+    },
+    "invite": {
+      "title": "Familienmitglied einladen",
+      "email": "E-Mail-Adresse",
+      "emailPlaceholder": "mitglied@beispiel.de",
+      "role": "Rolle",
+      "roleMember": "Mitglied",
+      "roleAdmin": "Admin",
+      "cancel": "Abbrechen",
+      "sending": "Wird gesendet...",
+      "send": "Einladung senden",
+      "emailRequired": "E-Mail-Adresse ist erforderlich",
+      "sendFailed": "Einladung konnte nicht gesendet werden",
+      "sendError": "Beim Senden der Einladung ist ein Fehler aufgetreten"
+    },
+    "accept": {
+      "loading": "Einladungsdetails werden geladen...",
+      "goToDashboard": "Zur Übersicht",
+      "youveBeenInvited": "Du wurdest eingeladen!",
+      "joinFamily": "Beitreten:",
+      "invitedByMessage": "hat dich eingeladen, der Familie beizutreten.",
+      "role": "Rolle:",
+      "expires": "Läuft ab:",
+      "inactive": "Diese Einladung ist nicht mehr aktiv",
+      "loginRequired": "Bitte melde dich an, um diese Einladung anzunehmen.",
+      "loginToAccept": "Zum Annehmen anmelden",
+      "accepted": "Einladung angenommen! Weiterleitung...",
+      "declined": "Einladung abgelehnt.",
+      "decline": "Ablehnen",
+      "accept": "Einladung annehmen",
+      "invalidLink": "Ungültiger Einladungslink",
+      "notFound": "Einladung nicht gefunden oder abgelaufen",
+      "loadFailed": "Einladungsdetails konnten nicht geladen werden",
+      "acceptFailed": "Einladung konnte nicht angenommen werden",
+      "acceptError": "Beim Annehmen der Einladung ist ein Fehler aufgetreten",
+      "declineError": "Beim Ablehnen der Einladung ist ein Fehler aufgetreten"
+    },
+    "create": {
+      "title": "Deine Familie erstellen",
+      "description": "Erstelle deine Familie. Du kannst später Mitglieder einladen.",
+      "nameLabel": "Familienname",
+      "namePlaceholder": "z.B. Familie Müller",
+      "skip": "Vorerst überspringen",
+      "creating": "Wird erstellt...",
+      "create": "Familie erstellen",
+      "nameRequired": "Familienname ist erforderlich",
+      "failed": "Familie konnte nicht erstellt werden",
+      "error": "Ein Fehler ist aufgetreten"
+    }
+  },
+  "contextPanel": {
+    "details": "Details"
+  },
+  "common": {
+    "confirm": "Bestätigen",
+    "areYouSure": "Bist du sicher?",
+    "cancel": "Abbrechen",
+    "processing": "Wird verarbeitet...",
+    "close": "Schließen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten",
+    "search": "Suchen",
+    "noResults": "Keine Ergebnisse gefunden"
+  },
+  "calendar": {
+    "title": "Familienkalender",
+    "today": "Heute",
+    "newEvent": "+ Neues Ereignis",
+    "viewMonth": "Monat",
+    "viewWeek": "Woche",
+    "dayMon": "Mo",
+    "dayTue": "Di",
+    "dayWed": "Mi",
+    "dayThu": "Do",
+    "dayFri": "Fr",
+    "daySat": "Sa",
+    "daySun": "So",
+    "moreEvents": "+{{count}} weitere",
+    "allDay": "GANZTÄGIG",
+    "context": {
+      "cancelled": "Abgesagt",
+      "descriptionPlaceholder": "Beschreibung hinzufügen",
+      "saved": "Gespeichert!"
+    },
+    "event": {
+      "editTitle": "Ereignis bearbeiten",
+      "newTitle": "Neues Ereignis",
+      "title": "Titel",
+      "titlePlaceholder": "Ereignistitel",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Optionale Beschreibung",
+      "location": "Ort",
+      "locationPlaceholder": "Optionaler Ort",
+      "allDay": "Ganztägiges Ereignis",
+      "start": "Beginn",
+      "end": "Ende",
+      "type": "Ereignistyp",
+      "attendees": "Teilnehmer",
+      "cancelEvent": "Ereignis absagen",
+      "saveChanges": "Änderungen speichern",
+      "createEvent": "Ereignis erstellen",
+      "saving": "Wird gespeichert...",
+      "titleRequired": "Ereignistitel ist erforderlich",
+      "timesRequired": "Start- und Endzeit sind erforderlich",
+      "endAfterStart": "Endzeit muss nach der Startzeit liegen",
+      "updateFailed": "Ereignis konnte nicht aktualisiert werden",
+      "createFailed": "Ereignis konnte nicht erstellt werden",
+      "cancelFailed": "Ereignis konnte nicht abgesagt werden",
+      "error": "Ein Fehler ist aufgetreten",
+      "goBack": "Zurück",
+      "cancelConfirm": "Bist du sicher, dass du '{{title}}' absagen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "typePersonal": "Persönlich",
+      "typeMedical": "Medizinisch",
+      "typeSchool": "Schule",
+      "typeWork": "Arbeit",
+      "typeSocial": "Sozial",
+      "typeTravel": "Reise",
+      "typeOther": "Sonstiges"
+    }
+  },
+  "userMenu": {
+    "signedInAs": "Angemeldet als"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "profile": "Profil",
+    "email": "E-Mail",
+    "name": "Name",
+    "language": "Sprache",
+    "languageDesc": "Wähle deine bevorzugte Sprache",
+    "dateFormat": "Datumsformat",
+    "dateFormatDesc": "Wähle, wie Daten angezeigt werden",
+    "timeFormat": "Zeitformat",
+    "timeFormatDesc": "Wähle 12- oder 24-Stunden-Format",
+    "24h": "24-Stunden (14:00)",
+    "12h": "12-Stunden (2:00 PM)"
+  },
+  "automations": {
+    "empty": {
+      "title": "Noch keine Automatisierungen",
+      "description": "Mit Ereignisketten-Automatisierungen kannst du Ereignisse über Kalender, Gesundheit und mehr deiner Familie verknüpfen."
+    },
+    "table": {
+      "name": "Name",
+      "trigger": "Auslöser",
+      "steps": "Schritte",
+      "status": "Status",
+      "lastRun": "Letzter Lauf",
+      "created": "Erstellt",
+      "statusActive": "Aktiv",
+      "statusPaused": "Pausiert",
+      "neverRun": "Nie"
+    }
+  },
+  "files": {
+    "title": "Dateien",
+    "comingSoon": "Demnächst verfügbar",
+    "tab": {
+      "browse": "Durchsuchen",
+      "albums": "Alben",
+      "search": "Suche",
+      "sharing": "Freigaben",
+      "inbox": "Eingang",
+      "notes": "Notizen"
+    },
+    "breadcrumb": {
+      "home": "Start"
+    },
+    "toolbar": {
+      "sort": "Sortieren",
+      "gridView": "Rasteransicht",
+      "listView": "Listenansicht",
+      "manageTags": "Tags verwalten",
+      "showFavorites": "Favoriten anzeigen",
+      "showAll": "Alle Dateien anzeigen"
+    },
+    "sort": {
+      "name": "Name",
+      "size": "Größe",
+      "created": "Erstellt",
+      "modified": "Geändert"
+    },
+    "action": {
+      "upload": "Hochladen",
+      "newFolder": "Neuer Ordner",
+      "download": "Herunterladen",
+      "rename": "Umbenennen",
+      "move": "Verschieben",
+      "delete": "Löschen",
+      "share": "Teilen"
+    },
+    "empty": {
+      "title": "Dieser Ordner ist leer",
+      "description": "Lade Dateien hoch oder erstelle einen Unterordner."
+    },
+    "list": {
+      "name": "Name",
+      "size": "Größe",
+      "modified": "Geändert"
+    },
+    "createFolder": {
+      "title": "Neuer Ordner",
+      "placeholder": "Ordnername",
+      "create": "Erstellen"
+    },
+    "upload": {
+      "title": "Dateien hochladen",
+      "dropHere": "Dateien hierher ziehen",
+      "or": "oder",
+      "browse": "Dateien auswählen",
+      "done": "Fertig"
+    },
+    "move": {
+      "title": "Verschieben nach...",
+      "root": "Stammverzeichnis",
+      "confirm": "Hierher verschieben"
+    },
+    "rename": {
+      "title": "Umbenennen",
+      "save": "Speichern"
+    },
+    "context": {
+      "save": "Speichern",
+      "size": "Größe",
+      "type": "Typ",
+      "created": "Erstellt",
+      "modified": "Geändert",
+      "deleteConfirm": "Bist du sicher, dass du diese Datei löschen möchtest?",
+      "tags": "Tags",
+      "addTag": "+ Hinzufügen",
+      "noTags": "Keine Tags",
+      "noMoreTags": "Keine weiteren Tags verfügbar",
+      "favorite": "Zu Favoriten hinzufügen",
+      "unfavorite": "Aus Favoriten entfernen",
+      "versions": "Versionen",
+      "currentVersion": "Aktuell",
+      "restore": "Wiederherstellen",
+      "noVersions": "Kein Versionsverlauf"
+    },
+    "tags": {
+      "manageTitle": "Tags verwalten",
+      "add": "Hinzufügen",
+      "namePlaceholder": "Tag-Name",
+      "noTags": "Noch keine Tags. Erstelle einen oben."
+    },
+    "search": {
+      "savedSearches": "Gespeicherte Suchen",
+      "noSavedSearches": "Noch keine gespeicherten Suchen",
+      "recentSearches": "Zuletzt",
+      "placeholder": "Dateien suchen...",
+      "filters": "Filter",
+      "save": "Speichern",
+      "filterType": "Typ",
+      "filterDate": "Datum",
+      "filterTags": "Tags",
+      "filterImages": "Bilder",
+      "filterDocuments": "Dokumente",
+      "filterVideos": "Videos",
+      "filterAudio": "Audio",
+      "clearFilters": "Alle entfernen",
+      "loadMore": "Mehr Ergebnisse laden",
+      "noResults": "Keine Ergebnisse gefunden",
+      "tryDifferent": "Versuche einen anderen Suchbegriff oder passe deine Filter an.",
+      "startSearching": "Alle Dateien durchsuchen",
+      "startSearchingDesc": "Gib einen Suchbegriff ein, um Dateien nach Name oder Inhalt zu finden.",
+      "comingSoonDesc": "Alle Dateien durchsuchen."
+    },
+    "albums": {
+      "title": "Alben",
+      "create": "Neues Album",
+      "createTitle": "Album erstellen",
+      "namePlaceholder": "Albumname",
+      "descPlaceholder": "Beschreibung (optional)",
+      "empty": "Noch keine Alben",
+      "emptyDesc": "Erstelle ein Album, um deine Fotos zu organisieren.",
+      "photos": "Fotos",
+      "noPhotos": "Noch keine Fotos in diesem Album",
+      "noPhotosDesc": "Füge Fotos über das Kontextmenü im Dateibrowser hinzu.",
+      "deleteConfirm": "Bist du sicher, dass du dieses Album löschen möchtest? Fotos werden nicht gelöscht.",
+      "comingSoonDesc": "Organisiere deine Fotos in Alben.",
+      "detailComingSoonDesc": "Albumfotos anzeigen und verwalten."
+    },
+    "sharing": {
+      "title": "Geteilte Links",
+      "empty": "Keine geteilten Links",
+      "emptyDesc": "Teile Dateien oder Ordner über den Dateibrowser, um Links zu erstellen.",
+      "copy": "Kopieren",
+      "downloads": "Downloads",
+      "expires": "Läuft ab",
+      "revoked": "Widerrufen",
+      "expired": "Abgelaufen",
+      "active": "Aktiv",
+      "viewLog": "Protokoll",
+      "revoke": "Widerrufen",
+      "noAccess": "Noch kein Zugriff aufgezeichnet.",
+      "comingSoonDesc": "Dateien per Link teilen."
+    },
+    "inbox": {
+      "title": "Posteingang",
+      "processFiles": "Dateien verarbeiten",
+      "processing": "Verarbeitung...",
+      "newRule": "Neue Regel",
+      "editRule": "Regel bearbeiten",
+      "rulesTab": "Regeln",
+      "logTab": "Verarbeitungsprotokoll",
+      "noRules": "Noch keine Regeln",
+      "noRulesDesc": "Erstelle Regeln, um eingehende Dateien automatisch zu organisieren.",
+      "priority": "Priorität",
+      "noLog": "Kein Verarbeitungsverlauf",
+      "noLogDesc": "Verarbeite Dateien, um Ergebnisse hier zu sehen.",
+      "tags": "Tags:",
+      "filesProcessed": "Dateien verarbeitet",
+      "rulesMatched": "Regeln angewendet",
+      "ruleName": "Regelname",
+      "ruleNamePlaceholder": "z.B. PDFs nach Dokumente sortieren",
+      "conditionField": "Bedingungsfeld",
+      "conditionValue": "Bedingungswert",
+      "conditionValuePlaceholder": "z.B. .pdf, image/*",
+      "actionType": "Aktion",
+      "actionMove": "In Ordner verschieben",
+      "actionTag": "Tag anwenden",
+      "actionAlbum": "Zu Album hinzufügen",
+      "actionTarget": "Aktionsziel",
+      "actionTargetPlaceholder": "Ordner-ID oder Tag-Name",
+      "saveRule": "Speichern",
+      "createRule": "Regel erstellen",
+      "comingSoonDesc": "Eingehende Dateien automatisch organisieren."
+    },
+    "notes": {
+      "title": "Notizen",
+      "allCategories": "Alle Kategorien",
+      "catPersonal": "Persönlich",
+      "catMedical": "Medizinisch",
+      "catFinancial": "Finanziell",
+      "catLegal": "Rechtlich",
+      "catOther": "Sonstiges",
+      "noNotes": "Noch keine Notizen",
+      "noNotesDesc": "Erstelle eine sichere Notiz, um loszulegen.",
+      "selectNote": "Wähle eine Notiz aus oder erstelle eine neue",
+      "untitled": "Ohne Titel",
+      "titlePlaceholder": "Notiztitel",
+      "contentPlaceholder": "Schreibe hier...",
+      "save": "Speichern",
+      "saved": "Gespeichert!",
+      "created": "Erstellt",
+      "modified": "Geändert",
+      "deleteConfirm": "Bist du sicher, dass du diese Notiz löschen möchtest? Dies kann nicht rückgängig gemacht werden.",
+      "comingSoonDesc": "Sichere Notizen erstellen und verwalten."
+    },
+    "batch": {
+      "toggle": "Mehrere auswählen",
+      "selected": "ausgewählt",
+      "selectAll": "Alle auswählen",
+      "downloadZip": "ZIP herunterladen"
+    }
+  },
+  "messaging": {
+    "title": "Nachrichten",
+    "newMessage": "Neue Nachricht",
+    "conversations": "Unterhaltungen"
+  }
+}

@@ -7,18 +7,21 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RenameFile;
 public sealed class RenameFileCommandHandler(
     IStoredFileRepository storedFileRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<RenameFileCommand, RenameFileResult>
+    : ICommandHandler<RenameFileCommand, Result<RenameFileResult>>
 {
-    public async ValueTask<RenameFileResult> Handle(
+    public async ValueTask<Result<RenameFileResult>> Handle(
         RenameFileCommand command,
         CancellationToken cancellationToken)
     {
-        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.NotFound);
+        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken);
+        if (file is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.NotFound, "File not found");
+        }
 
         if (file.FamilyId != command.FamilyId)
         {
-            throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "File belongs to a different family");
         }
 
         var utcNow = timeProvider.GetUtcNow();

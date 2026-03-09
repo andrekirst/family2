@@ -36,7 +36,7 @@ public class GetShareLinkAccessLogQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().HaveCount(2);
+        result.Value.Should().HaveCount(2);
     }
 
     [Fact]
@@ -54,10 +54,10 @@ public class GetShareLinkAccessLogQueryHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Share link not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Share link not found*");
     }
 
     [Fact]
@@ -75,9 +75,9 @@ public class GetShareLinkAccessLogQueryHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         }; // Different family
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Share link not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Share link not found*");
     }
 }

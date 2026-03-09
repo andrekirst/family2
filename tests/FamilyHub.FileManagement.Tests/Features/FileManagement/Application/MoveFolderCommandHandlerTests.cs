@@ -39,7 +39,7 @@ public class MoveFolderCommandHandlerTests
         };
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.FolderId.Should().Be(folderA.Id);
+        result.Value.FolderId.Should().Be(folderA.Id);
         folderA.ParentFolderId.Should().Be(folderC.Id);
         folderA.MaterializedPath.Should().Be($"/{root.Id.Value}/{folderC.Id.Value}/");
         folderB.MaterializedPath.Should().Be($"/{root.Id.Value}/{folderC.Id.Value}/{folderA.Id.Value}/");
@@ -63,10 +63,10 @@ public class MoveFolderCommandHandlerTests
             FamilyId = familyId,
             UserId = userId
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 
     [Fact]
@@ -94,10 +94,10 @@ public class MoveFolderCommandHandlerTests
             FamilyId = familyId,
             UserId = userId
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 
     [Fact]
@@ -114,10 +114,10 @@ public class MoveFolderCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FolderNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FolderNotFound);
     }
 
     [Fact]
@@ -140,10 +140,10 @@ public class MoveFolderCommandHandlerTests
             FamilyId = familyId,
             UserId = userId
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FolderNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FolderNotFound);
     }
 
     [Fact]
@@ -167,9 +167,9 @@ public class MoveFolderCommandHandlerTests
             FamilyId = familyId1,
             UserId = userId
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

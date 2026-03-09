@@ -28,9 +28,9 @@ public class SendMessageCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.MessageId.Value.Should().NotBe(Guid.Empty);
-        result.SentMessage.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.MessageId.Value.Should().NotBe(Guid.Empty);
+        result.Value.SentMessage.Should().NotBeNull();
     }
 
     [Fact]

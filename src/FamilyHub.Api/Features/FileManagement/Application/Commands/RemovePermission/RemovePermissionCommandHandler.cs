@@ -6,19 +6,22 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RemovePermi
 
 public sealed class RemovePermissionCommandHandler(
     IFilePermissionRepository permissionRepository)
-    : ICommandHandler<RemovePermissionCommand, RemovePermissionResult>
+    : ICommandHandler<RemovePermissionCommand, Result<RemovePermissionResult>>
 {
-    public async ValueTask<RemovePermissionResult> Handle(
+    public async ValueTask<Result<RemovePermissionResult>> Handle(
         RemovePermissionCommand command,
         CancellationToken cancellationToken)
     {
         var permission = await permissionRepository.GetByMemberAndResourceAsync(
-            command.MemberId, command.ResourceType, command.ResourceId, cancellationToken)
-            ?? throw new DomainException("Permission not found", DomainErrorCodes.NotFound);
+            command.MemberId, command.ResourceType, command.ResourceId, cancellationToken);
+        if (permission is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.NotFound, "Permission not found");
+        }
 
         if (permission.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Permission belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Permission belongs to a different family");
         }
 
         await permissionRepository.RemoveAsync(permission, cancellationToken);

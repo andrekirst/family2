@@ -8,7 +8,7 @@ public sealed record UpdateTagCommand(
     TagId TagId,
     TagName? NewName,
     TagColor? NewColor
-) : ICommand<UpdateTagResult>, IRequireFamily
+) : ICommand<Result<UpdateTagResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

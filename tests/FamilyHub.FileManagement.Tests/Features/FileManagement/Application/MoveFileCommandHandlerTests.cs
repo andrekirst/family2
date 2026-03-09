@@ -55,7 +55,7 @@ public class MoveFileCommandHandlerTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.FileId.Should().Be(file.Id);
+        result.Value.FileId.Should().Be(file.Id);
         file.FolderId.Should().Be(targetFolder.Id);
     }
 
@@ -84,9 +84,9 @@ public class MoveFileCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

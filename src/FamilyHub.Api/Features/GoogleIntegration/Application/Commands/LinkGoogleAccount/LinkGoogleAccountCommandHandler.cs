@@ -16,9 +16,9 @@ public sealed class LinkGoogleAccountCommandHandler(
     IGoogleOAuthService oauthService,
     ITokenEncryptionService encryptionService,
     TimeProvider timeProvider)
-    : ICommandHandler<LinkGoogleAccountCommand, LinkGoogleAccountResult>
+    : ICommandHandler<LinkGoogleAccountCommand, Result<LinkGoogleAccountResult>>
 {
-    public async ValueTask<LinkGoogleAccountResult> Handle(
+    public async ValueTask<Result<LinkGoogleAccountResult>> Handle(
         LinkGoogleAccountCommand command,
         CancellationToken cancellationToken)
     {
@@ -30,7 +30,7 @@ public sealed class LinkGoogleAccountCommandHandler(
         if (oauthState.IsExpired(utcNow))
         {
             await stateRepository.DeleteAsync(oauthState, cancellationToken);
-            throw new DomainException("OAuth state has expired. Please try linking again.");
+            return DomainError.BusinessRule(DomainErrorCodes.OAuthStateExpired, "OAuth state has expired. Please try linking again.");
         }
 
         var userId = oauthState.UserId;
@@ -42,7 +42,7 @@ public sealed class LinkGoogleAccountCommandHandler(
 
         if (string.IsNullOrEmpty(tokenResponse.RefreshToken))
         {
-            throw new DomainException("Google did not provide a refresh token. Please try linking again.");
+            return DomainError.BusinessRule(DomainErrorCodes.RefreshTokenMissing, "Google did not provide a refresh token. Please try linking again.");
         }
 
         // 3. Get user info from Google

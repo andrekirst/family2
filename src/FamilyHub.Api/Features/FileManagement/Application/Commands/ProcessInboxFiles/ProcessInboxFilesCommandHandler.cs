@@ -19,15 +19,18 @@ public sealed class ProcessInboxFilesCommandHandler(
     IInboxFileProcessor fileProcessor,
     TimeProvider timeProvider,
     ILogger<ProcessInboxFilesCommandHandler> logger)
-    : ICommandHandler<ProcessInboxFilesCommand, ProcessInboxFilesResult>
+    : ICommandHandler<ProcessInboxFilesCommand, Result<ProcessInboxFilesResult>>
 {
-    public async ValueTask<ProcessInboxFilesResult> Handle(
+    public async ValueTask<Result<ProcessInboxFilesResult>> Handle(
         ProcessInboxFilesCommand command,
         CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var inboxFolder = await folderRepository.GetInboxFolderAsync(command.FamilyId, cancellationToken)
-            ?? throw new DomainException("Inbox folder not found", DomainErrorCodes.InboxFolderNotFound);
+        var inboxFolder = await folderRepository.GetInboxFolderAsync(command.FamilyId, cancellationToken);
+        if (inboxFolder is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.InboxFolderNotFound, "Inbox folder not found");
+        }
 
         var files = await fileRepository.GetByFolderIdAsync(inboxFolder.Id, cancellationToken);
         var rules = await ruleRepository.GetEnabledByFamilyIdAsync(command.FamilyId, cancellationToken);

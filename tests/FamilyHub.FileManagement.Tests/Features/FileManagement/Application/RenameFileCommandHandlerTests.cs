@@ -49,7 +49,7 @@ public class RenameFileCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.FileId.Should().Be(file.Id);
+        result.Value.FileId.Should().Be(file.Id);
         file.Name.Value.Should().Be("renamed.pdf");
     }
 
@@ -67,10 +67,10 @@ public class RenameFileCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.NotFound);
     }
 
     [Fact]
@@ -87,9 +87,9 @@ public class RenameFileCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

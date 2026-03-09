@@ -24,9 +24,9 @@ public sealed class SendMessageCommandHandler(
     IFolderRepository folderRepository,
     IConversationRepository conversationRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<SendMessageCommand, SendMessageResult>
+    : ICommandHandler<SendMessageCommand, Result<SendMessageResult>>
 {
-    public async ValueTask<SendMessageResult> Handle(
+    public async ValueTask<Result<SendMessageResult>> Handle(
         SendMessageCommand command,
         CancellationToken cancellationToken)
     {
@@ -35,7 +35,13 @@ public sealed class SendMessageCommandHandler(
         if (command.Attachments is { Count: > 0 })
         {
             // Determine target folder: conversation folder or family root folder
-            var targetFolderId = await ResolveTargetFolderAsync(command, cancellationToken);
+            var targetFolderResult = await ResolveTargetFolderAsync(command, cancellationToken);
+            if (targetFolderResult.IsFailure)
+            {
+                return targetFolderResult.Error;
+            }
+
+            var targetFolderId = targetFolderResult.Value;
 
             attachments = [];
             foreach (var a in command.Attachments)
@@ -75,7 +81,7 @@ public sealed class SendMessageCommandHandler(
         return new SendMessageResult(message.Id, message);
     }
 
-    private async Task<FolderId> ResolveTargetFolderAsync(
+    private async Task<Result<FolderId>> ResolveTargetFolderAsync(
         SendMessageCommand command, CancellationToken cancellationToken)
     {
         // If a conversation is specified and has a dedicated folder, use it
@@ -94,21 +100,29 @@ public sealed class SendMessageCommandHandler(
         }
 
         // Fallback to family root folder (no conversation context)
-        var rootFolder = await folderRepository.GetRootFolderAsync(command.FamilyId, cancellationToken)
-            ?? throw new DomainException("Family root folder not found", DomainErrorCodes.NotFound);
+        var rootFolder = await folderRepository.GetRootFolderAsync(command.FamilyId, cancellationToken);
+
+        if (rootFolder is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.RootFolderNotFound, "Family root folder not found");
+        }
 
         return rootFolder.Id;
     }
 
     /// <summary>
     /// Creates the folder hierarchy for a conversation that was saved without a FolderId.
-    /// Pattern: root → Messages → {ConversationName}
+    /// Pattern: root -> Messages -> {ConversationName}
     /// </summary>
-    private async Task<FolderId> CreateConversationFolderAsync(
+    private async Task<Result<FolderId>> CreateConversationFolderAsync(
         Conversation conversation, SendMessageCommand command, CancellationToken cancellationToken)
     {
-        var rootFolder = await folderRepository.GetRootFolderAsync(command.FamilyId, cancellationToken)
-            ?? throw new DomainException("Family root folder not found", DomainErrorCodes.NotFound);
+        var rootFolder = await folderRepository.GetRootFolderAsync(command.FamilyId, cancellationToken);
+
+        if (rootFolder is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.RootFolderNotFound, "Family root folder not found");
+        }
 
         // Find or create the "Messages" parent folder
         var children = await folderRepository.GetChildrenAsync(rootFolder.Id, cancellationToken);

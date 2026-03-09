@@ -10,15 +10,19 @@ public sealed class UpdateChainDefinitionCommandHandler(
     IChainDefinitionRepository repository,
     IChainRegistry registry,
     TimeProvider timeProvider)
-    : ICommandHandler<UpdateChainDefinitionCommand, UpdateChainDefinitionResult>
+    : ICommandHandler<UpdateChainDefinitionCommand, Result<UpdateChainDefinitionResult>>
 {
-    public async ValueTask<UpdateChainDefinitionResult> Handle(
+    public async ValueTask<Result<UpdateChainDefinitionResult>> Handle(
         UpdateChainDefinitionCommand command,
         CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var definition = await repository.GetByIdWithStepsAsync(command.Id, cancellationToken)
-            ?? throw new DomainException("Chain definition not found", DomainErrorCodes.ChainDefinitionNotFound);
+        var definition = await repository.GetByIdWithStepsAsync(command.Id, cancellationToken);
+
+        if (definition is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.ChainDefinitionNotFound, "Chain definition not found");
+        }
 
         definition.Update(command.Name, command.Description, command.IsEnabled, utcNow);
 
@@ -30,7 +34,8 @@ public sealed class UpdateChainDefinitionCommandHandler(
             {
                 if (!registry.IsValidAction(stepCmd.ActionType, stepCmd.ActionVersion.Value))
                 {
-                    throw new InvalidOperationException(
+                    return DomainError.BusinessRule(
+                        DomainErrorCodes.UnknownActionType,
                         $"Unknown action: {stepCmd.ActionType}@{stepCmd.ActionVersion.Value}");
                 }
 

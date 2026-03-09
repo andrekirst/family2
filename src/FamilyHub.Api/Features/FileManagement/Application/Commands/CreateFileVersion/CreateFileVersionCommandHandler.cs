@@ -9,21 +9,22 @@ public sealed class CreateFileVersionCommandHandler(
     IFileVersionRepository versionRepository,
     IStoredFileRepository fileRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<CreateFileVersionCommand, CreateFileVersionResult>
+    : ICommandHandler<CreateFileVersionCommand, Result<CreateFileVersionResult>>
 {
-    public async ValueTask<CreateFileVersionResult> Handle(
+    public async ValueTask<Result<CreateFileVersionResult>> Handle(
         CreateFileVersionCommand command,
         CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var file = await fileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
+        var file = await fileRepository.GetByIdAsync(command.FileId, cancellationToken);
+        if (file is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found");
+        }
 
-        // Mark current version as not current
         var currentVersion = await versionRepository.GetCurrentVersionAsync(command.FileId, cancellationToken);
         currentVersion?.MarkAsNotCurrent();
 
-        // Determine next version number
         var maxVersion = await versionRepository.GetMaxVersionNumberAsync(command.FileId, cancellationToken);
 
         var version = FileVersion.Create(

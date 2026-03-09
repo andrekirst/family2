@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Features.EventChain.Application.Commands.EnableChainDefi
 
 public sealed record EnableChainDefinitionCommand(
     ChainDefinitionId Id
-) : ICommand<EnableChainDefinitionResult>, IRequireFamily
+) : ICommand<Result<EnableChainDefinitionResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

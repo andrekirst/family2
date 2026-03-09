@@ -1,4 +1,5 @@
 using FamilyHub.Common.Application;
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefinition;
 using FamilyHub.Api.Features.EventChain.Application.Commands.UpdateChainDefinition;
@@ -18,71 +19,64 @@ namespace FamilyHub.Api.Features.EventChain.GraphQL;
 public class ChainMutations
 {
     [Authorize]
-    public async Task<CreateChainDefinitionPayload> CreateChainDefinition(
+    public async Task<object> CreateChainDefinition(
         CreateChainDefinitionInput input,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateChainDefinitionCommand(
-                ChainName.From(input.Name),
-                input.Description,
-                input.TriggerEventType,
-                input.Steps.Select(s => new CreateStepCommand(
-                    StepAlias.From(s.Alias),
-                    s.Name,
-                    s.ActionType,
-                    ActionVersion.From(s.ActionVersion),
-                    s.InputMappings,
-                    s.Condition,
-                    s.Order)).ToList(),
-                input.IsEnabled);
+        var command = new CreateChainDefinitionCommand(
+            ChainName.From(input.Name),
+            input.Description,
+            input.TriggerEventType,
+            input.Steps.Select(s => new CreateStepCommand(
+                StepAlias.From(s.Alias),
+                s.Name,
+                s.ActionType,
+                ActionVersion.From(s.ActionVersion),
+                s.InputMappings,
+                s.Condition,
+                s.Order)).ToList(),
+            input.IsEnabled);
 
-            var result = await commandBus.SendAsync(command, cancellationToken);
-            return new CreateChainDefinitionPayload(ChainMapper.ToDto(result.CreatedDefinition));
-        }
-        catch (Exception ex)
-        {
-            return new CreateChainDefinitionPayload(null,
-                [new UserError(ex.Message, "CREATE_FAILED")]);
-        }
+        var result = await commandBus.SendAsync(command, cancellationToken);
+
+        return result.Match<object>(
+            success => ChainMapper.ToDto(success.CreatedDefinition),
+            error => MutationError.FromDomainError(error));
     }
 
     [Authorize]
-    public async Task<UpdateChainDefinitionPayload> UpdateChainDefinition(
+    public async Task<object> UpdateChainDefinition(
         Guid id,
         UpdateChainDefinitionInput input,
         [Service] ICommandBus commandBus,
         [Service] IChainExecutionRepository executionRepository,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UpdateChainDefinitionCommand(
-                ChainDefinitionId.From(id),
-                input.Name is not null ? ChainName.From(input.Name) : null,
-                input.Description,
-                input.IsEnabled,
-                input.Steps?.Select(s => new CreateStepCommand(
-                    StepAlias.From(s.Alias),
-                    s.Name,
-                    s.ActionType,
-                    ActionVersion.From(s.ActionVersion),
-                    s.InputMappings,
-                    s.Condition,
-                    s.Order)).ToList());
+        var command = new UpdateChainDefinitionCommand(
+            ChainDefinitionId.From(id),
+            input.Name is not null ? ChainName.From(input.Name) : null,
+            input.Description,
+            input.IsEnabled,
+            input.Steps?.Select(s => new CreateStepCommand(
+                StepAlias.From(s.Alias),
+                s.Name,
+                s.ActionType,
+                ActionVersion.From(s.ActionVersion),
+                s.InputMappings,
+                s.Condition,
+                s.Order)).ToList());
 
-            var result = await commandBus.SendAsync(command, cancellationToken);
-            var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, cancellationToken);
-            var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, cancellationToken);
-            return new UpdateChainDefinitionPayload(ChainMapper.ToDto(result.UpdatedDefinition, count, lastExec));
-        }
-        catch (Exception ex)
-        {
-            return new UpdateChainDefinitionPayload(null,
-                [new UserError(ex.Message, "UPDATE_FAILED")]);
-        }
+        var result = await commandBus.SendAsync(command, cancellationToken);
+
+        return await result.Match<Task<object>>(
+            async success =>
+            {
+                var count = await executionRepository.GetExecutionCountAsync(success.ChainDefinitionId, cancellationToken);
+                var lastExec = await executionRepository.GetLastExecutedAtAsync(success.ChainDefinitionId, cancellationToken);
+                return ChainMapper.ToDto(success.UpdatedDefinition, count, lastExec);
+            },
+            error => Task.FromResult<object>(MutationError.FromDomainError(error)));
     }
 
     [Authorize]
@@ -105,7 +99,7 @@ public class ChainMutations
     }
 
     [Authorize]
-    public async Task<ChainDefinitionDto> EnableChainDefinition(
+    public async Task<object> EnableChainDefinition(
         Guid id,
         [Service] ICommandBus commandBus,
         [Service] IChainExecutionRepository executionRepository,
@@ -113,13 +107,19 @@ public class ChainMutations
     {
         var command = new EnableChainDefinitionCommand(ChainDefinitionId.From(id));
         var result = await commandBus.SendAsync(command, cancellationToken);
-        var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, cancellationToken);
-        var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, cancellationToken);
-        return ChainMapper.ToDto(result.Definition, count, lastExec);
+
+        return await result.Match<Task<object>>(
+            async success =>
+            {
+                var count = await executionRepository.GetExecutionCountAsync(success.ChainDefinitionId, cancellationToken);
+                var lastExec = await executionRepository.GetLastExecutedAtAsync(success.ChainDefinitionId, cancellationToken);
+                return ChainMapper.ToDto(success.Definition, count, lastExec);
+            },
+            error => Task.FromResult<object>(MutationError.FromDomainError(error)));
     }
 
     [Authorize]
-    public async Task<ChainDefinitionDto> DisableChainDefinition(
+    public async Task<object> DisableChainDefinition(
         Guid id,
         [Service] ICommandBus commandBus,
         [Service] IChainExecutionRepository executionRepository,
@@ -127,9 +127,15 @@ public class ChainMutations
     {
         var command = new DisableChainDefinitionCommand(ChainDefinitionId.From(id));
         var result = await commandBus.SendAsync(command, cancellationToken);
-        var count = await executionRepository.GetExecutionCountAsync(result.ChainDefinitionId, cancellationToken);
-        var lastExec = await executionRepository.GetLastExecutedAtAsync(result.ChainDefinitionId, cancellationToken);
-        return ChainMapper.ToDto(result.Definition, count, lastExec);
+
+        return await result.Match<Task<object>>(
+            async success =>
+            {
+                var count = await executionRepository.GetExecutionCountAsync(success.ChainDefinitionId, cancellationToken);
+                var lastExec = await executionRepository.GetLastExecutedAtAsync(success.ChainDefinitionId, cancellationToken);
+                return ChainMapper.ToDto(success.Definition, count, lastExec);
+            },
+            error => Task.FromResult<object>(MutationError.FromDomainError(error)));
     }
 
     [Authorize]

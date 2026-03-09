@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFavorites
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<StoredFileDto>> GetFavorites(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

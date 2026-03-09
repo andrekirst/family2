@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Common.Application;
 using HotChocolate.Authorization;
@@ -8,7 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.SaveSearch;
 public class MutationType
 {
     [Authorize]
-    public async Task<SaveSearchResult> SaveSearch(
+    public async Task<object> SaveSearch(
         string name,
         string query,
         string? filtersJson,
@@ -16,6 +17,10 @@ public class MutationType
         CancellationToken cancellationToken)
     {
         var command = new SaveSearchCommand(name, query, filtersJson);
-        return await commandBus.SendAsync(command, cancellationToken);
+
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

@@ -44,9 +44,9 @@ public class GetFileVersionsQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().HaveCount(2);
-        result.Should().Contain(v => v.VersionNumber == 1);
-        result.Should().Contain(v => v.VersionNumber == 2);
+        result.Value.Should().HaveCount(2);
+        result.Value.Should().Contain(v => v.VersionNumber == 1);
+        result.Value.Should().Contain(v => v.VersionNumber == 2);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class GetFileVersionsQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().BeEmpty();
+        result.Value.Should().BeEmpty();
     }
 
     [Fact]
@@ -95,10 +95,10 @@ public class GetFileVersionsQueryHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found*");
     }
 
     [Fact]
@@ -124,9 +124,9 @@ public class GetFileVersionsQueryHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         }; // Different family
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found in this family*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found in this family*");
     }
 }

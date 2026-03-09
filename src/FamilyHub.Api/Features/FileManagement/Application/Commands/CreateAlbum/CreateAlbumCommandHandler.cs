@@ -7,9 +7,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateAlbum
 public sealed class CreateAlbumCommandHandler(
     IAlbumRepository albumRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<CreateAlbumCommand, CreateAlbumResult>
+    : ICommandHandler<CreateAlbumCommand, Result<CreateAlbumResult>>
 {
-    public async ValueTask<CreateAlbumResult> Handle(
+    public async ValueTask<Result<CreateAlbumResult>> Handle(
         CreateAlbumCommand command,
         CancellationToken cancellationToken)
     {

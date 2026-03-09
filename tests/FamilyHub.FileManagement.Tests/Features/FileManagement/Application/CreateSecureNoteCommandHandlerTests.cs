@@ -35,7 +35,7 @@ public class CreateSecureNoteCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.NoteId.Should().NotBe(Guid.Empty);
+        result.Value.NoteId.Should().NotBe(Guid.Empty);
         await _noteRepo.Received(1).AddAsync(
             Arg.Is<SecureNote>(n =>
                 n.EncryptedTitle == "enc-title" &&

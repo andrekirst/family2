@@ -10,6 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetShareLink
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<ShareLinkDto>> GetShareLinks(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

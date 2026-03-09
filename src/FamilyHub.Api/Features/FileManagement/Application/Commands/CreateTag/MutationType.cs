@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Application.Mappers;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
@@ -12,7 +13,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateTag;
 public class MutationType
 {
     [Authorize]
-    public async Task<TagDto> CreateTag(
+    public async Task<object> CreateTag(
         CreateTagRequest input,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
@@ -22,7 +23,8 @@ public class MutationType
             TagColor.From(input.Color.Trim()));
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-
-        return FileManagementMapper.ToDto(result.CreatedTag);
+        return result.Match<object>(
+            success => FileManagementMapper.ToDto(success.CreatedTag),
+            error => MutationError.FromDomainError(error));
     }
 }

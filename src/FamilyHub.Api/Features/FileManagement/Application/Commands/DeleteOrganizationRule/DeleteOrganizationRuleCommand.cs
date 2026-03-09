@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteOrgan
 
 public sealed record DeleteOrganizationRuleCommand(
     OrganizationRuleId RuleId
-) : ICommand<DeleteOrganizationRuleResult>, IRequireFamily
+) : ICommand<Result<DeleteOrganizationRuleResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

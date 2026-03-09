@@ -52,7 +52,7 @@ public class UntagFileCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _fileTagRepo.Received(1).RemoveAsync(
             Arg.Is<FileTag>(ft => ft.FileId == file.Id && ft.TagId == tagId),
             Arg.Any<CancellationToken>());
@@ -75,7 +75,7 @@ public class UntagFileCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
@@ -89,10 +89,10 @@ public class UntagFileCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FileNotFound);
     }
 
     [Fact]
@@ -107,9 +107,9 @@ public class UntagFileCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

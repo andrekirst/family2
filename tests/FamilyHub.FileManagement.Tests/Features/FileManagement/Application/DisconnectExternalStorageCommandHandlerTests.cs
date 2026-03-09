@@ -35,7 +35,7 @@ public class DisconnectExternalStorageCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _repo.Received(1).RemoveAsync(connection, Arg.Any<CancellationToken>());
     }
 
@@ -51,10 +51,10 @@ public class DisconnectExternalStorageCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*External connection not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*External connection not found*");
     }
 
     [Fact]
@@ -71,9 +71,9 @@ public class DisconnectExternalStorageCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*External connection not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*External connection not found*");
     }
 }

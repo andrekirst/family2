@@ -44,9 +44,9 @@ public class PreviewRuleMatchQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().NotBeNull();
-        result!.Matched.Should().BeTrue();
-        result.MatchedRuleName.Should().Be("Photos rule");
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Matched.Should().BeTrue();
+        result.Value.MatchedRuleName.Should().Be("Photos rule");
     }
 
     [Fact]
@@ -78,7 +78,8 @@ public class PreviewRuleMatchQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().BeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
     }
 
     [Fact]
@@ -97,10 +98,10 @@ public class PreviewRuleMatchQueryHandlerTests
             FamilyId = _familyId,
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FileNotFound);
     }
 
     [Fact]
@@ -123,9 +124,9 @@ public class PreviewRuleMatchQueryHandlerTests
             FamilyId = _familyId,
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

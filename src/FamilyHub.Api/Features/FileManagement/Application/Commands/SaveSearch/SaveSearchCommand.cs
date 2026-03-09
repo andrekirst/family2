@@ -7,7 +7,7 @@ public sealed record SaveSearchCommand(
     string Name,
     string Query,
     string? FiltersJson
-) : ICommand<SaveSearchResult>, IRequireFamily
+) : ICommand<Result<SaveSearchResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

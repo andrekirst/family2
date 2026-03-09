@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.SearchFiles;
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<FileSearchResultDto>> SearchFiles(
         string query,
         List<string>? mimeTypes,

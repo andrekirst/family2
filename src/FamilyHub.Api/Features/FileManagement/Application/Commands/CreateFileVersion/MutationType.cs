@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
@@ -10,7 +11,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateFileV
 public class MutationType
 {
     [Authorize]
-    public async Task<CreateFileVersionResult> CreateFileVersion(
+    public async Task<object> CreateFileVersion(
         Guid fileId,
         string storageKey,
         long fileSize,
@@ -24,6 +25,9 @@ public class MutationType
             FileSize.From(fileSize),
             Checksum.From(checksum));
 
-        return await commandBus.SendAsync(command, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

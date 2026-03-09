@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DisconnectE
 
 public sealed record DisconnectExternalStorageCommand(
     ExternalConnectionId ConnectionId
-) : ICommand<DisconnectExternalStorageResult>, IRequireFamily
+) : ICommand<Result<DisconnectExternalStorageResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetRecentSea
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<RecentSearchDto>> GetRecentSearches(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

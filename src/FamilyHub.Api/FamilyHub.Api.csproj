@@ -1,5 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <!-- Disable Hot Chocolate's auto-generated global usings (which include GreenDonut
+       and its Result<T> that conflicts with our FamilyHub.Common.Application.Result<T>).
+       We re-add HotChocolate and HotChocolate.Types explicitly without GreenDonut. -->
+  <PropertyGroup>
+    <HotChocolateImplicitUsings>disable</HotChocolateImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Include="HotChocolate" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Types.Relay" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="FamilyHub.Infisical.Tests" />
   </ItemGroup>

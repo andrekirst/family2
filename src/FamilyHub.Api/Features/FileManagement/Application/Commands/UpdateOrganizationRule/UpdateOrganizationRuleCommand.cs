@@ -11,7 +11,7 @@ public sealed record UpdateOrganizationRuleCommand(
     ConditionLogic ConditionLogic,
     RuleActionType ActionType,
     string ActionsJson
-) : ICommand<UpdateOrganizationRuleResult>, IRequireFamily
+) : ICommand<Result<UpdateOrganizationRuleResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

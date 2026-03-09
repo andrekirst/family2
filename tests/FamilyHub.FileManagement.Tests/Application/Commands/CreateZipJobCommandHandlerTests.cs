@@ -35,8 +35,8 @@ public class CreateZipJobCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.JobId.Should().NotBeEmpty();
-        result.Status.Should().Be(ZipJobStatus.Pending.ToString());
+        result.Value.JobId.Should().NotBeEmpty();
+        result.Value.Status.Should().Be(ZipJobStatus.Pending.ToString());
         await _zipJobRepository.Received(1).AddAsync(
             Arg.Is<Api.Features.FileManagement.Domain.Entities.ZipJob>(j => j.FileIds.Count == 2),
             Arg.Any<CancellationToken>());
@@ -52,10 +52,10 @@ public class CreateZipJobCommandHandlerTests
             UserId = _userId
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*1000*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*1000*");
     }
 
     [Fact]
@@ -69,9 +69,9 @@ public class CreateZipJobCommandHandlerTests
             UserId = _userId
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*3*concurrent*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*3*concurrent*");
     }
 }

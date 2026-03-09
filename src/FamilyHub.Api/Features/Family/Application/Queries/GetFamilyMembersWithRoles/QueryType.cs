@@ -11,6 +11,7 @@ public class QueryType
     /// Get family members with roles for the current user's family.
     /// </summary>
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<FamilyMemberDto>> GetWithRoles(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

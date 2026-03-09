@@ -8,20 +8,20 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateZipJo
 public sealed class CreateZipJobCommandHandler(
     IZipJobRepository zipJobRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<CreateZipJobCommand, CreateZipJobResult>
+    : ICommandHandler<CreateZipJobCommand, Result<CreateZipJobResult>>
 {
     private const int MaxConcurrentJobs = 3;
     private const int MaxFilesPerZip = 1000;
 
-    public async ValueTask<CreateZipJobResult> Handle(
+    public async ValueTask<Result<CreateZipJobResult>> Handle(
         CreateZipJobCommand command,
         CancellationToken cancellationToken)
     {
         if (command.FileIds.Count > MaxFilesPerZip)
         {
-            throw new DomainException(
-                $"Cannot zip more than {MaxFilesPerZip} files at once",
-                DomainErrorCodes.ZipJobTooManyFiles);
+            return DomainError.BusinessRule(
+                DomainErrorCodes.ZipJobTooManyFiles,
+                $"Cannot zip more than {MaxFilesPerZip} files at once");
         }
 
         var activeJobs = await zipJobRepository.GetActiveJobCountAsync(
@@ -29,9 +29,9 @@ public sealed class CreateZipJobCommandHandler(
 
         if (activeJobs >= MaxConcurrentJobs)
         {
-            throw new DomainException(
-                $"Maximum of {MaxConcurrentJobs} concurrent zip jobs per family",
-                DomainErrorCodes.ZipJobConcurrentLimitReached);
+            return DomainError.BusinessRule(
+                DomainErrorCodes.ZipJobConcurrentLimitReached,
+                $"Maximum of {MaxConcurrentJobs} concurrent zip jobs per family");
         }
 
         var utcNow = timeProvider.GetUtcNow();

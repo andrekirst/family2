@@ -7,9 +7,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.SaveSearch;
 public sealed class SaveSearchCommandHandler(
     ISavedSearchRepository savedSearchRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<SaveSearchCommand, SaveSearchResult>
+    : ICommandHandler<SaveSearchCommand, Result<SaveSearchResult>>
 {
-    public async ValueTask<SaveSearchResult> Handle(
+    public async ValueTask<Result<SaveSearchResult>> Handle(
         SaveSearchCommand command,
         CancellationToken cancellationToken)
     {

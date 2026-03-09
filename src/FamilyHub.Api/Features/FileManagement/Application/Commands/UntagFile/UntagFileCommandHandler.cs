@@ -7,18 +7,21 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UntagFile;
 public sealed class UntagFileCommandHandler(
     IStoredFileRepository storedFileRepository,
     IFileTagRepository fileTagRepository)
-    : ICommandHandler<UntagFileCommand, UntagFileResult>
+    : ICommandHandler<UntagFileCommand, Result<UntagFileResult>>
 {
-    public async ValueTask<UntagFileResult> Handle(
+    public async ValueTask<Result<UntagFileResult>> Handle(
         UntagFileCommand command,
         CancellationToken cancellationToken)
     {
-        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
+        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken);
+        if (file is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found");
+        }
 
         if (file.FamilyId != command.FamilyId)
         {
-            throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "File belongs to a different family");
         }
 
         var fileTags = await fileTagRepository.GetByFileIdAsync(command.FileId, cancellationToken);
@@ -26,7 +29,7 @@ public sealed class UntagFileCommandHandler(
 
         if (fileTag is null)
         {
-            return new UntagFileResult(true); // Idempotent
+            return new UntagFileResult(true);
         }
 
         await fileTagRepository.RemoveAsync(fileTag, cancellationToken);

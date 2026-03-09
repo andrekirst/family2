@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteFolde
 
 public sealed record DeleteFolderCommand(
     FolderId FolderId
-) : ICommand<DeleteFolderResult>, IRequireFamily
+) : ICommand<Result<DeleteFolderResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

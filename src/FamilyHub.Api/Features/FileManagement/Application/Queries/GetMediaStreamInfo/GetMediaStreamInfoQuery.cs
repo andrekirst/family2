@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetMediaStre
 
 public sealed record GetMediaStreamInfoQuery(
     FileId FileId
-) : IReadOnlyQuery<MediaStreamInfoDto>, IRequireFamily
+) : IReadOnlyQuery<Result<MediaStreamInfoDto>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

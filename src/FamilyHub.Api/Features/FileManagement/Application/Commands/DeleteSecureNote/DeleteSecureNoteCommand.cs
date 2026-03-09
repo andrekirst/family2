@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteSecur
 
 public sealed record DeleteSecureNoteCommand(
     SecureNoteId NoteId
-) : ICommand<DeleteSecureNoteResult>, IRequireFamily
+) : ICommand<Result<DeleteSecureNoteResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

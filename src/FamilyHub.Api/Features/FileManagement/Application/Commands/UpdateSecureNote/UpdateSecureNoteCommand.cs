@@ -10,7 +10,7 @@ public sealed record UpdateSecureNoteCommand(
     string EncryptedTitle,
     string EncryptedContent,
     string Iv
-) : ICommand<UpdateSecureNoteResult>, IRequireFamily
+) : ICommand<Result<UpdateSecureNoteResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

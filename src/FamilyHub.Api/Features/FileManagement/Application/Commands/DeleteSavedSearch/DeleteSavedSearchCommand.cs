@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteSaved
 
 public sealed record DeleteSavedSearchCommand(
     SavedSearchId SearchId
-) : ICommand<DeleteSavedSearchResult>, IRequireFamily
+) : ICommand<Result<DeleteSavedSearchResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

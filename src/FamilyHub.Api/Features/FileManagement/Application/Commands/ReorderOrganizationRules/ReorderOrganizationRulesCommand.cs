@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ReorderOrga
 
 public sealed record ReorderOrganizationRulesCommand(
     List<Guid> RuleIdsInOrder
-) : ICommand<ReorderOrganizationRulesResult>, IRequireFamily
+) : ICommand<Result<ReorderOrganizationRulesResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

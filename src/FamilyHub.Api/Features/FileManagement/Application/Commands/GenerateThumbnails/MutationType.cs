@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -9,7 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.GenerateThu
 public class MutationType
 {
     [Authorize]
-    public async Task<GenerateThumbnailsResult> GenerateThumbnails(
+    public async Task<object> GenerateThumbnails(
         Guid fileId,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
@@ -17,6 +18,9 @@ public class MutationType
         var command = new GenerateThumbnailsCommand(
             FileId.From(fileId));
 
-        return await commandBus.SendAsync(command, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

@@ -31,7 +31,7 @@ public class CreateAlbumCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.AlbumId.Value.Should().NotBe(Guid.Empty);
+        result.Value.AlbumId.Value.Should().NotBe(Guid.Empty);
         await _albumRepo.Received(1).AddAsync(
             Arg.Is<Album>(a => a.Name.Value == "Summer 2025" && a.Description == "Beach photos"),
             Arg.Any<CancellationToken>());
@@ -50,7 +50,7 @@ public class CreateAlbumCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.AlbumId.Value.Should().NotBe(Guid.Empty);
+        result.Value.AlbumId.Value.Should().NotBe(Guid.Empty);
         await _albumRepo.Received(1).AddAsync(
             Arg.Is<Album>(a => a.Description == null),
             Arg.Any<CancellationToken>());

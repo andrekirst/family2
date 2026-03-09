@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Features.School.Application.Commands.MarkAsStudent;
 
 public sealed record MarkAsStudentCommand(
     FamilyMemberId FamilyMemberId
-) : ICommand<MarkAsStudentResult>, IRequireFamily
+) : ICommand<Result<MarkAsStudentResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

@@ -9,4 +9,4 @@ public sealed record AccessShareLinkCommand(
     string IpAddress,
     string? UserAgent,
     ShareAccessAction Action
-) : ICommand<AccessShareLinkResult>, IAnonymousOperation;
+) : ICommand<Result<AccessShareLinkResult>>, IAnonymousOperation;

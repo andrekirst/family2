@@ -8,23 +8,25 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetBreadcrum
 
 public sealed class GetBreadcrumbQueryHandler(
     IFolderRepository folderRepository)
-    : IQueryHandler<GetBreadcrumbQuery, List<FolderDto>>
+    : IQueryHandler<GetBreadcrumbQuery, Result<List<FolderDto>>>
 {
-    public async ValueTask<List<FolderDto>> Handle(
+    public async ValueTask<Result<List<FolderDto>>> Handle(
         GetBreadcrumbQuery query,
         CancellationToken cancellationToken)
     {
-        var folder = await folderRepository.GetByIdAsync(query.FolderId, cancellationToken)
-            ?? throw new DomainException("Folder not found", DomainErrorCodes.FolderNotFound);
+        var folder = await folderRepository.GetByIdAsync(query.FolderId, cancellationToken);
+        if (folder is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FolderNotFound, "Folder not found");
+        }
 
         if (folder.FamilyId != query.FamilyId)
         {
-            throw new DomainException("Folder belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Folder belongs to a different family");
         }
 
         var ancestors = await folderRepository.GetAncestorsAsync(query.FolderId, cancellationToken);
 
-        // Ancestors are root → parent chain; append the current folder
         var breadcrumb = ancestors
             .Select(FileManagementMapper.ToDto)
             .ToList();

@@ -37,7 +37,7 @@ public class CreateTagCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.TagId.Value.Should().NotBe(Guid.Empty);
+        result.Value.TagId.Value.Should().NotBe(Guid.Empty);
         await _tagRepo.Received(1).AddAsync(
             Arg.Is<Tag>(t => t.Name.Value == "Photos" && t.Color.Value == "#FF0000"),
             Arg.Any<CancellationToken>());
@@ -61,10 +61,10 @@ public class CreateTagCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Conflict);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Conflict);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class CreateTagCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.TagId.Value.Should().NotBe(Guid.Empty);
+        result.Value.TagId.Value.Should().NotBe(Guid.Empty);
         await _tagRepo.Received(1).AddAsync(Arg.Any<Tag>(), Arg.Any<CancellationToken>());
     }
 }

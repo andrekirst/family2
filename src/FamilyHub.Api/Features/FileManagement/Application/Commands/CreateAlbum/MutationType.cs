@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Models;
@@ -10,7 +11,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateAlbum
 public class MutationType
 {
     [Authorize]
-    public async Task<CreateAlbumResult> CreateAlbum(
+    public async Task<object> CreateAlbum(
         CreateAlbumRequest input,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
@@ -19,6 +20,9 @@ public class MutationType
             AlbumName.From(input.Name),
             input.Description);
 
-        return await commandBus.SendAsync(command, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

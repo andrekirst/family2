@@ -83,6 +83,7 @@ public static class DomainErrorCodes
     public const string UnknownTriggerEventType = "UNKNOWN_TRIGGER_EVENT_TYPE";
     public const string UnknownActionType = "UNKNOWN_ACTION_TYPE";
     public const string UserNotInFamily = "USER_NOT_IN_FAMILY";
+    public const string RootFolderNotFound = "ROOT_FOLDER_NOT_FOUND";
 
     // Dashboard
     public const string DashboardNotFound = "DASHBOARD_NOT_FOUND";
@@ -94,4 +95,5 @@ public static class DomainErrorCodes
     public const string OAuthStateExpired = "OAUTH_STATE_EXPIRED";
     public const string GoogleAccountAlreadyLinked = "GOOGLE_ACCOUNT_ALREADY_LINKED";
     public const string NoGoogleAccountLinked = "NO_GOOGLE_ACCOUNT_LINKED";
+    public const string RefreshTokenMissing = "REFRESH_TOKEN_MISSING";
 }

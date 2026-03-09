@@ -10,6 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFilesByTa
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<StoredFileDto>> GetFilesByTag(
         List<Guid> tagIds,
         [Service] IQueryBus queryBus,

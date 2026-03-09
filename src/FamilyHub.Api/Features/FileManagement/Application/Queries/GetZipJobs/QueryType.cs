@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetZipJobs;
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<ZipJobDto>> GetZipJobs(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

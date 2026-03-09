@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.TagFile;
 public sealed record TagFileCommand(
     FileId FileId,
     TagId TagId
-) : ICommand<TagFileResult>, IRequireFamily
+) : ICommand<Result<TagFileResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

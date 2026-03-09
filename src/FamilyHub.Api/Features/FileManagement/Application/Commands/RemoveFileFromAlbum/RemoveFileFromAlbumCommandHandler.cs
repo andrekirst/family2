@@ -8,19 +8,22 @@ public sealed class RemoveFileFromAlbumCommandHandler(
     IAlbumRepository albumRepository,
     IAlbumItemRepository albumItemRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<RemoveFileFromAlbumCommand, RemoveFileFromAlbumResult>
+    : ICommandHandler<RemoveFileFromAlbumCommand, Result<RemoveFileFromAlbumResult>>
 {
-    public async ValueTask<RemoveFileFromAlbumResult> Handle(
+    public async ValueTask<Result<RemoveFileFromAlbumResult>> Handle(
         RemoveFileFromAlbumCommand command,
         CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken)
-            ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
+        var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken);
+        if (album is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.AlbumNotFound, "Album not found");
+        }
 
         if (album.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Album belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Album belongs to a different family");
         }
 
         var items = await albumItemRepository.GetByAlbumIdAsync(command.AlbumId, cancellationToken);
@@ -28,12 +31,11 @@ public sealed class RemoveFileFromAlbumCommandHandler(
 
         if (item is null)
         {
-            return new RemoveFileFromAlbumResult(true); // Idempotent
+            return new RemoveFileFromAlbumResult(true);
         }
 
         await albumItemRepository.RemoveAsync(item, cancellationToken);
 
-        // If cover was removed, auto-select new cover
         if (album.CoverFileId == command.FileId)
         {
             var firstFileId = await albumItemRepository.GetFirstImageFileIdAsync(command.AlbumId, cancellationToken);

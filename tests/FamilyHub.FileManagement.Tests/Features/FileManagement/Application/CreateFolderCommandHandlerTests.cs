@@ -35,8 +35,8 @@ public class CreateFolderCommandHandlerTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Should().NotBeNull();
-        result.FolderId.Value.Should().NotBe(Guid.Empty);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.FolderId.Value.Should().NotBe(Guid.Empty);
         capturedFolder.Should().NotBeNull();
         capturedFolder!.MaterializedPath.Should().Be($"/{parentFolder.Id.Value}/");
         capturedFolder.ParentFolderId.Should().Be(parentFolder.Id);
@@ -74,7 +74,7 @@ public class CreateFolderCommandHandlerTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
         addedFolders.Should().HaveCount(2);
         var rootFolder = addedFolders.First(f => f.ParentFolderId == null);
         rootFolder.Name.Value.Should().Be("Root");
@@ -98,10 +98,10 @@ public class CreateFolderCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.NotFound);
     }
 
     [Fact]
@@ -122,10 +122,10 @@ public class CreateFolderCommandHandlerTests
             UserId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 
     [Fact]

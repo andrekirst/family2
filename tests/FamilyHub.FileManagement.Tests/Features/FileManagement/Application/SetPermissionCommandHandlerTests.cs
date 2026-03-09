@@ -58,7 +58,7 @@ public class SetPermissionCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _permRepo.Received(1).AddAsync(
             Arg.Is<FilePermission>(p => p.MemberId == memberId && p.PermissionLevel == FilePermissionLevel.View),
             Arg.Any<CancellationToken>());
@@ -85,7 +85,7 @@ public class SetPermissionCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _permRepo.Received(1).AddAsync(Arg.Any<FilePermission>(), Arg.Any<CancellationToken>());
     }
 
@@ -116,7 +116,7 @@ public class SetPermissionCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         existing.PermissionLevel.Should().Be(FilePermissionLevel.Manage);
     }
 
@@ -136,10 +136,10 @@ public class SetPermissionCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FileNotFound);
     }
 
     [Fact]
@@ -158,10 +158,10 @@ public class SetPermissionCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FolderNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FolderNotFound);
     }
 
     [Fact]
@@ -181,9 +181,9 @@ public class SetPermissionCommandHandlerTests
             UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

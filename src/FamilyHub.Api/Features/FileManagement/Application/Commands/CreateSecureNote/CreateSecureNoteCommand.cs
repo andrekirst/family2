@@ -11,7 +11,7 @@ public sealed record CreateSecureNoteCommand(
     string Iv,
     string Salt,
     string Sentinel
-) : ICommand<CreateSecureNoteResult>, IRequireFamily
+) : ICommand<Result<CreateSecureNoteResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

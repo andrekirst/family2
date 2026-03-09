@@ -6,18 +6,21 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteSecur
 
 public sealed class DeleteSecureNoteCommandHandler(
     ISecureNoteRepository noteRepository)
-    : ICommandHandler<DeleteSecureNoteCommand, DeleteSecureNoteResult>
+    : ICommandHandler<DeleteSecureNoteCommand, Result<DeleteSecureNoteResult>>
 {
-    public async ValueTask<DeleteSecureNoteResult> Handle(
+    public async ValueTask<Result<DeleteSecureNoteResult>> Handle(
         DeleteSecureNoteCommand command,
         CancellationToken cancellationToken)
     {
-        var note = await noteRepository.GetByIdAsync(command.NoteId, cancellationToken)
-            ?? throw new DomainException("Secure note not found", DomainErrorCodes.SecureNoteNotFound);
+        var note = await noteRepository.GetByIdAsync(command.NoteId, cancellationToken);
+        if (note is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.SecureNoteNotFound, "Secure note not found");
+        }
 
         if (note.UserId != command.UserId)
         {
-            throw new DomainException("Secure note not found", DomainErrorCodes.SecureNoteNotFound);
+            return DomainError.NotFound(DomainErrorCodes.SecureNoteNotFound, "Secure note not found");
         }
 
         note.MarkDeleted();

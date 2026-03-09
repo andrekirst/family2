@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Application.Mappers;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
@@ -12,7 +13,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateFolde
 public class MutationType
 {
     [Authorize]
-    public async Task<FolderDto> CreateFolder(
+    public async Task<object> CreateFolder(
         CreateFolderRequest input,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
@@ -22,7 +23,8 @@ public class MutationType
             input.ParentFolderId.HasValue ? FolderId.From(input.ParentFolderId.Value) : null);
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-
-        return FileManagementMapper.ToDto(result.CreatedFolder);
+        return result.Match<object>(
+            success => FileManagementMapper.ToDto(success.CreatedFolder),
+            error => MutationError.FromDomainError(error));
     }
 }

@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetShareLink
 
 public sealed record GetShareLinkAccessLogQuery(
     ShareLinkId ShareLinkId
-) : IReadOnlyQuery<List<ShareLinkAccessLogDto>>, IRequireFamily
+) : IReadOnlyQuery<Result<List<ShareLinkAccessLogDto>>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

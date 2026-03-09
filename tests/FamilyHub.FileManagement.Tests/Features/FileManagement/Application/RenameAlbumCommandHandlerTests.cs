@@ -33,7 +33,7 @@ public class RenameAlbumCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.AlbumId.Should().Be(album.Id);
+        result.Value.AlbumId.Should().Be(album.Id);
         album.Name.Value.Should().Be("New Name");
     }
 
@@ -48,10 +48,10 @@ public class RenameAlbumCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.AlbumNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.AlbumNotFound);
     }
 
     [Fact]
@@ -65,9 +65,9 @@ public class RenameAlbumCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -9,7 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ToggleOrgan
 public class MutationType
 {
     [Authorize]
-    public async Task<ToggleOrganizationRuleResult> ToggleOrganizationRule(
+    public async Task<object> ToggleOrganizationRule(
         Guid ruleId,
         bool isEnabled,
         [Service] ICommandBus commandBus,
@@ -19,6 +20,9 @@ public class MutationType
             OrganizationRuleId.From(ruleId),
             isEnabled);
 
-        return await commandBus.SendAsync(command, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

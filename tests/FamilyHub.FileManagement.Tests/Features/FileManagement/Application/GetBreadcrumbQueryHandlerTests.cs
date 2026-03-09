@@ -38,10 +38,10 @@ public class GetBreadcrumbQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().HaveCount(3);
-        result[0].Id.Should().Be(root.Id.Value);
-        result[1].Id.Should().Be(documents.Id.Value);
-        result[2].Id.Should().Be(taxes.Id.Value);
+        result.Value.Should().HaveCount(3);
+        result.Value[0].Id.Should().Be(root.Id.Value);
+        result.Value[1].Id.Should().Be(documents.Id.Value);
+        result.Value[2].Id.Should().Be(taxes.Id.Value);
     }
 
     [Fact]
@@ -67,9 +67,9 @@ public class GetBreadcrumbQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().HaveCount(2);
-        result[0].Id.Should().Be(root.Id.Value);
-        result[1].Id.Should().Be(folder.Id.Value);
+        result.Value.Should().HaveCount(2);
+        result.Value[0].Id.Should().Be(root.Id.Value);
+        result.Value[1].Id.Should().Be(folder.Id.Value);
     }
 
     [Fact]
@@ -86,10 +86,10 @@ public class GetBreadcrumbQueryHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FolderNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FolderNotFound);
     }
 
     [Fact]
@@ -111,9 +111,9 @@ public class GetBreadcrumbQueryHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

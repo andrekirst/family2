@@ -12,7 +12,7 @@ public sealed record UpdateChainDefinitionCommand(
     string? Description,
     bool? IsEnabled,
     IReadOnlyList<CreateStepCommand>? Steps
-) : ICommand<UpdateChainDefinitionResult>, IRequireFamily
+) : ICommand<Result<UpdateChainDefinitionResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

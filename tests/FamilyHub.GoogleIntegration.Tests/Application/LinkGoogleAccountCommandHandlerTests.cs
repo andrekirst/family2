@@ -72,7 +72,8 @@ public class LinkGoogleAccountCommandHandlerTests
         var command = new LinkGoogleAccountCommand("auth-code", "valid-state");
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Success.Should().BeTrue();
         await linkRepo.Received(1).AddAsync(Arg.Any<GoogleAccountLink>(), Arg.Any<CancellationToken>());
 
         capturedLink.Should().NotBeNull();

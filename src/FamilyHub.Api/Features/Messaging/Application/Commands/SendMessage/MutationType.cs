@@ -1,4 +1,5 @@
 using FamilyHub.Common.Application;
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Application.Mappers;
@@ -18,7 +19,7 @@ public class MutationType
     /// Publishes to the subscription topic for real-time delivery.
     /// </summary>
     [Authorize]
-    public async Task<MessageDto> SendMessage(
+    public async Task<object> SendMessage(
         SendMessageRequest input,
         [Service] ICommandBus commandBus,
         [Service] ICurrentUserContext currentUserContext,
@@ -47,21 +48,26 @@ public class MutationType
 
         var result = await commandBus.SendAsync(command, cancellationToken);
 
-        // Use entity from result for DTO mapping; fetch supplemental sender data
-        var message = result.SentMessage;
-        var userInfo = await currentUserContext.GetCurrentUserAsync();
-        var user = await userRepository.GetByIdAsync(userInfo.UserId, cancellationToken);
-        var messageDto = MessageMapper.ToDto(message, user!.Name.Value, user.AvatarId?.Value);
+        return await result.Match<Task<object>>(
+            async success =>
+            {
+                // Use entity from result for DTO mapping; fetch supplemental sender data
+                var message = success.SentMessage;
+                var userInfo = await currentUserContext.GetCurrentUserAsync();
+                var user = await userRepository.GetByIdAsync(userInfo.UserId, cancellationToken);
+                var messageDto = MessageMapper.ToDto(message, user!.Name.Value, user.AvatarId?.Value);
 
-        // Publish to subscription topic for real-time delivery
-        if (userInfo.FamilyId is not null)
-        {
-            await topicEventSender.SendAsync(
-                $"MessageSent_{userInfo.FamilyId.Value.Value}",
-                messageDto,
-                cancellationToken);
-        }
+                // Publish to subscription topic for real-time delivery
+                if (userInfo.FamilyId is not null)
+                {
+                    await topicEventSender.SendAsync(
+                        $"MessageSent_{userInfo.FamilyId.Value.Value}",
+                        messageDto,
+                        cancellationToken);
+                }
 
-        return messageDto;
+                return messageDto;
+            },
+            error => Task.FromResult<object>(MutationError.FromDomainError(error)));
     }
 }

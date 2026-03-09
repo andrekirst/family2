@@ -49,7 +49,7 @@ public class DeleteFolderCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _folderRepo.Received(1).RemoveAsync(folder, Arg.Any<CancellationToken>());
         await _fileRepo.Received(1).RemoveRangeAsync(
             Arg.Is<List<StoredFile>>(files => files.Contains(file)),
@@ -90,7 +90,7 @@ public class DeleteFolderCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _folderRepo.Received(1).RemoveAsync(folderA, Arg.Any<CancellationToken>());
         await _storageService.Received(1).DeleteFileAsync(familyId, "key-deep", 512, Arg.Any<CancellationToken>());
     }
@@ -109,10 +109,10 @@ public class DeleteFolderCommandHandlerTests
             FamilyId = familyId,
             UserId = userId
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 
     [Fact]
@@ -130,9 +130,9 @@ public class DeleteFolderCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = userId
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

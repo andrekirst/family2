@@ -47,8 +47,8 @@ public class CreateFileVersionCommandHandlerTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        result.VersionNumber.Should().Be(1);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.VersionNumber.Should().Be(1);
         await versionRepo.Received(1).AddAsync(
             Arg.Is<FileVersion>(v => v.IsCurrent && v.VersionNumber == 1),
             Arg.Any<CancellationToken>());
@@ -90,7 +90,7 @@ public class CreateFileVersionCommandHandlerTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.VersionNumber.Should().Be(2);
+        result.Value.VersionNumber.Should().Be(2);
         existingVersion.IsCurrent.Should().BeFalse();
         await versionRepo.Received(1).AddAsync(
             Arg.Is<FileVersion>(v => v.IsCurrent && v.VersionNumber == 2),
@@ -117,9 +117,9 @@ public class CreateFileVersionCommandHandlerTests
             FamilyId = FamilyId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found*");
     }
 }

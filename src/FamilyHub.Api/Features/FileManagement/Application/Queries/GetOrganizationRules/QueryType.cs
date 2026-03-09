@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetOrganizat
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<OrganizationRuleDto>> GetOrganizationRules(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

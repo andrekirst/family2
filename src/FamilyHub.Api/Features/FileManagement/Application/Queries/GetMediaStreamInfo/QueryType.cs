@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -10,13 +11,17 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetMediaStre
 public class QueryType
 {
     [Authorize]
-    public async Task<MediaStreamInfoDto> GetMediaStreamInfo(
+    public async Task<object> GetMediaStreamInfo(
         Guid fileId,
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)
     {
         var query = new GetMediaStreamInfoQuery(
             FileId.From(fileId));
-        return await queryBus.QueryAsync(query, cancellationToken);
+
+        var result = await queryBus.QueryAsync(query, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

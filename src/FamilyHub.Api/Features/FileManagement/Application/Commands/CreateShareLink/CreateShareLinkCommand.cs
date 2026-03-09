@@ -10,7 +10,7 @@ public sealed record CreateShareLinkCommand(
     DateTime? ExpiresAt,
     string? Password,
     int? MaxDownloads
-) : ICommand<CreateShareLinkResult>, IRequireFamily
+) : ICommand<Result<CreateShareLinkResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

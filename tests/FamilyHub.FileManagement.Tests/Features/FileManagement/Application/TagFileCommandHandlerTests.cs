@@ -53,7 +53,7 @@ public class TagFileCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _fileTagRepo.Received(1).AddAsync(
             Arg.Is<FileTag>(ft => ft.FileId == file.Id && ft.TagId == tag.Id),
             Arg.Any<CancellationToken>());
@@ -77,7 +77,7 @@ public class TagFileCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _fileTagRepo.DidNotReceive().AddAsync(Arg.Any<FileTag>(), Arg.Any<CancellationToken>());
     }
 
@@ -95,10 +95,10 @@ public class TagFileCommandHandlerTests
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FileNotFound);
     }
 
     [Fact]
@@ -115,10 +115,10 @@ public class TagFileCommandHandlerTests
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.TagNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.TagNotFound);
     }
 
     [Fact]
@@ -136,9 +136,9 @@ public class TagFileCommandHandlerTests
             FamilyId = differentFamily,
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

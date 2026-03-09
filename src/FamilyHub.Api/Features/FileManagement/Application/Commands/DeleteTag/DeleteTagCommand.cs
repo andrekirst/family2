@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteTag;
 
 public sealed record DeleteTagCommand(
     TagId TagId
-) : ICommand<DeleteTagResult>, IRequireFamily
+) : ICommand<Result<DeleteTagResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateZipJo
 
 public sealed record CreateZipJobCommand(
     List<Guid> FileIds
-) : ICommand<CreateZipJobResult>, IRequireFamily
+) : ICommand<Result<CreateZipJobResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

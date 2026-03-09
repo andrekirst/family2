@@ -35,7 +35,7 @@ public class UpdateTagCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.TagId.Should().Be(tag.Id);
+        result.Value.TagId.Should().Be(tag.Id);
         tag.Name.Value.Should().Be("Images");
     }
 
@@ -53,7 +53,7 @@ public class UpdateTagCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.TagId.Should().Be(tag.Id);
+        result.Value.TagId.Should().Be(tag.Id);
         tag.Color.Value.Should().Be("#00FF00");
     }
 
@@ -88,10 +88,10 @@ public class UpdateTagCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.TagNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.TagNotFound);
     }
 
     [Fact]
@@ -105,10 +105,10 @@ public class UpdateTagCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 
     [Fact]
@@ -126,9 +126,9 @@ public class UpdateTagCommandHandlerTests
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Conflict);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Conflict);
     }
 }

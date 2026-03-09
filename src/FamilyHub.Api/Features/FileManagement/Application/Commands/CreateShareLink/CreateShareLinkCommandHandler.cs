@@ -7,9 +7,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateShare
 public sealed class CreateShareLinkCommandHandler(
     IShareLinkRepository shareLinkRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<CreateShareLinkCommand, CreateShareLinkResult>
+    : ICommandHandler<CreateShareLinkCommand, Result<CreateShareLinkResult>>
 {
-    public async ValueTask<CreateShareLinkResult> Handle(
+    public async ValueTask<Result<CreateShareLinkResult>> Handle(
         CreateShareLinkCommand command,
         CancellationToken cancellationToken)
     {

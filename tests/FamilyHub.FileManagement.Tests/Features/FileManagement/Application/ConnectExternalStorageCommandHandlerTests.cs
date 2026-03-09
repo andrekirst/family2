@@ -39,7 +39,7 @@ public class ConnectExternalStorageCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.ConnectionId.Should().NotBe(Guid.Empty);
+        result.Value.ConnectionId.Should().NotBe(Guid.Empty);
         await _repo.Received(1).AddAsync(
             Arg.Is<ExternalConnection>(c =>
                 c.ProviderType == ExternalProviderType.OneDrive &&
@@ -69,10 +69,10 @@ public class ConnectExternalStorageCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*already exists*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*already exists*");
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class ConnectExternalStorageCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.ConnectionId.Should().NotBe(Guid.Empty);
+        result.Value.ConnectionId.Should().NotBe(Guid.Empty);
         await _repo.Received(1).AddAsync(
             Arg.Is<ExternalConnection>(c =>
                 c.EncryptedRefreshToken == null &&

@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteAlbum
 
 public sealed record DeleteAlbumCommand(
     AlbumId AlbumId
-) : ICommand<DeleteAlbumResult>, IRequireFamily
+) : ICommand<Result<DeleteAlbumResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

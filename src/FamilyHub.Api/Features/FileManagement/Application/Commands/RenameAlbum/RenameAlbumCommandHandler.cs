@@ -7,19 +7,22 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RenameAlbum
 public sealed class RenameAlbumCommandHandler(
     IAlbumRepository albumRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<RenameAlbumCommand, RenameAlbumResult>
+    : ICommandHandler<RenameAlbumCommand, Result<RenameAlbumResult>>
 {
-    public async ValueTask<RenameAlbumResult> Handle(
+    public async ValueTask<Result<RenameAlbumResult>> Handle(
         RenameAlbumCommand command,
         CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken)
-            ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
+        var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken);
+        if (album is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.AlbumNotFound, "Album not found");
+        }
 
         if (album.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Album belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Album belongs to a different family");
         }
 
         album.Rename(command.NewName, utcNow);

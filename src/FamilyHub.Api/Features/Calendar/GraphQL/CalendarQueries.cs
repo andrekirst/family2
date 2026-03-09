@@ -12,6 +12,7 @@ namespace FamilyHub.Api.Features.Calendar.GraphQL;
 public class CalendarQueries
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<CalendarEventDto>> GetCalendars(
         DateTime startDate,
         DateTime endDate,

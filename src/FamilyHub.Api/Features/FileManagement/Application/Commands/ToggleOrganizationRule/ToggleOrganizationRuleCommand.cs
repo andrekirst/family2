@@ -6,7 +6,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ToggleOrgan
 public sealed record ToggleOrganizationRuleCommand(
     OrganizationRuleId RuleId,
     bool IsEnabled
-) : ICommand<ToggleOrganizationRuleResult>, IRequireFamily
+) : ICommand<Result<ToggleOrganizationRuleResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

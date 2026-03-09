@@ -52,7 +52,7 @@ public class AddFileToAlbumCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _itemRepo.Received(1).AddAsync(Arg.Any<AlbumItem>(), Arg.Any<CancellationToken>());
     }
 
@@ -95,7 +95,7 @@ public class AddFileToAlbumCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _itemRepo.DidNotReceive().AddAsync(Arg.Any<AlbumItem>(), Arg.Any<CancellationToken>());
     }
 
@@ -113,10 +113,10 @@ public class AddFileToAlbumCommandHandlerTests
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.AlbumNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.AlbumNotFound);
     }
 
     [Fact]
@@ -133,9 +133,9 @@ public class AddFileToAlbumCommandHandlerTests
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FileNotFound);
     }
 }

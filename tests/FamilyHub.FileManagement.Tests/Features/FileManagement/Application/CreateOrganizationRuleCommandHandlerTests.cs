@@ -37,7 +37,7 @@ public class CreateOrganizationRuleCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         await _ruleRepo.Received(1).AddAsync(
             Arg.Is<OrganizationRule>(r => r.Name == "Move photos" && r.Priority == 1),
             Arg.Any<CancellationToken>());

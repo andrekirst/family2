@@ -8,7 +8,7 @@ public sealed record RemovePermissionCommand(
     PermissionResourceType ResourceType,
     Guid ResourceId,
     UserId MemberId
-) : ICommand<RemovePermissionResult>, IRequireFamily
+) : ICommand<Result<RemovePermissionResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

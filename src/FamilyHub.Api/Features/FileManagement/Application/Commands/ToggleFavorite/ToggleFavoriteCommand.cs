@@ -5,7 +5,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ToggleFavor
 
 public sealed record ToggleFavoriteCommand(
     FileId FileId
-) : ICommand<ToggleFavoriteResult>, IRequireFamily
+) : ICommand<Result<ToggleFavoriteResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

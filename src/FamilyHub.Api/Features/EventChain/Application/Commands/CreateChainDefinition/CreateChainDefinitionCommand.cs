@@ -10,7 +10,7 @@ public sealed record CreateChainDefinitionCommand(
     string TriggerEventType,
     IReadOnlyList<CreateStepCommand> Steps,
     bool IsEnabled = true
-) : ICommand<CreateChainDefinitionResult>, IRequireFamily
+) : ICommand<Result<CreateChainDefinitionResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

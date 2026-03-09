@@ -50,7 +50,7 @@ public class ToggleFavoriteCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.IsFavorited.Should().BeTrue();
+        result.Value.IsFavorited.Should().BeTrue();
         await _favRepo.Received(1).AddAsync(Arg.Any<UserFavorite>(), Arg.Any<CancellationToken>());
     }
 
@@ -74,7 +74,7 @@ public class ToggleFavoriteCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.IsFavorited.Should().BeFalse();
+        result.Value.IsFavorited.Should().BeFalse();
         await _favRepo.Received(1).RemoveAsync(Arg.Any<UserFavorite>(), Arg.Any<CancellationToken>());
     }
 
@@ -89,10 +89,10 @@ public class ToggleFavoriteCommandHandlerTests
             UserId = UserId.New(),
             FamilyId = FamilyId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FileNotFound);
     }
 
     [Fact]
@@ -107,9 +107,9 @@ public class ToggleFavoriteCommandHandlerTests
             UserId = UserId.New(),
             FamilyId = FamilyId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

@@ -10,7 +10,7 @@ public sealed record ConnectExternalStorageCommand(
     string EncryptedAccessToken,
     string? EncryptedRefreshToken,
     DateTime? TokenExpiresAt
-) : ICommand<ConnectExternalStorageResult>, IRequireFamily
+) : ICommand<Result<ConnectExternalStorageResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

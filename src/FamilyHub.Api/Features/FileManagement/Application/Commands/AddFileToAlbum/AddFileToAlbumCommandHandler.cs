@@ -10,30 +10,35 @@ public sealed class AddFileToAlbumCommandHandler(
     IStoredFileRepository storedFileRepository,
     IAlbumItemRepository albumItemRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<AddFileToAlbumCommand, AddFileToAlbumResult>
+    : ICommandHandler<AddFileToAlbumCommand, Result<AddFileToAlbumResult>>
 {
-    public async ValueTask<AddFileToAlbumResult> Handle(
+    public async ValueTask<Result<AddFileToAlbumResult>> Handle(
         AddFileToAlbumCommand command,
         CancellationToken cancellationToken)
     {
         var utcNow = timeProvider.GetUtcNow();
-        var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken)
-            ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
+        var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken);
+        if (album is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.AlbumNotFound, "Album not found");
+        }
 
         if (album.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Album belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Album belongs to a different family");
         }
 
-        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken)
-                   ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
+        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken);
+        if (file is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found");
+        }
 
         if (file.FamilyId != command.FamilyId)
         {
-            throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "File belongs to a different family");
         }
 
-        // Idempotent: if already in album, return success
         var exists = await albumItemRepository.ExistsAsync(command.AlbumId, command.FileId, cancellationToken);
         if (exists)
         {
@@ -43,7 +48,6 @@ public sealed class AddFileToAlbumCommandHandler(
         var item = AlbumItem.Create(command.AlbumId, command.FileId, command.UserId, utcNow);
         await albumItemRepository.AddAsync(item, cancellationToken);
 
-        // Auto-set cover image if not set
         if (album.CoverFileId is null)
         {
             album.SetCoverImage(command.FileId, utcNow);

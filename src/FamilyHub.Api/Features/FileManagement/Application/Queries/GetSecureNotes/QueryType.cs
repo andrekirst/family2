@@ -10,6 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetSecureNot
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<SecureNoteDto>> GetSecureNotes(
         string? category,
         [Service] IQueryBus queryBus,

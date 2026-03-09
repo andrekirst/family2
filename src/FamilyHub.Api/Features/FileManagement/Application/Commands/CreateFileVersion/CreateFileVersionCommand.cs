@@ -9,7 +9,7 @@ public sealed record CreateFileVersionCommand(
     StorageKey StorageKey,
     FileSize FileSize,
     Checksum Checksum
-) : ICommand<CreateFileVersionResult>, IRequireFamily
+) : ICommand<Result<CreateFileVersionResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

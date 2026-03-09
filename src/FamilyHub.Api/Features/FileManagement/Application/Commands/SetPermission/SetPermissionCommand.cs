@@ -9,7 +9,7 @@ public sealed record SetPermissionCommand(
     Guid ResourceId,
     UserId MemberId,
     FilePermissionLevel PermissionLevel
-) : ICommand<SetPermissionResult>, IRequireFamily
+) : ICommand<Result<SetPermissionResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetSavedSear
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<SavedSearchDto>> GetSavedSearches(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

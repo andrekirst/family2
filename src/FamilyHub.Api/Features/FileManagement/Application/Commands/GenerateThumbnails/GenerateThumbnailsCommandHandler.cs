@@ -14,7 +14,7 @@ public sealed class GenerateThumbnailsCommandHandler(
     IThumbnailGenerationService thumbnailService,
     IStorageProvider storageProvider,
     TimeProvider timeProvider)
-    : ICommandHandler<GenerateThumbnailsCommand, GenerateThumbnailsResult>
+    : ICommandHandler<GenerateThumbnailsCommand, Result<GenerateThumbnailsResult>>
 {
     private static readonly (int Width, int Height)[] ThumbnailSizes =
     [
@@ -22,16 +22,19 @@ public sealed class GenerateThumbnailsCommandHandler(
         (800, 800)
     ];
 
-    public async ValueTask<GenerateThumbnailsResult> Handle(
+    public async ValueTask<Result<GenerateThumbnailsResult>> Handle(
         GenerateThumbnailsCommand command,
         CancellationToken cancellationToken)
     {
-        var file = await fileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
+        var file = await fileRepository.GetByIdAsync(command.FileId, cancellationToken);
+        if (file is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found");
+        }
 
         if (file.FamilyId != command.FamilyId)
         {
-            throw new DomainException("File not found in this family", DomainErrorCodes.FileNotFound);
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found in this family");
         }
 
         if (!thumbnailService.CanGenerateThumbnail(file.MimeType.Value))

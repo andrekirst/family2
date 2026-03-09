@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -9,7 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteFile;
 public class MutationType
 {
     [Authorize]
-    public async Task<bool> DeleteFile(
+    public async Task<object> DeleteFile(
         Guid fileId,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
@@ -18,6 +19,8 @@ public class MutationType
             FileId.From(fileId));
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-        return result.Success;
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

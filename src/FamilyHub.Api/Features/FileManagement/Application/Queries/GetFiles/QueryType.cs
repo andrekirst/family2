@@ -10,6 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFiles;
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<StoredFileDto>> GetFiles(
         Guid? folderId,
         [Service] IQueryBus queryBus,

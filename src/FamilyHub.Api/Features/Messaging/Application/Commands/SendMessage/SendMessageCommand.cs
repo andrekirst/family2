@@ -19,7 +19,7 @@ public sealed record SendMessageCommand(
     MessageContent Content,
     IReadOnlyList<AttachmentData>? Attachments = null,
     ConversationId? ConversationId = null
-) : ICommand<SendMessageResult>, IRequireFamily
+) : ICommand<Result<SendMessageResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

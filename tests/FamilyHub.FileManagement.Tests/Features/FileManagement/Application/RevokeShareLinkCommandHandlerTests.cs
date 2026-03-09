@@ -33,7 +33,7 @@ public class RevokeShareLinkCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         link.IsRevoked.Should().BeTrue();
     }
 
@@ -48,10 +48,10 @@ public class RevokeShareLinkCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Share link not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Share link not found*");
     }
 
     [Fact]
@@ -65,9 +65,9 @@ public class RevokeShareLinkCommandHandlerTests
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Share link not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Share link not found*");
     }
 }

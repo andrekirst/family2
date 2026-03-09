@@ -7,9 +7,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateOrgan
 public sealed class CreateOrganizationRuleCommandHandler(
     IOrganizationRuleRepository ruleRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<CreateOrganizationRuleCommand, CreateOrganizationRuleResult>
+    : ICommandHandler<CreateOrganizationRuleCommand, Result<CreateOrganizationRuleResult>>
 {
-    public async ValueTask<CreateOrganizationRuleResult> Handle(
+    public async ValueTask<Result<CreateOrganizationRuleResult>> Handle(
         CreateOrganizationRuleCommand command,
         CancellationToken cancellationToken)
     {

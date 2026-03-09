@@ -11,7 +11,7 @@ public sealed record UploadFileCommand(
     StorageKey StorageKey,
     Checksum Checksum,
     FolderId FolderId
-) : ICommand<UploadFileResult>, IRequireFamily
+) : ICommand<Result<UploadFileResult>>, IRequireFamily
 {
     public UserId UserId { get; init; }
     public FamilyId FamilyId { get; init; }

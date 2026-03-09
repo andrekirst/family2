@@ -34,8 +34,8 @@ public static class GoogleCallbackEndpoints
         var command = new LinkGoogleAccountCommand(code, state);
         var result = await commandBus.SendAsync(command, cancellationToken);
 
-        return result.Success
-            ? Results.Redirect($"{frontendUrl}/settings?google_linked=true")
-            : Results.Redirect($"{frontendUrl}/settings?google_error={Uri.EscapeDataString(result.Error ?? "unknown")}");
+        return result.Match(
+            success => Results.Redirect($"{frontendUrl}/settings?google_linked=true"),
+            failure => Results.Redirect($"{frontendUrl}/settings?google_error={Uri.EscapeDataString(failure.Message)}"));
     }
 }

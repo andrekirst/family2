@@ -41,12 +41,12 @@ public class GetMediaStreamInfoQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.FileId.Should().Be(file.Id.Value);
-        result.MimeType.Should().Be("video/mp4");
-        result.FileSize.Should().Be(10_000_000);
-        result.IsStreamable.Should().BeTrue();
-        result.SupportsRangeRequests.Should().BeTrue();
-        result.Thumbnails.Should().BeEmpty();
+        result.Value.FileId.Should().Be(file.Id.Value);
+        result.Value.MimeType.Should().Be("video/mp4");
+        result.Value.FileSize.Should().Be(10_000_000);
+        result.Value.IsStreamable.Should().BeTrue();
+        result.Value.SupportsRangeRequests.Should().BeTrue();
+        result.Value.Thumbnails.Should().BeEmpty();
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class GetMediaStreamInfoQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.IsStreamable.Should().BeFalse();
+        result.Value.IsStreamable.Should().BeFalse();
     }
 
     [Fact]
@@ -113,9 +113,9 @@ public class GetMediaStreamInfoQueryHandlerTests
         };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Thumbnails.Should().HaveCount(2);
-        result.Thumbnails[0].Width.Should().Be(200);
-        result.Thumbnails[1].Width.Should().Be(800);
+        result.Value.Thumbnails.Should().HaveCount(2);
+        result.Value.Thumbnails[0].Width.Should().Be(200);
+        result.Value.Thumbnails[1].Width.Should().Be(800);
     }
 
     [Fact]
@@ -134,10 +134,10 @@ public class GetMediaStreamInfoQueryHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found*");
     }
 
     [Fact]
@@ -164,9 +164,9 @@ public class GetMediaStreamInfoQueryHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found in this family*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found in this family*");
     }
 }

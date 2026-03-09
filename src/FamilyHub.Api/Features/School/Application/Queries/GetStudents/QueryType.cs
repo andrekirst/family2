@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.School.Application.Queries.GetStudents;
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<StudentDto>> GetStudents(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

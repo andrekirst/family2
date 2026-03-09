@@ -5,4 +5,4 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.LinkGoog
 public sealed record LinkGoogleAccountCommand(
     string Code,
     string State
-) : ICommand<LinkGoogleAccountResult>, IAnonymousOperation;
+) : ICommand<Result<LinkGoogleAccountResult>>, IAnonymousOperation;

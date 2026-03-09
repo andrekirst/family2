@@ -8,9 +8,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ConnectExte
 public sealed class ConnectExternalStorageCommandHandler(
     IExternalConnectionRepository connectionRepository,
     TimeProvider timeProvider)
-    : ICommandHandler<ConnectExternalStorageCommand, ConnectExternalStorageResult>
+    : ICommandHandler<ConnectExternalStorageCommand, Result<ConnectExternalStorageResult>>
 {
-    public async ValueTask<ConnectExternalStorageResult> Handle(
+    public async ValueTask<Result<ConnectExternalStorageResult>> Handle(
         ConnectExternalStorageCommand command,
         CancellationToken cancellationToken)
     {
@@ -20,9 +20,9 @@ public sealed class ConnectExternalStorageCommandHandler(
 
         if (existing is not null)
         {
-            throw new DomainException(
-                "Connection to this provider already exists",
-                DomainErrorCodes.ExternalConnectionAlreadyExists);
+            return DomainError.Conflict(
+                DomainErrorCodes.ExternalConnectionAlreadyExists,
+                "Connection to this provider already exists");
         }
 
         var connection = ExternalConnection.Create(

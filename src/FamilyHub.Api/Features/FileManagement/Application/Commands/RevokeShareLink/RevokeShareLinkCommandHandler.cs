@@ -6,18 +6,21 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RevokeShare
 
 public sealed class RevokeShareLinkCommandHandler(
     IShareLinkRepository shareLinkRepository)
-    : ICommandHandler<RevokeShareLinkCommand, RevokeShareLinkResult>
+    : ICommandHandler<RevokeShareLinkCommand, Result<RevokeShareLinkResult>>
 {
-    public async ValueTask<RevokeShareLinkResult> Handle(
+    public async ValueTask<Result<RevokeShareLinkResult>> Handle(
         RevokeShareLinkCommand command,
         CancellationToken cancellationToken)
     {
-        var link = await shareLinkRepository.GetByIdAsync(command.ShareLinkId, cancellationToken)
-            ?? throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
+        var link = await shareLinkRepository.GetByIdAsync(command.ShareLinkId, cancellationToken);
+        if (link is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.ShareLinkNotFound, "Share link not found");
+        }
 
         if (link.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
+            return DomainError.NotFound(DomainErrorCodes.ShareLinkNotFound, "Share link not found");
         }
 
         link.Revoke(command.UserId);

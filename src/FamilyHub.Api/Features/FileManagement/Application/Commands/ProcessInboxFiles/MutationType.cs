@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Common.Application;
 using HotChocolate.Authorization;
@@ -8,12 +9,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ProcessInbo
 public class MutationType
 {
     [Authorize]
-    public async Task<ProcessInboxFilesResult> ProcessInboxFiles(
+    public async Task<object> ProcessInboxFiles(
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
         var command = new ProcessInboxFilesCommand();
 
-        return await commandBus.SendAsync(command, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

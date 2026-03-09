@@ -54,8 +54,8 @@ public class GenerateThumbnailsCommandHandlerTests
         };
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        result.ThumbnailsGenerated.Should().Be(2);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ThumbnailsGenerated.Should().Be(2);
         await thumbnailRepo.Received(2).AddAsync(Arg.Any<FileThumbnail>(), Arg.Any<CancellationToken>());
     }
 
@@ -89,8 +89,8 @@ public class GenerateThumbnailsCommandHandlerTests
         };
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        result.ThumbnailsGenerated.Should().Be(0);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ThumbnailsGenerated.Should().Be(0);
         await thumbnailRepo.DidNotReceive().AddAsync(Arg.Any<FileThumbnail>(), Arg.Any<CancellationToken>());
     }
 
@@ -139,8 +139,8 @@ public class GenerateThumbnailsCommandHandlerTests
         };
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        result.ThumbnailsGenerated.Should().Be(1);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ThumbnailsGenerated.Should().Be(1);
         await thumbnailRepo.Received(1).AddAsync(Arg.Any<FileThumbnail>(), Arg.Any<CancellationToken>());
     }
 
@@ -163,10 +163,10 @@ public class GenerateThumbnailsCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found*");
     }
 
     [Fact]
@@ -196,10 +196,10 @@ public class GenerateThumbnailsCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found in this family*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found in this family*");
     }
 
     [Fact]
@@ -234,7 +234,8 @@ public class GenerateThumbnailsCommandHandlerTests
         };
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeFalse();
-        result.ThumbnailsGenerated.Should().Be(0);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Success.Should().BeFalse();
+        result.Value.ThumbnailsGenerated.Should().Be(0);
     }
 }

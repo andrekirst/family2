@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
@@ -9,7 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateShare
 public class MutationType
 {
     [Authorize]
-    public async Task<CreateShareLinkResult> CreateShareLink(
+    public async Task<object> CreateShareLink(
         string resourceType,
         Guid resourceId,
         DateTime? expiresAt,
@@ -27,6 +28,9 @@ public class MutationType
             password,
             maxDownloads);
 
-        return await commandBus.SendAsync(command, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

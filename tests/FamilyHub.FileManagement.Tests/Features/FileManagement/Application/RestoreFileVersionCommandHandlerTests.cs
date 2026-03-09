@@ -52,8 +52,8 @@ public class RestoreFileVersionCommandHandlerTests
         };
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        result.NewVersionNumber.Should().Be(3);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.NewVersionNumber.Should().Be(3);
         v2.IsCurrent.Should().BeFalse();
         await versionRepo.Received(1).AddAsync(
             Arg.Is<FileVersion>(v => v.VersionNumber == 3 && v.IsCurrent && v.StorageKey == v1.StorageKey),
@@ -78,10 +78,10 @@ public class RestoreFileVersionCommandHandlerTests
             FamilyId = FamilyId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found*");
     }
 
     [Fact]
@@ -104,10 +104,10 @@ public class RestoreFileVersionCommandHandlerTests
             FamilyId = FamilyId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Version not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Version not found*");
     }
 
     [Fact]
@@ -130,9 +130,9 @@ public class RestoreFileVersionCommandHandlerTests
             UserId = UserId.New(),
             FamilyId = FamilyId.New()
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Version*not*found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Version*not*found*");
     }
 }

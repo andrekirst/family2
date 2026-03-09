@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -9,12 +10,16 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteAlbum
 public class MutationType
 {
     [Authorize]
-    public async Task<DeleteAlbumResult> DeleteAlbum(
+    public async Task<object> DeleteAlbum(
         Guid albumId,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
         var command = new DeleteAlbumCommand(AlbumId.From(albumId));
-        return await commandBus.SendAsync(command, cancellationToken);
+
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match<object>(
+            success => success,
+            error => MutationError.FromDomainError(error));
     }
 }

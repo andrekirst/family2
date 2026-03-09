@@ -86,9 +86,9 @@ public class ProcessInboxFilesCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        result.FilesProcessed.Should().Be(1);
-        result.RulesMatched.Should().Be(1);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.FilesProcessed.Should().Be(1);
+        result.Value.RulesMatched.Should().Be(1);
         await _logRepo.Received(1).AddRangeAsync(
             Arg.Is<List<ProcessingLogEntry>>(entries => entries.Count == 1),
             Arg.Any<CancellationToken>());
@@ -118,8 +118,8 @@ public class ProcessInboxFilesCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.FilesProcessed.Should().Be(1);
-        result.RulesMatched.Should().Be(0);
+        result.Value.FilesProcessed.Should().Be(1);
+        result.Value.RulesMatched.Should().Be(0);
         await _logRepo.Received(1).AddRangeAsync(
             Arg.Is<List<ProcessingLogEntry>>(entries => entries.Count == 1 && entries.First().MatchedRuleId == null),
             Arg.Any<CancellationToken>());
@@ -174,10 +174,10 @@ public class ProcessInboxFilesCommandHandlerTests
             FamilyId = _familyId,
             UserId = _userId
         };
-        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.InboxFolderNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.InboxFolderNotFound);
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class ProcessInboxFilesCommandHandlerTests
         };
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.FilesProcessed.Should().Be(0);
-        result.RulesMatched.Should().Be(0);
+        result.Value.FilesProcessed.Should().Be(0);
+        result.Value.RulesMatched.Should().Be(0);
     }
 }

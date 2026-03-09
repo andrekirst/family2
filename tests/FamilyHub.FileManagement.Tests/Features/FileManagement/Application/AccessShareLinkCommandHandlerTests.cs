@@ -24,8 +24,8 @@ public class AccessShareLinkCommandHandlerTests
         var command = new AccessShareLinkCommand(link.Token, null, "192.168.1.1", "Mozilla/5.0", ShareAccessAction.View);
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        result.ResourceType.Should().Be("File");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ResourceType.Should().Be("File");
         await logRepo.Received(1).AddAsync(
             Arg.Is<ShareLinkAccessLog>(l => l.IpAddress == "192.168.1.1"),
             Arg.Any<CancellationToken>());
@@ -61,7 +61,7 @@ public class AccessShareLinkCommandHandlerTests
         var command = new AccessShareLinkCommand(link.Token, "secret123", "10.0.0.1", null, ShareAccessAction.View);
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
@@ -76,10 +76,10 @@ public class AccessShareLinkCommandHandlerTests
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, "wrongpassword", "10.0.0.1", null, ShareAccessAction.View);
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Incorrect password*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Incorrect password*");
     }
 
     [Fact]
@@ -94,10 +94,10 @@ public class AccessShareLinkCommandHandlerTests
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, null, "10.0.0.1", null, ShareAccessAction.View);
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Password required*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Password required*");
     }
 
     [Fact]
@@ -112,10 +112,10 @@ public class AccessShareLinkCommandHandlerTests
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, null, "10.0.0.1", null, ShareAccessAction.View);
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*revoked*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*revoked*");
     }
 
     [Fact]
@@ -129,10 +129,10 @@ public class AccessShareLinkCommandHandlerTests
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, null, "10.0.0.1", null, ShareAccessAction.View);
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*expired*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*expired*");
     }
 
     [Fact]
@@ -147,10 +147,10 @@ public class AccessShareLinkCommandHandlerTests
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, null, "10.0.0.1", null, ShareAccessAction.Download);
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Download limit reached*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Download limit reached*");
     }
 
     [Fact]
@@ -164,9 +164,9 @@ public class AccessShareLinkCommandHandlerTests
             .Returns((ShareLink?)null);
 
         var command = new AccessShareLinkCommand("nonexistent-token", null, "10.0.0.1", null, ShareAccessAction.View);
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Share link not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Share link not found*");
     }
 }
