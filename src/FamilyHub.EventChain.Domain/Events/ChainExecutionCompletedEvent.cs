@@ -9,7 +9,7 @@ public sealed record ChainExecutionCompletedEvent(
     ChainExecutionId ChainExecutionId,
     ChainDefinitionId ChainDefinitionId,
     FamilyId FamilyId,
-    Guid CorrelationId,
+    Guid ChainCorrelationId,
     ChainExecutionStatus FinalStatus,
     int CompletedSteps,
     int TotalSteps

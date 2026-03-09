@@ -17,6 +17,13 @@ public sealed class BusinessLogicExceptionErrorFilter(
     {
         switch (error.Exception)
         {
+            case ConflictException conflictEx:
+                return ErrorBuilder.New()
+                    .SetMessage(conflictEx.Message)
+                    .SetCode("CONFLICT")
+                    .SetExtension("errorCode", conflictEx.ErrorCode)
+                    .SetExtension("entityType", conflictEx.EntityType)
+                    .Build();
             case DomainException domainEx:
             {
                 var message = GetLocalizedMessage(domainEx);

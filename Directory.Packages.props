@@ -43,8 +43,26 @@
     <!-- Email -->
     <PackageVersion Include="MailKit" Version="4.15.0" />
 
+    <!-- Event Bus (CAP + RabbitMQ) -->
+    <PackageVersion Include="DotNetCore.CAP" Version="10.0.1" />
+    <PackageVersion Include="DotNetCore.CAP.PostgreSql" Version="10.0.1" />
+    <PackageVersion Include="DotNetCore.CAP.RabbitMQ" Version="10.0.1" />
+
+    <!-- Background Jobs (Hangfire) -->
+    <PackageVersion Include="Hangfire.Core" Version="1.8.17" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.17" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.10" />
+
+    <!-- Resilience (Polly) -->
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.4.0" />
+    <PackageVersion Include="Microsoft.Extensions.Resilience" Version="9.4.0" />
+    <PackageVersion Include="Polly" Version="8.5.2" />
+    <PackageVersion Include="Polly.Extensions" Version="8.5.2" />
+
     <!-- Security -->
     <PackageVersion Include="BCrypt.Net-Next" Version="4.1.0" />
+    <PackageVersion Include="NetEscapades.AspNetCore.SecurityHeaders" Version="1.0.0" />
+    <PackageVersion Include="HtmlSanitizer" Version="8.1.870" />
 
     <!-- File & Image Processing -->
     <PackageVersion Include="MetadataExtractor" Version="2.9.0" />

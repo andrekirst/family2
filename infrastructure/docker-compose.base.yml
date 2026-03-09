@@ -95,6 +95,27 @@ services:
           - mailhog
 
   # ---------------------------------------------------------------------------
+  # RabbitMQ — message broker for CAP event bus
+  # ---------------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: familyhub
+      RABBITMQ_DEFAULT_PASS: familyhub
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD-SHELL', 'rabbitmq-diagnostics -q ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - internal
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
   # pgAdmin — database administration
   # ---------------------------------------------------------------------------
   pgadmin:
@@ -168,12 +189,19 @@ services:
       FileManagement__Storage__MinIO__SecretKey: minioadmin
       FileManagement__Storage__MinIO__BucketName: familyhub-files
       FileManagement__Storage__MinIO__UseSSL: 'false'
+      # RabbitMQ (CAP event bus)
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__UserName: familyhub
+      RabbitMQ__Password: familyhub
+      RabbitMQ__Port: 5672
     volumes:
       - ${SRC_ROOT:-../src}:/src
     depends_on:
       postgres:
         condition: service_healthy
       minio:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ['CMD-SHELL', 'curl -sf http://localhost:5152/health || exit 1']
@@ -281,6 +309,7 @@ volumes:
   keycloak_db:
   pgadmin_data:
   minio_data:
+  rabbitmq_data:
   frontend_node_modules:
   fh-proxy-verdaccio:
     external: true

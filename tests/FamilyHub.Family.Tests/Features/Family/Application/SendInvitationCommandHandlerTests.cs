@@ -17,7 +17,7 @@ public class SendInvitationCommandHandlerTests
         var familyId = FamilyId.New();
         var inviterId = UserId.New();
         var invitationRepo = Substitute.For<IFamilyInvitationRepository>();
-        var handler = new SendInvitationCommandHandler(invitationRepo);
+        var handler = new SendInvitationCommandHandler(invitationRepo, TimeProvider.System);
         var command = new SendInvitationCommand(Email.From("newmember@example.com"), FamilyRole.Member) { UserId = inviterId, FamilyId = familyId };
 
         // Act
@@ -35,7 +35,7 @@ public class SendInvitationCommandHandlerTests
         var familyId = FamilyId.New();
         var inviterId = UserId.New();
         var invitationRepo = Substitute.For<IFamilyInvitationRepository>();
-        var handler = new SendInvitationCommandHandler(invitationRepo);
+        var handler = new SendInvitationCommandHandler(invitationRepo, TimeProvider.System);
         var command = new SendInvitationCommand(Email.From("newmember@example.com"), FamilyRole.Member) { UserId = inviterId, FamilyId = familyId };
 
         // Act

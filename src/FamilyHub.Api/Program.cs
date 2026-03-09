@@ -19,6 +19,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.IO.Compression;
+using DotNetCore.CAP;
+using Hangfire;
+using Hangfire.PostgreSql;
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,11 +59,16 @@ builder.Services.AddMediator(options =>
         typeof(DomainEventPublishingBehavior<,>),  // outermost (100)
         typeof(LoggingBehavior<,>),                // logs original command (200)
         typeof(UserResolutionBehavior<,>),         // resolves user, populates UserId/FamilyId (250)
+        typeof(InputSanitizationBehavior<,>),      // strips HTML from command strings (290)
         typeof(ValidationBehavior<,>),             // validates enriched command (300)
+        typeof(IdempotencyBehavior<,>),            // deduplicates retried commands (350)
         typeof(QueryAsNoTrackingBehavior<,>),      // EF Core no-tracking (360)
         typeof(TransactionBehavior<,>),            // innermost before handler (400)
     ];
 });
+
+// TimeProvider for testable time-dependent behavior (.NET 8+ built-in)
+builder.Services.AddSingleton(TimeProvider.System);
 
 // Infrastructure services
 builder.Services.AddMemoryCache();
@@ -73,12 +83,56 @@ builder.Services.AddScoped<IQueryBus, MediatorQueryBus>();
 // Configure DbContext with interceptor
 builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 {
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(connectionString, npgsql =>
+    {
+        npgsql.CommandTimeout(30);
+        npgsql.EnableRetryOnFailure(maxRetryCount: 3);
+        npgsql.MaxBatchSize(42);
+        npgsql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+    });
     options.UseSnakeCaseNamingConvention();
     options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
     options.ConfigureWarnings(w =>
         w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
+
+// CAP — transactional outbox + RabbitMQ message broker
+// Domain events are persisted atomically with business data via PostgreSQL outbox tables.
+// CAP auto-creates cap.published and cap.received tables for reliable at-least-once delivery.
+builder.Services.AddCap(x =>
+{
+    x.UsePostgreSql(connectionString);
+    x.UseRabbitMQ(rabbit =>
+    {
+        rabbit.HostName = builder.Configuration["RabbitMQ:HostName"] ?? "localhost";
+        rabbit.UserName = builder.Configuration["RabbitMQ:UserName"] ?? "familyhub";
+        rabbit.Password = builder.Configuration["RabbitMQ:Password"] ?? "familyhub";
+        rabbit.Port = int.TryParse(builder.Configuration["RabbitMQ:Port"], out var port) ? port : 5672;
+    });
+    x.FailedRetryCount = 3;
+    x.FailedRetryInterval = 60; // seconds between retries
+});
+
+// Hangfire — background job processing with PostgreSQL storage
+// Used for: dead-letter reprocessing, scheduled tasks, recurring maintenance, report generation
+builder.Services.AddHangfire(config =>
+    config.UsePostgreSqlStorage(options =>
+        options.UseNpgsqlConnection(connectionString)));
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = Environment.ProcessorCount;
+});
+
+// Response Compression — Brotli (primary) + gzip (fallback) for GraphQL responses
+builder.Services.AddResponseCompression(opts =>
+{
+    opts.EnableForHttps = true;
+    opts.Providers.Add<BrotliCompressionProvider>();
+    opts.Providers.Add<GzipCompressionProvider>();
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/graphql-response+json"]);
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(opts => opts.Level = CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(opts => opts.Level = CompressionLevel.SmallestSize);
 
 // Register FluentValidation validators from assembly
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -152,8 +206,8 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy.WithOrigins(corsOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod()
+            .WithHeaders("Authorization", "Content-Type", "X-Idempotency-Key", "Apollo-Require-Preflight")
+            .WithMethods("GET", "POST", "OPTIONS")
             .AllowCredentials();
     });
 });
@@ -217,6 +271,22 @@ if (app.Environment.IsDevelopment())
     }
 }
 
+// Security headers (OWASP baseline)
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    if (!app.Environment.IsDevelopment())
+    {
+        context.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+        context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'";
+    }
+    await next();
+});
+
+app.UseResponseCompression();
 app.UseCors();
 app.UseExceptionHandler();
 
@@ -247,14 +317,21 @@ if (!app.Environment.IsEnvironment("Testing"))
 app.UseWebSockets();
 app.MapGraphQL();
 
+// Hangfire dashboard (development only, behind authentication in production)
+if (app.Environment.IsDevelopment())
+{
+    app.MapHangfireDashboard("/hangfire");
+}
+
 // Minimal API endpoints — avatar (common) + module endpoints (IEndpointModule)
 app.MapGet("/api/avatars/{avatarId:guid}/{size}",
     FamilyHub.Api.Common.Infrastructure.Avatar.AvatarEndpoints.GetAvatar);
 app.MapModuleEndpoints();
 
-// Health check endpoints
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
-app.MapHealthChecks("/health/auth", new HealthCheckOptions
+// Health check endpoints — split into liveness and readiness probes
+app.MapGet("/health/live", (TimeProvider timeProvider) => Results.Ok(new { status = "healthy", timestamp = timeProvider.GetUtcNow() }));
+app.MapGet("/health", (TimeProvider timeProvider) => Results.Ok(new { status = "healthy", timestamp = timeProvider.GetUtcNow() }));
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
     ResponseWriter = HealthCheckResponseWriter.WriteResponse
 });

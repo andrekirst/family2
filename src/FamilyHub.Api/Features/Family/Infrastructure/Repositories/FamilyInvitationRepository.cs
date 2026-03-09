@@ -10,7 +10,7 @@ namespace FamilyHub.Api.Features.Family.Infrastructure.Repositories;
 /// <summary>
 /// EF Core implementation of IFamilyInvitationRepository.
 /// </summary>
-public sealed class FamilyInvitationRepository(AppDbContext context) : IFamilyInvitationRepository
+public sealed class FamilyInvitationRepository(AppDbContext context, TimeProvider timeProvider) : IFamilyInvitationRepository
 {
     public async Task<FamilyInvitation?> GetByIdAsync(InvitationId id, CancellationToken cancellationToken = default)
     {
@@ -53,7 +53,7 @@ public sealed class FamilyInvitationRepository(AppDbContext context) : IFamilyIn
         return await context.FamilyInvitations
             .Include(fi => fi.Family)
             .Include(fi => fi.InvitedByUser)
-            .Where(fi => fi.InviteeEmail == email && fi.Status == InvitationStatus.Pending && fi.ExpiresAt > DateTime.UtcNow)
+            .Where(fi => fi.InviteeEmail == email && fi.Status == InvitationStatus.Pending && fi.ExpiresAt > timeProvider.GetUtcNow().UtcDateTime)
             .OrderByDescending(fi => fi.CreatedAt)
             .ToListAsync(cancellationToken);
     }

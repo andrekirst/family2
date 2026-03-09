@@ -77,7 +77,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         userRepo.GetByIdAsync(differentUser.Id, CancellationToken.None).Returns(differentUser);
 
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
-        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
+        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo, TimeProvider.System);
         var command = new AcceptInvitationByIdCommand(invitation.Id) { UserId = differentUser.Id };
 
         // Act & Assert
@@ -100,7 +100,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         userRepo.GetByIdAsync(user.Id, CancellationToken.None).Returns(user);
 
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
-        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
+        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo, TimeProvider.System);
         var command = new AcceptInvitationByIdCommand(invitation.Id) { UserId = user.Id };
 
         // Act & Assert
@@ -115,7 +115,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         // Arrange -- invitation was already accepted
         var user = CreateTestUser();
         var invitation = CreateTestInvitation();
-        invitation.Accept(UserId.New()); // accept by someone else first
+        invitation.Accept(UserId.New(), DateTimeOffset.UtcNow); // accept by someone else first
 
         var invitationRepo = Substitute.For<IFamilyInvitationRepository>();
         invitationRepo.GetByIdAsync(invitation.Id, CancellationToken.None).Returns(invitation);
@@ -124,7 +124,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         userRepo.GetByIdAsync(user.Id, CancellationToken.None).Returns(user);
 
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
-        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
+        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo, TimeProvider.System);
         var command = new AcceptInvitationByIdCommand(invitation.Id) { UserId = user.Id };
 
         // Act & Assert
@@ -147,7 +147,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         userRepo.GetByIdAsync(user.Id, CancellationToken.None).Returns(user);
 
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
-        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo);
+        var handler = new AcceptInvitationByIdCommandHandler(invitationRepo, memberRepo, userRepo, TimeProvider.System);
         var command = new AcceptInvitationByIdCommand(invitation.Id) { UserId = user.Id };
 
         return (handler, command, invitationRepo, memberRepo, userRepo);
@@ -171,7 +171,7 @@ public class AcceptInvitationByIdCommandHandlerTests
         return Convert.ToHexStringLower(bytes);
     }
 
-    private static FamilyInvitation CreateTestInvitation(FamilyId? familyId = null)
+    private static FamilyInvitation CreateTestInvitation(FamilyId? familyId = null, DateTimeOffset? utcNow = null)
     {
         var tokenHash = ComputeSha256Hash("test-token-" + Guid.NewGuid());
         return FamilyInvitation.Create(
@@ -180,17 +180,13 @@ public class AcceptInvitationByIdCommandHandlerTests
             Email.From(InviteeEmailAddress),
             FamilyRole.Member,
             InvitationToken.From(tokenHash),
-            "dummy-token");
+            "dummy-token",
+            utcNow ?? DateTimeOffset.UtcNow);
     }
 
     private static FamilyInvitation CreateExpiredInvitation()
     {
-        var invitation = CreateTestInvitation();
-
-        // Use reflection to set ExpiresAt to the past
-        var expiresAtProperty = typeof(FamilyInvitation).GetProperty(nameof(FamilyInvitation.ExpiresAt));
-        expiresAtProperty!.SetValue(invitation, DateTime.UtcNow.AddDays(-1));
-
-        return invitation;
+        // Create invitation with a time 31 days in the past so it's already expired (30-day validity)
+        return CreateTestInvitation(utcNow: DateTimeOffset.UtcNow.AddDays(-31));
     }
 }

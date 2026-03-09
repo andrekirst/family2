@@ -15,7 +15,8 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.AcceptInvitation;
 public sealed class AcceptInvitationCommandHandler(
     IFamilyInvitationRepository invitationRepository,
     IFamilyMemberRepository memberRepository,
-    IUserRepository userRepository)
+    IUserRepository userRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<AcceptInvitationCommand, AcceptInvitationResult>
 {
     public async ValueTask<AcceptInvitationResult> Handle(
@@ -30,7 +31,7 @@ public sealed class AcceptInvitationCommandHandler(
         var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
         // Accept the invitation (validates status + expiry, raises InvitationAcceptedEvent)
-        invitation.Accept(command.UserId);
+        invitation.Accept(command.UserId, timeProvider.GetUtcNow());
 
         // Create FamilyMember record
         var member = FamilyMember.Create(invitation.FamilyId, command.UserId, invitation.Role);

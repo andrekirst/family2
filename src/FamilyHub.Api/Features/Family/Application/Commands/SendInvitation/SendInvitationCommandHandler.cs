@@ -12,7 +12,8 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 /// creates the invitation, and persists it (which triggers the email via domain event).
 /// </summary>
 public sealed class SendInvitationCommandHandler(
-    IFamilyInvitationRepository invitationRepository)
+    IFamilyInvitationRepository invitationRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<SendInvitationCommand, SendInvitationResult>
 {
     public async ValueTask<SendInvitationResult> Handle(
@@ -30,7 +31,8 @@ public sealed class SendInvitationCommandHandler(
             command.InviteeEmail,
             command.Role,
             InvitationToken.From(tokenHash),
-            plaintextToken);
+            plaintextToken,
+            timeProvider.GetUtcNow());
 
         await invitationRepository.AddAsync(invitation, cancellationToken);
 

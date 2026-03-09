@@ -10,6 +10,9 @@ namespace FamilyHub.Api.Features.Family.Domain.Entities;
 /// Family invitation aggregate root with full lifecycle management.
 /// Tracks the invitation from creation through acceptance, decline, or revocation.
 /// Token is stored as a SHA256 hash; plaintext is only in the email link.
+///
+/// Time-dependent operations accept DateTimeOffset parameters from the calling handler
+/// (which injects TimeProvider) for deterministic testability.
 /// </summary>
 public sealed class FamilyInvitation : AggregateRoot<InvitationId>
 {
@@ -28,13 +31,15 @@ public sealed class FamilyInvitation : AggregateRoot<InvitationId>
     /// <param name="role">Role the invitee will have</param>
     /// <param name="tokenHash">SHA256 hash of the plaintext token</param>
     /// <param name="plaintextToken">The plaintext token to include in the email</param>
+    /// <param name="utcNow">Current UTC time from TimeProvider</param>
     public static FamilyInvitation Create(
         FamilyId familyId,
         UserId invitedByUserId,
         Email inviteeEmail,
         FamilyRole role,
         InvitationToken tokenHash,
-        string plaintextToken)
+        string plaintextToken,
+        DateTimeOffset utcNow)
     {
         var invitation = new FamilyInvitation
         {
@@ -45,8 +50,8 @@ public sealed class FamilyInvitation : AggregateRoot<InvitationId>
             TokenHash = tokenHash,
             Role = role,
             Status = InvitationStatus.Pending,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(30)
+            CreatedAt = utcNow.UtcDateTime,
+            ExpiresAt = utcNow.AddDays(30).UtcDateTime
         };
 
         invitation.RaiseDomainEvent(new InvitationSentEvent(
@@ -78,26 +83,26 @@ public sealed class FamilyInvitation : AggregateRoot<InvitationId>
     public User InvitedByUser { get; private set; } = null!;
     public User? AcceptedByUser { get; private set; }
 
-    public bool IsExpired() => DateTime.UtcNow > ExpiresAt;
+    public bool IsExpired(DateTimeOffset utcNow) => utcNow.UtcDateTime > ExpiresAt;
 
     /// <summary>
     /// Accept the invitation. Creates the family membership.
     /// </summary>
-    public void Accept(UserId userId)
+    public void Accept(UserId userId, DateTimeOffset utcNow)
     {
         if (!Status.IsPending())
         {
             throw new DomainException($"Cannot accept invitation in status '{Status.Value}'", DomainErrorCodes.InvitationInvalidStatusForAccept);
         }
 
-        if (IsExpired())
+        if (IsExpired(utcNow))
         {
             throw new DomainException("Invitation has expired", DomainErrorCodes.InvitationExpired);
         }
 
         Status = InvitationStatus.Accepted;
         AcceptedByUserId = userId;
-        AcceptedAt = DateTime.UtcNow;
+        AcceptedAt = utcNow.UtcDateTime;
 
         RaiseDomainEvent(new InvitationAcceptedEvent(
             Id,

@@ -79,7 +79,7 @@ public class AcceptInvitationCommandHandlerTests
         userRepo.GetByIdAsync(user.Id, CancellationToken.None).Returns(user);
 
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
-        var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo);
+        var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo, TimeProvider.System);
         var command = new AcceptInvitationCommand(PlaintextToken) { UserId = user.Id };
 
         // Act & Assert
@@ -94,7 +94,7 @@ public class AcceptInvitationCommandHandlerTests
         // Arrange — invitation was already accepted
         var user = CreateTestUser();
         var invitation = CreateTestInvitation();
-        invitation.Accept(UserId.New()); // accept by someone else first
+        invitation.Accept(UserId.New(), DateTimeOffset.UtcNow); // accept by someone else first
         var tokenHash = InvitationToken.From(SecureTokenHelper.ComputeSha256Hash(PlaintextToken));
 
         var invitationRepo = Substitute.For<IFamilyInvitationRepository>();
@@ -104,7 +104,7 @@ public class AcceptInvitationCommandHandlerTests
         userRepo.GetByIdAsync(user.Id, CancellationToken.None).Returns(user);
 
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
-        var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo);
+        var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo, TimeProvider.System);
         var command = new AcceptInvitationCommand(PlaintextToken) { UserId = user.Id };
 
         // Act & Assert
@@ -128,7 +128,7 @@ public class AcceptInvitationCommandHandlerTests
         userRepo.GetByIdAsync(user.Id, CancellationToken.None).Returns(user);
 
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
-        var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo);
+        var handler = new AcceptInvitationCommandHandler(invitationRepo, memberRepo, userRepo, TimeProvider.System);
         var command = new AcceptInvitationCommand(PlaintextToken) { UserId = user.Id };
 
         return (handler, command, invitationRepo, memberRepo, userRepo);
@@ -152,7 +152,7 @@ public class AcceptInvitationCommandHandlerTests
         return Convert.ToHexStringLower(bytes);
     }
 
-    private static FamilyInvitation CreateTestInvitation(FamilyId? familyId = null)
+    private static FamilyInvitation CreateTestInvitation(FamilyId? familyId = null, DateTimeOffset? utcNow = null)
     {
         var tokenHash = ComputeSha256Hash(PlaintextToken);
         return FamilyInvitation.Create(
@@ -161,17 +161,13 @@ public class AcceptInvitationCommandHandlerTests
             Email.From("invitee@example.com"),
             FamilyRole.Member,
             InvitationToken.From(tokenHash),
-            PlaintextToken);
+            PlaintextToken,
+            utcNow ?? DateTimeOffset.UtcNow);
     }
 
     private static FamilyInvitation CreateExpiredInvitation()
     {
-        var invitation = CreateTestInvitation();
-
-        // Use reflection to set ExpiresAt to the past
-        var expiresAtProperty = typeof(FamilyInvitation).GetProperty(nameof(FamilyInvitation.ExpiresAt));
-        expiresAtProperty!.SetValue(invitation, DateTime.UtcNow.AddDays(-1));
-
-        return invitation;
+        // Create invitation with a time 31 days in the past so it's already expired (30-day validity)
+        return CreateTestInvitation(utcNow: DateTimeOffset.UtcNow.AddDays(-31));
     }
 }

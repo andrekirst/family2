@@ -16,7 +16,8 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.AcceptInvitationByI
 public sealed class AcceptInvitationByIdCommandHandler(
     IFamilyInvitationRepository invitationRepository,
     IFamilyMemberRepository memberRepository,
-    IUserRepository userRepository)
+    IUserRepository userRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<AcceptInvitationByIdCommand, AcceptInvitationResult>
 {
     [SecurityCheck("IDOR")]
@@ -33,7 +34,7 @@ public sealed class AcceptInvitationByIdCommandHandler(
         }
 
         // Accept the invitation (validates status + expiry, raises InvitationAcceptedEvent)
-        invitation.Accept(command.UserId);
+        invitation.Accept(command.UserId, timeProvider.GetUtcNow());
 
         // Create FamilyMember record
         var member = FamilyMember.Create(invitation.FamilyId, command.UserId, invitation.Role);

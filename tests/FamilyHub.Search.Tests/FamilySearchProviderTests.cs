@@ -102,7 +102,8 @@ public class FamilySearchProviderTests
             Email.From("alice@example.com"),
             FamilyRole.Member,
             InvitationToken.From("a".PadRight(64, 'a')),
-            "plaintext-token");
+            "plaintext-token",
+            DateTimeOffset.UtcNow);
         invitation.ClearDomainEvents();
 
         invitationRepo.GetPendingByFamilyIdAsync(TestFamilyId, Arg.Any<CancellationToken>())
@@ -129,7 +130,8 @@ public class FamilySearchProviderTests
             Email.From("bob@example.com"),
             FamilyRole.Member,
             InvitationToken.From("b".PadRight(64, 'b')),
-            "plaintext-token");
+            "plaintext-token",
+            DateTimeOffset.UtcNow);
         invitation.ClearDomainEvents();
 
         invitationRepo.GetPendingByFamilyIdAsync(TestFamilyId, Arg.Any<CancellationToken>())
