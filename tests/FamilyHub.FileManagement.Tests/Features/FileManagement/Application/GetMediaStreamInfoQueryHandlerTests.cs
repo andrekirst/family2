@@ -1,10 +1,11 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetMediaStreamInfo;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -15,8 +16,8 @@ public class GetMediaStreamInfoQueryHandlerTests
     [Fact]
     public async Task Handle_StreamableFile_ShouldReturnStreamableInfo()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var thumbnailRepo = new FakeFileThumbnailRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var thumbnailRepo = Substitute.For<IFileThumbnailRepository>();
         var handler = new GetMediaStreamInfoQueryHandler(fileRepo, thumbnailRepo);
 
         var familyId = FamilyId.New();
@@ -29,7 +30,9 @@ public class GetMediaStreamInfoQueryHandlerTests
             FolderId.New(),
             familyId,
             UserId.New());
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        thumbnailRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<FileThumbnail>());
 
         var query = new GetMediaStreamInfoQuery(file.Id)
         {
@@ -49,8 +52,8 @@ public class GetMediaStreamInfoQueryHandlerTests
     [Fact]
     public async Task Handle_NonStreamableFile_ShouldReturnNonStreamable()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var thumbnailRepo = new FakeFileThumbnailRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var thumbnailRepo = Substitute.For<IFileThumbnailRepository>();
         var handler = new GetMediaStreamInfoQueryHandler(fileRepo, thumbnailRepo);
 
         var familyId = FamilyId.New();
@@ -63,7 +66,9 @@ public class GetMediaStreamInfoQueryHandlerTests
             FolderId.New(),
             familyId,
             UserId.New());
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        thumbnailRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<FileThumbnail>());
 
         var query = new GetMediaStreamInfoQuery(file.Id)
         {
@@ -78,8 +83,8 @@ public class GetMediaStreamInfoQueryHandlerTests
     [Fact]
     public async Task Handle_WithThumbnails_ShouldIncludeThumbnailDtos()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var thumbnailRepo = new FakeFileThumbnailRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var thumbnailRepo = Substitute.For<IFileThumbnailRepository>();
         var handler = new GetMediaStreamInfoQueryHandler(fileRepo, thumbnailRepo);
 
         var familyId = FamilyId.New();
@@ -92,12 +97,14 @@ public class GetMediaStreamInfoQueryHandlerTests
             FolderId.New(),
             familyId,
             UserId.New());
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        thumbnailRepo.Thumbnails.Add(FileThumbnail.Create(
-            file.Id, 200, 200, StorageKey.From("thumbs/200x200.webp")));
-        thumbnailRepo.Thumbnails.Add(FileThumbnail.Create(
-            file.Id, 800, 800, StorageKey.From("thumbs/800x800.webp")));
+        var thumbnails = new List<FileThumbnail>
+        {
+            FileThumbnail.Create(file.Id, 200, 200, StorageKey.From("thumbs/200x200.webp")),
+            FileThumbnail.Create(file.Id, 800, 800, StorageKey.From("thumbs/800x800.webp"))
+        };
+        thumbnailRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(thumbnails);
 
         var query = new GetMediaStreamInfoQuery(file.Id)
         {
@@ -114,9 +121,12 @@ public class GetMediaStreamInfoQueryHandlerTests
     [Fact]
     public async Task Handle_FileNotFound_ShouldThrow()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var thumbnailRepo = new FakeFileThumbnailRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var thumbnailRepo = Substitute.For<IFileThumbnailRepository>();
         var handler = new GetMediaStreamInfoQueryHandler(fileRepo, thumbnailRepo);
+
+        fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((StoredFile?)null);
 
         var query = new GetMediaStreamInfoQuery(FileId.New())
         {
@@ -133,8 +143,8 @@ public class GetMediaStreamInfoQueryHandlerTests
     [Fact]
     public async Task Handle_WrongFamily_ShouldThrow()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var thumbnailRepo = new FakeFileThumbnailRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var thumbnailRepo = Substitute.For<IFileThumbnailRepository>();
         var handler = new GetMediaStreamInfoQueryHandler(fileRepo, thumbnailRepo);
 
         var file = StoredFile.Create(
@@ -146,7 +156,7 @@ public class GetMediaStreamInfoQueryHandlerTests
             FolderId.New(),
             FamilyId.New(),
             UserId.New());
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var query = new GetMediaStreamInfoQuery(file.Id)
         {

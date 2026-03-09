@@ -1,30 +1,29 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.CreateFolder;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class CreateFolderCommandHandlerTests
 {
-    private static (CreateFolderCommandHandler handler, FakeFolderRepository folderRepo) CreateHandler()
-    {
-        var folderRepo = new FakeFolderRepository();
-        var handler = new CreateFolderCommandHandler(folderRepo);
-        return (handler, folderRepo);
-    }
-
     [Fact]
     public async Task Handle_WithParent_ShouldCreateFolderWithCorrectMaterializedPath()
     {
         var familyId = FamilyId.New();
-        var (handler, folderRepo) = CreateHandler();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var handler = new CreateFolderCommandHandler(folderRepo);
 
         var parentFolder = Folder.CreateRoot(familyId, UserId.New());
-        folderRepo.Folders.Add(parentFolder);
+        folderRepo.GetByIdAsync(parentFolder.Id, Arg.Any<CancellationToken>()).Returns(parentFolder);
+
+        Folder? capturedFolder = null;
+        folderRepo.AddAsync(Arg.Do<Folder>(f => capturedFolder = f), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
 
         var command = new CreateFolderCommand(
             FileName.From("Documents"),
@@ -38,17 +37,32 @@ public class CreateFolderCommandHandlerTests
 
         result.Should().NotBeNull();
         result.FolderId.Value.Should().NotBe(Guid.Empty);
-
-        var createdFolder = folderRepo.Folders.First(f => f.Id == result.FolderId);
-        createdFolder.MaterializedPath.Should().Be($"/{parentFolder.Id.Value}/");
-        createdFolder.ParentFolderId.Should().Be(parentFolder.Id);
+        capturedFolder.Should().NotBeNull();
+        capturedFolder!.MaterializedPath.Should().Be($"/{parentFolder.Id.Value}/");
+        capturedFolder.ParentFolderId.Should().Be(parentFolder.Id);
     }
 
     [Fact]
     public async Task Handle_WithoutParent_ShouldAutoCreateRootFolder()
     {
         var familyId = FamilyId.New();
-        var (handler, folderRepo) = CreateHandler();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var handler = new CreateFolderCommandHandler(folderRepo);
+
+        folderRepo.GetRootFolderAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns((Folder?)null);
+
+        var addedFolders = new List<Folder>();
+        folderRepo.AddAsync(Arg.Do<Folder>(f => addedFolders.Add(f)), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // When AddAsync is called for root, make GetRootFolderAsync return it on subsequent calls
+        folderRepo.When(r => r.AddAsync(Arg.Is<Folder>(f => f.ParentFolderId == null), Arg.Any<CancellationToken>()))
+            .Do(ci =>
+            {
+                var root = ci.Arg<Folder>();
+                folderRepo.GetRootFolderAsync(familyId, Arg.Any<CancellationToken>()).Returns(root);
+            });
 
         var command = new CreateFolderCommand(
             FileName.From("Documents"),
@@ -61,10 +75,8 @@ public class CreateFolderCommandHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Should().NotBeNull();
-        // Should have created 2 folders: root + new folder
-        folderRepo.Folders.Should().HaveCount(2);
-
-        var rootFolder = folderRepo.Folders.First(f => f.ParentFolderId == null);
+        addedFolders.Should().HaveCount(2);
+        var rootFolder = addedFolders.First(f => f.ParentFolderId == null);
         rootFolder.Name.Value.Should().Be("Root");
         rootFolder.MaterializedPath.Should().Be("/");
     }
@@ -72,7 +84,11 @@ public class CreateFolderCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenParentFolderNotFound()
     {
-        var (handler, _) = CreateHandler();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var handler = new CreateFolderCommandHandler(folderRepo);
+
+        folderRepo.GetByIdAsync(FolderId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((Folder?)null);
 
         var command = new CreateFolderCommand(
             FileName.From("SubFolder"),
@@ -91,16 +107,18 @@ public class CreateFolderCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenParentBelongsToDifferentFamily()
     {
-        var (handler, folderRepo) = CreateHandler();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var handler = new CreateFolderCommandHandler(folderRepo);
+
         var parentFolder = Folder.CreateRoot(FamilyId.New(), UserId.New());
-        folderRepo.Folders.Add(parentFolder);
+        folderRepo.GetByIdAsync(parentFolder.Id, Arg.Any<CancellationToken>()).Returns(parentFolder);
 
         var command = new CreateFolderCommand(
             FileName.From("SubFolder"),
             parentFolder.Id)
         {
             FamilyId = FamilyId.New(),
-            UserId = // different family
+            UserId =
             UserId.New()
         };
 
@@ -114,10 +132,15 @@ public class CreateFolderCommandHandlerTests
     public async Task Handle_WithExistingRoot_ShouldUseExistingRoot()
     {
         var familyId = FamilyId.New();
-        var (handler, folderRepo) = CreateHandler();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var handler = new CreateFolderCommandHandler(folderRepo);
 
         var existingRoot = Folder.CreateRoot(familyId, UserId.New());
-        folderRepo.Folders.Add(existingRoot);
+        folderRepo.GetRootFolderAsync(familyId, Arg.Any<CancellationToken>()).Returns(existingRoot);
+
+        var addedFolders = new List<Folder>();
+        folderRepo.AddAsync(Arg.Do<Folder>(f => addedFolders.Add(f)), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
 
         var command = new CreateFolderCommand(
             FileName.From("Documents"),
@@ -129,8 +152,8 @@ public class CreateFolderCommandHandlerTests
 
         await handler.Handle(command, CancellationToken.None);
 
-        // Should have 2 folders: existing root + new folder (no duplicate root)
-        folderRepo.Folders.Should().HaveCount(2);
-        folderRepo.Folders.Count(f => f.ParentFolderId == null).Should().Be(1);
+        // Should have added 1 folder (new folder only, no duplicate root)
+        addedFolders.Should().HaveCount(1);
+        addedFolders[0].ParentFolderId.Should().Be(existingRoot.Id);
     }
 }

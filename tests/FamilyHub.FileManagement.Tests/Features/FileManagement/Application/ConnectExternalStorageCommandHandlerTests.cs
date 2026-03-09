@@ -1,20 +1,30 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.ConnectExternalStorage;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class ConnectExternalStorageCommandHandlerTests
 {
+    private readonly IExternalConnectionRepository _repo = Substitute.For<IExternalConnectionRepository>();
+    private readonly ConnectExternalStorageCommandHandler _handler;
+
+    public ConnectExternalStorageCommandHandlerTests()
+    {
+        _handler = new ConnectExternalStorageCommandHandler(_repo);
+    }
+
     [Fact]
     public async Task Handle_ShouldCreateConnection()
     {
-        var repo = new FakeExternalConnectionRepository();
-        var handler = new ConnectExternalStorageCommandHandler(repo);
+        var familyId = FamilyId.New();
+        _repo.GetByFamilyAndProviderAsync(familyId, ExternalProviderType.OneDrive, Arg.Any<CancellationToken>())
+            .Returns((ExternalConnection?)null);
 
         var command = new ConnectExternalStorageCommand(
             ExternalProviderType.OneDrive,
@@ -23,29 +33,30 @@ public class ConnectExternalStorageCommandHandlerTests
             "enc-refresh-token",
             DateTime.UtcNow.AddHours(1))
         {
-            FamilyId = FamilyId.New(),
+            FamilyId = familyId,
             UserId = UserId.New()
         };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.ConnectionId.Should().NotBe(Guid.Empty);
-        repo.Connections.Should().HaveCount(1);
-        repo.Connections.First().ProviderType.Should().Be(ExternalProviderType.OneDrive);
-        repo.Connections.First().Status.Should().Be(ConnectionStatus.Connected);
+        await _repo.Received(1).AddAsync(
+            Arg.Is<ExternalConnection>(c =>
+                c.ProviderType == ExternalProviderType.OneDrive &&
+                c.Status == ConnectionStatus.Connected),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_DuplicateProvider_ShouldThrow()
     {
-        var repo = new FakeExternalConnectionRepository();
-        var handler = new ConnectExternalStorageCommandHandler(repo);
         var familyId = FamilyId.New();
 
         var existing = ExternalConnection.Create(
             familyId, ExternalProviderType.GoogleDrive, "Drive",
             "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New());
-        repo.Connections.Add(existing);
+        _repo.GetByFamilyAndProviderAsync(familyId, ExternalProviderType.GoogleDrive, Arg.Any<CancellationToken>())
+            .Returns(existing);
 
         var command = new ConnectExternalStorageCommand(
             ExternalProviderType.GoogleDrive,
@@ -58,7 +69,7 @@ public class ConnectExternalStorageCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("*already exists*");
@@ -67,8 +78,9 @@ public class ConnectExternalStorageCommandHandlerTests
     [Fact]
     public async Task Handle_PaperlessNgx_ShouldWorkWithoutRefreshToken()
     {
-        var repo = new FakeExternalConnectionRepository();
-        var handler = new ConnectExternalStorageCommandHandler(repo);
+        var familyId = FamilyId.New();
+        _repo.GetByFamilyAndProviderAsync(familyId, ExternalProviderType.PaperlessNgx, Arg.Any<CancellationToken>())
+            .Returns((ExternalConnection?)null);
 
         var command = new ConnectExternalStorageCommand(
             ExternalProviderType.PaperlessNgx,
@@ -77,15 +89,17 @@ public class ConnectExternalStorageCommandHandlerTests
             null,
             null)
         {
-            FamilyId = FamilyId.New(),
+            FamilyId = familyId,
             UserId = UserId.New()
         };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.ConnectionId.Should().NotBe(Guid.Empty);
-        var conn = repo.Connections.First();
-        conn.EncryptedRefreshToken.Should().BeNull();
-        conn.TokenExpiresAt.Should().BeNull();
+        await _repo.Received(1).AddAsync(
+            Arg.Is<ExternalConnection>(c =>
+                c.EncryptedRefreshToken == null &&
+                c.TokenExpiresAt == null),
+            Arg.Any<CancellationToken>());
     }
 }

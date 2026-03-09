@@ -1,10 +1,11 @@
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.Dashboard.Application.Search;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
+using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Search.Tests;
 
@@ -16,11 +17,13 @@ public class DashboardSearchProviderTests
     [Fact]
     public async Task SearchAsync_MatchesPersonalDashboard()
     {
-        var repo = new FakeDashboardLayoutRepository();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
         var personal = DashboardLayout.CreatePersonal(
             DashboardLayoutName.From("My Dashboard"), TestUserId);
         personal.ClearDomainEvents();
-        repo.Seed(personal);
+
+        repo.GetPersonalDashboardAsync(TestUserId, Arg.Any<CancellationToken>())
+            .Returns(personal);
 
         var provider = new DashboardSearchProvider(repo);
         var context = new SearchContext(TestUserId, TestFamilyId, "dashboard");
@@ -35,11 +38,13 @@ public class DashboardSearchProviderTests
     [Fact]
     public async Task SearchAsync_MatchesSharedDashboard()
     {
-        var repo = new FakeDashboardLayoutRepository();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
         var shared = DashboardLayout.CreateShared(
             DashboardLayoutName.From("Family Board"), TestFamilyId, TestUserId);
         shared.ClearDomainEvents();
-        repo.Seed(shared);
+
+        repo.GetSharedDashboardAsync(TestFamilyId, Arg.Any<CancellationToken>())
+            .Returns(shared);
 
         var provider = new DashboardSearchProvider(repo);
         var context = new SearchContext(TestUserId, TestFamilyId, "family");
@@ -54,11 +59,13 @@ public class DashboardSearchProviderTests
     [Fact]
     public async Task SearchAsync_EmptyQuery_ReturnsEmpty()
     {
-        var repo = new FakeDashboardLayoutRepository();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
         var personal = DashboardLayout.CreatePersonal(
             DashboardLayoutName.From("My Dashboard"), TestUserId);
         personal.ClearDomainEvents();
-        repo.Seed(personal);
+
+        repo.GetPersonalDashboardAsync(TestUserId, Arg.Any<CancellationToken>())
+            .Returns(personal);
 
         var provider = new DashboardSearchProvider(repo);
         var context = new SearchContext(TestUserId, TestFamilyId, "");
@@ -71,7 +78,7 @@ public class DashboardSearchProviderTests
     [Fact]
     public void ModuleName_ShouldBeDashboard()
     {
-        var repo = new FakeDashboardLayoutRepository();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
         var provider = new DashboardSearchProvider(repo);
 
         provider.ModuleName.Should().Be("dashboard");

@@ -1,18 +1,25 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.SaveSearch;
+using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class SaveSearchCommandHandlerTests
 {
+    private readonly ISavedSearchRepository _savedRepo = Substitute.For<ISavedSearchRepository>();
+    private readonly SaveSearchCommandHandler _handler;
+
+    public SaveSearchCommandHandlerTests()
+    {
+        _handler = new SaveSearchCommandHandler(_savedRepo);
+    }
+
     [Fact]
     public async Task Handle_ShouldSaveSearch()
     {
-        var savedRepo = new FakeSavedSearchRepository();
-        var handler = new SaveSearchCommandHandler(savedRepo);
-
         var command = new SaveSearchCommand(
             "My Photos",
             "vacation",
@@ -22,28 +29,27 @@ public class SaveSearchCommandHandlerTests
             FamilyId = FamilyId.New()
         };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
-        savedRepo.Searches.Should().HaveCount(1);
-        savedRepo.Searches.First().Name.Should().Be("My Photos");
-        savedRepo.Searches.First().Query.Should().Be("vacation");
+        await _savedRepo.Received(1).AddAsync(
+            Arg.Is<SavedSearch>(s => s.Name == "My Photos" && s.Query == "vacation"),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldSaveWithNullFilters()
     {
-        var savedRepo = new FakeSavedSearchRepository();
-        var handler = new SaveSearchCommandHandler(savedRepo);
-
         var command = new SaveSearchCommand("Simple", "query", null)
         {
             UserId = UserId.New(),
             FamilyId = FamilyId.New()
         };
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
-        savedRepo.Searches.First().FiltersJson.Should().BeNull();
+        await _savedRepo.Received(1).AddAsync(
+            Arg.Is<SavedSearch>(s => s.FiltersJson == null),
+            Arg.Any<CancellationToken>());
     }
 }

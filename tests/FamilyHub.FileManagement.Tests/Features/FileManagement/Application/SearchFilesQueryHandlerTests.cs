@@ -1,8 +1,10 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.SearchFiles;
+using FamilyHub.Api.Features.FileManagement.Application.Services;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -11,23 +13,29 @@ public class SearchFilesQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnSearchResults()
     {
-        var searchService = new FakeFileSearchService();
-        var recentRepo = new FakeRecentSearchRepository();
+        var searchService = Substitute.For<IFileSearchService>();
+        var recentRepo = Substitute.For<IRecentSearchRepository>();
         var handler = new SearchFilesQueryHandler(searchService, recentRepo);
 
-        searchService.Results.Add(new FileSearchResultDto
+        var familyId = FamilyId.New();
+        var results = new List<FileSearchResultDto>
         {
-            Id = Guid.NewGuid(),
-            Name = "vacation-photo.jpg",
-            MimeType = "image/jpeg",
-            Size = 1024,
-            FolderId = Guid.NewGuid(),
-            CreatedAt = DateTime.UtcNow
-        });
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "vacation-photo.jpg",
+                MimeType = "image/jpeg",
+                Size = 1024,
+                FolderId = Guid.NewGuid(),
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+        searchService.SearchAsync("vacation", familyId, null, "relevance", 0, 20, Arg.Any<CancellationToken>())
+            .Returns(results);
 
         var query = new SearchFilesQuery("vacation")
         {
-            FamilyId = FamilyId.New(),
+            FamilyId = familyId,
             UserId = UserId.New()
         };
         var result = await handler.Handle(query, CancellationToken.None);
@@ -39,33 +47,41 @@ public class SearchFilesQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldRecordRecentSearch()
     {
-        var searchService = new FakeFileSearchService();
-        var recentRepo = new FakeRecentSearchRepository();
+        var searchService = Substitute.For<IFileSearchService>();
+        var recentRepo = Substitute.For<IRecentSearchRepository>();
         var handler = new SearchFilesQueryHandler(searchService, recentRepo);
 
         var userId = UserId.New();
+        var familyId = FamilyId.New();
+        searchService.SearchAsync("test", familyId, null, "relevance", 0, 20, Arg.Any<CancellationToken>())
+            .Returns(new List<FileSearchResultDto>());
+
         var query = new SearchFilesQuery("test")
         {
-            FamilyId = FamilyId.New(),
+            FamilyId = familyId,
             UserId = userId
         };
         await handler.Handle(query, CancellationToken.None);
 
-        recentRepo.Searches.Should().HaveCount(1);
-        recentRepo.Searches.First().Query.Should().Be("test");
-        recentRepo.Searches.First().UserId.Should().Be(userId);
+        await recentRepo.Received(1).AddAsync(
+            Arg.Is<Api.Features.FileManagement.Domain.Entities.RecentSearch>(s => s.Query == "test" && s.UserId == userId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldReturnEmptyWhenNoMatches()
     {
-        var searchService = new FakeFileSearchService();
-        var recentRepo = new FakeRecentSearchRepository();
+        var searchService = Substitute.For<IFileSearchService>();
+        var recentRepo = Substitute.For<IRecentSearchRepository>();
         var handler = new SearchFilesQueryHandler(searchService, recentRepo);
+
+        var familyId = FamilyId.New();
+        searchService.SearchAsync("nonexistent", familyId, null, "relevance", 0, 20, Arg.Any<CancellationToken>())
+            .Returns(new List<FileSearchResultDto>());
 
         var query = new SearchFilesQuery("nonexistent")
         {
-            FamilyId = FamilyId.New(),
+            FamilyId = familyId,
             UserId = UserId.New()
         };
         var result = await handler.Handle(query, CancellationToken.None);

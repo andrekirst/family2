@@ -1,11 +1,12 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.PreviewRuleMatch;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Services;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -17,8 +18,8 @@ public class PreviewRuleMatchQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnMatchingRule()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var ruleRepo = new FakeOrganizationRuleRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var ruleRepo = Substitute.For<IOrganizationRuleRepository>();
         var engine = new OrganizationRuleEngine();
         var handler = new PreviewRuleMatchQueryHandler(fileRepo, ruleRepo, engine);
 
@@ -27,12 +28,14 @@ public class PreviewRuleMatchQueryHandlerTests
             FileSize.From(1024), StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(), _familyId, _userId);
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        ruleRepo.Rules.Add(OrganizationRule.Create(
+        var rule = OrganizationRule.Create(
             "Photos rule", _familyId, _userId,
             """[{"Type":2,"Value":"image/*"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1));
+            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+        ruleRepo.GetEnabledByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<OrganizationRule> { rule });
 
         var query = new PreviewRuleMatchQuery(file.Id)
         {
@@ -49,8 +52,8 @@ public class PreviewRuleMatchQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnNullWhenNoMatch()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var ruleRepo = new FakeOrganizationRuleRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var ruleRepo = Substitute.For<IOrganizationRuleRepository>();
         var engine = new OrganizationRuleEngine();
         var handler = new PreviewRuleMatchQueryHandler(fileRepo, ruleRepo, engine);
 
@@ -59,12 +62,14 @@ public class PreviewRuleMatchQueryHandlerTests
             FileSize.From(100), StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(), _familyId, _userId);
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        ruleRepo.Rules.Add(OrganizationRule.Create(
+        var rule = OrganizationRule.Create(
             "Photos only", _familyId, _userId,
             """[{"Type":2,"Value":"image/*"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1));
+            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+        ruleRepo.GetEnabledByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<OrganizationRule> { rule });
 
         var query = new PreviewRuleMatchQuery(file.Id)
         {
@@ -79,10 +84,13 @@ public class PreviewRuleMatchQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenFileNotFound()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var ruleRepo = new FakeOrganizationRuleRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var ruleRepo = Substitute.For<IOrganizationRuleRepository>();
         var engine = new OrganizationRuleEngine();
         var handler = new PreviewRuleMatchQueryHandler(fileRepo, ruleRepo, engine);
+
+        fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((StoredFile?)null);
 
         var query = new PreviewRuleMatchQuery(FileId.New())
         {
@@ -98,8 +106,8 @@ public class PreviewRuleMatchQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenFileBelongsToDifferentFamily()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var ruleRepo = new FakeOrganizationRuleRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var ruleRepo = Substitute.For<IOrganizationRuleRepository>();
         var engine = new OrganizationRuleEngine();
         var handler = new PreviewRuleMatchQueryHandler(fileRepo, ruleRepo, engine);
 
@@ -108,7 +116,7 @@ public class PreviewRuleMatchQueryHandlerTests
             FileSize.From(1024), StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(), FamilyId.New(), _userId); // Different family
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var query = new PreviewRuleMatchQuery(file.Id)
         {

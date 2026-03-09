@@ -1,19 +1,26 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.CreateSecureNote;
+using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class CreateSecureNoteCommandHandlerTests
 {
+    private readonly ISecureNoteRepository _noteRepo = Substitute.For<ISecureNoteRepository>();
+    private readonly CreateSecureNoteCommandHandler _handler;
+
+    public CreateSecureNoteCommandHandlerTests()
+    {
+        _handler = new CreateSecureNoteCommandHandler(_noteRepo);
+    }
+
     [Fact]
     public async Task Handle_ShouldCreateNote()
     {
-        var noteRepo = new FakeSecureNoteRepository();
-        var handler = new CreateSecureNoteCommandHandler(noteRepo);
-
         var command = new CreateSecureNoteCommand(
             NoteCategory.Passwords,
             "enc-title",
@@ -26,20 +33,19 @@ public class CreateSecureNoteCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.NoteId.Should().NotBe(Guid.Empty);
-        noteRepo.Notes.Should().HaveCount(1);
-        noteRepo.Notes.First().EncryptedTitle.Should().Be("enc-title");
-        noteRepo.Notes.First().Category.Should().Be(NoteCategory.Passwords);
+        await _noteRepo.Received(1).AddAsync(
+            Arg.Is<SecureNote>(n =>
+                n.EncryptedTitle == "enc-title" &&
+                n.Category == NoteCategory.Passwords),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldStoreSaltAndSentinel()
     {
-        var noteRepo = new FakeSecureNoteRepository();
-        var handler = new CreateSecureNoteCommandHandler(noteRepo);
-
         var command = new CreateSecureNoteCommand(
             NoteCategory.Financial,
             "enc-title",
@@ -52,22 +58,22 @@ public class CreateSecureNoteCommandHandlerTests
             UserId = UserId.New()
         };
 
-        await handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, CancellationToken.None);
 
-        var note = noteRepo.Notes.First();
-        note.Salt.Should().Be("my-salt");
-        note.Sentinel.Should().Be("my-sentinel");
+        await _noteRepo.Received(1).AddAsync(
+            Arg.Is<SecureNote>(n =>
+                n.Salt == "my-salt" &&
+                n.Sentinel == "my-sentinel"),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_MultipleCalls_ShouldCreateSeparateNotes()
     {
-        var noteRepo = new FakeSecureNoteRepository();
-        var handler = new CreateSecureNoteCommandHandler(noteRepo);
         var userId = UserId.New();
         var familyId = FamilyId.New();
 
-        await handler.Handle(new CreateSecureNoteCommand(
+        await _handler.Handle(new CreateSecureNoteCommand(
             NoteCategory.Passwords,
             "note1",
             "content1",
@@ -79,7 +85,7 @@ public class CreateSecureNoteCommandHandlerTests
             UserId = userId
         }, CancellationToken.None);
 
-        await handler.Handle(new CreateSecureNoteCommand(
+        await _handler.Handle(new CreateSecureNoteCommand(
             NoteCategory.Medical,
             "note2",
             "content2",
@@ -91,6 +97,6 @@ public class CreateSecureNoteCommandHandlerTests
             UserId = userId
         }, CancellationToken.None);
 
-        noteRepo.Notes.Should().HaveCount(2);
+        await _noteRepo.Received(2).AddAsync(Arg.Any<SecureNote>(), Arg.Any<CancellationToken>());
     }
 }

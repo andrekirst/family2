@@ -1,10 +1,11 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.ReorderOrganizationRules;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -13,7 +14,7 @@ public class ReorderOrganizationRulesCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldReorderRules()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
+        var ruleRepo = Substitute.For<IOrganizationRuleRepository>();
         var handler = new ReorderOrganizationRulesCommandHandler(ruleRepo);
 
         var familyId = FamilyId.New();
@@ -21,7 +22,9 @@ public class ReorderOrganizationRulesCommandHandlerTests
         var rule1 = OrganizationRule.Create("A", familyId, userId, "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
         var rule2 = OrganizationRule.Create("B", familyId, userId, "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 2);
         var rule3 = OrganizationRule.Create("C", familyId, userId, "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 3);
-        ruleRepo.Rules.AddRange([rule1, rule2, rule3]);
+
+        ruleRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<OrganizationRule> { rule1, rule2, rule3 });
 
         // Reverse order: C, B, A
         var command = new ReorderOrganizationRulesCommand(
@@ -42,13 +45,17 @@ public class ReorderOrganizationRulesCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenRuleNotFound()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
+        var ruleRepo = Substitute.For<IOrganizationRuleRepository>();
         var handler = new ReorderOrganizationRulesCommandHandler(ruleRepo);
+
+        var familyId = FamilyId.New();
+        ruleRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<OrganizationRule>());
 
         var command = new ReorderOrganizationRulesCommand(
             [Guid.NewGuid()])
         {
-            FamilyId = FamilyId.New(),
+            FamilyId = familyId,
             UserId = UserId.New()
         };
 

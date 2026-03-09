@@ -1,33 +1,39 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.ToggleOrganizationRule;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class ToggleOrganizationRuleCommandHandlerTests
 {
+    private readonly IOrganizationRuleRepository _ruleRepo = Substitute.For<IOrganizationRuleRepository>();
+    private readonly ToggleOrganizationRuleCommandHandler _handler;
+
+    public ToggleOrganizationRuleCommandHandlerTests()
+    {
+        _handler = new ToggleOrganizationRuleCommandHandler(_ruleRepo);
+    }
+
     [Fact]
     public async Task Handle_ShouldDisableRule()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new ToggleOrganizationRuleCommandHandler(ruleRepo);
-
         var familyId = FamilyId.New();
         var rule = OrganizationRule.Create(
             "Test", familyId, UserId.New(),
             "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
-        ruleRepo.Rules.Add(rule);
+        _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new ToggleOrganizationRuleCommand(rule.Id, false)
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
         rule.IsEnabled.Should().BeFalse();
@@ -36,22 +42,19 @@ public class ToggleOrganizationRuleCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldEnableRule()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new ToggleOrganizationRuleCommandHandler(ruleRepo);
-
         var familyId = FamilyId.New();
         var rule = OrganizationRule.Create(
             "Test", familyId, UserId.New(),
             "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
         rule.Disable();
-        ruleRepo.Rules.Add(rule);
+        _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new ToggleOrganizationRuleCommand(rule.Id, true)
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
         rule.IsEnabled.Should().BeTrue();
@@ -60,20 +63,17 @@ public class ToggleOrganizationRuleCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenDifferentFamily()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new ToggleOrganizationRuleCommandHandler(ruleRepo);
-
         var rule = OrganizationRule.Create(
             "Test", FamilyId.New(), UserId.New(),
             "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
-        ruleRepo.Rules.Add(rule);
+        _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new ToggleOrganizationRuleCommand(rule.Id, false)
         {
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
             .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);

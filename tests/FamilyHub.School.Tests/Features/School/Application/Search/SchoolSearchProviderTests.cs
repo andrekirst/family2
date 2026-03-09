@@ -3,12 +3,14 @@ using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.School.Application.Search;
 using FamilyHub.Api.Features.School.Domain.Entities;
+using FamilyHub.Api.Features.School.Domain.Repositories;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.School.Tests.Features.School.Application.Search;
 
@@ -120,8 +122,15 @@ public class SchoolSearchProviderTests
         List<FamilyMember> members)
     {
         var familyId = students.FirstOrDefault()?.FamilyId ?? members.FirstOrDefault()?.FamilyId ?? FamilyId.New();
-        var studentRepo = new FakeStudentRepository(students);
-        var memberRepo = new FakeFamilyMemberRepository(allMembers: members);
+
+        var studentRepo = Substitute.For<IStudentRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+
+        studentRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(students);
+        memberRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(members.Where(m => m.FamilyId == familyId).ToList());
+
         return new SchoolSearchProvider(studentRepo, memberRepo);
     }
 

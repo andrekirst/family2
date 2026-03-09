@@ -2,9 +2,10 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Dashboard.Application.Commands.RemoveWidget;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
+using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Dashboard.Tests.Features.Dashboard.Application;
 
@@ -14,14 +15,16 @@ public class RemoveWidgetCommandHandlerTests
     public async Task Handle_ShouldRemoveWidget_WhenExists()
     {
         // Arrange
-        var repo = new FakeDashboardLayoutRepository();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
         var handler = new RemoveWidgetCommandHandler(repo);
 
         var layout = DashboardLayout.CreatePersonal(
             DashboardLayoutName.From("Test"), UserId.New());
         var widget = layout.AddWidget(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0);
         layout.ClearDomainEvents();
-        repo.Seed(layout);
+
+        repo.GetByWidgetIdAsync(widget.Id, Arg.Any<CancellationToken>())
+            .Returns(layout);
 
         // Act
         var result = await handler.Handle(

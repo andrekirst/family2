@@ -1,9 +1,11 @@
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Dashboard.Application.Commands.SaveDashboardLayout;
+using FamilyHub.Api.Features.Dashboard.Domain.Entities;
+using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Dashboard.Tests.Features.Dashboard.Application;
 
@@ -13,37 +15,51 @@ public class SaveDashboardLayoutCommandHandlerTests
     public async Task Handle_ShouldCreateNewDashboard_WhenNoneExists()
     {
         // Arrange
-        var (handler, repo) = CreateHandler();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
+        var handler = new SaveDashboardLayoutCommandHandler(repo);
+        var userId = UserId.New();
+
+        repo.GetPersonalDashboardAsync(userId, Arg.Any<CancellationToken>())
+            .Returns((DashboardLayout?)null);
+
         var command = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From("My Dashboard"),
             false,
-            [new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, null)]) { UserId = UserId.New(), FamilyId = FamilyId.New() };
+            [new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, null)]) { UserId = userId, FamilyId = FamilyId.New() };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        repo.AddedLayouts.Should().ContainSingle();
-        repo.AddedLayouts[0].Widgets.Should().HaveCount(1);
+        await repo.Received(1).AddAsync(
+            Arg.Is<DashboardLayout>(d => d.Widgets.Count == 1),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldUpdateExistingDashboard()
     {
         // Arrange
-        var (handler, repo) = CreateHandler();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
+        var handler = new SaveDashboardLayoutCommandHandler(repo);
         var userId = UserId.New();
-
-        // Create initial dashboard
         var familyId = FamilyId.New();
+
+        // First call: no existing dashboard -> creates new
+        repo.GetPersonalDashboardAsync(userId, Arg.Any<CancellationToken>())
+            .Returns((DashboardLayout?)null);
+
         var createCommand = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From("My Dashboard"),
             false,
             [new WidgetPositionData(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, null)]) { UserId = userId, FamilyId = familyId };
-        await handler.Handle(createCommand, CancellationToken.None);
+        var createResult = await handler.Handle(createCommand, CancellationToken.None);
 
-        // Update with new widgets
+        // Second call: existing dashboard -> updates
+        repo.GetPersonalDashboardAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(createResult.Layout);
+
         var updateCommand = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From("Updated Dashboard"),
             false,
@@ -57,16 +73,22 @@ public class SaveDashboardLayoutCommandHandlerTests
 
         // Assert
         result.Should().NotBeNull();
-        repo.UpdatedLayouts.Should().ContainSingle();
+        await repo.Received(1).UpdateAsync(
+            Arg.Any<DashboardLayout>(),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldCreateSharedDashboard()
     {
         // Arrange
-        var (handler, repo) = CreateHandler();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
+        var handler = new SaveDashboardLayoutCommandHandler(repo);
         var familyId = FamilyId.New();
         var userId = UserId.New();
+
+        repo.GetSharedDashboardAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns((DashboardLayout?)null);
 
         var command = new SaveDashboardLayoutCommand(
             DashboardLayoutName.From("Family Dashboard"),
@@ -78,16 +100,8 @@ public class SaveDashboardLayoutCommandHandlerTests
 
         // Assert
         result.Should().NotBeNull();
-        repo.AddedLayouts.Should().ContainSingle();
-        repo.AddedLayouts[0].IsShared.Should().BeTrue();
-        repo.AddedLayouts[0].FamilyId.Should().Be(familyId);
-    }
-
-    private static (SaveDashboardLayoutCommandHandler Handler, FakeDashboardLayoutRepository Repo)
-        CreateHandler()
-    {
-        var repo = new FakeDashboardLayoutRepository();
-        var handler = new SaveDashboardLayoutCommandHandler(repo);
-        return (handler, repo);
+        await repo.Received(1).AddAsync(
+            Arg.Is<DashboardLayout>(d => d.IsShared && d.FamilyId == familyId),
+            Arg.Any<CancellationToken>());
     }
 }

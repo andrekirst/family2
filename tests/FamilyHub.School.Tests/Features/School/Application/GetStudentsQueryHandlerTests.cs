@@ -1,10 +1,12 @@
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.School.Application.Queries.GetStudents;
 using FamilyHub.Api.Features.School.Domain.Entities;
-using FamilyHub.TestCommon.Fakes;
+using FamilyHub.Api.Features.School.Domain.Repositories;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.School.Tests.Features.School.Application;
 
@@ -19,8 +21,14 @@ public class GetStudentsQueryHandlerTests
         var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
         var student = Student.Create(targetMember.Id, familyId, userId);
 
-        var studentRepo = new FakeStudentRepository([student]);
-        var memberRepo = new FakeFamilyMemberRepository(allMembers: [targetMember]);
+        var studentRepo = Substitute.For<IStudentRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+
+        studentRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns([student]);
+        memberRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns([targetMember]);
+
         var handler = new GetStudentsQueryHandler(studentRepo, memberRepo);
         var query = new GetStudentsQuery { FamilyId = familyId };
 
@@ -40,8 +48,12 @@ public class GetStudentsQueryHandlerTests
     {
         // Arrange
         var familyId = FamilyId.New();
-        var studentRepo = new FakeStudentRepository();
-        var memberRepo = new FakeFamilyMemberRepository();
+        var studentRepo = Substitute.For<IStudentRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+
+        studentRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<Student>());
+
         var handler = new GetStudentsQueryHandler(studentRepo, memberRepo);
         var query = new GetStudentsQuery { FamilyId = familyId };
 

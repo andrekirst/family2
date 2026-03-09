@@ -2,10 +2,11 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Application.Commands.SetFamilyAvatar;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Common.Infrastructure.Avatar;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Family.Tests.Features.Family.Application;
 
@@ -20,7 +21,7 @@ public class SetFamilyAvatarCommandHandlerTests
         var member = FamilyMember.Create(familyId, userId, FamilyRole.Member);
         var avatar = CreateTestAvatar();
 
-        var (handler, _, _) = CreateHandler(member, avatar);
+        var (handler, _, _) = CreateHandler(member, avatar, userId, familyId);
         var command = new SetFamilyAvatarCommand(avatar.Id) { UserId = userId, FamilyId = familyId };
 
         // Act
@@ -36,8 +37,10 @@ public class SetFamilyAvatarCommandHandlerTests
     {
         // Arrange
         var avatar = CreateTestAvatar();
-        var (handler, _, _) = CreateHandler(member: null, avatar);
-        var command = new SetFamilyAvatarCommand(avatar.Id) { UserId = UserId.New(), FamilyId = FamilyId.New() };
+        var userId = UserId.New();
+        var familyId = FamilyId.New();
+        var (handler, _, _) = CreateHandler(member: null, avatar, userId, familyId);
+        var command = new SetFamilyAvatarCommand(avatar.Id) { UserId = userId, FamilyId = familyId };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
@@ -52,9 +55,10 @@ public class SetFamilyAvatarCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
         var member = FamilyMember.Create(familyId, userId, FamilyRole.Member);
+        var avatarId = AvatarId.New();
 
-        var (handler, _, _) = CreateHandler(member, existingAvatar: null);
-        var command = new SetFamilyAvatarCommand(AvatarId.New()) { UserId = userId, FamilyId = familyId };
+        var (handler, _, _) = CreateHandler(member, existingAvatar: null, userId, familyId);
+        var command = new SetFamilyAvatarCommand(avatarId) { UserId = userId, FamilyId = familyId };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
@@ -79,12 +83,19 @@ public class SetFamilyAvatarCommandHandlerTests
 
     private static (
         SetFamilyAvatarCommandHandler Handler,
-        FakeFamilyMemberRepository MemberRepo,
-        FakeAvatarRepository AvatarRepo
-    ) CreateHandler(FamilyMember? member, AvatarAggregate? existingAvatar)
+        IFamilyMemberRepository MemberRepo,
+        IAvatarRepository AvatarRepo
+    ) CreateHandler(FamilyMember? member, AvatarAggregate? existingAvatar, UserId userId, FamilyId familyId)
     {
-        var memberRepo = new FakeFamilyMemberRepository(member);
-        var avatarRepo = new FakeAvatarRepository(existingAvatar);
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        memberRepo.GetByUserAndFamilyAsync(userId, familyId, CancellationToken.None).Returns(member);
+
+        var avatarRepo = Substitute.For<IAvatarRepository>();
+        if (existingAvatar is not null)
+        {
+            avatarRepo.GetByIdAsync(existingAvatar.Id, CancellationToken.None).Returns(existingAvatar);
+        }
+
         var handler = new SetFamilyAvatarCommandHandler(memberRepo, avatarRepo);
         return (handler, memberRepo, avatarRepo);
     }

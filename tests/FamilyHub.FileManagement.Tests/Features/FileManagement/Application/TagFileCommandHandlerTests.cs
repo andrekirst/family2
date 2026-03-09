@@ -1,23 +1,25 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.TagFile;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 using Tag = FamilyHub.Api.Features.FileManagement.Domain.Entities.Tag;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class TagFileCommandHandlerTests
 {
-    private static (TagFileCommandHandler handler, FakeStoredFileRepository fileRepo, FakeTagRepository tagRepo, FakeFileTagRepository fileTagRepo) CreateHandler()
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly ITagRepository _tagRepo = Substitute.For<ITagRepository>();
+    private readonly IFileTagRepository _fileTagRepo = Substitute.For<IFileTagRepository>();
+    private readonly TagFileCommandHandler _handler;
+
+    public TagFileCommandHandlerTests()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var tagRepo = new FakeTagRepository();
-        var fileTagRepo = new FakeFileTagRepository();
-        var handler = new TagFileCommandHandler(fileRepo, tagRepo, fileTagRepo);
-        return (handler, fileRepo, tagRepo, fileTagRepo);
+        _handler = new TagFileCommandHandler(_fileRepo, _tagRepo, _fileTagRepo);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId)
@@ -37,68 +39,63 @@ public class TagFileCommandHandlerTests
     public async Task Handle_ShouldTagFile()
     {
         var familyId = FamilyId.New();
-        var (handler, fileRepo, tagRepo, fileTagRepo) = CreateHandler();
-
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
-
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
-        tagRepo.Tags.Add(tag);
+
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
+        _fileTagRepo.ExistsAsync(file.Id, tag.Id, Arg.Any<CancellationToken>()).Returns(false);
 
         var command = new TagFileCommand(file.Id, tag.Id)
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
-        fileTagRepo.FileTags.Should().HaveCount(1);
-        fileTagRepo.FileTags.First().FileId.Should().Be(file.Id);
-        fileTagRepo.FileTags.First().TagId.Should().Be(tag.Id);
+        await _fileTagRepo.Received(1).AddAsync(
+            Arg.Is<FileTag>(ft => ft.FileId == file.Id && ft.TagId == tag.Id),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldBeIdempotent()
     {
         var familyId = FamilyId.New();
-        var (handler, fileRepo, tagRepo, fileTagRepo) = CreateHandler();
-
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
-
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
-        tagRepo.Tags.Add(tag);
 
-        // Pre-add the file-tag association
-        fileTagRepo.FileTags.Add(FileTag.Create(file.Id, tag.Id));
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
+        _fileTagRepo.ExistsAsync(file.Id, tag.Id, Arg.Any<CancellationToken>()).Returns(true);
 
         var command = new TagFileCommand(file.Id, tag.Id)
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
-        fileTagRepo.FileTags.Should().HaveCount(1); // No duplicate
+        await _fileTagRepo.DidNotReceive().AddAsync(Arg.Any<FileTag>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFileNotFound()
     {
-        var (handler, _, tagRepo, _) = CreateHandler();
         var familyId = FamilyId.New();
-
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
-        tagRepo.Tags.Add(tag);
+
+        _fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs((StoredFile?)null);
+        _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new TagFileCommand(FileId.New(), tag.Id)
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
             .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
@@ -108,17 +105,17 @@ public class TagFileCommandHandlerTests
     public async Task Handle_ShouldThrowWhenTagNotFound()
     {
         var familyId = FamilyId.New();
-        var (handler, fileRepo, _, _) = CreateHandler();
-
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
+
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _tagRepo.GetByIdAsync(TagId.New(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs((Tag?)null);
 
         var command = new TagFileCommand(file.Id, TagId.New())
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
             .Where(e => e.ErrorCode == DomainErrorCodes.TagNotFound);
@@ -127,21 +124,19 @@ public class TagFileCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenFileBelongsToDifferentFamily()
     {
-        var (handler, fileRepo, tagRepo, _) = CreateHandler();
-
         var file = CreateTestFile(FamilyId.New());
-        fileRepo.Files.Add(file);
-
         var differentFamily = FamilyId.New();
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), differentFamily, UserId.New());
-        tagRepo.Tags.Add(tag);
+
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new TagFileCommand(file.Id, tag.Id)
         {
             FamilyId = differentFamily,
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
             .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);

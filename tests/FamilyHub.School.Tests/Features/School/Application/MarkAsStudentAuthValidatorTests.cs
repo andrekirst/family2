@@ -2,10 +2,12 @@ using FamilyHub.Api.Resources;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.School.Application.Commands.MarkAsStudent;
 using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.School.Tests.Features.School.Application;
 
@@ -19,7 +21,10 @@ public class MarkAsStudentAuthValidatorTests
         var userId = UserId.New();
         var familyMemberId = FamilyMemberId.New();
 
-        var memberRepo = new FakeFamilyMemberRepository(); // No existing member
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        memberRepo.GetByUserAndFamilyAsync(userId, familyId, Arg.Any<CancellationToken>())
+            .Returns((FamilyMember?)null);
+
         var validator = new MarkAsStudentAuthValidator(memberRepo, new StubStringLocalizer<DomainErrors>());
         var command = new MarkAsStudentCommand(familyMemberId) { FamilyId = familyId, UserId = userId };
 
@@ -40,7 +45,10 @@ public class MarkAsStudentAuthValidatorTests
         var callerMember = FamilyMember.Create(familyId, userId, FamilyRole.Member);
         var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
 
-        var memberRepo = new FakeFamilyMemberRepository(callerMember, [callerMember, targetMember]);
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        memberRepo.GetByUserAndFamilyAsync(userId, familyId, Arg.Any<CancellationToken>())
+            .Returns(callerMember);
+
         var validator = new MarkAsStudentAuthValidator(memberRepo, new StubStringLocalizer<DomainErrors>());
         var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyId, UserId = userId };
 
@@ -61,7 +69,10 @@ public class MarkAsStudentAuthValidatorTests
         var callerMember = FamilyMember.Create(familyId, userId, FamilyRole.Owner);
         var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
 
-        var memberRepo = new FakeFamilyMemberRepository(callerMember, [callerMember, targetMember]);
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        memberRepo.GetByUserAndFamilyAsync(userId, familyId, Arg.Any<CancellationToken>())
+            .Returns(callerMember);
+
         var validator = new MarkAsStudentAuthValidator(memberRepo, new StubStringLocalizer<DomainErrors>());
         var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyId, UserId = userId };
 

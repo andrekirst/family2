@@ -2,8 +2,9 @@ using FluentAssertions;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.GoogleIntegration.Application.Queries.GetLinkedAccounts;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
+using FamilyHub.Api.Features.GoogleIntegration.Domain.Repositories;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
+using NSubstitute;
 
 namespace FamilyHub.GoogleIntegration.Tests.Application;
 
@@ -22,7 +23,10 @@ public class GetLinkedAccountsQueryHandlerTests
             DateTime.UtcNow.AddHours(1),
             GoogleScopes.From("openid email"));
 
-        var repo = new FakeGoogleAccountLinkRepository(link);
+        var repo = Substitute.For<IGoogleAccountLinkRepository>();
+        repo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(link);
+
         var handler = new GetLinkedAccountsQueryHandler(repo);
 
         var query = new GetLinkedAccountsQuery(userId);
@@ -37,10 +41,14 @@ public class GetLinkedAccountsQueryHandlerTests
     [Fact]
     public async Task Handle_WithNoLinkedAccount_ShouldReturnEmpty()
     {
-        var repo = new FakeGoogleAccountLinkRepository();
+        var userId = UserId.New();
+        var repo = Substitute.For<IGoogleAccountLinkRepository>();
+        repo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns((GoogleAccountLink?)null);
+
         var handler = new GetLinkedAccountsQueryHandler(repo);
 
-        var query = new GetLinkedAccountsQuery(UserId.New());
+        var query = new GetLinkedAccountsQuery(userId);
         var result = await handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();

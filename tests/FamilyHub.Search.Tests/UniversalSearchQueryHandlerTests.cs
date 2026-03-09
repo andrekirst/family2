@@ -1,9 +1,9 @@
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.Search.Application.Queries.UniversalSearch;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
 
 namespace FamilyHub.Search.Tests;
 
@@ -16,8 +16,8 @@ public class UniversalSearchQueryHandlerTests
     public async Task Handle_ShouldFanOutToAllProviders()
     {
         // Arrange
-        var provider1 = new FakeSearchProvider("family");
-        var provider2 = new FakeSearchProvider("calendar");
+        var provider1 = CreateMockProvider("family");
+        var provider2 = CreateMockProvider("calendar");
         var registry = CreateEmptyRegistry();
         var handler = new UniversalSearchQueryHandler([provider1, provider2], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("test");
@@ -26,16 +26,16 @@ public class UniversalSearchQueryHandlerTests
         await handler.Handle(query, CancellationToken.None);
 
         // Assert
-        provider1.SearchCallCount.Should().Be(1);
-        provider2.SearchCallCount.Should().Be(1);
+        await provider1.Received(1).SearchAsync(Arg.Any<SearchContext>(), Arg.Any<CancellationToken>());
+        await provider2.Received(1).SearchAsync(Arg.Any<SearchContext>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_WithModuleFilter_ShouldOnlyQueryMatchingProviders()
     {
         // Arrange
-        var familyProvider = new FakeSearchProvider("family");
-        var calendarProvider = new FakeSearchProvider("calendar");
+        var familyProvider = CreateMockProvider("family");
+        var calendarProvider = CreateMockProvider("calendar");
         var registry = CreateEmptyRegistry();
         var handler = new UniversalSearchQueryHandler([familyProvider, calendarProvider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("test", modules: ["family"]);
@@ -44,8 +44,8 @@ public class UniversalSearchQueryHandlerTests
         await handler.Handle(query, CancellationToken.None);
 
         // Assert
-        familyProvider.SearchCallCount.Should().Be(1);
-        calendarProvider.SearchCallCount.Should().Be(0);
+        await familyProvider.Received(1).SearchAsync(Arg.Any<SearchContext>(), Arg.Any<CancellationToken>());
+        await calendarProvider.DidNotReceive().SearchAsync(Arg.Any<SearchContext>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class UniversalSearchQueryHandlerTests
         var results = Enumerable.Range(1, 20)
             .Select(i => new SearchResultItem($"Item {i}", null, "family", "icon", "/route"))
             .ToList();
-        var provider = new FakeSearchProvider("family", results);
+        var provider = CreateMockProvider("family", results);
         var registry = CreateEmptyRegistry();
         var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("test", limit: 5);
@@ -71,7 +71,7 @@ public class UniversalSearchQueryHandlerTests
     public async Task Handle_ShouldFilterCommandsByPermissions()
     {
         // Arrange
-        var provider = new FakeSearchProvider("family");
+        var provider = CreateMockProvider("family");
         var registry = CreateRegistryWithCommands();
         var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("", permissions: ["family:invite"]);
@@ -89,7 +89,7 @@ public class UniversalSearchQueryHandlerTests
     public async Task Handle_ShouldFilterCommandsByKeywordMatch()
     {
         // Arrange
-        var provider = new FakeSearchProvider("family");
+        var provider = CreateMockProvider("family");
         var registry = CreateRegistryWithCommands();
         var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("invite", permissions: ["family:invite", "family:admin"]);
@@ -106,7 +106,7 @@ public class UniversalSearchQueryHandlerTests
     public async Task Handle_EmptyQuery_ShouldReturnAllCommands()
     {
         // Arrange
-        var provider = new FakeSearchProvider("family");
+        var provider = CreateMockProvider("family");
         var registry = CreateRegistryWithCommands();
         var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("", permissions: ["family:invite", "family:admin"]);
@@ -141,7 +141,7 @@ public class UniversalSearchQueryHandlerTests
         {
             new("John Doe", "Owner", "family", "users", "/family/members/1")
         };
-        var provider = new FakeSearchProvider("family", results);
+        var provider = CreateMockProvider("family", results);
         var registry = CreateEmptyRegistry();
         var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("john");
@@ -169,9 +169,9 @@ public class UniversalSearchQueryHandlerTests
         var results3 = Enumerable.Range(1, 15)
             .Select(i => new SearchResultItem($"Files {i}", null, "files", "icon", "/route"))
             .ToList();
-        var provider1 = new FakeSearchProvider("family", results1);
-        var provider2 = new FakeSearchProvider("calendar", results2);
-        var provider3 = new FakeSearchProvider("files", results3);
+        var provider1 = CreateMockProvider("family", results1);
+        var provider2 = CreateMockProvider("calendar", results2);
+        var provider3 = CreateMockProvider("files", results3);
         var registry = CreateEmptyRegistry();
         var handler = new UniversalSearchQueryHandler(
             [provider1, provider2, provider3], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
@@ -188,7 +188,7 @@ public class UniversalSearchQueryHandlerTests
     public async Task Handle_WithGermanLocale_ShouldResolveGermanLabels()
     {
         // Arrange
-        var provider = new FakeSearchProvider("family");
+        var provider = CreateMockProvider("family");
         var registry = CreateRegistryWithBilingualCommands();
         var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("einladen",
@@ -206,7 +206,7 @@ public class UniversalSearchQueryHandlerTests
     public async Task Handle_WithEnglishLocale_ShouldKeepEnglishLabels()
     {
         // Arrange
-        var provider = new FakeSearchProvider("family");
+        var provider = CreateMockProvider("family");
         var registry = CreateRegistryWithBilingualCommands();
         var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("invite",
@@ -224,7 +224,7 @@ public class UniversalSearchQueryHandlerTests
     public async Task Handle_WithGermanLocale_ShouldMatchGermanKeywords()
     {
         // Arrange
-        var provider = new FakeSearchProvider("family");
+        var provider = CreateMockProvider("family");
         var registry = CreateRegistryWithBilingualCommands();
         var handler = new UniversalSearchQueryHandler([provider], registry, NullLogger<UniversalSearchQueryHandler>.Instance);
         var query = CreateQuery("mitglied",
@@ -236,6 +236,22 @@ public class UniversalSearchQueryHandlerTests
 
         // Assert — "mitglied" should match the German label "Mitglied einladen"
         result.Commands.Should().Contain(c => c.Label == "Mitglied einladen");
+    }
+
+    // --- Helpers ---
+
+    private static ISearchProvider CreateMockProvider(string moduleName, List<SearchResultItem>? results = null)
+    {
+        var provider = Substitute.For<ISearchProvider>();
+        provider.ModuleName.Returns(moduleName);
+        provider.SearchAsync(Arg.Any<SearchContext>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var context = (SearchContext)callInfo[0];
+                var limited = (results ?? []).Take(context.Limit).ToList().AsReadOnly();
+                return (IReadOnlyList<SearchResultItem>)limited;
+            });
+        return provider;
     }
 
     private static UniversalSearchQuery CreateQuery(

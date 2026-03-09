@@ -1,29 +1,38 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetRecentSearches;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class GetRecentSearchesQueryHandlerTests
 {
+    private readonly IRecentSearchRepository _recentRepo = Substitute.For<IRecentSearchRepository>();
+    private readonly GetRecentSearchesQueryHandler _handler;
+
+    public GetRecentSearchesQueryHandlerTests()
+    {
+        _handler = new GetRecentSearchesQueryHandler(_recentRepo);
+    }
+
     [Fact]
     public async Task Handle_ShouldReturnRecentSearches()
     {
-        var recentRepo = new FakeRecentSearchRepository();
-        var handler = new GetRecentSearchesQueryHandler(recentRepo);
-
         var userId = UserId.New();
-        recentRepo.Searches.Add(RecentSearch.Create(userId, "photos"));
-        recentRepo.Searches.Add(RecentSearch.Create(userId, "documents"));
+        _recentRepo.GetByUserIdAsync(userId, Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([
+                RecentSearch.Create(userId, "photos"),
+                RecentSearch.Create(userId, "documents")
+            ]);
 
         var query = new GetRecentSearchesQuery()
         {
             UserId = userId,
             FamilyId = FamilyId.New()
         };
-        var result = await handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
     }
@@ -31,15 +40,15 @@ public class GetRecentSearchesQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnEmptyWhenNoSearches()
     {
-        var recentRepo = new FakeRecentSearchRepository();
-        var handler = new GetRecentSearchesQueryHandler(recentRepo);
+        _recentRepo.GetByUserIdAsync(UserId.New(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs(new List<RecentSearch>());
 
         var query = new GetRecentSearchesQuery()
         {
             UserId = UserId.New(),
             FamilyId = FamilyId.New()
         };
-        var result = await handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
     }
@@ -47,19 +56,16 @@ public class GetRecentSearchesQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldOnlyReturnCurrentUserSearches()
     {
-        var recentRepo = new FakeRecentSearchRepository();
-        var handler = new GetRecentSearchesQueryHandler(recentRepo);
-
         var userId = UserId.New();
-        recentRepo.Searches.Add(RecentSearch.Create(userId, "mine"));
-        recentRepo.Searches.Add(RecentSearch.Create(UserId.New(), "other"));
+        _recentRepo.GetByUserIdAsync(userId, Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns([RecentSearch.Create(userId, "mine")]);
 
         var query = new GetRecentSearchesQuery()
         {
             UserId = userId,
             FamilyId = FamilyId.New()
         };
-        var result = await handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);
         result.First().Query.Should().Be("mine");

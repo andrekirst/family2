@@ -4,8 +4,10 @@ using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.GoogleIntegration.Application.Commands.UnlinkGoogleAccount;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Events;
+using FamilyHub.Api.Features.GoogleIntegration.Domain.Repositories;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
+using FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Services;
+using NSubstitute;
 
 namespace FamilyHub.GoogleIntegration.Tests.Application;
 
@@ -25,21 +27,37 @@ public class UnlinkGoogleAccountCommandHandlerTests
         return link;
     }
 
+    private static (UnlinkGoogleAccountCommandHandler Handler,
+        IGoogleAccountLinkRepository LinkRepo,
+        IGoogleOAuthService OAuthService) CreateHandler(
+        UserId userId, GoogleAccountLink existingLink)
+    {
+        var linkRepo = Substitute.For<IGoogleAccountLinkRepository>();
+        linkRepo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(existingLink);
+
+        var oauthService = Substitute.For<IGoogleOAuthService>();
+
+        var encryptionService = Substitute.For<ITokenEncryptionService>();
+        encryptionService.Decrypt(Arg.Any<string>())
+            .Returns(callInfo => callInfo.ArgAt<string>(0).Replace("encrypted:", ""));
+
+        var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService);
+        return (handler, linkRepo, oauthService);
+    }
+
     [Fact]
     public async Task Handle_ShouldDeleteLink()
     {
         var userId = UserId.New();
         var existingLink = CreateTestLink(userId);
-        var linkRepo = new FakeGoogleAccountLinkRepository(existingLink);
-        var oauthService = new FakeGoogleOAuthService();
-        var encryptionService = new FakeTokenEncryptionService();
-        var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService);
+        var (handler, linkRepo, _) = CreateHandler(userId, existingLink);
 
         var command = new UnlinkGoogleAccountCommand { UserId = userId };
         var result = await handler.Handle(command, CancellationToken.None);
 
         result.Should().BeTrue();
-        linkRepo.DeletedLinks.Should().HaveCount(1);
+        await linkRepo.Received(1).DeleteAsync(existingLink, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -47,15 +65,13 @@ public class UnlinkGoogleAccountCommandHandlerTests
     {
         var userId = UserId.New();
         var existingLink = CreateTestLink(userId);
-        var linkRepo = new FakeGoogleAccountLinkRepository(existingLink);
-        var oauthService = new FakeGoogleOAuthService();
-        var encryptionService = new FakeTokenEncryptionService();
-        var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService);
+        var (handler, _, oauthService) = CreateHandler(userId, existingLink);
 
         var command = new UnlinkGoogleAccountCommand { UserId = userId };
         await handler.Handle(command, CancellationToken.None);
 
-        oauthService.TokenRevoked.Should().BeTrue();
+        await oauthService.Received(1).RevokeTokenAsync(
+            "access-token", Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -63,10 +79,7 @@ public class UnlinkGoogleAccountCommandHandlerTests
     {
         var userId = UserId.New();
         var existingLink = CreateTestLink(userId);
-        var linkRepo = new FakeGoogleAccountLinkRepository(existingLink);
-        var oauthService = new FakeGoogleOAuthService();
-        var encryptionService = new FakeTokenEncryptionService();
-        var handler = new UnlinkGoogleAccountCommandHandler(linkRepo, oauthService, encryptionService);
+        var (handler, _, _) = CreateHandler(userId, existingLink);
 
         var command = new UnlinkGoogleAccountCommand { UserId = userId };
         await handler.Handle(command, CancellationToken.None);

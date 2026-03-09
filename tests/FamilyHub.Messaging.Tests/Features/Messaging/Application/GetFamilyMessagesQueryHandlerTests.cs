@@ -1,11 +1,13 @@
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Application.Queries.GetFamilyMessages;
 using FamilyHub.Api.Features.Messaging.Domain.Entities;
+using FamilyHub.Api.Features.Messaging.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Messaging.Tests.Features.Messaging.Application;
 
@@ -23,7 +25,15 @@ public class GetFamilyMessagesQueryHandlerTests
             Message.Create(familyId, senderId, MessageContent.From("Message 2"))
         };
         var user = CreateTestUser(senderId);
-        var (handler, _, _) = CreateHandler(messages, user);
+        var (handler, messageRepo, userRepo) = CreateHandler();
+
+        // Configure: return messages in DESC order (matching real repo behavior)
+        var orderedMessages = messages.OrderByDescending(m => m.SentAt).ToList();
+        messageRepo.GetByFamilyAsync(familyId, 50, null, Arg.Any<CancellationToken>())
+            .Returns(orderedMessages);
+        userRepo.GetByIdAsync(senderId, Arg.Any<CancellationToken>())
+            .Returns(user);
+
         var query = new GetFamilyMessagesQuery() { FamilyId = familyId, UserId = senderId };
 
         // Act
@@ -39,9 +49,14 @@ public class GetFamilyMessagesQueryHandlerTests
     public async Task Handle_ShouldReturnEmptyListWhenNoMessages()
     {
         // Arrange
-        var user = CreateTestUser();
-        var (handler, _, _) = CreateHandler([], user);
-        var query = new GetFamilyMessagesQuery() { FamilyId = FamilyId.New(), UserId = UserId.New() };
+        var familyId = FamilyId.New();
+        var userId = UserId.New();
+        var (handler, messageRepo, _) = CreateHandler();
+
+        messageRepo.GetByFamilyAsync(familyId, 50, null, Arg.Any<CancellationToken>())
+            .Returns(new List<Message>());
+
+        var query = new GetFamilyMessagesQuery() { FamilyId = familyId, UserId = userId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -61,7 +76,13 @@ public class GetFamilyMessagesQueryHandlerTests
             Message.Create(familyId, senderId, MessageContent.From("Hello!"))
         };
         var user = CreateTestUser(senderId);
-        var (handler, _, _) = CreateHandler(messages, user);
+        var (handler, messageRepo, userRepo) = CreateHandler();
+
+        messageRepo.GetByFamilyAsync(familyId, 50, null, Arg.Any<CancellationToken>())
+            .Returns(messages);
+        userRepo.GetByIdAsync(senderId, Arg.Any<CancellationToken>())
+            .Returns(user);
+
         var query = new GetFamilyMessagesQuery() { FamilyId = familyId, UserId = senderId };
 
         // Act
@@ -82,7 +103,15 @@ public class GetFamilyMessagesQueryHandlerTests
             .Select(i => Message.Create(familyId, senderId, MessageContent.From($"Message {i}")))
             .ToList();
         var user = CreateTestUser(senderId);
-        var (handler, _, _) = CreateHandler(messages, user);
+        var (handler, messageRepo, userRepo) = CreateHandler();
+
+        // Return only 3 messages (simulating limit applied by repo)
+        var limitedMessages = messages.OrderByDescending(m => m.SentAt).Take(3).ToList();
+        messageRepo.GetByFamilyAsync(familyId, 3, null, Arg.Any<CancellationToken>())
+            .Returns(limitedMessages);
+        userRepo.GetByIdAsync(senderId, Arg.Any<CancellationToken>())
+            .Returns(user);
+
         var query = new GetFamilyMessagesQuery(Limit: 3) { FamilyId = familyId, UserId = senderId };
 
         // Act
@@ -105,12 +134,10 @@ public class GetFamilyMessagesQueryHandlerTests
         return user;
     }
 
-    private static (GetFamilyMessagesQueryHandler Handler, FakeMessageRepository MessageRepo, FakeUserRepository UserRepo) CreateHandler(
-        List<Message> messages,
-        User? user)
+    private static (GetFamilyMessagesQueryHandler Handler, IMessageRepository MessageRepo, IUserRepository UserRepo) CreateHandler()
     {
-        var messageRepo = new FakeMessageRepository(messages);
-        var userRepo = new FakeUserRepository(user);
+        var messageRepo = Substitute.For<IMessageRepository>();
+        var userRepo = Substitute.For<IUserRepository>();
         var handler = new GetFamilyMessagesQueryHandler(messageRepo, userRepo);
         return (handler, messageRepo, userRepo);
     }

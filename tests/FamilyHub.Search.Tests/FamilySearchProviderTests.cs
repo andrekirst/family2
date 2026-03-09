@@ -1,11 +1,12 @@
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.Family.Application.Search;
+using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 using FamilyEntity = FamilyHub.Api.Features.Family.Domain.Entities.Family;
-using FamilyHub.Api.Features.Family.Domain.Entities;
 
 namespace FamilyHub.Search.Tests;
 
@@ -58,13 +59,14 @@ public class FamilySearchProviderTests
     [Fact]
     public async Task SearchAsync_MatchesFamilyName()
     {
-        var familyRepo = new FakeFamilyRepository();
         var family = FamilyEntity.Create(FamilyName.From("Smith Family"), TestUserId);
         family.ClearDomainEvents();
-        familyRepo.Seed(family);
 
-        var provider = CreateProvider(familyRepo: familyRepo,
-            familyId: family.Id);
+        var familyRepo = Substitute.For<IFamilyRepository>();
+        familyRepo.GetByIdAsync(family.Id, Arg.Any<CancellationToken>())
+            .Returns(family);
+
+        var provider = CreateProvider(familyRepo: familyRepo, familyId: family.Id);
         var context = new SearchContext(TestUserId, family.Id, "smith");
 
         var results = await provider.SearchAsync(context);
@@ -75,24 +77,25 @@ public class FamilySearchProviderTests
     [Fact]
     public async Task SearchAsync_MatchesFamilyName_GermanLocale()
     {
-        var familyRepo = new FakeFamilyRepository();
-        var family = FamilyEntity.Create(FamilyName.From("Müller Familie"), TestUserId);
+        var family = FamilyEntity.Create(FamilyName.From("Muller Familie"), TestUserId);
         family.ClearDomainEvents();
-        familyRepo.Seed(family);
 
-        var provider = CreateProvider(familyRepo: familyRepo,
-            familyId: family.Id);
-        var context = new SearchContext(TestUserId, family.Id, "müller", Locale: "de");
+        var familyRepo = Substitute.For<IFamilyRepository>();
+        familyRepo.GetByIdAsync(family.Id, Arg.Any<CancellationToken>())
+            .Returns(family);
+
+        var provider = CreateProvider(familyRepo: familyRepo, familyId: family.Id);
+        var context = new SearchContext(TestUserId, family.Id, "muller", Locale: "de");
 
         var results = await provider.SearchAsync(context);
 
-        results.Should().Contain(r => r.Title == "Müller Familie" && r.Description == "Deine Familie");
+        results.Should().Contain(r => r.Title == "Muller Familie" && r.Description == "Deine Familie");
     }
 
     [Fact]
     public async Task SearchAsync_MatchesPendingInvitations()
     {
-        var invitationRepo = new FakeFamilyInvitationRepository();
+        var invitationRepo = Substitute.For<IFamilyInvitationRepository>();
         var invitation = FamilyInvitation.Create(
             TestFamilyId,
             TestUserId,
@@ -101,7 +104,9 @@ public class FamilySearchProviderTests
             InvitationToken.From("a".PadRight(64, 'a')),
             "plaintext-token");
         invitation.ClearDomainEvents();
-        invitationRepo.Seed(invitation);
+
+        invitationRepo.GetPendingByFamilyIdAsync(TestFamilyId, Arg.Any<CancellationToken>())
+            .Returns(new List<FamilyInvitation> { invitation });
 
         var provider = CreateProvider(invitationRepo: invitationRepo);
         var context = new SearchContext(TestUserId, TestFamilyId, "alice");
@@ -117,7 +122,7 @@ public class FamilySearchProviderTests
     [Fact]
     public async Task SearchAsync_InvitationWithGermanLocale()
     {
-        var invitationRepo = new FakeFamilyInvitationRepository();
+        var invitationRepo = Substitute.For<IFamilyInvitationRepository>();
         var invitation = FamilyInvitation.Create(
             TestFamilyId,
             TestUserId,
@@ -126,7 +131,9 @@ public class FamilySearchProviderTests
             InvitationToken.From("b".PadRight(64, 'b')),
             "plaintext-token");
         invitation.ClearDomainEvents();
-        invitationRepo.Seed(invitation);
+
+        invitationRepo.GetPendingByFamilyIdAsync(TestFamilyId, Arg.Any<CancellationToken>())
+            .Returns(new List<FamilyInvitation> { invitation });
 
         var provider = CreateProvider(invitationRepo: invitationRepo);
         var context = new SearchContext(TestUserId, TestFamilyId, "bob", Locale: "de");
@@ -137,12 +144,30 @@ public class FamilySearchProviderTests
     }
 
     private static FamilySearchProvider CreateProvider(
-        FakeFamilyMemberRepository? memberRepo = null,
-        FakeFamilyRepository? familyRepo = null,
-        FakeFamilyInvitationRepository? invitationRepo = null,
-        FamilyId? familyId = null) =>
-        new(
-            memberRepo ?? new FakeFamilyMemberRepository(),
-            familyRepo ?? new FakeFamilyRepository(),
-            invitationRepo ?? new FakeFamilyInvitationRepository());
+        IFamilyMemberRepository? memberRepo = null,
+        IFamilyRepository? familyRepo = null,
+        IFamilyInvitationRepository? invitationRepo = null,
+        FamilyId? familyId = null)
+    {
+        var effectiveFamilyId = familyId ?? TestFamilyId;
+
+        if (memberRepo is null)
+        {
+            memberRepo = Substitute.For<IFamilyMemberRepository>();
+            memberRepo.GetByFamilyIdAsync(effectiveFamilyId, Arg.Any<CancellationToken>())
+                .Returns(new List<FamilyMember>());
+        }
+
+        if (invitationRepo is null)
+        {
+            invitationRepo = Substitute.For<IFamilyInvitationRepository>();
+            invitationRepo.GetPendingByFamilyIdAsync(effectiveFamilyId, Arg.Any<CancellationToken>())
+                .Returns(new List<FamilyInvitation>());
+        }
+
+        return new FamilySearchProvider(
+            memberRepo,
+            familyRepo ?? Substitute.For<IFamilyRepository>(),
+            invitationRepo);
+    }
 }

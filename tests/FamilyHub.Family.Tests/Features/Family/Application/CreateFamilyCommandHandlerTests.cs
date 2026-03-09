@@ -1,10 +1,13 @@
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
+using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 using FamilyEntity = FamilyHub.Api.Features.Family.Domain.Entities.Family;
 
 namespace FamilyHub.Family.Tests.Features.Family.Application;
@@ -57,9 +60,9 @@ public class CreateFamilyCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        familyRepo.AddedFamilies.Should().HaveCount(1);
-        familyRepo.AddedFamilies[0].Name.Should().Be(command.Name);
-        familyRepo.AddedFamilies[0].OwnerId.Should().Be(user.Id);
+        await familyRepo.Received(1).AddAsync(
+            Arg.Is<FamilyEntity>(f => f.Name == command.Name && f.OwnerId == user.Id),
+            Arg.Any<CancellationToken>());
     }
 
     // --- Helpers ---
@@ -76,13 +79,17 @@ public class CreateFamilyCommandHandlerTests
         return user;
     }
 
-    private static (CreateFamilyCommandHandler Handler, FakeFamilyRepository FamilyRepo, FakeUserRepository UserRepo, FakeFamilyMemberRepository MemberRepo) CreateHandler(
-        User? user,
-        FamilyEntity? existingFamilyForOwner = null)
+    private static (CreateFamilyCommandHandler Handler, IFamilyRepository FamilyRepo, IUserRepository UserRepo, IFamilyMemberRepository MemberRepo) CreateHandler(
+        User? user)
     {
-        var userRepo = new FakeUserRepository(user);
-        var familyRepo = new FakeFamilyRepository(existingFamilyForOwner: existingFamilyForOwner);
-        var memberRepo = new FakeFamilyMemberRepository();
+        var userRepo = Substitute.For<IUserRepository>();
+        if (user is not null)
+        {
+            userRepo.GetByIdAsync(user.Id, CancellationToken.None).Returns(user);
+        }
+
+        var familyRepo = Substitute.For<IFamilyRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
         var handler = new CreateFamilyCommandHandler(familyRepo, userRepo, memberRepo);
         return (handler, familyRepo, userRepo, memberRepo);
     }

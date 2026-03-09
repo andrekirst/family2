@@ -1,8 +1,10 @@
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
+using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Family.Tests.Features.Family.Application;
 
@@ -14,7 +16,7 @@ public class SendInvitationCommandHandlerTests
         // Arrange
         var familyId = FamilyId.New();
         var inviterId = UserId.New();
-        var invitationRepo = new FakeFamilyInvitationRepository();
+        var invitationRepo = Substitute.For<IFamilyInvitationRepository>();
         var handler = new SendInvitationCommandHandler(invitationRepo);
         var command = new SendInvitationCommand(Email.From("newmember@example.com"), FamilyRole.Member) { UserId = inviterId, FamilyId = familyId };
 
@@ -32,7 +34,7 @@ public class SendInvitationCommandHandlerTests
         // Arrange
         var familyId = FamilyId.New();
         var inviterId = UserId.New();
-        var invitationRepo = new FakeFamilyInvitationRepository();
+        var invitationRepo = Substitute.For<IFamilyInvitationRepository>();
         var handler = new SendInvitationCommandHandler(invitationRepo);
         var command = new SendInvitationCommand(Email.From("newmember@example.com"), FamilyRole.Member) { UserId = inviterId, FamilyId = familyId };
 
@@ -40,13 +42,14 @@ public class SendInvitationCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        invitationRepo.AddedInvitations.Should().HaveCount(1);
-        var stored = invitationRepo.AddedInvitations[0];
-        stored.FamilyId.Should().Be(familyId);
-        stored.InvitedByUserId.Should().Be(inviterId);
-        stored.InviteeEmail.Should().Be(Email.From("newmember@example.com"));
-        stored.Role.Should().Be(FamilyRole.Member);
-        stored.Status.Should().Be(InvitationStatus.Pending);
+        await invitationRepo.Received(1).AddAsync(
+            Arg.Is<FamilyInvitation>(inv =>
+                inv.FamilyId == familyId &&
+                inv.InvitedByUserId == inviterId &&
+                inv.InviteeEmail == Email.From("newmember@example.com") &&
+                inv.Role == FamilyRole.Member &&
+                inv.Status == InvitationStatus.Pending),
+            Arg.Any<CancellationToken>());
     }
 
 }

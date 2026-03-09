@@ -1,10 +1,13 @@
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.School.Application.Commands.MarkAsStudent;
-using FamilyHub.TestCommon.Fakes;
+using FamilyHub.Api.Features.School.Domain.Entities;
+using FamilyHub.Api.Features.School.Domain.Repositories;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.School.Tests.Features.School.Application;
 
@@ -40,10 +43,12 @@ public class MarkAsStudentCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        studentRepo.AddedStudents.Should().HaveCount(1);
-        studentRepo.AddedStudents[0].FamilyMemberId.Should().Be(targetMember.Id);
-        studentRepo.AddedStudents[0].FamilyId.Should().Be(familyId);
-        studentRepo.AddedStudents[0].MarkedByUserId.Should().Be(userId);
+        await studentRepo.Received(1).AddAsync(
+            Arg.Is<Student>(s =>
+                s.FamilyMemberId == targetMember.Id &&
+                s.FamilyId == familyId &&
+                s.MarkedByUserId == userId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -57,8 +62,11 @@ public class MarkAsStudentCommandHandlerTests
         var callerMember = FamilyMember.Create(familyIdA, userId, FamilyRole.Owner);
         var targetMember = FamilyMember.Create(familyIdB, UserId.New(), FamilyRole.Member); // Different family!
 
-        var studentRepo = new FakeStudentRepository();
-        var memberRepo = new FakeFamilyMemberRepository(callerMember, [callerMember, targetMember]);
+        var studentRepo = Substitute.For<IStudentRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        memberRepo.GetByIdAsync(targetMember.Id, Arg.Any<CancellationToken>())
+            .Returns(targetMember);
+
         var handler = new MarkAsStudentCommandHandler(studentRepo, memberRepo);
 
         var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyIdA, UserId = userId };
@@ -71,13 +79,18 @@ public class MarkAsStudentCommandHandlerTests
 
     // --- Helpers ---
 
-    private static (MarkAsStudentCommandHandler Handler, FakeStudentRepository StudentRepo, FakeFamilyMemberRepository MemberRepo, FamilyMember TargetMember) CreateHandler(
+    private static (MarkAsStudentCommandHandler Handler, IStudentRepository StudentRepo, IFamilyMemberRepository MemberRepo, FamilyMember TargetMember) CreateHandler(
         FamilyId familyId, UserId callerUserId)
     {
         var callerMember = FamilyMember.Create(familyId, callerUserId, FamilyRole.Owner);
         var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
-        var studentRepo = new FakeStudentRepository();
-        var memberRepo = new FakeFamilyMemberRepository(callerMember, [callerMember, targetMember]);
+
+        var studentRepo = Substitute.For<IStudentRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+
+        memberRepo.GetByIdAsync(targetMember.Id, Arg.Any<CancellationToken>())
+            .Returns(targetMember);
+
         var handler = new MarkAsStudentCommandHandler(studentRepo, memberRepo);
         return (handler, studentRepo, memberRepo, targetMember);
     }

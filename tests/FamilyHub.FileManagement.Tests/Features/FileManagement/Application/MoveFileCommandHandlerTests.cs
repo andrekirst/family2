@@ -1,10 +1,11 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.MoveFile;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -27,8 +28,8 @@ public class MoveFileCommandHandlerTests
     public async Task Handle_ShouldMoveFileToTargetFolder()
     {
         var familyId = FamilyId.New();
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var folderRepo = Substitute.For<IFolderRepository>();
 
         var sourceFolder = Folder.CreateRoot(familyId, UserId.New());
         var targetFolder = Folder.Create(
@@ -37,11 +38,10 @@ public class MoveFileCommandHandlerTests
             $"/{sourceFolder.Id.Value}/",
             familyId,
             UserId.New());
-        folderRepo.Folders.Add(sourceFolder);
-        folderRepo.Folders.Add(targetFolder);
 
         var file = CreateTestFile(familyId, sourceFolder.Id);
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        folderRepo.GetByIdAsync(targetFolder.Id, Arg.Any<CancellationToken>()).Returns(targetFolder);
 
         var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
 
@@ -64,16 +64,15 @@ public class MoveFileCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var otherFamilyId = FamilyId.New();
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var folderRepo = Substitute.For<IFolderRepository>();
 
         var sourceFolder = Folder.CreateRoot(familyId, UserId.New());
         var targetFolder = Folder.CreateRoot(otherFamilyId, UserId.New());
-        folderRepo.Folders.Add(sourceFolder);
-        folderRepo.Folders.Add(targetFolder);
 
         var file = CreateTestFile(familyId, sourceFolder.Id);
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        folderRepo.GetByIdAsync(targetFolder.Id, Arg.Any<CancellationToken>()).Returns(targetFolder);
 
         var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
 

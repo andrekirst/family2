@@ -1,15 +1,16 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.CreateZipJob;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FluentAssertions;
-using FamilyHub.TestCommon.Fakes;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Application.Commands;
 
 public class CreateZipJobCommandHandlerTests
 {
-    private readonly FakeZipJobRepository _zipJobRepository = new();
+    private readonly IZipJobRepository _zipJobRepository = Substitute.For<IZipJobRepository>();
     private readonly CreateZipJobCommandHandler _handler;
 
     private readonly FamilyId _familyId = FamilyId.From(Guid.NewGuid());
@@ -24,6 +25,8 @@ public class CreateZipJobCommandHandlerTests
     public async Task Handle_ShouldCreateZipJob()
     {
         var fileIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        _zipJobRepository.GetActiveJobCountAsync(_familyId, Arg.Any<CancellationToken>()).Returns(0);
+
         var command = new CreateZipJobCommand(fileIds)
         {
             FamilyId = _familyId,
@@ -34,8 +37,9 @@ public class CreateZipJobCommandHandlerTests
 
         result.JobId.Should().NotBeEmpty();
         result.Status.Should().Be(ZipJobStatus.Pending.ToString());
-        _zipJobRepository.Jobs.Should().HaveCount(1);
-        _zipJobRepository.Jobs[0].FileIds.Should().HaveCount(2);
+        await _zipJobRepository.Received(1).AddAsync(
+            Arg.Is<Api.Features.FileManagement.Domain.Entities.ZipJob>(j => j.FileIds.Count == 2),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -57,13 +61,7 @@ public class CreateZipJobCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldRejectWhenConcurrentLimitReached()
     {
-        // Seed 3 active jobs
-        for (var i = 0; i < 3; i++)
-        {
-            var job = Api.Features.FileManagement.Domain.Entities.ZipJob.Create(
-                _familyId, _userId, [Guid.NewGuid()]);
-            _zipJobRepository.Jobs.Add(job);
-        }
+        _zipJobRepository.GetActiveJobCountAsync(_familyId, Arg.Any<CancellationToken>()).Returns(3);
 
         var command = new CreateZipJobCommand([Guid.NewGuid()])
         {

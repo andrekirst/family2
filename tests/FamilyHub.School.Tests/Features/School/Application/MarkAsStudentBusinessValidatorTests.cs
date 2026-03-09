@@ -2,10 +2,13 @@ using FamilyHub.Api.Resources;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.School.Application.Commands.MarkAsStudent;
+using FamilyHub.Api.Features.School.Domain.Repositories;
 using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.School.Tests.Features.School.Application;
 
@@ -19,9 +22,14 @@ public class MarkAsStudentBusinessValidatorTests
         var userId = UserId.New();
         var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
 
-        var existingStudent = Api.Features.School.Domain.Entities.Student.Create(targetMember.Id, familyId, userId);
-        var studentRepo = new FakeStudentRepository([existingStudent]);
-        var memberRepo = new FakeFamilyMemberRepository(null, [targetMember]);
+        var studentRepo = Substitute.For<IStudentRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+
+        studentRepo.ExistsByFamilyMemberIdAsync(targetMember.Id, Arg.Any<CancellationToken>())
+            .Returns(true);
+        memberRepo.ExistsByIdAsync(targetMember.Id, Arg.Any<CancellationToken>())
+            .Returns(true);
+
         var validator = new MarkAsStudentBusinessValidator(studentRepo, memberRepo, new StubStringLocalizer<DomainErrors>());
         var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyId, UserId = userId };
 
@@ -41,8 +49,14 @@ public class MarkAsStudentBusinessValidatorTests
         var userId = UserId.New();
         var familyMemberId = FamilyMemberId.New();
 
-        var studentRepo = new FakeStudentRepository();
-        var memberRepo = new FakeFamilyMemberRepository(); // No members
+        var studentRepo = Substitute.For<IStudentRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+
+        studentRepo.ExistsByFamilyMemberIdAsync(familyMemberId, Arg.Any<CancellationToken>())
+            .Returns(false);
+        memberRepo.ExistsByIdAsync(familyMemberId, Arg.Any<CancellationToken>())
+            .Returns(false);
+
         var validator = new MarkAsStudentBusinessValidator(studentRepo, memberRepo, new StubStringLocalizer<DomainErrors>());
         var command = new MarkAsStudentCommand(familyMemberId) { FamilyId = familyId, UserId = userId };
 
@@ -62,8 +76,14 @@ public class MarkAsStudentBusinessValidatorTests
         var userId = UserId.New();
         var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
 
-        var studentRepo = new FakeStudentRepository();
-        var memberRepo = new FakeFamilyMemberRepository(null, [targetMember]);
+        var studentRepo = Substitute.For<IStudentRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+
+        studentRepo.ExistsByFamilyMemberIdAsync(targetMember.Id, Arg.Any<CancellationToken>())
+            .Returns(false);
+        memberRepo.ExistsByIdAsync(targetMember.Id, Arg.Any<CancellationToken>())
+            .Returns(true);
+
         var validator = new MarkAsStudentBusinessValidator(studentRepo, memberRepo, new StubStringLocalizer<DomainErrors>());
         var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyId, UserId = userId };
 

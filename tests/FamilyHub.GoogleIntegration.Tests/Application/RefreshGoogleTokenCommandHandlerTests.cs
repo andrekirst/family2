@@ -3,9 +3,11 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.GoogleIntegration.Application.Commands.RefreshGoogleToken;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
+using FamilyHub.Api.Features.GoogleIntegration.Domain.Repositories;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects;
+using FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Services;
 using FamilyHub.Api.Features.GoogleIntegration.Models;
-using FamilyHub.TestCommon.Fakes;
+using NSubstitute;
 
 namespace FamilyHub.GoogleIntegration.Tests.Application;
 
@@ -30,17 +32,26 @@ public class RefreshGoogleTokenCommandHandlerTests
     {
         var userId = UserId.New();
         var existingLink = CreateTestLink(userId);
-        var linkRepo = new FakeGoogleAccountLinkRepository(existingLink);
-        var oauthService = new FakeGoogleOAuthService
-        {
-            TokenResponse = new GoogleTokenResponse
+
+        var linkRepo = Substitute.For<IGoogleAccountLinkRepository>();
+        linkRepo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(existingLink);
+
+        var oauthService = Substitute.For<IGoogleOAuthService>();
+        oauthService.RefreshAccessTokenAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new GoogleTokenResponse
             {
                 AccessToken = "new-access-token",
                 ExpiresIn = 3600,
                 Scope = "openid email"
-            }
-        };
-        var encryptionService = new FakeTokenEncryptionService();
+            });
+
+        var encryptionService = Substitute.For<ITokenEncryptionService>();
+        encryptionService.Encrypt(Arg.Any<string>())
+            .Returns(callInfo => $"encrypted:{callInfo.ArgAt<string>(0)}");
+        encryptionService.Decrypt(Arg.Any<string>())
+            .Returns(callInfo => callInfo.ArgAt<string>(0).Replace("encrypted:", ""));
+
         var handler = new RefreshGoogleTokenCommandHandler(linkRepo, oauthService, encryptionService);
 
         var command = new RefreshGoogleTokenCommand { UserId = userId };

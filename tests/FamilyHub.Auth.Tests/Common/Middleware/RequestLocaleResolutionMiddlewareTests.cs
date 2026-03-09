@@ -3,13 +3,14 @@ using System.Security.Claims;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 using LocalizationOptions = FamilyHub.Api.Common.Configuration.LocalizationOptions;
 
 namespace FamilyHub.Auth.Tests.Common.Middleware;
@@ -33,6 +34,24 @@ public class RequestLocaleResolutionMiddlewareTests
         return user;
     }
 
+    private static readonly ExternalUserId AnyExternalUserId = ExternalUserId.From("any");
+
+    private static IUserRepository CreateEmptyUserRepo()
+    {
+        var repo = Substitute.For<IUserRepository>();
+        repo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
+            .ReturnsForAnyArgs((User?)null);
+        return repo;
+    }
+
+    private static IUserRepository CreateUserRepo(User user)
+    {
+        var repo = Substitute.For<IUserRepository>();
+        repo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
+            .ReturnsForAnyArgs(user);
+        return repo;
+    }
+
     private static DefaultHttpContext CreateAuthenticatedContext(string subClaimValue)
     {
         var context = new DefaultHttpContext();
@@ -53,7 +72,7 @@ public class RequestLocaleResolutionMiddlewareTests
     [Fact]
     public async Task Should_default_to_en_when_unauthenticated_and_no_accept_language()
     {
-        var userRepo = new FakeUserRepository();
+        var userRepo = CreateEmptyUserRepo();
         CultureInfo? capturedCulture = null;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
         {
@@ -70,7 +89,7 @@ public class RequestLocaleResolutionMiddlewareTests
     [Fact]
     public async Task Should_use_accept_language_when_unauthenticated()
     {
-        var userRepo = new FakeUserRepository();
+        var userRepo = CreateEmptyUserRepo();
         CultureInfo? capturedCulture = null;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
         {
@@ -89,7 +108,7 @@ public class RequestLocaleResolutionMiddlewareTests
     public async Task Should_use_user_preferred_locale_when_authenticated()
     {
         var user = CreateUser("de");
-        var userRepo = new FakeUserRepository(user);
+        var userRepo = CreateUserRepo(user);
         CultureInfo? capturedCulture = null;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
         {
@@ -106,9 +125,8 @@ public class RequestLocaleResolutionMiddlewareTests
     [Fact]
     public async Task Should_fallback_to_accept_language_when_user_has_no_preferred_locale()
     {
-        // User with default "en" locale but we set Accept-Language to "de"
-        // Note: FakeUserRepository returns null when no user is provided
-        var userRepo = new FakeUserRepository();
+        // Note: Empty user repo returns null, so middleware falls back to Accept-Language
+        var userRepo = CreateEmptyUserRepo();
         CultureInfo? capturedCulture = null;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
         {
@@ -126,7 +144,7 @@ public class RequestLocaleResolutionMiddlewareTests
     [Fact]
     public async Task Should_default_to_en_when_authenticated_but_user_not_found_and_no_accept_language()
     {
-        var userRepo = new FakeUserRepository();
+        var userRepo = CreateEmptyUserRepo();
         CultureInfo? capturedCulture = null;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
         {
@@ -144,7 +162,7 @@ public class RequestLocaleResolutionMiddlewareTests
     public async Task Should_set_both_current_culture_and_current_ui_culture()
     {
         var user = CreateUser("de");
-        var userRepo = new FakeUserRepository(user);
+        var userRepo = CreateUserRepo(user);
         CultureInfo? capturedCulture = null;
         CultureInfo? capturedUiCulture = null;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
@@ -164,7 +182,7 @@ public class RequestLocaleResolutionMiddlewareTests
     [Fact]
     public async Task Should_call_next_middleware()
     {
-        var userRepo = new FakeUserRepository();
+        var userRepo = CreateEmptyUserRepo();
         var nextCalled = false;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
         {
@@ -181,7 +199,7 @@ public class RequestLocaleResolutionMiddlewareTests
     [Fact]
     public async Task Should_default_to_en_when_sub_claim_is_not_a_valid_guid()
     {
-        var userRepo = new FakeUserRepository();
+        var userRepo = CreateEmptyUserRepo();
         CultureInfo? capturedCulture = null;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
         {
@@ -198,7 +216,7 @@ public class RequestLocaleResolutionMiddlewareTests
     [Fact]
     public async Task Should_parse_first_language_from_complex_accept_language_header()
     {
-        var userRepo = new FakeUserRepository();
+        var userRepo = CreateEmptyUserRepo();
         CultureInfo? capturedCulture = null;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
         {
@@ -217,7 +235,7 @@ public class RequestLocaleResolutionMiddlewareTests
     public async Task Should_use_cached_locale_on_second_request()
     {
         var user = CreateUser("de");
-        var userRepo = new FakeUserRepository(user);
+        var userRepo = CreateUserRepo(user);
         var cache = CreateMemoryCache();
         CultureInfo? capturedCulture = null;
         var middleware = new RequestLocaleResolutionMiddleware(_ =>
@@ -231,8 +249,8 @@ public class RequestLocaleResolutionMiddlewareTests
         await middleware.InvokeAsync(context1, userRepo, cache, DefaultLocalizationOptions);
         capturedCulture!.Name.Should().Be("de");
 
-        // Second request with same cache — should still return "de" even if repo is empty
-        var emptyRepo = new FakeUserRepository();
+        // Second request with same cache — should still return "de" even if repo returns null
+        var emptyRepo = CreateEmptyUserRepo();
         var context2 = CreateAuthenticatedContext(TestExternalUserId.Value);
         await middleware.InvokeAsync(context2, emptyRepo, cache, DefaultLocalizationOptions);
         capturedCulture!.Name.Should().Be("de");

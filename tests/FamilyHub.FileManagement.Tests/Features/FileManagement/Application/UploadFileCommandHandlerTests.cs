@@ -1,21 +1,23 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.UploadFile;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class UploadFileCommandHandlerTests
 {
-    private static (UploadFileCommandHandler handler, FakeStoredFileRepository fileRepo, FakeFolderRepository folderRepo) CreateHandler()
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly IFolderRepository _folderRepo = Substitute.For<IFolderRepository>();
+    private readonly UploadFileCommandHandler _handler;
+
+    public UploadFileCommandHandlerTests()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
-        var handler = new UploadFileCommandHandler(fileRepo, folderRepo);
-        return (handler, fileRepo, folderRepo);
+        _handler = new UploadFileCommandHandler(_fileRepo, _folderRepo);
     }
 
     private static Folder CreateTestFolder(FamilyId familyId)
@@ -27,9 +29,8 @@ public class UploadFileCommandHandlerTests
     public async Task Handle_ShouldCreateFileAndReturnResult()
     {
         var familyId = FamilyId.New();
-        var (handler, fileRepo, folderRepo) = CreateHandler();
         var folder = CreateTestFolder(familyId);
-        folderRepo.Folders.Add(folder);
+        _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var command = new UploadFileCommand(
             FileName.From("test.pdf"),
@@ -43,17 +44,18 @@ public class UploadFileCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Should().NotBeNull();
         result.FileId.Value.Should().NotBe(Guid.Empty);
-        fileRepo.Files.Should().HaveCount(1);
+        await _fileRepo.Received(1).AddAsync(Arg.Any<StoredFile>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFolderNotFound()
     {
-        var (handler, _, _) = CreateHandler();
+        _folderRepo.GetByIdAsync(FolderId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((Folder?)null);
 
         var command = new UploadFileCommand(
             FileName.From("test.pdf"),
@@ -67,7 +69,7 @@ public class UploadFileCommandHandlerTests
             UserId = UserId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
             .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
@@ -76,9 +78,8 @@ public class UploadFileCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenFolderBelongsToDifferentFamily()
     {
-        var (handler, _, folderRepo) = CreateHandler();
         var folder = CreateTestFolder(FamilyId.New());
-        folderRepo.Folders.Add(folder);
+        _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var command = new UploadFileCommand(
             FileName.From("test.pdf"),
@@ -89,11 +90,11 @@ public class UploadFileCommandHandlerTests
             folder.Id)
         {
             FamilyId = FamilyId.New(),
-            UserId = // different family
+            UserId =
             UserId.New()
         };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
             .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);

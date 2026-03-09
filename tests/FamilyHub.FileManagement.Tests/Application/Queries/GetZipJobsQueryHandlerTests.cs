@@ -1,14 +1,15 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetZipJobs;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Common.Domain.ValueObjects;
 using FluentAssertions;
-using FamilyHub.TestCommon.Fakes;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Application.Queries;
 
 public class GetZipJobsQueryHandlerTests
 {
-    private readonly FakeZipJobRepository _zipJobRepository = new();
+    private readonly IZipJobRepository _zipJobRepository = Substitute.For<IZipJobRepository>();
     private readonly GetZipJobsQueryHandler _handler;
 
     private readonly FamilyId _familyId = FamilyId.From(Guid.NewGuid());
@@ -22,10 +23,12 @@ public class GetZipJobsQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnJobsForFamily()
     {
-        _zipJobRepository.Jobs.Add(
-            ZipJob.Create(_familyId, _userId, [Guid.NewGuid(), Guid.NewGuid()]));
-        _zipJobRepository.Jobs.Add(
-            ZipJob.Create(_familyId, _userId, [Guid.NewGuid()]));
+        var jobs = new List<ZipJob>
+        {
+            ZipJob.Create(_familyId, _userId, [Guid.NewGuid(), Guid.NewGuid()]),
+            ZipJob.Create(_familyId, _userId, [Guid.NewGuid()])
+        };
+        _zipJobRepository.GetByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>()).Returns(jobs);
 
         var query = new GetZipJobsQuery()
         {
@@ -41,9 +44,13 @@ public class GetZipJobsQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnEmptyForUnknownFamily()
     {
+        var unknownFamily = FamilyId.From(Guid.NewGuid());
+        _zipJobRepository.GetByFamilyIdAsync(unknownFamily, Arg.Any<CancellationToken>())
+            .Returns(new List<ZipJob>());
+
         var query = new GetZipJobsQuery()
         {
-            FamilyId = FamilyId.From(Guid.NewGuid()),
+            FamilyId = unknownFamily,
             UserId = UserId.New()
         };
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -54,9 +61,8 @@ public class GetZipJobsQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldNotReturnJobsFromOtherFamilies()
     {
-        var otherFamilyId = FamilyId.From(Guid.NewGuid());
-        _zipJobRepository.Jobs.Add(
-            ZipJob.Create(otherFamilyId, _userId, [Guid.NewGuid()]));
+        _zipJobRepository.GetByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<ZipJob>());
 
         var query = new GetZipJobsQuery()
         {

@@ -1,9 +1,12 @@
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Application.Commands.SendMessage;
+using FamilyHub.Api.Features.Messaging.Domain.Entities;
+using FamilyHub.Api.Features.Messaging.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Messaging.Tests.Features.Messaging.Application;
 
@@ -48,18 +51,24 @@ public class SendMessageCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        messageRepo.AddedMessages.Should().HaveCount(1);
-        var addedMessage = messageRepo.AddedMessages[0];
-        addedMessage.FamilyId.Should().Be(familyId);
-        addedMessage.SenderId.Should().Be(senderId);
-        addedMessage.Content.Should().Be(content);
+        await messageRepo.Received(1).AddAsync(
+            Arg.Is<Message>(m =>
+                m.FamilyId == familyId &&
+                m.SenderId == senderId &&
+                m.Content == content),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldRaiseMessageSentEvent()
     {
         // Arrange
+        Message? capturedMessage = null;
         var (handler, messageRepo) = CreateHandler();
+        messageRepo.AddAsync(Arg.Any<Message>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask)
+            .AndDoes(callInfo => capturedMessage = callInfo.ArgAt<Message>(0));
+
         var command = new SendMessageCommand(
             MessageContent.From("Event test"))
         {
@@ -71,8 +80,8 @@ public class SendMessageCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        var addedMessage = messageRepo.AddedMessages[0];
-        addedMessage.DomainEvents.Should().HaveCount(1);
+        capturedMessage.Should().NotBeNull();
+        capturedMessage!.DomainEvents.Should().HaveCount(1);
     }
 
     [Fact]
@@ -81,7 +90,12 @@ public class SendMessageCommandHandlerTests
         // Arrange
         var familyId = FamilyId.New();
         var senderId = UserId.New();
+        Message? capturedMessage = null;
         var (handler, messageRepo) = CreateHandler(familyId, senderId);
+        messageRepo.AddAsync(Arg.Any<Message>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask)
+            .AndDoes(callInfo => capturedMessage = callInfo.ArgAt<Message>(0));
+
         var command = new SendMessageCommand(
             MessageContent.From("See attached"),
             [
@@ -97,19 +111,24 @@ public class SendMessageCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        var message = messageRepo.AddedMessages[0];
-        message.Attachments.Should().HaveCount(2);
-        message.Attachments[0].FileName.Should().Be("photo.jpg");
-        message.Attachments[0].MimeType.Should().Be("image/jpeg");
-        message.Attachments[0].FileSize.Should().Be(1024);
-        message.Attachments[1].FileName.Should().Be("doc.pdf");
+        capturedMessage.Should().NotBeNull();
+        capturedMessage!.Attachments.Should().HaveCount(2);
+        capturedMessage.Attachments[0].FileName.Should().Be("photo.jpg");
+        capturedMessage.Attachments[0].MimeType.Should().Be("image/jpeg");
+        capturedMessage.Attachments[0].FileSize.Should().Be(1024);
+        capturedMessage.Attachments[1].FileName.Should().Be("doc.pdf");
     }
 
     [Fact]
     public async Task Handle_WithNoAttachments_ShouldCreateMessageWithoutAttachments()
     {
         // Arrange
+        Message? capturedMessage = null;
         var (handler, messageRepo) = CreateHandler();
+        messageRepo.AddAsync(Arg.Any<Message>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask)
+            .AndDoes(callInfo => capturedMessage = callInfo.ArgAt<Message>(0));
+
         var command = new SendMessageCommand(
             MessageContent.From("No files here"))
         {
@@ -121,25 +140,26 @@ public class SendMessageCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        var message = messageRepo.AddedMessages[0];
-        message.Attachments.Should().BeEmpty();
+        capturedMessage.Should().NotBeNull();
+        capturedMessage!.Attachments.Should().BeEmpty();
     }
 
     // --- Helpers ---
 
-    private static (SendMessageCommandHandler Handler, FakeMessageRepository MessageRepo) CreateHandler(
+    private static (SendMessageCommandHandler Handler, IMessageRepository MessageRepo) CreateHandler(
         FamilyId? familyId = null, UserId? userId = null)
     {
-        var messageRepo = new FakeMessageRepository();
-        var storedFileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
-        var conversationRepo = new FakeConversationRepository();
+        var messageRepo = Substitute.For<IMessageRepository>();
+        var storedFileRepo = Substitute.For<IStoredFileRepository>();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var conversationRepo = Substitute.For<IConversationRepository>();
 
         // Seed a root folder when familyId is provided (needed for attachment resolution)
         if (familyId is not null)
         {
             var rootFolder = Folder.CreateRoot(familyId.Value, userId ?? UserId.New());
-            folderRepo.Folders.Add(rootFolder);
+            folderRepo.GetRootFolderAsync(familyId.Value, Arg.Any<CancellationToken>())
+                .Returns(rootFolder);
         }
 
         var handler = new SendMessageCommandHandler(messageRepo, storedFileRepo, folderRepo, conversationRepo);

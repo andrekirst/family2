@@ -1,34 +1,39 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetExternalConnections;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class GetExternalConnectionsQueryHandlerTests
 {
+    private readonly IExternalConnectionRepository _repo = Substitute.For<IExternalConnectionRepository>();
+    private readonly GetExternalConnectionsQueryHandler _handler;
+
+    public GetExternalConnectionsQueryHandlerTests()
+    {
+        _handler = new GetExternalConnectionsQueryHandler(_repo);
+    }
+
     [Fact]
     public async Task Handle_ShouldReturnFamilyConnections()
     {
-        var repo = new FakeExternalConnectionRepository();
-        var handler = new GetExternalConnectionsQueryHandler(repo);
         var familyId = FamilyId.New();
-
-        repo.Connections.Add(ExternalConnection.Create(
-            familyId, ExternalProviderType.OneDrive, "OneDrive",
-            "token1", "refresh1", DateTime.UtcNow.AddHours(1), UserId.New()));
-        repo.Connections.Add(ExternalConnection.Create(
-            familyId, ExternalProviderType.GoogleDrive, "Google Drive",
-            "token2", "refresh2", DateTime.UtcNow.AddHours(1), UserId.New()));
+        _repo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns([
+                ExternalConnection.Create(familyId, ExternalProviderType.OneDrive, "OneDrive", "token1", "refresh1", DateTime.UtcNow.AddHours(1), UserId.New()),
+                ExternalConnection.Create(familyId, ExternalProviderType.GoogleDrive, "Google Drive", "token2", "refresh2", DateTime.UtcNow.AddHours(1), UserId.New())
+            ]);
 
         var query = new GetExternalConnectionsQuery()
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var result = await handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
     }
@@ -36,19 +41,16 @@ public class GetExternalConnectionsQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldNotReturnOtherFamilyConnections()
     {
-        var repo = new FakeExternalConnectionRepository();
-        var handler = new GetExternalConnectionsQueryHandler(repo);
-
-        repo.Connections.Add(ExternalConnection.Create(
-            FamilyId.New(), ExternalProviderType.Dropbox, "Dropbox",
-            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New()));
+        var familyId = FamilyId.New();
+        _repo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<ExternalConnection>());
 
         var query = new GetExternalConnectionsQuery()
         {
-            FamilyId = FamilyId.New(),
+            FamilyId = familyId,
             UserId = UserId.New()
         };
-        var result = await handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
     }
@@ -56,20 +58,18 @@ public class GetExternalConnectionsQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldMapDtoFields()
     {
-        var repo = new FakeExternalConnectionRepository();
-        var handler = new GetExternalConnectionsQueryHandler(repo);
         var familyId = FamilyId.New();
-
-        repo.Connections.Add(ExternalConnection.Create(
-            familyId, ExternalProviderType.PaperlessNgx, "My Paperless",
-            "api-token", null, null, UserId.New()));
+        _repo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns([
+                ExternalConnection.Create(familyId, ExternalProviderType.PaperlessNgx, "My Paperless", "api-token", null, null, UserId.New())
+            ]);
 
         var query = new GetExternalConnectionsQuery()
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var result = await handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         var dto = result.Single();
         dto.ProviderType.Should().Be("PaperlessNgx");

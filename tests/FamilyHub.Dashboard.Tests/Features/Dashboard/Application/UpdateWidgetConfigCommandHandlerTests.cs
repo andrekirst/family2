@@ -2,9 +2,10 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Dashboard.Application.Commands.UpdateWidgetConfig;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
+using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 using FamilyHub.Api.Features.Dashboard.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Dashboard.Tests.Features.Dashboard.Application;
 
@@ -14,14 +15,16 @@ public class UpdateWidgetConfigCommandHandlerTests
     public async Task Handle_ShouldUpdateConfig()
     {
         // Arrange
-        var repo = new FakeDashboardLayoutRepository();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
         var handler = new UpdateWidgetConfigCommandHandler(repo);
 
         var layout = DashboardLayout.CreatePersonal(
             DashboardLayoutName.From("Test"), UserId.New());
         var widget = layout.AddWidget(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0);
         layout.ClearDomainEvents();
-        repo.Seed(layout);
+
+        repo.GetByWidgetIdAsync(widget.Id, Arg.Any<CancellationToken>())
+            .Returns(layout);
 
         var newConfig = """{"showCount": 5}""";
 
@@ -38,7 +41,7 @@ public class UpdateWidgetConfigCommandHandlerTests
     public async Task Handle_ShouldClearConfig_WhenNull()
     {
         // Arrange
-        var repo = new FakeDashboardLayoutRepository();
+        var repo = Substitute.For<IDashboardLayoutRepository>();
         var handler = new UpdateWidgetConfigCommandHandler(repo);
 
         var layout = DashboardLayout.CreatePersonal(
@@ -46,7 +49,9 @@ public class UpdateWidgetConfigCommandHandlerTests
         var widget = layout.AddWidget(
             WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, """{"old": true}""");
         layout.ClearDomainEvents();
-        repo.Seed(layout);
+
+        repo.GetByWidgetIdAsync(widget.Id, Arg.Any<CancellationToken>())
+            .Returns(layout);
 
         // Act
         var result = await handler.Handle(

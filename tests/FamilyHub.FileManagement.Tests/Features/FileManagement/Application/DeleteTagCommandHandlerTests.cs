@@ -1,79 +1,73 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteTag;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 using Tag = FamilyHub.Api.Features.FileManagement.Domain.Entities.Tag;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class DeleteTagCommandHandlerTests
 {
-    private static (DeleteTagCommandHandler handler, FakeTagRepository tagRepo, FakeFileTagRepository fileTagRepo) CreateHandler()
+    private readonly ITagRepository _tagRepo = Substitute.For<ITagRepository>();
+    private readonly IFileTagRepository _fileTagRepo = Substitute.For<IFileTagRepository>();
+    private readonly DeleteTagCommandHandler _handler;
+
+    public DeleteTagCommandHandlerTests()
     {
-        var tagRepo = new FakeTagRepository();
-        var fileTagRepo = new FakeFileTagRepository();
-        var handler = new DeleteTagCommandHandler(tagRepo, fileTagRepo);
-        return (handler, tagRepo, fileTagRepo);
+        _handler = new DeleteTagCommandHandler(_tagRepo, _fileTagRepo);
     }
 
     [Fact]
     public async Task Handle_ShouldDeleteTag()
     {
         var familyId = FamilyId.New();
-        var (handler, tagRepo, _) = CreateHandler();
-
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
-        tagRepo.Tags.Add(tag);
+        _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new DeleteTagCommand(tag.Id)
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
-        tagRepo.Tags.Should().BeEmpty();
+        await _tagRepo.Received(1).RemoveAsync(tag, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldRemoveFileTagAssociations()
     {
         var familyId = FamilyId.New();
-        var (handler, tagRepo, fileTagRepo) = CreateHandler();
-
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
-        tagRepo.Tags.Add(tag);
-
-        var fileTag1 = FileTag.Create(FileId.New(), tag.Id);
-        var fileTag2 = FileTag.Create(FileId.New(), tag.Id);
-        fileTagRepo.FileTags.Add(fileTag1);
-        fileTagRepo.FileTags.Add(fileTag2);
+        _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new DeleteTagCommand(tag.Id)
         {
             FamilyId = familyId,
             UserId = UserId.New()
         };
-        await handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, CancellationToken.None);
 
-        fileTagRepo.FileTags.Should().BeEmpty();
+        await _fileTagRepo.Received(1).RemoveByTagIdAsync(tag.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenTagNotFound()
     {
-        var (handler, _, _) = CreateHandler();
+        _tagRepo.GetByIdAsync(TagId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((Tag?)null);
 
         var command = new DeleteTagCommand(TagId.New())
         {
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
             .Where(e => e.ErrorCode == DomainErrorCodes.TagNotFound);
@@ -82,17 +76,15 @@ public class DeleteTagCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenTagBelongsToDifferentFamily()
     {
-        var (handler, tagRepo, _) = CreateHandler();
-
         var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), FamilyId.New(), UserId.New());
-        tagRepo.Tags.Add(tag);
+        _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new DeleteTagCommand(tag.Id)
         {
             FamilyId = FamilyId.New(),
             UserId = UserId.New()
         };
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var act = () => _handler.Handle(command, CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<DomainException>()
             .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);

@@ -1,10 +1,11 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.CreateFileVersion;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -16,8 +17,8 @@ public class CreateFileVersionCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldCreateFirstVersion()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var versionRepo = new FakeFileVersionRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var versionRepo = Substitute.For<IFileVersionRepository>();
         var handler = new CreateFileVersionCommandHandler(versionRepo, fileRepo);
 
         var file = StoredFile.Create(
@@ -29,7 +30,10 @@ public class CreateFileVersionCommandHandlerTests
             FolderId.New(),
             FamilyId.New(),
             UserId.New());
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        versionRepo.GetMaxVersionNumberAsync(file.Id, Arg.Any<CancellationToken>()).Returns(0);
+        versionRepo.GetCurrentVersionAsync(file.Id, Arg.Any<CancellationToken>())
+            .Returns((FileVersion?)null);
 
         var command = new CreateFileVersionCommand(
             file.Id,
@@ -45,15 +49,16 @@ public class CreateFileVersionCommandHandlerTests
 
         result.Success.Should().BeTrue();
         result.VersionNumber.Should().Be(1);
-        versionRepo.Versions.Should().HaveCount(1);
-        versionRepo.Versions.First().IsCurrent.Should().BeTrue();
+        await versionRepo.Received(1).AddAsync(
+            Arg.Is<FileVersion>(v => v.IsCurrent && v.VersionNumber == 1),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldMarkPreviousVersionAsNotCurrent()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var versionRepo = new FakeFileVersionRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var versionRepo = Substitute.For<IFileVersionRepository>();
         var handler = new CreateFileVersionCommandHandler(versionRepo, fileRepo);
 
         var file = StoredFile.Create(
@@ -65,21 +70,15 @@ public class CreateFileVersionCommandHandlerTests
             FolderId.New(),
             FamilyId.New(),
             UserId.New());
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        // Create first version
-        await handler.Handle(new CreateFileVersionCommand(
-            file.Id,
-            StorageKey.From("version-key-1"),
-            FileSize.From(1000),
-            Checksum.From(ValidChecksum))
-        {
-            UserId = UserId.New(),
-            FamilyId = FamilyId.New()
-        }, CancellationToken.None);
+        var existingVersion = FileVersion.Create(file.Id, 1, StorageKey.From("version-key-1"),
+            FileSize.From(1000), Checksum.From(ValidChecksum), UserId.New());
+        versionRepo.GetMaxVersionNumberAsync(file.Id, Arg.Any<CancellationToken>()).Returns(1);
+        versionRepo.GetCurrentVersionAsync(file.Id, Arg.Any<CancellationToken>())
+            .Returns(existingVersion);
 
-        // Create second version
-        var result = await handler.Handle(new CreateFileVersionCommand(
+        var command = new CreateFileVersionCommand(
             file.Id,
             StorageKey.From("version-key-2"),
             FileSize.From(2000),
@@ -87,20 +86,26 @@ public class CreateFileVersionCommandHandlerTests
         {
             UserId = UserId.New(),
             FamilyId = FamilyId.New()
-        }, CancellationToken.None);
+        };
+
+        var result = await handler.Handle(command, CancellationToken.None);
 
         result.VersionNumber.Should().Be(2);
-        versionRepo.Versions.Should().HaveCount(2);
-        versionRepo.Versions.First(v => v.VersionNumber == 1).IsCurrent.Should().BeFalse();
-        versionRepo.Versions.First(v => v.VersionNumber == 2).IsCurrent.Should().BeTrue();
+        existingVersion.IsCurrent.Should().BeFalse();
+        await versionRepo.Received(1).AddAsync(
+            Arg.Is<FileVersion>(v => v.IsCurrent && v.VersionNumber == 2),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_FileNotFound_ShouldThrow()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var versionRepo = new FakeFileVersionRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var versionRepo = Substitute.For<IFileVersionRepository>();
         var handler = new CreateFileVersionCommandHandler(versionRepo, fileRepo);
+
+        fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((StoredFile?)null);
 
         var command = new CreateFileVersionCommand(
             FileId.New(),

@@ -2,21 +2,29 @@ using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Auth.Tests.Features.Auth.Application;
 
 public class GetCurrentUserQueryHandlerTests
 {
+    private static readonly ExternalUserId AnyExternalUserId = ExternalUserId.From("any");
+    private static readonly UserId AnyUserId = UserId.New();
+    private static readonly FamilyId AnyFamilyId = FamilyId.New();
+
     [Fact]
     public async Task Handle_UserNotFound_ShouldReturnNull()
     {
         // Arrange
-        var userRepo = new FakeUserRepository(existingUser: null);
-        var memberRepo = new FakeFamilyMemberRepository(existingMember: null);
+        var userRepo = Substitute.For<IUserRepository>();
+        userRepo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
+            .ReturnsForAnyArgs((User?)null);
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
         var handler = new GetCurrentUserQueryHandler(userRepo, memberRepo);
         var query = new GetCurrentUserQuery(ExternalUserId.From("nonexistent-user"));
 
@@ -36,8 +44,10 @@ public class GetCurrentUserQueryHandlerTests
             UserName.From("Test User"),
             ExternalUserId.From("ext-123"),
             emailVerified: true);
-        var userRepo = new FakeUserRepository(existingUser: user);
-        var memberRepo = new FakeFamilyMemberRepository(existingMember: null);
+        var userRepo = Substitute.For<IUserRepository>();
+        userRepo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
+            .ReturnsForAnyArgs(user);
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
         var handler = new GetCurrentUserQueryHandler(userRepo, memberRepo);
         var query = new GetCurrentUserQuery(ExternalUserId.From("ext-123"));
 
@@ -62,8 +72,12 @@ public class GetCurrentUserQueryHandlerTests
         user.AssignToFamily(familyId);
 
         var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Owner);
-        var userRepo = new FakeUserRepository(existingUser: user);
-        var memberRepo = new FakeFamilyMemberRepository(existingMember: member);
+        var userRepo = Substitute.For<IUserRepository>();
+        userRepo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
+            .ReturnsForAnyArgs(user);
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        memberRepo.GetByUserAndFamilyAsync(AnyUserId, AnyFamilyId, CancellationToken.None)
+            .ReturnsForAnyArgs(member);
         var handler = new GetCurrentUserQueryHandler(userRepo, memberRepo);
         var query = new GetCurrentUserQuery(ExternalUserId.From("ext-owner"));
 
@@ -96,8 +110,12 @@ public class GetCurrentUserQueryHandlerTests
         user.AssignToFamily(familyId);
 
         var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Member);
-        var userRepo = new FakeUserRepository(existingUser: user);
-        var memberRepo = new FakeFamilyMemberRepository(existingMember: member);
+        var userRepo = Substitute.For<IUserRepository>();
+        userRepo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
+            .ReturnsForAnyArgs(user);
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        memberRepo.GetByUserAndFamilyAsync(AnyUserId, AnyFamilyId, CancellationToken.None)
+            .ReturnsForAnyArgs(member);
         var handler = new GetCurrentUserQueryHandler(userRepo, memberRepo);
         var query = new GetCurrentUserQuery(ExternalUserId.From("ext-member"));
 
@@ -122,8 +140,12 @@ public class GetCurrentUserQueryHandlerTests
         user.AssignToFamily(familyId);
 
         var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Admin);
-        var userRepo = new FakeUserRepository(existingUser: user);
-        var memberRepo = new FakeFamilyMemberRepository(existingMember: member);
+        var userRepo = Substitute.For<IUserRepository>();
+        userRepo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
+            .ReturnsForAnyArgs(user);
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        memberRepo.GetByUserAndFamilyAsync(AnyUserId, AnyFamilyId, CancellationToken.None)
+            .ReturnsForAnyArgs(member);
         var handler = new GetCurrentUserQueryHandler(userRepo, memberRepo);
         var query = new GetCurrentUserQuery(ExternalUserId.From("ext-admin"));
 

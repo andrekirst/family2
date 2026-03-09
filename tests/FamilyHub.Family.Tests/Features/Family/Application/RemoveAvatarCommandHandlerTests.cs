@@ -2,10 +2,11 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Commands.RemoveAvatar;
 using FamilyHub.Api.Common.Infrastructure.Avatar;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Family.Tests.Features.Family.Application;
 
@@ -47,7 +48,7 @@ public class RemoveAvatarCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert — all variant storage keys deleted
-        fileStorage.DeletedKeys.Should().HaveCount(4);
+        await fileStorage.Received(4).DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -66,7 +67,7 @@ public class RemoveAvatarCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        avatarRepo.DeletedAvatarIds.Should().Contain(avatar.Id);
+        await avatarRepo.Received(1).DeleteAsync(avatar.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -90,7 +91,7 @@ public class RemoveAvatarCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        var (handler, _, _, _) = CreateHandler(user: null);
+        var (handler, _, _, _) = CreateHandler(user: null, userId: userId);
         var command = new RemoveAvatarCommand { UserId = userId, FamilyId = FamilyId.New() };
 
         // Act & Assert
@@ -128,14 +129,22 @@ public class RemoveAvatarCommandHandlerTests
 
     private static (
         RemoveAvatarCommandHandler Handler,
-        FakeAvatarRepository AvatarRepo,
-        FakeFileStorageService FileStorage,
-        FakeUserRepository UserRepo
-    ) CreateHandler(User? user, AvatarAggregate? existingAvatar = null)
+        IAvatarRepository AvatarRepo,
+        IFileStorageService FileStorage,
+        IUserRepository UserRepo
+    ) CreateHandler(User? user, AvatarAggregate? existingAvatar = null, UserId? userId = null)
     {
-        var userRepo = new FakeUserRepository(user);
-        var avatarRepo = new FakeAvatarRepository(existingAvatar);
-        var fileStorage = new FakeFileStorageService();
+        var userRepo = Substitute.For<IUserRepository>();
+        var lookupId = user?.Id ?? userId ?? UserId.New();
+        userRepo.GetByIdAsync(lookupId, CancellationToken.None).Returns(user);
+
+        var avatarRepo = Substitute.For<IAvatarRepository>();
+        if (existingAvatar is not null)
+        {
+            avatarRepo.GetByIdAsync(existingAvatar.Id, CancellationToken.None).Returns(existingAvatar);
+        }
+
+        var fileStorage = Substitute.For<IFileStorageService>();
         var handler = new RemoveAvatarCommandHandler(userRepo, avatarRepo, fileStorage);
         return (handler, avatarRepo, fileStorage, userRepo);
     }
