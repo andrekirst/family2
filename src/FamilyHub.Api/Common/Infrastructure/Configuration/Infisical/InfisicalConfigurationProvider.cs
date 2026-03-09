@@ -41,10 +41,15 @@ public sealed class InfisicalConfigurationProvider : ConfigurationProvider
                 Data[configKey] = secret.SecretValue;
             }
         }
-        catch (Exception)
+        catch (HttpRequestException ex)
         {
-            // Graceful degradation: if Infisical is unreachable, the app
-            // continues with appsettings.json defaults.
+            // Graceful degradation: Infisical is unreachable, app continues with appsettings.json defaults.
+            Console.WriteLine($"[Infisical] Network error (graceful degradation): {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            // Unexpected error — log it but don't crash startup.
+            Console.WriteLine($"[Infisical] Unexpected error loading secrets: {ex.GetType().Name}: {ex.Message}");
         }
     }
 

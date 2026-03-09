@@ -85,17 +85,9 @@ public class ChainMutations
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new DeleteChainDefinitionCommand(ChainDefinitionId.From(id));
-            var result = await commandBus.SendAsync(command, cancellationToken);
-            return new DeleteChainDefinitionPayload(result.Success);
-        }
-        catch (Exception ex)
-        {
-            return new DeleteChainDefinitionPayload(false,
-                [new UserError(ex.Message, "DELETE_FAILED")]);
-        }
+        var command = new DeleteChainDefinitionCommand(ChainDefinitionId.From(id));
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return new DeleteChainDefinitionPayload(result.Success);
     }
 
     [Authorize]

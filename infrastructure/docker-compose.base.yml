@@ -14,7 +14,7 @@ services:
     environment:
       POSTGRES_DB: familyhub
       POSTGRES_USER: familyhub
-      POSTGRES_PASSWORD: familyhub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-familyhub}
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
@@ -34,7 +34,7 @@ services:
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:-keycloak}
     volumes:
       - keycloak_db:/var/lib/postgresql
     healthcheck:
@@ -55,12 +55,12 @@ services:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
       KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: keycloak
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:-keycloak}
       KC_PROXY_HEADERS: xforwarded
       KC_HOSTNAME_STRICT: 'false'
       KC_HTTP_ENABLED: 'true'
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_SPI_STICKY_SESSION_ENCODER_INFINISPAN_SHOULD_ATTACH_ROUTE: 'false'
     command:
       - start-dev
@@ -102,7 +102,7 @@ services:
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: familyhub
-      RABBITMQ_DEFAULT_PASS: familyhub
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-familyhub}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -123,7 +123,7 @@ services:
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@familyhub.dev
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
       PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
     volumes:
       - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
@@ -144,7 +144,7 @@ services:
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     volumes:
       - minio_data:/data
     healthcheck:
@@ -186,7 +186,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://0.0.0.0:5152
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=familyhub;Username=familyhub;Password=familyhub
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=familyhub;Username=familyhub;Password=${POSTGRES_PASSWORD:-familyhub}
       # Shared services — resolve via Docker network
       Email__Host: mailhog
       Email__Port: 1025
@@ -197,14 +197,14 @@ services:
       # MinIO object storage
       FileManagement__Storage__Provider: MinIO
       FileManagement__Storage__MinIO__Endpoint: minio:9000
-      FileManagement__Storage__MinIO__AccessKey: minioadmin
-      FileManagement__Storage__MinIO__SecretKey: minioadmin
+      FileManagement__Storage__MinIO__AccessKey: ${MINIO_ROOT_USER:-minioadmin}
+      FileManagement__Storage__MinIO__SecretKey: ${MINIO_ROOT_PASSWORD:-minioadmin}
       FileManagement__Storage__MinIO__BucketName: familyhub-files
       FileManagement__Storage__MinIO__UseSSL: 'false'
       # RabbitMQ (CAP event bus)
       RabbitMQ__HostName: rabbitmq
       RabbitMQ__UserName: familyhub
-      RabbitMQ__Password: familyhub
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD:-familyhub}
       RabbitMQ__Port: 5672
       # OpenTelemetry
       OpenTelemetry__OtlpEndpoint: http://jaeger:4317

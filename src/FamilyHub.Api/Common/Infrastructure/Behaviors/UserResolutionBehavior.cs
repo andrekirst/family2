@@ -90,6 +90,13 @@ public sealed class UserResolutionBehavior<TMessage, TResponse>(
         var propertyInfo = cache.GetOrAdd(messageType, type =>
             type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance));
 
-        propertyInfo?.SetValue(target, value);
+        if (propertyInfo is null)
+        {
+            throw new InvalidOperationException(
+                $"Property '{propertyName}' not found on {typeof(TMessage).Name}. " +
+                "Commands implementing IRequireUser/IRequireFamily must have matching properties.");
+        }
+
+        propertyInfo.SetValue(target, value);
     }
 }

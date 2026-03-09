@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, isDevMode } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { EnvironmentConfigService } from '../config/environment-config.service';
@@ -238,13 +238,9 @@ export class AuthService {
         this.userProfile.set(profile);
         this.isAuthenticated.set(true);
 
-        // Log success for debugging
-        console.log('✅ OAuth login successful!', {
-          email: profile.email,
-          name: profile.name,
-          userId: profile.userId,
-          emailVerified: profile.emailVerified,
-        });
+        if (isDevMode()) {
+          console.log('OAuth login successful', { userId: profile.userId });
+        }
       }
 
       // Clean up PKCE session storage
@@ -265,7 +261,20 @@ export class AuthService {
     const redirectUrl = sessionStorage.getItem('post_login_redirect') || '/dashboard';
     sessionStorage.removeItem('post_login_redirect');
     sessionStorage.removeItem('redirect_url');
-    return redirectUrl;
+    return this.sanitizeRedirectUrl(redirectUrl);
+  }
+
+  /**
+   * Sanitize redirect URL to prevent open redirect attacks.
+   * Only allows relative paths starting with '/'. Blocks protocol-relative URLs,
+   * absolute URLs, and javascript: URIs.
+   */
+  private sanitizeRedirectUrl(url: string): string {
+    const fallback = '/dashboard';
+    if (!url || !url.startsWith('/') || url.startsWith('//') || url.includes('://')) {
+      return fallback;
+    }
+    return url;
   }
 
   /**

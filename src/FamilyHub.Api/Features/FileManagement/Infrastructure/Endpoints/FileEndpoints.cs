@@ -66,9 +66,18 @@ public static class FileEndpoints
 
     private static async Task<IResult> DownloadFileAsync(
         string storageKey,
+        HttpContext httpContext,
         [FromServices] IFileManagementStorageService storageService,
+        [FromServices] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
+        // Verify user belongs to a family (RLS provides per-family data isolation)
+        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
+        if (familyId is null)
+        {
+            return Results.Unauthorized();
+        }
+
         var result = await storageService.GetFileAsync(storageKey, cancellationToken);
         if (result is null)
         {
@@ -82,8 +91,16 @@ public static class FileEndpoints
         string storageKey,
         HttpContext httpContext,
         [FromServices] IFileManagementStorageService storageService,
+        [FromServices] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
+        // Verify user belongs to a family (RLS provides per-family data isolation)
+        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
+        if (familyId is null)
+        {
+            return Results.Unauthorized();
+        }
+
         // Parse Range header for partial content
         var rangeHeader = httpContext.Request.Headers.Range.FirstOrDefault();
         if (rangeHeader is null)

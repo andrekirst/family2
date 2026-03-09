@@ -1,6 +1,7 @@
 using FamilyHub.Common.Domain;
 using FamilyHub.Api.Resources;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Hosting;
 
 namespace FamilyHub.Api.Common.Infrastructure.GraphQL;
 
@@ -11,7 +12,8 @@ namespace FamilyHub.Api.Common.Infrastructure.GraphQL;
 /// via IStringLocalizer, falling back to the exception message if no translation exists.
 /// </summary>
 public sealed class BusinessLogicExceptionErrorFilter(
-    IStringLocalizer<DomainErrors> localizer) : IErrorFilter
+    IStringLocalizer<DomainErrors> localizer,
+    IWebHostEnvironment env) : IErrorFilter
 {
     public IError OnError(IError error)
     {
@@ -36,7 +38,7 @@ public sealed class BusinessLogicExceptionErrorFilter(
             }
             case InvalidOperationException ex:
                 return ErrorBuilder.New()
-                    .SetMessage(ex.Message)
+                    .SetMessage(env.IsDevelopment() ? ex.Message : "An internal error occurred.")
                     .SetCode("BUSINESS_LOGIC_ERROR")
                     .Build();
             default:

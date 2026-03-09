@@ -26,7 +26,7 @@ public static class AvatarEndpoints
         {
             id = AvatarId.From(avatarId);
         }
-        catch
+        catch (Vogen.ValueObjectValidationException)
         {
             return Results.BadRequest("Invalid avatar ID.");
         }

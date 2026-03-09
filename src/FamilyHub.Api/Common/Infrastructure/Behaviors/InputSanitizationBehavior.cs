@@ -49,17 +49,76 @@ public sealed class InputSanitizationBehavior<TMessage, TResponse>
 
     private static void SanitizeStringProperties(TMessage message)
     {
-        var type = typeof(TMessage);
-        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.PropertyType == typeof(string) && p.CanRead && p.CanWrite);
+        SanitizeObject(message, new HashSet<object>(ReferenceEqualityComparer.Instance));
+    }
 
+    private static void SanitizeObject(object? target, HashSet<object> visited)
+    {
+        if (target is null)
+        {
+            return;
+        }
+
+        var type = target.GetType();
+
+        // Skip value types (Vogen VOs are structs, primitives, enums)
+        if (type.IsValueType)
+        {
+            return;
+        }
+
+        // Prevent infinite recursion on circular references
+        if (!visited.Add(target))
+        {
+            return;
+        }
+
+        // Skip strings (handled as properties of the parent)
+        if (target is string)
+        {
+            return;
+        }
+
+        // Handle collections (List<T>, arrays, etc.)
+        if (target is System.Collections.IEnumerable enumerable and not string)
+        {
+            foreach (var item in enumerable)
+            {
+                SanitizeObject(item, visited);
+            }
+            return;
+        }
+
+        // Sanitize string properties and recurse into nested objects
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
         foreach (var property in properties)
         {
-            var value = property.GetValue(message) as string;
-            if (value is not null && ContainsHtml(value))
+            if (!property.CanRead)
             {
-                var sanitized = Sanitizer.Sanitize(value);
-                property.SetValue(message, sanitized);
+                continue;
+            }
+
+            if (property.PropertyType == typeof(string) && property.CanWrite)
+            {
+                var value = property.GetValue(target) as string;
+                if (value is not null && ContainsHtml(value))
+                {
+                    var sanitized = Sanitizer.Sanitize(value);
+                    property.SetValue(target, sanitized);
+                }
+            }
+            else if (!property.PropertyType.IsValueType && property.PropertyType != typeof(string))
+            {
+                // Recurse into nested reference-type objects
+                try
+                {
+                    var nested = property.GetValue(target);
+                    SanitizeObject(nested, visited);
+                }
+                catch (TargetInvocationException)
+                {
+                    // Skip properties that throw on access (e.g., uninitialized lazy properties)
+                }
             }
         }
     }

@@ -68,7 +68,9 @@ export class ProfilePageComponent implements OnDestroy {
       this.userService.currentUser.set({ ...user, avatarId });
     }
     // Background refetch for full profile sync
-    this.userService.fetchCurrentUser().catch(() => {});
+    this.userService
+      .fetchCurrentUser()
+      .catch((err) => console.error('Failed to refresh profile:', err));
   }
 
   removeAvatar(): void {
@@ -82,7 +84,9 @@ export class ProfilePageComponent implements OnDestroy {
           if (user) {
             this.userService.currentUser.set({ ...user, avatarId: null });
           }
-          this.userService.fetchCurrentUser().catch(() => {});
+          this.userService
+            .fetchCurrentUser()
+            .catch((err) => console.error('Failed to refresh profile:', err));
         }
       },
       error: () => {

@@ -52,6 +52,7 @@
   <data name="INSUFFICIENT_PERMISSION_TO_REVOKE_INVITATION" xml:space="preserve"><value>Du hast keine Berechtigung, Einladungen für diese Familie zu widerrufen</value></data>
   <data name="DUPLICATE_INVITATION" xml:space="preserve"><value>An diese E-Mail-Adresse wurde bereits eine Einladung für diese Familie gesendet</value></data>
   <data name="MUST_BE_FAMILY_MEMBER_TO_SEND_INVITATION" xml:space="preserve"><value>Du musst Mitglied einer Familie sein, um Einladungen zu senden</value></data>
+  <data name="INSUFFICIENT_PERMISSION_TO_VIEW_INVITATIONS" xml:space="preserve"><value>Du hast keine Berechtigung, Einladungen für diese Familie anzuzeigen</value></data>
   <!-- Calendar -->
   <data name="CALENDAR_EVENT_NOT_FOUND" xml:space="preserve"><value>Kalenderereignis nicht gefunden</value></data>
   <data name="EVENT_ALREADY_CANCELLED" xml:space="preserve"><value>Ereignis ist bereits abgesagt</value></data>

@@ -47,13 +47,19 @@ builder.Services.Configure<FeatureFlags>(builder.Configuration.GetSection(Featur
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
+    // In development, accept forwarded headers from any source (Docker network).
+    // In production, restrict to known proxy networks for security.
+    if (builder.Environment.IsDevelopment())
+    {
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    }
 });
 
 // Configure PostgreSQL database with AppDbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Host=localhost;Port=5432;Database=familyhub;Username=familyhub;Password=familyhub";
+    ?? throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' not found. Configure it in appsettings.json or environment variables.");
 
 // Mediator (source-generated, compile-time handler discovery)
 builder.Services.AddMediator(options =>
@@ -135,9 +141,11 @@ builder.Services.AddHangfireServer(options =>
 });
 
 // Response Compression — Brotli (primary) + gzip (fallback) for GraphQL responses
+// EnableForHttps=false mitigates BREACH attack (compression oracle on HTTPS responses).
+// In production behind a reverse proxy, compression is handled at the proxy layer.
 builder.Services.AddResponseCompression(opts =>
 {
-    opts.EnableForHttps = true;
+    opts.EnableForHttps = false;
     opts.Providers.Add<BrotliCompressionProvider>();
     opts.Providers.Add<GzipCompressionProvider>();
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/graphql-response+json"]);
@@ -168,7 +176,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
         options.Authority = keycloakOptions.Authority;
         options.Audience = keycloakOptions.Audience;
-        options.RequireHttpsMetadata = false; // Development only - set to true in production
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         options.MapInboundClaims = false; // Use original JWT claim names (sub, email, etc.)
 
         options.TokenValidationParameters = new TokenValidationParameters
@@ -177,7 +185,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ClockSkew = TimeSpan.FromMinutes(5)
+            ClockSkew = TimeSpan.FromSeconds(30)
         };
 
         if (keycloakIssuers is { Length: > 0 })
@@ -252,6 +260,8 @@ builder.Services
         opt.MaxPageSize = 100;
         opt.IncludeTotalCount = true;
     })
+    .AddMaxExecutionDepthRule(15)
+    .AllowIntrospection(builder.Environment.IsDevelopment())
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment())
     .InitializeOnStartup();
 
@@ -346,7 +356,7 @@ app.MapGraphQL(); // Banana Cake Pop UI available at /graphql (built into Hot Ch
 // Hangfire dashboard (development only, behind authentication in production)
 if (app.Environment.IsDevelopment())
 {
-    app.MapHangfireDashboard("/hangfire");
+    app.MapHangfireDashboard("/hangfire").RequireAuthorization();
 }
 
 // Minimal API endpoints — avatar (common) + module endpoints (IEndpointModule)

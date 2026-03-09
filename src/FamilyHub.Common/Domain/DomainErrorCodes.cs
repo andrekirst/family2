@@ -34,6 +34,7 @@ public static class DomainErrorCodes
     public const string InsufficientPermissionToRevokeInvitation = "INSUFFICIENT_PERMISSION_TO_REVOKE_INVITATION";
     public const string DuplicateInvitation = "DUPLICATE_INVITATION";
     public const string MustBeFamilyMemberToSendInvitation = "MUST_BE_FAMILY_MEMBER_TO_SEND_INVITATION";
+    public const string InsufficientPermissionToViewInvitations = "INSUFFICIENT_PERMISSION_TO_VIEW_INVITATIONS";
 
     // Calendar
     public const string CalendarEventNotFound = "CALENDAR_EVENT_NOT_FOUND";

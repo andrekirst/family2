@@ -48,7 +48,7 @@ public class UsersQueryExtension
         CancellationToken cancellationToken)
     {
         var userIdVo = UserId.From(userId);
-        var query = new GetUserByIdQuery(userIdVo);
+        var query = new GetUserByIdQuery(TargetUserId: userIdVo);
 
         return await queryBus.QueryAsync(query, cancellationToken);
     }

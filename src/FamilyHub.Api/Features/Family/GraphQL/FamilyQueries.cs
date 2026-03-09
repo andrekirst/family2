@@ -45,7 +45,7 @@ public class FamilyOwnerResolverExtension
         CancellationToken cancellationToken)
     {
         var userId = UserId.From(parent.OwnerId);
-        var query = new GetUserByIdQuery(userId);
+        var query = new GetUserByIdQuery(TargetUserId: userId);
         return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

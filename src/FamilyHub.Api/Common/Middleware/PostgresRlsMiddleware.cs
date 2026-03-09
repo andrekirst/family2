@@ -42,6 +42,19 @@ public class PostgresRlsMiddleware(RequestDelegate next, ILogger<PostgresRlsMidd
                         safeExternalUserId);
                     await Task.Delay(500, context.RequestAborted);
                     await SetRlsSessionVariables(dbContext, safeExternalUserId);
+
+                    // After retry, verify RLS was set. If not, reject the request
+                    // rather than proceeding without row-level security.
+                    currentUserId = await GetCurrentSessionUserId(dbContext);
+                    if (string.IsNullOrEmpty(currentUserId))
+                    {
+                        logger.LogWarning(
+                            "RLS context could not be set for {ExternalUserId} after retry",
+                            safeExternalUserId);
+                        context.Response.StatusCode = 503;
+                        await context.Response.WriteAsJsonAsync(new { error = "Service temporarily unavailable. Please retry." });
+                        return;
+                    }
                 }
             }
         }
