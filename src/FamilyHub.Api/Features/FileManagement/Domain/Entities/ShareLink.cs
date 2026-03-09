@@ -24,7 +24,8 @@ public sealed class ShareLink : AggregateRoot<ShareLinkId>
         UserId createdBy,
         DateTime? expiresAt,
         string? passwordHash,
-        int? maxDownloads)
+        int? maxDownloads,
+        DateTimeOffset utcNow)
     {
         var link = new ShareLink
         {
@@ -39,7 +40,7 @@ public sealed class ShareLink : AggregateRoot<ShareLinkId>
             MaxDownloads = maxDownloads,
             DownloadCount = 0,
             IsRevoked = false,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime
         };
 
         link.RaiseDomainEvent(new ShareLinkCreatedEvent(
@@ -60,11 +61,11 @@ public sealed class ShareLink : AggregateRoot<ShareLinkId>
     public bool IsRevoked { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
-    public bool IsExpired => ExpiresAt.HasValue && ExpiresAt.Value < DateTime.UtcNow;
+    public bool IsExpired(DateTimeOffset utcNow) => ExpiresAt.HasValue && ExpiresAt.Value < utcNow.UtcDateTime;
 
     public bool IsDownloadLimitReached => MaxDownloads.HasValue && DownloadCount >= MaxDownloads.Value;
 
-    public bool IsAccessible => !IsRevoked && !IsExpired && !IsDownloadLimitReached;
+    public bool IsAccessible(DateTimeOffset utcNow) => !IsRevoked && !IsExpired(utcNow) && !IsDownloadLimitReached;
 
     public bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
 

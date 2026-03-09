@@ -7,7 +7,8 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UploadFile;
 
 public sealed class UploadFileCommandHandler(
     IStoredFileRepository storedFileRepository,
-    IFolderRepository folderRepository)
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<UploadFileCommand, UploadFileResult>
 {
     public async ValueTask<UploadFileResult> Handle(
@@ -23,6 +24,7 @@ public sealed class UploadFileCommandHandler(
             throw new DomainException("Folder belongs to a different family", DomainErrorCodes.Forbidden);
         }
 
+        var utcNow = timeProvider.GetUtcNow();
         var file = StoredFile.Create(
             command.Name,
             command.MimeType,
@@ -31,7 +33,8 @@ public sealed class UploadFileCommandHandler(
             command.Checksum,
             command.FolderId,
             command.FamilyId,
-            command.UserId);
+            command.UserId,
+            utcNow);
 
         await storedFileRepository.AddAsync(file, cancellationToken);
 

@@ -16,9 +16,9 @@ public class CreateFolderCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new CreateFolderCommandHandler(folderRepo);
+        var handler = new CreateFolderCommandHandler(folderRepo, TimeProvider.System);
 
-        var parentFolder = Folder.CreateRoot(familyId, UserId.New());
+        var parentFolder = Folder.CreateRoot(familyId, UserId.New(), DateTimeOffset.UtcNow);
         folderRepo.GetByIdAsync(parentFolder.Id, Arg.Any<CancellationToken>()).Returns(parentFolder);
 
         Folder? capturedFolder = null;
@@ -47,7 +47,7 @@ public class CreateFolderCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new CreateFolderCommandHandler(folderRepo);
+        var handler = new CreateFolderCommandHandler(folderRepo, TimeProvider.System);
 
         folderRepo.GetRootFolderAsync(familyId, Arg.Any<CancellationToken>())
             .Returns((Folder?)null);
@@ -85,7 +85,7 @@ public class CreateFolderCommandHandlerTests
     public async Task Handle_ShouldThrowWhenParentFolderNotFound()
     {
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new CreateFolderCommandHandler(folderRepo);
+        var handler = new CreateFolderCommandHandler(folderRepo, TimeProvider.System);
 
         folderRepo.GetByIdAsync(FolderId.New(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs((Folder?)null);
@@ -108,9 +108,9 @@ public class CreateFolderCommandHandlerTests
     public async Task Handle_ShouldThrowWhenParentBelongsToDifferentFamily()
     {
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new CreateFolderCommandHandler(folderRepo);
+        var handler = new CreateFolderCommandHandler(folderRepo, TimeProvider.System);
 
-        var parentFolder = Folder.CreateRoot(FamilyId.New(), UserId.New());
+        var parentFolder = Folder.CreateRoot(FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
         folderRepo.GetByIdAsync(parentFolder.Id, Arg.Any<CancellationToken>()).Returns(parentFolder);
 
         var command = new CreateFolderCommand(
@@ -133,9 +133,9 @@ public class CreateFolderCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new CreateFolderCommandHandler(folderRepo);
+        var handler = new CreateFolderCommandHandler(folderRepo, TimeProvider.System);
 
-        var existingRoot = Folder.CreateRoot(familyId, UserId.New());
+        var existingRoot = Folder.CreateRoot(familyId, UserId.New(), DateTimeOffset.UtcNow);
         folderRepo.GetRootFolderAsync(familyId, Arg.Any<CancellationToken>()).Returns(existingRoot);
 
         var addedFolders = new List<Folder>();

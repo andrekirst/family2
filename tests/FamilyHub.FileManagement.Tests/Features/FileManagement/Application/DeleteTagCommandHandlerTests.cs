@@ -25,7 +25,7 @@ public class DeleteTagCommandHandlerTests
     public async Task Handle_ShouldDeleteTag()
     {
         var familyId = FamilyId.New();
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new DeleteTagCommand(tag.Id)
@@ -43,7 +43,7 @@ public class DeleteTagCommandHandlerTests
     public async Task Handle_ShouldRemoveFileTagAssociations()
     {
         var familyId = FamilyId.New();
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new DeleteTagCommand(tag.Id)
@@ -76,7 +76,7 @@ public class DeleteTagCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenTagBelongsToDifferentFamily()
     {
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), FamilyId.New(), UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new DeleteTagCommand(tag.Id)

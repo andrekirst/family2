@@ -15,7 +15,7 @@ public class CreateAlbumCommandHandlerTests
 
     public CreateAlbumCommandHandlerTests()
     {
-        _handler = new CreateAlbumCommandHandler(_albumRepo);
+        _handler = new CreateAlbumCommandHandler(_albumRepo, TimeProvider.System);
     }
 
     [Fact]

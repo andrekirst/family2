@@ -22,7 +22,8 @@ public sealed class FilePermission : AggregateRoot<FilePermissionId>
         UserId memberId,
         FilePermissionLevel permissionLevel,
         FamilyId familyId,
-        UserId grantedBy)
+        UserId grantedBy,
+        DateTimeOffset utcNow)
     {
         var permission = new FilePermission
         {
@@ -33,7 +34,7 @@ public sealed class FilePermission : AggregateRoot<FilePermissionId>
             PermissionLevel = permissionLevel,
             FamilyId = familyId,
             GrantedBy = grantedBy,
-            GrantedAt = DateTime.UtcNow
+            GrantedAt = utcNow.UtcDateTime
         };
 
         if (resourceType == PermissionResourceType.File)
@@ -58,11 +59,11 @@ public sealed class FilePermission : AggregateRoot<FilePermissionId>
     public UserId GrantedBy { get; private set; }
     public DateTime GrantedAt { get; private set; }
 
-    public void UpdateLevel(FilePermissionLevel newLevel, UserId changedBy)
+    public void UpdateLevel(FilePermissionLevel newLevel, UserId changedBy, DateTimeOffset utcNow)
     {
         PermissionLevel = newLevel;
         GrantedBy = changedBy;
-        GrantedAt = DateTime.UtcNow;
+        GrantedAt = utcNow.UtcDateTime;
 
         if (ResourceType == PermissionResourceType.File)
         {

@@ -5,13 +5,15 @@ using FamilyHub.Common.Application;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateShareLink;
 
 public sealed class CreateShareLinkCommandHandler(
-    IShareLinkRepository shareLinkRepository)
+    IShareLinkRepository shareLinkRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateShareLinkCommand, CreateShareLinkResult>
 {
     public async ValueTask<CreateShareLinkResult> Handle(
         CreateShareLinkCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         string? passwordHash = null;
         if (!string.IsNullOrEmpty(command.Password))
         {
@@ -25,7 +27,8 @@ public sealed class CreateShareLinkCommandHandler(
             command.UserId,
             command.ExpiresAt,
             passwordHash,
-            command.MaxDownloads);
+            command.MaxDownloads,
+            utcNow);
 
         await shareLinkRepository.AddAsync(link, cancellationToken);
 

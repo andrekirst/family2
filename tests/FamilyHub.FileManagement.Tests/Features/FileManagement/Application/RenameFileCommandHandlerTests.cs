@@ -16,7 +16,7 @@ public class RenameFileCommandHandlerTests
 
     public RenameFileCommandHandlerTests()
     {
-        _handler = new RenameFileCommandHandler(_fileRepo);
+        _handler = new RenameFileCommandHandler(_fileRepo, TimeProvider.System);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId)
@@ -29,7 +29,7 @@ public class RenameFileCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]

@@ -13,7 +13,7 @@ public sealed class DashboardLayout : AggregateRoot<DashboardId>
 
     private readonly List<DashboardWidget> _widgets = [];
 
-    public static DashboardLayout CreatePersonal(DashboardLayoutName name, UserId userId)
+    public static DashboardLayout CreatePersonal(DashboardLayoutName name, UserId userId, DateTimeOffset utcNow)
     {
         var layout = new DashboardLayout
         {
@@ -22,8 +22,8 @@ public sealed class DashboardLayout : AggregateRoot<DashboardId>
             UserId = userId,
             FamilyId = null,
             IsShared = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         layout.RaiseDomainEvent(new DashboardCreatedEvent(
@@ -32,7 +32,7 @@ public sealed class DashboardLayout : AggregateRoot<DashboardId>
         return layout;
     }
 
-    public static DashboardLayout CreateShared(DashboardLayoutName name, FamilyId familyId, UserId createdByUserId)
+    public static DashboardLayout CreateShared(DashboardLayoutName name, FamilyId familyId, UserId createdByUserId, DateTimeOffset utcNow)
     {
         var layout = new DashboardLayout
         {
@@ -41,8 +41,8 @@ public sealed class DashboardLayout : AggregateRoot<DashboardId>
             UserId = null,
             FamilyId = familyId,
             IsShared = true,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         layout.RaiseDomainEvent(new DashboardCreatedEvent(
@@ -65,15 +65,16 @@ public sealed class DashboardLayout : AggregateRoot<DashboardId>
         int x, int y,
         int width, int height,
         int sortOrder,
+        DateTimeOffset utcNow,
         string? configJson = null)
     {
-        var widget = DashboardWidget.Create(Id, widgetType, x, y, width, height, sortOrder, configJson);
+        var widget = DashboardWidget.Create(Id, widgetType, x, y, width, height, sortOrder, utcNow, configJson);
         _widgets.Add(widget);
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
         return widget;
     }
 
-    public void RemoveWidget(DashboardWidgetId widgetId)
+    public void RemoveWidget(DashboardWidgetId widgetId, DateTimeOffset utcNow)
     {
         var widget = _widgets.FirstOrDefault(w => w.Id == widgetId);
         if (widget is null)
@@ -82,19 +83,19 @@ public sealed class DashboardLayout : AggregateRoot<DashboardId>
         }
 
         _widgets.Remove(widget);
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void ReplaceAllWidgets(IReadOnlyList<DashboardWidget> newWidgets)
+    public void ReplaceAllWidgets(IReadOnlyList<DashboardWidget> newWidgets, DateTimeOffset utcNow)
     {
         _widgets.Clear();
         _widgets.AddRange(newWidgets);
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void UpdateName(DashboardLayoutName name)
+    public void UpdateName(DashboardLayoutName name, DateTimeOffset utcNow)
     {
         Name = name;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 }

@@ -16,11 +16,11 @@ public class UpdateWidgetConfigCommandHandlerTests
     {
         // Arrange
         var repo = Substitute.For<IDashboardLayoutRepository>();
-        var handler = new UpdateWidgetConfigCommandHandler(repo);
+        var handler = new UpdateWidgetConfigCommandHandler(repo, TimeProvider.System);
 
         var layout = DashboardLayout.CreatePersonal(
-            DashboardLayoutName.From("Test"), UserId.New());
-        var widget = layout.AddWidget(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0);
+            DashboardLayoutName.From("Test"), UserId.New(), DateTimeOffset.UtcNow);
+        var widget = layout.AddWidget(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, DateTimeOffset.UtcNow);
         layout.ClearDomainEvents();
 
         repo.GetByWidgetIdAsync(widget.Id, Arg.Any<CancellationToken>())
@@ -42,12 +42,12 @@ public class UpdateWidgetConfigCommandHandlerTests
     {
         // Arrange
         var repo = Substitute.For<IDashboardLayoutRepository>();
-        var handler = new UpdateWidgetConfigCommandHandler(repo);
+        var handler = new UpdateWidgetConfigCommandHandler(repo, TimeProvider.System);
 
         var layout = DashboardLayout.CreatePersonal(
-            DashboardLayoutName.From("Test"), UserId.New());
+            DashboardLayoutName.From("Test"), UserId.New(), DateTimeOffset.UtcNow);
         var widget = layout.AddWidget(
-            WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, """{"old": true}""");
+            WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, DateTimeOffset.UtcNow, """{"old": true}""");
         layout.ClearDomainEvents();
 
         repo.GetByWidgetIdAsync(widget.Id, Arg.Any<CancellationToken>())

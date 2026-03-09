@@ -15,7 +15,7 @@ public class CreateOrganizationRuleCommandHandlerTests
 
     public CreateOrganizationRuleCommandHandlerTests()
     {
-        _handler = new CreateOrganizationRuleCommandHandler(_ruleRepo);
+        _handler = new CreateOrganizationRuleCommandHandler(_ruleRepo, TimeProvider.System);
     }
 
     [Fact]

@@ -19,7 +19,7 @@ public class DashboardSearchProviderTests
     {
         var repo = Substitute.For<IDashboardLayoutRepository>();
         var personal = DashboardLayout.CreatePersonal(
-            DashboardLayoutName.From("My Dashboard"), TestUserId);
+            DashboardLayoutName.From("My Dashboard"), TestUserId, DateTimeOffset.UtcNow);
         personal.ClearDomainEvents();
 
         repo.GetPersonalDashboardAsync(TestUserId, Arg.Any<CancellationToken>())
@@ -40,7 +40,7 @@ public class DashboardSearchProviderTests
     {
         var repo = Substitute.For<IDashboardLayoutRepository>();
         var shared = DashboardLayout.CreateShared(
-            DashboardLayoutName.From("Family Board"), TestFamilyId, TestUserId);
+            DashboardLayoutName.From("Family Board"), TestFamilyId, TestUserId, DateTimeOffset.UtcNow);
         shared.ClearDomainEvents();
 
         repo.GetSharedDashboardAsync(TestFamilyId, Arg.Any<CancellationToken>())
@@ -61,7 +61,7 @@ public class DashboardSearchProviderTests
     {
         var repo = Substitute.For<IDashboardLayoutRepository>();
         var personal = DashboardLayout.CreatePersonal(
-            DashboardLayoutName.From("My Dashboard"), TestUserId);
+            DashboardLayoutName.From("My Dashboard"), TestUserId, DateTimeOffset.UtcNow);
         personal.ClearDomainEvents();
 
         repo.GetPersonalDashboardAsync(TestUserId, Arg.Any<CancellationToken>())

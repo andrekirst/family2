@@ -22,7 +22,8 @@ public sealed class SendMessageCommandHandler(
     IMessageRepository messageRepository,
     IStoredFileRepository storedFileRepository,
     IFolderRepository folderRepository,
-    IConversationRepository conversationRepository)
+    IConversationRepository conversationRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<SendMessageCommand, SendMessageResult>
 {
     public async ValueTask<SendMessageResult> Handle(
@@ -40,6 +41,7 @@ public sealed class SendMessageCommandHandler(
             foreach (var a in command.Attachments)
             {
                 // Create a StoredFile entity for full file management integration
+                var utcNow = timeProvider.GetUtcNow();
                 var storedFile = StoredFile.Create(
                     FileName.From(a.FileName),
                     MimeType.From(a.MimeType),
@@ -48,7 +50,8 @@ public sealed class SendMessageCommandHandler(
                     Checksum.From(a.Checksum),
                     targetFolderId,
                     command.FamilyId,
-                    command.UserId);
+                    command.UserId,
+                    utcNow);
 
                 await storedFileRepository.AddAsync(storedFile, cancellationToken);
 
@@ -117,7 +120,8 @@ public sealed class SendMessageCommandHandler(
                 rootFolder.Id,
                 $"/{rootFolder.Id.Value}/",
                 command.FamilyId,
-                command.UserId);
+                command.UserId,
+                timeProvider.GetUtcNow());
 
             await folderRepository.AddAsync(messagesFolder, cancellationToken);
         }
@@ -128,7 +132,8 @@ public sealed class SendMessageCommandHandler(
             messagesFolder.Id,
             $"{messagesFolder.MaterializedPath}{messagesFolder.Id.Value}/",
             command.FamilyId,
-            command.UserId);
+            command.UserId,
+            timeProvider.GetUtcNow());
 
         await folderRepository.AddAsync(conversationFolder, cancellationToken);
 

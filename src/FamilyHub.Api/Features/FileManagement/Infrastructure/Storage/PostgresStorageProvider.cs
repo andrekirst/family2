@@ -9,7 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Storage;
 /// Stores binary data in the file_management.file_blobs table.
 /// Supports files up to 100MB.
 /// </summary>
-public sealed class PostgresStorageProvider(AppDbContext dbContext, IUnitOfWork unitOfWork) : IStorageProvider
+public sealed class PostgresStorageProvider(AppDbContext dbContext, IUnitOfWork unitOfWork, TimeProvider timeProvider) : IStorageProvider
 {
     public async Task<string> UploadAsync(Stream data, string mimeType, CancellationToken cancellationToken = default)
     {
@@ -25,7 +25,7 @@ public sealed class PostgresStorageProvider(AppDbContext dbContext, IUnitOfWork 
             Data = bytes,
             MimeType = mimeType,
             Size = bytes.Length,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = timeProvider.GetUtcNow().UtcDateTime
         };
 
         dbContext.Set<Data.FileBlob>().Add(blob);

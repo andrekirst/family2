@@ -5,7 +5,8 @@ using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 namespace FamilyHub.Api.Features.Calendar.Application.Commands.CreateCalendarEvent;
 
 public sealed class CreateCalendarEventCommandHandler(
-    ICalendarEventRepository repository)
+    ICalendarEventRepository repository,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateCalendarEventCommand, CreateCalendarEventResult>
 {
     public async ValueTask<CreateCalendarEventResult> Handle(
@@ -20,7 +21,8 @@ public sealed class CreateCalendarEventCommandHandler(
             command.Location,
             command.StartTime,
             command.EndTime,
-            command.IsAllDay);
+            command.IsAllDay,
+            timeProvider.GetUtcNow());
 
         // Add attendees
         foreach (var attendeeId in command.AttendeeIds)

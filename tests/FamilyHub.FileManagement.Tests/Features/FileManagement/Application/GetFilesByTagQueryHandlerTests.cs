@@ -29,7 +29,7 @@ public class GetFilesByTagQueryHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]

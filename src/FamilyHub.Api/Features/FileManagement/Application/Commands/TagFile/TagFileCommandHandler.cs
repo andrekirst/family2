@@ -8,13 +8,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.TagFile;
 public sealed class TagFileCommandHandler(
     IStoredFileRepository storedFileRepository,
     ITagRepository tagRepository,
-    IFileTagRepository fileTagRepository)
+    IFileTagRepository fileTagRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<TagFileCommand, TagFileResult>
 {
     public async ValueTask<TagFileResult> Handle(
         TagFileCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken)
             ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
@@ -38,7 +40,7 @@ public sealed class TagFileCommandHandler(
             return new TagFileResult(true); // Idempotent
         }
 
-        var fileTag = FileTag.Create(command.FileId, command.TagId);
+        var fileTag = FileTag.Create(command.FileId, command.TagId, utcNow);
         await fileTagRepository.AddAsync(fileTag, cancellationToken);
 
         return new TagFileResult(true);

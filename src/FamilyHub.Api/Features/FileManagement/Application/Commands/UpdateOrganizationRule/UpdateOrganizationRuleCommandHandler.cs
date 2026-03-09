@@ -5,13 +5,15 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UpdateOrganizationRule;
 
 public sealed class UpdateOrganizationRuleCommandHandler(
-    IOrganizationRuleRepository ruleRepository)
+    IOrganizationRuleRepository ruleRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<UpdateOrganizationRuleCommand, UpdateOrganizationRuleResult>
 {
     public async ValueTask<UpdateOrganizationRuleResult> Handle(
         UpdateOrganizationRuleCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var rule = await ruleRepository.GetByIdAsync(command.RuleId, cancellationToken)
             ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
 
@@ -25,7 +27,8 @@ public sealed class UpdateOrganizationRuleCommandHandler(
             command.ConditionsJson,
             command.ConditionLogic,
             command.ActionType,
-            command.ActionsJson);
+            command.ActionsJson,
+            utcNow);
 
         return new UpdateOrganizationRuleResult(true);
     }

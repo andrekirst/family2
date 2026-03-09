@@ -23,6 +23,7 @@ public sealed class FileVersion : AggregateRoot<FileVersionId>
         FileSize fileSize,
         Checksum checksum,
         UserId uploadedBy,
+        DateTimeOffset utcNow,
         bool isCurrent = true)
     {
         var version = new FileVersion
@@ -35,7 +36,7 @@ public sealed class FileVersion : AggregateRoot<FileVersionId>
             Checksum = checksum,
             UploadedBy = uploadedBy,
             IsCurrent = isCurrent,
-            UploadedAt = DateTime.UtcNow
+            UploadedAt = utcNow.UtcDateTime
         };
 
         version.RaiseDomainEvent(new FileVersionCreatedEvent(
@@ -55,7 +56,8 @@ public sealed class FileVersion : AggregateRoot<FileVersionId>
         StorageKey storageKey,
         FileSize fileSize,
         Checksum checksum,
-        UserId restoredBy)
+        UserId restoredBy,
+        DateTimeOffset utcNow)
     {
         var version = new FileVersion
         {
@@ -67,7 +69,7 @@ public sealed class FileVersion : AggregateRoot<FileVersionId>
             Checksum = checksum,
             UploadedBy = restoredBy,
             IsCurrent = true,
-            UploadedAt = DateTime.UtcNow
+            UploadedAt = utcNow.UtcDateTime
         };
 
         version.RaiseDomainEvent(new FileVersionCreatedEvent(

@@ -16,7 +16,7 @@ public class FamilyMemberTests
         var role = FamilyRole.Member;
 
         // Act
-        var member = FamilyMember.Create(familyId, userId, role);
+        var member = FamilyMember.Create(familyId, userId, role, DateTimeOffset.UtcNow);
 
         // Assert
         member.Should().NotBeNull();
@@ -32,7 +32,7 @@ public class FamilyMemberTests
     public void Create_WithOwnerRole_ShouldSetCorrectRole()
     {
         // Act
-        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Owner);
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Owner, DateTimeOffset.UtcNow);
 
         // Assert
         member.Role.Should().Be(FamilyRole.Owner);
@@ -43,7 +43,7 @@ public class FamilyMemberTests
     public void Create_WithAdminRole_ShouldSetCorrectRole()
     {
         // Act
-        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Admin);
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Admin, DateTimeOffset.UtcNow);
 
         // Assert
         member.Role.Should().Be(FamilyRole.Admin);
@@ -54,7 +54,7 @@ public class FamilyMemberTests
     public void Create_WithMemberRole_ShouldNotBeAbleToInvite()
     {
         // Act
-        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
 
         // Assert
         member.Role.Should().Be(FamilyRole.Member);
@@ -69,8 +69,8 @@ public class FamilyMemberTests
         var userId = UserId.New();
 
         // Act
-        var member1 = FamilyMember.Create(familyId, userId, FamilyRole.Member);
-        var member2 = FamilyMember.Create(familyId, userId, FamilyRole.Member);
+        var member1 = FamilyMember.Create(familyId, userId, FamilyRole.Member, DateTimeOffset.UtcNow);
+        var member2 = FamilyMember.Create(familyId, userId, FamilyRole.Member, DateTimeOffset.UtcNow);
 
         // Assert
         member1.Id.Should().NotBe(member2.Id);
@@ -80,7 +80,7 @@ public class FamilyMemberTests
     public void Create_ShouldSetIsActiveToTrue()
     {
         // Act
-        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
 
         // Assert
         member.IsActive.Should().BeTrue();
@@ -90,7 +90,7 @@ public class FamilyMemberTests
     public void Create_ShouldHaveNullAvatarId()
     {
         // Act
-        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
 
         // Assert
         member.AvatarId.Should().BeNull();
@@ -100,7 +100,7 @@ public class FamilyMemberTests
     public void SetFamilyAvatar_ShouldSetAvatarId()
     {
         // Arrange
-        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
         var avatarId = AvatarId.New();
 
         // Act
@@ -114,7 +114,7 @@ public class FamilyMemberTests
     public void RemoveFamilyAvatar_ShouldClearAvatarId()
     {
         // Arrange
-        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
         member.SetFamilyAvatar(AvatarId.New());
 
         // Act
@@ -128,7 +128,7 @@ public class FamilyMemberTests
     public void SetFamilyAvatar_ShouldReplaceExistingAvatar()
     {
         // Arrange
-        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member);
+        var member = FamilyMember.Create(FamilyId.New(), UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
         var firstAvatarId = AvatarId.New();
         var secondAvatarId = AvatarId.New();
         member.SetFamilyAvatar(firstAvatarId);

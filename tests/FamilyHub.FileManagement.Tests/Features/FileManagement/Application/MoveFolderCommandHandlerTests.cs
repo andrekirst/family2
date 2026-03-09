@@ -17,15 +17,15 @@ public class MoveFolderCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new MoveFolderCommandHandler(folderRepo);
+        var handler = new MoveFolderCommandHandler(folderRepo, TimeProvider.System);
 
-        var root = Folder.CreateRoot(familyId, userId);
-        var folderA = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folderA = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
         var folderB = Folder.Create(
             FileName.From("B"), folderA.Id,
             $"/{root.Id.Value}/{folderA.Id.Value}/",
-            familyId, userId);
-        var folderC = Folder.Create(FileName.From("C"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+            familyId, userId, DateTimeOffset.UtcNow);
+        var folderC = Folder.Create(FileName.From("C"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
 
         folderRepo.GetByIdAsync(folderA.Id, Arg.Any<CancellationToken>()).Returns(folderA);
         folderRepo.GetByIdAsync(folderC.Id, Arg.Any<CancellationToken>()).Returns(folderC);
@@ -51,10 +51,10 @@ public class MoveFolderCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new MoveFolderCommandHandler(folderRepo);
+        var handler = new MoveFolderCommandHandler(folderRepo, TimeProvider.System);
 
-        var root = Folder.CreateRoot(familyId, userId);
-        var folder = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folder = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
 
         folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
@@ -75,14 +75,14 @@ public class MoveFolderCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new MoveFolderCommandHandler(folderRepo);
+        var handler = new MoveFolderCommandHandler(folderRepo, TimeProvider.System);
 
-        var root = Folder.CreateRoot(familyId, userId);
-        var folderA = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folderA = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
         var folderB = Folder.Create(
             FileName.From("B"), folderA.Id,
             $"/{root.Id.Value}/{folderA.Id.Value}/",
-            familyId, userId);
+            familyId, userId, DateTimeOffset.UtcNow);
 
         folderRepo.GetByIdAsync(folderA.Id, Arg.Any<CancellationToken>()).Returns(folderA);
         folderRepo.GetByIdAsync(folderB.Id, Arg.Any<CancellationToken>()).Returns(folderB);
@@ -104,7 +104,7 @@ public class MoveFolderCommandHandlerTests
     public async Task Handle_ShouldThrowWhenFolderNotFound()
     {
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new MoveFolderCommandHandler(folderRepo);
+        var handler = new MoveFolderCommandHandler(folderRepo, TimeProvider.System);
 
         folderRepo.GetByIdAsync(FolderId.New(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs((Folder?)null);
@@ -126,10 +126,10 @@ public class MoveFolderCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new MoveFolderCommandHandler(folderRepo);
+        var handler = new MoveFolderCommandHandler(folderRepo, TimeProvider.System);
 
-        var root = Folder.CreateRoot(familyId, userId);
-        var folder = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folder = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
 
         folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         var targetId = FolderId.New();
@@ -153,11 +153,11 @@ public class MoveFolderCommandHandlerTests
         var familyId2 = FamilyId.New();
         var userId = UserId.New();
         var folderRepo = Substitute.For<IFolderRepository>();
-        var handler = new MoveFolderCommandHandler(folderRepo);
+        var handler = new MoveFolderCommandHandler(folderRepo, TimeProvider.System);
 
-        var root1 = Folder.CreateRoot(familyId1, userId);
-        var folder = Folder.Create(FileName.From("A"), root1.Id, $"/{root1.Id.Value}/", familyId1, userId);
-        var root2 = Folder.CreateRoot(familyId2, userId);
+        var root1 = Folder.CreateRoot(familyId1, userId, DateTimeOffset.UtcNow);
+        var folder = Folder.Create(FileName.From("A"), root1.Id, $"/{root1.Id.Value}/", familyId1, userId, DateTimeOffset.UtcNow);
+        var root2 = Folder.CreateRoot(familyId2, userId, DateTimeOffset.UtcNow);
 
         folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         folderRepo.GetByIdAsync(root2.Id, Arg.Any<CancellationToken>()).Returns(root2);

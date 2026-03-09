@@ -25,7 +25,7 @@ public class DisconnectExternalStorageCommandHandlerTests
         var familyId = FamilyId.New();
         var connection = ExternalConnection.Create(
             familyId, ExternalProviderType.Dropbox, "Dropbox",
-            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New());
+            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New(), DateTimeOffset.UtcNow);
         _repo.GetByIdAsync(connection.Id, Arg.Any<CancellationToken>()).Returns(connection);
 
         var command = new DisconnectExternalStorageCommand(connection.Id)
@@ -62,7 +62,7 @@ public class DisconnectExternalStorageCommandHandlerTests
     {
         var connection = ExternalConnection.Create(
             FamilyId.New(), ExternalProviderType.OneDrive, "OneDrive",
-            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New());
+            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New(), DateTimeOffset.UtcNow);
         _repo.GetByIdAsync(connection.Id, Arg.Any<CancellationToken>()).Returns(connection);
 
         var command = new DisconnectExternalStorageCommand(connection.Id)

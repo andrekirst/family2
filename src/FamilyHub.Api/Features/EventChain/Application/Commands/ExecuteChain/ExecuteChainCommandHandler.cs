@@ -8,13 +8,15 @@ namespace FamilyHub.Api.Features.EventChain.Application.Commands.ExecuteChain;
 public sealed class ExecuteChainCommandHandler(
     IChainDefinitionRepository definitionRepository,
     IChainExecutionRepository executionRepository,
-    IChainOrchestrator orchestrator)
+    IChainOrchestrator orchestrator,
+    TimeProvider timeProvider)
     : ICommandHandler<ExecuteChainCommand, ExecuteChainResult>
 {
     public async ValueTask<ExecuteChainResult> Handle(
         ExecuteChainCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var definition = (await definitionRepository.GetByIdWithStepsAsync(command.ChainDefinitionId, cancellationToken))!;
 
         var execution = ChainExecution.Start(
@@ -22,7 +24,8 @@ public sealed class ExecuteChainCommandHandler(
             command.FamilyId,
             definition.TriggerEventType,
             Guid.NewGuid(), // Manual execution uses a synthetic event ID
-            command.TriggerPayload);
+            command.TriggerPayload,
+            utcNow);
 
         // Create step executions
         foreach (var step in definition.Steps.OrderBy(s => s.StepOrder))

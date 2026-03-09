@@ -157,12 +157,12 @@ public class SendMessageCommandHandlerTests
         // Seed a root folder when familyId is provided (needed for attachment resolution)
         if (familyId is not null)
         {
-            var rootFolder = Folder.CreateRoot(familyId.Value, userId ?? UserId.New());
+            var rootFolder = Folder.CreateRoot(familyId.Value, userId ?? UserId.New(), DateTimeOffset.UtcNow);
             folderRepo.GetRootFolderAsync(familyId.Value, Arg.Any<CancellationToken>())
                 .Returns(rootFolder);
         }
 
-        var handler = new SendMessageCommandHandler(messageRepo, storedFileRepo, folderRepo, conversationRepo);
+        var handler = new SendMessageCommandHandler(messageRepo, storedFileRepo, folderRepo, conversationRepo, TimeProvider.System);
         return (handler, messageRepo);
     }
 }

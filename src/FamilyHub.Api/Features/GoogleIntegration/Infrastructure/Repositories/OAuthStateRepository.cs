@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Repositories;
 
-public sealed class OAuthStateRepository(AppDbContext context) : IOAuthStateRepository
+public sealed class OAuthStateRepository(AppDbContext context, TimeProvider timeProvider) : IOAuthStateRepository
 {
     public async Task<OAuthState?> GetByStateAsync(string state, CancellationToken cancellationToken = default)
         => await context.OAuthStates.FirstOrDefaultAsync(s => s.State == state, cancellationToken);
@@ -21,6 +21,6 @@ public sealed class OAuthStateRepository(AppDbContext context) : IOAuthStateRepo
 
     public async Task DeleteExpiredAsync(CancellationToken cancellationToken = default)
         => await context.OAuthStates
-            .Where(s => s.ExpiresAt <= DateTime.UtcNow)
+            .Where(s => s.ExpiresAt <= timeProvider.GetUtcNow().UtcDateTime)
             .ExecuteDeleteAsync(cancellationToken);
 }

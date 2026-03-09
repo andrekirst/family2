@@ -22,7 +22,7 @@ public class OrganizationRuleEngineTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             _familyId,
-            _userId);
+            _userId, DateTimeOffset.UtcNow);
     }
 
     private OrganizationRule CreateRule(
@@ -40,9 +40,9 @@ public class OrganizationRuleEngineTests
             logic,
             actionType,
             """{"DestinationFolderId":"00000000-0000-0000-0000-000000000001"}""",
-            priority);
+            priority, DateTimeOffset.UtcNow);
 
-        if (!enabled) rule.Disable();
+        if (!enabled) rule.Disable(DateTimeOffset.UtcNow);
         return rule;
     }
 
@@ -250,7 +250,7 @@ public class OrganizationRuleEngineTests
             ConditionLogic.And,
             RuleActionType.MoveToFolder,
             "{}",
-            1);
+            1, DateTimeOffset.UtcNow);
 
         var file = CreateFile("test.txt", "text/plain", 100);
         var result = _engine.EvaluateFile(file, [rule]);

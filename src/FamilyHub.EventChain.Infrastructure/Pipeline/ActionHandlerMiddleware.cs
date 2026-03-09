@@ -3,13 +3,16 @@ using FamilyHub.EventChain.Infrastructure.Registry;
 namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
 public sealed class ActionHandlerMiddleware(
-    IChainRegistry registry) : IStepMiddleware
+    IChainRegistry registry,
+    TimeProvider timeProvider) : IStepMiddleware
 {
     public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
+
         if (context.ShouldSkip)
         {
-            context.StepExecution.MarkSkipped();
+            context.StepExecution.MarkSkipped(utcNow);
             return;
         }
 
@@ -23,7 +26,7 @@ public sealed class ActionHandlerMiddleware(
                 $"No handler found for action {context.StepDefinition.ActionType}@{context.StepDefinition.ActionVersion.Value}");
         }
 
-        context.StepExecution.MarkRunning();
+        context.StepExecution.MarkRunning(utcNow);
 
         var actionContext = new ActionExecutionContext(
             context.StepExecution.InputPayload ?? "{}",
@@ -35,7 +38,7 @@ public sealed class ActionHandlerMiddleware(
 
         if (result.Success)
         {
-            context.StepExecution.MarkCompleted(result.OutputPayload);
+            context.StepExecution.MarkCompleted(result.OutputPayload, utcNow);
 
             if (result.OutputPayload is not null)
             {

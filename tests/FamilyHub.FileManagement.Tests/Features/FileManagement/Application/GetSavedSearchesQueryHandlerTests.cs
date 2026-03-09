@@ -23,8 +23,8 @@ public class GetSavedSearchesQueryHandlerTests
         var userId = UserId.New();
         _savedRepo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns([
-                SavedSearch.Create(userId, "Photos", "vacation", null),
-                SavedSearch.Create(userId, "Docs", "invoice", null)
+                SavedSearch.Create(userId, "Photos", "vacation", null, DateTimeOffset.UtcNow),
+                SavedSearch.Create(userId, "Docs", "invoice", null, DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetSavedSearchesQuery()

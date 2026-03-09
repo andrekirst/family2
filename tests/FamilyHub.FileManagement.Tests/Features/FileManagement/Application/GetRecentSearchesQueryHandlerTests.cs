@@ -23,8 +23,8 @@ public class GetRecentSearchesQueryHandlerTests
         var userId = UserId.New();
         _recentRepo.GetByUserIdAsync(userId, Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([
-                RecentSearch.Create(userId, "photos"),
-                RecentSearch.Create(userId, "documents")
+                RecentSearch.Create(userId, "photos", DateTimeOffset.UtcNow),
+                RecentSearch.Create(userId, "documents", DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetRecentSearchesQuery()
@@ -58,7 +58,7 @@ public class GetRecentSearchesQueryHandlerTests
     {
         var userId = UserId.New();
         _recentRepo.GetByUserIdAsync(userId, Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns([RecentSearch.Create(userId, "mine")]);
+            .Returns([RecentSearch.Create(userId, "mine", DateTimeOffset.UtcNow)]);
 
         var query = new GetRecentSearchesQuery()
         {

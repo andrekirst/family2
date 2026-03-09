@@ -53,7 +53,7 @@ public class EventChainSearchProviderTests
     {
         var enabled = CreateDefinition("Enabled Chain", "Active workflow");
         var disabled = CreateDefinition("Disabled Chain", "Inactive workflow");
-        disabled.Disable();
+        disabled.Disable(DateTimeOffset.UtcNow);
         var definitions = new List<ChainDefinition> { enabled, disabled };
         var repo = CreateRepo(definitions);
         var provider = new EventChainSearchProvider(repo);
@@ -91,7 +91,7 @@ public class EventChainSearchProviderTests
             "family.UserRegistered",
             "family",
             null,
-            null);
+            null, DateTimeOffset.UtcNow);
         return definition;
     }
 }

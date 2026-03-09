@@ -83,7 +83,7 @@ public class MessagingSearchProviderTests
 
     private static Message CreateMessage(string content)
     {
-        var msg = Message.Create(TestFamilyId, TestUserId, MessageContent.From(content));
+        var msg = Message.Create(TestFamilyId, TestUserId, MessageContent.From(content), utcNow: DateTimeOffset.UtcNow);
         msg.ClearDomainEvents();
         return msg;
     }

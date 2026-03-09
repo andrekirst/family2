@@ -59,15 +59,15 @@ public class MarkAsStudentCommandHandlerTests
         var familyIdB = FamilyId.New();
         var userId = UserId.New();
 
-        var callerMember = FamilyMember.Create(familyIdA, userId, FamilyRole.Owner);
-        var targetMember = FamilyMember.Create(familyIdB, UserId.New(), FamilyRole.Member); // Different family!
+        var callerMember = FamilyMember.Create(familyIdA, userId, FamilyRole.Owner, DateTimeOffset.UtcNow);
+        var targetMember = FamilyMember.Create(familyIdB, UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow); // Different family!
 
         var studentRepo = Substitute.For<IStudentRepository>();
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
         memberRepo.GetByIdAsync(targetMember.Id, Arg.Any<CancellationToken>())
             .Returns(targetMember);
 
-        var handler = new MarkAsStudentCommandHandler(studentRepo, memberRepo);
+        var handler = new MarkAsStudentCommandHandler(studentRepo, memberRepo, TimeProvider.System);
 
         var command = new MarkAsStudentCommand(targetMember.Id) { FamilyId = familyIdA, UserId = userId };
 
@@ -82,8 +82,8 @@ public class MarkAsStudentCommandHandlerTests
     private static (MarkAsStudentCommandHandler Handler, IStudentRepository StudentRepo, IFamilyMemberRepository MemberRepo, FamilyMember TargetMember) CreateHandler(
         FamilyId familyId, UserId callerUserId)
     {
-        var callerMember = FamilyMember.Create(familyId, callerUserId, FamilyRole.Owner);
-        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
+        var callerMember = FamilyMember.Create(familyId, callerUserId, FamilyRole.Owner, DateTimeOffset.UtcNow);
+        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
 
         var studentRepo = Substitute.For<IStudentRepository>();
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
@@ -91,7 +91,7 @@ public class MarkAsStudentCommandHandlerTests
         memberRepo.GetByIdAsync(targetMember.Id, Arg.Any<CancellationToken>())
             .Returns(targetMember);
 
-        var handler = new MarkAsStudentCommandHandler(studentRepo, memberRepo);
+        var handler = new MarkAsStudentCommandHandler(studentRepo, memberRepo, TimeProvider.System);
         return (handler, studentRepo, memberRepo, targetMember);
     }
 }

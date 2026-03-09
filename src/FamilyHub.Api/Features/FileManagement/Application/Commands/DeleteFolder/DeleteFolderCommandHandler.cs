@@ -8,13 +8,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteFolde
 public sealed class DeleteFolderCommandHandler(
     IFolderRepository folderRepository,
     IStoredFileRepository storedFileRepository,
-    IFileManagementStorageService storageService)
+    IFileManagementStorageService storageService,
+    TimeProvider timeProvider)
     : ICommandHandler<DeleteFolderCommand, DeleteFolderResult>
 {
     public async ValueTask<DeleteFolderResult> Handle(
         DeleteFolderCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var folder = (await folderRepository.GetByIdAsync(command.FolderId, cancellationToken))!;
 
         if (folder.FamilyId != command.FamilyId)
@@ -50,7 +52,7 @@ public sealed class DeleteFolderCommandHandler(
         await storedFileRepository.RemoveRangeAsync(files, cancellationToken);
 
         // Raise domain event on the folder being deleted
-        folder.MarkDeleted(command.UserId);
+        folder.MarkDeleted(command.UserId, utcNow);
 
         // Remove all descendant folders, then the folder itself
         await folderRepository.RemoveRangeAsync(descendants, cancellationToken);

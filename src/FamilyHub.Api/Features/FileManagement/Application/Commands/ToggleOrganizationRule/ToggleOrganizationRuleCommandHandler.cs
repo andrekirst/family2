@@ -5,13 +5,15 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ToggleOrganizationRule;
 
 public sealed class ToggleOrganizationRuleCommandHandler(
-    IOrganizationRuleRepository ruleRepository)
+    IOrganizationRuleRepository ruleRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<ToggleOrganizationRuleCommand, ToggleOrganizationRuleResult>
 {
     public async ValueTask<ToggleOrganizationRuleResult> Handle(
         ToggleOrganizationRuleCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var rule = await ruleRepository.GetByIdAsync(command.RuleId, cancellationToken)
             ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
 
@@ -22,11 +24,11 @@ public sealed class ToggleOrganizationRuleCommandHandler(
 
         if (command.IsEnabled)
         {
-            rule.Enable();
+            rule.Enable(utcNow);
         }
         else
         {
-            rule.Disable();
+            rule.Disable(utcNow);
         }
 
         return new ToggleOrganizationRuleResult(true);

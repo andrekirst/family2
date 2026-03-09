@@ -13,7 +13,9 @@ public sealed partial class ChainOrchestrator(
     IChainDefinitionRepository definitionRepository,
     IChainExecutionRepository executionRepository,
     IUnitOfWork unitOfWork,
+    IChainExecutionDispatcher dispatcher,
     StepPipeline pipeline,
+    TimeProvider timeProvider,
     ILogger<ChainOrchestrator> logger) : IChainOrchestrator
 {
     public async Task TryTriggerChainsAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
@@ -34,12 +36,14 @@ public sealed partial class ChainOrchestrator(
         {
             try
             {
+                var utcNow = timeProvider.GetUtcNow();
                 var execution = ChainExecution.Start(
                     definition.Id,
                     definition.FamilyId,
                     eventType,
                     domainEvent.EventId,
-                    triggerPayload);
+                    triggerPayload,
+                    utcNow);
 
                 // Create step executions for each definition step
                 foreach (var step in definition.Steps.OrderBy(s => s.StepOrder))
@@ -57,8 +61,9 @@ public sealed partial class ChainOrchestrator(
                 await executionRepository.AddAsync(execution, cancellationToken);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
 
-                // Execute asynchronously (fire and forget for dual dispatch)
-                _ = Task.Run(() => ExecuteChainAsync(execution, definition, cancellationToken), cancellationToken);
+                // Dispatch via CAP for reliable at-least-once execution
+                // (replaces fire-and-forget Task.Run — survives process crashes)
+                await dispatcher.DispatchAsync(execution.Id, definition.Id, cancellationToken);
 
                 LogChainChainnameTriggeredByEventtypeExecutionidExecutionidCorrelationidCorrelationid(logger, definition.Name.Value, eventType, execution.Id.Value, execution.CorrelationId);
             }
@@ -71,6 +76,7 @@ public sealed partial class ChainOrchestrator(
 
     public async Task ExecuteChainAsync(ChainExecution execution, ChainDefinition definition, CancellationToken cancellationToken = default)
     {
+        var utcNow = timeProvider.GetUtcNow();
         try
         {
             execution.MarkRunning();
@@ -96,7 +102,7 @@ public sealed partial class ChainOrchestrator(
                 // Evaluate condition
                 if (!context.EvaluateCondition(stepDef.ConditionExpression))
                 {
-                    stepExecution.MarkSkipped();
+                    stepExecution.MarkSkipped(utcNow);
                     LogStepStepaliasSkippedConditionNotMet(logger, stepDef.Alias.Value);
                     continue;
                 }
@@ -128,7 +134,8 @@ public sealed partial class ChainOrchestrator(
                                 stepDef.Alias.Value,
                                 entity.EntityType,
                                 entity.EntityId,
-                                entity.Module);
+                                entity.Module,
+                                utcNow);
                             await executionRepository.AddEntityMappingAsync(mapping, cancellationToken);
                         }
                     }
@@ -153,16 +160,16 @@ public sealed partial class ChainOrchestrator(
 
                 if (allFailed)
                 {
-                    execution.MarkFailed("All steps failed");
+                    execution.MarkFailed("All steps failed", utcNow);
                 }
                 else
                 {
-                    execution.MarkPartiallyCompleted();
+                    execution.MarkPartiallyCompleted(utcNow);
                 }
             }
             else
             {
-                execution.MarkCompleted();
+                execution.MarkCompleted(utcNow);
             }
 
             await executionRepository.UpdateAsync(execution, cancellationToken);
@@ -172,7 +179,7 @@ public sealed partial class ChainOrchestrator(
         {
             LogChainExecutionExecutionidFailedUnexpectedly(logger, execution.Id.Value);
 
-            execution.MarkFailed(ex.Message);
+            execution.MarkFailed(ex.Message, utcNow);
             await executionRepository.UpdateAsync(execution, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }

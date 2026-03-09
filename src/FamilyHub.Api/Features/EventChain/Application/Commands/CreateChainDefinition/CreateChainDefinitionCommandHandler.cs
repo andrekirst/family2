@@ -7,13 +7,16 @@ namespace FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefi
 
 public sealed class CreateChainDefinitionCommandHandler(
     IChainDefinitionRepository repository,
-    IChainRegistry registry)
+    IChainRegistry registry,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateChainDefinitionCommand, CreateChainDefinitionResult>
 {
     public async ValueTask<CreateChainDefinitionResult> Handle(
         CreateChainDefinitionCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
+
         // Validate trigger exists in registry
         if (!registry.IsValidTrigger(command.TriggerEventType))
         {
@@ -30,7 +33,8 @@ public sealed class CreateChainDefinitionCommandHandler(
             command.TriggerEventType,
             trigger.Module,
             trigger.Description,
-            trigger.OutputSchema);
+            trigger.OutputSchema,
+            utcNow);
 
         // Add steps
         foreach (var stepCmd in command.Steps.OrderBy(s => s.Order))

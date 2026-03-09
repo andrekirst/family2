@@ -17,12 +17,12 @@ public class UploadFileCommandHandlerTests
 
     public UploadFileCommandHandlerTests()
     {
-        _handler = new UploadFileCommandHandler(_fileRepo, _folderRepo);
+        _handler = new UploadFileCommandHandler(_fileRepo, _folderRepo, TimeProvider.System);
     }
 
     private static Folder CreateTestFolder(FamilyId familyId)
     {
-        return Folder.CreateRoot(familyId, UserId.New());
+        return Folder.CreateRoot(familyId, UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]

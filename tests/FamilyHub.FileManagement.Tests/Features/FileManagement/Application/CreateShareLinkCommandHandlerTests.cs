@@ -15,7 +15,7 @@ public class CreateShareLinkCommandHandlerTests
 
     public CreateShareLinkCommandHandlerTests()
     {
-        _handler = new CreateShareLinkCommandHandler(_repo);
+        _handler = new CreateShareLinkCommandHandler(_repo, TimeProvider.System);
     }
 
     [Fact]

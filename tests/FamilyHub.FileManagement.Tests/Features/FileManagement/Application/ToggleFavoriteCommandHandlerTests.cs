@@ -17,7 +17,7 @@ public class ToggleFavoriteCommandHandlerTests
 
     public ToggleFavoriteCommandHandlerTests()
     {
-        _handler = new ToggleFavoriteCommandHandler(_fileRepo, _favRepo);
+        _handler = new ToggleFavoriteCommandHandler(_fileRepo, _favRepo, TimeProvider.System);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId)
@@ -30,7 +30,7 @@ public class ToggleFavoriteCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class ToggleFavoriteCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
         var file = CreateTestFile(familyId);
-        var favorite = UserFavorite.Create(userId, file.Id);
+        var favorite = UserFavorite.Create(userId, file.Id, DateTimeOffset.UtcNow);
 
         _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _favRepo.ExistsAsync(userId, file.Id, Arg.Any<CancellationToken>()).Returns(true);

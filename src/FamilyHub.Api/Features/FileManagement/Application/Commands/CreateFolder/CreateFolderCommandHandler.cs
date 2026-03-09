@@ -7,13 +7,15 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateFolder;
 
 public sealed class CreateFolderCommandHandler(
-    IFolderRepository folderRepository)
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateFolderCommand, CreateFolderResult>
 {
     public async ValueTask<CreateFolderResult> Handle(
         CreateFolderCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         string materializedPath;
         FolderId? effectiveParentId = command.ParentFolderId;
 
@@ -41,7 +43,7 @@ public sealed class CreateFolderCommandHandler(
             if (rootFolder is null)
             {
                 // Auto-create root folder
-                rootFolder = Folder.CreateRoot(command.FamilyId, command.UserId);
+                rootFolder = Folder.CreateRoot(command.FamilyId, command.UserId, utcNow);
                 await folderRepository.AddAsync(rootFolder, cancellationToken);
             }
 
@@ -54,7 +56,8 @@ public sealed class CreateFolderCommandHandler(
             effectiveParentId,
             materializedPath,
             command.FamilyId,
-            command.UserId);
+            command.UserId,
+            utcNow);
 
         await folderRepository.AddAsync(folder, cancellationToken);
 

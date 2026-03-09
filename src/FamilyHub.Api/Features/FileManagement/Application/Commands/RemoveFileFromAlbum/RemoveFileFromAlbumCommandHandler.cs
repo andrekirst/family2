@@ -6,13 +6,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RemoveFileF
 
 public sealed class RemoveFileFromAlbumCommandHandler(
     IAlbumRepository albumRepository,
-    IAlbumItemRepository albumItemRepository)
+    IAlbumItemRepository albumItemRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<RemoveFileFromAlbumCommand, RemoveFileFromAlbumResult>
 {
     public async ValueTask<RemoveFileFromAlbumResult> Handle(
         RemoveFileFromAlbumCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken)
             ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
 
@@ -35,7 +37,7 @@ public sealed class RemoveFileFromAlbumCommandHandler(
         if (album.CoverFileId == command.FileId)
         {
             var firstFileId = await albumItemRepository.GetFirstImageFileIdAsync(command.AlbumId, cancellationToken);
-            album.SetCoverImage(firstFileId);
+            album.SetCoverImage(firstFileId, utcNow);
         }
 
         return new RemoveFileFromAlbumResult(true);

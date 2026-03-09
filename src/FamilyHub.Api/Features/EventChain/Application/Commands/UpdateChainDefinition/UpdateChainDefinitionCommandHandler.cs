@@ -8,17 +8,19 @@ namespace FamilyHub.Api.Features.EventChain.Application.Commands.UpdateChainDefi
 
 public sealed class UpdateChainDefinitionCommandHandler(
     IChainDefinitionRepository repository,
-    IChainRegistry registry)
+    IChainRegistry registry,
+    TimeProvider timeProvider)
     : ICommandHandler<UpdateChainDefinitionCommand, UpdateChainDefinitionResult>
 {
     public async ValueTask<UpdateChainDefinitionResult> Handle(
         UpdateChainDefinitionCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var definition = await repository.GetByIdWithStepsAsync(command.Id, cancellationToken)
             ?? throw new DomainException("Chain definition not found", DomainErrorCodes.ChainDefinitionNotFound);
 
-        definition.Update(command.Name, command.Description, command.IsEnabled);
+        definition.Update(command.Name, command.Description, command.IsEnabled, utcNow);
 
         if (command.Steps is not null)
         {

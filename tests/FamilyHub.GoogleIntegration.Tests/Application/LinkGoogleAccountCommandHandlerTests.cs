@@ -54,7 +54,7 @@ public class LinkGoogleAccountCommandHandlerTests
             .Returns(callInfo => callInfo.ArgAt<string>(0).Replace("encrypted:", ""));
 
         var handler = new LinkGoogleAccountCommandHandler(
-            stateRepo, linkRepo, oauthService, encryptionService);
+            stateRepo, linkRepo, oauthService, encryptionService, TimeProvider.System);
 
         return (handler, linkRepo, stateRepo, oauthService, encryptionService);
     }

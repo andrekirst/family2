@@ -16,7 +16,7 @@ public class RenameFolderCommandHandlerTests
 
     public RenameFolderCommandHandlerTests()
     {
-        _handler = new RenameFolderCommandHandler(_folderRepo);
+        _handler = new RenameFolderCommandHandler(_folderRepo, TimeProvider.System);
     }
 
     [Fact]
@@ -24,8 +24,8 @@ public class RenameFolderCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var root = Folder.CreateRoot(familyId, userId);
-        var folder = Folder.Create(FileName.From("OldName"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folder = Folder.Create(FileName.From("OldName"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
         _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"))
@@ -61,8 +61,8 @@ public class RenameFolderCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var root = Folder.CreateRoot(familyId, userId);
-        var folder = Folder.Create(FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folder = Folder.Create(FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
         _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"))

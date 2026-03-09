@@ -24,7 +24,7 @@ public class RestoreFileVersionCommandHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -32,14 +32,14 @@ public class RestoreFileVersionCommandHandlerTests
     {
         var fileRepo = Substitute.For<IStoredFileRepository>();
         var versionRepo = Substitute.For<IFileVersionRepository>();
-        var handler = new RestoreFileVersionCommandHandler(versionRepo, fileRepo);
+        var handler = new RestoreFileVersionCommandHandler(versionRepo, fileRepo, TimeProvider.System);
 
         var file = CreateTestFile();
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        var v1 = FileVersion.Create(file.Id, 1, StorageKey.From("key-v1"), FileSize.From(1000), Checksum.From(ValidChecksum), UserId.New());
+        var v1 = FileVersion.Create(file.Id, 1, StorageKey.From("key-v1"), FileSize.From(1000), Checksum.From(ValidChecksum), UserId.New(), DateTimeOffset.UtcNow);
         v1.MarkAsNotCurrent();
-        var v2 = FileVersion.Create(file.Id, 2, StorageKey.From("key-v2"), FileSize.From(2000), Checksum.From(AnotherChecksum), UserId.New());
+        var v2 = FileVersion.Create(file.Id, 2, StorageKey.From("key-v2"), FileSize.From(2000), Checksum.From(AnotherChecksum), UserId.New(), DateTimeOffset.UtcNow);
 
         versionRepo.GetByIdAsync(v1.Id, Arg.Any<CancellationToken>()).Returns(v1);
         versionRepo.GetCurrentVersionAsync(file.Id, Arg.Any<CancellationToken>()).Returns(v2);
@@ -65,7 +65,7 @@ public class RestoreFileVersionCommandHandlerTests
     {
         var fileRepo = Substitute.For<IStoredFileRepository>();
         var versionRepo = Substitute.For<IFileVersionRepository>();
-        var handler = new RestoreFileVersionCommandHandler(versionRepo, fileRepo);
+        var handler = new RestoreFileVersionCommandHandler(versionRepo, fileRepo, TimeProvider.System);
 
         fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs((StoredFile?)null);
@@ -89,7 +89,7 @@ public class RestoreFileVersionCommandHandlerTests
     {
         var fileRepo = Substitute.For<IStoredFileRepository>();
         var versionRepo = Substitute.For<IFileVersionRepository>();
-        var handler = new RestoreFileVersionCommandHandler(versionRepo, fileRepo);
+        var handler = new RestoreFileVersionCommandHandler(versionRepo, fileRepo, TimeProvider.System);
 
         var file = CreateTestFile();
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
@@ -115,13 +115,13 @@ public class RestoreFileVersionCommandHandlerTests
     {
         var fileRepo = Substitute.For<IStoredFileRepository>();
         var versionRepo = Substitute.For<IFileVersionRepository>();
-        var handler = new RestoreFileVersionCommandHandler(versionRepo, fileRepo);
+        var handler = new RestoreFileVersionCommandHandler(versionRepo, fileRepo, TimeProvider.System);
 
         var file1 = CreateTestFile();
         var file2 = CreateTestFile();
         fileRepo.GetByIdAsync(file1.Id, Arg.Any<CancellationToken>()).Returns(file1);
 
-        var version = FileVersion.Create(file2.Id, 1, StorageKey.From("key"), FileSize.From(100), Checksum.From(ValidChecksum), UserId.New());
+        var version = FileVersion.Create(file2.Id, 1, StorageKey.From("key"), FileSize.From(100), Checksum.From(ValidChecksum), UserId.New(), DateTimeOffset.UtcNow);
         versionRepo.GetByFileIdAsync(file1.Id, Arg.Any<CancellationToken>())
             .Returns(new List<FileVersion>()); // version belongs to file2, not file1
 

@@ -29,7 +29,7 @@ public class GetMediaStreamInfoQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         thumbnailRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
             .Returns(new List<FileThumbnail>());
@@ -65,7 +65,7 @@ public class GetMediaStreamInfoQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         thumbnailRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
             .Returns(new List<FileThumbnail>());
@@ -96,13 +96,13 @@ public class GetMediaStreamInfoQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var thumbnails = new List<FileThumbnail>
         {
-            FileThumbnail.Create(file.Id, 200, 200, StorageKey.From("thumbs/200x200.webp")),
-            FileThumbnail.Create(file.Id, 800, 800, StorageKey.From("thumbs/800x800.webp"))
+            FileThumbnail.Create(file.Id, 200, 200, StorageKey.From("thumbs/200x200.webp"), DateTimeOffset.UtcNow),
+            FileThumbnail.Create(file.Id, 800, 800, StorageKey.From("thumbs/800x800.webp"), DateTimeOffset.UtcNow)
         };
         thumbnailRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(thumbnails);
 
@@ -155,7 +155,7 @@ public class GetMediaStreamInfoQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var query = new GetMediaStreamInfoQuery(file.Id)

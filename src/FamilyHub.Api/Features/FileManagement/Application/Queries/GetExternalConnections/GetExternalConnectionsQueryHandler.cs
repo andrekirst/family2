@@ -6,16 +6,18 @@ using FamilyHub.Common.Application;
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetExternalConnections;
 
 public sealed class GetExternalConnectionsQueryHandler(
-    IExternalConnectionRepository connectionRepository)
+    IExternalConnectionRepository connectionRepository,
+    TimeProvider timeProvider)
     : IQueryHandler<GetExternalConnectionsQuery, List<ExternalConnectionDto>>
 {
     public async ValueTask<List<ExternalConnectionDto>> Handle(
         GetExternalConnectionsQuery query,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var connections = await connectionRepository.GetByFamilyIdAsync(
             query.FamilyId, cancellationToken);
 
-        return connections.Select(FileManagementMapper.ToDto).ToList();
+        return connections.Select(c => FileManagementMapper.ToDto(c, utcNow)).ToList();
     }
 }

@@ -15,7 +15,7 @@ public class SearchFilesQueryHandlerTests
     {
         var searchService = Substitute.For<IFileSearchService>();
         var recentRepo = Substitute.For<IRecentSearchRepository>();
-        var handler = new SearchFilesQueryHandler(searchService, recentRepo);
+        var handler = new SearchFilesQueryHandler(searchService, recentRepo, TimeProvider.System);
 
         var familyId = FamilyId.New();
         var results = new List<FileSearchResultDto>
@@ -49,7 +49,7 @@ public class SearchFilesQueryHandlerTests
     {
         var searchService = Substitute.For<IFileSearchService>();
         var recentRepo = Substitute.For<IRecentSearchRepository>();
-        var handler = new SearchFilesQueryHandler(searchService, recentRepo);
+        var handler = new SearchFilesQueryHandler(searchService, recentRepo, TimeProvider.System);
 
         var userId = UserId.New();
         var familyId = FamilyId.New();
@@ -73,7 +73,7 @@ public class SearchFilesQueryHandlerTests
     {
         var searchService = Substitute.For<IFileSearchService>();
         var recentRepo = Substitute.For<IRecentSearchRepository>();
-        var handler = new SearchFilesQueryHandler(searchService, recentRepo);
+        var handler = new SearchFilesQueryHandler(searchService, recentRepo, TimeProvider.System);
 
         var familyId = FamilyId.New();
         searchService.SearchAsync("nonexistent", familyId, null, "relevance", 0, 20, Arg.Any<CancellationToken>())

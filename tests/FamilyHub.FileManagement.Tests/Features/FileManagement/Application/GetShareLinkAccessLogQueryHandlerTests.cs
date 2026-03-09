@@ -19,13 +19,13 @@ public class GetShareLinkAccessLogQueryHandlerTests
         var handler = new GetShareLinkAccessLogQueryHandler(linkRepo, logRepo);
 
         var familyId = FamilyId.New();
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null, DateTimeOffset.UtcNow);
         linkRepo.GetByIdAsync(link.Id, Arg.Any<CancellationToken>()).Returns(link);
 
         var logs = new List<ShareLinkAccessLog>
         {
-            ShareLinkAccessLog.Create(link.Id, "10.0.0.1", "Mozilla/5.0", ShareAccessAction.View),
-            ShareLinkAccessLog.Create(link.Id, "10.0.0.2", null, ShareAccessAction.Download)
+            ShareLinkAccessLog.Create(link.Id, "10.0.0.1", "Mozilla/5.0", ShareAccessAction.View, DateTimeOffset.UtcNow),
+            ShareLinkAccessLog.Create(link.Id, "10.0.0.2", null, ShareAccessAction.Download, DateTimeOffset.UtcNow)
         };
         logRepo.GetByShareLinkIdAsync(link.Id, Arg.Any<CancellationToken>()).Returns(logs);
 
@@ -67,7 +67,7 @@ public class GetShareLinkAccessLogQueryHandlerTests
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
         var handler = new GetShareLinkAccessLogQueryHandler(linkRepo, logRepo);
 
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null, DateTimeOffset.UtcNow);
         linkRepo.GetByIdAsync(link.Id, Arg.Any<CancellationToken>()).Returns(link);
 
         var query = new GetShareLinkAccessLogQuery(link.Id)

@@ -114,7 +114,7 @@ public static class FileManagementMapper
         UploadedAt = version.UploadedAt
     };
 
-    public static ShareLinkDto ToDto(ShareLink link) => new()
+    public static ShareLinkDto ToDto(ShareLink link, DateTimeOffset utcNow) => new()
     {
         Id = link.Id.Value,
         Token = link.Token,
@@ -127,8 +127,8 @@ public static class FileManagementMapper
         MaxDownloads = link.MaxDownloads,
         DownloadCount = link.DownloadCount,
         IsRevoked = link.IsRevoked,
-        IsExpired = link.IsExpired,
-        IsAccessible = link.IsAccessible,
+        IsExpired = link.IsExpired(utcNow),
+        IsAccessible = link.IsAccessible(utcNow),
         CreatedAt = link.CreatedAt
     };
 
@@ -150,14 +150,14 @@ public static class FileManagementMapper
         GeneratedAt = thumbnail.GeneratedAt
     };
 
-    public static ExternalConnectionDto ToDto(ExternalConnection connection) => new()
+    public static ExternalConnectionDto ToDto(ExternalConnection connection, DateTimeOffset utcNow) => new()
     {
         Id = connection.Id.Value,
         FamilyId = connection.FamilyId.Value,
         ProviderType = connection.ProviderType.ToString(),
         DisplayName = connection.DisplayName,
         Status = connection.Status.ToString(),
-        IsTokenExpired = connection.IsTokenExpired,
+        IsTokenExpired = connection.IsTokenExpired(utcNow),
         TokenExpiresAt = connection.TokenExpiresAt,
         ConnectedBy = connection.ConnectedBy.Value,
         ConnectedAt = connection.ConnectedAt

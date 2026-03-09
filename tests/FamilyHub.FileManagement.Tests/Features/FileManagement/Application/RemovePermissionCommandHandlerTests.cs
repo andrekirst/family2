@@ -28,7 +28,7 @@ public class RemovePermissionCommandHandlerTests
 
         var permission = FilePermission.Create(
             PermissionResourceType.File, resourceId, memberId,
-            FilePermissionLevel.View, familyId, UserId.New());
+            FilePermissionLevel.View, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _permRepo.GetByMemberAndResourceAsync(memberId, PermissionResourceType.File, resourceId, Arg.Any<CancellationToken>())
             .Returns(permission);
 
@@ -76,7 +76,7 @@ public class RemovePermissionCommandHandlerTests
 
         var permission = FilePermission.Create(
             PermissionResourceType.File, resourceId, memberId,
-            FilePermissionLevel.View, FamilyId.New(), UserId.New());
+            FilePermissionLevel.View, FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
         _permRepo.GetByMemberAndResourceAsync(memberId, PermissionResourceType.File, resourceId, Arg.Any<CancellationToken>())
             .Returns(permission);
 

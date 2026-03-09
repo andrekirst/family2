@@ -12,14 +12,14 @@ public sealed class RecentSearch
     private RecentSearch() { }
 #pragma warning restore CS8618
 
-    public static RecentSearch Create(UserId userId, string query)
+    public static RecentSearch Create(UserId userId, string query, DateTimeOffset utcNow)
     {
         return new RecentSearch
         {
             Id = RecentSearchId.New(),
             UserId = userId,
             Query = query,
-            SearchedAt = DateTime.UtcNow
+            SearchedAt = utcNow.UtcDateTime
         };
     }
 

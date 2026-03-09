@@ -30,7 +30,7 @@ public class UntagFileCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class UntagFileCommandHandlerTests
         var familyId = FamilyId.New();
         var file = CreateTestFile(familyId);
         var tagId = TagId.New();
-        var fileTag = FileTag.Create(file.Id, tagId);
+        var fileTag = FileTag.Create(file.Id, tagId, DateTimeOffset.UtcNow);
 
         _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _fileTagRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())

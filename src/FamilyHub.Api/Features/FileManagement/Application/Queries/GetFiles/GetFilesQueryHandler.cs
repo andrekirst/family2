@@ -8,7 +8,8 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFiles;
 
 public sealed class GetFilesQueryHandler(
     IStoredFileRepository storedFileRepository,
-    IFolderRepository folderRepository)
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
     : IQueryHandler<GetFilesQuery, List<StoredFileDto>>
 {
     public async ValueTask<List<StoredFileDto>> Handle(
@@ -22,7 +23,7 @@ public sealed class GetFilesQueryHandler(
             var rootFolder = await folderRepository.GetRootFolderAsync(query.FamilyId, cancellationToken);
             if (rootFolder is null)
             {
-                rootFolder = Folder.CreateRoot(query.FamilyId, query.UserId);
+                rootFolder = Folder.CreateRoot(query.FamilyId, query.UserId, timeProvider.GetUtcNow());
                 await folderRepository.AddAsync(rootFolder, cancellationToken);
             }
 

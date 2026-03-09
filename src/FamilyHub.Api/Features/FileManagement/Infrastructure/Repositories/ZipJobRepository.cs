@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 
-public sealed class ZipJobRepository(AppDbContext context) : IZipJobRepository
+public sealed class ZipJobRepository(AppDbContext context, TimeProvider timeProvider) : IZipJobRepository
 {
     public async Task<ZipJob?> GetByIdAsync(ZipJobId id, CancellationToken cancellationToken = default)
         => await context.Set<ZipJob>().FirstOrDefaultAsync(j => j.Id == id, cancellationToken);
@@ -28,7 +28,7 @@ public sealed class ZipJobRepository(AppDbContext context) : IZipJobRepository
 
     public async Task<List<ZipJob>> GetExpiredJobsAsync(CancellationToken cancellationToken = default)
         => await context.Set<ZipJob>()
-            .Where(j => j.ExpiresAt <= DateTime.UtcNow && j.Status == ZipJobStatus.Completed)
+            .Where(j => j.ExpiresAt <= timeProvider.GetUtcNow().UtcDateTime && j.Status == ZipJobStatus.Completed)
             .ToListAsync(cancellationToken);
 
     public async Task AddAsync(ZipJob job, CancellationToken cancellationToken = default)

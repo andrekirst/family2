@@ -55,8 +55,10 @@ public sealed class Message : AggregateRoot<MessageId>
         UserId senderId,
         MessageContent content,
         IReadOnlyList<MessageAttachment>? attachments = null,
-        ConversationId? conversationId = null)
+        ConversationId? conversationId = null,
+        DateTimeOffset? utcNow = null)
     {
+        var now = utcNow ?? DateTimeOffset.UtcNow;
         var message = new Message
         {
             Id = MessageId.New(),
@@ -64,7 +66,7 @@ public sealed class Message : AggregateRoot<MessageId>
             SenderId = senderId,
             Content = content,
             ConversationId = conversationId,
-            SentAt = DateTime.UtcNow
+            SentAt = now.UtcDateTime
         };
 
         message.RaiseDomainEvent(new MessageSentEvent(

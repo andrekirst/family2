@@ -27,13 +27,13 @@ public class PreviewRuleMatchQueryHandlerTests
             FileName.From("photo.jpg"), MimeType.From("image/jpeg"),
             FileSize.From(1024), StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            FolderId.New(), _familyId, _userId);
+            FolderId.New(), _familyId, _userId, DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var rule = OrganizationRule.Create(
             "Photos rule", _familyId, _userId,
             """[{"Type":2,"Value":"image/*"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
         ruleRepo.GetEnabledByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>())
             .Returns(new List<OrganizationRule> { rule });
 
@@ -61,13 +61,13 @@ public class PreviewRuleMatchQueryHandlerTests
             FileName.From("doc.txt"), MimeType.From("text/plain"),
             FileSize.From(100), StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            FolderId.New(), _familyId, _userId);
+            FolderId.New(), _familyId, _userId, DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var rule = OrganizationRule.Create(
             "Photos only", _familyId, _userId,
             """[{"Type":2,"Value":"image/*"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
         ruleRepo.GetEnabledByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>())
             .Returns(new List<OrganizationRule> { rule });
 
@@ -115,7 +115,7 @@ public class PreviewRuleMatchQueryHandlerTests
             FileName.From("photo.jpg"), MimeType.From("image/jpeg"),
             FileSize.From(1024), StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            FolderId.New(), FamilyId.New(), _userId); // Different family
+            FolderId.New(), FamilyId.New(), _userId, DateTimeOffset.UtcNow); // Different family
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var query = new PreviewRuleMatchQuery(file.Id)

@@ -38,7 +38,7 @@ public class FileManagementAuthorizationServiceTests
             Checksum.From("a".PadRight(64, 'a')),
             folderId,
             familyId,
-            uploadedBy);
+            uploadedBy, DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class FileManagementAuthorizationServiceTests
 
         var grant = FilePermission.Create(
             PermissionResourceType.File, file.Id.Value, userId,
-            FilePermissionLevel.Edit, familyId, UserId.New());
+            FilePermissionLevel.Edit, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _permRepo.GetByMemberAndResourceAsync(userId, PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
             .Returns(grant);
 
@@ -115,7 +115,7 @@ public class FileManagementAuthorizationServiceTests
 
         var grant = FilePermission.Create(
             PermissionResourceType.File, file.Id.Value, userId,
-            FilePermissionLevel.View, familyId, UserId.New());
+            FilePermissionLevel.View, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _permRepo.GetByMemberAndResourceAsync(userId, PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
             .Returns(grant);
         _memberRepo.GetByUserAndFamilyAsync(userId, familyId, Arg.Any<CancellationToken>())
@@ -159,7 +159,7 @@ public class FileManagementAuthorizationServiceTests
         _permRepo.GetByMemberAndResourceAsync(adminId, PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
             .Returns((FilePermission?)null);
         _memberRepo.GetByUserAndFamilyAsync(adminId, familyId, Arg.Any<CancellationToken>())
-            .Returns(FamilyMember.Create(familyId, adminId, FamilyRole.From("Admin")));
+            .Returns(FamilyMember.Create(familyId, adminId, FamilyRole.From("Admin"), DateTimeOffset.UtcNow));
 
         var result = await _svc.HasFilePermissionAsync(
             adminId, file.Id, FilePermissionLevel.Manage, familyId);
@@ -173,7 +173,7 @@ public class FileManagementAuthorizationServiceTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
 
-        var parentFolder = Folder.Create(FileName.From("restricted"), null, "/", familyId, UserId.New());
+        var parentFolder = Folder.Create(FileName.From("restricted"), null, "/", familyId, UserId.New(), DateTimeOffset.UtcNow);
         var file = CreateTestFile(familyId, UserId.New(), parentFolder.Id);
         _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _folderRepo.GetByIdAsync(parentFolder.Id, Arg.Any<CancellationToken>()).Returns(parentFolder);
@@ -186,7 +186,7 @@ public class FileManagementAuthorizationServiceTests
             .Returns(true);
         var folderGrant = FilePermission.Create(
             PermissionResourceType.Folder, parentFolder.Id.Value, userId,
-            FilePermissionLevel.Edit, familyId, UserId.New());
+            FilePermissionLevel.Edit, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _permRepo.GetByMemberAndResourceAsync(userId, PermissionResourceType.Folder, parentFolder.Id.Value, Arg.Any<CancellationToken>())
             .Returns(folderGrant);
 
@@ -201,7 +201,7 @@ public class FileManagementAuthorizationServiceTests
     {
         var familyId = FamilyId.New();
 
-        var folder = Folder.Create(FileName.From("public"), null, "/", familyId, UserId.New());
+        var folder = Folder.Create(FileName.From("public"), null, "/", familyId, UserId.New(), DateTimeOffset.UtcNow);
         _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         _permRepo.HasAnyPermissionsAsync(PermissionResourceType.Folder, folder.Id.Value, Arg.Any<CancellationToken>())
             .Returns(false);
@@ -218,7 +218,7 @@ public class FileManagementAuthorizationServiceTests
         var familyId = FamilyId.New();
         var creatorId = UserId.New();
 
-        var folder = Folder.Create(FileName.From("private"), null, "/", familyId, creatorId);
+        var folder = Folder.Create(FileName.From("private"), null, "/", familyId, creatorId, DateTimeOffset.UtcNow);
         _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         _permRepo.HasAnyPermissionsAsync(PermissionResourceType.Folder, folder.Id.Value, Arg.Any<CancellationToken>())
             .Returns(true);

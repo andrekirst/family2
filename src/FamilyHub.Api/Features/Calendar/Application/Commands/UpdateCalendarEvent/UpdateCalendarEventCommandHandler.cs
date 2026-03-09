@@ -5,7 +5,8 @@ using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 namespace FamilyHub.Api.Features.Calendar.Application.Commands.UpdateCalendarEvent;
 
 public sealed class UpdateCalendarEventCommandHandler(
-    ICalendarEventRepository repository)
+    ICalendarEventRepository repository,
+    TimeProvider timeProvider)
     : ICommandHandler<UpdateCalendarEventCommand, UpdateCalendarEventResult>
 {
     public async ValueTask<UpdateCalendarEventResult> Handle(
@@ -20,7 +21,8 @@ public sealed class UpdateCalendarEventCommandHandler(
             command.Location,
             command.StartTime,
             command.EndTime,
-            command.IsAllDay);
+            command.IsAllDay,
+            timeProvider.GetUtcNow());
 
         // Replace attendees
         calendarEvent.Attendees.Clear();

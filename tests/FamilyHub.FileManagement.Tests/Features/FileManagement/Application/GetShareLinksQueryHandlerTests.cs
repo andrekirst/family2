@@ -15,7 +15,7 @@ public class GetShareLinksQueryHandlerTests
 
     public GetShareLinksQueryHandlerTests()
     {
-        _handler = new GetShareLinksQueryHandler(_repo);
+        _handler = new GetShareLinksQueryHandler(_repo, TimeProvider.System);
     }
 
     [Fact]
@@ -24,8 +24,8 @@ public class GetShareLinksQueryHandlerTests
         var familyId = FamilyId.New();
         _repo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([
-                ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null),
-                ShareLink.Create(ShareResourceType.Folder, Guid.NewGuid(), familyId, UserId.New(), null, null, null)
+                ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null, DateTimeOffset.UtcNow),
+                ShareLink.Create(ShareResourceType.Folder, Guid.NewGuid(), familyId, UserId.New(), null, null, null, DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetShareLinksQuery()
@@ -60,7 +60,7 @@ public class GetShareLinksQueryHandlerTests
         var familyId1 = FamilyId.New();
         _repo.GetByFamilyIdAsync(familyId1, Arg.Any<CancellationToken>())
             .Returns([
-                ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId1, UserId.New(), null, null, null)
+                ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId1, UserId.New(), null, null, null, DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetShareLinksQuery()

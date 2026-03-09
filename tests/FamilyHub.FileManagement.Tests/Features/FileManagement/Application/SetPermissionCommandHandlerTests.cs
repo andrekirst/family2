@@ -18,7 +18,7 @@ public class SetPermissionCommandHandlerTests
 
     public SetPermissionCommandHandlerTests()
     {
-        _handler = new SetPermissionCommandHandler(_permRepo, _fileRepo, _folderRepo);
+        _handler = new SetPermissionCommandHandler(_permRepo, _fileRepo, _folderRepo, TimeProvider.System);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId)
@@ -31,7 +31,7 @@ public class SetPermissionCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class SetPermissionCommandHandlerTests
     public async Task Handle_ShouldCreateFolderPermission()
     {
         var familyId = FamilyId.New();
-        var folder = Folder.Create(FileName.From("docs"), null, "/", familyId, UserId.New());
+        var folder = Folder.Create(FileName.From("docs"), null, "/", familyId, UserId.New(), DateTimeOffset.UtcNow);
         _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         _permRepo.GetByMemberAndResourceAsync(UserId.New(), PermissionResourceType.Folder, folder.Id.Value, Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs((FilePermission?)null);
@@ -100,7 +100,7 @@ public class SetPermissionCommandHandlerTests
 
         var existing = FilePermission.Create(
             PermissionResourceType.File, file.Id.Value, memberId,
-            FilePermissionLevel.View, familyId, UserId.New());
+            FilePermissionLevel.View, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _permRepo.GetByMemberAndResourceAsync(memberId, PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
             .Returns(existing);
 

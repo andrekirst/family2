@@ -19,13 +19,13 @@ public class GetBreadcrumbQueryHandlerTests
         var folderRepo = Substitute.For<IFolderRepository>();
         var handler = new GetBreadcrumbQueryHandler(folderRepo);
 
-        var root = Folder.CreateRoot(familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
         var documents = Folder.Create(
-            FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+            FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
         var taxes = Folder.Create(
             FileName.From("Taxes"), documents.Id,
             $"/{root.Id.Value}/{documents.Id.Value}/",
-            familyId, userId);
+            familyId, userId, DateTimeOffset.UtcNow);
 
         folderRepo.GetByIdAsync(taxes.Id, Arg.Any<CancellationToken>()).Returns(taxes);
         folderRepo.GetAncestorsAsync(taxes.Id, Arg.Any<CancellationToken>())
@@ -52,9 +52,9 @@ public class GetBreadcrumbQueryHandlerTests
         var folderRepo = Substitute.For<IFolderRepository>();
         var handler = new GetBreadcrumbQueryHandler(folderRepo);
 
-        var root = Folder.CreateRoot(familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
         var folder = Folder.Create(
-            FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+            FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
 
         folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         folderRepo.GetAncestorsAsync(folder.Id, Arg.Any<CancellationToken>())
@@ -100,9 +100,9 @@ public class GetBreadcrumbQueryHandlerTests
         var folderRepo = Substitute.For<IFolderRepository>();
         var handler = new GetBreadcrumbQueryHandler(folderRepo);
 
-        var root = Folder.CreateRoot(familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
         var folder = Folder.Create(
-            FileName.From("Docs"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+            FileName.From("Docs"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
 
         folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 

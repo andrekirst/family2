@@ -25,7 +25,8 @@ public sealed class ChainScheduledJob
     public static ChainScheduledJob Create(
         Guid stepExecutionId,
         ChainExecutionId chainExecutionId,
-        DateTime scheduledAt)
+        DateTime scheduledAt,
+        DateTimeOffset utcNow)
     {
         return new ChainScheduledJob
         {
@@ -34,23 +35,23 @@ public sealed class ChainScheduledJob
             ChainExecutionId = chainExecutionId,
             ScheduledAt = scheduledAt,
             RetryCount = 0,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime
         };
     }
 
-    public void PickUp()
+    public void PickUp(DateTimeOffset utcNow)
     {
-        PickedUpAt = DateTime.UtcNow;
+        PickedUpAt = utcNow.UtcDateTime;
     }
 
-    public void MarkCompleted()
+    public void MarkCompleted(DateTimeOffset utcNow)
     {
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = utcNow.UtcDateTime;
     }
 
-    public void MarkFailed(string errorMessage)
+    public void MarkFailed(string errorMessage, DateTimeOffset utcNow)
     {
-        FailedAt = DateTime.UtcNow;
+        FailedAt = utcNow.UtcDateTime;
         ErrorMessage = errorMessage;
         RetryCount++;
     }

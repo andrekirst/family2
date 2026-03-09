@@ -24,7 +24,8 @@ public sealed class SecureNote : AggregateRoot<SecureNoteId>
         string encryptedContent,
         string iv,
         string salt,
-        string sentinel)
+        string sentinel,
+        DateTimeOffset utcNow)
     {
         var note = new SecureNote
         {
@@ -37,8 +38,8 @@ public sealed class SecureNote : AggregateRoot<SecureNoteId>
             Iv = iv,
             Salt = salt,
             Sentinel = sentinel,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         note.RaiseDomainEvent(new SecureNoteCreatedEvent(
@@ -51,13 +52,14 @@ public sealed class SecureNote : AggregateRoot<SecureNoteId>
         NoteCategory category,
         string encryptedTitle,
         string encryptedContent,
-        string iv)
+        string iv,
+        DateTimeOffset utcNow)
     {
         Category = category;
         EncryptedTitle = encryptedTitle;
         EncryptedContent = encryptedContent;
         Iv = iv;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
     public void MarkDeleted()

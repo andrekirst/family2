@@ -139,7 +139,7 @@ public class SchoolSearchProviderTests
         string name)
     {
         var userId = UserId.New();
-        var member = FamilyMember.Create(familyId, userId, FamilyRole.Member);
+        var member = FamilyMember.Create(familyId, userId, FamilyRole.Member, DateTimeOffset.UtcNow);
 
         // Create a User with the given name and set it on the FamilyMember via reflection
         var user = User.Register(
@@ -152,7 +152,7 @@ public class SchoolSearchProviderTests
             .GetProperty("User")!
             .SetValue(member, user, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
 
-        var student = Student.Create(member.Id, familyId, UserId.New());
+        var student = Student.Create(member.Id, familyId, UserId.New(), DateTimeOffset.UtcNow);
         return (member, student);
     }
 }

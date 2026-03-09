@@ -21,7 +21,7 @@ public class GetLinkedAccountsQueryHandlerTests
             EncryptedToken.From("enc-access"),
             EncryptedToken.From("enc-refresh"),
             DateTime.UtcNow.AddHours(1),
-            GoogleScopes.From("openid email"));
+            GoogleScopes.From("openid email"), DateTimeOffset.UtcNow);
 
         var repo = Substitute.For<IGoogleAccountLinkRepository>();
         repo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())

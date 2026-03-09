@@ -23,7 +23,8 @@ public sealed class ProcessingLogEntry
         string? appliedTagNames,
         bool success,
         string? errorMessage,
-        FamilyId familyId)
+        FamilyId familyId,
+        DateTimeOffset utcNow)
     {
         return new ProcessingLogEntry
         {
@@ -38,7 +39,7 @@ public sealed class ProcessingLogEntry
             Success = success,
             ErrorMessage = errorMessage,
             FamilyId = familyId,
-            ProcessedAt = DateTime.UtcNow
+            ProcessedAt = utcNow.UtcDateTime
         };
     }
 

@@ -7,13 +7,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateFileV
 
 public sealed class CreateFileVersionCommandHandler(
     IFileVersionRepository versionRepository,
-    IStoredFileRepository fileRepository)
+    IStoredFileRepository fileRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateFileVersionCommand, CreateFileVersionResult>
 {
     public async ValueTask<CreateFileVersionResult> Handle(
         CreateFileVersionCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var file = await fileRepository.GetByIdAsync(command.FileId, cancellationToken)
             ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
@@ -30,7 +32,8 @@ public sealed class CreateFileVersionCommandHandler(
             command.StorageKey,
             command.FileSize,
             command.Checksum,
-            command.UserId);
+            command.UserId,
+            utcNow);
 
         await versionRepository.AddAsync(version, cancellationToken);
 

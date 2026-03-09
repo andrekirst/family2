@@ -23,7 +23,7 @@ public class FileManagementSearchProviderTests
             FileName.From("vacation-report.pdf"), MimeType.From("application/pdf"),
             FileSize.From(1024), StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            FolderId.New(), TestFamilyId, TestUserId);
+            FolderId.New(), TestFamilyId, TestUserId, DateTimeOffset.UtcNow);
         file.ClearDomainEvents();
 
         fileRepo.GetByFamilyIdAsync(TestFamilyId, Arg.Any<CancellationToken>())
@@ -43,7 +43,7 @@ public class FileManagementSearchProviderTests
         var albumRepo = Substitute.For<IAlbumRepository>();
         var album = Album.Create(
             AlbumName.From("Summer Vacation"), "Photos from our trip",
-            TestFamilyId, TestUserId);
+            TestFamilyId, TestUserId, DateTimeOffset.UtcNow);
         album.ClearDomainEvents();
 
         albumRepo.GetByFamilyIdAsync(TestFamilyId, Arg.Any<CancellationToken>())
@@ -62,7 +62,7 @@ public class FileManagementSearchProviderTests
     {
         var tagRepo = Substitute.For<ITagRepository>();
         var tag = Tag.Create(TagName.From("vacation"), TagColor.From("#FF0000"),
-            TestFamilyId, TestUserId);
+            TestFamilyId, TestUserId, DateTimeOffset.UtcNow);
         tag.ClearDomainEvents();
 
         tagRepo.GetByFamilyIdAsync(TestFamilyId, Arg.Any<CancellationToken>())
@@ -155,6 +155,6 @@ public class FileManagementSearchProviderTests
             albumRepo,
             tagRepo,
             secureNoteRepo,
-            shareLinkRepo);
+            shareLinkRepo, TimeProvider.System);
     }
 }

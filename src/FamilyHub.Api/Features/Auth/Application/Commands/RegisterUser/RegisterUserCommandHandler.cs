@@ -8,21 +8,23 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.RegisterUser;
 /// Handler for RegisterUserCommand.
 /// Registers a new user or updates existing user from OAuth provider.
 /// </summary>
-public sealed class RegisterUserCommandHandler(IUserRepository userRepository)
+public sealed class RegisterUserCommandHandler(IUserRepository userRepository, TimeProvider timeProvider)
     : ICommandHandler<RegisterUserCommand, RegisterUserResult>
 {
     public async ValueTask<RegisterUserResult> Handle(
         RegisterUserCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
+
         // Check if user already exists by external ID
         var existingUser = await userRepository.GetByExternalIdAsync(command.ExternalUserId, cancellationToken);
 
         if (existingUser is not null)
         {
             // Update existing user's profile and login timestamp
-            existingUser.UpdateProfile(command.Email, command.Name, command.EmailVerified);
-            existingUser.UpdateLastLogin(DateTime.UtcNow);
+            existingUser.UpdateProfile(command.Email, command.Name, command.EmailVerified, utcNow);
+            existingUser.UpdateLastLogin(utcNow.UtcDateTime, utcNow);
 
             return new RegisterUserResult(existingUser.Id, IsNewUser: false, existingUser);
         }
@@ -32,9 +34,9 @@ public sealed class RegisterUserCommandHandler(IUserRepository userRepository)
         if (emailExists is not null)
         {
             // Re-link to the new external ID and update profile
-            emailExists.UpdateExternalId(command.ExternalUserId);
-            emailExists.UpdateProfile(command.Email, command.Name, command.EmailVerified);
-            emailExists.UpdateLastLogin(DateTime.UtcNow);
+            emailExists.UpdateExternalId(command.ExternalUserId, utcNow);
+            emailExists.UpdateProfile(command.Email, command.Name, command.EmailVerified, utcNow);
+            emailExists.UpdateLastLogin(utcNow.UtcDateTime, utcNow);
 
             return new RegisterUserResult(emailExists.Id, IsNewUser: false, emailExists);
         }
@@ -45,7 +47,8 @@ public sealed class RegisterUserCommandHandler(IUserRepository userRepository)
             command.Name,
             command.ExternalUserId,
             command.EmailVerified,
-            command.Username
+            command.Username,
+            utcNow
         );
 
         await userRepository.AddAsync(newUser, cancellationToken);

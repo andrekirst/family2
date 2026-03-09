@@ -16,9 +16,9 @@ public class AccessShareLinkCommandHandlerTests
     {
         var linkRepo = Substitute.For<IShareLinkRepository>();
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
-        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo);
+        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo, TimeProvider.System);
 
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), DateTime.UtcNow.AddDays(1), null, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), DateTime.UtcNow.AddDays(1), null, null, DateTimeOffset.UtcNow);
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, null, "192.168.1.1", "Mozilla/5.0", ShareAccessAction.View);
@@ -36,9 +36,9 @@ public class AccessShareLinkCommandHandlerTests
     {
         var linkRepo = Substitute.For<IShareLinkRepository>();
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
-        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo);
+        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo, TimeProvider.System);
 
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, 5);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, 5, DateTimeOffset.UtcNow);
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, null, "10.0.0.1", null, ShareAccessAction.Download);
@@ -52,10 +52,10 @@ public class AccessShareLinkCommandHandlerTests
     {
         var linkRepo = Substitute.For<IShareLinkRepository>();
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
-        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo);
+        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo, TimeProvider.System);
 
         var passwordHash = BCrypt.Net.BCrypt.HashPassword("secret123");
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, passwordHash, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, passwordHash, null, DateTimeOffset.UtcNow);
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, "secret123", "10.0.0.1", null, ShareAccessAction.View);
@@ -69,10 +69,10 @@ public class AccessShareLinkCommandHandlerTests
     {
         var linkRepo = Substitute.For<IShareLinkRepository>();
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
-        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo);
+        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo, TimeProvider.System);
 
         var passwordHash = BCrypt.Net.BCrypt.HashPassword("secret123");
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, passwordHash, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, passwordHash, null, DateTimeOffset.UtcNow);
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, "wrongpassword", "10.0.0.1", null, ShareAccessAction.View);
@@ -87,10 +87,10 @@ public class AccessShareLinkCommandHandlerTests
     {
         var linkRepo = Substitute.For<IShareLinkRepository>();
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
-        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo);
+        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo, TimeProvider.System);
 
         var passwordHash = BCrypt.Net.BCrypt.HashPassword("secret123");
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, passwordHash, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, passwordHash, null, DateTimeOffset.UtcNow);
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, null, "10.0.0.1", null, ShareAccessAction.View);
@@ -105,9 +105,9 @@ public class AccessShareLinkCommandHandlerTests
     {
         var linkRepo = Substitute.For<IShareLinkRepository>();
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
-        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo);
+        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo, TimeProvider.System);
 
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null, DateTimeOffset.UtcNow);
         link.Revoke(UserId.New());
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
@@ -123,9 +123,9 @@ public class AccessShareLinkCommandHandlerTests
     {
         var linkRepo = Substitute.For<IShareLinkRepository>();
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
-        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo);
+        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo, TimeProvider.System);
 
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), DateTime.UtcNow.AddHours(-1), null, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), DateTime.UtcNow.AddHours(-1), null, null, DateTimeOffset.UtcNow);
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new AccessShareLinkCommand(link.Token, null, "10.0.0.1", null, ShareAccessAction.View);
@@ -140,9 +140,9 @@ public class AccessShareLinkCommandHandlerTests
     {
         var linkRepo = Substitute.For<IShareLinkRepository>();
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
-        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo);
+        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo, TimeProvider.System);
 
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, 1);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, 1, DateTimeOffset.UtcNow);
         link.IncrementDownloadCount(); // Already at limit
         linkRepo.GetByTokenAsync(link.Token, Arg.Any<CancellationToken>()).Returns(link);
 
@@ -158,7 +158,7 @@ public class AccessShareLinkCommandHandlerTests
     {
         var linkRepo = Substitute.For<IShareLinkRepository>();
         var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
-        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo);
+        var handler = new AccessShareLinkCommandHandler(linkRepo, logRepo, TimeProvider.System);
 
         linkRepo.GetByTokenAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((ShareLink?)null);

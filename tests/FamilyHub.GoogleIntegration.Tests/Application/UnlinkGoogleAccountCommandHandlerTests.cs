@@ -22,7 +22,7 @@ public class UnlinkGoogleAccountCommandHandlerTests
             EncryptedToken.From("encrypted:access-token"),
             EncryptedToken.From("encrypted:refresh-token"),
             DateTime.UtcNow.AddHours(1),
-            GoogleScopes.From("openid email"));
+            GoogleScopes.From("openid email"), DateTimeOffset.UtcNow);
         link.ClearDomainEvents();
         return link;
     }

@@ -25,8 +25,8 @@ public class GetTagsQueryHandlerTests
     {
         var familyId = FamilyId.New();
 
-        var tag1 = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
-        var tag2 = Tag.Create(TagName.From("Videos"), TagColor.From("#00FF00"), familyId, UserId.New());
+        var tag1 = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
+        var tag2 = Tag.Create(TagName.From("Videos"), TagColor.From("#00FF00"), familyId, UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([tag1, tag2]);
 
@@ -70,7 +70,7 @@ public class GetTagsQueryHandlerTests
     {
         var familyId = FamilyId.New();
 
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([tag]);
         _fileTagRepo.GetFileCountByTagIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(0);

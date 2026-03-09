@@ -33,15 +33,17 @@ public sealed class AcceptInvitationByIdCommandHandler(
             throw new DomainException("This invitation was sent to a different email address", DomainErrorCodes.InvitationEmailMismatch);
         }
 
+        var utcNow = timeProvider.GetUtcNow();
+
         // Accept the invitation (validates status + expiry, raises InvitationAcceptedEvent)
-        invitation.Accept(command.UserId, timeProvider.GetUtcNow());
+        invitation.Accept(command.UserId, utcNow);
 
         // Create FamilyMember record
-        var member = FamilyMember.Create(invitation.FamilyId, command.UserId, invitation.Role);
+        var member = FamilyMember.Create(invitation.FamilyId, command.UserId, invitation.Role, utcNow);
         await memberRepository.AddAsync(member, cancellationToken);
 
         // Assign user to family
-        user.AssignToFamily(invitation.FamilyId);
+        user.AssignToFamily(invitation.FamilyId, utcNow);
 
         return new AcceptInvitationResult(invitation.FamilyId, member.Id);
     }

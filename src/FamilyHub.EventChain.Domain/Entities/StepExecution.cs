@@ -51,17 +51,17 @@ public sealed class StepExecution
         };
     }
 
-    public void MarkRunning()
+    public void MarkRunning(DateTimeOffset utcNow)
     {
         Status = StepExecutionStatus.Running;
-        StartedAt = DateTime.UtcNow;
+        StartedAt = utcNow.UtcDateTime;
     }
 
-    public void MarkCompleted(string? outputPayload)
+    public void MarkCompleted(string? outputPayload, DateTimeOffset utcNow)
     {
         Status = StepExecutionStatus.Completed;
         OutputPayload = outputPayload;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = utcNow.UtcDateTime;
     }
 
     public void MarkFailed(string errorMessage)
@@ -70,10 +70,10 @@ public sealed class StepExecution
         ErrorMessage = errorMessage;
     }
 
-    public void MarkSkipped()
+    public void MarkSkipped(DateTimeOffset utcNow)
     {
         Status = StepExecutionStatus.Skipped;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = utcNow.UtcDateTime;
     }
 
     public void MarkCompensating()
@@ -81,10 +81,10 @@ public sealed class StepExecution
         Status = StepExecutionStatus.Compensating;
     }
 
-    public void MarkCompensated()
+    public void MarkCompensated(DateTimeOffset utcNow)
     {
         Status = StepExecutionStatus.Compensated;
-        CompensatedAt = DateTime.UtcNow;
+        CompensatedAt = utcNow.UtcDateTime;
     }
 
     public void SetInputPayload(string inputPayload)
@@ -99,8 +99,8 @@ public sealed class StepExecution
 
     public bool CanRetry => RetryCount < MaxRetries;
 
-    public void PickUp()
+    public void PickUp(DateTimeOffset utcNow)
     {
-        PickedUpAt = DateTime.UtcNow;
+        PickedUpAt = utcNow.UtcDateTime;
     }
 }

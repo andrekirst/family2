@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
-public sealed partial class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddleware> logger) : IStepMiddleware
+public sealed partial class CircuitBreakerMiddleware(TimeProvider timeProvider, ILogger<CircuitBreakerMiddleware> logger) : IStepMiddleware
 {
     private static readonly ConcurrentDictionary<string, CircuitState> Circuits = new();
 
@@ -17,7 +17,7 @@ public sealed partial class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddl
 
         if (state.IsOpen)
         {
-            if (DateTime.UtcNow - state.LastFailure > RecoveryTimeout)
+            if (timeProvider.GetUtcNow().UtcDateTime - state.LastFailure > RecoveryTimeout)
             {
                 // Half-open: allow one request through to test recovery
                 state.IsHalfOpen = true;
@@ -43,7 +43,7 @@ public sealed partial class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddl
         catch (Exception)
         {
             state.FailureCount++;
-            state.LastFailure = DateTime.UtcNow;
+            state.LastFailure = timeProvider.GetUtcNow().UtcDateTime;
 
             if (state.IsHalfOpen || state.FailureCount >= FailureThreshold)
             {

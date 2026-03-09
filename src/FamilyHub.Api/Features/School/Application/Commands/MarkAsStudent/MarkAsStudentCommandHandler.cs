@@ -8,7 +8,8 @@ namespace FamilyHub.Api.Features.School.Application.Commands.MarkAsStudent;
 
 public sealed class MarkAsStudentCommandHandler(
     IStudentRepository studentRepository,
-    IFamilyMemberRepository familyMemberRepository)
+    IFamilyMemberRepository familyMemberRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<MarkAsStudentCommand, MarkAsStudentResult>
 {
     public async ValueTask<MarkAsStudentResult> Handle(
@@ -24,7 +25,8 @@ public sealed class MarkAsStudentCommandHandler(
         }
 
         // Create student aggregate
-        var student = Student.Create(command.FamilyMemberId, command.FamilyId, command.UserId);
+        var utcNow = timeProvider.GetUtcNow();
+        var student = Student.Create(command.FamilyMemberId, command.FamilyId, command.UserId, utcNow);
         await studentRepository.AddAsync(student, cancellationToken);
 
         return new MarkAsStudentResult(student.Id, student);

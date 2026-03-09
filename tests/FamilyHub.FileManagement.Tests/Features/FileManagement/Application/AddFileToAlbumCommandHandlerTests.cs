@@ -18,7 +18,7 @@ public class AddFileToAlbumCommandHandlerTests
 
     public AddFileToAlbumCommandHandlerTests()
     {
-        _handler = new AddFileToAlbumCommandHandler(_albumRepo, _fileRepo, _itemRepo);
+        _handler = new AddFileToAlbumCommandHandler(_albumRepo, _fileRepo, _itemRepo, TimeProvider.System);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId)
@@ -31,14 +31,14 @@ public class AddFileToAlbumCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
     public async Task Handle_ShouldAddFileToAlbum()
     {
         var familyId = FamilyId.New();
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         var file = CreateTestFile(familyId);
 
         _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
@@ -60,7 +60,7 @@ public class AddFileToAlbumCommandHandlerTests
     public async Task Handle_ShouldAutoSetCoverImage()
     {
         var familyId = FamilyId.New();
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         var file = CreateTestFile(familyId);
 
         _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
@@ -81,7 +81,7 @@ public class AddFileToAlbumCommandHandlerTests
     public async Task Handle_ShouldBeIdempotent()
     {
         var familyId = FamilyId.New();
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         var file = CreateTestFile(familyId);
 
         _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
@@ -123,7 +123,7 @@ public class AddFileToAlbumCommandHandlerTests
     public async Task Handle_ShouldThrowWhenFileNotFound()
     {
         var familyId = FamilyId.New();
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
 
         _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
         _fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs((StoredFile?)null);

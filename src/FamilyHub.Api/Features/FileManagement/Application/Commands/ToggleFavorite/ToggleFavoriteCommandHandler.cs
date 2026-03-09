@@ -7,13 +7,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ToggleFavor
 
 public sealed class ToggleFavoriteCommandHandler(
     IStoredFileRepository storedFileRepository,
-    IUserFavoriteRepository userFavoriteRepository)
+    IUserFavoriteRepository userFavoriteRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<ToggleFavoriteCommand, ToggleFavoriteResult>
 {
     public async ValueTask<ToggleFavoriteResult> Handle(
         ToggleFavoriteCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken)
             ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
@@ -35,7 +37,7 @@ public sealed class ToggleFavoriteCommandHandler(
         else
         {
             // Favorite
-            var favorite = UserFavorite.Create(command.UserId, command.FileId);
+            var favorite = UserFavorite.Create(command.UserId, command.FileId, utcNow);
             await userFavoriteRepository.AddAsync(favorite, cancellationToken);
             return new ToggleFavoriteResult(true);
         }

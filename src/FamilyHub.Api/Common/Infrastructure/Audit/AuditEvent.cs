@@ -57,5 +57,5 @@ public sealed class AuditEvent
     /// <summary>
     /// When this audit record was created (server-side default in DB).
     /// </summary>
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; }
 }

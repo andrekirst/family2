@@ -59,7 +59,7 @@ public class FamilySearchProviderTests
     [Fact]
     public async Task SearchAsync_MatchesFamilyName()
     {
-        var family = FamilyEntity.Create(FamilyName.From("Smith Family"), TestUserId);
+        var family = FamilyEntity.Create(FamilyName.From("Smith Family"), TestUserId, DateTimeOffset.UtcNow);
         family.ClearDomainEvents();
 
         var familyRepo = Substitute.For<IFamilyRepository>();
@@ -77,7 +77,7 @@ public class FamilySearchProviderTests
     [Fact]
     public async Task SearchAsync_MatchesFamilyName_GermanLocale()
     {
-        var family = FamilyEntity.Create(FamilyName.From("Muller Familie"), TestUserId);
+        var family = FamilyEntity.Create(FamilyName.From("Muller Familie"), TestUserId, DateTimeOffset.UtcNow);
         family.ClearDomainEvents();
 
         var familyRepo = Substitute.For<IFamilyRepository>();

@@ -15,10 +15,10 @@ public class AddWidgetCommandHandlerTests
     {
         // Arrange
         var repo = Substitute.For<IDashboardLayoutRepository>();
-        var handler = new AddWidgetCommandHandler(repo);
+        var handler = new AddWidgetCommandHandler(repo, TimeProvider.System);
 
         var layout = DashboardLayout.CreatePersonal(
-            DashboardLayoutName.From("Test"), UserId.New());
+            DashboardLayoutName.From("Test"), UserId.New(), DateTimeOffset.UtcNow);
         layout.ClearDomainEvents();
 
         repo.GetByIdAsync(layout.Id, Arg.Any<CancellationToken>())

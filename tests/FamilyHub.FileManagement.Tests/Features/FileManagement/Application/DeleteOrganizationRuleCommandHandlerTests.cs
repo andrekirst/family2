@@ -25,7 +25,7 @@ public class DeleteOrganizationRuleCommandHandlerTests
         var familyId = FamilyId.New();
         var rule = OrganizationRule.Create(
             "Test", familyId, UserId.New(),
-            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
         _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new DeleteOrganizationRuleCommand(rule.Id)
@@ -61,7 +61,7 @@ public class DeleteOrganizationRuleCommandHandlerTests
     {
         var rule = OrganizationRule.Create(
             "Test", FamilyId.New(), UserId.New(),
-            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
         _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new DeleteOrganizationRuleCommand(rule.Id)

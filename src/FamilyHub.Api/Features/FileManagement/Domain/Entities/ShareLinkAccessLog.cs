@@ -18,7 +18,8 @@ public sealed class ShareLinkAccessLog : AggregateRoot<ShareLinkAccessLogId>
         ShareLinkId shareLinkId,
         string ipAddress,
         string? userAgent,
-        ShareAccessAction action)
+        ShareAccessAction action,
+        DateTimeOffset utcNow)
     {
         return new ShareLinkAccessLog
         {
@@ -27,7 +28,7 @@ public sealed class ShareLinkAccessLog : AggregateRoot<ShareLinkAccessLogId>
             IpAddress = ipAddress,
             UserAgent = userAgent,
             Action = action,
-            AccessedAt = DateTime.UtcNow
+            AccessedAt = utcNow.UtcDateTime
         };
     }
 

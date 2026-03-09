@@ -22,7 +22,7 @@ public class RefreshGoogleTokenCommandHandlerTests
             EncryptedToken.From("encrypted:old-access"),
             EncryptedToken.From("encrypted:old-refresh"),
             DateTime.UtcNow.AddMinutes(-5), // expired
-            GoogleScopes.From("openid email"));
+            GoogleScopes.From("openid email"), DateTimeOffset.UtcNow);
         link.ClearDomainEvents();
         return link;
     }
@@ -52,7 +52,7 @@ public class RefreshGoogleTokenCommandHandlerTests
         encryptionService.Decrypt(Arg.Any<string>())
             .Returns(callInfo => callInfo.ArgAt<string>(0).Replace("encrypted:", ""));
 
-        var handler = new RefreshGoogleTokenCommandHandler(linkRepo, oauthService, encryptionService);
+        var handler = new RefreshGoogleTokenCommandHandler(linkRepo, oauthService, encryptionService, TimeProvider.System);
 
         var command = new RefreshGoogleTokenCommand { UserId = userId };
         var result = await handler.Handle(command, CancellationToken.None);

@@ -23,7 +23,8 @@ public sealed class OrganizationRule : AggregateRoot<OrganizationRuleId>
         ConditionLogic conditionLogic,
         RuleActionType actionType,
         string actionsJson,
-        int priority)
+        int priority,
+        DateTimeOffset utcNow)
     {
         return new OrganizationRule
         {
@@ -37,8 +38,8 @@ public sealed class OrganizationRule : AggregateRoot<OrganizationRuleId>
             ActionsJson = actionsJson,
             Priority = priority,
             IsEnabled = true,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
     }
 
@@ -59,31 +60,32 @@ public sealed class OrganizationRule : AggregateRoot<OrganizationRuleId>
         string conditionsJson,
         ConditionLogic conditionLogic,
         RuleActionType actionType,
-        string actionsJson)
+        string actionsJson,
+        DateTimeOffset utcNow)
     {
         Name = name;
         ConditionsJson = conditionsJson;
         ConditionLogic = conditionLogic;
         ActionType = actionType;
         ActionsJson = actionsJson;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void SetPriority(int priority)
+    public void SetPriority(int priority, DateTimeOffset utcNow)
     {
         Priority = priority;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void Enable()
+    public void Enable(DateTimeOffset utcNow)
     {
         IsEnabled = true;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void Disable()
+    public void Disable(DateTimeOffset utcNow)
     {
         IsEnabled = false;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 }

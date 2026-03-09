@@ -19,7 +19,7 @@ public class TagFileCommandHandlerTests
 
     public TagFileCommandHandlerTests()
     {
-        _handler = new TagFileCommandHandler(_fileRepo, _tagRepo, _fileTagRepo);
+        _handler = new TagFileCommandHandler(_fileRepo, _tagRepo, _fileTagRepo, TimeProvider.System);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId)
@@ -32,7 +32,7 @@ public class TagFileCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class TagFileCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var file = CreateTestFile(familyId);
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
 
         _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
@@ -64,7 +64,7 @@ public class TagFileCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var file = CreateTestFile(familyId);
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
 
         _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
@@ -85,7 +85,7 @@ public class TagFileCommandHandlerTests
     public async Task Handle_ShouldThrowWhenFileNotFound()
     {
         var familyId = FamilyId.New();
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
 
         _fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs((StoredFile?)null);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
@@ -126,7 +126,7 @@ public class TagFileCommandHandlerTests
     {
         var file = CreateTestFile(FamilyId.New());
         var differentFamily = FamilyId.New();
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), differentFamily, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), differentFamily, UserId.New(), DateTimeOffset.UtcNow);
 
         _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);

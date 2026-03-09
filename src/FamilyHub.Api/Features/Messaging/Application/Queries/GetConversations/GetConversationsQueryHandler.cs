@@ -19,7 +19,8 @@ namespace FamilyHub.Api.Features.Messaging.Application.Queries.GetConversations;
 /// </summary>
 public sealed class GetConversationsQueryHandler(
     IConversationRepository conversationRepository,
-    IFolderRepository folderRepository)
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
     : IQueryHandler<GetConversationsQuery, List<ConversationDto>>
 {
     public async ValueTask<List<ConversationDto>> Handle(
@@ -63,12 +64,14 @@ public sealed class GetConversationsQueryHandler(
 
             if (messagesFolder is null)
             {
+                var utcNow = timeProvider.GetUtcNow();
                 messagesFolder = Folder.Create(
                     FileName.From("Messages"),
                     rootFolder.Id,
                     $"/{rootFolder.Id.Value}/",
                     query.FamilyId,
-                    query.UserId);
+                    query.UserId,
+                    utcNow);
 
                 await folderRepository.AddAsync(messagesFolder, cancellationToken);
             }
@@ -78,7 +81,8 @@ public sealed class GetConversationsQueryHandler(
                 messagesFolder.Id,
                 $"{messagesFolder.MaterializedPath}{messagesFolder.Id.Value}/",
                 query.FamilyId,
-                query.UserId);
+                query.UserId,
+                timeProvider.GetUtcNow());
 
             await folderRepository.AddAsync(generalFolder, cancellationToken);
             conversation.SetFolderId(generalFolder.Id);

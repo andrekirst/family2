@@ -17,7 +17,7 @@ public class DashboardLayoutTests
         var userId = UserId.New();
 
         // Act
-        var layout = DashboardLayout.CreatePersonal(name, userId);
+        var layout = DashboardLayout.CreatePersonal(name, userId, DateTimeOffset.UtcNow);
 
         // Assert
         layout.Should().NotBeNull();
@@ -37,7 +37,7 @@ public class DashboardLayoutTests
         var userId = UserId.New();
 
         // Act
-        var layout = DashboardLayout.CreatePersonal(name, userId);
+        var layout = DashboardLayout.CreatePersonal(name, userId, DateTimeOffset.UtcNow);
 
         // Assert
         layout.DomainEvents.Should().HaveCount(1);
@@ -59,7 +59,7 @@ public class DashboardLayoutTests
         var createdBy = UserId.New();
 
         // Act
-        var layout = DashboardLayout.CreateShared(name, familyId, createdBy);
+        var layout = DashboardLayout.CreateShared(name, familyId, createdBy, DateTimeOffset.UtcNow);
 
         // Assert
         layout.Should().NotBeNull();
@@ -77,7 +77,7 @@ public class DashboardLayoutTests
         var createdBy = UserId.New();
 
         // Act
-        var layout = DashboardLayout.CreateShared(name, familyId, createdBy);
+        var layout = DashboardLayout.CreateShared(name, familyId, createdBy, DateTimeOffset.UtcNow);
 
         // Assert
         var evt = layout.DomainEvents.OfType<DashboardCreatedEvent>().Single();
@@ -93,7 +93,7 @@ public class DashboardLayoutTests
         var widgetType = WidgetTypeId.From("dashboard:welcome");
 
         // Act
-        var widget = layout.AddWidget(widgetType, 0, 0, 12, 2, 0);
+        var widget = layout.AddWidget(widgetType, 0, 0, 12, 2, 0, DateTimeOffset.UtcNow);
 
         // Assert
         layout.Widgets.Should().HaveCount(1);
@@ -109,10 +109,10 @@ public class DashboardLayoutTests
     {
         // Arrange
         var layout = CreateTestLayout();
-        var widget = layout.AddWidget(WidgetTypeId.From("dashboard:welcome"), 0, 0, 12, 2, 0);
+        var widget = layout.AddWidget(WidgetTypeId.From("dashboard:welcome"), 0, 0, 12, 2, 0, DateTimeOffset.UtcNow);
 
         // Act
-        layout.RemoveWidget(widget.Id);
+        layout.RemoveWidget(widget.Id, DateTimeOffset.UtcNow);
 
         // Assert
         layout.Widgets.Should().BeEmpty();
@@ -126,7 +126,7 @@ public class DashboardLayoutTests
         var nonExistentId = DashboardWidgetId.New();
 
         // Act
-        var act = () => layout.RemoveWidget(nonExistentId);
+        var act = () => layout.RemoveWidget(nonExistentId, DateTimeOffset.UtcNow);
 
         // Assert
         act.Should().Throw<DomainException>();
@@ -137,16 +137,16 @@ public class DashboardLayoutTests
     {
         // Arrange
         var layout = CreateTestLayout();
-        layout.AddWidget(WidgetTypeId.From("old:widget"), 0, 0, 6, 4, 0);
-        layout.AddWidget(WidgetTypeId.From("old:widget2"), 6, 0, 6, 4, 1);
+        layout.AddWidget(WidgetTypeId.From("old:widget"), 0, 0, 6, 4, 0, DateTimeOffset.UtcNow);
+        layout.AddWidget(WidgetTypeId.From("old:widget2"), 6, 0, 6, 4, 1, DateTimeOffset.UtcNow);
 
         var newWidgets = new List<DashboardWidget>
         {
-            DashboardWidget.Create(layout.Id, WidgetTypeId.From("new:widget"), 0, 0, 12, 2, 0)
+            DashboardWidget.Create(layout.Id, WidgetTypeId.From("new:widget"), 0, 0, 12, 2, 0, DateTimeOffset.UtcNow)
         };
 
         // Act
-        layout.ReplaceAllWidgets(newWidgets);
+        layout.ReplaceAllWidgets(newWidgets, DateTimeOffset.UtcNow);
 
         // Assert
         layout.Widgets.Should().HaveCount(1);
@@ -158,10 +158,10 @@ public class DashboardLayoutTests
     {
         // Arrange
         var layout = CreateTestLayout();
-        layout.AddWidget(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0);
+        layout.AddWidget(WidgetTypeId.From("test:widget"), 0, 0, 6, 4, 0, DateTimeOffset.UtcNow);
 
         // Act
-        layout.ReplaceAllWidgets([]);
+        layout.ReplaceAllWidgets([], DateTimeOffset.UtcNow);
 
         // Assert
         layout.Widgets.Should().BeEmpty();
@@ -175,8 +175,8 @@ public class DashboardLayoutTests
         var userId = UserId.New();
 
         // Act
-        var layout1 = DashboardLayout.CreatePersonal(name, userId);
-        var layout2 = DashboardLayout.CreatePersonal(name, userId);
+        var layout1 = DashboardLayout.CreatePersonal(name, userId, DateTimeOffset.UtcNow);
+        var layout2 = DashboardLayout.CreatePersonal(name, userId, DateTimeOffset.UtcNow);
 
         // Assert
         layout1.Id.Should().NotBe(layout2.Id);
@@ -186,7 +186,7 @@ public class DashboardLayoutTests
     {
         var layout = DashboardLayout.CreatePersonal(
             DashboardLayoutName.From("Test Dashboard"),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         layout.ClearDomainEvents();
         return layout;
     }

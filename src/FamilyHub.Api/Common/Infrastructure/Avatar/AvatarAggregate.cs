@@ -28,15 +28,17 @@ public sealed class AvatarAggregate
     public static AvatarAggregate Create(
         string originalFileName,
         string originalMimeType,
-        Dictionary<AvatarSize, AvatarVariantData> variants)
+        Dictionary<AvatarSize, AvatarVariantData> variants,
+        DateTimeOffset? utcNow = null)
     {
+        var now = utcNow ?? DateTimeOffset.UtcNow;
         var avatar = new AvatarAggregate
         {
             Id = AvatarId.New(),
             OriginalFileName = originalFileName,
             OriginalMimeType = originalMimeType,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = now.UtcDateTime,
+            UpdatedAt = now.UtcDateTime
         };
 
         foreach (var (size, data) in variants)

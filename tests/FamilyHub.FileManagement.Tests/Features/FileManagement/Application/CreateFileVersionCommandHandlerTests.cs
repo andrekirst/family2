@@ -19,7 +19,7 @@ public class CreateFileVersionCommandHandlerTests
     {
         var fileRepo = Substitute.For<IStoredFileRepository>();
         var versionRepo = Substitute.For<IFileVersionRepository>();
-        var handler = new CreateFileVersionCommandHandler(versionRepo, fileRepo);
+        var handler = new CreateFileVersionCommandHandler(versionRepo, fileRepo, TimeProvider.System);
 
         var file = StoredFile.Create(
             FileName.From("doc.pdf"),
@@ -29,7 +29,7 @@ public class CreateFileVersionCommandHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         versionRepo.GetMaxVersionNumberAsync(file.Id, Arg.Any<CancellationToken>()).Returns(0);
         versionRepo.GetCurrentVersionAsync(file.Id, Arg.Any<CancellationToken>())
@@ -59,7 +59,7 @@ public class CreateFileVersionCommandHandlerTests
     {
         var fileRepo = Substitute.For<IStoredFileRepository>();
         var versionRepo = Substitute.For<IFileVersionRepository>();
-        var handler = new CreateFileVersionCommandHandler(versionRepo, fileRepo);
+        var handler = new CreateFileVersionCommandHandler(versionRepo, fileRepo, TimeProvider.System);
 
         var file = StoredFile.Create(
             FileName.From("doc.pdf"),
@@ -69,11 +69,11 @@ public class CreateFileVersionCommandHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var existingVersion = FileVersion.Create(file.Id, 1, StorageKey.From("version-key-1"),
-            FileSize.From(1000), Checksum.From(ValidChecksum), UserId.New());
+            FileSize.From(1000), Checksum.From(ValidChecksum), UserId.New(), DateTimeOffset.UtcNow);
         versionRepo.GetMaxVersionNumberAsync(file.Id, Arg.Any<CancellationToken>()).Returns(1);
         versionRepo.GetCurrentVersionAsync(file.Id, Arg.Any<CancellationToken>())
             .Returns(existingVersion);
@@ -102,7 +102,7 @@ public class CreateFileVersionCommandHandlerTests
     {
         var fileRepo = Substitute.For<IStoredFileRepository>();
         var versionRepo = Substitute.For<IFileVersionRepository>();
-        var handler = new CreateFileVersionCommandHandler(versionRepo, fileRepo);
+        var handler = new CreateFileVersionCommandHandler(versionRepo, fileRepo, TimeProvider.System);
 
         fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs((StoredFile?)null);

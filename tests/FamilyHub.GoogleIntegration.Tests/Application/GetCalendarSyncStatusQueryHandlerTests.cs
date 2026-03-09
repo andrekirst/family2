@@ -20,7 +20,7 @@ public class GetCalendarSyncStatusQueryHandlerTests
             Email.From("test@gmail.com"),
             EncryptedToken.From("enc"), EncryptedToken.From("enc"),
             DateTime.UtcNow.AddHours(1),
-            GoogleScopes.From("openid https://www.googleapis.com/auth/calendar.readonly"));
+            GoogleScopes.From("openid https://www.googleapis.com/auth/calendar.readonly"), DateTimeOffset.UtcNow);
 
         var repo = Substitute.For<IGoogleAccountLinkRepository>();
         repo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())

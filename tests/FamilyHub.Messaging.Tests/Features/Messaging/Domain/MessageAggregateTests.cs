@@ -17,7 +17,7 @@ public class MessageAggregateTests
         var content = MessageContent.From("Hello, family!");
 
         // Act
-        var message = Message.Create(familyId, senderId, content);
+        var message = Message.Create(familyId, senderId, content, utcNow: DateTimeOffset.UtcNow);
 
         // Assert
         message.Should().NotBeNull();
@@ -37,7 +37,7 @@ public class MessageAggregateTests
         var content = MessageContent.From("Hello, family!");
 
         // Act
-        var message = Message.Create(familyId, senderId, content);
+        var message = Message.Create(familyId, senderId, content, utcNow: DateTimeOffset.UtcNow);
 
         // Assert
         message.DomainEvents.Should().HaveCount(1);
@@ -61,8 +61,8 @@ public class MessageAggregateTests
         var content = MessageContent.From("Hello!");
 
         // Act
-        var message1 = Message.Create(familyId, senderId, content);
-        var message2 = Message.Create(familyId, senderId, content);
+        var message1 = Message.Create(familyId, senderId, content, utcNow: DateTimeOffset.UtcNow);
+        var message2 = Message.Create(familyId, senderId, content, utcNow: DateTimeOffset.UtcNow);
 
         // Assert
         message1.Id.Should().NotBe(message2.Id);
@@ -77,12 +77,12 @@ public class MessageAggregateTests
         var content = MessageContent.From("Check out these files!");
         var attachments = new[]
         {
-            MessageAttachment.Create(FileId.New(), "photo.jpg", "image/jpeg", 2048, "uploads/photo.jpg"),
-            MessageAttachment.Create(FileId.New(), "doc.pdf", "application/pdf", 4096, "uploads/doc.pdf"),
+            MessageAttachment.Create(FileId.New(), "photo.jpg", "image/jpeg", 2048, "uploads/photo.jpg", DateTimeOffset.UtcNow),
+            MessageAttachment.Create(FileId.New(), "doc.pdf", "application/pdf", 4096, "uploads/doc.pdf", DateTimeOffset.UtcNow),
         };
 
         // Act
-        var message = Message.Create(familyId, senderId, content, attachments);
+        var message = Message.Create(familyId, senderId, content, attachments, utcNow: DateTimeOffset.UtcNow);
 
         // Assert
         message.Attachments.Should().HaveCount(2);
@@ -101,12 +101,12 @@ public class MessageAggregateTests
         var fileId2 = FileId.New();
         var attachments = new[]
         {
-            MessageAttachment.Create(fileId1, "a.txt", "text/plain", 100, "uploads/a.txt"),
-            MessageAttachment.Create(fileId2, "b.txt", "text/plain", 200, "uploads/b.txt"),
+            MessageAttachment.Create(fileId1, "a.txt", "text/plain", 100, "uploads/a.txt", DateTimeOffset.UtcNow),
+            MessageAttachment.Create(fileId2, "b.txt", "text/plain", 200, "uploads/b.txt", DateTimeOffset.UtcNow),
         };
 
         // Act
-        var message = Message.Create(familyId, senderId, content, attachments);
+        var message = Message.Create(familyId, senderId, content, attachments, utcNow: DateTimeOffset.UtcNow);
 
         // Assert — 1 MessageSentEvent + 2 MessageAttachmentAddedEvent
         message.DomainEvents.Should().HaveCount(3);
@@ -131,7 +131,7 @@ public class MessageAggregateTests
         var message = Message.Create(
             FamilyId.New(),
             UserId.New(),
-            MessageContent.From("No attachments"));
+            MessageContent.From("No attachments"), utcNow: DateTimeOffset.UtcNow);
 
         // Assert
         message.Attachments.Should().BeEmpty();

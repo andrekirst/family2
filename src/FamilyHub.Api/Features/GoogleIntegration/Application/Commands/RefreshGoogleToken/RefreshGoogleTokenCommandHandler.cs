@@ -10,7 +10,8 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.RefreshG
 public sealed class RefreshGoogleTokenCommandHandler(
     IGoogleAccountLinkRepository linkRepository,
     IGoogleOAuthService oauthService,
-    ITokenEncryptionService encryptionService)
+    ITokenEncryptionService encryptionService,
+    TimeProvider timeProvider)
     : ICommandHandler<RefreshGoogleTokenCommand, RefreshTokenResultDto>
 {
     public async ValueTask<RefreshTokenResultDto> Handle(
@@ -31,7 +32,7 @@ public sealed class RefreshGoogleTokenCommandHandler(
             var encryptedAccessToken = EncryptedToken.From(
                 encryptionService.Encrypt(tokenResponse.AccessToken));
 
-            var newExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
+            var newExpiresAt = timeProvider.GetUtcNow().UtcDateTime.AddSeconds(tokenResponse.ExpiresIn);
 
             // Update aggregate
             link.RefreshAccessToken(encryptedAccessToken, newExpiresAt);

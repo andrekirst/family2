@@ -33,8 +33,10 @@ public sealed class Conversation : AggregateRoot<ConversationId>
         ConversationType type,
         FamilyId familyId,
         UserId createdBy,
-        IReadOnlyList<UserId> memberIds)
+        IReadOnlyList<UserId> memberIds,
+        DateTimeOffset? utcNow = null)
     {
+        var now = utcNow ?? DateTimeOffset.UtcNow;
         var conversation = new Conversation
         {
             Id = ConversationId.New(),
@@ -42,7 +44,7 @@ public sealed class Conversation : AggregateRoot<ConversationId>
             Type = type,
             FamilyId = familyId,
             CreatedBy = createdBy,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = now.UtcDateTime
         };
 
         // Creator is always an Owner
@@ -67,8 +69,9 @@ public sealed class Conversation : AggregateRoot<ConversationId>
     /// <summary>
     /// Creates the default "General" family conversation.
     /// </summary>
-    public static Conversation CreateFamily(FamilyId familyId, UserId createdBy)
+    public static Conversation CreateFamily(FamilyId familyId, UserId createdBy, DateTimeOffset? utcNow = null)
     {
+        var now = utcNow ?? DateTimeOffset.UtcNow;
         var conversation = new Conversation
         {
             Id = ConversationId.New(),
@@ -76,7 +79,7 @@ public sealed class Conversation : AggregateRoot<ConversationId>
             Type = ConversationType.Family,
             FamilyId = familyId,
             CreatedBy = createdBy,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = now.UtcDateTime
         };
 
         conversation._members.Add(ConversationMember.Create(createdBy, "Owner"));

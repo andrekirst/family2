@@ -24,8 +24,8 @@ public class GetAlbumsQueryHandlerTests
     {
         var familyId = FamilyId.New();
 
-        var album1 = Album.Create(AlbumName.From("Summer"), null, familyId, UserId.New());
-        var album2 = Album.Create(AlbumName.From("Winter"), null, familyId, UserId.New());
+        var album1 = Album.Create(AlbumName.From("Summer"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        var album2 = Album.Create(AlbumName.From("Winter"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _albumRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([album1, album2]);
 
@@ -67,7 +67,7 @@ public class GetAlbumsQueryHandlerTests
     {
         var familyId = FamilyId.New();
 
-        var album = Album.Create(AlbumName.From("Mine"), null, familyId, UserId.New());
+        var album = Album.Create(AlbumName.From("Mine"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _albumRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([album]);
         _itemRepo.GetItemCountAsync(album.Id, Arg.Any<CancellationToken>()).Returns(0);

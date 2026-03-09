@@ -18,7 +18,7 @@ public class FileVersionTests
         var checksum = Checksum.From(ValidChecksum);
         var uploadedBy = UserId.New();
 
-        var version = FileVersion.Create(fileId, 1, storageKey, fileSize, checksum, uploadedBy);
+        var version = FileVersion.Create(fileId, 1, storageKey, fileSize, checksum, uploadedBy, DateTimeOffset.UtcNow);
 
         version.FileId.Should().Be(fileId);
         version.VersionNumber.Should().Be(1);
@@ -39,7 +39,7 @@ public class FileVersionTests
             FileSize.From(100),
             Checksum.From(ValidChecksum),
             UserId.New(),
-            isCurrent: false);
+            DateTimeOffset.UtcNow, isCurrent: false);
 
         version.IsCurrent.Should().BeFalse();
     }
@@ -52,7 +52,7 @@ public class FileVersionTests
             StorageKey.From("key"),
             FileSize.From(500),
             Checksum.From(ValidChecksum),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
         version.DomainEvents.Should().HaveCount(1);
     }
@@ -65,7 +65,7 @@ public class FileVersionTests
             StorageKey.From("key"),
             FileSize.From(100),
             Checksum.From(ValidChecksum),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
         version.MarkAsNotCurrent();
 
@@ -81,7 +81,7 @@ public class FileVersionTests
             FileSize.From(100),
             Checksum.From(ValidChecksum),
             UserId.New(),
-            isCurrent: false);
+            DateTimeOffset.UtcNow, isCurrent: false);
 
         version.MarkAsCurrent();
 

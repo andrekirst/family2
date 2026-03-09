@@ -16,13 +16,15 @@ namespace FamilyHub.Api.Features.Messaging.Application.Commands.CreateConversati
 /// </summary>
 public sealed class CreateConversationCommandHandler(
     IConversationRepository conversationRepository,
-    IFolderRepository folderRepository)
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateConversationCommand, CreateConversationResult>
 {
     public async ValueTask<CreateConversationResult> Handle(
         CreateConversationCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         // For Family type, ensure only one exists per family
         if (command.Type == ConversationType.Family)
         {
@@ -52,7 +54,8 @@ public sealed class CreateConversationCommandHandler(
             messagesFolder.Id,
             $"{messagesFolder.MaterializedPath}{messagesFolder.Id.Value}/",
             command.FamilyId,
-            command.UserId);
+            command.UserId,
+            utcNow);
 
         await folderRepository.AddAsync(conversationFolder, cancellationToken);
         conversation.SetFolderId(conversationFolder.Id);
@@ -78,7 +81,8 @@ public sealed class CreateConversationCommandHandler(
             rootFolder.Id,
             $"/{rootFolder.Id.Value}/",
             familyId,
-            createdBy);
+            createdBy,
+            timeProvider.GetUtcNow());
 
         await folderRepository.AddAsync(messagesFolder, cancellationToken);
         return messagesFolder;

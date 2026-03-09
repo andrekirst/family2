@@ -8,6 +8,7 @@ namespace FamilyHub.Api.Features.Calendar.Infrastructure.Services;
 public sealed class CancelledEventCleanupService(
     IServiceScopeFactory scopeFactory,
     IOptions<CalendarCleanupOptions> options,
+    TimeProvider timeProvider,
     ILogger<CancelledEventCleanupService> logger) : BackgroundService
 {
     private readonly CalendarCleanupOptions _options = options.Value;
@@ -35,7 +36,7 @@ public sealed class CancelledEventCleanupService(
 
     private async Task CleanupCancelledEventsAsync(CancellationToken cancellationToken)
     {
-        var cutoff = DateTime.UtcNow.AddDays(-_options.RetentionDays);
+        var cutoff = timeProvider.GetUtcNow().UtcDateTime.AddDays(-_options.RetentionDays);
 
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();

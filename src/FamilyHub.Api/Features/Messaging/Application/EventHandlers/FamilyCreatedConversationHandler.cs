@@ -17,11 +17,13 @@ public sealed class FamilyCreatedConversationHandler(
     IConversationRepository conversationRepository,
     IFolderRepository folderRepository,
     IUnitOfWork unitOfWork,
+    TimeProvider timeProvider,
     ILogger<FamilyCreatedConversationHandler> logger)
     : IDomainEventHandler<FamilyCreatedEvent>
 {
     public async ValueTask Handle(FamilyCreatedEvent @event, CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         // Idempotent: skip if General conversation already exists
         var existing = await conversationRepository.GetFamilyConversationAsync(@event.FamilyId, cancellationToken);
         if (existing is not null)
@@ -45,7 +47,8 @@ public sealed class FamilyCreatedConversationHandler(
                     rootFolder.Id,
                     $"/{rootFolder.Id.Value}/",
                     @event.FamilyId,
-                    @event.OwnerId);
+                    @event.OwnerId,
+                    utcNow);
 
                 await folderRepository.AddAsync(messagesFolder, cancellationToken);
             }
@@ -56,7 +59,8 @@ public sealed class FamilyCreatedConversationHandler(
                 messagesFolder.Id,
                 $"{messagesFolder.MaterializedPath}{messagesFolder.Id.Value}/",
                 @event.FamilyId,
-                @event.OwnerId);
+                @event.OwnerId,
+                utcNow);
 
             await folderRepository.AddAsync(generalFolder, cancellationToken);
             conversation.SetFolderId(generalFolder.Id);

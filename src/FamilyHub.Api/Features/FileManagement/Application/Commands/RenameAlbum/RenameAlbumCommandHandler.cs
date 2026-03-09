@@ -5,13 +5,15 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RenameAlbum;
 
 public sealed class RenameAlbumCommandHandler(
-    IAlbumRepository albumRepository)
+    IAlbumRepository albumRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<RenameAlbumCommand, RenameAlbumResult>
 {
     public async ValueTask<RenameAlbumResult> Handle(
         RenameAlbumCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken)
             ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
 
@@ -20,7 +22,7 @@ public sealed class RenameAlbumCommandHandler(
             throw new DomainException("Album belongs to a different family", DomainErrorCodes.Forbidden);
         }
 
-        album.Rename(command.NewName);
+        album.Rename(command.NewName, utcNow);
 
         return new RenameAlbumResult(album.Id);
     }

@@ -20,7 +20,7 @@ public class ProcessingLogEntryTests
             ruleId, "Move photos",
             RuleActionType.MoveToFolder,
             folderId, null,
-            true, null, familyId);
+            true, null, familyId, DateTimeOffset.UtcNow);
 
         entry.FileId.Should().Be(fileId);
         entry.FileName.Should().Be("photo.jpg");
@@ -40,7 +40,7 @@ public class ProcessingLogEntryTests
             OrganizationRuleId.New(), "Rule",
             RuleActionType.MoveToFolder,
             null, null,
-            false, "Folder not found", FamilyId.New());
+            false, "Folder not found", FamilyId.New(), DateTimeOffset.UtcNow);
 
         entry.Success.Should().BeFalse();
         entry.ErrorMessage.Should().Be("Folder not found");
@@ -52,7 +52,7 @@ public class ProcessingLogEntryTests
         var entry = ProcessingLogEntry.Create(
             FileId.New(), "random.txt",
             null, null, null, null, null,
-            true, null, FamilyId.New());
+            true, null, FamilyId.New(), DateTimeOffset.UtcNow);
 
         entry.MatchedRuleId.Should().BeNull();
         entry.MatchedRuleName.Should().BeNull();

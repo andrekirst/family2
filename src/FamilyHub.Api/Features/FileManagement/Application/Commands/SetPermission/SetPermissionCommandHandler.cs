@@ -10,13 +10,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.SetPermissi
 public sealed class SetPermissionCommandHandler(
     IFilePermissionRepository permissionRepository,
     IStoredFileRepository storedFileRepository,
-    IFolderRepository folderRepository)
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<SetPermissionCommand, SetPermissionResult>
 {
     public async ValueTask<SetPermissionResult> Handle(
         SetPermissionCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         // Validate resource exists and belongs to the family
         if (command.ResourceType == PermissionResourceType.File)
         {
@@ -47,7 +49,7 @@ public sealed class SetPermissionCommandHandler(
 
         if (existing is not null)
         {
-            existing.UpdateLevel(command.PermissionLevel, command.UserId);
+            existing.UpdateLevel(command.PermissionLevel, command.UserId, utcNow);
             return new SetPermissionResult(true, existing.Id.Value);
         }
 
@@ -57,7 +59,8 @@ public sealed class SetPermissionCommandHandler(
             command.MemberId,
             command.PermissionLevel,
             command.FamilyId,
-            command.UserId);
+            command.UserId,
+            utcNow);
 
         await permissionRepository.AddAsync(permission, cancellationToken);
 

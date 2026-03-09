@@ -16,14 +16,14 @@ public class RenameAlbumCommandHandlerTests
 
     public RenameAlbumCommandHandlerTests()
     {
-        _handler = new RenameAlbumCommandHandler(_albumRepo);
+        _handler = new RenameAlbumCommandHandler(_albumRepo, TimeProvider.System);
     }
 
     [Fact]
     public async Task Handle_ShouldRenameAlbum()
     {
         var familyId = FamilyId.New();
-        var album = Album.Create(AlbumName.From("Old Name"), null, familyId, UserId.New());
+        var album = Album.Create(AlbumName.From("Old Name"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
         var command = new RenameAlbumCommand(album.Id, AlbumName.From("New Name"))
@@ -57,7 +57,7 @@ public class RenameAlbumCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenAlbumBelongsToDifferentFamily()
     {
-        var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New());
+        var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
         _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
         var command = new RenameAlbumCommand(album.Id, AlbumName.From("New"))

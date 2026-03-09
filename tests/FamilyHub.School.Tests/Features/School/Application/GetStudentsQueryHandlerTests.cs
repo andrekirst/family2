@@ -18,8 +18,8 @@ public class GetStudentsQueryHandlerTests
         // Arrange
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
-        var student = Student.Create(targetMember.Id, familyId, userId);
+        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
+        var student = Student.Create(targetMember.Id, familyId, userId, DateTimeOffset.UtcNow);
 
         var studentRepo = Substitute.For<IStudentRepository>();
         var memberRepo = Substitute.For<IFamilyMemberRepository>();

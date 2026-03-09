@@ -9,7 +9,8 @@ public sealed class FileManagementSearchProvider(
     IAlbumRepository albumRepository,
     ITagRepository tagRepository,
     ISecureNoteRepository secureNoteRepository,
-    IShareLinkRepository shareLinkRepository) : ISearchProvider
+    IShareLinkRepository shareLinkRepository,
+    TimeProvider timeProvider) : ISearchProvider
 {
     public string ModuleName => "files";
 
@@ -97,7 +98,7 @@ public sealed class FileManagementSearchProvider(
         // Search share links (active only)
         var shareLinks = await shareLinkRepository.GetByFamilyIdAsync(familyId, cancellationToken);
         results.AddRange(shareLinks
-            .Where(l => l.IsAccessible)
+            .Where(l => l.IsAccessible(timeProvider.GetUtcNow()))
             .Where(l => l.ResourceType.ToString().Contains(queryLower, StringComparison.OrdinalIgnoreCase))
             .Take(context.Limit)
             .Select(l => new SearchResultItem(

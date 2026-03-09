@@ -22,7 +22,7 @@ public class DeleteSavedSearchCommandHandlerTests
     public async Task Handle_ShouldDeleteSavedSearch()
     {
         var userId = UserId.New();
-        var search = SavedSearch.Create(userId, "Test", "query", null);
+        var search = SavedSearch.Create(userId, "Test", "query", null, DateTimeOffset.UtcNow);
         _savedRepo.GetByIdAsync(search.Id, Arg.Any<CancellationToken>()).Returns(search);
 
         var command = new DeleteSavedSearchCommand(search.Id)
@@ -56,7 +56,7 @@ public class DeleteSavedSearchCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenDifferentUser()
     {
-        var search = SavedSearch.Create(UserId.New(), "Test", "query", null);
+        var search = SavedSearch.Create(UserId.New(), "Test", "query", null, DateTimeOffset.UtcNow);
         _savedRepo.GetByIdAsync(search.Id, Arg.Any<CancellationToken>()).Returns(search);
 
         var command = new DeleteSavedSearchCommand(search.Id)

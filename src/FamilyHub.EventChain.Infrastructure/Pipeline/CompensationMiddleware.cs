@@ -5,10 +5,12 @@ namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
 public sealed partial class CompensationMiddleware(
     IChainRegistry registry,
+    TimeProvider timeProvider,
     ILogger<CompensationMiddleware> logger) : IStepMiddleware
 {
     public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         try
         {
             await next(context, cancellationToken);
@@ -42,7 +44,7 @@ public sealed partial class CompensationMiddleware(
                         context.CorrelationId);
 
                     await handler.CompensateAsync(compensationContext, cancellationToken);
-                    context.StepExecution.MarkCompensated();
+                    context.StepExecution.MarkCompensated(utcNow);
                 }
             }
             catch (Exception)

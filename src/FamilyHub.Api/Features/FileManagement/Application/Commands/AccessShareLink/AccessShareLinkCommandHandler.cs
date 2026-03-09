@@ -8,13 +8,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.AccessShare
 
 public sealed class AccessShareLinkCommandHandler(
     IShareLinkRepository shareLinkRepository,
-    IShareLinkAccessLogRepository accessLogRepository)
+    IShareLinkAccessLogRepository accessLogRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<AccessShareLinkCommand, AccessShareLinkResult>
 {
     public async ValueTask<AccessShareLinkResult> Handle(
         AccessShareLinkCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var link = await shareLinkRepository.GetByTokenAsync(command.Token, cancellationToken)
             ?? throw new DomainException("Share link not found", DomainErrorCodes.ShareLinkNotFound);
 
@@ -23,7 +25,7 @@ public sealed class AccessShareLinkCommandHandler(
             throw new DomainException("Share link has been revoked", DomainErrorCodes.ShareLinkRevoked);
         }
 
-        if (link.IsExpired)
+        if (link.IsExpired(utcNow))
         {
             throw new DomainException("Share link has expired", DomainErrorCodes.ShareLinkExpired);
         }
@@ -55,7 +57,8 @@ public sealed class AccessShareLinkCommandHandler(
             link.Id,
             command.IpAddress,
             command.UserAgent,
-            command.Action);
+            command.Action,
+            utcNow);
 
         await accessLogRepository.AddAsync(accessLog, cancellationToken);
 

@@ -16,7 +16,7 @@ public class ConnectExternalStorageCommandHandlerTests
 
     public ConnectExternalStorageCommandHandlerTests()
     {
-        _handler = new ConnectExternalStorageCommandHandler(_repo);
+        _handler = new ConnectExternalStorageCommandHandler(_repo, TimeProvider.System);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class ConnectExternalStorageCommandHandlerTests
 
         var existing = ExternalConnection.Create(
             familyId, ExternalProviderType.GoogleDrive, "Drive",
-            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New());
+            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New(), DateTimeOffset.UtcNow);
         _repo.GetByFamilyAndProviderAsync(familyId, ExternalProviderType.GoogleDrive, Arg.Any<CancellationToken>())
             .Returns(existing);
 

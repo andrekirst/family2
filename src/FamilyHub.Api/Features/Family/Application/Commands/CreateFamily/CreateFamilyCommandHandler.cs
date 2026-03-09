@@ -15,7 +15,8 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 public sealed class CreateFamilyCommandHandler(
     IFamilyRepository familyRepository,
     IUserRepository userRepository,
-    IFamilyMemberRepository familyMemberRepository)
+    IFamilyMemberRepository familyMemberRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateFamilyCommand, CreateFamilyResult>
 {
     public async ValueTask<CreateFamilyResult> Handle(
@@ -26,17 +27,18 @@ public sealed class CreateFamilyCommandHandler(
         var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
         // Create family aggregate (raises FamilyCreatedEvent)
-        var family = FamilyEntity.Create(command.Name, command.UserId);
+        var utcNow = timeProvider.GetUtcNow();
+        var family = FamilyEntity.Create(command.Name, command.UserId, utcNow);
 
         // Add family to repository
         await familyRepository.AddAsync(family, cancellationToken);
 
         // Create FamilyMember record with Owner role
-        var ownerMember = FamilyMember.Create(family.Id, command.UserId, FamilyRole.Owner);
+        var ownerMember = FamilyMember.Create(family.Id, command.UserId, FamilyRole.Owner, utcNow);
         await familyMemberRepository.AddAsync(ownerMember, cancellationToken);
 
         // Assign user to family (raises UserFamilyAssignedEvent)
-        user.AssignToFamily(family.Id);
+        user.AssignToFamily(family.Id, utcNow);
 
         return new CreateFamilyResult(family.Id, family);
     }

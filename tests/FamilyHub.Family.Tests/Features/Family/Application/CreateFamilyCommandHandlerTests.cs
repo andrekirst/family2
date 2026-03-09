@@ -90,7 +90,7 @@ public class CreateFamilyCommandHandlerTests
 
         var familyRepo = Substitute.For<IFamilyRepository>();
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
-        var handler = new CreateFamilyCommandHandler(familyRepo, userRepo, memberRepo);
+        var handler = new CreateFamilyCommandHandler(familyRepo, userRepo, memberRepo, TimeProvider.System);
         return (handler, familyRepo, userRepo, memberRepo);
     }
 }

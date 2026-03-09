@@ -42,8 +42,8 @@ public class MarkAsStudentAuthValidatorTests
         // Arrange — caller is a Member (not Owner/Admin), so CanManageStudents() is false
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var callerMember = FamilyMember.Create(familyId, userId, FamilyRole.Member);
-        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
+        var callerMember = FamilyMember.Create(familyId, userId, FamilyRole.Member, DateTimeOffset.UtcNow);
+        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
 
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
         memberRepo.GetByUserAndFamilyAsync(userId, familyId, Arg.Any<CancellationToken>())
@@ -66,8 +66,8 @@ public class MarkAsStudentAuthValidatorTests
         // Arrange
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var callerMember = FamilyMember.Create(familyId, userId, FamilyRole.Owner);
-        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
+        var callerMember = FamilyMember.Create(familyId, userId, FamilyRole.Owner, DateTimeOffset.UtcNow);
+        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
 
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
         memberRepo.GetByUserAndFamilyAsync(userId, familyId, Arg.Any<CancellationToken>())

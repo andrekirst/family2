@@ -6,6 +6,7 @@ namespace FamilyHub.Api.Features.EventChain.Infrastructure.Scheduler;
 
 public sealed class ChainSchedulerService(
     IServiceScopeFactory scopeFactory,
+    TimeProvider timeProvider,
     ILogger<ChainSchedulerService> logger) : BackgroundService
 {
     private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(5);
@@ -55,12 +56,13 @@ public sealed class ChainSchedulerService(
         {
             try
             {
-                job.PickUp();
+                var utcNow = timeProvider.GetUtcNow();
+                job.PickUp(utcNow);
                 await context.SaveChangesAsync(cancellationToken);
 
                 await orchestrator.ResumeStepAsync(job.StepExecutionId, cancellationToken);
 
-                job.MarkCompleted();
+                job.MarkCompleted(utcNow);
                 await context.SaveChangesAsync(cancellationToken);
 
                 logger.LogInformation(
@@ -73,7 +75,7 @@ public sealed class ChainSchedulerService(
                     "Scheduled job {JobId} failed for step {StepId}",
                     job.Id, job.StepExecutionId);
 
-                job.MarkFailed(ex.Message);
+                job.MarkFailed(ex.Message, timeProvider.GetUtcNow());
                 await context.SaveChangesAsync(cancellationToken);
             }
         }

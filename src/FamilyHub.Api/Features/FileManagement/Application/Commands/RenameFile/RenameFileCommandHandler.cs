@@ -5,7 +5,8 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RenameFile;
 
 public sealed class RenameFileCommandHandler(
-    IStoredFileRepository storedFileRepository)
+    IStoredFileRepository storedFileRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<RenameFileCommand, RenameFileResult>
 {
     public async ValueTask<RenameFileResult> Handle(
@@ -20,7 +21,8 @@ public sealed class RenameFileCommandHandler(
             throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
         }
 
-        file.Rename(command.NewName, command.UserId);
+        var utcNow = timeProvider.GetUtcNow();
+        file.Rename(command.NewName, command.UserId, utcNow);
 
         return new RenameFileResult(file.Id, file);
     }

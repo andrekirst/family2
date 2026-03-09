@@ -17,6 +17,7 @@ public sealed class FileManagementStorageService(
     IChecksumCalculator checksumCalculator,
     IStorageQuotaService quotaService,
     AppDbContext dbContext,
+    TimeProvider timeProvider,
     IOptions<StorageQuotaOptions> options) : IFileManagementStorageService
 {
     private readonly StorageQuotaOptions _options = options.Value;
@@ -121,7 +122,7 @@ public sealed class FileManagementStorageService(
             ChunkIndex = chunkIndex,
             Data = bytes,
             Size = bytes.Length,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = timeProvider.GetUtcNow().UtcDateTime
         };
 
         dbContext.Set<UploadChunk>().Add(chunk);

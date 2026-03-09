@@ -24,8 +24,8 @@ public class GetOrganizationRulesQueryHandlerTests
         var familyId = FamilyId.New();
         _ruleRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([
-                OrganizationRule.Create("A", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1),
-                OrganizationRule.Create("B", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 2)
+                OrganizationRule.Create("A", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow),
+                OrganizationRule.Create("B", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 2, DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetOrganizationRulesQuery()

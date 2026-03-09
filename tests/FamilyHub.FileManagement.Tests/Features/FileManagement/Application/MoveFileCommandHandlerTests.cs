@@ -21,7 +21,7 @@ public class MoveFileCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             folderId,
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -31,19 +31,19 @@ public class MoveFileCommandHandlerTests
         var fileRepo = Substitute.For<IStoredFileRepository>();
         var folderRepo = Substitute.For<IFolderRepository>();
 
-        var sourceFolder = Folder.CreateRoot(familyId, UserId.New());
+        var sourceFolder = Folder.CreateRoot(familyId, UserId.New(), DateTimeOffset.UtcNow);
         var targetFolder = Folder.Create(
             FileName.From("Target"),
             sourceFolder.Id,
             $"/{sourceFolder.Id.Value}/",
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
         var file = CreateTestFile(familyId, sourceFolder.Id);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         folderRepo.GetByIdAsync(targetFolder.Id, Arg.Any<CancellationToken>()).Returns(targetFolder);
 
-        var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
+        var handler = new MoveFileCommandHandler(fileRepo, folderRepo, TimeProvider.System);
 
         var command = new MoveFileCommand(
             file.Id,
@@ -67,14 +67,14 @@ public class MoveFileCommandHandlerTests
         var fileRepo = Substitute.For<IStoredFileRepository>();
         var folderRepo = Substitute.For<IFolderRepository>();
 
-        var sourceFolder = Folder.CreateRoot(familyId, UserId.New());
-        var targetFolder = Folder.CreateRoot(otherFamilyId, UserId.New());
+        var sourceFolder = Folder.CreateRoot(familyId, UserId.New(), DateTimeOffset.UtcNow);
+        var targetFolder = Folder.CreateRoot(otherFamilyId, UserId.New(), DateTimeOffset.UtcNow);
 
         var file = CreateTestFile(familyId, sourceFolder.Id);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         folderRepo.GetByIdAsync(targetFolder.Id, Arg.Any<CancellationToken>()).Returns(targetFolder);
 
-        var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
+        var handler = new MoveFileCommandHandler(fileRepo, folderRepo, TimeProvider.System);
 
         var command = new MoveFileCommand(
             file.Id,

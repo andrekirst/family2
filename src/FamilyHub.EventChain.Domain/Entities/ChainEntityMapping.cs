@@ -21,7 +21,8 @@ public sealed class ChainEntityMapping
         string stepAlias,
         string entityType,
         Guid entityId,
-        string module)
+        string module,
+        DateTimeOffset utcNow)
     {
         return new ChainEntityMapping
         {
@@ -31,7 +32,7 @@ public sealed class ChainEntityMapping
             EntityType = entityType,
             EntityId = entityId,
             Module = module,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime
         };
     }
 }

@@ -15,7 +15,8 @@ public sealed class Album : AggregateRoot<AlbumId>
         AlbumName name,
         string? description,
         FamilyId familyId,
-        UserId createdBy)
+        UserId createdBy,
+        DateTimeOffset utcNow)
     {
         var album = new Album
         {
@@ -25,8 +26,8 @@ public sealed class Album : AggregateRoot<AlbumId>
             CoverFileId = null,
             FamilyId = familyId,
             CreatedBy = createdBy,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         album.RaiseDomainEvent(new AlbumCreatedEvent(
@@ -43,21 +44,21 @@ public sealed class Album : AggregateRoot<AlbumId>
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    public void Rename(AlbumName newName)
+    public void Rename(AlbumName newName, DateTimeOffset utcNow)
     {
         Name = newName;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void UpdateDescription(string? description)
+    public void UpdateDescription(string? description, DateTimeOffset utcNow)
     {
         Description = description;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void SetCoverImage(FileId? fileId)
+    public void SetCoverImage(FileId? fileId, DateTimeOffset utcNow)
     {
         CoverFileId = fileId;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 }

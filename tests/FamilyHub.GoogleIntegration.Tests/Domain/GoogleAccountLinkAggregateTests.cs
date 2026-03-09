@@ -17,7 +17,7 @@ public class GoogleAccountLinkAggregateTests
             EncryptedToken.From("encrypted-access"),
             EncryptedToken.From("encrypted-refresh"),
             DateTime.UtcNow.AddHours(1),
-            GoogleScopes.From("openid email https://www.googleapis.com/auth/calendar.readonly"));
+            GoogleScopes.From("openid email https://www.googleapis.com/auth/calendar.readonly"), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class GoogleAccountLinkAggregateTests
             userId, googleId, email,
             EncryptedToken.From("access"), EncryptedToken.From("refresh"),
             DateTime.UtcNow.AddHours(1),
-            GoogleScopes.From("openid email"));
+            GoogleScopes.From("openid email"), DateTimeOffset.UtcNow);
 
         link.UserId.Should().Be(userId);
         link.GoogleAccountId.Should().Be(googleId);
@@ -143,16 +143,16 @@ public class GoogleAccountLinkAggregateTests
             Email.From("a@b.com"),
             EncryptedToken.From("a"), EncryptedToken.From("r"),
             DateTime.UtcNow.AddMinutes(-5),
-            GoogleScopes.From("openid"));
+            GoogleScopes.From("openid"), DateTimeOffset.UtcNow);
 
-        link.IsAccessTokenExpired().Should().BeTrue();
+        link.IsAccessTokenExpired(DateTimeOffset.UtcNow).Should().BeTrue();
     }
 
     [Fact]
     public void IsAccessTokenExpired_ShouldReturnFalseWhenValid()
     {
         var link = CreateTestLink();
-        link.IsAccessTokenExpired().Should().BeFalse();
+        link.IsAccessTokenExpired(DateTimeOffset.UtcNow).Should().BeFalse();
     }
 
     [Fact]
@@ -164,9 +164,9 @@ public class GoogleAccountLinkAggregateTests
             Email.From("a@b.com"),
             EncryptedToken.From("a"), EncryptedToken.From("r"),
             DateTime.UtcNow.AddMinutes(3),
-            GoogleScopes.From("openid"));
+            GoogleScopes.From("openid"), DateTimeOffset.UtcNow);
 
-        link.IsAccessTokenExpiringSoon(TimeSpan.FromMinutes(5)).Should().BeTrue();
+        link.IsAccessTokenExpiringSoon(TimeSpan.FromMinutes(5), DateTimeOffset.UtcNow).Should().BeTrue();
     }
 
     [Fact]

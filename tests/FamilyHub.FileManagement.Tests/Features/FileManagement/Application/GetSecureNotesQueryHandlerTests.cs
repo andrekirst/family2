@@ -26,8 +26,8 @@ public class GetSecureNotesQueryHandlerTests
 
         _noteRepo.GetByUserIdAsync(userId, familyId, Arg.Any<CancellationToken>())
             .Returns([
-                SecureNote.Create(familyId, userId, NoteCategory.Passwords, "note1", "content1", "iv1", "salt1", "sentinel1"),
-                SecureNote.Create(familyId, userId, NoteCategory.Financial, "note2", "content2", "iv2", "salt2", "sentinel2")
+                SecureNote.Create(familyId, userId, NoteCategory.Passwords, "note1", "content1", "iv1", "salt1", "sentinel1", DateTimeOffset.UtcNow),
+                SecureNote.Create(familyId, userId, NoteCategory.Financial, "note2", "content2", "iv2", "salt2", "sentinel2", DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetSecureNotesQuery(null)
@@ -48,8 +48,8 @@ public class GetSecureNotesQueryHandlerTests
 
         _noteRepo.GetByUserIdAndCategoryAsync(userId, familyId, NoteCategory.Passwords, Arg.Any<CancellationToken>())
             .Returns([
-                SecureNote.Create(familyId, userId, NoteCategory.Passwords, "pass1", "content1", "iv1", "salt1", "sentinel1"),
-                SecureNote.Create(familyId, userId, NoteCategory.Passwords, "pass2", "content3", "iv3", "salt3", "sentinel3")
+                SecureNote.Create(familyId, userId, NoteCategory.Passwords, "pass1", "content1", "iv1", "salt1", "sentinel1", DateTimeOffset.UtcNow),
+                SecureNote.Create(familyId, userId, NoteCategory.Passwords, "pass2", "content3", "iv3", "salt3", "sentinel3", DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetSecureNotesQuery(NoteCategory.Passwords)
@@ -90,7 +90,7 @@ public class GetSecureNotesQueryHandlerTests
 
         _noteRepo.GetByUserIdAsync(userId, familyId, Arg.Any<CancellationToken>())
             .Returns([
-                SecureNote.Create(familyId, userId, NoteCategory.Medical, "enc-title", "enc-content", "my-iv", "my-salt", "my-sentinel")
+                SecureNote.Create(familyId, userId, NoteCategory.Medical, "enc-title", "enc-content", "my-iv", "my-salt", "my-sentinel", DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetSecureNotesQuery(null)

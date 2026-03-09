@@ -14,7 +14,7 @@ public class SaveSearchCommandHandlerTests
 
     public SaveSearchCommandHandlerTests()
     {
-        _handler = new SaveSearchCommandHandler(_savedRepo);
+        _handler = new SaveSearchCommandHandler(_savedRepo, TimeProvider.System);
     }
 
     [Fact]

@@ -29,6 +29,7 @@ public sealed record StorageQuotaInfo(long UsedBytes, long MaxBytes)
 
 public sealed class StorageQuotaService(
     AppDbContext dbContext,
+    TimeProvider timeProvider,
     IOptions<StorageQuotaOptions> options) : IStorageQuotaService
 {
     private readonly StorageQuotaOptions _options = options.Value;
@@ -49,14 +50,14 @@ public sealed class StorageQuotaService(
     {
         var quota = await GetOrCreateQuotaAsync(familyId, cancellationToken);
         quota.UsedBytes += bytes;
-        quota.UpdatedAt = DateTime.UtcNow;
+        quota.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
     }
 
     public async Task DecrementUsageAsync(FamilyId familyId, long bytes, CancellationToken cancellationToken = default)
     {
         var quota = await GetOrCreateQuotaAsync(familyId, cancellationToken);
         quota.UsedBytes = Math.Max(0, quota.UsedBytes - bytes);
-        quota.UpdatedAt = DateTime.UtcNow;
+        quota.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
     }
 
     private async Task<StorageQuota> GetOrCreateQuotaAsync(FamilyId familyId, CancellationToken cancellationToken)
@@ -76,7 +77,7 @@ public sealed class StorageQuotaService(
                 FamilyId = familyId.Value,
                 UsedBytes = 0,
                 MaxBytes = _options.DefaultQuotaBytes,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = timeProvider.GetUtcNow().UtcDateTime
             };
             dbContext.Set<StorageQuota>().Add(quota);
         }

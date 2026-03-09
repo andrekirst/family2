@@ -6,13 +6,15 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ReorderOrganizationRules;
 
 public sealed class ReorderOrganizationRulesCommandHandler(
-    IOrganizationRuleRepository ruleRepository)
+    IOrganizationRuleRepository ruleRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<ReorderOrganizationRulesCommand, ReorderOrganizationRulesResult>
 {
     public async ValueTask<ReorderOrganizationRulesResult> Handle(
         ReorderOrganizationRulesCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var rules = await ruleRepository.GetByFamilyIdAsync(command.FamilyId, cancellationToken);
 
         for (var i = 0; i < command.RuleIdsInOrder.Count; i++)
@@ -21,7 +23,7 @@ public sealed class ReorderOrganizationRulesCommandHandler(
             var rule = rules.FirstOrDefault(r => r.Id == ruleId)
                 ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
 
-            rule.SetPriority(i + 1);
+            rule.SetPriority(i + 1, utcNow);
         }
 
         return new ReorderOrganizationRulesResult(true);

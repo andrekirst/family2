@@ -22,7 +22,7 @@ public class FilePermissionTests
             memberId,
             FilePermissionLevel.Edit,
             familyId,
-            grantedBy);
+            grantedBy, DateTimeOffset.UtcNow);
 
         permission.ResourceType.Should().Be(PermissionResourceType.File);
         permission.ResourceId.Should().Be(resourceId);
@@ -41,7 +41,7 @@ public class FilePermissionTests
             UserId.New(),
             FilePermissionLevel.View,
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
         permission.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<FilePermissionChangedEvent>();
@@ -56,7 +56,7 @@ public class FilePermissionTests
             UserId.New(),
             FilePermissionLevel.Manage,
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
         permission.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<FolderPermissionChangedEvent>();
@@ -71,10 +71,10 @@ public class FilePermissionTests
             UserId.New(),
             FilePermissionLevel.View,
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
         var changedBy = UserId.New();
-        permission.UpdateLevel(FilePermissionLevel.Manage, changedBy);
+        permission.UpdateLevel(FilePermissionLevel.Manage, changedBy, DateTimeOffset.UtcNow);
 
         permission.PermissionLevel.Should().Be(FilePermissionLevel.Manage);
         permission.GrantedBy.Should().Be(changedBy);
@@ -89,9 +89,9 @@ public class FilePermissionTests
             UserId.New(),
             FilePermissionLevel.View,
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
-        permission.UpdateLevel(FilePermissionLevel.Edit, UserId.New());
+        permission.UpdateLevel(FilePermissionLevel.Edit, UserId.New(), DateTimeOffset.UtcNow);
 
         permission.DomainEvents.Should().HaveCount(2);
         permission.DomainEvents.Last().Should().BeOfType<FilePermissionChangedEvent>();

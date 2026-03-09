@@ -14,7 +14,7 @@ public class SavedSearchTests
         var query = "vacation";
         var filtersJson = """{"mimeTypes":["image/jpeg"]}""";
 
-        var search = SavedSearch.Create(userId, name, query, filtersJson);
+        var search = SavedSearch.Create(userId, name, query, filtersJson, DateTimeOffset.UtcNow);
 
         search.UserId.Should().Be(userId);
         search.Name.Should().Be(name);
@@ -25,7 +25,7 @@ public class SavedSearchTests
     [Fact]
     public void Rename_ShouldUpdateName()
     {
-        var search = SavedSearch.Create(UserId.New(), "Old Name", "query", null);
+        var search = SavedSearch.Create(UserId.New(), "Old Name", "query", null, DateTimeOffset.UtcNow);
 
         search.Rename("New Name");
 

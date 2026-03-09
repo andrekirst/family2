@@ -25,8 +25,8 @@ public class GetZipJobsQueryHandlerTests
     {
         var jobs = new List<ZipJob>
         {
-            ZipJob.Create(_familyId, _userId, [Guid.NewGuid(), Guid.NewGuid()]),
-            ZipJob.Create(_familyId, _userId, [Guid.NewGuid()])
+            ZipJob.Create(_familyId, _userId, [Guid.NewGuid(), Guid.NewGuid()], DateTimeOffset.UtcNow),
+            ZipJob.Create(_familyId, _userId, [Guid.NewGuid()], DateTimeOffset.UtcNow)
         };
         _zipJobRepository.GetByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>()).Returns(jobs);
 

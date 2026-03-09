@@ -23,7 +23,7 @@ public class RevokeShareLinkCommandHandlerTests
     public async Task Handle_ShouldRevokeShareLink()
     {
         var familyId = FamilyId.New();
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null, DateTimeOffset.UtcNow);
         _repo.GetByIdAsync(link.Id, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new RevokeShareLinkCommand(link.Id)
@@ -57,7 +57,7 @@ public class RevokeShareLinkCommandHandlerTests
     [Fact]
     public async Task Handle_DifferentFamily_ShouldThrow()
     {
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null, DateTimeOffset.UtcNow);
         _repo.GetByIdAsync(link.Id, Arg.Any<CancellationToken>()).Returns(link);
 
         var command = new RevokeShareLinkCommand(link.Id)

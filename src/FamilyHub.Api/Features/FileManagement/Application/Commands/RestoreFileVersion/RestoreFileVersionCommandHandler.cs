@@ -7,13 +7,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RestoreFile
 
 public sealed class RestoreFileVersionCommandHandler(
     IFileVersionRepository versionRepository,
-    IStoredFileRepository fileRepository)
+    IStoredFileRepository fileRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<RestoreFileVersionCommand, RestoreFileVersionResult>
 {
     public async ValueTask<RestoreFileVersionResult> Handle(
         RestoreFileVersionCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var file = await fileRepository.GetByIdAsync(command.FileId, cancellationToken)
             ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
 
@@ -39,7 +41,8 @@ public sealed class RestoreFileVersionCommandHandler(
             sourceVersion.StorageKey,
             sourceVersion.FileSize,
             sourceVersion.Checksum,
-            command.UserId);
+            command.UserId,
+            utcNow);
 
         await versionRepository.AddAsync(newVersion, cancellationToken);
 

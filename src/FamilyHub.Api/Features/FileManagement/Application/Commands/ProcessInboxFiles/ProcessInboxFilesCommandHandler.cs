@@ -17,6 +17,7 @@ public sealed class ProcessInboxFilesCommandHandler(
     IProcessingLogRepository logRepository,
     IOrganizationRuleEngine ruleEngine,
     IInboxFileProcessor fileProcessor,
+    TimeProvider timeProvider,
     ILogger<ProcessInboxFilesCommandHandler> logger)
     : ICommandHandler<ProcessInboxFilesCommand, ProcessInboxFilesResult>
 {
@@ -24,6 +25,7 @@ public sealed class ProcessInboxFilesCommandHandler(
         ProcessInboxFilesCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var inboxFolder = await folderRepository.GetInboxFolderAsync(command.FamilyId, cancellationToken)
             ?? throw new DomainException("Inbox folder not found", DomainErrorCodes.InboxFolderNotFound);
 
@@ -48,7 +50,7 @@ public sealed class ProcessInboxFilesCommandHandler(
                 var logEntry = ProcessingLogEntry.Create(
                     file.Id, file.Name.Value,
                     null, null, null, null, null,
-                    true, null, command.FamilyId);
+                    true, null, command.FamilyId, utcNow);
                 logEntries.Add(logEntry);
             }
         }
@@ -90,7 +92,7 @@ public sealed class ProcessInboxFilesCommandHandler(
                 match.MatchedRuleName,
                 match.ActionType,
                 null, null,
-                false, ex.Message, command.FamilyId);
+                false, ex.Message, command.FamilyId, timeProvider.GetUtcNow());
         }
     }
 }

@@ -6,13 +6,13 @@ public sealed class FileTag
 {
     private FileTag() { }
 
-    public static FileTag Create(FileId fileId, TagId tagId)
+    public static FileTag Create(FileId fileId, TagId tagId, DateTimeOffset utcNow)
     {
         return new FileTag
         {
             FileId = fileId,
             TagId = tagId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime
         };
     }
 

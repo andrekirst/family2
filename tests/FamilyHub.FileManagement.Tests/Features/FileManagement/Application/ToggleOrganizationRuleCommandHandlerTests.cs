@@ -16,7 +16,7 @@ public class ToggleOrganizationRuleCommandHandlerTests
 
     public ToggleOrganizationRuleCommandHandlerTests()
     {
-        _handler = new ToggleOrganizationRuleCommandHandler(_ruleRepo);
+        _handler = new ToggleOrganizationRuleCommandHandler(_ruleRepo, TimeProvider.System);
     }
 
     [Fact]
@@ -25,7 +25,7 @@ public class ToggleOrganizationRuleCommandHandlerTests
         var familyId = FamilyId.New();
         var rule = OrganizationRule.Create(
             "Test", familyId, UserId.New(),
-            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
         _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new ToggleOrganizationRuleCommand(rule.Id, false)
@@ -45,8 +45,8 @@ public class ToggleOrganizationRuleCommandHandlerTests
         var familyId = FamilyId.New();
         var rule = OrganizationRule.Create(
             "Test", familyId, UserId.New(),
-            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
-        rule.Disable();
+            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
+        rule.Disable(DateTimeOffset.UtcNow);
         _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new ToggleOrganizationRuleCommand(rule.Id, true)
@@ -65,7 +65,7 @@ public class ToggleOrganizationRuleCommandHandlerTests
     {
         var rule = OrganizationRule.Create(
             "Test", FamilyId.New(), UserId.New(),
-            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
         _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new ToggleOrganizationRuleCommand(rule.Id, false)

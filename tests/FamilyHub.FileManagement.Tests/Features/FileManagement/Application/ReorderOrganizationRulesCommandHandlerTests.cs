@@ -15,13 +15,13 @@ public class ReorderOrganizationRulesCommandHandlerTests
     public async Task Handle_ShouldReorderRules()
     {
         var ruleRepo = Substitute.For<IOrganizationRuleRepository>();
-        var handler = new ReorderOrganizationRulesCommandHandler(ruleRepo);
+        var handler = new ReorderOrganizationRulesCommandHandler(ruleRepo, TimeProvider.System);
 
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var rule1 = OrganizationRule.Create("A", familyId, userId, "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
-        var rule2 = OrganizationRule.Create("B", familyId, userId, "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 2);
-        var rule3 = OrganizationRule.Create("C", familyId, userId, "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 3);
+        var rule1 = OrganizationRule.Create("A", familyId, userId, "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
+        var rule2 = OrganizationRule.Create("B", familyId, userId, "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 2, DateTimeOffset.UtcNow);
+        var rule3 = OrganizationRule.Create("C", familyId, userId, "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 3, DateTimeOffset.UtcNow);
 
         ruleRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns(new List<OrganizationRule> { rule1, rule2, rule3 });
@@ -46,7 +46,7 @@ public class ReorderOrganizationRulesCommandHandlerTests
     public async Task Handle_ShouldThrowWhenRuleNotFound()
     {
         var ruleRepo = Substitute.For<IOrganizationRuleRepository>();
-        var handler = new ReorderOrganizationRulesCommandHandler(ruleRepo);
+        var handler = new ReorderOrganizationRulesCommandHandler(ruleRepo, TimeProvider.System);
 
         var familyId = FamilyId.New();
         ruleRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())

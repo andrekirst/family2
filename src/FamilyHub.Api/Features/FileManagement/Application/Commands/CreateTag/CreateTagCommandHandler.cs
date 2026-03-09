@@ -6,13 +6,15 @@ using Tag = FamilyHub.Api.Features.FileManagement.Domain.Entities.Tag;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateTag;
 
 public sealed class CreateTagCommandHandler(
-    ITagRepository tagRepository)
+    ITagRepository tagRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateTagCommand, CreateTagResult>
 {
     public async ValueTask<CreateTagResult> Handle(
         CreateTagCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         // Check for duplicate tag name within the family
         var existing = await tagRepository.GetByNameAsync(command.Name, command.FamilyId, cancellationToken);
         if (existing is not null)
@@ -20,7 +22,7 @@ public sealed class CreateTagCommandHandler(
             throw new DomainException("A tag with this name already exists", DomainErrorCodes.Conflict);
         }
 
-        var tag = Tag.Create(command.Name, command.Color, command.FamilyId, command.UserId);
+        var tag = Tag.Create(command.Name, command.Color, command.FamilyId, command.UserId, utcNow);
         await tagRepository.AddAsync(tag, cancellationToken);
 
         return new CreateTagResult(tag.Id, tag);

@@ -20,7 +20,7 @@ public class MarkAsStudentBusinessValidatorTests
         // Arrange
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
+        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
 
         var studentRepo = Substitute.For<IStudentRepository>();
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
@@ -74,7 +74,7 @@ public class MarkAsStudentBusinessValidatorTests
         // Arrange
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member);
+        var targetMember = FamilyMember.Create(familyId, UserId.New(), FamilyRole.Member, DateTimeOffset.UtcNow);
 
         var studentRepo = Substitute.For<IStudentRepository>();
         var memberRepo = Substitute.For<IFamilyMemberRepository>();

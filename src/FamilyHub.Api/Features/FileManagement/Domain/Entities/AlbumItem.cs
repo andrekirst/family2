@@ -6,14 +6,14 @@ public sealed class AlbumItem
 {
     private AlbumItem() { }
 
-    public static AlbumItem Create(AlbumId albumId, FileId fileId, UserId addedBy)
+    public static AlbumItem Create(AlbumId albumId, FileId fileId, UserId addedBy, DateTimeOffset utcNow)
     {
         return new AlbumItem
         {
             AlbumId = albumId,
             FileId = fileId,
             AddedBy = addedBy,
-            AddedAt = DateTime.UtcNow
+            AddedAt = utcNow.UtcDateTime
         };
     }
 

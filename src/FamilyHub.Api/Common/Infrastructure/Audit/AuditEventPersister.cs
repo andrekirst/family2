@@ -10,6 +10,7 @@ namespace FamilyHub.Api.Common.Infrastructure.Audit;
 /// </summary>
 public sealed class AuditEventPersister(
     AppDbContext dbContext,
+    TimeProvider timeProvider,
     ILogger<AuditEventPersister> logger) : IAuditEventPersister
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -45,6 +46,7 @@ public sealed class AuditEventPersister(
             EntityType = entityType,
             EntityId = entityId,
             Payload = payload,
+            CreatedAt = timeProvider.GetUtcNow().UtcDateTime,
         };
 
         dbContext.AuditEvents.Add(auditEvent);

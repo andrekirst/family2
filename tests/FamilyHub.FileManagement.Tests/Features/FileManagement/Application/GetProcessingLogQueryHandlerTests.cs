@@ -24,8 +24,8 @@ public class GetProcessingLogQueryHandlerTests
         var familyId = FamilyId.New();
         _logRepo.GetByFamilyIdAsync(familyId, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([
-                ProcessingLogEntry.Create(FileId.New(), "photo.jpg", OrganizationRuleId.New(), "Rule", RuleActionType.MoveToFolder, FolderId.New(), null, true, null, familyId),
-                ProcessingLogEntry.Create(FileId.New(), "doc.pdf", null, null, null, null, null, true, null, familyId)
+                ProcessingLogEntry.Create(FileId.New(), "photo.jpg", OrganizationRuleId.New(), "Rule", RuleActionType.MoveToFolder, FolderId.New(), null, true, null, familyId, DateTimeOffset.UtcNow),
+                ProcessingLogEntry.Create(FileId.New(), "doc.pdf", null, null, null, null, null, true, null, familyId, DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetProcessingLogQuery()
@@ -60,7 +60,7 @@ public class GetProcessingLogQueryHandlerTests
         var familyId = FamilyId.New();
         _logRepo.GetByFamilyIdAsync(familyId, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([
-                ProcessingLogEntry.Create(FileId.New(), "mine.jpg", null, null, null, null, null, true, null, familyId)
+                ProcessingLogEntry.Create(FileId.New(), "mine.jpg", null, null, null, null, null, true, null, familyId, DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetProcessingLogQuery()

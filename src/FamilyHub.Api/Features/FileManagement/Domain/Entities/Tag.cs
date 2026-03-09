@@ -14,7 +14,8 @@ public sealed class Tag : AggregateRoot<TagId>
         TagName name,
         TagColor color,
         FamilyId familyId,
-        UserId createdBy)
+        UserId createdBy,
+        DateTimeOffset utcNow)
     {
         return new Tag
         {
@@ -23,7 +24,7 @@ public sealed class Tag : AggregateRoot<TagId>
             Color = color,
             FamilyId = familyId,
             CreatedBy = createdBy,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime
         };
     }
 

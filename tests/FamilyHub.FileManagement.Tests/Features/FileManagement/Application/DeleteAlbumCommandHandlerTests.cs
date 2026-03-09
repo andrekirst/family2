@@ -24,7 +24,7 @@ public class DeleteAlbumCommandHandlerTests
     public async Task Handle_ShouldDeleteAlbum()
     {
         var familyId = FamilyId.New();
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
         var command = new DeleteAlbumCommand(album.Id)
@@ -42,7 +42,7 @@ public class DeleteAlbumCommandHandlerTests
     public async Task Handle_ShouldRemoveAlbumItems()
     {
         var familyId = FamilyId.New();
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
         var command = new DeleteAlbumCommand(album.Id)
@@ -75,7 +75,7 @@ public class DeleteAlbumCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenAlbumBelongsToDifferentFamily()
     {
-        var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New());
+        var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
         _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
         var command = new DeleteAlbumCommand(album.Id)

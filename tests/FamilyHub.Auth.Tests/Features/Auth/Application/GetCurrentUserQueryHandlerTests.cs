@@ -71,7 +71,7 @@ public class GetCurrentUserQueryHandlerTests
         var familyId = FamilyId.New();
         user.AssignToFamily(familyId);
 
-        var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Owner);
+        var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Owner, DateTimeOffset.UtcNow);
         var userRepo = Substitute.For<IUserRepository>();
         userRepo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
             .ReturnsForAnyArgs(user);
@@ -109,7 +109,7 @@ public class GetCurrentUserQueryHandlerTests
         var familyId = FamilyId.New();
         user.AssignToFamily(familyId);
 
-        var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Member);
+        var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Member, DateTimeOffset.UtcNow);
         var userRepo = Substitute.For<IUserRepository>();
         userRepo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
             .ReturnsForAnyArgs(user);
@@ -139,7 +139,7 @@ public class GetCurrentUserQueryHandlerTests
         var familyId = FamilyId.New();
         user.AssignToFamily(familyId);
 
-        var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Admin);
+        var member = FamilyMember.Create(familyId, user.Id, FamilyRole.Admin, DateTimeOffset.UtcNow);
         var userRepo = Substitute.For<IUserRepository>();
         userRepo.GetByExternalIdAsync(AnyExternalUserId, CancellationToken.None)
             .ReturnsForAnyArgs(user);

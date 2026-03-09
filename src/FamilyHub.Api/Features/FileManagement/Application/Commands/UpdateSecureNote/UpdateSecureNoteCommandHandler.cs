@@ -5,13 +5,15 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UpdateSecureNote;
 
 public sealed class UpdateSecureNoteCommandHandler(
-    ISecureNoteRepository noteRepository)
+    ISecureNoteRepository noteRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<UpdateSecureNoteCommand, UpdateSecureNoteResult>
 {
     public async ValueTask<UpdateSecureNoteResult> Handle(
         UpdateSecureNoteCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var note = await noteRepository.GetByIdAsync(command.NoteId, cancellationToken)
             ?? throw new DomainException("Secure note not found", DomainErrorCodes.SecureNoteNotFound);
 
@@ -24,7 +26,8 @@ public sealed class UpdateSecureNoteCommandHandler(
             command.Category,
             command.EncryptedTitle,
             command.EncryptedContent,
-            command.Iv);
+            command.Iv,
+            utcNow);
 
         return new UpdateSecureNoteResult(true);
     }

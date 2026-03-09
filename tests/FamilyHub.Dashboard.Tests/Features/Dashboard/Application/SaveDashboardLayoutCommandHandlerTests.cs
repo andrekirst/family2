@@ -16,7 +16,7 @@ public class SaveDashboardLayoutCommandHandlerTests
     {
         // Arrange
         var repo = Substitute.For<IDashboardLayoutRepository>();
-        var handler = new SaveDashboardLayoutCommandHandler(repo);
+        var handler = new SaveDashboardLayoutCommandHandler(repo, TimeProvider.System);
         var userId = UserId.New();
 
         repo.GetPersonalDashboardAsync(userId, Arg.Any<CancellationToken>())
@@ -42,7 +42,7 @@ public class SaveDashboardLayoutCommandHandlerTests
     {
         // Arrange
         var repo = Substitute.For<IDashboardLayoutRepository>();
-        var handler = new SaveDashboardLayoutCommandHandler(repo);
+        var handler = new SaveDashboardLayoutCommandHandler(repo, TimeProvider.System);
         var userId = UserId.New();
         var familyId = FamilyId.New();
 
@@ -83,7 +83,7 @@ public class SaveDashboardLayoutCommandHandlerTests
     {
         // Arrange
         var repo = Substitute.For<IDashboardLayoutRepository>();
-        var handler = new SaveDashboardLayoutCommandHandler(repo);
+        var handler = new SaveDashboardLayoutCommandHandler(repo, TimeProvider.System);
         var familyId = FamilyId.New();
         var userId = UserId.New();
 

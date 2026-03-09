@@ -23,7 +23,7 @@ public class UpdateTagCommandHandlerTests
     public async Task Handle_ShouldRenamTag()
     {
         var familyId = FamilyId.New();
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
         _tagRepo.GetByNameAsync(TagName.From("Images"), familyId, Arg.Any<CancellationToken>())
             .Returns((Tag?)null);
@@ -43,7 +43,7 @@ public class UpdateTagCommandHandlerTests
     public async Task Handle_ShouldChangeColor()
     {
         var familyId = FamilyId.New();
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new UpdateTagCommand(tag.Id, null, TagColor.From("#00FF00"))
@@ -61,7 +61,7 @@ public class UpdateTagCommandHandlerTests
     public async Task Handle_ShouldUpdateBothNameAndColor()
     {
         var familyId = FamilyId.New();
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
         _tagRepo.GetByNameAsync(TagName.From("Images"), familyId, Arg.Any<CancellationToken>())
             .Returns((Tag?)null);
@@ -97,7 +97,7 @@ public class UpdateTagCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenTagBelongsToDifferentFamily()
     {
-        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), FamilyId.New(), UserId.New());
+        var tag = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByIdAsync(tag.Id, Arg.Any<CancellationToken>()).Returns(tag);
 
         var command = new UpdateTagCommand(tag.Id, TagName.From("New"), null)
@@ -115,8 +115,8 @@ public class UpdateTagCommandHandlerTests
     public async Task Handle_ShouldThrowWhenRenamingToDuplicateName()
     {
         var familyId = FamilyId.New();
-        var tag1 = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
-        var tag2 = Tag.Create(TagName.From("Videos"), TagColor.From("#00FF00"), familyId, UserId.New());
+        var tag1 = Tag.Create(TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
+        var tag2 = Tag.Create(TagName.From("Videos"), TagColor.From("#00FF00"), familyId, UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByIdAsync(tag2.Id, Arg.Any<CancellationToken>()).Returns(tag2);
         _tagRepo.GetByNameAsync(TagName.From("Photos"), familyId, Arg.Any<CancellationToken>())
             .Returns(tag1);

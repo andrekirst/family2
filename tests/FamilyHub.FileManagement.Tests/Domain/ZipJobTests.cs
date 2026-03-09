@@ -15,7 +15,7 @@ public class ZipJobTests
     [Fact]
     public void Create_ShouldInitializeWithPendingStatus()
     {
-        var job = ZipJob.Create(_familyId, _userId, _fileIds);
+        var job = ZipJob.Create(_familyId, _userId, _fileIds, DateTimeOffset.UtcNow);
 
         job.FamilyId.Should().Be(_familyId);
         job.InitiatedBy.Should().Be(_userId);
@@ -32,7 +32,7 @@ public class ZipJobTests
     [Fact]
     public void Create_WithCustomTtl_ShouldSetCorrectExpiry()
     {
-        var job = ZipJob.Create(_familyId, _userId, _fileIds, TimeSpan.FromHours(1));
+        var job = ZipJob.Create(_familyId, _userId, _fileIds, DateTimeOffset.UtcNow, TimeSpan.FromHours(1));
 
         job.ExpiresAt.Should().BeCloseTo(DateTime.UtcNow.AddHours(1), TimeSpan.FromSeconds(5));
     }
@@ -40,7 +40,7 @@ public class ZipJobTests
     [Fact]
     public void MarkProcessing_ShouldTransitionToProcessingStatus()
     {
-        var job = ZipJob.Create(_familyId, _userId, _fileIds);
+        var job = ZipJob.Create(_familyId, _userId, _fileIds, DateTimeOffset.UtcNow);
 
         job.MarkProcessing();
 
@@ -50,7 +50,7 @@ public class ZipJobTests
     [Fact]
     public void UpdateProgress_ShouldClampBetween0And100()
     {
-        var job = ZipJob.Create(_familyId, _userId, _fileIds);
+        var job = ZipJob.Create(_familyId, _userId, _fileIds, DateTimeOffset.UtcNow);
 
         job.UpdateProgress(50);
         job.Progress.Should().Be(50);
@@ -65,10 +65,10 @@ public class ZipJobTests
     [Fact]
     public void MarkCompleted_ShouldSetStorageKeyAndRaiseEvent()
     {
-        var job = ZipJob.Create(_familyId, _userId, _fileIds);
+        var job = ZipJob.Create(_familyId, _userId, _fileIds, DateTimeOffset.UtcNow);
         var storageKey = StorageKey.From("zip/test.zip");
 
-        job.MarkCompleted(storageKey, 1024);
+        job.MarkCompleted(storageKey, 1024, DateTimeOffset.UtcNow);
 
         job.Status.Should().Be(ZipJobStatus.Completed);
         job.Progress.Should().Be(100);
@@ -88,7 +88,7 @@ public class ZipJobTests
     [Fact]
     public void MarkFailed_ShouldSetErrorMessage()
     {
-        var job = ZipJob.Create(_familyId, _userId, _fileIds);
+        var job = ZipJob.Create(_familyId, _userId, _fileIds, DateTimeOffset.UtcNow);
 
         job.MarkFailed("Storage error");
 

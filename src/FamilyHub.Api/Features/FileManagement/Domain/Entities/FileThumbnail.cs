@@ -19,7 +19,8 @@ public sealed class FileThumbnail : AggregateRoot<FileThumbnailId>
         FileId fileId,
         int width,
         int height,
-        StorageKey storageKey)
+        StorageKey storageKey,
+        DateTimeOffset utcNow)
     {
         var thumbnail = new FileThumbnail
         {
@@ -28,7 +29,7 @@ public sealed class FileThumbnail : AggregateRoot<FileThumbnailId>
             Width = width,
             Height = height,
             StorageKey = storageKey,
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = utcNow.UtcDateTime
         };
 
         thumbnail.RaiseDomainEvent(new ThumbnailGeneratedEvent(

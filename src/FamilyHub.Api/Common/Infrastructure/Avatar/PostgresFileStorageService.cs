@@ -7,7 +7,7 @@ namespace FamilyHub.Api.Common.Infrastructure.Avatar;
 /// PostgreSQL-backed file storage using a simple table with bytea columns.
 /// Phase 1 implementation - can be swapped for S3/Azure Blob later.
 /// </summary>
-public sealed class PostgresFileStorageService(AppDbContext dbContext) : IFileStorageService
+public sealed class PostgresFileStorageService(AppDbContext dbContext, TimeProvider timeProvider) : IFileStorageService
 {
     public async Task<string> SaveAsync(byte[] data, string mimeType, CancellationToken cancellationToken = default)
     {
@@ -17,7 +17,7 @@ public sealed class PostgresFileStorageService(AppDbContext dbContext) : IFileSt
             StorageKey = storageKey,
             Data = data,
             MimeType = mimeType,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = timeProvider.GetUtcNow().UtcDateTime
         };
 
         dbContext.StoredFiles.Add(fileRecord);

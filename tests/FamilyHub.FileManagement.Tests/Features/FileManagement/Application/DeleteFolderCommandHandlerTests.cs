@@ -19,7 +19,7 @@ public class DeleteFolderCommandHandlerTests
 
     public DeleteFolderCommandHandlerTests()
     {
-        _handler = new DeleteFolderCommandHandler(_folderRepo, _fileRepo, _storageService);
+        _handler = new DeleteFolderCommandHandler(_folderRepo, _fileRepo, _storageService, TimeProvider.System);
     }
 
     [Fact]
@@ -28,13 +28,13 @@ public class DeleteFolderCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
 
-        var root = Folder.CreateRoot(familyId, userId);
-        var folder = Folder.Create(FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folder = Folder.Create(FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
 
         var file = StoredFile.Create(
             FileName.From("test.pdf"), MimeType.From("application/pdf"),
             FileSize.From(1024), StorageKey.From("key-1"),
-            Checksum.From("a".PadRight(64, 'a')), folder.Id, familyId, userId);
+            Checksum.From("a".PadRight(64, 'a')), folder.Id, familyId, userId, DateTimeOffset.UtcNow);
 
         _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         _folderRepo.GetDescendantsAsync(Arg.Any<string>(), familyId, Arg.Any<CancellationToken>())
@@ -63,17 +63,17 @@ public class DeleteFolderCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
 
-        var root = Folder.CreateRoot(familyId, userId);
-        var folderA = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folderA = Folder.Create(FileName.From("A"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
         var folderB = Folder.Create(
             FileName.From("B"), folderA.Id,
             $"/{root.Id.Value}/{folderA.Id.Value}/",
-            familyId, userId);
+            familyId, userId, DateTimeOffset.UtcNow);
 
         var file = StoredFile.Create(
             FileName.From("deep.txt"), MimeType.From("text/plain"),
             FileSize.From(512), StorageKey.From("key-deep"),
-            Checksum.From("b".PadRight(64, 'b')), folderB.Id, familyId, userId);
+            Checksum.From("b".PadRight(64, 'b')), folderB.Id, familyId, userId, DateTimeOffset.UtcNow);
 
         _folderRepo.GetByIdAsync(folderA.Id, Arg.Any<CancellationToken>()).Returns(folderA);
         _folderRepo.GetDescendantsAsync(Arg.Any<string>(), familyId, Arg.Any<CancellationToken>())
@@ -101,7 +101,7 @@ public class DeleteFolderCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
 
-        var root = Folder.CreateRoot(familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
         _folderRepo.GetByIdAsync(root.Id, Arg.Any<CancellationToken>()).Returns(root);
 
         var command = new DeleteFolderCommand(root.Id)
@@ -121,8 +121,8 @@ public class DeleteFolderCommandHandlerTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
 
-        var root = Folder.CreateRoot(familyId, userId);
-        var folder = Folder.Create(FileName.From("Docs"), root.Id, $"/{root.Id.Value}/", familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folder = Folder.Create(FileName.From("Docs"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
         _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var command = new DeleteFolderCommand(folder.Id)

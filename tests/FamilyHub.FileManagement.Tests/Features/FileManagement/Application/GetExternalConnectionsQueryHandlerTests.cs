@@ -15,7 +15,7 @@ public class GetExternalConnectionsQueryHandlerTests
 
     public GetExternalConnectionsQueryHandlerTests()
     {
-        _handler = new GetExternalConnectionsQueryHandler(_repo);
+        _handler = new GetExternalConnectionsQueryHandler(_repo, TimeProvider.System);
     }
 
     [Fact]
@@ -24,8 +24,8 @@ public class GetExternalConnectionsQueryHandlerTests
         var familyId = FamilyId.New();
         _repo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([
-                ExternalConnection.Create(familyId, ExternalProviderType.OneDrive, "OneDrive", "token1", "refresh1", DateTime.UtcNow.AddHours(1), UserId.New()),
-                ExternalConnection.Create(familyId, ExternalProviderType.GoogleDrive, "Google Drive", "token2", "refresh2", DateTime.UtcNow.AddHours(1), UserId.New())
+                ExternalConnection.Create(familyId, ExternalProviderType.OneDrive, "OneDrive", "token1", "refresh1", DateTime.UtcNow.AddHours(1), UserId.New(), DateTimeOffset.UtcNow),
+                ExternalConnection.Create(familyId, ExternalProviderType.GoogleDrive, "Google Drive", "token2", "refresh2", DateTime.UtcNow.AddHours(1), UserId.New(), DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetExternalConnectionsQuery()
@@ -61,7 +61,7 @@ public class GetExternalConnectionsQueryHandlerTests
         var familyId = FamilyId.New();
         _repo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([
-                ExternalConnection.Create(familyId, ExternalProviderType.PaperlessNgx, "My Paperless", "api-token", null, null, UserId.New())
+                ExternalConnection.Create(familyId, ExternalProviderType.PaperlessNgx, "My Paperless", "api-token", null, null, UserId.New(), DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetExternalConnectionsQuery()

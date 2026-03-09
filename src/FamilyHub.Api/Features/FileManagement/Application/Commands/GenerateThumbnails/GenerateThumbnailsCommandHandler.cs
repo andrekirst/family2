@@ -12,7 +12,8 @@ public sealed class GenerateThumbnailsCommandHandler(
     IStoredFileRepository fileRepository,
     IFileThumbnailRepository thumbnailRepository,
     IThumbnailGenerationService thumbnailService,
-    IStorageProvider storageProvider)
+    IStorageProvider storageProvider,
+    TimeProvider timeProvider)
     : ICommandHandler<GenerateThumbnailsCommand, GenerateThumbnailsResult>
 {
     private static readonly (int Width, int Height)[] ThumbnailSizes =
@@ -70,7 +71,7 @@ public sealed class GenerateThumbnailsCommandHandler(
             using var thumbnailStream = new MemoryStream(thumbnailData);
             await storageProvider.UploadAsync(thumbnailStream, "image/webp", cancellationToken);
 
-            var thumbnail = FileThumbnail.Create(command.FileId, width, height, storageKey);
+            var thumbnail = FileThumbnail.Create(command.FileId, width, height, storageKey, timeProvider.GetUtcNow());
             await thumbnailRepository.AddAsync(thumbnail, cancellationToken);
             generated++;
         }

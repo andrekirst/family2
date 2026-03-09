@@ -15,7 +15,7 @@ public class CreateSecureNoteCommandHandlerTests
 
     public CreateSecureNoteCommandHandlerTests()
     {
-        _handler = new CreateSecureNoteCommandHandler(_noteRepo);
+        _handler = new CreateSecureNoteCommandHandler(_noteRepo, TimeProvider.System);
     }
 
     [Fact]

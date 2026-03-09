@@ -25,7 +25,7 @@ public class DeleteSecureNoteCommandHandlerTests
         var userId = UserId.New();
         var note = SecureNote.Create(
             FamilyId.New(), userId, NoteCategory.Passwords,
-            "title", "content", "iv", "salt", "sentinel");
+            "title", "content", "iv", "salt", "sentinel", DateTimeOffset.UtcNow);
         _noteRepo.GetByIdAsync(note.Id, Arg.Any<CancellationToken>()).Returns(note);
 
         var command = new DeleteSecureNoteCommand(note.Id)
@@ -62,7 +62,7 @@ public class DeleteSecureNoteCommandHandlerTests
     {
         var note = SecureNote.Create(
             FamilyId.New(), UserId.New(), NoteCategory.Medical,
-            "title", "content", "iv", "salt", "sentinel");
+            "title", "content", "iv", "salt", "sentinel", DateTimeOffset.UtcNow);
         _noteRepo.GetByIdAsync(note.Id, Arg.Any<CancellationToken>()).Returns(note);
 
         var command = new DeleteSecureNoteCommand(note.Id)

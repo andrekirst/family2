@@ -18,7 +18,7 @@ public class SetFamilyAvatarCommandHandlerTests
         // Arrange
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var member = FamilyMember.Create(familyId, userId, FamilyRole.Member);
+        var member = FamilyMember.Create(familyId, userId, FamilyRole.Member, DateTimeOffset.UtcNow);
         var avatar = CreateTestAvatar();
 
         var (handler, _, _) = CreateHandler(member, avatar, userId, familyId);
@@ -54,7 +54,7 @@ public class SetFamilyAvatarCommandHandlerTests
         // Arrange
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var member = FamilyMember.Create(familyId, userId, FamilyRole.Member);
+        var member = FamilyMember.Create(familyId, userId, FamilyRole.Member, DateTimeOffset.UtcNow);
         var avatarId = AvatarId.New();
 
         var (handler, _, _) = CreateHandler(member, existingAvatar: null, userId, familyId);

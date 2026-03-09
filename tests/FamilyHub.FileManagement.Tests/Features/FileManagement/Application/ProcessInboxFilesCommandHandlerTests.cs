@@ -29,13 +29,13 @@ public class ProcessInboxFilesCommandHandlerTests
         var engine = new OrganizationRuleEngine();
         var logger = NullLogger<ProcessInboxFilesCommandHandler>.Instance;
         _handler = new ProcessInboxFilesCommandHandler(
-            _folderRepo, _fileRepo, _ruleRepo, _logRepo, engine, _fileProcessor, logger);
+            _folderRepo, _fileRepo, _ruleRepo, _logRepo, engine, _fileProcessor, TimeProvider.System, logger);
     }
 
     private Folder CreateInbox()
     {
-        var root = Folder.CreateRoot(_familyId, _userId);
-        var inbox = Folder.CreateInbox(root.Id, _familyId, _userId);
+        var root = Folder.CreateRoot(_familyId, _userId, DateTimeOffset.UtcNow);
+        var inbox = Folder.CreateInbox(root.Id, _familyId, _userId, DateTimeOffset.UtcNow);
         return inbox;
     }
 
@@ -49,7 +49,7 @@ public class ProcessInboxFilesCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             folderId,
             _familyId,
-            _userId);
+            _userId, DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -69,13 +69,13 @@ public class ProcessInboxFilesCommandHandlerTests
             ConditionLogic.And,
             RuleActionType.MoveToFolder,
             $$$"""{"DestinationFolderId":"{{{destFolderId.Value}}}"}""",
-            1);
+            1, DateTimeOffset.UtcNow);
         _ruleRepo.GetEnabledByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>())
             .Returns(new List<OrganizationRule> { rule });
 
         var logEntry = ProcessingLogEntry.Create(
             file.Id, "photo.jpg", rule.Id, "Move images",
-            RuleActionType.MoveToFolder, destFolderId, null, true, null, _familyId);
+            RuleActionType.MoveToFolder, destFolderId, null, true, null, _familyId, DateTimeOffset.UtcNow);
         _fileProcessor.ProcessFileAsync(file, Arg.Any<RuleMatchPreviewDto>(), _userId, _familyId, Arg.Any<CancellationToken>())
             .Returns(logEntry);
 
@@ -107,7 +107,7 @@ public class ProcessInboxFilesCommandHandlerTests
         var rule = OrganizationRule.Create(
             "Move photos", _familyId, _userId,
             """[{"Type":1,"Value":".jpg"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
         _ruleRepo.GetEnabledByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>())
             .Returns(new List<OrganizationRule> { rule });
 
@@ -142,13 +142,13 @@ public class ProcessInboxFilesCommandHandlerTests
             ConditionLogic.And,
             RuleActionType.ApplyTags,
             $$$"""{"TagIds":["{{{tagId.Value}}}"]}""",
-            1);
+            1, DateTimeOffset.UtcNow);
         _ruleRepo.GetEnabledByFamilyIdAsync(_familyId, Arg.Any<CancellationToken>())
             .Returns(new List<OrganizationRule> { rule });
 
         var logEntry = ProcessingLogEntry.Create(
             file.Id, "photo.jpg", rule.Id, "Tag photos",
-            RuleActionType.ApplyTags, null, null, true, null, _familyId);
+            RuleActionType.ApplyTags, null, null, true, null, _familyId, DateTimeOffset.UtcNow);
         _fileProcessor.ProcessFileAsync(file, Arg.Any<RuleMatchPreviewDto>(), _userId, _familyId, Arg.Any<CancellationToken>())
             .Returns(logEntry);
 

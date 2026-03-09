@@ -14,7 +14,8 @@ public sealed class LinkGoogleAccountCommandHandler(
     IOAuthStateRepository stateRepository,
     IGoogleAccountLinkRepository linkRepository,
     IGoogleOAuthService oauthService,
-    ITokenEncryptionService encryptionService)
+    ITokenEncryptionService encryptionService,
+    TimeProvider timeProvider)
     : ICommandHandler<LinkGoogleAccountCommand, LinkGoogleAccountResult>
 {
     public async ValueTask<LinkGoogleAccountResult> Handle(
@@ -24,7 +25,9 @@ public sealed class LinkGoogleAccountCommandHandler(
         // 1. Retrieve OAuth state (existence guaranteed by validator)
         var oauthState = (await stateRepository.GetByStateAsync(command.State, cancellationToken))!;
 
-        if (oauthState.IsExpired())
+        var utcNow = timeProvider.GetUtcNow();
+
+        if (oauthState.IsExpired(utcNow))
         {
             await stateRepository.DeleteAsync(oauthState, cancellationToken);
             throw new DomainException("OAuth state has expired. Please try linking again.");
@@ -58,8 +61,9 @@ public sealed class LinkGoogleAccountCommandHandler(
             Email.From(userInfo.Email),
             encryptedAccessToken,
             encryptedRefreshToken,
-            DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn),
-            GoogleScopes.From(tokenResponse.Scope));
+            utcNow.UtcDateTime.AddSeconds(tokenResponse.ExpiresIn),
+            GoogleScopes.From(tokenResponse.Scope),
+            utcNow);
 
         await linkRepository.AddAsync(link, cancellationToken);
 

@@ -8,13 +8,15 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.AddFileToAl
 public sealed class AddFileToAlbumCommandHandler(
     IAlbumRepository albumRepository,
     IStoredFileRepository storedFileRepository,
-    IAlbumItemRepository albumItemRepository)
+    IAlbumItemRepository albumItemRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<AddFileToAlbumCommand, AddFileToAlbumResult>
 {
     public async ValueTask<AddFileToAlbumResult> Handle(
         AddFileToAlbumCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var album = await albumRepository.GetByIdAsync(command.AlbumId, cancellationToken)
             ?? throw new DomainException("Album not found", DomainErrorCodes.AlbumNotFound);
 
@@ -38,13 +40,13 @@ public sealed class AddFileToAlbumCommandHandler(
             return new AddFileToAlbumResult(true);
         }
 
-        var item = AlbumItem.Create(command.AlbumId, command.FileId, command.UserId);
+        var item = AlbumItem.Create(command.AlbumId, command.FileId, command.UserId, utcNow);
         await albumItemRepository.AddAsync(item, cancellationToken);
 
         // Auto-set cover image if not set
         if (album.CoverFileId is null)
         {
-            album.SetCoverImage(command.FileId);
+            album.SetCoverImage(command.FileId, utcNow);
         }
 
         return new AddFileToAlbumResult(true);

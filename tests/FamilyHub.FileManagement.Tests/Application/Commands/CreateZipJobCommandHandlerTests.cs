@@ -18,7 +18,7 @@ public class CreateZipJobCommandHandlerTests
 
     public CreateZipJobCommandHandlerTests()
     {
-        _handler = new CreateZipJobCommandHandler(_zipJobRepository);
+        _handler = new CreateZipJobCommandHandler(_zipJobRepository, TimeProvider.System);
     }
 
     [Fact]

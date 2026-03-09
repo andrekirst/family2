@@ -20,6 +20,7 @@ public sealed class ZipJob : AggregateRoot<ZipJobId>
         FamilyId familyId,
         UserId initiatedBy,
         List<Guid> fileIds,
+        DateTimeOffset utcNow,
         TimeSpan ttl = default)
     {
         if (ttl == default)
@@ -35,8 +36,8 @@ public sealed class ZipJob : AggregateRoot<ZipJobId>
             FileIds = fileIds,
             Status = ZipJobStatus.Pending,
             Progress = 0,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.Add(ttl)
+            CreatedAt = utcNow.UtcDateTime,
+            ExpiresAt = utcNow.UtcDateTime.Add(ttl)
         };
 
         return job;
@@ -52,26 +53,27 @@ public sealed class ZipJob : AggregateRoot<ZipJobId>
         Progress = Math.Clamp(progress, 0, 100);
     }
 
-    public void MarkCompleted(StorageKey zipStorageKey, long zipSize)
+    public void MarkCompleted(StorageKey zipStorageKey, long zipSize, DateTimeOffset utcNow)
     {
         ZipStorageKey = zipStorageKey;
         ZipSize = zipSize;
         Status = ZipJobStatus.Completed;
         Progress = 100;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = utcNow.UtcDateTime;
 
         RaiseDomainEvent(new ZipJobCompletedEvent(
             Id, FileIds.Count, zipSize, FamilyId));
     }
 
-    public void MarkFailed(string? errorMessage = null)
+    public void MarkFailed(string? errorMessage = null, DateTimeOffset? utcNow = null)
     {
+        var now = utcNow ?? DateTimeOffset.UtcNow;
         Status = ZipJobStatus.Failed;
         ErrorMessage = errorMessage;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = now.UtcDateTime;
     }
 
-    public bool IsExpired => ExpiresAt <= DateTime.UtcNow;
+    public bool IsExpired(DateTimeOffset utcNow) => ExpiresAt <= utcNow.UtcDateTime;
 
     public FamilyId FamilyId { get; private set; }
     public UserId InitiatedBy { get; private set; }

@@ -6,13 +6,15 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ConnectExternalStorage;
 
 public sealed class ConnectExternalStorageCommandHandler(
-    IExternalConnectionRepository connectionRepository)
+    IExternalConnectionRepository connectionRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<ConnectExternalStorageCommand, ConnectExternalStorageResult>
 {
     public async ValueTask<ConnectExternalStorageResult> Handle(
         ConnectExternalStorageCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var existing = await connectionRepository.GetByFamilyAndProviderAsync(
             command.FamilyId, command.ProviderType, cancellationToken);
 
@@ -30,7 +32,8 @@ public sealed class ConnectExternalStorageCommandHandler(
             command.EncryptedAccessToken,
             command.EncryptedRefreshToken,
             command.TokenExpiresAt,
-            command.UserId);
+            command.UserId,
+            utcNow);
 
         await connectionRepository.AddAsync(connection, cancellationToken);
 

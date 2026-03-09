@@ -19,7 +19,8 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
         string? location,
         DateTime startTime,
         DateTime endTime,
-        bool isAllDay)
+        bool isAllDay,
+        DateTimeOffset utcNow)
     {
         var calendarEvent = new CalendarEvent
         {
@@ -33,8 +34,8 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
             EndTime = endTime,
             IsAllDay = isAllDay,
             IsCancelled = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         calendarEvent.RaiseDomainEvent(new CalendarEventCreatedEvent(
@@ -56,7 +57,8 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
         string? location,
         DateTime startTime,
         DateTime endTime,
-        bool isAllDay)
+        bool isAllDay,
+        DateTimeOffset utcNow)
     {
         Title = title;
         Description = description;
@@ -64,7 +66,7 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
         StartTime = startTime;
         EndTime = endTime;
         IsAllDay = isAllDay;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
 
         RaiseDomainEvent(new CalendarEventUpdatedEvent(
             Id,
@@ -76,7 +78,7 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
         ));
     }
 
-    public void Cancel()
+    public void Cancel(DateTimeOffset utcNow)
     {
         if (IsCancelled)
         {
@@ -84,7 +86,7 @@ public sealed class CalendarEvent : AggregateRoot<CalendarEventId>
         }
 
         IsCancelled = true;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
 
         RaiseDomainEvent(new CalendarEventCancelledEvent(
             Id,

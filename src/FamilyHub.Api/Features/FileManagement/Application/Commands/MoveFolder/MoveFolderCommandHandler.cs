@@ -5,13 +5,15 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.MoveFolder;
 
 public sealed class MoveFolderCommandHandler(
-    IFolderRepository folderRepository)
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<MoveFolderCommand, MoveFolderResult>
 {
     public async ValueTask<MoveFolderResult> Handle(
         MoveFolderCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var folder = await folderRepository.GetByIdAsync(command.FolderId, cancellationToken)
             ?? throw new DomainException("Folder not found", DomainErrorCodes.FolderNotFound);
 
@@ -50,14 +52,14 @@ public sealed class MoveFolderCommandHandler(
         var descendants = await folderRepository.GetDescendantsAsync(currentFolderPath, command.FamilyId, cancellationToken);
 
         // Move the folder itself
-        folder.MoveTo(command.TargetParentFolderId, newParentPath, command.UserId);
+        folder.MoveTo(command.TargetParentFolderId, newParentPath, command.UserId, utcNow);
 
         // Update all descendants' materialized paths
         var newFolderPath = newParentPath + folder.Id.Value + "/";
         foreach (var descendant in descendants)
         {
             var updatedPath = descendant.MaterializedPath.Replace(currentFolderPath, newFolderPath);
-            descendant.UpdateMaterializedPath(updatedPath);
+            descendant.UpdateMaterializedPath(updatedPath, utcNow);
         }
 
         return new MoveFolderResult(folder.Id, folder);

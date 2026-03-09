@@ -21,8 +21,8 @@ public class GetFamilyMessagesQueryHandlerTests
         var senderId = UserId.New();
         var messages = new List<Message>
         {
-            Message.Create(familyId, senderId, MessageContent.From("Message 1")),
-            Message.Create(familyId, senderId, MessageContent.From("Message 2"))
+            Message.Create(familyId, senderId, MessageContent.From("Message 1"), utcNow: DateTimeOffset.UtcNow),
+            Message.Create(familyId, senderId, MessageContent.From("Message 2"), utcNow: DateTimeOffset.UtcNow)
         };
         var user = CreateTestUser(senderId);
         var (handler, messageRepo, userRepo) = CreateHandler();
@@ -73,7 +73,7 @@ public class GetFamilyMessagesQueryHandlerTests
         var senderId = UserId.New();
         var messages = new List<Message>
         {
-            Message.Create(familyId, senderId, MessageContent.From("Hello!"))
+            Message.Create(familyId, senderId, MessageContent.From("Hello!"), utcNow: DateTimeOffset.UtcNow)
         };
         var user = CreateTestUser(senderId);
         var (handler, messageRepo, userRepo) = CreateHandler();
@@ -100,7 +100,7 @@ public class GetFamilyMessagesQueryHandlerTests
         var familyId = FamilyId.New();
         var senderId = UserId.New();
         var messages = Enumerable.Range(1, 10)
-            .Select(i => Message.Create(familyId, senderId, MessageContent.From($"Message {i}")))
+            .Select(i => Message.Create(familyId, senderId, MessageContent.From($"Message {i}"), utcNow: DateTimeOffset.UtcNow))
             .ToList();
         var user = CreateTestUser(senderId);
         var (handler, messageRepo, userRepo) = CreateHandler();

@@ -29,11 +29,11 @@ public class GetFileVersionsQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        var v1 = FileVersion.Create(file.Id, 1, StorageKey.From("v1"), FileSize.From(1000), Checksum.From(ValidChecksum), UserId.New(), isCurrent: false);
-        var v2 = FileVersion.Create(file.Id, 2, StorageKey.From("v2"), FileSize.From(2000), Checksum.From(ValidChecksum), UserId.New());
+        var v1 = FileVersion.Create(file.Id, 1, StorageKey.From("v1"), FileSize.From(1000), Checksum.From(ValidChecksum), UserId.New(), DateTimeOffset.UtcNow, isCurrent: false);
+        var v2 = FileVersion.Create(file.Id, 2, StorageKey.From("v2"), FileSize.From(2000), Checksum.From(ValidChecksum), UserId.New(), DateTimeOffset.UtcNow);
         versionRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
             .Returns(new List<FileVersion> { v1, v2 });
 
@@ -65,7 +65,7 @@ public class GetFileVersionsQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         versionRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
             .Returns(new List<FileVersion>());
@@ -116,7 +116,7 @@ public class GetFileVersionsQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var query = new GetFileVersionsQuery(file.Id)

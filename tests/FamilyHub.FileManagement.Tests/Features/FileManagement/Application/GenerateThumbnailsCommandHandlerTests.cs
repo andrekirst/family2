@@ -23,7 +23,7 @@ public class GenerateThumbnailsCommandHandlerTests
         var thumbnailService = Substitute.For<IThumbnailGenerationService>();
         var storageProvider = Substitute.For<IStorageProvider>();
         var handler = new GenerateThumbnailsCommandHandler(
-            fileRepo, thumbnailRepo, thumbnailService, storageProvider);
+            fileRepo, thumbnailRepo, thumbnailService, storageProvider, TimeProvider.System);
 
         var familyId = FamilyId.New();
         var file = StoredFile.Create(
@@ -34,7 +34,7 @@ public class GenerateThumbnailsCommandHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         thumbnailService.CanGenerateThumbnail("image/jpeg").Returns(true);
@@ -67,7 +67,7 @@ public class GenerateThumbnailsCommandHandlerTests
         var thumbnailService = Substitute.For<IThumbnailGenerationService>();
         var storageProvider = Substitute.For<IStorageProvider>();
         var handler = new GenerateThumbnailsCommandHandler(
-            fileRepo, thumbnailRepo, thumbnailService, storageProvider);
+            fileRepo, thumbnailRepo, thumbnailService, storageProvider, TimeProvider.System);
 
         var familyId = FamilyId.New();
         var file = StoredFile.Create(
@@ -78,7 +78,7 @@ public class GenerateThumbnailsCommandHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         thumbnailService.CanGenerateThumbnail("application/pdf").Returns(false);
 
@@ -102,7 +102,7 @@ public class GenerateThumbnailsCommandHandlerTests
         var thumbnailService = Substitute.For<IThumbnailGenerationService>();
         var storageProvider = Substitute.For<IStorageProvider>();
         var handler = new GenerateThumbnailsCommandHandler(
-            fileRepo, thumbnailRepo, thumbnailService, storageProvider);
+            fileRepo, thumbnailRepo, thumbnailService, storageProvider, TimeProvider.System);
 
         var familyId = FamilyId.New();
         var file = StoredFile.Create(
@@ -113,7 +113,7 @@ public class GenerateThumbnailsCommandHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         thumbnailService.CanGenerateThumbnail("image/png").Returns(true);
@@ -126,7 +126,7 @@ public class GenerateThumbnailsCommandHandlerTests
 
         // Pre-seed existing 200x200 thumbnail — mock the per-size check the handler actually uses
         var existingThumb = FileThumbnail.Create(
-            file.Id, 200, 200, StorageKey.From("thumbnails/existing/200x200.webp"));
+            file.Id, 200, 200, StorageKey.From("thumbnails/existing/200x200.webp"), DateTimeOffset.UtcNow);
         thumbnailRepo.GetByFileIdAndSizeAsync(file.Id, 200, 200, Arg.Any<CancellationToken>())
             .Returns(existingThumb);
         thumbnailRepo.GetByFileIdAndSizeAsync(file.Id, 800, 800, Arg.Any<CancellationToken>())
@@ -152,7 +152,7 @@ public class GenerateThumbnailsCommandHandlerTests
         var thumbnailService = Substitute.For<IThumbnailGenerationService>();
         var storageProvider = Substitute.For<IStorageProvider>();
         var handler = new GenerateThumbnailsCommandHandler(
-            fileRepo, thumbnailRepo, thumbnailService, storageProvider);
+            fileRepo, thumbnailRepo, thumbnailService, storageProvider, TimeProvider.System);
 
         fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs((StoredFile?)null);
@@ -177,7 +177,7 @@ public class GenerateThumbnailsCommandHandlerTests
         var thumbnailService = Substitute.For<IThumbnailGenerationService>();
         var storageProvider = Substitute.For<IStorageProvider>();
         var handler = new GenerateThumbnailsCommandHandler(
-            fileRepo, thumbnailRepo, thumbnailService, storageProvider);
+            fileRepo, thumbnailRepo, thumbnailService, storageProvider, TimeProvider.System);
 
         var file = StoredFile.Create(
             FileName.From("photo.jpg"),
@@ -187,7 +187,7 @@ public class GenerateThumbnailsCommandHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var command = new GenerateThumbnailsCommand(file.Id)
@@ -210,7 +210,7 @@ public class GenerateThumbnailsCommandHandlerTests
         var thumbnailService = Substitute.For<IThumbnailGenerationService>();
         var storageProvider = Substitute.For<IStorageProvider>();
         var handler = new GenerateThumbnailsCommandHandler(
-            fileRepo, thumbnailRepo, thumbnailService, storageProvider);
+            fileRepo, thumbnailRepo, thumbnailService, storageProvider, TimeProvider.System);
 
         var familyId = FamilyId.New();
         var file = StoredFile.Create(
@@ -221,7 +221,7 @@ public class GenerateThumbnailsCommandHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         thumbnailService.CanGenerateThumbnail("image/jpeg").Returns(true);
         storageProvider.DownloadAsync("files/missing.jpg", Arg.Any<CancellationToken>())

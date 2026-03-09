@@ -16,7 +16,7 @@ public class UpdateSecureNoteCommandHandlerTests
 
     public UpdateSecureNoteCommandHandlerTests()
     {
-        _handler = new UpdateSecureNoteCommandHandler(_noteRepo);
+        _handler = new UpdateSecureNoteCommandHandler(_noteRepo, TimeProvider.System);
     }
 
     [Fact]
@@ -25,7 +25,7 @@ public class UpdateSecureNoteCommandHandlerTests
         var userId = UserId.New();
         var note = SecureNote.Create(
             FamilyId.New(), userId, NoteCategory.Passwords,
-            "old-title", "old-content", "old-iv", "salt", "sentinel");
+            "old-title", "old-content", "old-iv", "salt", "sentinel", DateTimeOffset.UtcNow);
         _noteRepo.GetByIdAsync(note.Id, Arg.Any<CancellationToken>()).Returns(note);
 
         var command = new UpdateSecureNoteCommand(
@@ -70,7 +70,7 @@ public class UpdateSecureNoteCommandHandlerTests
     {
         var note = SecureNote.Create(
             FamilyId.New(), UserId.New(), NoteCategory.Passwords,
-            "title", "content", "iv", "salt", "sentinel");
+            "title", "content", "iv", "salt", "sentinel", DateTimeOffset.UtcNow);
         _noteRepo.GetByIdAsync(note.Id, Arg.Any<CancellationToken>()).Returns(note);
 
         var command = new UpdateSecureNoteCommand(

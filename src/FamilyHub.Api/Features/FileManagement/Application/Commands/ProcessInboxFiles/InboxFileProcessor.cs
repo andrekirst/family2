@@ -12,7 +12,8 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ProcessInbo
 /// This service contains no error handling — exceptions propagate to the orchestrator.
 /// </summary>
 public sealed class InboxFileProcessor(
-    IFileTagRepository fileTagRepository) : IInboxFileProcessor
+    IFileTagRepository fileTagRepository,
+    TimeProvider timeProvider) : IInboxFileProcessor
 {
     public async Task<ProcessingLogEntry> ProcessFileAsync(
         StoredFile file,
@@ -37,7 +38,7 @@ public sealed class InboxFileProcessor(
                 && action.DestinationFolderId.HasValue)
             {
                 destinationFolderId = FolderId.From(action.DestinationFolderId.Value);
-                file.MoveTo(destinationFolderId.Value, movedBy);
+                file.MoveTo(destinationFolderId.Value, movedBy, timeProvider.GetUtcNow());
             }
 
             if (match.ActionType is RuleActionType.ApplyTags or RuleActionType.MoveAndTag
@@ -46,7 +47,7 @@ public sealed class InboxFileProcessor(
                 var tagNames = new List<string>();
                 foreach (var tagId in action.TagIds)
                 {
-                    var fileTag = FileTag.Create(file.Id, TagId.From(tagId));
+                    var fileTag = FileTag.Create(file.Id, TagId.From(tagId), timeProvider.GetUtcNow());
                     await fileTagRepository.AddAsync(fileTag, cancellationToken);
                     tagNames.Add(tagId.ToString());
                 }
@@ -61,6 +62,6 @@ public sealed class InboxFileProcessor(
             match.ActionType,
             destinationFolderId,
             appliedTagNames,
-            true, null, familyId);
+            true, null, familyId, timeProvider.GetUtcNow());
     }
 }

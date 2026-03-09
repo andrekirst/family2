@@ -29,7 +29,7 @@ public class GetFavoritesQueryHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -43,8 +43,8 @@ public class GetFavoritesQueryHandlerTests
 
         var favs = new List<UserFavorite>
         {
-            UserFavorite.Create(userId, file1.Id),
-            UserFavorite.Create(userId, file2.Id)
+            UserFavorite.Create(userId, file1.Id, DateTimeOffset.UtcNow),
+            UserFavorite.Create(userId, file2.Id, DateTimeOffset.UtcNow)
         };
         _favRepo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(favs);
         _fileRepo.GetByIdsAsync(
@@ -87,7 +87,7 @@ public class GetFavoritesQueryHandlerTests
 
         var myFile = CreateTestFile(familyId, "my-fav.jpg");
 
-        var favs = new List<UserFavorite> { UserFavorite.Create(userId, myFile.Id) };
+        var favs = new List<UserFavorite> { UserFavorite.Create(userId, myFile.Id, DateTimeOffset.UtcNow) };
         _favRepo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(favs);
         _fileRepo.GetByIdsAsync(
             Arg.Any<List<FileId>>(),

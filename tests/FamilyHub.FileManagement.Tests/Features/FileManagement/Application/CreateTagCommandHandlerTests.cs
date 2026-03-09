@@ -16,7 +16,7 @@ public class CreateTagCommandHandlerTests
 
     public CreateTagCommandHandlerTests()
     {
-        _handler = new CreateTagCommandHandler(_tagRepo);
+        _handler = new CreateTagCommandHandler(_tagRepo, TimeProvider.System);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class CreateTagCommandHandlerTests
         var familyId = FamilyId.New();
 
         var existingTag = Tag.Create(
-            TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New());
+            TagName.From("Photos"), TagColor.From("#FF0000"), familyId, UserId.New(), DateTimeOffset.UtcNow);
         _tagRepo.GetByNameAsync(TagName.From("Photos"), familyId, Arg.Any<CancellationToken>())
             .Returns(existingTag);
 

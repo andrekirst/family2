@@ -6,7 +6,8 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateZipJob;
 
 public sealed class CreateZipJobCommandHandler(
-    IZipJobRepository zipJobRepository)
+    IZipJobRepository zipJobRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateZipJobCommand, CreateZipJobResult>
 {
     private const int MaxConcurrentJobs = 3;
@@ -33,7 +34,8 @@ public sealed class CreateZipJobCommandHandler(
                 DomainErrorCodes.ZipJobConcurrentLimitReached);
         }
 
-        var job = ZipJob.Create(command.FamilyId, command.UserId, command.FileIds);
+        var utcNow = timeProvider.GetUtcNow();
+        var job = ZipJob.Create(command.FamilyId, command.UserId, command.FileIds, utcNow);
         await zipJobRepository.AddAsync(job, cancellationToken);
 
         return new CreateZipJobResult(job.Id.Value, job.Status.ToString());

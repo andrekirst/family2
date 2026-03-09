@@ -26,8 +26,8 @@ public class GetPermissionsQueryHandlerTests
 
         _permRepo.GetByResourceAsync(PermissionResourceType.File, resourceId, Arg.Any<CancellationToken>())
             .Returns([
-                FilePermission.Create(PermissionResourceType.File, resourceId, UserId.New(), FilePermissionLevel.View, familyId, UserId.New()),
-                FilePermission.Create(PermissionResourceType.File, resourceId, UserId.New(), FilePermissionLevel.Edit, familyId, UserId.New())
+                FilePermission.Create(PermissionResourceType.File, resourceId, UserId.New(), FilePermissionLevel.View, familyId, UserId.New(), DateTimeOffset.UtcNow),
+                FilePermission.Create(PermissionResourceType.File, resourceId, UserId.New(), FilePermissionLevel.Edit, familyId, UserId.New(), DateTimeOffset.UtcNow)
             ]);
 
         var query = new GetPermissionsQuery(PermissionResourceType.File, resourceId)
@@ -63,8 +63,8 @@ public class GetPermissionsQueryHandlerTests
         var resourceId = Guid.NewGuid();
 
         // The repository returns all for the resource; the handler filters by family
-        var perm1 = FilePermission.Create(PermissionResourceType.File, resourceId, UserId.New(), FilePermissionLevel.View, familyId, UserId.New());
-        var perm2 = FilePermission.Create(PermissionResourceType.File, resourceId, UserId.New(), FilePermissionLevel.Edit, FamilyId.New(), UserId.New());
+        var perm1 = FilePermission.Create(PermissionResourceType.File, resourceId, UserId.New(), FilePermissionLevel.View, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        var perm2 = FilePermission.Create(PermissionResourceType.File, resourceId, UserId.New(), FilePermissionLevel.Edit, FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
 
         _permRepo.GetByResourceAsync(PermissionResourceType.File, resourceId, Arg.Any<CancellationToken>())
             .Returns([perm1, perm2]);

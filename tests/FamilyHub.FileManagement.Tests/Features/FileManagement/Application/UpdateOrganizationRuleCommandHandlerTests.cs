@@ -16,7 +16,7 @@ public class UpdateOrganizationRuleCommandHandlerTests
 
     public UpdateOrganizationRuleCommandHandlerTests()
     {
-        _handler = new UpdateOrganizationRuleCommandHandler(_ruleRepo);
+        _handler = new UpdateOrganizationRuleCommandHandler(_ruleRepo, TimeProvider.System);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class UpdateOrganizationRuleCommandHandlerTests
         var rule = OrganizationRule.Create(
             "Old name", familyId, UserId.New(),
             """[{"Type":1,"Value":".jpg"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
         _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new UpdateOrganizationRuleCommand(
@@ -73,7 +73,7 @@ public class UpdateOrganizationRuleCommandHandlerTests
     {
         var rule = OrganizationRule.Create(
             "Name", FamilyId.New(), UserId.New(),
-            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
+            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
         _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new UpdateOrganizationRuleCommand(

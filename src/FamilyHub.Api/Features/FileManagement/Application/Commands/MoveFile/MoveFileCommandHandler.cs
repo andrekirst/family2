@@ -6,7 +6,8 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.MoveFile;
 
 public sealed class MoveFileCommandHandler(
     IStoredFileRepository storedFileRepository,
-    IFolderRepository folderRepository)
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<MoveFileCommand, MoveFileResult>
 {
     public async ValueTask<MoveFileResult> Handle(
@@ -28,7 +29,8 @@ public sealed class MoveFileCommandHandler(
             throw new DomainException("Target folder belongs to a different family", DomainErrorCodes.Forbidden);
         }
 
-        file.MoveTo(command.TargetFolderId, command.UserId);
+        var utcNow = timeProvider.GetUtcNow();
+        file.MoveTo(command.TargetFolderId, command.UserId, utcNow);
 
         return new MoveFileResult(file.Id, file);
     }

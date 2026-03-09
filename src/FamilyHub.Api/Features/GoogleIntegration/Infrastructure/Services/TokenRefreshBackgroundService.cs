@@ -9,6 +9,7 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Services;
 public sealed class TokenRefreshBackgroundService(
     IServiceScopeFactory scopeFactory,
     IOptions<TokenRefreshOptions> options,
+    TimeProvider timeProvider,
     ILogger<TokenRefreshBackgroundService> logger) : BackgroundService
 {
     private readonly TokenRefreshOptions _options = options.Value;
@@ -41,7 +42,7 @@ public sealed class TokenRefreshBackgroundService(
         var oauthService = scope.ServiceProvider.GetRequiredService<IGoogleOAuthService>();
         var encryptionService = scope.ServiceProvider.GetRequiredService<ITokenEncryptionService>();
 
-        var expiringBefore = DateTime.UtcNow.AddMinutes(_options.RefreshBeforeExpiryMinutes);
+        var expiringBefore = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_options.RefreshBeforeExpiryMinutes);
         var expiringLinks = await linkRepository.GetExpiringTokensAsync(expiringBefore, cancellationToken);
 
         if (expiringLinks.Count == 0)
@@ -60,7 +61,7 @@ public sealed class TokenRefreshBackgroundService(
 
                 var encryptedAccessToken = EncryptedToken.From(
                     encryptionService.Encrypt(tokenResponse.AccessToken));
-                var newExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
+                var newExpiresAt = timeProvider.GetUtcNow().UtcDateTime.AddSeconds(tokenResponse.ExpiresIn);
 
                 link.RefreshAccessToken(encryptedAccessToken, newExpiresAt);
                 await linkRepository.UpdateAsync(link, cancellationToken);
