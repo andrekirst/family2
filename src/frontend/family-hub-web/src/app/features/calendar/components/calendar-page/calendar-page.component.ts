@@ -7,8 +7,7 @@ import {
   AfterViewInit,
   computed,
   ViewChild,
-  TemplateRef,
-} from '@angular/core';
+  TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
@@ -33,6 +32,7 @@ import { CalendarAgendaComponent } from '../calendar-agenda/calendar-agenda.comp
 @Component({
   selector: 'app-calendar-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     RouterModule,

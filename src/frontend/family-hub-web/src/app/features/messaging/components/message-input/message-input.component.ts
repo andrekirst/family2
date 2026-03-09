@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject, output, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MessagingService } from '../../services/messaging.service';
@@ -19,6 +19,7 @@ export interface MessageSendPayload {
 @Component({
   selector: 'app-message-input',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, CommonModule],
   styles: [
     `

@@ -7,8 +7,7 @@ import {
   computed,
   HostListener,
   OnInit,
-  OnDestroy,
-} from '@angular/core';
+  OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EnvironmentConfigService } from '../../../../core/config/environment-config.service';
@@ -18,6 +17,7 @@ import { PhotoDto, AdjacentPhotosDto } from '../../models/photos.models';
 @Component({
   selector: 'app-photo-viewer',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, SecureSrcDirective],
   template: `
     <div class="fixed inset-0 z-50 bg-black/90 flex flex-col" (click)="onBackdropClick($event)">

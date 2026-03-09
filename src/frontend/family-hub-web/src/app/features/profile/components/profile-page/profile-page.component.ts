@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TopBarService } from '../../../../shared/services/top-bar.service';
 import { UserService } from '../../../../core/user/user.service';
@@ -11,6 +11,7 @@ import {
 @Component({
   selector: 'app-profile-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, AvatarDisplayComponent, AvatarUploadComponent],
   template: `
     <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">

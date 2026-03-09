@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DashboardWidgetComponent } from '../../../../core/dashboard/dashboard-widget.interface';
@@ -7,6 +7,7 @@ import { UserService } from '../../../../core/user/user.service';
 @Component({
   selector: 'app-welcome-widget',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterModule],
   template: `
     <div class="h-full flex flex-col justify-center">

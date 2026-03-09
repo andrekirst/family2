@@ -1,6 +1,7 @@
 import {
   APP_INITIALIZER,
   ApplicationConfig,
+  ErrorHandler,
   LOCALE_ID,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
@@ -20,6 +21,7 @@ import { locale } from '../main';
 import { provideProfileFeature } from './features/profile/profile.providers';
 import { provideSchoolFeature } from './features/school/school.providers';
 import { EnvironmentConfigService } from './core/config/environment-config.service';
+import { AppErrorHandler } from './core/error-handling/app-error-handler';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -36,6 +38,7 @@ export const appConfig: ApplicationConfig = {
     ...provideSchoolFeature(),
     ...provideSettingsFeature(),
     ...provideProfileFeature(),
+    { provide: ErrorHandler, useClass: AppErrorHandler },
     { provide: LOCALE_ID, useValue: locale },
     {
       provide: APP_INITIALIZER,

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal, inject, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SchoolService, StudentDto } from '../../services/school.service';
 import { InvitationService } from '../../../family/services/invitation.service';
@@ -7,6 +7,7 @@ import { FamilyMemberDto } from '../../../family/models/invitation.models';
 @Component({
   selector: 'app-mark-as-student-dialog',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   templateUrl: './mark-as-student-dialog.component.html',
 })

@@ -6,8 +6,7 @@ import {
   OnDestroy,
   Output,
   Renderer2,
-  signal,
-} from '@angular/core';
+  signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
 import { SpannedAllDayEvent, TimeRange } from '../../models/calendar.models';
@@ -22,6 +21,7 @@ export interface CalendarDay {
 @Component({
   selector: 'app-calendar-month-grid',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <!-- Day Headers -->

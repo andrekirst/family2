@@ -1,4 +1,4 @@
-import { Component, Input, HostListener, inject } from '@angular/core';
+import { Component, Input, HostListener, inject, ChangeDetectionStrategy } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ContextPanelService } from '../../services/context-panel.service';
@@ -7,6 +7,7 @@ import { ICONS } from '../../icons/icons';
 @Component({
   selector: 'app-context-panel',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgTemplateOutlet],
   template: `
     <!-- Mobile backdrop -->

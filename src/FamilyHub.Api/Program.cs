@@ -4,21 +4,24 @@ using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.Audit;
 using FamilyHub.Api.Common.Infrastructure.Behaviors;
+using FamilyHub.Api.Common.Infrastructure.Configuration;
 using FamilyHub.Api.Common.Infrastructure.Configuration.Infisical;
 using FamilyHub.Api.Common.Infrastructure.GraphQL;
+using FamilyHub.Api.Common.Infrastructure.Interceptors;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Common.Infrastructure.Messaging;
 using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Common.Modules;
 using FamilyHub.Api.Common.Development;
 using FamilyHub.Api.Common.Infrastructure.HealthChecks;
+using FamilyHub.Api.Common.Infrastructure.RateLimiting;
+using FamilyHub.Api.Common.Infrastructure.Observability;
 using FamilyHub.Api.Common.Infrastructure.Resilience;
 using FamilyHub.Api.Common.Infrastructure.Validation;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IO.Compression;
@@ -38,6 +41,7 @@ builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection(Key
 builder.Services.Configure<FrontendConfigOptions>(builder.Configuration.GetSection(FrontendConfigOptions.SectionName));
 builder.Services.Configure<FamilyHub.Api.Common.Configuration.LocalizationOptions>(
     builder.Configuration.GetSection(FamilyHub.Api.Common.Configuration.LocalizationOptions.SectionName));
+builder.Services.Configure<FeatureFlags>(builder.Configuration.GetSection(FeatureFlags.SectionName));
 
 // Configure forwarded headers for reverse proxy (Traefik)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -78,6 +82,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserContext, FamilyHub.Api.Common.Infrastructure.Auth.CurrentUserContext>();
 builder.Services.AddScoped<IDomainEventCollector, DomainEventCollector>();
 builder.Services.AddScoped<DomainEventInterceptor>();
+builder.Services.AddSingleton<SlowQueryInterceptor>();
 builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
 builder.Services.AddScoped<ICommandBus, MediatorCommandBus>();
 builder.Services.AddScoped<IQueryBus, MediatorQueryBus>();
@@ -95,7 +100,9 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
         npgsql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
     });
     options.UseSnakeCaseNamingConvention();
-    options.AddInterceptors(sp.GetRequiredService<DomainEventInterceptor>());
+    options.AddInterceptors(
+        sp.GetRequiredService<DomainEventInterceptor>(),
+        sp.GetRequiredService<SlowQueryInterceptor>());
     options.ConfigureWarnings(w =>
         w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
@@ -216,14 +223,17 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Health checks for auth infrastructure diagnostics
-builder.Services.AddHealthChecks()
-    .AddCheck<KeycloakHealthCheck>("keycloak_oidc")
-    .AddCheck<JwtSigningKeysHealthCheck>("jwt_signing_keys")
-    .AddCheck<GraphQLSchemaHealthCheck>("graphql_schema");
+// Health checks — liveness (self) + readiness (PostgreSQL, Keycloak, JWT, GraphQL)
+builder.Services.AddApplicationHealthChecks(builder.Configuration);
 
 // Polly resilience pipelines (database retry, HTTP client retry/circuit-breaker/timeout)
 builder.Services.AddResiliencePipelines();
+
+// Per-endpoint rate limiting (graphql-query, graphql-mutation, email-sending, global)
+builder.Services.AddApplicationRateLimiting();
+
+// OpenTelemetry — traces + metrics with OTLP export
+builder.Services.AddObservability(builder.Configuration);
 
 // Configure GraphQL server with Hot Chocolate
 builder.Services
@@ -236,6 +246,12 @@ builder.Services
     .AddSubscriptionType(d => d.Name("Subscription"))
     .AddInMemorySubscriptions()
     .AddTypeExtensionsFromAssembly(typeof(Program).Assembly)
+    .ModifyPagingOptions(opt =>
+    {
+        opt.DefaultPageSize = 25;
+        opt.MaxPageSize = 100;
+        opt.IncludeTotalCount = true;
+    })
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment())
     .InitializeOnStartup();
 
@@ -311,6 +327,9 @@ app.UseRequestLocalization(options =>
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Rate limiting — must come after authentication so user-based partitioning works
+app.UseRateLimiter();
+
 // Locale resolution: DB preference > Accept-Language > "en"
 app.UseMiddleware<RequestLocaleResolutionMiddleware>();
 
@@ -322,7 +341,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 }
 
 app.UseWebSockets();
-app.MapGraphQL();
+app.MapGraphQL(); // Banana Cake Pop UI available at /graphql (built into Hot Chocolate)
 
 // Hangfire dashboard (development only, behind authentication in production)
 if (app.Environment.IsDevelopment())
@@ -335,13 +354,8 @@ app.MapGet("/api/avatars/{avatarId:guid}/{size}",
     FamilyHub.Api.Common.Infrastructure.Avatar.AvatarEndpoints.GetAvatar);
 app.MapModuleEndpoints();
 
-// Health check endpoints — split into liveness and readiness probes
-app.MapGet("/health/live", (TimeProvider timeProvider) => Results.Ok(new { status = "healthy", timestamp = timeProvider.GetUtcNow() }));
-app.MapGet("/health", (TimeProvider timeProvider) => Results.Ok(new { status = "healthy", timestamp = timeProvider.GetUtcNow() }));
-app.MapHealthChecks("/health/ready", new HealthCheckOptions
-{
-    ResponseWriter = HealthCheckResponseWriter.WriteResponse
-});
+// Health check endpoints — liveness, readiness, and combined probes
+app.MapHealthCheckEndpoints();
 
 // Frontend runtime configuration endpoint (served same-origin via Traefik proxy)
 app.MapGet("/config", (IOptions<FrontendConfigOptions> options) =>
@@ -360,6 +374,12 @@ app.MapGet("/config", (IOptions<FrontendConfigOptions> options) =>
         }
     });
 }).AllowAnonymous();
+
+// Export GraphQL schema to SDL file (development only, useful for docs and codegen)
+if (app.Environment.IsDevelopment())
+{
+    await app.ExportGraphQLSchemaAsync();
+}
 
 await app.RunAsync();
 

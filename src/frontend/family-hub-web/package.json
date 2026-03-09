@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lighthouse": "lhci autorun --config=lighthouserc.json"
   },
   "prettier": {
     "printWidth": 100,
@@ -46,6 +47,8 @@
     "@tailwindcss/postcss": "^4.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "~5.9.2",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "axe-core": "^4.10.0",
+    "@lhci/cli": "^0.14.0"
   }
 }

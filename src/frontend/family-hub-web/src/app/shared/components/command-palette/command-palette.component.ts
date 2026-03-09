@@ -5,8 +5,7 @@ import {
   HostListener,
   ElementRef,
   viewChild,
-  OnDestroy,
-} from '@angular/core';
+  OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommandPaletteService } from '../../services/command-palette.service';
 import { PaletteItem } from '../../models/search.models';
@@ -14,6 +13,7 @@ import { PaletteItem } from '../../models/search.models';
 @Component({
   selector: 'app-command-palette',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
     @if (palette.isOpen()) {

@@ -1,10 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GoogleIntegrationService } from '../../services/google-integration.service';
 
 @Component({
   selector: 'app-google-link',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <div class="bg-white rounded-lg border border-gray-200 p-6" data-testid="google-link-container">

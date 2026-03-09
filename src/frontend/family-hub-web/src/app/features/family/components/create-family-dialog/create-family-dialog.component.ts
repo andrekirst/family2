@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, signal, inject } from '@angular/core';
+import { Component, EventEmitter, Output, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FamilyService } from '../../services/family.service';
@@ -6,6 +6,7 @@ import { FamilyService } from '../../services/family.service';
 @Component({
   selector: 'app-create-family-dialog',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule],
   templateUrl: './create-family-dialog.component.html',
   styleUrls: ['./create-family-dialog.component.css'],

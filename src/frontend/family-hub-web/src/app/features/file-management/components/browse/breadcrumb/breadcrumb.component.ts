@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ICONS } from '../../../../../shared/icons/icons';
@@ -7,6 +7,7 @@ import { FolderDto } from '../../../models/folder.models';
 @Component({
   selector: 'app-breadcrumb',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <nav class="flex items-center gap-1 text-sm" aria-label="Breadcrumb">

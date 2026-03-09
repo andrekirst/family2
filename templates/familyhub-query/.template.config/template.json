@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "FamilyHub Team",
+  "classifications": ["FamilyHub", "Query", "CQRS"],
+  "identity": "FamilyHub.Query",
+  "name": "FamilyHub Query",
+  "shortName": "fh-query",
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "symbols": {
+    "queryName": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "The name of the query (e.g., GetCalendarEvents)",
+      "isRequired": true,
+      "replaces": "QueryName"
+    },
+    "moduleName": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "The module name (e.g., Calendar)",
+      "isRequired": true,
+      "replaces": "ModuleName"
+    }
+  }
+}

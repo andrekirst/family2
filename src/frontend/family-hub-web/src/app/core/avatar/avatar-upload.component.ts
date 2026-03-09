@@ -1,4 +1,4 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, inject, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AvatarService, UploadAvatarInput } from './avatar.service';
 
@@ -8,6 +8,7 @@ const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 @Component({
   selector: 'app-avatar-upload',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <div class="space-y-4">

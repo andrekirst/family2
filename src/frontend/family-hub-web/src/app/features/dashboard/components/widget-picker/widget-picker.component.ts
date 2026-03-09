@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, inject, signal, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WidgetRegistryService } from '../../../../core/dashboard/widget-registry.service';
 import { WidgetRegistration } from '../../../../core/dashboard/widget-registry.model';
@@ -6,6 +6,7 @@ import { WidgetRegistration } from '../../../../core/dashboard/widget-registry.m
 @Component({
   selector: 'app-widget-picker',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <!-- Backdrop -->

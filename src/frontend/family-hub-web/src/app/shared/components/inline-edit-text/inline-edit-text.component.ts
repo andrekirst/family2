@@ -5,8 +5,7 @@ import {
   EventEmitter,
   signal,
   ElementRef,
-  ViewChild,
-} from '@angular/core';
+  ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ICONS } from '../../icons/icons';
@@ -14,6 +13,7 @@ import { ICONS } from '../../icons/icons';
 @Component({
   selector: 'app-inline-edit-text',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
     @if (isEditing()) {

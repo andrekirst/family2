@@ -157,6 +157,18 @@ services:
       - traefik-public
 
   # ---------------------------------------------------------------------------
+  # Jaeger — distributed tracing (OpenTelemetry collector + UI)
+  # ---------------------------------------------------------------------------
+  jaeger:
+    image: jaegertracing/jaeger:2.6
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: 'true'
+    networks:
+      - internal
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
   # API — .NET backend with hot-reload
   # ---------------------------------------------------------------------------
   api:
@@ -194,6 +206,8 @@ services:
       RabbitMQ__UserName: familyhub
       RabbitMQ__Password: familyhub
       RabbitMQ__Port: 5672
+      # OpenTelemetry
+      OpenTelemetry__OtlpEndpoint: http://jaeger:4317
     volumes:
       - ${SRC_ROOT:-../src}:/src
     depends_on:

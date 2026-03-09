@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HealthService, HealthStatus } from '../../shared/services/health.service';
@@ -7,6 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 @Component({
   selector: 'app-status',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">

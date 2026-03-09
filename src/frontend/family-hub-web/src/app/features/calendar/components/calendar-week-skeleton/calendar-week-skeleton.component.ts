@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-calendar-week-skeleton',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-white shadow rounded-lg overflow-hidden" data-testid="week-skeleton">
       <!-- Day header placeholders -->

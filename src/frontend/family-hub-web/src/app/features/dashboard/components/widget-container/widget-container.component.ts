@@ -11,8 +11,7 @@ import {
   OnInit,
   OnDestroy,
   ComponentRef,
-  ViewChild,
-} from '@angular/core';
+  ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WidgetRegistryService } from '../../../../core/dashboard/widget-registry.service';
 import { DashboardWidgetComponent } from '../../../../core/dashboard/dashboard-widget.interface';
@@ -21,6 +20,7 @@ import { DashboardWidgetDto } from '../../graphql/dashboard.operations';
 @Component({
   selector: 'app-widget-container',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <div

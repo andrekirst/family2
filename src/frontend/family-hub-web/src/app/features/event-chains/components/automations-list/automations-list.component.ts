@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChainDefinitionService } from '../../services/chain-definition.service';
 import { ChainDefinitionDto } from '../../models/chain-definition.models';
@@ -8,6 +8,7 @@ import { TopBarService } from '../../../../shared/services/top-bar.service';
 @Component({
   selector: 'app-automations-list',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">

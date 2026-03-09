@@ -1,4 +1,4 @@
-import { Component, inject, signal, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, inject, signal, effect, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MembersListComponent } from '../members-list/members-list.component';
@@ -10,6 +10,7 @@ import { TopBarService } from '../../../../shared/services/top-bar.service';
 @Component({
   selector: 'app-family-settings',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     RouterModule,

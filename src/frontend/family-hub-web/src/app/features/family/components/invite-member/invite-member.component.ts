@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, signal, inject } from '@angular/core';
+import { Component, EventEmitter, Output, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InvitationService } from '../../services/invitation.service';
@@ -6,6 +6,7 @@ import { InvitationService } from '../../services/invitation.service';
 @Component({
   selector: 'app-invite-member',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule],
   template: `
     <div class="dialog-overlay" (click)="onDismiss()">

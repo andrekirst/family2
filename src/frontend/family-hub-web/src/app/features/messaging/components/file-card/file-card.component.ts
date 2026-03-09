@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { AttachmentDto } from '../../services/messaging.service';
@@ -7,6 +7,7 @@ import { EnvironmentConfigService } from '../../../../core/config/environment-co
 @Component({
   selector: 'app-file-card',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <button

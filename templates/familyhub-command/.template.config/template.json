@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "FamilyHub Team",
+  "classifications": ["FamilyHub", "Command", "CQRS"],
+  "identity": "FamilyHub.Command",
+  "name": "FamilyHub Command",
+  "shortName": "fh-command",
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "symbols": {
+    "commandName": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "The name of the command (e.g., CreateCalendarEvent)",
+      "isRequired": true,
+      "replaces": "CommandName"
+    },
+    "moduleName": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "The module name (e.g., Calendar)",
+      "isRequired": true,
+      "replaces": "ModuleName"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "rename": {
+            "CommandNameCommand.cs": "CommandNameCommand.cs",
+            "CommandNameCommandHandler.cs": "CommandNameCommandHandler.cs",
+            "CommandNameCommandValidator.cs": "CommandNameCommandValidator.cs",
+            "MutationType.cs": "MutationType.cs"
+          }
+        }
+      ]
+    }
+  ]
+}
