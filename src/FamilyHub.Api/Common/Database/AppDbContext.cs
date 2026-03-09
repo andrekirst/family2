@@ -1,4 +1,5 @@
 using FamilyHub.Common.Application;
+using FamilyHub.Api.Common.Infrastructure.Audit;
 using FamilyHub.Api.Common.Infrastructure.Avatar;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
@@ -131,6 +132,9 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     // Idempotency keys (deduplication for at-least-once delivery)
     public DbSet<IdempotencyRecord> IdempotencyKeys { get; set; }
+
+    // Audit events (immutable domain event log)
+    public DbSet<AuditEvent> AuditEvents { get; set; }
 
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }

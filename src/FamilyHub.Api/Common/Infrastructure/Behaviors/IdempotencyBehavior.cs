@@ -23,6 +23,7 @@ namespace FamilyHub.Api.Common.Infrastructure.Behaviors;
 public sealed class IdempotencyBehavior<TMessage, TResponse>(
     IHttpContextAccessor httpContextAccessor,
     AppDbContext dbContext,
+    TimeProvider timeProvider,
     ILogger<IdempotencyBehavior<TMessage, TResponse>> logger)
     : IPipelineBehavior<TMessage, TResponse>
     where TMessage : IMessage
@@ -74,8 +75,8 @@ public sealed class IdempotencyBehavior<TMessage, TResponse>(
         {
             KeyHash = keyHash,
             ResultJson = JsonSerializer.Serialize(response),
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddHours(24)
+            CreatedAt = timeProvider.GetUtcNow().UtcDateTime,
+            ExpiresAt = timeProvider.GetUtcNow().UtcDateTime.AddHours(24)
         };
 
         dbContext.Set<IdempotencyRecord>().Add(record);

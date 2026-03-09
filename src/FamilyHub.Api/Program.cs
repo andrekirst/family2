@@ -2,6 +2,7 @@ using FamilyHub.Common.Application;
 using FamilyHub.Api.Common.Configuration;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Infrastructure;
+using FamilyHub.Api.Common.Infrastructure.Audit;
 using FamilyHub.Api.Common.Infrastructure.Behaviors;
 using FamilyHub.Api.Common.Infrastructure.Configuration.Infisical;
 using FamilyHub.Api.Common.Infrastructure.GraphQL;
@@ -11,6 +12,7 @@ using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Common.Modules;
 using FamilyHub.Api.Common.Development;
 using FamilyHub.Api.Common.Infrastructure.HealthChecks;
+using FamilyHub.Api.Common.Infrastructure.Resilience;
 using FamilyHub.Api.Common.Infrastructure.Validation;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -79,6 +81,8 @@ builder.Services.AddScoped<DomainEventInterceptor>();
 builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
 builder.Services.AddScoped<ICommandBus, MediatorCommandBus>();
 builder.Services.AddScoped<IQueryBus, MediatorQueryBus>();
+builder.Services.AddScoped<IAuditEventPersister, AuditEventPersister>();
+builder.Services.AddScoped<IDomainEventObserver, AuditEventHandler>();
 
 // Configure DbContext with interceptor
 builder.Services.AddDbContext<AppDbContext>((sp, options) =>
@@ -217,6 +221,9 @@ builder.Services.AddHealthChecks()
     .AddCheck<KeycloakHealthCheck>("keycloak_oidc")
     .AddCheck<JwtSigningKeysHealthCheck>("jwt_signing_keys")
     .AddCheck<GraphQLSchemaHealthCheck>("graphql_schema");
+
+// Polly resilience pipelines (database retry, HTTP client retry/circuit-breaker/timeout)
+builder.Services.AddResiliencePipelines();
 
 // Configure GraphQL server with Hot Chocolate
 builder.Services
