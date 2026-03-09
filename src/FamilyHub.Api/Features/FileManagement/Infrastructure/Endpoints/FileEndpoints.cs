@@ -1,8 +1,12 @@
-using System.Security.Claims;
-using FamilyHub.Api.Common.Infrastructure;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
+using FamilyHub.Api.Common.Infrastructure.ErrorMapping;
+using FamilyHub.Api.Features.FileManagement.Application.Commands.CompleteChunkedUpload;
+using FamilyHub.Api.Features.FileManagement.Application.Commands.InitiateChunkedUpload;
+using FamilyHub.Api.Features.FileManagement.Application.Commands.StoreUploadedFile;
+using FamilyHub.Api.Features.FileManagement.Application.Commands.UploadChunk;
+using FamilyHub.Api.Features.FileManagement.Application.Queries.DownloadFile;
+using FamilyHub.Api.Features.FileManagement.Application.Queries.StreamFile;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Storage;
-using FamilyHub.Common.Domain.ValueObjects;
+using FamilyHub.Common.Application;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
@@ -10,6 +14,8 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Endpoints;
 /// <summary>
 /// REST endpoints for binary file upload, download, and streaming.
 /// GraphQL is used for metadata operations; REST handles binary I/O.
+/// All endpoints delegate to Mediator commands/queries for pipeline support
+/// (validation, logging, user resolution, transactions, audit).
 /// </summary>
 public static class FileEndpoints
 {
@@ -35,16 +41,9 @@ public static class FileEndpoints
 
     private static async Task<IResult> UploadFileAsync(
         HttpContext httpContext,
-        [FromServices] IFileManagementStorageService storageService,
-        [FromServices] IUserRepository userRepository,
+        [FromServices] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
-        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
-        if (familyId is null)
-        {
-            return Results.Unauthorized();
-        }
-
         var form = await httpContext.Request.ReadFormAsync(cancellationToken);
         var file = form.Files.FirstOrDefault();
         if (file is null || file.Length == 0)
@@ -52,108 +51,93 @@ public static class FileEndpoints
             return Results.BadRequest(new { error = "No file provided" });
         }
 
-        using var stream = file.OpenReadStream();
-        var result = await storageService.StoreFileAsync(familyId.Value, stream, file.FileName, cancellationToken);
+        // Copy to MemoryStream so it survives past the form scope.
+        // The handler will call storageService.StoreFileAsync() with FamilyId from the pipeline.
+        var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream, cancellationToken);
+        memoryStream.Position = 0;
 
-        return Results.Ok(new
-        {
-            storageKey = result.StorageKey,
-            mimeType = result.DetectedMimeType.Value,
-            size = result.Size.Value,
-            checksum = result.Sha256Checksum.Value
-        });
+        var command = new StoreUploadedFileCommand(
+            FileStream: memoryStream,
+            FileName: file.FileName);
+
+        var result = await commandBus.SendAsync(command, cancellationToken);
+
+        return result.ToHttpResult(success => Results.Ok(new StoreUploadedFileResponse(
+            StorageKey: success.StorageKey.Value,
+            MimeType: success.MimeType.Value,
+            Size: success.FileSize.Value,
+            Checksum: success.Checksum.Value)));
     }
 
     private static async Task<IResult> DownloadFileAsync(
         string storageKey,
-        HttpContext httpContext,
-        [FromServices] IFileManagementStorageService storageService,
-        [FromServices] IUserRepository userRepository,
+        [FromServices] IQueryBus queryBus,
         CancellationToken cancellationToken)
     {
-        // Verify user belongs to a family (RLS provides per-family data isolation)
-        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
-        if (familyId is null)
-        {
-            return Results.Unauthorized();
-        }
+        var query = new DownloadFileQuery(storageKey);
+        var result = await queryBus.QueryAsync(query, cancellationToken);
 
-        var result = await storageService.GetFileAsync(storageKey, cancellationToken);
-        if (result is null)
-        {
-            return Results.NotFound();
-        }
-
-        return Results.File(result.Data, result.MimeType);
+        return result.ToHttpResult(success =>
+            Results.File(success.Data, success.MimeType));
     }
 
     private static async Task<IResult> StreamFileAsync(
         string storageKey,
         HttpContext httpContext,
-        [FromServices] IFileManagementStorageService storageService,
-        [FromServices] IUserRepository userRepository,
+        [FromServices] IQueryBus queryBus,
         CancellationToken cancellationToken)
     {
-        // Verify user belongs to a family (RLS provides per-family data isolation)
-        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
-        if (familyId is null)
-        {
-            return Results.Unauthorized();
-        }
-
-        // Parse Range header for partial content
+        // Parse Range header (HTTP transport concern — stays in endpoint)
         var rangeHeader = httpContext.Request.Headers.Range.FirstOrDefault();
-        if (rangeHeader is null)
+        long? rangeFrom = null;
+        long? rangeTo = null;
+
+        if (rangeHeader is not null)
         {
-            // No range requested — return full file
-            var result = await storageService.GetFileAsync(storageKey, cancellationToken);
-            if (result is null)
+            var (from, to) = ParseRangeHeader(rangeHeader);
+            if (from is null)
             {
-                return Results.NotFound();
+                return Results.BadRequest(new { error = "Invalid range header" });
             }
-
-            httpContext.Response.Headers["Accept-Ranges"] = "bytes";
-            return Results.File(result.Data, result.MimeType);
+            rangeFrom = from;
+            rangeTo = to;
         }
 
-        // Parse "bytes=start-end"
-        var (from, to) = ParseRangeHeader(rangeHeader);
-        if (from is null)
-        {
-            return Results.BadRequest(new { error = "Invalid range header" });
-        }
+        var query = new StreamFileQuery(storageKey, rangeFrom, rangeTo);
+        var result = await queryBus.QueryAsync(query, cancellationToken);
 
-        var rangeResult = await storageService.GetFileRangeAsync(
-            storageKey, from.Value, to ?? long.MaxValue, cancellationToken);
-        if (rangeResult is null)
-        {
-            return Results.NotFound();
-        }
+        return result.Match(
+            success =>
+            {
+                httpContext.Response.Headers["Accept-Ranges"] = "bytes";
 
-        httpContext.Response.StatusCode = 206;
-        httpContext.Response.Headers["Accept-Ranges"] = "bytes";
-        httpContext.Response.Headers["Content-Range"] =
-            $"bytes {rangeResult.RangeStart}-{rangeResult.RangeEnd}/{rangeResult.TotalSize}";
-        httpContext.Response.ContentLength = rangeResult.RangeEnd - rangeResult.RangeStart + 1;
+                if (success.IsPartialContent)
+                {
+                    // 206 Partial Content with range headers
+                    httpContext.Response.StatusCode = 206;
+                    httpContext.Response.Headers["Content-Range"] =
+                        $"bytes {success.RangeStart}-{success.RangeEnd}/{success.TotalSize}";
+                    httpContext.Response.ContentLength = success.RangeEnd - success.RangeStart + 1;
 
-        await rangeResult.Data.CopyToAsync(httpContext.Response.Body, cancellationToken);
-        return Results.Empty;
+                    // Must write directly to response body for streaming
+                    return Results.Stream(success.Data, success.MimeType);
+                }
+
+                return Results.File(success.Data, success.MimeType);
+            },
+            error => DomainErrorToProblemDetailsMapper.ToProblemDetails(error));
     }
 
     private static async Task<IResult> InitiateChunkedUploadAsync(
-        HttpContext httpContext,
-        [FromServices] IFileManagementStorageService storageService,
-        [FromServices] IUserRepository userRepository,
+        [FromServices] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
-        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
-        if (familyId is null)
-        {
-            return Results.Unauthorized();
-        }
+        var command = new InitiateChunkedUploadCommand();
+        var result = await commandBus.SendAsync(command, cancellationToken);
 
-        var uploadId = await storageService.InitiateChunkedUploadAsync(cancellationToken);
-        return Results.Ok(new { uploadId });
+        return result.ToHttpResult(success => Results.Ok(
+            new InitiateChunkedUploadResponse(success.UploadId)));
     }
 
     private static async Task<IResult> UploadChunkAsync(
@@ -161,6 +145,7 @@ public static class FileEndpoints
         [FromQuery] int chunkIndex,
         HttpContext httpContext,
         [FromServices] IFileManagementStorageService storageService,
+        [FromServices] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
         var form = await httpContext.Request.ReadFormAsync(cancellationToken);
@@ -170,50 +155,40 @@ public static class FileEndpoints
             return Results.BadRequest(new { error = "No chunk data provided" });
         }
 
+        // Phase 1: Upload bytes via storage service (no FamilyId needed for chunk storage)
         using var stream = file.OpenReadStream();
         await storageService.UploadChunkAsync(uploadId, chunkIndex, stream, cancellationToken);
 
-        return Results.Ok(new { uploadId, chunkIndex, size = file.Length });
+        // Phase 2: Record chunk metadata via command pipeline (validation, logging, user resolution, audit)
+        var command = new UploadChunkCommand(
+            UploadId: uploadId,
+            ChunkIndex: chunkIndex,
+            ChunkSize: file.Length);
+
+        var result = await commandBus.SendAsync(command, cancellationToken);
+
+        return result.ToHttpResult(success => Results.Ok(
+            new UploadChunkResponse(success.UploadId, success.ChunkIndex, success.Size)));
     }
 
     private static async Task<IResult> CompleteChunkedUploadAsync(
         string uploadId,
-        [FromBody] CompleteUploadRequest request,
-        HttpContext httpContext,
-        [FromServices] IFileManagementStorageService storageService,
-        [FromServices] IUserRepository userRepository,
+        [FromBody] CompleteChunkedUploadRequest request,
+        [FromServices] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
-        var familyId = await GetFamilyIdAsync(httpContext.User, userRepository, cancellationToken);
-        if (familyId is null)
-        {
-            return Results.Unauthorized();
-        }
+        var command = new CompleteChunkedUploadCommand(
+            UploadId: uploadId,
+            FileName: request.FileName);
 
-        var result = await storageService.CompleteChunkedUploadAsync(
-            familyId.Value, uploadId, request.FileName, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
 
-        return Results.Ok(new
-        {
-            storageKey = result.StorageKey,
-            mimeType = result.DetectedMimeType.Value,
-            size = result.Size.Value,
-            checksum = result.Sha256Checksum.Value
-        });
-    }
-
-    private static async Task<FamilyId?> GetFamilyIdAsync(
-        ClaimsPrincipal user, IUserRepository userRepository, CancellationToken cancellationToken)
-    {
-        var externalUserId = user.FindFirst(ClaimNames.Standard.Sub)?.Value;
-        if (externalUserId is null)
-        {
-            return null;
-        }
-
-        var userEntity = await userRepository.GetByExternalIdAsync(
-            ExternalUserId.From(externalUserId), cancellationToken);
-        return userEntity?.FamilyId;
+        return result.ToHttpResult(success => Results.Ok(
+            new CompleteChunkedUploadResponse(
+                StorageKey: success.StorageKey.Value,
+                MimeType: success.MimeType.Value,
+                Size: success.Size.Value,
+                Checksum: success.Checksum.Value)));
     }
 
     private static (long? From, long? To) ParseRangeHeader(string rangeHeader)
@@ -241,4 +216,7 @@ public static class FileEndpoints
     }
 }
 
-public sealed record CompleteUploadRequest(string FileName);
+/// <summary>
+/// Request body for the complete chunked upload endpoint.
+/// </summary>
+public sealed record CompleteChunkedUploadRequest(string FileName);

@@ -4,7 +4,7 @@ using FamilyHub.Api.Features.Family.Application.Commands.SetFamilyAvatar;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FluentAssertions;
 using NSubstitute;
 

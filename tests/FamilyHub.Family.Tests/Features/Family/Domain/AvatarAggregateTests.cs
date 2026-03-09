@@ -1,5 +1,5 @@
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FluentAssertions;
 
 namespace FamilyHub.Family.Tests.Features.Family.Domain;

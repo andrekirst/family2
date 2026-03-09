@@ -4,7 +4,7 @@ using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Commands.RemoveAvatar;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FluentAssertions;
 using NSubstitute;
 

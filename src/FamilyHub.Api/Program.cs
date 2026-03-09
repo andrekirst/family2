@@ -42,6 +42,8 @@ builder.Services.Configure<FrontendConfigOptions>(builder.Configuration.GetSecti
 builder.Services.Configure<FamilyHub.Api.Common.Configuration.LocalizationOptions>(
     builder.Configuration.GetSection(FamilyHub.Api.Common.Configuration.LocalizationOptions.SectionName));
 builder.Services.Configure<FeatureFlags>(builder.Configuration.GetSection(FeatureFlags.SectionName));
+builder.Services.Configure<FamilyHub.Api.Common.Infrastructure.BlobStaging.BlobStagingOptions>(
+    builder.Configuration.GetSection(FamilyHub.Api.Common.Infrastructure.BlobStaging.BlobStagingOptions.SectionName));
 
 // Configure forwarded headers for reverse proxy (Traefik)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -69,6 +71,7 @@ builder.Services.AddMediator(options =>
     options.PipelineBehaviors =
     [
         typeof(DomainEventPublishingBehavior<,>),  // outermost (100)
+        typeof(StreamingBehavior<,>),              // flags streaming responses (195)
         typeof(LoggingBehavior<,>),                // logs original command (200)
         typeof(UserResolutionBehavior<,>),         // resolves user, populates UserId/FamilyId (250)
         typeof(InputSanitizationBehavior<,>),      // strips HTML from command strings (290)
@@ -94,6 +97,11 @@ builder.Services.AddScoped<ICommandBus, MediatorCommandBus>();
 builder.Services.AddScoped<IQueryBus, MediatorQueryBus>();
 builder.Services.AddScoped<IAuditEventPersister, AuditEventPersister>();
 builder.Services.AddScoped<IDomainEventObserver, AuditEventHandler>();
+
+// Blob staging (transactional outbox for orphaned blob prevention)
+builder.Services.AddScoped<FamilyHub.Api.Common.Infrastructure.BlobStaging.IBlobStagingRepository, FamilyHub.Api.Common.Infrastructure.BlobStaging.BlobStagingRepository>();
+builder.Services.AddSingleton<FamilyHub.Api.Common.Infrastructure.BlobStaging.DeadLetterAlertService>();
+builder.Services.AddScoped<FamilyHub.Api.Common.Infrastructure.BlobStaging.BlobPromotionJob>();
 
 // Configure DbContext with interceptor
 builder.Services.AddDbContext<AppDbContext>((sp, options) =>
@@ -359,9 +367,15 @@ if (app.Environment.IsDevelopment())
     app.MapHangfireDashboard("/hangfire").RequireAuthorization();
 }
 
-// Minimal API endpoints — avatar (common) + module endpoints (IEndpointModule)
-app.MapGet("/api/avatars/{avatarId:guid}/{size}",
-    FamilyHub.Api.Common.Infrastructure.Avatar.AvatarEndpoints.GetAvatar);
+// Blob staging — recurring Hangfire job for promoting staged blobs
+var blobStagingOptions = app.Services.GetRequiredService<IOptions<FamilyHub.Api.Common.Infrastructure.BlobStaging.BlobStagingOptions>>().Value;
+RecurringJob.AddOrUpdate<FamilyHub.Api.Common.Infrastructure.BlobStaging.BlobPromotionJob>(
+    "blob-promotion",
+    job => job.ExecuteAsync(),
+    blobStagingOptions.PromotionCron);
+
+// Minimal API endpoints — module endpoints (IEndpointModule)
+// Avatar endpoint is now registered by FamilyModule.MapEndpoints()
 app.MapModuleEndpoints();
 
 // Health check endpoints — liveness, readiness, and combined probes
