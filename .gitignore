@@ -375,6 +375,9 @@ pnpm-lock.yaml
 ###############################################################################
 src/frontend/family-hub-web/playwright-report/index.html
 
+# Task mode cache (simple/multi selection)
+.task/
+
 # Auto Claude data directory
 .auto-claude/
 

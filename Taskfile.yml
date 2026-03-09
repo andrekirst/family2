@@ -1,20 +1,32 @@
-# Family Hub — Multi-Environment CLI
+# Family Hub — Dual-Mode Development CLI
 # Requires: https://taskfile.dev (v3+)
 #
-# Quick start:
-#   task setup:certs      # one-time: generate TLS certificates
-#   task shared:up        # start shared services (Keycloak, MailHog, Traefik, proxies)
-#   task up               # provision realm + start per-env services
-#   task down             # stop per-env (data persists)
-#   task env:destroy      # stop + remove volumes + delete realm
+# Quick start (simple mode — recommended for single-branch work):
+#   task mode:set -- simple
+#   task up
+#
+# Multi-environment mode (parallel branch isolation):
+#   task mode:set -- multi
+#   task up
+#
+# First run will prompt for mode selection if not set.
 
 version: '3'
 
 vars:
+  MODE:
+    sh: |
+      if [ -n "${MODE:-}" ]; then echo "$MODE"
+      elif [ -f .task/mode ]; then cat .task/mode
+      else echo "unset"
+      fi
   BRANCH:
     sh: git rev-parse --abbrev-ref HEAD
   ENV_NAME:
-    sh: echo "{{.BRANCH}}" | tr '/_' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//'
+    sh: |
+      if [ "{{.MODE}}" = "simple" ]; then echo "dev"
+      else echo "{{.BRANCH}}" | tr '/_' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//'
+      fi
   DOCKER_UID:
     sh: id -u
   DOCKER_GID:
@@ -22,14 +34,111 @@ vars:
   SRC_ROOT:
     sh: echo "$(git rev-parse --show-toplevel)/src"
   INFRA_DIR: ./infrastructure
+  # Compose file references
+  BASE_COMPOSE: '{{.INFRA_DIR}}/docker-compose.base.yml'
+  SIMPLE_COMPOSE: '{{.INFRA_DIR}}/docker-compose.simple.yml'
+  MULTI_COMPOSE: '{{.INFRA_DIR}}/docker-compose.multi.yml'
+  # Legacy compose files (kept for transition)
   TRAEFIK_COMPOSE: '{{.INFRA_DIR}}/docker-compose.traefik.yml'
   SHARED_COMPOSE: '{{.INFRA_DIR}}/docker-compose.shared.yml'
   ENV_COMPOSE: '{{.INFRA_DIR}}/docker-compose.env.yml'
-  # Explicit project names prevent orphan-container warnings between compose files
+  # Explicit project names
   DC_TRAEFIK: 'docker compose -p fh-traefik -f {{.INFRA_DIR}}/docker-compose.traefik.yml'
   DC_SHARED: 'docker compose -p fh-shared -f {{.INFRA_DIR}}/docker-compose.shared.yml'
 
 tasks:
+  # ---------------------------------------------------------------------------
+  # Mode Management
+  # ---------------------------------------------------------------------------
+  mode:set:
+    desc: 'Set development mode (usage: task mode:set -- simple|multi)'
+    cmds:
+      - |
+        MODE_ARG="{{.CLI_ARGS}}"
+        if [ -z "$MODE_ARG" ]; then
+          echo "  Usage: task mode:set -- simple|multi"
+          exit 1
+        fi
+        if [ "$MODE_ARG" != "simple" ] && [ "$MODE_ARG" != "multi" ]; then
+          echo "  ERROR: Mode must be 'simple' or 'multi', got '$MODE_ARG'"
+          exit 1
+        fi
+        CURRENT="{{.MODE}}"
+        if [ "$CURRENT" != "unset" ] && [ "$CURRENT" != "$MODE_ARG" ]; then
+          echo ""
+          echo "  Switching from '$CURRENT' to '$MODE_ARG' mode."
+          echo "  NOTE: Run 'task destroy' first to clean up the old mode's containers."
+          echo ""
+        fi
+        mkdir -p .task
+        echo "$MODE_ARG" > .task/mode
+        echo "  Mode set to: $MODE_ARG"
+
+  mode:status:
+    desc: 'Print current development mode'
+    cmds:
+      - |
+        echo ""
+        echo "  Current mode: {{.MODE}}"
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  Environment:  dev (fixed)"
+          echo "  Compose:      base.yml + simple.yml"
+          echo "  Project:      fh-simple"
+        elif [ "{{.MODE}}" = "multi" ]; then
+          echo "  Environment:  {{.ENV_NAME}} (from branch: {{.BRANCH}})"
+          echo "  Compose:      base.yml + multi.yml (+ legacy traefik/shared)"
+          echo "  Project:      fh-{{.ENV_NAME}}"
+        else
+          echo "  No mode set. Run: task mode:set -- simple"
+        fi
+        echo ""
+
+  mode:reset:
+    desc: 'Clear mode selection (will prompt on next task up)'
+    cmds:
+      - rm -f .task/mode
+      - echo "  Mode reset. Next 'task up' will prompt for selection."
+
+  mode:prompt:
+    desc: 'Interactive mode selection (internal — called on first task up)'
+    internal: true
+    cmds:
+      - |
+        echo ""
+        echo "  ╔══════════════════════════════════════════╗"
+        echo "  ║   FamilyHub Development Mode Selection   ║"
+        echo "  ╠══════════════════════════════════════════╣"
+        echo "  ║                                          ║"
+        echo "  ║  [1] Simple  — single stack, localhost   ║"
+        echo "  ║     Recommended for everyday development ║"
+        echo "  ║     All services on localhost:4443       ║"
+        echo "  ║                                          ║"
+        echo "  ║  [2] Multi   — per-branch isolation      ║"
+        echo "  ║     For parallel branch work             ║"
+        echo "  ║     Subdomain-based routing              ║"
+        echo "  ║                                          ║"
+        echo "  ╚══════════════════════════════════════════╝"
+        echo ""
+        printf "  Select mode [1/2]: "
+        read -r choice
+        case "$choice" in
+          1|simple)
+            mkdir -p .task
+            echo "simple" > .task/mode
+            echo "  Mode set to: simple"
+            ;;
+          2|multi)
+            mkdir -p .task
+            echo "multi" > .task/mode
+            echo "  Mode set to: multi"
+            ;;
+          *)
+            echo "  Invalid choice. Run: task mode:set -- simple"
+            exit 1
+            ;;
+        esac
+    interactive: true
+
   # ---------------------------------------------------------------------------
   # Setup
   # ---------------------------------------------------------------------------
@@ -57,29 +166,195 @@ tasks:
   setup:proxy-volumes:
     desc: Create external Docker volumes for package caching proxies (idempotent)
     cmds:
-      - docker volume create fh-proxy-verdaccio
-      - docker volume create fh-proxy-baget
-      - docker volume create fh-proxy-registry-dockerhub
-      - docker volume create fh-proxy-registry-mcr
-      - docker volume create fh-proxy-registry-ghcr
-      - docker volume create fh-infisical-pg
-      - docker volume create fh-infisical-redis
-    status:
-      - docker volume inspect fh-proxy-verdaccio >/dev/null 2>&1
-      - docker volume inspect fh-proxy-baget >/dev/null 2>&1
-      - docker volume inspect fh-proxy-registry-dockerhub >/dev/null 2>&1
-      - docker volume inspect fh-proxy-registry-mcr >/dev/null 2>&1
-      - docker volume inspect fh-proxy-registry-ghcr >/dev/null 2>&1
-      - docker volume inspect fh-infisical-pg >/dev/null 2>&1
-      - docker volume inspect fh-infisical-redis >/dev/null 2>&1
+      - docker volume create fh-proxy-verdaccio 2>/dev/null || true
+      - docker volume create fh-proxy-baget 2>/dev/null || true
+      - |
+        if [ "{{.MODE}}" = "multi" ]; then
+          docker volume create fh-proxy-registry-dockerhub 2>/dev/null || true
+          docker volume create fh-proxy-registry-mcr 2>/dev/null || true
+          docker volume create fh-proxy-registry-ghcr 2>/dev/null || true
+        fi
 
   # ---------------------------------------------------------------------------
-  # Shared layer (Traefik + Keycloak + MailHog + Infisical + proxies)
+  # Quick aliases — route to simple or multi mode
+  # ---------------------------------------------------------------------------
+  up:
+    desc: 'Start environment (auto-detects mode)'
+    cmds:
+      - |
+        if [ "{{.MODE}}" = "unset" ]; then
+          task mode:prompt
+          # Re-read mode after prompt
+          MODE=$(cat .task/mode 2>/dev/null || echo "unset")
+          if [ "$MODE" = "simple" ]; then
+            task simple:up
+          elif [ "$MODE" = "multi" ]; then
+            task env:up
+          else
+            echo "  No mode selected. Aborting."
+            exit 1
+          fi
+        elif [ "{{.MODE}}" = "simple" ]; then
+          task simple:up
+        else
+          task env:up
+        fi
+
+  down:
+    desc: 'Stop environment'
+    cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          task simple:down
+        else
+          task env:down
+        fi
+
+  destroy:
+    desc: 'Stop environment + remove volumes'
+    cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          task simple:destroy
+        else
+          task env:destroy
+        fi
+
+  status:
+    desc: 'Full health dashboard'
+    cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          bash {{.INFRA_DIR}}/scripts/health-check.sh simple
+        else
+          bash {{.INFRA_DIR}}/scripts/health-check.sh all "{{.ENV_NAME}}"
+        fi
+
+  urls:
+    desc: 'Show URLs for current environment'
+    cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          task simple:urls
+        else
+          task multi:urls
+        fi
+
+  verify:
+    desc: 'Run full diagnostic check'
+    cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          bash {{.INFRA_DIR}}/scripts/readiness-gate.sh dev --mode simple --verbose
+        else
+          bash {{.INFRA_DIR}}/scripts/readiness-gate.sh "{{.ENV_NAME}}" --verbose
+        fi
+    env:
+      ENV_NAME: '{{.ENV_NAME}}'
+
+  # ---------------------------------------------------------------------------
+  # Simple Mode
+  # ---------------------------------------------------------------------------
+  simple:up:
+    desc: 'Start simple mode (all services on localhost:4443)'
+    deps: [setup:certs, setup:network, setup:proxy-volumes, setup:hooks]
+    cmds:
+      # Provision Keycloak realm
+      - bash {{.INFRA_DIR}}/keycloak/provision-realm.sh dev --mode simple
+      # Start all services via base + simple overlay
+      - |
+        DOCKER_UID={{.DOCKER_UID}} DOCKER_GID={{.DOCKER_GID}} \
+        SRC_ROOT={{.SRC_ROOT}} \
+        docker compose -p fh-simple \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.SIMPLE_COMPOSE}} \
+          up -d --build
+      # Wait for readiness
+      - bash {{.INFRA_DIR}}/scripts/readiness-gate.sh dev --mode simple --auto-recover
+      # Show URLs
+      - task: simple:urls
+
+  simple:down:
+    desc: 'Stop simple mode (data persists)'
+    cmds:
+      - |
+        docker compose -p fh-simple \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.SIMPLE_COMPOSE}} \
+          down
+
+  simple:destroy:
+    desc: 'Stop simple mode + remove volumes + delete realm'
+    prompt: This will remove all simple mode containers and data. Continue?
+    cmds:
+      - |
+        docker compose -p fh-simple \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.SIMPLE_COMPOSE}} \
+          down -v
+      - bash {{.INFRA_DIR}}/keycloak/provision-realm.sh dev --mode simple --delete
+
+  simple:urls:
+    desc: 'Show simple mode URLs'
+    cmds:
+      - |
+        echo ""
+        echo "  Mode: Simple (all on localhost:4443)"
+        echo "  ──────────────────────────────────────────"
+        echo "  App:         https://localhost:4443"
+        echo "  API:         https://localhost:4443/graphql"
+        echo "  API Health:  https://localhost:4443/health"
+        echo "  Config:      https://localhost:4443/config"
+        echo "  Keycloak:    https://localhost:4443/auth"
+        echo "  ──────────────────────────────────────────"
+        echo "  MailHog:     https://mail.localhost:4443"
+        echo "  pgAdmin:     https://pgadmin.localhost:4443"
+        echo "  MinIO:       https://minio.localhost:4443"
+        echo "  ──────────────────────────────────────────"
+        echo "  Proxies:"
+        echo "  npm:         https://npm.localhost:4443    (localhost:4873)"
+        echo "  NuGet:       https://nuget.localhost:4443  (localhost:5555)"
+        echo "  ──────────────────────────────────────────"
+        echo "  Traefik:     http://localhost:8888"
+        echo "  Realm:       FamilyHub-dev"
+        echo ""
+
+  simple:status:
+    desc: 'Health check for simple mode'
+    cmds:
+      - bash {{.INFRA_DIR}}/scripts/health-check.sh simple
+
+  simple:logs:
+    desc: 'Follow simple mode logs (optional: task simple:logs -- api)'
+    cmds:
+      - |
+        docker compose -p fh-simple \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.SIMPLE_COMPOSE}} \
+          logs -f {{.CLI_ARGS}}
+
+  simple:ps:
+    desc: 'Show running containers for simple mode'
+    cmds:
+      - |
+        docker compose -p fh-simple \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.SIMPLE_COMPOSE}} \
+          ps
+
+  # ---------------------------------------------------------------------------
+  # Shared layer (Multi-env only: Traefik + Keycloak + MailHog + proxies)
   # ---------------------------------------------------------------------------
   shared:up:
-    desc: Start all shared services (Traefik, Keycloak, MailHog, Infisical, proxies)
+    desc: 'Start all shared services (multi-env mode only)'
     deps: [setup:certs, setup:network, setup:proxy-volumes]
     cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  shared:up is not available in simple mode."
+          echo "  Use 'task up' instead — simple mode runs everything in one stack."
+          exit 0
+        fi
       - '{{.DC_TRAEFIK}} up -d'
       - '{{.DC_SHARED}} up -d'
       - echo ""
@@ -89,38 +364,63 @@ tasks:
       - echo ""
 
   shared:down:
-    desc: Stop shared services
+    desc: 'Stop shared services (multi-env mode only)'
     cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  shared:down is not available in simple mode."
+          exit 0
+        fi
       - '{{.DC_SHARED}} down'
       - '{{.DC_TRAEFIK}} down'
 
   shared:status:
     desc: Health check shared services
     cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  shared:status is not available in simple mode. Use 'task status' instead."
+          exit 0
+        fi
       - bash {{.INFRA_DIR}}/scripts/health-check.sh shared
 
   shared:logs:
     desc: Follow shared service logs
     cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  shared:logs is not available in simple mode. Use 'task simple:logs' instead."
+          exit 0
+        fi
       - '{{.DC_TRAEFIK}} logs -f {{.CLI_ARGS}}'
 
   # ---------------------------------------------------------------------------
-  # Per-environment lifecycle
+  # Per-environment lifecycle (Multi-env mode)
   # ---------------------------------------------------------------------------
   env:up:
     desc: 'Provision realm + start environment for current branch ({{.ENV_NAME}})'
     deps: [shared:up, setup:hooks]
     cmds:
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  env:up is not available in simple mode. Use 'task up' instead."
+          exit 1
+        fi
       # Provision Keycloak realm for this environment
       - bash {{.INFRA_DIR}}/keycloak/provision-realm.sh "{{.ENV_NAME}}"
-      # Fetch Infisical secrets (if configured)
+      # Fetch Infisical secrets (if configured) and start services
       - |
         SECRETS=$(bash {{.INFRA_DIR}}/scripts/fetch-infisical-secrets.sh 2>/dev/null) && eval "$SECRETS"
-        ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} up -d --build
+        ENV_NAME={{.ENV_NAME}} \
+        COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} \
+        docker compose \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.MULTI_COMPOSE}} \
+          up -d --build
       # Wait for all services to be ready
       - bash {{.INFRA_DIR}}/scripts/readiness-gate.sh "{{.ENV_NAME}}" --auto-recover
       # Show URLs
-      - task: urls
+      - task: multi:urls
     env:
       ENV_NAME: '{{.ENV_NAME}}'
       DOCKER_UID: '{{.DOCKER_UID}}'
@@ -135,23 +435,67 @@ tasks:
   env:down:
     desc: 'Stop environment (data persists)'
     cmds:
-      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} down
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  env:down is not available in simple mode. Use 'task down' instead."
+          exit 1
+        fi
+      - |
+        ENV_NAME={{.ENV_NAME}} \
+        COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} \
+        docker compose \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.MULTI_COMPOSE}} \
+          down
 
   env:destroy:
     desc: 'Stop environment + remove volumes + delete realm (clean slate)'
     cmds:
-      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} down -v
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  env:destroy is not available in simple mode. Use 'task destroy' instead."
+          exit 1
+        fi
+      - |
+        ENV_NAME={{.ENV_NAME}} \
+        COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} \
+        docker compose \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.MULTI_COMPOSE}} \
+          down -v
       - bash {{.INFRA_DIR}}/keycloak/provision-realm.sh "{{.ENV_NAME}}" --delete
 
   env:logs:
     desc: 'Follow environment logs (optional: task env:logs -- api)'
     cmds:
-      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} logs -f {{.CLI_ARGS}}
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  env:logs is not available in simple mode. Use 'task simple:logs' instead."
+          exit 1
+        fi
+      - |
+        ENV_NAME={{.ENV_NAME}} \
+        COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} \
+        docker compose \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.MULTI_COMPOSE}} \
+          logs -f {{.CLI_ARGS}}
 
   env:ps:
     desc: 'Show running containers for current environment'
     cmds:
-      - ENV_NAME={{.ENV_NAME}} COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} docker compose -f {{.ENV_COMPOSE}} ps
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          echo "  env:ps is not available in simple mode. Use 'task simple:ps' instead."
+          exit 1
+        fi
+      - |
+        ENV_NAME={{.ENV_NAME}} \
+        COMPOSE_PROJECT_NAME=fh-{{.ENV_NAME}} \
+        docker compose \
+          -f {{.BASE_COMPOSE}} \
+          -f {{.MULTI_COMPOSE}} \
+          ps
 
   env:name:
     desc: 'Print environment name for current branch'
@@ -165,37 +509,15 @@ tasks:
     env:
       ENV_NAME: '{{.ENV_NAME}}'
 
-  verify:
-    desc: 'Alias for env:verify'
-    cmds:
-      - task: env:verify
-
   # ---------------------------------------------------------------------------
-  # Quick aliases
+  # Multi-env URL display
   # ---------------------------------------------------------------------------
-  up:
-    desc: 'Alias for env:up — start environment for current branch'
-    cmds:
-      - task: env:up
-
-  down:
-    desc: 'Alias for env:down — stop environment'
-    cmds:
-      - task: env:down
-
-  # ---------------------------------------------------------------------------
-  # Status & information
-  # ---------------------------------------------------------------------------
-  status:
-    desc: 'Full health dashboard (shared + environment)'
-    cmds:
-      - bash {{.INFRA_DIR}}/scripts/health-check.sh all "{{.ENV_NAME}}"
-
-  urls:
-    desc: 'Show URLs for current environment'
+  multi:urls:
+    desc: 'Show URLs for multi-env mode'
     cmds:
       - |
         echo ""
+        echo "  Mode: Multi-Environment"
         echo "  Environment: {{.ENV_NAME}}"
         echo "  ──────────────────────────────────────────"
         echo "  App:         https://{{.ENV_NAME}}.localhost:4443"
@@ -219,6 +541,9 @@ tasks:
         echo "  Keycloak realm: FamilyHub-{{.ENV_NAME}}"
         echo ""
 
+  # ---------------------------------------------------------------------------
+  # Status & information
+  # ---------------------------------------------------------------------------
   list:
     desc: 'List all running FamilyHub environments'
     cmds:
@@ -241,13 +566,28 @@ tasks:
         echo ""
         echo "  Proxy Containers:"
         echo "  ──────────────────────────────────────────"
-        {{.DC_TRAEFIK}} ps --format "table {{`{{.Name}}`}}\t{{`{{.Status}}`}}\t{{`{{.Ports}}`}}" | grep -E "(verdaccio|baget|registry)" || echo "  No proxy containers running."
+        if [ "{{.MODE}}" = "simple" ]; then
+          docker compose -p fh-simple \
+            -f {{.BASE_COMPOSE}} \
+            -f {{.SIMPLE_COMPOSE}} \
+            ps --format "table {{`{{.Name}}`}}\t{{`{{.Status}}`}}\t{{`{{.Ports}}`}}" | grep -E "(verdaccio|baget)" || echo "  No proxy containers running."
+        else
+          {{.DC_TRAEFIK}} ps --format "table {{`{{.Name}}`}}\t{{`{{.Status}}`}}\t{{`{{.Ports}}`}}" | grep -E "(verdaccio|baget|registry)" || echo "  No proxy containers running."
+        fi
         echo ""
 
   proxy:logs:
     desc: 'Follow proxy service logs'
     cmds:
-      - '{{.DC_TRAEFIK}} logs -f verdaccio baget registry-dockerhub registry-mcr registry-ghcr {{.CLI_ARGS}}'
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          docker compose -p fh-simple \
+            -f {{.BASE_COMPOSE}} \
+            -f {{.SIMPLE_COMPOSE}} \
+            logs -f verdaccio baget {{.CLI_ARGS}}
+        else
+          {{.DC_TRAEFIK}} logs -f verdaccio baget registry-dockerhub registry-mcr registry-ghcr {{.CLI_ARGS}}
+        fi
 
   proxy:usage:
     desc: 'Show cache disk usage'
@@ -256,19 +596,37 @@ tasks:
         echo ""
         echo "  Proxy Cache Disk Usage:"
         echo "  ──────────────────────────────────────────"
-        for vol in fh-proxy-verdaccio fh-proxy-baget fh-proxy-registry-dockerhub fh-proxy-registry-mcr fh-proxy-registry-ghcr; do
+        for vol in fh-proxy-verdaccio fh-proxy-baget; do
           size=$(docker run --rm -v "${vol}:/data" alpine sh -c "du -sh /data 2>/dev/null | cut -f1" 2>/dev/null || echo "N/A")
           printf "  %-35s %s\n" "$vol" "$size"
         done
+        if [ "{{.MODE}}" != "simple" ]; then
+          for vol in fh-proxy-registry-dockerhub fh-proxy-registry-mcr fh-proxy-registry-ghcr; do
+            size=$(docker run --rm -v "${vol}:/data" alpine sh -c "du -sh /data 2>/dev/null | cut -f1" 2>/dev/null || echo "N/A")
+            printf "  %-35s %s\n" "$vol" "$size"
+          done
+        fi
         echo ""
 
   proxy:clean:
     desc: 'Stop proxies and remove cache volumes (with confirmation)'
     prompt: This will remove all cached packages (npm, NuGet, Docker images). Continue?
     cmds:
-      - '{{.DC_TRAEFIK}} stop verdaccio baget registry-dockerhub registry-mcr registry-ghcr'
-      - docker volume rm fh-proxy-verdaccio fh-proxy-baget fh-proxy-registry-dockerhub fh-proxy-registry-mcr fh-proxy-registry-ghcr 2>/dev/null || true
-      - echo "Proxy caches removed. Run 'task shared:up' to recreate."
+      - |
+        if [ "{{.MODE}}" = "simple" ]; then
+          docker compose -p fh-simple \
+            -f {{.BASE_COMPOSE}} \
+            -f {{.SIMPLE_COMPOSE}} \
+            stop verdaccio baget
+        else
+          {{.DC_TRAEFIK}} stop verdaccio baget registry-dockerhub registry-mcr registry-ghcr
+        fi
+      - docker volume rm fh-proxy-verdaccio fh-proxy-baget 2>/dev/null || true
+      - |
+        if [ "{{.MODE}}" != "simple" ]; then
+          docker volume rm fh-proxy-registry-dockerhub fh-proxy-registry-mcr fh-proxy-registry-ghcr 2>/dev/null || true
+        fi
+      - echo "Proxy caches removed. Run 'task up' to recreate."
 
   # ---------------------------------------------------------------------------
   # Worktree management

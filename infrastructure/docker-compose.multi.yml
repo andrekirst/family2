@@ -1,0 +1,206 @@
+# Multi-environment overlay — subdomain-based routing with ${ENV_NAME} templating
+# Usage: ENV_NAME=<branch> docker compose -p fh-<branch> -f docker-compose.base.yml -f docker-compose.multi.yml up -d
+#
+# Reconstructs current multi-env behavior: each branch gets isolated subdomains.
+
+services:
+  # ---------------------------------------------------------------------------
+  # Keycloak — shared instance with per-env realm, subdomain routing
+  # ---------------------------------------------------------------------------
+  keycloak:
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.keycloak.rule=Host(`auth.localhost`) || Host(`auth.dev.andrekirst.de`)'
+      - 'traefik.http.routers.keycloak.entrypoints=websecure'
+      - 'traefik.http.routers.keycloak.tls=true'
+      - 'traefik.http.services.keycloak.loadbalancer.server.port=8080'
+    networks:
+      traefik-public:
+        aliases:
+          - keycloak
+
+  # ---------------------------------------------------------------------------
+  # MailHog — subdomain routing
+  # ---------------------------------------------------------------------------
+  mailhog:
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.mailhog.rule=Host(`mail.localhost`) || Host(`mail.dev.andrekirst.de`)'
+      - 'traefik.http.routers.mailhog.entrypoints=websecure'
+      - 'traefik.http.routers.mailhog.tls=true'
+      - 'traefik.http.services.mailhog.loadbalancer.server.port=8025'
+
+  # ---------------------------------------------------------------------------
+  # pgAdmin — per-env subdomain
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.pgadmin-${ENV_NAME}.rule=Host(`pgadmin-${ENV_NAME}.dev.andrekirst.de`) || Host(`pgadmin-${ENV_NAME}.localhost`)'
+      - 'traefik.http.routers.pgadmin-${ENV_NAME}.entrypoints=websecure'
+      - 'traefik.http.routers.pgadmin-${ENV_NAME}.tls=true'
+      - 'traefik.http.services.pgadmin-${ENV_NAME}.loadbalancer.server.port=80'
+
+  # ---------------------------------------------------------------------------
+  # MinIO — per-env subdomain
+  # ---------------------------------------------------------------------------
+  minio:
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.minio-${ENV_NAME}.rule=Host(`minio-${ENV_NAME}.localhost`)'
+      - 'traefik.http.routers.minio-${ENV_NAME}.entrypoints=websecure'
+      - 'traefik.http.routers.minio-${ENV_NAME}.tls=true'
+      - 'traefik.http.services.minio-${ENV_NAME}.loadbalancer.server.port=9001'
+
+  # ---------------------------------------------------------------------------
+  # API — subdomain routing + same-origin proxy on frontend domain
+  # ---------------------------------------------------------------------------
+  api:
+    environment:
+      # Shared Keycloak — per-env realm
+      Keycloak__Authority: http://keycloak:8080/realms/FamilyHub-${ENV_NAME}
+      Keycloak__Issuers: https://auth.localhost:4443/realms/FamilyHub-${ENV_NAME},https://auth.dev.andrekirst.de:4443/realms/FamilyHub-${ENV_NAME}
+      Keycloak__Audience: account
+      CORS__Origins: https://${ENV_NAME}.dev.andrekirst.de:4443,https://${ENV_NAME}.localhost:4443
+      App__FrontendUrl: https://${ENV_NAME}.dev.andrekirst.de:4443
+      # Frontend config endpoint
+      FrontendConfig__ApiUrl: https://${ENV_NAME}.localhost:4443/graphql
+      FrontendConfig__KeycloakIssuer: https://auth.localhost:4443/realms/FamilyHub-${ENV_NAME}
+      FrontendConfig__KeycloakClientId: familyhub-web
+      FrontendConfig__AppUrl: https://${ENV_NAME}.localhost:4443
+      # Google OAuth callback
+      GoogleIntegration__OAuth__RedirectUri: https://api-${ENV_NAME}.dev.andrekirst.de:4443/api/google/callback
+      # Infisical secrets vault
+      INFISICAL_URL: http://infisical:8080
+      INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID:-}
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID:-}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET:-}
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      # Direct API subdomain
+      - 'traefik.http.routers.api-${ENV_NAME}.rule=Host(`api-${ENV_NAME}.dev.andrekirst.de`) || Host(`api-${ENV_NAME}.localhost`)'
+      - 'traefik.http.routers.api-${ENV_NAME}.entrypoints=websecure'
+      - 'traefik.http.routers.api-${ENV_NAME}.tls=true'
+      # Same-origin proxy: API paths on frontend domain
+      - 'traefik.http.routers.api-proxy-${ENV_NAME}.rule=(Host(`${ENV_NAME}.dev.andrekirst.de`) || Host(`${ENV_NAME}.localhost`)) && (PathPrefix(`/graphql`) || PathPrefix(`/api`) || Path(`/config`) || Path(`/health`))'
+      - 'traefik.http.routers.api-proxy-${ENV_NAME}.entrypoints=websecure'
+      - 'traefik.http.routers.api-proxy-${ENV_NAME}.tls=true'
+      - 'traefik.http.routers.api-proxy-${ENV_NAME}.priority=200'
+      - 'traefik.http.services.api-${ENV_NAME}.loadbalancer.server.port=5152'
+
+  # ---------------------------------------------------------------------------
+  # Frontend — per-env subdomain
+  # ---------------------------------------------------------------------------
+  frontend:
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.fe-${ENV_NAME}.rule=Host(`${ENV_NAME}.dev.andrekirst.de`) || Host(`${ENV_NAME}.localhost`)'
+      - 'traefik.http.routers.fe-${ENV_NAME}.entrypoints=websecure'
+      - 'traefik.http.routers.fe-${ENV_NAME}.tls=true'
+      - 'traefik.http.services.fe-${ENV_NAME}.loadbalancer.server.port=4200'
+
+  # ---------------------------------------------------------------------------
+  # Traefik — mount standard dynamic config (includes hub routing)
+  # ---------------------------------------------------------------------------
+  traefik:
+    volumes:
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+
+  # ---------------------------------------------------------------------------
+  # Hub Dashboard (multi-env only)
+  # ---------------------------------------------------------------------------
+  hub:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - ./traefik/hub:/usr/share/nginx/html:ro
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.hub.rule=Host(`hub.localhost`) || Host(`hub.dev.andrekirst.de`)'
+      - 'traefik.http.routers.hub.entrypoints=websecure'
+      - 'traefik.http.routers.hub.tls=true'
+      - 'traefik.http.services.hub.loadbalancer.server.port=80'
+    networks:
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
+  # Docker Registry Mirrors (multi-env only)
+  # ---------------------------------------------------------------------------
+  registry-dockerhub:
+    image: registry:2
+    restart: always
+    ports:
+      - '5001:5000'
+    volumes:
+      - fh-proxy-registry-dockerhub:/var/lib/registry
+      - ./proxy/registry/dockerhub-config.yml:/etc/docker/registry/config.yml:ro
+    networks:
+      - traefik-public
+
+  registry-mcr:
+    image: registry:2
+    restart: always
+    ports:
+      - '5002:5000'
+    volumes:
+      - fh-proxy-registry-mcr:/var/lib/registry
+      - ./proxy/registry/mcr-config.yml:/etc/docker/registry/config.yml:ro
+    networks:
+      - traefik-public
+
+  registry-ghcr:
+    image: registry:2
+    restart: always
+    ports:
+      - '5003:5000'
+    volumes:
+      - fh-proxy-registry-ghcr:/var/lib/registry
+      - ./proxy/registry/ghcr-config.yml:/etc/docker/registry/config.yml:ro
+    networks:
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
+  # Infisical — secrets management (multi-env only, from shared.yml)
+  # ---------------------------------------------------------------------------
+  infisical-mongo:
+    image: mongo:8.2
+    restart: always
+    volumes:
+      - fh-shared-infisical-db:/data/db
+    networks:
+      - internal
+
+  infisical:
+    image: infisical/infisical:latest
+    restart: always
+    environment:
+      MONGO_URL: mongodb://infisical-mongo:27017/infisical
+      ENCRYPTION_KEY: 0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f
+      AUTH_SECRET: change-me-in-production-auth-secret
+      SITE_URL: https://secrets.localhost:4443
+    depends_on:
+      - infisical-mongo
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.infisical.rule=Host(`secrets.localhost`) || Host(`secrets.dev.andrekirst.de`)'
+      - 'traefik.http.routers.infisical.entrypoints=websecure'
+      - 'traefik.http.routers.infisical.tls=true'
+      - 'traefik.http.services.infisical.loadbalancer.server.port=8080'
+    networks:
+      internal:
+      traefik-public:
+
+volumes:
+  fh-proxy-registry-dockerhub:
+    external: true
+  fh-proxy-registry-mcr:
+    external: true
+  fh-proxy-registry-ghcr:
+    external: true
+  fh-shared-infisical-db:

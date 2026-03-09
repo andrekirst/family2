@@ -1,0 +1,295 @@
+# Base service definitions — common to both simple and multi-env modes
+# Usage: docker compose -f docker-compose.base.yml -f docker-compose.{simple|multi}.yml up -d
+#
+# This file defines all services WITHOUT Traefik labels (labels are mode-specific).
+# Mode-specific environment variables (Keycloak URLs, CORS, FrontendConfig) are in overlays.
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — application database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: familyhub
+      POSTGRES_USER: familyhub
+      POSTGRES_PASSWORD: familyhub
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U familyhub']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — Keycloak database
+  # ---------------------------------------------------------------------------
+  postgres-keycloak:
+    image: postgres:18-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak_db:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U keycloak']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  # ---------------------------------------------------------------------------
+  # Keycloak — identity provider (labels and KC_HTTP_RELATIVE_PATH set by overlay)
+  # ---------------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.4
+    restart: always
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HTTP_ENABLED: 'true'
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_SPI_STICKY_SESSION_ENCODER_INFINISPAN_SHOULD_ATTACH_ROUTE: 'false'
+    command:
+      - start-dev
+      - --health-enabled=true
+    depends_on:
+      postgres-keycloak:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e "GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep -q "200 OK"',
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - internal
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
+  # MailHog — email testing
+  # ---------------------------------------------------------------------------
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: always
+    networks:
+      internal:
+      traefik-public:
+        aliases:
+          - mailhog
+
+  # ---------------------------------------------------------------------------
+  # pgAdmin — database administration
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@familyhub.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
+  # MinIO — S3-compatible object storage
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
+  # API — .NET backend with hot-reload
+  # ---------------------------------------------------------------------------
+  api:
+    user: '${DOCKER_UID:-1000}:${DOCKER_GID:-1000}'
+    build:
+      context: ${SRC_ROOT:-../src}
+      dockerfile: FamilyHub.Api/Dockerfile
+      target: dev
+      network: host
+      args:
+        MCR_REGISTRY: ${MCR_REGISTRY:-mcr.microsoft.com/}
+        BAGET_URL: ${BAGET_URL:-http://localhost:5555/v3/index.json}
+        UID: ${DOCKER_UID:-1000}
+        GID: ${DOCKER_GID:-1000}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0.0:5152
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=familyhub;Username=familyhub;Password=familyhub
+      # Shared services — resolve via Docker network
+      Email__Host: mailhog
+      Email__Port: 1025
+      # Google Integration (OAuth)
+      GoogleIntegration__OAuth__ClientId: ${GOOGLE_CLIENT_ID:-}
+      GoogleIntegration__OAuth__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
+      GoogleIntegration__EncryptionKey: ${GOOGLE_ENCRYPTION_KEY:-}
+      # MinIO object storage
+      FileManagement__Storage__Provider: MinIO
+      FileManagement__Storage__MinIO__Endpoint: minio:9000
+      FileManagement__Storage__MinIO__AccessKey: minioadmin
+      FileManagement__Storage__MinIO__SecretKey: minioadmin
+      FileManagement__Storage__MinIO__BucketName: familyhub-files
+      FileManagement__Storage__MinIO__UseSSL: 'false'
+    volumes:
+      - ${SRC_ROOT:-../src}:/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:5152/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    networks:
+      - internal
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
+  # Frontend — Angular dev server with live reload
+  # ---------------------------------------------------------------------------
+  frontend:
+    user: '${DOCKER_UID:-1000}:${DOCKER_GID:-1000}'
+    build:
+      context: ${SRC_ROOT:-../src}/frontend/family-hub-web
+      dockerfile: Dockerfile
+      target: dev
+      network: host
+      args:
+        DOCKERHUB_REGISTRY: ${DOCKERHUB_REGISTRY:-}
+        UID: ${DOCKER_UID:-1000}
+        GID: ${DOCKER_GID:-1000}
+    volumes:
+      - ${SRC_ROOT:-../src}/frontend/family-hub-web:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:4200/ || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 90s
+    networks:
+      - internal
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
+  # Traefik — reverse proxy (dynamic config dir set by overlay)
+  # ---------------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.6.9
+    restart: always
+    ports:
+      - '4000:4000'
+      - '4443:4443'
+      - '8888:8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./certs:/certs:ro
+    healthcheck:
+      test: ['CMD', 'traefik', 'healthcheck']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
+  # Package caching proxies (shared across all environments)
+  # ---------------------------------------------------------------------------
+  verdaccio:
+    image: verdaccio/verdaccio:6
+    restart: always
+    ports:
+      - '4873:4873'
+    volumes:
+      - fh-proxy-verdaccio:/verdaccio/storage
+      - ./proxy/verdaccio/config.yaml:/verdaccio/conf/config.yaml:ro
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.verdaccio.rule=Host(`npm.localhost`) || Host(`npm.dev.andrekirst.de`)'
+      - 'traefik.http.routers.verdaccio.entrypoints=websecure'
+      - 'traefik.http.routers.verdaccio.tls=true'
+      - 'traefik.http.services.verdaccio.loadbalancer.server.port=4873'
+    networks:
+      - traefik-public
+
+  baget:
+    image: loicsharma/baget:latest
+    restart: always
+    ports:
+      - '5555:80'
+    env_file:
+      - ./proxy/baget/baget.env
+    volumes:
+      - fh-proxy-baget:/var/baget
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.baget.rule=Host(`nuget.localhost`) || Host(`nuget.dev.andrekirst.de`)'
+      - 'traefik.http.routers.baget.entrypoints=websecure'
+      - 'traefik.http.routers.baget.tls=true'
+      - 'traefik.http.services.baget.loadbalancer.server.port=80'
+    networks:
+      - traefik-public
+
+volumes:
+  postgres_data:
+  keycloak_db:
+  pgadmin_data:
+  minio_data:
+  frontend_node_modules:
+  fh-proxy-verdaccio:
+    external: true
+  fh-proxy-baget:
+    external: true
+
+networks:
+  internal:
+    driver: bridge
+  traefik-public:
+    name: traefik-public
+    driver: bridge

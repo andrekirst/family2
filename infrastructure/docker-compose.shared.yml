@@ -1,3 +1,4 @@
+# DEPRECATED: This file is kept for transition. Use docker-compose.base.yml + docker-compose.{simple|multi}.yml instead.
 # Shared services layer — Keycloak, MailHog, Infisical (runs once, shared by all environments)
 # Usage: docker compose -f infrastructure/docker-compose.shared.yml up -d
 # Requires: traefik-public network (created by docker-compose.traefik.yml)
