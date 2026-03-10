@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Enums;
@@ -11,14 +12,17 @@ namespace FamilyHub.EventChain.Infrastructure.Orchestrator;
 public sealed partial class ChainOrchestrator(
     IChainDefinitionRepository definitionRepository,
     IChainExecutionRepository executionRepository,
+    IUnitOfWork unitOfWork,
+    IChainExecutionDispatcher dispatcher,
     StepPipeline pipeline,
+    TimeProvider timeProvider,
     ILogger<ChainOrchestrator> logger) : IChainOrchestrator
 {
-    public async Task TryTriggerChainsAsync(IDomainEvent domainEvent, CancellationToken ct = default)
+    public async Task TryTriggerChainsAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
         var eventType = domainEvent.GetType().FullName ?? domainEvent.GetType().Name;
 
-        var matchingDefinitions = await definitionRepository.GetEnabledByTriggerEventTypeAsync(eventType, ct);
+        var matchingDefinitions = await definitionRepository.GetEnabledByTriggerEventTypeAsync(eventType, cancellationToken);
 
         if (matchingDefinitions.Count == 0)
         {
@@ -32,12 +36,14 @@ public sealed partial class ChainOrchestrator(
         {
             try
             {
+                var utcNow = timeProvider.GetUtcNow();
                 var execution = ChainExecution.Start(
                     definition.Id,
                     definition.FamilyId,
                     eventType,
                     domainEvent.EventId,
-                    triggerPayload);
+                    triggerPayload,
+                    utcNow);
 
                 // Create step executions for each definition step
                 foreach (var step in definition.Steps.OrderBy(s => s.StepOrder))
@@ -52,11 +58,12 @@ public sealed partial class ChainOrchestrator(
                     execution.AddStepExecution(stepExecution);
                 }
 
-                await executionRepository.AddAsync(execution, ct);
-                await executionRepository.SaveChangesAsync(ct);
+                await executionRepository.AddAsync(execution, cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
 
-                // Execute asynchronously (fire and forget for dual dispatch)
-                _ = Task.Run(() => ExecuteChainAsync(execution, definition, ct), ct);
+                // Dispatch via CAP for reliable at-least-once execution
+                // (replaces fire-and-forget Task.Run — survives process crashes)
+                await dispatcher.DispatchAsync(execution.Id, definition.Id, cancellationToken);
 
                 LogChainChainnameTriggeredByEventtypeExecutionidExecutionidCorrelationidCorrelationid(logger, definition.Name.Value, eventType, execution.Id.Value, execution.CorrelationId);
             }
@@ -67,13 +74,14 @@ public sealed partial class ChainOrchestrator(
         }
     }
 
-    public async Task ExecuteChainAsync(ChainExecution execution, ChainDefinition definition, CancellationToken ct = default)
+    public async Task ExecuteChainAsync(ChainExecution execution, ChainDefinition definition, CancellationToken cancellationToken = default)
     {
+        var utcNow = timeProvider.GetUtcNow();
         try
         {
             execution.MarkRunning();
-            await executionRepository.UpdateAsync(execution, ct);
-            await executionRepository.SaveChangesAsync(ct);
+            await executionRepository.UpdateAsync(execution, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var context = new ChainExecutionContext(execution.Context);
             context.SetTriggerData(execution.TriggerPayload);
@@ -94,7 +102,7 @@ public sealed partial class ChainOrchestrator(
                 // Evaluate condition
                 if (!context.EvaluateCondition(stepDef.ConditionExpression))
                 {
-                    stepExecution.MarkSkipped();
+                    stepExecution.MarkSkipped(utcNow);
                     LogStepStepaliasSkippedConditionNotMet(logger, stepDef.Alias.Value);
                     continue;
                 }
@@ -114,7 +122,7 @@ public sealed partial class ChainOrchestrator(
 
                 try
                 {
-                    await pipeline.ExecuteAsync(pipelineContext, ct);
+                    await pipeline.ExecuteAsync(pipelineContext, cancellationToken);
 
                     // Store entity mappings if any
                     if (pipelineContext.Result?.CreatedEntities is { Count: > 0 } entities)
@@ -126,8 +134,9 @@ public sealed partial class ChainOrchestrator(
                                 stepDef.Alias.Value,
                                 entity.EntityType,
                                 entity.EntityId,
-                                entity.Module);
-                            await executionRepository.AddEntityMappingAsync(mapping, ct);
+                                entity.Module,
+                                utcNow);
+                            await executionRepository.AddEntityMappingAsync(mapping, cancellationToken);
                         }
                     }
                 }
@@ -151,46 +160,46 @@ public sealed partial class ChainOrchestrator(
 
                 if (allFailed)
                 {
-                    execution.MarkFailed("All steps failed");
+                    execution.MarkFailed("All steps failed", utcNow);
                 }
                 else
                 {
-                    execution.MarkPartiallyCompleted();
+                    execution.MarkPartiallyCompleted(utcNow);
                 }
             }
             else
             {
-                execution.MarkCompleted();
+                execution.MarkCompleted(utcNow);
             }
 
-            await executionRepository.UpdateAsync(execution, ct);
-            await executionRepository.SaveChangesAsync(ct);
+            await executionRepository.UpdateAsync(execution, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
             LogChainExecutionExecutionidFailedUnexpectedly(logger, execution.Id.Value);
 
-            execution.MarkFailed(ex.Message);
-            await executionRepository.UpdateAsync(execution, ct);
-            await executionRepository.SaveChangesAsync(ct);
+            execution.MarkFailed(ex.Message, utcNow);
+            await executionRepository.UpdateAsync(execution, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 
-    public async Task ResumeStepAsync(Guid stepExecutionId, CancellationToken ct = default)
+    public async Task ResumeStepAsync(Guid stepExecutionId, CancellationToken cancellationToken = default)
     {
-        var stepExecution = await executionRepository.GetStepExecutionAsync(stepExecutionId, ct);
+        var stepExecution = await executionRepository.GetStepExecutionAsync(stepExecutionId, cancellationToken);
         if (stepExecution is null)
         {
             return;
         }
 
-        var execution = await executionRepository.GetByIdWithStepsAsync(stepExecution.ChainExecutionId, ct);
+        var execution = await executionRepository.GetByIdWithStepsAsync(stepExecution.ChainExecutionId, cancellationToken);
         if (execution is null)
         {
             return;
         }
 
-        var definition = await definitionRepository.GetByIdWithStepsAsync(execution.ChainDefinitionId, ct);
+        var definition = await definitionRepository.GetByIdWithStepsAsync(execution.ChainDefinitionId, cancellationToken);
         if (definition is null)
         {
             return;
@@ -218,7 +227,7 @@ public sealed partial class ChainOrchestrator(
 
         try
         {
-            await pipeline.ExecuteAsync(pipelineContext, ct);
+            await pipeline.ExecuteAsync(pipelineContext, cancellationToken);
         }
         catch (Exception)
         {
@@ -226,8 +235,8 @@ public sealed partial class ChainOrchestrator(
         }
 
         execution.UpdateContext(context.ToJson());
-        await executionRepository.UpdateAsync(execution, ct);
-        await executionRepository.SaveChangesAsync(ct);
+        await executionRepository.UpdateAsync(execution, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     [LoggerMessage(LogLevel.Debug, "No chain definitions match event {eventType}")]

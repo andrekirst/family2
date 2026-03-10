@@ -1,10 +1,11 @@
+using FamilyHub.Api.Common.Infrastructure.Validation;
 using FamilyHub.Api.Resources;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 
-public class SendInvitationCommandValidator : AbstractValidator<SendInvitationCommand>
+public class SendInvitationCommandValidator : AbstractValidator<SendInvitationCommand>, IInputValidator<SendInvitationCommand>
 {
     public SendInvitationCommandValidator(IStringLocalizer<ValidationMessages> localizer)
     {

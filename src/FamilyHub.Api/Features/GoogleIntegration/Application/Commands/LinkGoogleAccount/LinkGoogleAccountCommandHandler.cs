@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.Security;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -8,26 +9,28 @@ using FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Services;
 
 namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.LinkGoogleAccount;
 
+[SecurityCheck("IDOR")]
 public sealed class LinkGoogleAccountCommandHandler(
     IOAuthStateRepository stateRepository,
     IGoogleAccountLinkRepository linkRepository,
     IGoogleOAuthService oauthService,
-    ITokenEncryptionService encryptionService)
-    : ICommandHandler<LinkGoogleAccountCommand, LinkGoogleAccountResult>
+    ITokenEncryptionService encryptionService,
+    TimeProvider timeProvider)
+    : ICommandHandler<LinkGoogleAccountCommand, Result<LinkGoogleAccountResult>>
 {
-    public async ValueTask<LinkGoogleAccountResult> Handle(
+    public async ValueTask<Result<LinkGoogleAccountResult>> Handle(
         LinkGoogleAccountCommand command,
         CancellationToken cancellationToken)
     {
-        // 1. Validate state against OAuthState table
-        var oauthState = await stateRepository.GetByStateAsync(command.State, cancellationToken)
-            ?? throw new DomainException("Invalid or expired OAuth state");
+        // 1. Retrieve OAuth state (existence guaranteed by validator)
+        var oauthState = (await stateRepository.GetByStateAsync(command.State, cancellationToken))!;
 
-        if (oauthState.IsExpired())
+        var utcNow = timeProvider.GetUtcNow();
+
+        if (oauthState.IsExpired(utcNow))
         {
             await stateRepository.DeleteAsync(oauthState, cancellationToken);
-            await stateRepository.SaveChangesAsync(cancellationToken);
-            throw new DomainException("OAuth state has expired. Please try linking again.");
+            return DomainError.BusinessRule(DomainErrorCodes.OAuthStateExpired, "OAuth state has expired. Please try linking again.");
         }
 
         var userId = oauthState.UserId;
@@ -39,38 +42,32 @@ public sealed class LinkGoogleAccountCommandHandler(
 
         if (string.IsNullOrEmpty(tokenResponse.RefreshToken))
         {
-            throw new DomainException("Google did not provide a refresh token. Please try linking again.");
+            return DomainError.BusinessRule(DomainErrorCodes.RefreshTokenMissing, "Google did not provide a refresh token. Please try linking again.");
         }
 
         // 3. Get user info from Google
         var userInfo = await oauthService.GetUserInfoAsync(tokenResponse.AccessToken, cancellationToken);
 
-        // 4. Check if user already has a linked account
-        var existingLink = await linkRepository.GetByUserIdAsync(userId, cancellationToken);
-        if (existingLink is not null)
-        {
-            throw new DomainException("A Google account is already linked. Unlink it first.");
-        }
-
-        // 5. Encrypt tokens
+        // 4. Encrypt tokens (already-linked check guaranteed by validator)
         var encryptedAccessToken = EncryptedToken.From(
             encryptionService.Encrypt(tokenResponse.AccessToken));
         var encryptedRefreshToken = EncryptedToken.From(
             encryptionService.Encrypt(tokenResponse.RefreshToken));
 
-        // 6. Create aggregate
+        // 5. Create aggregate
         var link = GoogleAccountLink.Create(
             userId,
             GoogleAccountId.From(userInfo.Sub),
             Email.From(userInfo.Email),
             encryptedAccessToken,
             encryptedRefreshToken,
-            DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn),
-            GoogleScopes.From(tokenResponse.Scope));
+            utcNow.UtcDateTime.AddSeconds(tokenResponse.ExpiresIn),
+            GoogleScopes.From(tokenResponse.Scope),
+            utcNow);
 
         await linkRepository.AddAsync(link, cancellationToken);
 
-        // 7. Clean up OAuth state
+        // 6. Clean up OAuth state
         await stateRepository.DeleteAsync(oauthState, cancellationToken);
 
         return new LinkGoogleAccountResult(true);

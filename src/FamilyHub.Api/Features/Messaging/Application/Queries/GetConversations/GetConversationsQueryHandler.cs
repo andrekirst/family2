@@ -19,7 +19,8 @@ namespace FamilyHub.Api.Features.Messaging.Application.Queries.GetConversations;
 /// </summary>
 public sealed class GetConversationsQueryHandler(
     IConversationRepository conversationRepository,
-    IFolderRepository folderRepository)
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
     : IQueryHandler<GetConversationsQuery, List<ConversationDto>>
 {
     public async ValueTask<List<ConversationDto>> Handle(
@@ -45,32 +46,34 @@ public sealed class GetConversationsQueryHandler(
     /// Idempotent: checks repository-level to avoid duplicates from concurrent requests.
     /// </summary>
     private async Task<Conversation?> EnsureFamilyConversationAsync(
-        GetConversationsQuery query, CancellationToken ct)
+        GetConversationsQuery query, CancellationToken cancellationToken)
     {
         // Double-check at repository level (another request may have created it)
-        var existing = await conversationRepository.GetFamilyConversationAsync(query.FamilyId, ct);
+        var existing = await conversationRepository.GetFamilyConversationAsync(query.FamilyId, cancellationToken);
         if (existing is not null)
             return existing;
 
-        var conversation = Conversation.CreateFamily(query.FamilyId, query.UserId);
+        var conversation = Conversation.CreateFamily(query.FamilyId, query.UserId, timeProvider.GetUtcNow());
 
         // Create folder hierarchy: root → Messages → General
-        var rootFolder = await folderRepository.GetRootFolderAsync(query.FamilyId, ct);
+        var rootFolder = await folderRepository.GetRootFolderAsync(query.FamilyId, cancellationToken);
         if (rootFolder is not null)
         {
-            var children = await folderRepository.GetChildrenAsync(rootFolder.Id, ct);
+            var children = await folderRepository.GetChildrenAsync(rootFolder.Id, cancellationToken);
             var messagesFolder = children.FirstOrDefault(f => f.Name.Value == "Messages");
 
             if (messagesFolder is null)
             {
+                var utcNow = timeProvider.GetUtcNow();
                 messagesFolder = Folder.Create(
                     FileName.From("Messages"),
                     rootFolder.Id,
                     $"/{rootFolder.Id.Value}/",
                     query.FamilyId,
-                    query.UserId);
+                    query.UserId,
+                    utcNow);
 
-                await folderRepository.AddAsync(messagesFolder, ct);
+                await folderRepository.AddAsync(messagesFolder, cancellationToken);
             }
 
             var generalFolder = Folder.Create(
@@ -78,13 +81,14 @@ public sealed class GetConversationsQueryHandler(
                 messagesFolder.Id,
                 $"{messagesFolder.MaterializedPath}{messagesFolder.Id.Value}/",
                 query.FamilyId,
-                query.UserId);
+                query.UserId,
+                timeProvider.GetUtcNow());
 
-            await folderRepository.AddAsync(generalFolder, ct);
+            await folderRepository.AddAsync(generalFolder, cancellationToken);
             conversation.SetFolderId(generalFolder.Id);
         }
 
-        await conversationRepository.AddAsync(conversation, ct);
+        await conversationRepository.AddAsync(conversation, cancellationToken);
 
         return conversation;
     }

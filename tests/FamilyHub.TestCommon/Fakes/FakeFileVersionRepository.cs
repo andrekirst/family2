@@ -8,25 +8,28 @@ public class FakeFileVersionRepository : IFileVersionRepository
 {
     public List<FileVersion> Versions { get; } = [];
 
-    public Task<FileVersion?> GetByIdAsync(FileVersionId id, CancellationToken ct = default)
+    public Task<FileVersion?> GetByIdAsync(FileVersionId id, CancellationToken cancellationToken = default)
         => Task.FromResult(Versions.FirstOrDefault(v => v.Id == id));
 
-    public Task<List<FileVersion>> GetByFileIdAsync(FileId fileId, CancellationToken ct = default)
+    public Task<bool> ExistsByIdAsync(FileVersionId id, CancellationToken cancellationToken = default)
+        => Task.FromResult(Versions.Any(v => v.Id == id));
+
+    public Task<List<FileVersion>> GetByFileIdAsync(FileId fileId, CancellationToken cancellationToken = default)
         => Task.FromResult(Versions
             .Where(v => v.FileId == fileId)
             .OrderByDescending(v => v.VersionNumber)
             .ToList());
 
-    public Task<FileVersion?> GetCurrentVersionAsync(FileId fileId, CancellationToken ct = default)
+    public Task<FileVersion?> GetCurrentVersionAsync(FileId fileId, CancellationToken cancellationToken = default)
         => Task.FromResult(Versions.FirstOrDefault(v => v.FileId == fileId && v.IsCurrent));
 
-    public Task<int> GetMaxVersionNumberAsync(FileId fileId, CancellationToken ct = default)
+    public Task<int> GetMaxVersionNumberAsync(FileId fileId, CancellationToken cancellationToken = default)
     {
         var versions = Versions.Where(v => v.FileId == fileId).ToList();
         return Task.FromResult(versions.Count > 0 ? versions.Max(v => v.VersionNumber) : 0);
     }
 
-    public Task AddAsync(FileVersion version, CancellationToken ct = default)
+    public Task AddAsync(FileVersion version, CancellationToken cancellationToken = default)
     {
         Versions.Add(version);
         return Task.CompletedTask;

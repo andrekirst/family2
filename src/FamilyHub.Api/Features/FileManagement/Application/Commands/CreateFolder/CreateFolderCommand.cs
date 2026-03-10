@@ -6,7 +6,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateFolde
 
 public sealed record CreateFolderCommand(
     FileName Name,
-    FolderId? ParentFolderId,
-    FamilyId FamilyId,
-    UserId CreatedBy
-) : ICommand<CreateFolderResult>;
+    FolderId? ParentFolderId
+) : ICommand<Result<CreateFolderResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

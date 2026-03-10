@@ -6,7 +6,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetSecureNotes;
 
 public sealed record GetSecureNotesQuery(
-    UserId UserId,
-    FamilyId FamilyId,
     NoteCategory? Category
-) : IReadOnlyQuery<List<SecureNoteDto>>;
+) : IReadOnlyQuery<List<SecureNoteDto>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

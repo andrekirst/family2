@@ -1,81 +1,91 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteAlbum;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class DeleteAlbumCommandHandlerTests
 {
-    private static (DeleteAlbumCommandHandler handler, FakeAlbumRepository albumRepo, FakeAlbumItemRepository itemRepo) CreateHandler()
+    private readonly IAlbumRepository _albumRepo = Substitute.For<IAlbumRepository>();
+    private readonly IAlbumItemRepository _itemRepo = Substitute.For<IAlbumItemRepository>();
+    private readonly DeleteAlbumCommandHandler _handler;
+
+    public DeleteAlbumCommandHandlerTests()
     {
-        var albumRepo = new FakeAlbumRepository();
-        var itemRepo = new FakeAlbumItemRepository();
-        var handler = new DeleteAlbumCommandHandler(albumRepo, itemRepo);
-        return (handler, albumRepo, itemRepo);
+        _handler = new DeleteAlbumCommandHandler(_albumRepo, _itemRepo);
     }
 
     [Fact]
     public async Task Handle_ShouldDeleteAlbum()
     {
         var familyId = FamilyId.New();
-        var (handler, albumRepo, _) = CreateHandler();
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
-        albumRepo.Albums.Add(album);
+        var command = new DeleteAlbumCommand(album.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        var command = new DeleteAlbumCommand(album.Id, familyId);
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        result.Success.Should().BeTrue();
-        albumRepo.Albums.Should().BeEmpty();
+        result.IsSuccess.Should().BeTrue();
+        await _albumRepo.Received(1).RemoveAsync(album, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldRemoveAlbumItems()
     {
         var familyId = FamilyId.New();
-        var (handler, albumRepo, itemRepo) = CreateHandler();
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
-        albumRepo.Albums.Add(album);
+        var command = new DeleteAlbumCommand(album.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        await _handler.Handle(command, CancellationToken.None);
 
-        itemRepo.Items.Add(AlbumItem.Create(album.Id, FileId.New(), UserId.New()));
-        itemRepo.Items.Add(AlbumItem.Create(album.Id, FileId.New(), UserId.New()));
-
-        var command = new DeleteAlbumCommand(album.Id, familyId);
-        await handler.Handle(command, CancellationToken.None);
-
-        itemRepo.Items.Should().BeEmpty();
+        await _itemRepo.Received(1).RemoveByAlbumIdAsync(album.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenAlbumNotFound()
     {
-        var (handler, _, _) = CreateHandler();
+        _albumRepo.GetByIdAsync(AlbumId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((Album?)null);
 
-        var command = new DeleteAlbumCommand(AlbumId.New(), FamilyId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var command = new DeleteAlbumCommand(AlbumId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.AlbumNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.AlbumNotFound);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenAlbumBelongsToDifferentFamily()
     {
-        var (handler, albumRepo, _) = CreateHandler();
+        var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
+        _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
-        var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New());
-        albumRepo.Albums.Add(album);
+        var command = new DeleteAlbumCommand(album.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        var command = new DeleteAlbumCommand(album.Id, FamilyId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

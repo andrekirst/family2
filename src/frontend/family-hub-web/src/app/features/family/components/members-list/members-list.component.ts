@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InvitationService } from '../../services/invitation.service';
 import { FamilyMemberDto } from '../../models/invitation.models';
@@ -7,6 +7,7 @@ import { AvatarDisplayComponent } from '../../../../core/avatar';
 @Component({
   selector: 'app-members-list',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, AvatarDisplayComponent],
   template: `
     <div class="space-y-3">

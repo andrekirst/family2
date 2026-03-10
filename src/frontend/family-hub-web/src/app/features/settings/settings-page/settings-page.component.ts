@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { I18nService, SupportedLocale } from '../../../core/i18n/i18n.service';
@@ -15,6 +15,7 @@ import { GoogleIntegrationService } from '../services/google-integration.service
 @Component({
   selector: 'app-settings-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, IntegrationsPanelComponent],
   template: `
     <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">

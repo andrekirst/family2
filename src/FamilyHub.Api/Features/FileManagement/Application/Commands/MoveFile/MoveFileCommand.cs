@@ -5,7 +5,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.MoveFile;
 
 public sealed record MoveFileCommand(
     FileId FileId,
-    FolderId TargetFolderId,
-    FamilyId FamilyId,
-    UserId MovedBy
-) : ICommand<MoveFileResult>;
+    FolderId TargetFolderId
+) : ICommand<Result<MoveFileResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

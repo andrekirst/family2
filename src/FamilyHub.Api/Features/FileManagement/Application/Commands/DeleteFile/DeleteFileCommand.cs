@@ -4,7 +4,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteFile;
 
 public sealed record DeleteFileCommand(
-    FileId FileId,
-    FamilyId FamilyId,
-    UserId DeletedBy
-) : ICommand<DeleteFileResult>;
+    FileId FileId
+) : ICommand<Result<DeleteFileResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

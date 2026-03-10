@@ -10,8 +10,7 @@ import {
   signal,
   ViewChild,
   AfterViewInit,
-  Renderer2,
-} from '@angular/core';
+  Renderer2, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
 import { PositionedEvent, TimeRange, WEEK_GRID_CONSTANTS } from '../../models/calendar.models';
@@ -30,6 +29,7 @@ import { CalendarDaySkeletonComponent } from '../calendar-day-skeleton/calendar-
 @Component({
   selector: 'app-calendar-day-grid',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, CalendarDaySkeletonComponent],
   template: `
     @if (loading()) {

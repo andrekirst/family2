@@ -8,44 +8,44 @@ public class FakeFileTagRepository : IFileTagRepository
 {
     public List<FileTag> FileTags { get; } = [];
 
-    public Task<List<FileTag>> GetByFileIdAsync(FileId fileId, CancellationToken ct = default)
+    public Task<List<FileTag>> GetByFileIdAsync(FileId fileId, CancellationToken cancellationToken = default)
         => Task.FromResult(FileTags.Where(ft => ft.FileId == fileId).ToList());
 
-    public Task<List<FileTag>> GetByTagIdAsync(TagId tagId, CancellationToken ct = default)
+    public Task<List<FileTag>> GetByTagIdAsync(TagId tagId, CancellationToken cancellationToken = default)
         => Task.FromResult(FileTags.Where(ft => ft.TagId == tagId).ToList());
 
-    public Task<bool> ExistsAsync(FileId fileId, TagId tagId, CancellationToken ct = default)
+    public Task<bool> ExistsAsync(FileId fileId, TagId tagId, CancellationToken cancellationToken = default)
         => Task.FromResult(FileTags.Any(ft => ft.FileId == fileId && ft.TagId == tagId));
 
-    public Task AddAsync(FileTag fileTag, CancellationToken ct = default)
+    public Task AddAsync(FileTag fileTag, CancellationToken cancellationToken = default)
     {
         FileTags.Add(fileTag);
         return Task.CompletedTask;
     }
 
-    public Task AddRangeAsync(IEnumerable<FileTag> fileTags, CancellationToken ct = default)
+    public Task AddRangeAsync(IEnumerable<FileTag> fileTags, CancellationToken cancellationToken = default)
     {
         FileTags.AddRange(fileTags);
         return Task.CompletedTask;
     }
 
-    public Task RemoveAsync(FileTag fileTag, CancellationToken ct = default)
+    public Task RemoveAsync(FileTag fileTag, CancellationToken cancellationToken = default)
     {
         var existing = FileTags.FirstOrDefault(ft => ft.FileId == fileTag.FileId && ft.TagId == fileTag.TagId);
         if (existing is not null) FileTags.Remove(existing);
         return Task.CompletedTask;
     }
 
-    public Task RemoveByTagIdAsync(TagId tagId, CancellationToken ct = default)
+    public Task RemoveByTagIdAsync(TagId tagId, CancellationToken cancellationToken = default)
     {
         FileTags.RemoveAll(ft => ft.TagId == tagId);
         return Task.CompletedTask;
     }
 
-    public Task<int> GetFileCountByTagIdAsync(TagId tagId, CancellationToken ct = default)
+    public Task<int> GetFileCountByTagIdAsync(TagId tagId, CancellationToken cancellationToken = default)
         => Task.FromResult(FileTags.Count(ft => ft.TagId == tagId));
 
-    public Task<List<FileId>> GetFileIdsByTagIdsAsync(IEnumerable<TagId> tagIds, CancellationToken ct = default)
+    public Task<List<FileId>> GetFileIdsByTagIdsAsync(IEnumerable<TagId> tagIds, CancellationToken cancellationToken = default)
     {
         var tagIdList = tagIds.ToList();
         var tagCount = tagIdList.Count;

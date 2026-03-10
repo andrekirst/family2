@@ -21,7 +21,7 @@ public class StoredFileAggregateTests
             Checksum.From("a".PadRight(64, 'a')),
             folderId ?? FolderId.New(),
             familyId ?? FamilyId.New(),
-            uploadedBy ?? UserId.New());
+            uploadedBy ?? UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class StoredFileAggregateTests
         var userId = UserId.New();
         var newName = FileName.From("renamed-document.pdf");
 
-        file.Rename(newName, userId);
+        file.Rename(newName, userId, DateTimeOffset.UtcNow);
 
         file.Name.Should().Be(newName);
         file.DomainEvents.Should().HaveCount(2);
@@ -77,7 +77,7 @@ public class StoredFileAggregateTests
         var file = CreateTestFile();
         var originalUpdatedAt = file.UpdatedAt;
 
-        file.Rename(FileName.From("new-name.pdf"), UserId.New());
+        file.Rename(FileName.From("new-name.pdf"), UserId.New(), DateTimeOffset.UtcNow);
 
         file.UpdatedAt.Should().BeOnOrAfter(originalUpdatedAt);
     }
@@ -90,7 +90,7 @@ public class StoredFileAggregateTests
         var userId = UserId.New();
         var file = CreateTestFile(folderId: originalFolderId);
 
-        file.MoveTo(newFolderId, userId);
+        file.MoveTo(newFolderId, userId, DateTimeOffset.UtcNow);
 
         file.FolderId.Should().Be(newFolderId);
         file.DomainEvents.Should().HaveCount(2);
@@ -108,7 +108,7 @@ public class StoredFileAggregateTests
         var file = CreateTestFile();
         var originalUpdatedAt = file.UpdatedAt;
 
-        file.MoveTo(FolderId.New(), UserId.New());
+        file.MoveTo(FolderId.New(), UserId.New(), DateTimeOffset.UtcNow);
 
         file.UpdatedAt.Should().BeOnOrAfter(originalUpdatedAt);
     }

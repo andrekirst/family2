@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Repositories;
 using FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Services;
 
@@ -8,15 +7,15 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.UnlinkGo
 public sealed class UnlinkGoogleAccountCommandHandler(
     IGoogleAccountLinkRepository linkRepository,
     IGoogleOAuthService oauthService,
-    ITokenEncryptionService encryptionService)
+    ITokenEncryptionService encryptionService,
+    TimeProvider timeProvider)
     : ICommandHandler<UnlinkGoogleAccountCommand, bool>
 {
     public async ValueTask<bool> Handle(
         UnlinkGoogleAccountCommand command,
         CancellationToken cancellationToken)
     {
-        var link = await linkRepository.GetByUserIdAsync(command.UserId, cancellationToken)
-            ?? throw new DomainException("No Google account linked");
+        var link = (await linkRepository.GetByUserIdAsync(command.UserId, cancellationToken))!;
 
         // Revoke token at Google (best-effort)
         try
@@ -30,7 +29,7 @@ public sealed class UnlinkGoogleAccountCommandHandler(
         }
 
         // Mark as revoked (raises domain event) then hard-delete
-        link.MarkRevoked();
+        link.MarkRevoked(timeProvider.GetUtcNow());
         await linkRepository.DeleteAsync(link, cancellationToken);
 
         return true;

@@ -9,7 +9,7 @@ public class FakeStorageProvider : IStorageProvider
     public void SeedFile(string storageKey, byte[] data)
         => _storage[storageKey] = data;
 
-    public Task<string> UploadAsync(Stream data, string mimeType, CancellationToken ct = default)
+    public Task<string> UploadAsync(Stream data, string mimeType, CancellationToken cancellationToken = default)
     {
         var key = $"fake-{Guid.NewGuid()}";
         using var ms = new MemoryStream();
@@ -18,14 +18,14 @@ public class FakeStorageProvider : IStorageProvider
         return Task.FromResult(key);
     }
 
-    public Task<Stream?> DownloadAsync(string storageKey, CancellationToken ct = default)
+    public Task<Stream?> DownloadAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         if (_storage.TryGetValue(storageKey, out var data))
             return Task.FromResult<Stream?>(new MemoryStream(data));
         return Task.FromResult<Stream?>(null);
     }
 
-    public Task<StorageRangeResult?> DownloadRangeAsync(string storageKey, long from, long to, CancellationToken ct = default)
+    public Task<StorageRangeResult?> DownloadRangeAsync(string storageKey, long from, long to, CancellationToken cancellationToken = default)
     {
         if (!_storage.TryGetValue(storageKey, out var data))
             return Task.FromResult<StorageRangeResult?>(null);
@@ -35,16 +35,16 @@ public class FakeStorageProvider : IStorageProvider
             new MemoryStream(rangeData), from, to, data.Length));
     }
 
-    public Task DeleteAsync(string storageKey, CancellationToken ct = default)
+    public Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         _storage.Remove(storageKey);
         return Task.CompletedTask;
     }
 
-    public Task<bool> ExistsAsync(string storageKey, CancellationToken ct = default)
+    public Task<bool> ExistsAsync(string storageKey, CancellationToken cancellationToken = default)
         => Task.FromResult(_storage.ContainsKey(storageKey));
 
-    public Task<long?> GetSizeAsync(string storageKey, CancellationToken ct = default)
+    public Task<long?> GetSizeAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         if (_storage.TryGetValue(storageKey, out var data))
             return Task.FromResult<long?>(data.Length);

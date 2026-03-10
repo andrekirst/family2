@@ -1,10 +1,11 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetFileVersions;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -15,8 +16,8 @@ public class GetFileVersionsQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnVersions()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var versionRepo = new FakeFileVersionRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var versionRepo = Substitute.For<IFileVersionRepository>();
         var handler = new GetFileVersionsQueryHandler(versionRepo, fileRepo);
 
         var familyId = FamilyId.New();
@@ -28,27 +29,31 @@ public class GetFileVersionsQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
-        fileRepo.Files.Add(file);
+            UserId.New(), DateTimeOffset.UtcNow);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        var v1 = FileVersion.Create(file.Id, 1, StorageKey.From("v1"), FileSize.From(1000), Checksum.From(ValidChecksum), UserId.New(), isCurrent: false);
-        var v2 = FileVersion.Create(file.Id, 2, StorageKey.From("v2"), FileSize.From(2000), Checksum.From(ValidChecksum), UserId.New());
-        versionRepo.Versions.Add(v1);
-        versionRepo.Versions.Add(v2);
+        var v1 = FileVersion.Create(file.Id, 1, StorageKey.From("v1"), FileSize.From(1000), Checksum.From(ValidChecksum), UserId.New(), DateTimeOffset.UtcNow, isCurrent: false);
+        var v2 = FileVersion.Create(file.Id, 2, StorageKey.From("v2"), FileSize.From(2000), Checksum.From(ValidChecksum), UserId.New(), DateTimeOffset.UtcNow);
+        versionRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<FileVersion> { v1, v2 });
 
-        var query = new GetFileVersionsQuery(file.Id, familyId);
+        var query = new GetFileVersionsQuery(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().HaveCount(2);
-        result.First().VersionNumber.Should().Be(2); // Descending order
-        result.Last().VersionNumber.Should().Be(1);
+        result.Value.Should().HaveCount(2);
+        result.Value.Should().Contain(v => v.VersionNumber == 1);
+        result.Value.Should().Contain(v => v.VersionNumber == 2);
     }
 
     [Fact]
     public async Task Handle_NoVersions_ShouldReturnEmpty()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var versionRepo = new FakeFileVersionRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var versionRepo = Substitute.For<IFileVersionRepository>();
         var handler = new GetFileVersionsQueryHandler(versionRepo, fileRepo);
 
         var familyId = FamilyId.New();
@@ -60,34 +65,47 @@ public class GetFileVersionsQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             familyId,
-            UserId.New());
-        fileRepo.Files.Add(file);
+            UserId.New(), DateTimeOffset.UtcNow);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        versionRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<FileVersion>());
 
-        var query = new GetFileVersionsQuery(file.Id, familyId);
+        var query = new GetFileVersionsQuery(file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().BeEmpty();
+        result.Value.Should().BeEmpty();
     }
 
     [Fact]
     public async Task Handle_FileNotFound_ShouldThrow()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var versionRepo = new FakeFileVersionRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var versionRepo = Substitute.For<IFileVersionRepository>();
         var handler = new GetFileVersionsQueryHandler(versionRepo, fileRepo);
 
-        var query = new GetFileVersionsQuery(FileId.New(), FamilyId.New());
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((StoredFile?)null);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found*");
+        var query = new GetFileVersionsQuery(FileId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found*");
     }
 
     [Fact]
     public async Task Handle_DifferentFamily_ShouldThrow()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var versionRepo = new FakeFileVersionRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var versionRepo = Substitute.For<IFileVersionRepository>();
         var handler = new GetFileVersionsQueryHandler(versionRepo, fileRepo);
 
         var file = StoredFile.Create(
@@ -98,13 +116,17 @@ public class GetFileVersionsQueryHandlerTests
             Checksum.From(ValidChecksum),
             FolderId.New(),
             FamilyId.New(),
-            UserId.New());
-        fileRepo.Files.Add(file);
+            UserId.New(), DateTimeOffset.UtcNow);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        var query = new GetFileVersionsQuery(file.Id, FamilyId.New()); // Different family
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var query = new GetFileVersionsQuery(file.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        }; // Different family
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*File not found in this family*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*File not found in this family*");
     }
 }

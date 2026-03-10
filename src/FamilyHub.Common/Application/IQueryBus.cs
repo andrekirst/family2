@@ -9,5 +9,5 @@ public interface IQueryBus
     /// <summary>
     /// Executes a query and returns the result.
     /// </summary>
-    ValueTask<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken ct = default);
+    ValueTask<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default);
 }

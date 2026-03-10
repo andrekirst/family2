@@ -2,10 +2,11 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Commands.UploadAvatar;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
-using FamilyHub.TestCommon.Fakes;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Family.Tests.Features.Family.Application;
 
@@ -39,7 +40,7 @@ public class UploadAvatarCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert — 4 size variants stored
-        fileStorage.StoredFiles.Should().HaveCount(4);
+        await fileStorage.Received(4).SaveAsync(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -54,10 +55,12 @@ public class UploadAvatarCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        avatarRepo.AddedAvatars.Should().HaveCount(1);
-        avatarRepo.AddedAvatars[0].Variants.Should().HaveCount(4);
-        avatarRepo.AddedAvatars[0].OriginalFileName.Should().Be("test.jpg");
-        avatarRepo.AddedAvatars[0].OriginalMimeType.Should().Be("image/jpeg");
+        await avatarRepo.Received(1).AddAsync(
+            Arg.Is<AvatarAggregate>(a =>
+                a.Variants.Count == 4 &&
+                a.OriginalFileName == "test.jpg" &&
+                a.OriginalMimeType == "image/jpeg"),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -82,7 +85,7 @@ public class UploadAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var previousAvatar = CreateTestAvatar();
-        user.SetAvatar(previousAvatar.Id);
+        user.SetAvatar(previousAvatar.Id, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         var (handler, avatarRepo, _, fileStorage, _) = CreateHandler(user, existingAvatar: previousAvatar);
@@ -92,9 +95,9 @@ public class UploadAvatarCommandHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert — previous avatar was deleted
-        avatarRepo.DeletedAvatarIds.Should().Contain(previousAvatar.Id);
+        await avatarRepo.Received(1).DeleteAsync(previousAvatar.Id, Arg.Any<CancellationToken>());
         // Previous variant storage keys should have been deleted
-        fileStorage.DeletedKeys.Should().HaveCount(previousAvatar.Variants.Count);
+        await fileStorage.Received(previousAvatar.Variants.Count).DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -102,7 +105,7 @@ public class UploadAvatarCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        var (handler, _, _, _, _) = CreateHandler(user: null);
+        var (handler, _, _, _, _) = CreateHandler(user: null, userId: userId);
         var command = CreateCommand(userId);
 
         // Act & Assert
@@ -119,7 +122,7 @@ public class UploadAvatarCommandHandlerTests
         var name = UserName.From("Test User");
         var externalId = ExternalUserId.From("test-external-id");
 
-        var user = User.Register(email, name, externalId, emailVerified: true);
+        var user = User.Register(email, name, externalId, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         return user;
@@ -135,26 +138,46 @@ public class UploadAvatarCommandHandlerTests
             [AvatarSize.Large] = new("key-large", "image/jpeg", 1000, 512, 512),
         };
 
-        return AvatarAggregate.Create("previous.jpg", "image/jpeg", variants);
+        return AvatarAggregate.Create("previous.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
     }
 
     private static UploadAvatarCommand CreateCommand(UserId userId) =>
-        new(userId, new byte[] { 0xFF, 0xD8, 0xFF }, "test.jpg", "image/jpeg",
-            null, null, null, null);
+        new(new byte[] { 0xFF, 0xD8, 0xFF }, "test.jpg", "image/jpeg",
+            null, null, null, null) { UserId = userId, FamilyId = FamilyId.New() };
 
     private static (
         UploadAvatarCommandHandler Handler,
-        FakeAvatarRepository AvatarRepo,
-        FakeUserRepository UserRepo,
-        FakeFileStorageService FileStorage,
-        FakeAvatarProcessingService Processing
-    ) CreateHandler(User? user, AvatarAggregate? existingAvatar = null)
+        IAvatarRepository AvatarRepo,
+        IUserRepository UserRepo,
+        IFileStorageService FileStorage,
+        IAvatarProcessingService Processing
+    ) CreateHandler(User? user, AvatarAggregate? existingAvatar = null, UserId? userId = null)
     {
-        var userRepo = new FakeUserRepository(user);
-        var avatarRepo = new FakeAvatarRepository(existingAvatar);
-        var fileStorage = new FakeFileStorageService();
-        var processing = new FakeAvatarProcessingService();
-        var handler = new UploadAvatarCommandHandler(userRepo, avatarRepo, processing, fileStorage);
+        var userRepo = Substitute.For<IUserRepository>();
+        var lookupId = user?.Id ?? userId ?? UserId.New();
+        userRepo.GetByIdAsync(lookupId, CancellationToken.None).Returns(user);
+
+        var avatarRepo = Substitute.For<IAvatarRepository>();
+        if (existingAvatar is not null)
+        {
+            avatarRepo.GetByIdAsync(existingAvatar.Id, CancellationToken.None).Returns(existingAvatar);
+        }
+
+        var fileStorage = Substitute.For<IFileStorageService>();
+        fileStorage.SaveAsync(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => $"fake-storage-key-{Guid.NewGuid():N}");
+
+        var processing = Substitute.For<IAvatarProcessingService>();
+        processing.ProcessAvatarAsync(Arg.Any<Stream>(), Arg.Any<CropArea?>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<AvatarSize, byte[]>
+            {
+                [AvatarSize.Tiny] = new byte[] { 1, 2, 3 },
+                [AvatarSize.Small] = new byte[] { 4, 5, 6 },
+                [AvatarSize.Medium] = new byte[] { 7, 8, 9 },
+                [AvatarSize.Large] = new byte[] { 10, 11, 12 }
+            });
+
+        var handler = new UploadAvatarCommandHandler(userRepo, avatarRepo, processing, fileStorage, TimeProvider.System);
         return (handler, avatarRepo, userRepo, fileStorage, processing);
     }
 }

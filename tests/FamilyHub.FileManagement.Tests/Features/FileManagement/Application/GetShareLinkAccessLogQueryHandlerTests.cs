@@ -1,10 +1,11 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetShareLinkAccessLog;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -13,51 +14,70 @@ public class GetShareLinkAccessLogQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnLogs()
     {
-        var linkRepo = new FakeShareLinkRepository();
-        var logRepo = new FakeShareLinkAccessLogRepository();
+        var linkRepo = Substitute.For<IShareLinkRepository>();
+        var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
         var handler = new GetShareLinkAccessLogQueryHandler(linkRepo, logRepo);
 
         var familyId = FamilyId.New();
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null);
-        linkRepo.Links.Add(link);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null, DateTimeOffset.UtcNow);
+        linkRepo.GetByIdAsync(link.Id, Arg.Any<CancellationToken>()).Returns(link);
 
-        logRepo.Logs.Add(ShareLinkAccessLog.Create(link.Id, "10.0.0.1", "Mozilla/5.0", ShareAccessAction.View));
-        logRepo.Logs.Add(ShareLinkAccessLog.Create(link.Id, "10.0.0.2", null, ShareAccessAction.Download));
+        var logs = new List<ShareLinkAccessLog>
+        {
+            ShareLinkAccessLog.Create(link.Id, "10.0.0.1", "Mozilla/5.0", ShareAccessAction.View, DateTimeOffset.UtcNow),
+            ShareLinkAccessLog.Create(link.Id, "10.0.0.2", null, ShareAccessAction.Download, DateTimeOffset.UtcNow)
+        };
+        logRepo.GetByShareLinkIdAsync(link.Id, Arg.Any<CancellationToken>()).Returns(logs);
 
-        var query = new GetShareLinkAccessLogQuery(link.Id, familyId);
+        var query = new GetShareLinkAccessLogQuery(link.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().HaveCount(2);
+        result.Value.Should().HaveCount(2);
     }
 
     [Fact]
     public async Task Handle_LinkNotFound_ShouldThrow()
     {
-        var linkRepo = new FakeShareLinkRepository();
-        var logRepo = new FakeShareLinkAccessLogRepository();
+        var linkRepo = Substitute.For<IShareLinkRepository>();
+        var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
         var handler = new GetShareLinkAccessLogQueryHandler(linkRepo, logRepo);
 
-        var query = new GetShareLinkAccessLogQuery(ShareLinkId.New(), FamilyId.New());
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        linkRepo.GetByIdAsync(ShareLinkId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((ShareLink?)null);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Share link not found*");
+        var query = new GetShareLinkAccessLogQuery(ShareLinkId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Share link not found*");
     }
 
     [Fact]
     public async Task Handle_DifferentFamily_ShouldThrow()
     {
-        var linkRepo = new FakeShareLinkRepository();
-        var logRepo = new FakeShareLinkAccessLogRepository();
+        var linkRepo = Substitute.For<IShareLinkRepository>();
+        var logRepo = Substitute.For<IShareLinkAccessLogRepository>();
         var handler = new GetShareLinkAccessLogQueryHandler(linkRepo, logRepo);
 
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null);
-        linkRepo.Links.Add(link);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null, DateTimeOffset.UtcNow);
+        linkRepo.GetByIdAsync(link.Id, Arg.Any<CancellationToken>()).Returns(link);
 
-        var query = new GetShareLinkAccessLogQuery(link.Id, FamilyId.New()); // Different family
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        var query = new GetShareLinkAccessLogQuery(link.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        }; // Different family
+        var result = await handler.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .WithMessage("*Share link not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Match("*Share link not found*");
     }
 }

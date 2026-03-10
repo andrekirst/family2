@@ -1,77 +1,90 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.CreateShareLink;
+using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class CreateShareLinkCommandHandlerTests
 {
+    private readonly IShareLinkRepository _repo = Substitute.For<IShareLinkRepository>();
+    private readonly CreateShareLinkCommandHandler _handler;
+
+    public CreateShareLinkCommandHandlerTests()
+    {
+        _handler = new CreateShareLinkCommandHandler(_repo, TimeProvider.System);
+    }
+
     [Fact]
     public async Task Handle_ShouldCreateShareLink()
     {
-        var repo = new FakeShareLinkRepository();
-        var handler = new CreateShareLinkCommandHandler(repo);
-
         var command = new CreateShareLinkCommand(
             ShareResourceType.File,
             Guid.NewGuid(),
-            FamilyId.New(),
-            UserId.New(),
             DateTime.UtcNow.AddDays(7),
             null,
-            null);
+            null)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        result.Token.Should().NotBeNullOrEmpty();
-        repo.Links.Should().HaveCount(1);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Token.Should().NotBeNullOrEmpty();
+        await _repo.Received(1).AddAsync(Arg.Any<ShareLink>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_WithPassword_ShouldHashPassword()
     {
-        var repo = new FakeShareLinkRepository();
-        var handler = new CreateShareLinkCommandHandler(repo);
-
         var command = new CreateShareLinkCommand(
             ShareResourceType.File,
             Guid.NewGuid(),
-            FamilyId.New(),
-            UserId.New(),
             null,
             "my-secret-password",
-            null);
+            null)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        repo.Links.First().PasswordHash.Should().NotBeNull();
-        repo.Links.First().PasswordHash.Should().NotBe("my-secret-password"); // Should be hashed
-        repo.Links.First().HasPassword.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
+        await _repo.Received(1).AddAsync(
+            Arg.Is<ShareLink>(l =>
+                l.PasswordHash != null &&
+                l.PasswordHash != "my-secret-password" &&
+                l.HasPassword),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_WithDownloadLimit_ShouldSetLimit()
     {
-        var repo = new FakeShareLinkRepository();
-        var handler = new CreateShareLinkCommandHandler(repo);
-
         var command = new CreateShareLinkCommand(
             ShareResourceType.Folder,
             Guid.NewGuid(),
-            FamilyId.New(),
-            UserId.New(),
             null,
             null,
-            10);
+            10)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        repo.Links.First().MaxDownloads.Should().Be(10);
-        repo.Links.First().ResourceType.Should().Be(ShareResourceType.Folder);
+        result.IsSuccess.Should().BeTrue();
+        await _repo.Received(1).AddAsync(
+            Arg.Is<ShareLink>(l =>
+                l.MaxDownloads == 10 &&
+                l.ResourceType == ShareResourceType.Folder),
+            Arg.Any<CancellationToken>());
     }
 }

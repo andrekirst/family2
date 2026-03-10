@@ -7,6 +7,8 @@ namespace FamilyHub.Api.Features.Family.Application.Queries.GetFamilyMembers;
 /// <summary>
 /// Query to get all members of the current user's family.
 /// </summary>
-public sealed record GetFamilyMembersQuery(
-    ExternalUserId ExternalUserId
-) : IReadOnlyQuery<List<UserDto>>;
+public sealed record GetFamilyMembersQuery : IReadOnlyQuery<List<UserDto>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

@@ -8,19 +8,19 @@ public class FakeUserFavoriteRepository : IUserFavoriteRepository
 {
     public List<UserFavorite> Favorites { get; } = [];
 
-    public Task<List<UserFavorite>> GetByUserIdAsync(UserId userId, CancellationToken ct = default)
+    public Task<List<UserFavorite>> GetByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
         => Task.FromResult(Favorites.Where(uf => uf.UserId == userId).OrderByDescending(uf => uf.FavoritedAt).ToList());
 
-    public Task<bool> ExistsAsync(UserId userId, FileId fileId, CancellationToken ct = default)
+    public Task<bool> ExistsAsync(UserId userId, FileId fileId, CancellationToken cancellationToken = default)
         => Task.FromResult(Favorites.Any(uf => uf.UserId == userId && uf.FileId == fileId));
 
-    public Task AddAsync(UserFavorite favorite, CancellationToken ct = default)
+    public Task AddAsync(UserFavorite favorite, CancellationToken cancellationToken = default)
     {
         Favorites.Add(favorite);
         return Task.CompletedTask;
     }
 
-    public Task RemoveAsync(UserFavorite favorite, CancellationToken ct = default)
+    public Task RemoveAsync(UserFavorite favorite, CancellationToken cancellationToken = default)
     {
         var existing = Favorites.FirstOrDefault(uf => uf.UserId == favorite.UserId && uf.FileId == favorite.FileId);
         if (existing is not null) Favorites.Remove(existing);

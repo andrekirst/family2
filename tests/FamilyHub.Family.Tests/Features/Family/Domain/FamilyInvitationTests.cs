@@ -82,7 +82,7 @@ public class FamilyInvitationTests
         var acceptingUserId = UserId.New();
 
         // Act
-        invitation.Accept(acceptingUserId);
+        invitation.Accept(acceptingUserId, DateTimeOffset.UtcNow);
 
         // Assert
         invitation.Status.Should().Be(InvitationStatus.Accepted);
@@ -99,7 +99,7 @@ public class FamilyInvitationTests
         var acceptingUserId = UserId.New();
 
         // Act
-        invitation.Accept(acceptingUserId);
+        invitation.Accept(acceptingUserId, DateTimeOffset.UtcNow);
 
         // Assert
         invitation.DomainEvents.Should().HaveCount(1);
@@ -118,10 +118,10 @@ public class FamilyInvitationTests
     {
         // Arrange
         var invitation = CreateTestInvitation();
-        invitation.Accept(UserId.New());
+        invitation.Accept(UserId.New(), DateTimeOffset.UtcNow);
 
         // Act & Assert
-        var act = () => invitation.Accept(UserId.New());
+        var act = () => invitation.Accept(UserId.New(), DateTimeOffset.UtcNow);
         act.Should().Throw<DomainException>()
             .WithMessage("Cannot accept invitation in status 'Accepted'");
     }
@@ -134,7 +134,7 @@ public class FamilyInvitationTests
         invitation.Decline();
 
         // Act & Assert
-        var act = () => invitation.Accept(UserId.New());
+        var act = () => invitation.Accept(UserId.New(), DateTimeOffset.UtcNow);
         act.Should().Throw<DomainException>()
             .WithMessage("Cannot accept invitation in status 'Declined'");
     }
@@ -147,7 +147,7 @@ public class FamilyInvitationTests
         invitation.Revoke();
 
         // Act & Assert
-        var act = () => invitation.Accept(UserId.New());
+        var act = () => invitation.Accept(UserId.New(), DateTimeOffset.UtcNow);
         act.Should().Throw<DomainException>()
             .WithMessage("Cannot accept invitation in status 'Revoked'");
     }
@@ -159,7 +159,7 @@ public class FamilyInvitationTests
         var invitation = CreateExpiredInvitation();
 
         // Act & Assert
-        var act = () => invitation.Accept(UserId.New());
+        var act = () => invitation.Accept(UserId.New(), DateTimeOffset.UtcNow);
         act.Should().Throw<DomainException>()
             .WithMessage("Invitation has expired");
     }
@@ -205,7 +205,7 @@ public class FamilyInvitationTests
     {
         // Arrange
         var invitation = CreateTestInvitation();
-        invitation.Accept(UserId.New());
+        invitation.Accept(UserId.New(), DateTimeOffset.UtcNow);
 
         // Act & Assert
         var act = () => invitation.Decline();
@@ -267,7 +267,7 @@ public class FamilyInvitationTests
     {
         // Arrange
         var invitation = CreateTestInvitation();
-        invitation.Accept(UserId.New());
+        invitation.Accept(UserId.New(), DateTimeOffset.UtcNow);
 
         // Act & Assert
         var act = () => invitation.Revoke();
@@ -284,7 +284,7 @@ public class FamilyInvitationTests
         var invitation = CreateTestInvitation();
 
         // Act & Assert
-        invitation.IsExpired().Should().BeFalse();
+        invitation.IsExpired(DateTimeOffset.UtcNow).Should().BeFalse();
     }
 
     [Fact]
@@ -294,12 +294,12 @@ public class FamilyInvitationTests
         var invitation = CreateExpiredInvitation();
 
         // Act & Assert
-        invitation.IsExpired().Should().BeTrue();
+        invitation.IsExpired(DateTimeOffset.UtcNow).Should().BeTrue();
     }
 
     // --- Helpers ---
 
-    private static FamilyInvitation CreateTestInvitation()
+    private static FamilyInvitation CreateTestInvitation(DateTimeOffset? utcNow = null)
     {
         return FamilyInvitation.Create(
             TestFamilyId,
@@ -307,17 +307,13 @@ public class FamilyInvitationTests
             TestEmail,
             TestRole,
             InvitationToken.From(TestTokenHash),
-            TestPlaintextToken);
+            TestPlaintextToken,
+            utcNow ?? DateTimeOffset.UtcNow);
     }
 
     private static FamilyInvitation CreateExpiredInvitation()
     {
-        var invitation = CreateTestInvitation();
-
-        // Use reflection to set ExpiresAt to the past (domain model doesn't expose a setter)
-        var expiresAtProperty = typeof(FamilyInvitation).GetProperty(nameof(FamilyInvitation.ExpiresAt));
-        expiresAtProperty!.SetValue(invitation, DateTime.UtcNow.AddDays(-1));
-
-        return invitation;
+        // Create invitation with a time 31 days in the past so it's already expired (30-day validity)
+        return CreateTestInvitation(DateTimeOffset.UtcNow.AddDays(-31));
     }
 }

@@ -1,4 +1,5 @@
 using FamilyHub.Api.Common.Database;
+using FamilyHub.Api.Common.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Middleware;
@@ -10,8 +11,11 @@ namespace FamilyHub.Api.Common.Middleware;
 /// This avoids a circular dependency where querying auth.users via EF Core would itself
 /// be subject to the RLS policy that requires app.current_user_id to already be set.
 ///
-/// Includes a single retry (500ms) to handle the race condition during first login,
-/// where RegisterUser may not have committed the user record yet.
+/// Opens the database connection explicitly so all SQL within a request uses the
+/// same connection — ensuring set_config() variables persist for subsequent queries.
+///
+/// On first login (user not yet in auth.users), proceeds without RLS to allow
+/// RegisterUser to create the user record.
 /// </summary>
 public class PostgresRlsMiddleware(RequestDelegate next, ILogger<PostgresRlsMiddleware> logger)
 {
@@ -21,13 +25,21 @@ public class PostgresRlsMiddleware(RequestDelegate next, ILogger<PostgresRlsMidd
         if (context.User.Identity?.IsAuthenticated == true)
         {
             // Extract user ID from JWT 'sub' claim (Keycloak user ID)
-            var externalUserId = context.User.FindFirst("sub")?.Value;
+            var externalUserId = context.User.FindFirst(ClaimNames.Standard.Sub)?.Value;
 
             // Validate as GUID to guarantee safe SQL embedding (Keycloak sub claims are UUIDs).
             // Canonical GUID format (hex + hyphens) cannot contain SQL injection characters.
             if (!string.IsNullOrEmpty(externalUserId) && Guid.TryParse(externalUserId, out var parsedId))
             {
                 var safeExternalUserId = parsedId.ToString();
+
+                // Open connection explicitly so set_config() and all subsequent queries
+                // in this request use the same PostgreSQL session.
+                var connection = dbContext.Database.GetDbConnection();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    await connection.OpenAsync(context.RequestAborted);
+                }
 
                 await SetRlsSessionVariables(dbContext, safeExternalUserId);
 
@@ -41,6 +53,16 @@ public class PostgresRlsMiddleware(RequestDelegate next, ILogger<PostgresRlsMidd
                         safeExternalUserId);
                     await Task.Delay(500, context.RequestAborted);
                     await SetRlsSessionVariables(dbContext, safeExternalUserId);
+
+                    // After retry, verify RLS was set. If still not found, proceed
+                    // without RLS — this allows RegisterUser to create the user on first login.
+                    currentUserId = await GetCurrentSessionUserId(dbContext);
+                    if (string.IsNullOrEmpty(currentUserId))
+                    {
+                        logger.LogWarning(
+                            "RLS context could not be set for {ExternalUserId} after retry — proceeding without RLS (likely first login)",
+                            safeExternalUserId);
+                    }
                 }
             }
         }

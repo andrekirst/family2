@@ -22,7 +22,7 @@ public class ShareLinkTests
             createdBy,
             expiresAt,
             null,
-            null);
+            null, DateTimeOffset.UtcNow);
 
         link.ResourceType.Should().Be(ShareResourceType.File);
         link.ResourceId.Should().Be(resourceId);
@@ -40,8 +40,8 @@ public class ShareLinkTests
     [Fact]
     public void Create_ShouldGenerateUniqueTokens()
     {
-        var link1 = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null);
-        var link2 = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null);
+        var link1 = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null, DateTimeOffset.UtcNow);
+        var link2 = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null, DateTimeOffset.UtcNow);
 
         link1.Token.Should().NotBe(link2.Token);
     }
@@ -49,7 +49,7 @@ public class ShareLinkTests
     [Fact]
     public void Create_ShouldRaiseDomainEvent()
     {
-        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null);
+        var link = ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(), null, null, null, DateTimeOffset.UtcNow);
 
         link.DomainEvents.Should().HaveCount(1);
     }
@@ -59,9 +59,9 @@ public class ShareLinkTests
     {
         var link = ShareLink.Create(
             ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(),
-            DateTime.UtcNow.AddDays(7), null, null);
+            DateTime.UtcNow.AddDays(7), null, null, DateTimeOffset.UtcNow);
 
-        link.IsAccessible.Should().BeTrue();
+        link.IsAccessible(DateTimeOffset.UtcNow).Should().BeTrue();
     }
 
     [Fact]
@@ -69,9 +69,9 @@ public class ShareLinkTests
     {
         var link = ShareLink.Create(
             ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(),
-            null, null, null);
+            null, null, null, DateTimeOffset.UtcNow);
 
-        link.IsAccessible.Should().BeTrue();
+        link.IsAccessible(DateTimeOffset.UtcNow).Should().BeTrue();
     }
 
     [Fact]
@@ -79,10 +79,10 @@ public class ShareLinkTests
     {
         var link = ShareLink.Create(
             ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(),
-            DateTime.UtcNow.AddHours(-1), null, null);
+            DateTime.UtcNow.AddHours(-1), null, null, DateTimeOffset.UtcNow);
 
-        link.IsExpired.Should().BeTrue();
-        link.IsAccessible.Should().BeFalse();
+        link.IsExpired(DateTimeOffset.UtcNow).Should().BeTrue();
+        link.IsAccessible(DateTimeOffset.UtcNow).Should().BeFalse();
     }
 
     [Fact]
@@ -90,12 +90,12 @@ public class ShareLinkTests
     {
         var link = ShareLink.Create(
             ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(),
-            null, null, null);
+            null, null, null, DateTimeOffset.UtcNow);
 
         link.Revoke(UserId.New());
 
         link.IsRevoked.Should().BeTrue();
-        link.IsAccessible.Should().BeFalse();
+        link.IsAccessible(DateTimeOffset.UtcNow).Should().BeFalse();
         link.DomainEvents.Should().HaveCount(2); // Created + Revoked
     }
 
@@ -104,7 +104,7 @@ public class ShareLinkTests
     {
         var link = ShareLink.Create(
             ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(),
-            null, null, 5);
+            null, null, 5, DateTimeOffset.UtcNow);
 
         link.IncrementDownloadCount();
         link.IncrementDownloadCount();
@@ -117,13 +117,13 @@ public class ShareLinkTests
     {
         var link = ShareLink.Create(
             ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(),
-            null, null, 2);
+            null, null, 2, DateTimeOffset.UtcNow);
 
         link.IncrementDownloadCount();
         link.IncrementDownloadCount();
 
         link.IsDownloadLimitReached.Should().BeTrue();
-        link.IsAccessible.Should().BeFalse();
+        link.IsAccessible(DateTimeOffset.UtcNow).Should().BeFalse();
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class ShareLinkTests
     {
         var link = ShareLink.Create(
             ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(),
-            null, "hashed-password", null);
+            null, "hashed-password", null, DateTimeOffset.UtcNow);
 
         link.HasPassword.Should().BeTrue();
     }
@@ -141,7 +141,7 @@ public class ShareLinkTests
     {
         var link = ShareLink.Create(
             ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(),
-            null, null, null);
+            null, null, null, DateTimeOffset.UtcNow);
 
         link.HasPassword.Should().BeFalse();
     }
@@ -151,7 +151,7 @@ public class ShareLinkTests
     {
         var link = ShareLink.Create(
             ShareResourceType.File, Guid.NewGuid(), FamilyId.New(), UserId.New(),
-            null, null, null);
+            null, null, null, DateTimeOffset.UtcNow);
 
         link.Token.Should().NotContain("+");
         link.Token.Should().NotContain("/");

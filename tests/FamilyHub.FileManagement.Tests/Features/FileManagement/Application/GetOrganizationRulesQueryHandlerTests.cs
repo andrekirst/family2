@@ -1,26 +1,39 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetOrganizationRules;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class GetOrganizationRulesQueryHandlerTests
 {
+    private readonly IOrganizationRuleRepository _ruleRepo = Substitute.For<IOrganizationRuleRepository>();
+    private readonly GetOrganizationRulesQueryHandler _handler;
+
+    public GetOrganizationRulesQueryHandlerTests()
+    {
+        _handler = new GetOrganizationRulesQueryHandler(_ruleRepo);
+    }
+
     [Fact]
     public async Task Handle_ShouldReturnRules()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new GetOrganizationRulesQueryHandler(ruleRepo);
-
         var familyId = FamilyId.New();
-        ruleRepo.Rules.Add(OrganizationRule.Create("A", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1));
-        ruleRepo.Rules.Add(OrganizationRule.Create("B", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 2));
+        _ruleRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns([
+                OrganizationRule.Create("A", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow),
+                OrganizationRule.Create("B", familyId, UserId.New(), "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 2, DateTimeOffset.UtcNow)
+            ]);
 
-        var query = new GetOrganizationRulesQuery(familyId);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetOrganizationRulesQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
     }
@@ -28,11 +41,15 @@ public class GetOrganizationRulesQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnEmptyWhenNoRules()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new GetOrganizationRulesQueryHandler(ruleRepo);
+        _ruleRepo.GetByFamilyIdAsync(FamilyId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs(new List<OrganizationRule>());
 
-        var query = new GetOrganizationRulesQuery(FamilyId.New());
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetOrganizationRulesQuery()
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
     }

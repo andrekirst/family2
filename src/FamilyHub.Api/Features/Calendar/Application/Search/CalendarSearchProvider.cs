@@ -3,7 +3,7 @@ using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Calendar.Application.Search;
 
-public sealed class CalendarSearchProvider(ICalendarEventRepository calendarEventRepository) : ISearchProvider
+public sealed class CalendarSearchProvider(ICalendarEventRepository calendarEventRepository, TimeProvider timeProvider) : ISearchProvider
 {
     public string ModuleName => "calendar";
 
@@ -16,7 +16,7 @@ public sealed class CalendarSearchProvider(ICalendarEventRepository calendarEven
             return [];
         }
 
-        var now = DateTime.UtcNow;
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         var start = now.AddMonths(-3);
         var end = now.AddMonths(6);
 
@@ -24,7 +24,7 @@ public sealed class CalendarSearchProvider(ICalendarEventRepository calendarEven
             context.FamilyId.Value, start, end, cancellationToken);
 
         var queryLower = context.Query.ToLowerInvariant();
-        var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;
+        var isGerman = context.IsLocale("de");
 
         var filtered = events
             .Where(e => !e.IsCancelled)

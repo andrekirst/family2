@@ -1,6 +1,6 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.UploadAvatar;
@@ -14,7 +14,8 @@ public sealed class UploadAvatarCommandHandler(
     IUserRepository userRepository,
     IAvatarRepository avatarRepository,
     IAvatarProcessingService processingService,
-    IFileStorageService fileStorageService)
+    IFileStorageService fileStorageService,
+    TimeProvider timeProvider)
     : ICommandHandler<UploadAvatarCommand, UploadAvatarResult>
 {
     public async ValueTask<UploadAvatarResult> Handle(
@@ -65,11 +66,12 @@ public sealed class UploadAvatarCommandHandler(
         }
 
         // Create new avatar aggregate
-        var avatar = AvatarAggregate.Create(command.FileName, command.MimeType, variantData);
+        var utcNow = timeProvider.GetUtcNow();
+        var avatar = AvatarAggregate.Create(command.FileName, command.MimeType, variantData, utcNow);
         await avatarRepository.AddAsync(avatar, cancellationToken);
 
         // Update user's global avatar (raises UserAvatarChangedEvent)
-        user.SetAvatar(avatar.Id);
+        user.SetAvatar(avatar.Id, utcNow);
 
         return new UploadAvatarResult(avatar.Id);
     }

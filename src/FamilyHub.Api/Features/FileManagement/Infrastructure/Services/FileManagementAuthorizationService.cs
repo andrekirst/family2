@@ -20,16 +20,16 @@ public sealed class FileManagementAuthorizationService(
 {
     public async Task<bool> HasFilePermissionAsync(
         UserId userId, FileId fileId, FilePermissionLevel requiredLevel,
-        FamilyId familyId, CancellationToken ct = default)
+        FamilyId familyId, CancellationToken cancellationToken = default)
     {
         // 1. Family Owner/Admin bypass
-        if (await IsFamilyAdminOrOwnerAsync(userId, familyId, ct))
+        if (await IsFamilyAdminOrOwnerAsync(userId, familyId, cancellationToken))
         {
             return true;
         }
 
         // 2. File owner always has Manage
-        var file = await storedFileRepository.GetByIdAsync(fileId, ct);
+        var file = await storedFileRepository.GetByIdAsync(fileId, cancellationToken);
         if (file is not null && file.UploadedBy == userId)
         {
             return true;
@@ -37,13 +37,13 @@ public sealed class FileManagementAuthorizationService(
 
         // 3. Check if the file has any direct permissions (is it restricted?)
         var fileRestricted = await permissionRepository.HasAnyPermissionsAsync(
-            PermissionResourceType.File, fileId.Value, ct);
+            PermissionResourceType.File, fileId.Value, cancellationToken);
 
         if (fileRestricted)
         {
             // Check direct file permission
             var directPerm = await permissionRepository.GetByMemberAndResourceAsync(
-                userId, PermissionResourceType.File, fileId.Value, ct);
+                userId, PermissionResourceType.File, fileId.Value, cancellationToken);
 
             if (directPerm is not null)
             {
@@ -58,7 +58,7 @@ public sealed class FileManagementAuthorizationService(
         if (file is not null)
         {
             var hasInherited = await CheckFolderInheritanceAsync(
-                userId, file.FolderId, requiredLevel, ct);
+                userId, file.FolderId, requiredLevel, cancellationToken);
 
             if (hasInherited.HasValue)
             {
@@ -72,16 +72,16 @@ public sealed class FileManagementAuthorizationService(
 
     public async Task<bool> HasFolderPermissionAsync(
         UserId userId, FolderId folderId, FilePermissionLevel requiredLevel,
-        FamilyId familyId, CancellationToken ct = default)
+        FamilyId familyId, CancellationToken cancellationToken = default)
     {
         // 1. Family Owner/Admin bypass
-        if (await IsFamilyAdminOrOwnerAsync(userId, familyId, ct))
+        if (await IsFamilyAdminOrOwnerAsync(userId, familyId, cancellationToken))
         {
             return true;
         }
 
         // 2. Folder creator always has Manage
-        var folder = await folderRepository.GetByIdAsync(folderId, ct);
+        var folder = await folderRepository.GetByIdAsync(folderId, cancellationToken);
         if (folder is not null && folder.CreatedBy == userId)
         {
             return true;
@@ -89,12 +89,12 @@ public sealed class FileManagementAuthorizationService(
 
         // 3. Check direct folder permission
         var folderRestricted = await permissionRepository.HasAnyPermissionsAsync(
-            PermissionResourceType.Folder, folderId.Value, ct);
+            PermissionResourceType.Folder, folderId.Value, cancellationToken);
 
         if (folderRestricted)
         {
             var directPerm = await permissionRepository.GetByMemberAndResourceAsync(
-                userId, PermissionResourceType.Folder, folderId.Value, ct);
+                userId, PermissionResourceType.Folder, folderId.Value, cancellationToken);
 
             if (directPerm is not null)
             {
@@ -106,7 +106,7 @@ public sealed class FileManagementAuthorizationService(
         if (folder?.ParentFolderId is not null)
         {
             var hasInherited = await CheckFolderInheritanceAsync(
-                userId, folder.ParentFolderId.Value, requiredLevel, ct);
+                userId, folder.ParentFolderId.Value, requiredLevel, cancellationToken);
 
             if (hasInherited.HasValue)
             {
@@ -119,9 +119,9 @@ public sealed class FileManagementAuthorizationService(
     }
 
     public async Task<bool> IsResourceRestrictedAsync(
-        PermissionResourceType resourceType, Guid resourceId, CancellationToken ct = default)
+        PermissionResourceType resourceType, Guid resourceId, CancellationToken cancellationToken = default)
     {
-        return await permissionRepository.HasAnyPermissionsAsync(resourceType, resourceId, ct);
+        return await permissionRepository.HasAnyPermissionsAsync(resourceType, resourceId, cancellationToken);
     }
 
     /// <summary>
@@ -130,13 +130,13 @@ public sealed class FileManagementAuthorizationService(
     /// or null if no restrictions were found (unrestricted).
     /// </summary>
     private async Task<bool?> CheckFolderInheritanceAsync(
-        UserId userId, FolderId startFolderId, FilePermissionLevel requiredLevel, CancellationToken ct)
+        UserId userId, FolderId startFolderId, FilePermissionLevel requiredLevel, CancellationToken cancellationToken)
     {
         // Get ancestors from the start folder up to root
-        var ancestors = await folderRepository.GetAncestorsAsync(startFolderId, ct);
+        var ancestors = await folderRepository.GetAncestorsAsync(startFolderId, cancellationToken);
 
         // Include the start folder itself in the chain
-        var startFolder = await folderRepository.GetByIdAsync(startFolderId, ct);
+        var startFolder = await folderRepository.GetByIdAsync(startFolderId, cancellationToken);
         var folderChain = new List<FolderId>();
 
         if (startFolder is not null)
@@ -150,7 +150,7 @@ public sealed class FileManagementAuthorizationService(
         foreach (var folderId in folderChain)
         {
             var hasPermissions = await permissionRepository.HasAnyPermissionsAsync(
-                PermissionResourceType.Folder, folderId.Value, ct);
+                PermissionResourceType.Folder, folderId.Value, cancellationToken);
 
             if (!hasPermissions)
             {
@@ -159,7 +159,7 @@ public sealed class FileManagementAuthorizationService(
 
             // This folder is restricted — check user's grant
             var perm = await permissionRepository.GetByMemberAndResourceAsync(
-                userId, PermissionResourceType.Folder, folderId.Value, ct);
+                userId, PermissionResourceType.Folder, folderId.Value, cancellationToken);
 
             return perm is not null && perm.PermissionLevel >= requiredLevel;
         }
@@ -169,9 +169,9 @@ public sealed class FileManagementAuthorizationService(
     }
 
     private async Task<bool> IsFamilyAdminOrOwnerAsync(
-        UserId userId, FamilyId familyId, CancellationToken ct)
+        UserId userId, FamilyId familyId, CancellationToken cancellationToken)
     {
-        var member = await familyMemberRepository.GetByUserAndFamilyAsync(userId, familyId, ct);
+        var member = await familyMemberRepository.GetByUserAndFamilyAsync(userId, familyId, cancellationToken);
         return member is not null && member.IsActive &&
             (member.Role.CanEditFamily()); // Owner and Admin both return true for CanEditFamily
     }

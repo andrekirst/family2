@@ -2,8 +2,8 @@ using FamilyHub.Api.Common.Modules;
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.EventChain.Application.EventHandlers;
 using FamilyHub.Api.Features.EventChain.Application.Search;
+using FamilyHub.Api.Features.EventChain.Infrastructure.Messaging;
 using FamilyHub.Api.Features.EventChain.Infrastructure.Repositories;
-using FamilyHub.Api.Features.EventChain.Infrastructure.Scheduler;
 using FamilyHub.Common.Application;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Infrastructure.Orchestrator;
@@ -12,6 +12,7 @@ using FamilyHub.EventChain.Infrastructure.Registry;
 
 namespace FamilyHub.Api.Features.EventChain;
 
+[ModuleOrder(500)]
 public sealed class EventChainModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)
@@ -21,7 +22,11 @@ public sealed class EventChainModule : IModule
         services.AddScoped<IChainDefinitionRepository, ChainDefinitionRepository>();
         services.AddScoped<IChainExecutionRepository, ChainExecutionRepository>();
         services.AddScoped<IChainOrchestrator, ChainOrchestrator>();
+        services.AddScoped<IChainExecutionDispatcher, CapChainExecutionDispatcher>();
         services.AddScoped<IDomainEventObserver, ChainTriggerHandler>();
+
+        // CAP subscriber for chain execution messages
+        services.AddTransient<ChainCapSubscriber>();
 
         // Step execution pipeline (middleware order: Logging -> CircuitBreaker -> Retry -> Compensation -> ActionHandler)
         services.AddSingleton<LoggingMiddleware>();
@@ -37,9 +42,6 @@ public sealed class EventChainModule : IModule
             sp.GetRequiredService<CompensationMiddleware>(),
             sp.GetRequiredService<ActionHandlerMiddleware>()
         }));
-
-        // Chain scheduler background service
-        services.AddHostedService<ChainSchedulerService>();
 
         // Search
         services.AddScoped<ISearchProvider, EventChainSearchProvider>();

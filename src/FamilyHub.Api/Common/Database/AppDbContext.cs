@@ -1,5 +1,7 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
+using FamilyHub.Api.Common.Infrastructure.Audit;
+using FamilyHub.Api.Common.Infrastructure.BlobStaging;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Dashboard.Domain.Entities;
@@ -30,6 +32,8 @@ using FileManagementFileThumbnail = FamilyHub.Api.Features.FileManagement.Domain
 using FileManagementSecureNote = FamilyHub.Api.Features.FileManagement.Domain.Entities.SecureNote;
 using FileManagementExternalConnection = FamilyHub.Api.Features.FileManagement.Domain.Entities.ExternalConnection;
 using FileManagementZipJob = FamilyHub.Api.Features.FileManagement.Domain.Entities.ZipJob;
+using FamilyHub.Api.Common.Infrastructure.Behaviors;
+using FamilyHub.Common.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyHub.Api.Common.Database;
@@ -127,6 +131,15 @@ public class AppDbContext : DbContext, IUnitOfWork
     // School entities
     public DbSet<Student> Students { get; set; }
 
+    // Idempotency keys (deduplication for at-least-once delivery)
+    public DbSet<IdempotencyRecord> IdempotencyKeys { get; set; }
+
+    // Audit events (immutable domain event log)
+    public DbSet<AuditEvent> AuditEvents { get; set; }
+
+    // BlobStaging (transactional outbox for orphaned blob prevention)
+    public DbSet<BlobStagingEntry> BlobStagingEntries { get; set; } = null!;
+
     // Event Chain Engine entities
     public DbSet<ChainDefinition> ChainDefinitions { get; set; }
     public DbSet<ChainDefinitionStep> ChainDefinitionSteps { get; set; }
@@ -144,6 +157,61 @@ public class AppDbContext : DbContext, IUnitOfWork
 
         // Apply all entity configurations from this assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // BlobStaging entity configuration
+        modelBuilder.Entity<BlobStagingEntry>(entity =>
+        {
+            entity.ToTable("blob_staging", "common");
+            entity.HasKey(e => e.Id);
+        });
+
+        // Configure optimistic concurrency for all aggregate roots.
+        // Uses PostgreSQL's xmin system column, which is automatically updated on every row modification.
+        // This eliminates the need for a separate row_version column or per-entity configuration.
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (entityType.ClrType.IsAssignableTo(typeof(IHasDomainEvents)) &&
+                entityType.ClrType.GetProperty(nameof(AggregateRoot<int>.RowVersion)) is not null)
+            {
+                modelBuilder.Entity(entityType.ClrType)
+                    .Property(nameof(AggregateRoot<int>.RowVersion))
+                    .HasColumnName("xmin")
+                    .HasColumnType("xid")
+                    .IsRowVersion();
+            }
+        }
+    }
+
+    // IUnitOfWork: explicit transaction support
+
+    public bool HasChanges => ChangeTracker.HasChanges();
+
+    public bool HasActiveTransaction => Database.CurrentTransaction is not null;
+
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        if (Database.CurrentTransaction is not null)
+            return;
+
+        await Database.BeginTransactionAsync(cancellationToken);
+    }
+
+    public async Task CommitAsync(CancellationToken cancellationToken = default)
+    {
+        var transaction = Database.CurrentTransaction;
+        if (transaction is null)
+            return;
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task RollbackAsync(CancellationToken cancellationToken = default)
+    {
+        var transaction = Database.CurrentTransaction;
+        if (transaction is null)
+            return;
+
+        await transaction.RollbackAsync(cancellationToken);
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PhotoGridComponent } from '../photo-grid/photo-grid.component';
 import { PhotoViewerComponent } from '../photo-viewer/photo-viewer.component';
@@ -14,6 +14,7 @@ import { UserService } from '../../../../core/user/user.service';
 @Component({
   selector: 'app-photos-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, PhotoGridComponent, PhotoViewerComponent],
   template: `
     <div class="p-4 md:p-6">

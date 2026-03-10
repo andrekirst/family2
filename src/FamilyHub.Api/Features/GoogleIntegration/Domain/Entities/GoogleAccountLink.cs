@@ -31,7 +31,8 @@ public sealed class GoogleAccountLink : AggregateRoot<GoogleAccountLinkId>
         EncryptedToken encryptedAccessToken,
         EncryptedToken encryptedRefreshToken,
         DateTime accessTokenExpiresAt,
-        GoogleScopes grantedScopes)
+        GoogleScopes grantedScopes,
+        DateTimeOffset utcNow)
     {
         var link = new GoogleAccountLink
         {
@@ -44,8 +45,8 @@ public sealed class GoogleAccountLink : AggregateRoot<GoogleAccountLinkId>
             AccessTokenExpiresAt = accessTokenExpiresAt,
             GrantedScopes = grantedScopes,
             Status = GoogleLinkStatus.Active,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         link.RaiseDomainEvent(new GoogleAccountLinkedEvent(
@@ -56,43 +57,48 @@ public sealed class GoogleAccountLink : AggregateRoot<GoogleAccountLinkId>
 
     public void RefreshAccessToken(
         EncryptedToken newEncryptedAccessToken,
-        DateTime newExpiresAt)
+        DateTime newExpiresAt,
+        DateTimeOffset utcNow)
     {
+        var now = utcNow;
         EncryptedAccessToken = newEncryptedAccessToken;
         AccessTokenExpiresAt = newExpiresAt;
         Status = GoogleLinkStatus.Active;
         LastError = null;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = now.UtcDateTime;
 
         RaiseDomainEvent(new GoogleTokenRefreshedEvent(Id, UserId, newExpiresAt));
     }
 
-    public void MarkRefreshFailed(string error)
+    public void MarkRefreshFailed(string error, DateTimeOffset utcNow)
     {
+        var now = utcNow;
         Status = GoogleLinkStatus.Error;
         LastError = error;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = now.UtcDateTime;
 
         RaiseDomainEvent(new GoogleTokenRefreshFailedEvent(Id, UserId, error));
     }
 
-    public void MarkRevoked()
+    public void MarkRevoked(DateTimeOffset utcNow)
     {
+        var now = utcNow;
         Status = GoogleLinkStatus.Revoked;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = now.UtcDateTime;
 
         RaiseDomainEvent(new GoogleAccountUnlinkedEvent(Id, UserId, GoogleAccountId));
     }
 
-    public void RecordSync()
+    public void RecordSync(DateTimeOffset utcNow)
     {
-        LastSyncAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
+        var now = utcNow;
+        LastSyncAt = now.UtcDateTime;
+        UpdatedAt = now.UtcDateTime;
     }
 
-    public bool IsAccessTokenExpired() =>
-        AccessTokenExpiresAt <= DateTime.UtcNow;
+    public bool IsAccessTokenExpired(DateTimeOffset utcNow) =>
+        AccessTokenExpiresAt <= utcNow.UtcDateTime;
 
-    public bool IsAccessTokenExpiringSoon(TimeSpan threshold) =>
-        AccessTokenExpiresAt <= DateTime.UtcNow.Add(threshold);
+    public bool IsAccessTokenExpiringSoon(TimeSpan threshold, DateTimeOffset utcNow) =>
+        AccessTokenExpiresAt <= utcNow.UtcDateTime.Add(threshold);
 }

@@ -6,11 +6,13 @@ namespace FamilyHub.Api.Features.Dashboard.Application.Commands.SaveDashboardLay
 
 public sealed record SaveDashboardLayoutCommand(
     DashboardLayoutName Name,
-    UserId? UserId,
-    FamilyId? FamilyId,
     bool IsShared,
     IReadOnlyList<WidgetPositionData> Widgets
-) : ICommand<SaveDashboardLayoutResult>;
+) : ICommand<SaveDashboardLayoutResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}
 
 public sealed record WidgetPositionData(
     WidgetTypeId WidgetType,

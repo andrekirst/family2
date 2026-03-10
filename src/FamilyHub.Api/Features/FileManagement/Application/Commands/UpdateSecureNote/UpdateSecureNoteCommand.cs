@@ -6,9 +6,12 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UpdateSecur
 
 public sealed record UpdateSecureNoteCommand(
     SecureNoteId NoteId,
-    UserId UserId,
     NoteCategory Category,
     string EncryptedTitle,
     string EncryptedContent,
     string Iv
-) : ICommand<UpdateSecureNoteResult>;
+) : ICommand<Result<UpdateSecureNoteResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

@@ -20,7 +20,8 @@ public sealed class Folder : AggregateRoot<FolderId>
         FolderId? parentFolderId,
         string materializedPath,
         FamilyId familyId,
-        UserId createdBy)
+        UserId createdBy,
+        DateTimeOffset utcNow)
     {
         var folder = new Folder
         {
@@ -31,8 +32,8 @@ public sealed class Folder : AggregateRoot<FolderId>
             FamilyId = familyId,
             CreatedBy = createdBy,
             IsInbox = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         folder.RaiseDomainEvent(new FolderCreatedEvent(
@@ -44,7 +45,7 @@ public sealed class Folder : AggregateRoot<FolderId>
     /// <summary>
     /// Creates the root folder for a family. Root has no parent.
     /// </summary>
-    public static Folder CreateRoot(FamilyId familyId, UserId createdBy)
+    public static Folder CreateRoot(FamilyId familyId, UserId createdBy, DateTimeOffset utcNow)
     {
         var folder = new Folder
         {
@@ -55,8 +56,8 @@ public sealed class Folder : AggregateRoot<FolderId>
             FamilyId = familyId,
             CreatedBy = createdBy,
             IsInbox = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         return folder;
@@ -65,7 +66,7 @@ public sealed class Folder : AggregateRoot<FolderId>
     /// <summary>
     /// Creates the dedicated inbox folder for a family. Cannot be deleted or renamed.
     /// </summary>
-    public static Folder CreateInbox(FolderId rootFolderId, FamilyId familyId, UserId createdBy)
+    public static Folder CreateInbox(FolderId rootFolderId, FamilyId familyId, UserId createdBy, DateTimeOffset utcNow)
     {
         var folder = new Folder
         {
@@ -76,8 +77,8 @@ public sealed class Folder : AggregateRoot<FolderId>
             FamilyId = familyId,
             CreatedBy = createdBy,
             IsInbox = true,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         return folder;
@@ -92,32 +93,32 @@ public sealed class Folder : AggregateRoot<FolderId>
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    public void Rename(FileName newName)
+    public void Rename(FileName newName, DateTimeOffset utcNow)
     {
         Name = newName;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void UpdateMaterializedPath(string newPath)
+    public void UpdateMaterializedPath(string newPath, DateTimeOffset utcNow)
     {
         MaterializedPath = newPath;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void MoveTo(FolderId newParentFolderId, string newMaterializedPath, UserId movedBy)
+    public void MoveTo(FolderId newParentFolderId, string newMaterializedPath, UserId movedBy, DateTimeOffset utcNow)
     {
         var oldParentId = ParentFolderId;
         ParentFolderId = newParentFolderId;
         MaterializedPath = newMaterializedPath;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
 
         RaiseDomainEvent(new FolderMovedEvent(
             Id, oldParentId, newParentFolderId, FamilyId, movedBy, UpdatedAt));
     }
 
-    public void MarkDeleted(UserId deletedBy)
+    public void MarkDeleted(UserId deletedBy, DateTimeOffset utcNow)
     {
         RaiseDomainEvent(new FolderDeletedEvent(
-            Id, Name, FamilyId, deletedBy, DateTime.UtcNow));
+            Id, Name, FamilyId, deletedBy, utcNow.UtcDateTime));
     }
 }

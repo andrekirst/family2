@@ -8,44 +8,44 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 
 public sealed class AlbumItemRepository(AppDbContext context) : IAlbumItemRepository
 {
-    public async Task<List<AlbumItem>> GetByAlbumIdAsync(AlbumId albumId, CancellationToken ct = default)
+    public async Task<List<AlbumItem>> GetByAlbumIdAsync(AlbumId albumId, CancellationToken cancellationToken = default)
         => await context.Set<AlbumItem>()
             .Where(ai => ai.AlbumId == albumId)
             .OrderByDescending(ai => ai.AddedAt)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task<bool> ExistsAsync(AlbumId albumId, FileId fileId, CancellationToken ct = default)
+    public async Task<bool> ExistsAsync(AlbumId albumId, FileId fileId, CancellationToken cancellationToken = default)
         => await context.Set<AlbumItem>()
-            .AnyAsync(ai => ai.AlbumId == albumId && ai.FileId == fileId, ct);
+            .AnyAsync(ai => ai.AlbumId == albumId && ai.FileId == fileId, cancellationToken);
 
-    public async Task AddAsync(AlbumItem item, CancellationToken ct = default)
-        => await context.Set<AlbumItem>().AddAsync(item, ct);
+    public async Task AddAsync(AlbumItem item, CancellationToken cancellationToken = default)
+        => await context.Set<AlbumItem>().AddAsync(item, cancellationToken);
 
-    public Task RemoveAsync(AlbumItem item, CancellationToken ct = default)
+    public Task RemoveAsync(AlbumItem item, CancellationToken cancellationToken = default)
     {
         context.Set<AlbumItem>().Remove(item);
         return Task.CompletedTask;
     }
 
-    public async Task RemoveByAlbumIdAsync(AlbumId albumId, CancellationToken ct = default)
+    public async Task RemoveByAlbumIdAsync(AlbumId albumId, CancellationToken cancellationToken = default)
     {
         var items = await context.Set<AlbumItem>()
             .Where(ai => ai.AlbumId == albumId)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
         context.Set<AlbumItem>().RemoveRange(items);
     }
 
-    public async Task<int> GetItemCountAsync(AlbumId albumId, CancellationToken ct = default)
+    public async Task<int> GetItemCountAsync(AlbumId albumId, CancellationToken cancellationToken = default)
         => await context.Set<AlbumItem>()
-            .CountAsync(ai => ai.AlbumId == albumId, ct);
+            .CountAsync(ai => ai.AlbumId == albumId, cancellationToken);
 
-    public async Task<FileId?> GetFirstImageFileIdAsync(AlbumId albumId, CancellationToken ct = default)
+    public async Task<FileId?> GetFirstImageFileIdAsync(AlbumId albumId, CancellationToken cancellationToken = default)
     {
         // Returns the earliest-added file in the album (cover auto-selection)
         var item = await context.Set<AlbumItem>()
             .Where(ai => ai.AlbumId == albumId)
             .OrderBy(ai => ai.AddedAt)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
         return item?.FileId;
     }
 }

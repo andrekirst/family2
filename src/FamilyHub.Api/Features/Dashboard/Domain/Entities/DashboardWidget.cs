@@ -14,6 +14,7 @@ public sealed class DashboardWidget
         int x, int y,
         int width, int height,
         int sortOrder,
+        DateTimeOffset utcNow,
         string? configJson = null)
     {
         return new DashboardWidget
@@ -27,8 +28,8 @@ public sealed class DashboardWidget
             Height = height,
             SortOrder = sortOrder,
             ConfigJson = configJson,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
     }
 
@@ -44,19 +45,19 @@ public sealed class DashboardWidget
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    public void UpdatePosition(int x, int y, int width, int height, int sortOrder)
+    public void UpdatePosition(int x, int y, int width, int height, int sortOrder, DateTimeOffset utcNow)
     {
         X = x;
         Y = y;
         Width = width;
         Height = height;
         SortOrder = sortOrder;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void UpdateConfig(string? configJson)
+    public void UpdateConfig(string? configJson, DateTimeOffset utcNow)
     {
         ConfigJson = configJson;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 }

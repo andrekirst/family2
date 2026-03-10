@@ -1,3 +1,4 @@
+using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -7,13 +8,10 @@ namespace FamilyHub.Api.Features.Family.Domain.Repositories;
 /// <summary>
 /// Repository interface for FamilyInvitation aggregate.
 /// </summary>
-public interface IFamilyInvitationRepository
+public interface IFamilyInvitationRepository : IWriteRepository<FamilyInvitation, InvitationId>
 {
-    Task<FamilyInvitation?> GetByIdAsync(InvitationId id, CancellationToken ct = default);
-    Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken tokenHash, CancellationToken ct = default);
-    Task<List<FamilyInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
-    Task<FamilyInvitation?> GetByEmailAndFamilyAsync(Email email, FamilyId familyId, CancellationToken ct = default);
-    Task<List<FamilyInvitation>> GetPendingByEmailAsync(Email email, CancellationToken ct = default);
-    Task AddAsync(FamilyInvitation invitation, CancellationToken ct = default);
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
+    Task<FamilyInvitation?> GetByTokenHashAsync(InvitationToken tokenHash, CancellationToken cancellationToken = default);
+    Task<List<FamilyInvitation>> GetPendingByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<FamilyInvitation?> GetByEmailAndFamilyAsync(Email email, FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<List<FamilyInvitation>> GetPendingByEmailAsync(Email email, CancellationToken cancellationToken = default);
 }

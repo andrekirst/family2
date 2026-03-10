@@ -1,9 +1,5 @@
-using System.Security.Claims;
-using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain.ValueObjects;
 using HotChocolate.Authorization;
 
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.SaveSearch;
@@ -12,23 +8,22 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.SaveSearch;
 public class MutationType
 {
     [Authorize]
-    public async Task<SaveSearchResult> SaveSearch(
+    public async Task<bool> SaveSearch(
         string name,
         string query,
         string? filtersJson,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
+        var command = new SaveSearchCommand(name, query, filtersJson);
 
-        var user = await userRepository.GetByExternalIdAsync(
-            ExternalUserId.From(externalUserIdString), cancellationToken)
-            ?? throw new UnauthorizedAccessException("User not found");
-
-        var command = new SaveSearchCommand(name, query, filtersJson, user.Id);
-        return await commandBus.SendAsync(command, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match(
+            success => true,
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

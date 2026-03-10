@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TopBarService } from '../../services/top-bar.service';
 import { CommandPaletteService } from '../../services/command-palette.service';
@@ -6,6 +6,7 @@ import { CommandPaletteService } from '../../services/command-palette.service';
 @Component({
   selector: 'app-top-bar',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <header

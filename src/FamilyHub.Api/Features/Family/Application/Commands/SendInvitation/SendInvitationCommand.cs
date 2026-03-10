@@ -8,8 +8,10 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 /// Command to send a family invitation to an email address.
 /// </summary>
 public sealed record SendInvitationCommand(
-    FamilyId FamilyId,
-    UserId InvitedBy,
     Email InviteeEmail,
     FamilyRole Role
-) : ICommand<SendInvitationResult>;
+) : ICommand<SendInvitationResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

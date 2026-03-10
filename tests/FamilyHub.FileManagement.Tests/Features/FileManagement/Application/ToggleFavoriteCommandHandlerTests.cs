@@ -1,21 +1,23 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.ToggleFavorite;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class ToggleFavoriteCommandHandlerTests
 {
-    private static (ToggleFavoriteCommandHandler handler, FakeStoredFileRepository fileRepo, FakeUserFavoriteRepository favRepo) CreateHandler()
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly IUserFavoriteRepository _favRepo = Substitute.For<IUserFavoriteRepository>();
+    private readonly ToggleFavoriteCommandHandler _handler;
+
+    public ToggleFavoriteCommandHandlerTests()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var favRepo = new FakeUserFavoriteRepository();
-        var handler = new ToggleFavoriteCommandHandler(fileRepo, favRepo);
-        return (handler, fileRepo, favRepo);
+        _handler = new ToggleFavoriteCommandHandler(_fileRepo, _favRepo, TimeProvider.System);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId)
@@ -28,7 +30,7 @@ public class ToggleFavoriteCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -36,16 +38,20 @@ public class ToggleFavoriteCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (handler, fileRepo, favRepo) = CreateHandler();
-
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
 
-        var command = new ToggleFavoriteCommand(file.Id, userId, familyId);
-        var result = await handler.Handle(command, CancellationToken.None);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _favRepo.ExistsAsync(userId, file.Id, Arg.Any<CancellationToken>()).Returns(false);
 
-        result.IsFavorited.Should().BeTrue();
-        favRepo.Favorites.Should().HaveCount(1);
+        var command = new ToggleFavoriteCommand(file.Id)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Value.IsFavorited.Should().BeTrue();
+        await _favRepo.Received(1).AddAsync(Arg.Any<UserFavorite>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -53,45 +59,57 @@ public class ToggleFavoriteCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (handler, fileRepo, favRepo) = CreateHandler();
-
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
+        var favorite = UserFavorite.Create(userId, file.Id, DateTimeOffset.UtcNow);
 
-        // Pre-add favorite
-        favRepo.Favorites.Add(UserFavorite.Create(userId, file.Id));
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _favRepo.ExistsAsync(userId, file.Id, Arg.Any<CancellationToken>()).Returns(true);
+        _favRepo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(new List<UserFavorite> { favorite });
 
-        var command = new ToggleFavoriteCommand(file.Id, userId, familyId);
-        var result = await handler.Handle(command, CancellationToken.None);
+        var command = new ToggleFavoriteCommand(file.Id)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.IsFavorited.Should().BeFalse();
-        favRepo.Favorites.Should().BeEmpty();
+        result.Value.IsFavorited.Should().BeFalse();
+        await _favRepo.Received(1).RemoveAsync(Arg.Any<UserFavorite>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFileNotFound()
     {
-        var (handler, _, _) = CreateHandler();
+        _fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((StoredFile?)null);
 
-        var command = new ToggleFavoriteCommand(FileId.New(), UserId.New(), FamilyId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var command = new ToggleFavoriteCommand(FileId.New())
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FileNotFound);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFileBelongsToDifferentFamily()
     {
-        var (handler, fileRepo, _) = CreateHandler();
-
         var file = CreateTestFile(FamilyId.New());
-        fileRepo.Files.Add(file);
 
-        var command = new ToggleFavoriteCommand(file.Id, UserId.New(), FamilyId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        var command = new ToggleFavoriteCommand(file.Id)
+        {
+            UserId = UserId.New(),
+            FamilyId = FamilyId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

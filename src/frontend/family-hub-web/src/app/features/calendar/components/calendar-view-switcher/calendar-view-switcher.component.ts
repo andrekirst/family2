@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CalendarViewMode } from '../../models/calendar.models';
 
 @Component({
   selector: 'app-calendar-view-switcher',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       class="inline-flex rounded-lg border border-gray-300 overflow-hidden"

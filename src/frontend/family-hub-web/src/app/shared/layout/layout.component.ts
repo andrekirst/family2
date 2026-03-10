@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarStateService } from '../services/sidebar-state.service';
 import { SidebarComponent } from './sidebar/sidebar.component';
@@ -10,6 +10,7 @@ import { CommandPaletteComponent } from '../components/command-palette/command-p
 @Component({
   selector: 'app-layout',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterOutlet,
     SidebarComponent,

@@ -16,7 +16,7 @@ public class TagAggregateTests
             TagName.From(name),
             TagColor.From(color),
             familyId ?? FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]

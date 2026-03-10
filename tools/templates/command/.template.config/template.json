@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "FamilyHub Team",
+  "classifications": ["FamilyHub", "CQRS", "Command"],
+  "identity": "FamilyHub.Command",
+  "name": "FamilyHub Command",
+  "shortName": "fh-command",
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "sourceName": "CommandName",
+  "symbols": {
+    "moduleName": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "The module name (e.g., Calendar, Family, FileManagement)",
+      "isRequired": true,
+      "replaces": "ModuleName"
+    },
+    "needsBusinessValidator": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Generate a business validator"
+    },
+    "needsAuthValidator": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Generate an auth validator"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(!needsBusinessValidator)",
+          "exclude": ["CommandNameBusinessValidator.cs"]
+        },
+        {
+          "condition": "(!needsAuthValidator)",
+          "exclude": ["CommandNameAuthValidator.cs"]
+        }
+      ]
+    }
+  ]
+}

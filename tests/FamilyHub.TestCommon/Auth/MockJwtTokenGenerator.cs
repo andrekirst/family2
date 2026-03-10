@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using FamilyHub.Api.Common.Infrastructure;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FamilyHub.TestCommon.Auth;
@@ -34,11 +35,11 @@ public static class MockJwtTokenGenerator
     {
         var claims = new List<Claim>
         {
-            new("sub", sub),
-            new("email", email),
-            new("name", name),
-            new("email_verified", emailVerified.ToString().ToLowerInvariant()),
-            new("preferred_username", email),
+            new(ClaimNames.Standard.Sub, sub),
+            new(ClaimNames.Standard.Email, email),
+            new(ClaimNames.Standard.Name, name),
+            new(ClaimNames.Standard.EmailVerified, emailVerified.ToString().ToLowerInvariant()),
+            new(ClaimNames.Standard.PreferredUsername, email),
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

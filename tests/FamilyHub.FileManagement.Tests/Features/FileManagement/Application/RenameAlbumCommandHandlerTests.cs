@@ -1,62 +1,73 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.RenameAlbum;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class RenameAlbumCommandHandlerTests
 {
-    private static (RenameAlbumCommandHandler handler, FakeAlbumRepository albumRepo) CreateHandler()
+    private readonly IAlbumRepository _albumRepo = Substitute.For<IAlbumRepository>();
+    private readonly RenameAlbumCommandHandler _handler;
+
+    public RenameAlbumCommandHandlerTests()
     {
-        var albumRepo = new FakeAlbumRepository();
-        var handler = new RenameAlbumCommandHandler(albumRepo);
-        return (handler, albumRepo);
+        _handler = new RenameAlbumCommandHandler(_albumRepo, TimeProvider.System);
     }
 
     [Fact]
     public async Task Handle_ShouldRenameAlbum()
     {
         var familyId = FamilyId.New();
-        var (handler, albumRepo) = CreateHandler();
+        var album = Album.Create(AlbumName.From("Old Name"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
-        var album = Album.Create(AlbumName.From("Old Name"), null, familyId, UserId.New());
-        albumRepo.Albums.Add(album);
+        var command = new RenameAlbumCommand(album.Id, AlbumName.From("New Name"))
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        var command = new RenameAlbumCommand(album.Id, AlbumName.From("New Name"), familyId);
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        result.AlbumId.Should().Be(album.Id);
+        result.Value.AlbumId.Should().Be(album.Id);
         album.Name.Value.Should().Be("New Name");
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenAlbumNotFound()
     {
-        var (handler, _) = CreateHandler();
+        _albumRepo.GetByIdAsync(AlbumId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((Album?)null);
 
-        var command = new RenameAlbumCommand(AlbumId.New(), AlbumName.From("New"), FamilyId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var command = new RenameAlbumCommand(AlbumId.New(), AlbumName.From("New"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.AlbumNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.AlbumNotFound);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenAlbumBelongsToDifferentFamily()
     {
-        var (handler, albumRepo) = CreateHandler();
+        var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
+        _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
 
-        var album = Album.Create(AlbumName.From("Album"), null, FamilyId.New(), UserId.New());
-        albumRepo.Albums.Add(album);
+        var command = new RenameAlbumCommand(album.Id, AlbumName.From("New"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        var command = new RenameAlbumCommand(album.Id, AlbumName.From("New"), FamilyId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

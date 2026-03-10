@@ -1,10 +1,11 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.MoveFile;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
@@ -20,87 +21,42 @@ public class MoveFileCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             folderId,
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
     public async Task Handle_ShouldMoveFileToTargetFolder()
     {
         var familyId = FamilyId.New();
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var folderRepo = Substitute.For<IFolderRepository>();
 
-        var sourceFolder = Folder.CreateRoot(familyId, UserId.New());
+        var sourceFolder = Folder.CreateRoot(familyId, UserId.New(), DateTimeOffset.UtcNow);
         var targetFolder = Folder.Create(
             FileName.From("Target"),
             sourceFolder.Id,
             $"/{sourceFolder.Id.Value}/",
             familyId,
-            UserId.New());
-        folderRepo.Folders.Add(sourceFolder);
-        folderRepo.Folders.Add(targetFolder);
+            UserId.New(), DateTimeOffset.UtcNow);
 
         var file = CreateTestFile(familyId, sourceFolder.Id);
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        folderRepo.GetByIdAsync(targetFolder.Id, Arg.Any<CancellationToken>()).Returns(targetFolder);
 
-        var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
+        var handler = new MoveFileCommandHandler(fileRepo, folderRepo, TimeProvider.System);
 
         var command = new MoveFileCommand(
             file.Id,
-            targetFolder.Id,
-            familyId,
-            UserId.New());
+            targetFolder.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.FileId.Should().Be(file.Id);
+        result.Value.FileId.Should().Be(file.Id);
         file.FolderId.Should().Be(targetFolder.Id);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowWhenFileNotFound()
-    {
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
-        var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
-
-        var command = new MoveFileCommand(
-            FileId.New(),
-            FolderId.New(),
-            FamilyId.New(),
-            UserId.New());
-
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowWhenTargetFolderNotFound()
-    {
-        var familyId = FamilyId.New();
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
-
-        var sourceFolder = Folder.CreateRoot(familyId, UserId.New());
-        folderRepo.Folders.Add(sourceFolder);
-
-        var file = CreateTestFile(familyId, sourceFolder.Id);
-        fileRepo.Files.Add(file);
-
-        var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
-
-        var command = new MoveFileCommand(
-            file.Id,
-            FolderId.New(), // non-existent target
-            familyId,
-            UserId.New());
-
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
     }
 
     [Fact]
@@ -108,28 +64,29 @@ public class MoveFileCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var otherFamilyId = FamilyId.New();
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
+        var fileRepo = Substitute.For<IStoredFileRepository>();
+        var folderRepo = Substitute.For<IFolderRepository>();
 
-        var sourceFolder = Folder.CreateRoot(familyId, UserId.New());
-        var targetFolder = Folder.CreateRoot(otherFamilyId, UserId.New());
-        folderRepo.Folders.Add(sourceFolder);
-        folderRepo.Folders.Add(targetFolder);
+        var sourceFolder = Folder.CreateRoot(familyId, UserId.New(), DateTimeOffset.UtcNow);
+        var targetFolder = Folder.CreateRoot(otherFamilyId, UserId.New(), DateTimeOffset.UtcNow);
 
         var file = CreateTestFile(familyId, sourceFolder.Id);
-        fileRepo.Files.Add(file);
+        fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        folderRepo.GetByIdAsync(targetFolder.Id, Arg.Any<CancellationToken>()).Returns(targetFolder);
 
-        var handler = new MoveFileCommandHandler(fileRepo, folderRepo);
+        var handler = new MoveFileCommandHandler(fileRepo, folderRepo, TimeProvider.System);
 
         var command = new MoveFileCommand(
             file.Id,
-            targetFolder.Id,
-            familyId,
-            UserId.New());
+            targetFolder.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

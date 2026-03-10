@@ -20,7 +20,7 @@ public class FolderAggregateTests
             parentId,
             $"/{parentId.Value}/",
             familyId,
-            userId);
+            userId, DateTimeOffset.UtcNow);
 
         folder.Should().NotBeNull();
         folder.Id.Value.Should().NotBe(Guid.Empty);
@@ -39,7 +39,7 @@ public class FolderAggregateTests
             null,
             "/",
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
         folder.DomainEvents.Should().HaveCount(1);
         folder.DomainEvents.First().Should().BeOfType<FolderCreatedEvent>();
@@ -55,7 +55,7 @@ public class FolderAggregateTests
         var familyId = FamilyId.New();
         var userId = UserId.New();
 
-        var root = Folder.CreateRoot(familyId, userId);
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
 
         root.Name.Value.Should().Be("Root");
         root.ParentFolderId.Should().BeNull();
@@ -67,7 +67,7 @@ public class FolderAggregateTests
     [Fact]
     public void CreateRoot_ShouldNotRaiseDomainEvent()
     {
-        var root = Folder.CreateRoot(FamilyId.New(), UserId.New());
+        var root = Folder.CreateRoot(FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
 
         root.DomainEvents.Should().BeEmpty();
     }
@@ -80,9 +80,9 @@ public class FolderAggregateTests
             null,
             "/",
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
-        folder.Rename(FileName.From("New Name"));
+        folder.Rename(FileName.From("New Name"), DateTimeOffset.UtcNow);
 
         folder.Name.Value.Should().Be("New Name");
     }
@@ -95,10 +95,10 @@ public class FolderAggregateTests
             null,
             "/",
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         var originalUpdatedAt = folder.UpdatedAt;
 
-        folder.Rename(FileName.From("Renamed"));
+        folder.Rename(FileName.From("Renamed"), DateTimeOffset.UtcNow);
 
         folder.UpdatedAt.Should().BeOnOrAfter(originalUpdatedAt);
     }
@@ -111,9 +111,9 @@ public class FolderAggregateTests
             FolderId.New(),
             "/parent/",
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
-        folder.UpdateMaterializedPath("/new-parent/");
+        folder.UpdateMaterializedPath("/new-parent/", DateTimeOffset.UtcNow);
 
         folder.MaterializedPath.Should().Be("/new-parent/");
     }
@@ -131,9 +131,9 @@ public class FolderAggregateTests
             oldParentId,
             $"/{oldParentId.Value}/",
             familyId,
-            userId);
+            userId, DateTimeOffset.UtcNow);
 
-        folder.MoveTo(newParentId, $"/{newParentId.Value}/", userId);
+        folder.MoveTo(newParentId, $"/{newParentId.Value}/", userId, DateTimeOffset.UtcNow);
 
         folder.ParentFolderId.Should().Be(newParentId);
         folder.MaterializedPath.Should().Be($"/{newParentId.Value}/");
@@ -152,9 +152,9 @@ public class FolderAggregateTests
             oldParentId,
             $"/{oldParentId.Value}/",
             familyId,
-            userId);
+            userId, DateTimeOffset.UtcNow);
 
-        folder.MoveTo(newParentId, $"/{newParentId.Value}/", userId);
+        folder.MoveTo(newParentId, $"/{newParentId.Value}/", userId, DateTimeOffset.UtcNow);
 
         folder.DomainEvents.Should().HaveCount(2); // Created + Moved
         folder.DomainEvents.Last().Should().BeOfType<FolderMovedEvent>();
@@ -173,10 +173,10 @@ public class FolderAggregateTests
             null,
             "/",
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
         var userId = UserId.New();
 
-        folder.MarkDeleted(userId);
+        folder.MarkDeleted(userId, DateTimeOffset.UtcNow);
 
         folder.DomainEvents.Should().HaveCount(2);
         folder.DomainEvents.Last().Should().BeOfType<FolderDeletedEvent>();

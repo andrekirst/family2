@@ -10,7 +10,8 @@ public class OAuthStateTests
     public void Create_ShouldSetPropertiesCorrectly()
     {
         var userId = UserId.New();
-        var state = OAuthState.Create("random-state", userId, "code-verifier");
+        var utcNow = DateTimeOffset.UtcNow;
+        var state = OAuthState.Create("random-state", userId, "code-verifier", utcNow);
 
         state.State.Should().Be("random-state");
         state.UserId.Should().Be(userId);
@@ -21,7 +22,8 @@ public class OAuthStateTests
     [Fact]
     public void IsExpired_ShouldReturnFalseWhenFresh()
     {
-        var state = OAuthState.Create("state", UserId.New(), "verifier");
-        state.IsExpired().Should().BeFalse();
+        var utcNow = DateTimeOffset.UtcNow;
+        var state = OAuthState.Create("state", UserId.New(), "verifier", utcNow);
+        state.IsExpired(utcNow).Should().BeFalse();
     }
 }

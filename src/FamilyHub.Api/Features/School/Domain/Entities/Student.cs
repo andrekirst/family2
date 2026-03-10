@@ -12,7 +12,7 @@ public sealed class Student : AggregateRoot<StudentId>
     private Student() { }
 #pragma warning restore CS8618
 
-    public static Student Create(FamilyMemberId familyMemberId, FamilyId familyId, UserId markedByUserId)
+    public static Student Create(FamilyMemberId familyMemberId, FamilyId familyId, UserId markedByUserId, DateTimeOffset utcNow)
     {
         var student = new Student
         {
@@ -20,7 +20,7 @@ public sealed class Student : AggregateRoot<StudentId>
             FamilyMemberId = familyMemberId,
             FamilyId = familyId,
             MarkedByUserId = markedByUserId,
-            MarkedAt = DateTime.UtcNow
+            MarkedAt = utcNow.UtcDateTime
         };
 
         student.RaiseDomainEvent(new FamilyMemberMarkedAsStudentEvent(

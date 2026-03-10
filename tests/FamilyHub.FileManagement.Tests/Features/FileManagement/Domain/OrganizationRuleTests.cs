@@ -21,7 +21,7 @@ public class OrganizationRuleTests
             ConditionLogic.And,
             RuleActionType.MoveToFolder,
             """{"DestinationFolderId":"00000000-0000-0000-0000-000000000001"}""",
-            1);
+            1, DateTimeOffset.UtcNow);
 
         rule.Name.Should().Be("Move photos");
         rule.FamilyId.Should().Be(familyId);
@@ -42,7 +42,8 @@ public class OrganizationRuleTests
             """[{"Type":2,"Value":"image/*"}]""",
             ConditionLogic.Or,
             RuleActionType.ApplyTags,
-            """{"TagIds":["00000000-0000-0000-0000-000000000002"]}""");
+            """{"TagIds":["00000000-0000-0000-0000-000000000002"]}""",
+            DateTimeOffset.UtcNow);
 
         rule.Name.Should().Be("Updated name");
         rule.ConditionLogic.Should().Be(ConditionLogic.Or);
@@ -54,7 +55,7 @@ public class OrganizationRuleTests
     {
         var rule = CreateTestRule();
 
-        rule.SetPriority(5);
+        rule.SetPriority(5, DateTimeOffset.UtcNow);
 
         rule.Priority.Should().Be(5);
     }
@@ -63,10 +64,10 @@ public class OrganizationRuleTests
     public void Enable_ShouldSetIsEnabledTrue()
     {
         var rule = CreateTestRule();
-        rule.Disable();
+        rule.Disable(DateTimeOffset.UtcNow);
         rule.IsEnabled.Should().BeFalse();
 
-        rule.Enable();
+        rule.Enable(DateTimeOffset.UtcNow);
 
         rule.IsEnabled.Should().BeTrue();
     }
@@ -76,7 +77,7 @@ public class OrganizationRuleTests
     {
         var rule = CreateTestRule();
 
-        rule.Disable();
+        rule.Disable(DateTimeOffset.UtcNow);
 
         rule.IsEnabled.Should().BeFalse();
     }
@@ -90,5 +91,5 @@ public class OrganizationRuleTests
             ConditionLogic.And,
             RuleActionType.MoveToFolder,
             """{"DestinationFolderId":"00000000-0000-0000-0000-000000000001"}""",
-            1);
+            1, DateTimeOffset.UtcNow);
 }

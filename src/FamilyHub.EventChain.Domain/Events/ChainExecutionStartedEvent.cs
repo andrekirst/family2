@@ -8,6 +8,6 @@ public sealed record ChainExecutionStartedEvent(
     ChainExecutionId ChainExecutionId,
     ChainDefinitionId ChainDefinitionId,
     FamilyId FamilyId,
-    Guid CorrelationId,
+    Guid ChainCorrelationId,
     string TriggerEventType
 ) : DomainEvent;

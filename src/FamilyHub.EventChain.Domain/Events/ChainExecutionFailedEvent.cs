@@ -8,7 +8,7 @@ public sealed record ChainExecutionFailedEvent(
     ChainExecutionId ChainExecutionId,
     ChainDefinitionId ChainDefinitionId,
     FamilyId FamilyId,
-    Guid CorrelationId,
+    Guid ChainCorrelationId,
     string FailedStepAlias,
     string ErrorMessage
 ) : DomainEvent;

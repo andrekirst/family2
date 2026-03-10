@@ -1,0 +1,42 @@
+version: 2
+
+updates:
+  - package-ecosystem: 'nuget'
+    directory: '/src'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'type-tech-debt'
+
+  - package-ecosystem: 'npm'
+    directory: '/src/frontend/family-hub-web'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'type-tech-debt'
+
+  - package-ecosystem: 'docker'
+    directory: '/infrastructure'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'type-tech-debt'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'type-tech-debt'

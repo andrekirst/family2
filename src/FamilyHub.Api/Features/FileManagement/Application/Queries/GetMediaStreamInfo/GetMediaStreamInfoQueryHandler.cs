@@ -9,7 +9,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetMediaStre
 public sealed class GetMediaStreamInfoQueryHandler(
     IStoredFileRepository fileRepository,
     IFileThumbnailRepository thumbnailRepository)
-    : IQueryHandler<GetMediaStreamInfoQuery, MediaStreamInfoDto>
+    : IQueryHandler<GetMediaStreamInfoQuery, Result<MediaStreamInfoDto>>
 {
     private static readonly HashSet<string> StreamableMimeTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -19,16 +19,19 @@ public sealed class GetMediaStreamInfoQueryHandler(
         "application/pdf"
     };
 
-    public async ValueTask<MediaStreamInfoDto> Handle(
+    public async ValueTask<Result<MediaStreamInfoDto>> Handle(
         GetMediaStreamInfoQuery query,
         CancellationToken cancellationToken)
     {
-        var file = await fileRepository.GetByIdAsync(query.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
+        var file = await fileRepository.GetByIdAsync(query.FileId, cancellationToken);
+        if (file is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found");
+        }
 
         if (file.FamilyId != query.FamilyId)
         {
-            throw new DomainException("File not found in this family", DomainErrorCodes.FileNotFound);
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found in this family");
         }
 
         var thumbnails = await thumbnailRepository.GetByFileIdAsync(query.FileId, cancellationToken);

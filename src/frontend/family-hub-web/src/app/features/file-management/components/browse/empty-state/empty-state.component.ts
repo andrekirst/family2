@@ -1,10 +1,11 @@
-import { Component, output } from '@angular/core';
+import { Component, output, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ICONS } from '../../../../../shared/icons/icons';
 
 @Component({
   selector: 'app-empty-state',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col items-center justify-center py-16 text-center">
       <div class="text-gray-300 mb-4" [innerHTML]="folderIcon"></div>

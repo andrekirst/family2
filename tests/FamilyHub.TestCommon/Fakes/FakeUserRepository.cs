@@ -8,21 +8,21 @@ public class FakeUserRepository(User? existingUser = null) : IUserRepository
 {
     public User? StoredUser => existingUser;
 
-    public Task<User?> GetByIdAsync(UserId id, CancellationToken ct = default) =>
+    public Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(existingUser);
 
-    public Task<User?> GetByExternalIdAsync(ExternalUserId externalId, CancellationToken ct = default) =>
+    public Task<User?> GetByExternalIdAsync(ExternalUserId externalId, CancellationToken cancellationToken = default) =>
         Task.FromResult(existingUser);
 
-    public Task<User?> GetByEmailAsync(Email email, CancellationToken ct = default) =>
+    public Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default) =>
         Task.FromResult(existingUser?.Email == email ? existingUser : null);
 
-    public Task AddAsync(User user, CancellationToken ct = default) =>
+    public Task<bool> ExistsByIdAsync(UserId id, CancellationToken cancellationToken = default) =>
+        Task.FromResult(existingUser is not null);
+
+    public Task AddAsync(User user, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
 
-    public Task UpdateAsync(User user, CancellationToken ct = default) =>
+    public Task UpdateAsync(User user, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

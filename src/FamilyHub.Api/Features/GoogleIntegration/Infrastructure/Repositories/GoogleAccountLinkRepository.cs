@@ -9,35 +9,32 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Repositories;
 
 public sealed class GoogleAccountLinkRepository(AppDbContext context) : IGoogleAccountLinkRepository
 {
-    public async Task<GoogleAccountLink?> GetByUserIdAsync(UserId userId, CancellationToken ct = default)
-        => await context.GoogleAccountLinks.FirstOrDefaultAsync(l => l.UserId == userId, ct);
+    public async Task<GoogleAccountLink?> GetByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
+        => await context.GoogleAccountLinks.FirstOrDefaultAsync(l => l.UserId == userId, cancellationToken);
 
     public async Task<GoogleAccountLink?> GetByGoogleAccountIdAsync(
-        GoogleAccountId googleAccountId, CancellationToken ct = default)
+        GoogleAccountId googleAccountId, CancellationToken cancellationToken = default)
         => await context.GoogleAccountLinks.FirstOrDefaultAsync(
-            l => l.GoogleAccountId == googleAccountId, ct);
+            l => l.GoogleAccountId == googleAccountId, cancellationToken);
 
     public async Task<List<GoogleAccountLink>> GetExpiringTokensAsync(
-        DateTime expiringBefore, CancellationToken ct = default)
+        DateTime expiringBefore, CancellationToken cancellationToken = default)
         => await context.GoogleAccountLinks
             .Where(l => l.Status == GoogleLinkStatus.Active && l.AccessTokenExpiresAt <= expiringBefore)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task AddAsync(GoogleAccountLink link, CancellationToken ct = default)
-        => await context.GoogleAccountLinks.AddAsync(link, ct);
+    public async Task AddAsync(GoogleAccountLink link, CancellationToken cancellationToken = default)
+        => await context.GoogleAccountLinks.AddAsync(link, cancellationToken);
 
-    public Task UpdateAsync(GoogleAccountLink link, CancellationToken ct = default)
+    public Task UpdateAsync(GoogleAccountLink link, CancellationToken cancellationToken = default)
     {
         // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
     }
 
-    public Task DeleteAsync(GoogleAccountLink link, CancellationToken ct = default)
+    public Task DeleteAsync(GoogleAccountLink link, CancellationToken cancellationToken = default)
     {
         context.GoogleAccountLinks.Remove(link);
         return Task.CompletedTask;
     }
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-        => await context.SaveChangesAsync(ct);
 }

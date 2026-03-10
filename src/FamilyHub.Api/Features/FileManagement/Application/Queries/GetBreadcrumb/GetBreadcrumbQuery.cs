@@ -5,6 +5,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetBreadcrumb;
 
 public sealed record GetBreadcrumbQuery(
-    FolderId FolderId,
-    FamilyId FamilyId
-) : IReadOnlyQuery<List<FolderDto>>;
+    FolderId FolderId
+) : IReadOnlyQuery<Result<List<FolderDto>>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

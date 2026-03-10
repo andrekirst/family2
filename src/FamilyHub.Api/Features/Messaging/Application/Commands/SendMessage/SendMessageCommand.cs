@@ -16,9 +16,11 @@ public sealed record AttachmentData(
 /// Command to send a message in a family channel.
 /// </summary>
 public sealed record SendMessageCommand(
-    FamilyId FamilyId,
-    UserId SenderId,
     MessageContent Content,
     IReadOnlyList<AttachmentData>? Attachments = null,
     ConversationId? ConversationId = null
-) : ICommand<SendMessageResult>;
+) : ICommand<Result<SendMessageResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

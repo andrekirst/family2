@@ -1,49 +1,47 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetBreadcrumb;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class GetBreadcrumbQueryHandlerTests
 {
-    private static (GetBreadcrumbQueryHandler handler, FakeFolderRepository folderRepo) CreateHandler()
-    {
-        var folderRepo = new FakeFolderRepository();
-        var handler = new GetBreadcrumbQueryHandler(folderRepo);
-        return (handler, folderRepo);
-    }
-
     [Fact]
     public async Task Handle_ShouldReturnBreadcrumbFromRootToTarget()
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (handler, folderRepo) = CreateHandler();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var handler = new GetBreadcrumbQueryHandler(folderRepo);
 
-        var root = Folder.CreateRoot(familyId, userId);
-        folderRepo.Folders.Add(root);
-
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
         var documents = Folder.Create(
-            FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId);
-        folderRepo.Folders.Add(documents);
-
+            FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
         var taxes = Folder.Create(
             FileName.From("Taxes"), documents.Id,
             $"/{root.Id.Value}/{documents.Id.Value}/",
-            familyId, userId);
-        folderRepo.Folders.Add(taxes);
+            familyId, userId, DateTimeOffset.UtcNow);
 
-        var query = new GetBreadcrumbQuery(taxes.Id, familyId);
+        folderRepo.GetByIdAsync(taxes.Id, Arg.Any<CancellationToken>()).Returns(taxes);
+        folderRepo.GetAncestorsAsync(taxes.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<Folder> { root, documents });
+
+        var query = new GetBreadcrumbQuery(taxes.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        result.Should().HaveCount(3);
-        result[0].Id.Should().Be(root.Id.Value);
-        result[1].Id.Should().Be(documents.Id.Value);
-        result[2].Id.Should().Be(taxes.Id.Value);
+        result.Value.Should().HaveCount(3);
+        result.Value[0].Id.Should().Be(root.Id.Value);
+        result.Value[1].Id.Should().Be(documents.Id.Value);
+        result.Value[2].Id.Should().Be(taxes.Id.Value);
     }
 
     [Fact]
@@ -51,34 +49,47 @@ public class GetBreadcrumbQueryHandlerTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (handler, folderRepo) = CreateHandler();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var handler = new GetBreadcrumbQueryHandler(folderRepo);
 
-        var root = Folder.CreateRoot(familyId, userId);
-        folderRepo.Folders.Add(root);
-
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
         var folder = Folder.Create(
-            FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId);
-        folderRepo.Folders.Add(folder);
+            FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
 
-        var query = new GetBreadcrumbQuery(folder.Id, familyId);
+        folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
+        folderRepo.GetAncestorsAsync(folder.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<Folder> { root });
+
+        var query = new GetBreadcrumbQuery(folder.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
         var result = await handler.Handle(query, CancellationToken.None);
 
-        // Root ancestor + the folder itself
-        result.Should().HaveCount(2);
-        result[0].Id.Should().Be(root.Id.Value);
-        result[1].Id.Should().Be(folder.Id.Value);
+        result.Value.Should().HaveCount(2);
+        result.Value[0].Id.Should().Be(root.Id.Value);
+        result.Value[1].Id.Should().Be(folder.Id.Value);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFolderNotFound()
     {
-        var (handler, _) = CreateHandler();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var handler = new GetBreadcrumbQueryHandler(folderRepo);
 
-        var query = new GetBreadcrumbQuery(FolderId.New(), FamilyId.New());
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        folderRepo.GetByIdAsync(FolderId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((Folder?)null);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FolderNotFound);
+        var query = new GetBreadcrumbQuery(FolderId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FolderNotFound);
     }
 
     [Fact]
@@ -86,19 +97,23 @@ public class GetBreadcrumbQueryHandlerTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (handler, folderRepo) = CreateHandler();
+        var folderRepo = Substitute.For<IFolderRepository>();
+        var handler = new GetBreadcrumbQueryHandler(folderRepo);
 
-        var root = Folder.CreateRoot(familyId, userId);
-        folderRepo.Folders.Add(root);
-
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
         var folder = Folder.Create(
-            FileName.From("Docs"), root.Id, $"/{root.Id.Value}/", familyId, userId);
-        folderRepo.Folders.Add(folder);
+            FileName.From("Docs"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
 
-        var query = new GetBreadcrumbQuery(folder.Id, FamilyId.New());
-        var act = () => handler.Handle(query, CancellationToken.None).AsTask();
+        folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        var query = new GetBreadcrumbQuery(folder.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

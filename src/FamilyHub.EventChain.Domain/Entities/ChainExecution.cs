@@ -19,7 +19,8 @@ public sealed class ChainExecution : AggregateRoot<ChainExecutionId>
         FamilyId familyId,
         string triggerEventType,
         Guid triggerEventId,
-        string triggerPayload)
+        string triggerPayload,
+        DateTimeOffset utcNow)
     {
         var execution = new ChainExecution
         {
@@ -33,7 +34,7 @@ public sealed class ChainExecution : AggregateRoot<ChainExecutionId>
             TriggerPayload = triggerPayload,
             Context = "{}",
             CurrentStepIndex = 0,
-            StartedAt = DateTime.UtcNow
+            StartedAt = utcNow.UtcDateTime
         };
 
         execution.RaiseDomainEvent(new ChainExecutionStartedEvent(
@@ -78,10 +79,10 @@ public sealed class ChainExecution : AggregateRoot<ChainExecutionId>
         Context = context;
     }
 
-    public void MarkCompleted()
+    public void MarkCompleted(DateTimeOffset utcNow)
     {
         Status = ChainExecutionStatus.Completed;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = utcNow.UtcDateTime;
 
         RaiseDomainEvent(new ChainExecutionCompletedEvent(
             Id, ChainDefinitionId, FamilyId, CorrelationId,
@@ -90,10 +91,10 @@ public sealed class ChainExecution : AggregateRoot<ChainExecutionId>
             _stepExecutions.Count));
     }
 
-    public void MarkPartiallyCompleted()
+    public void MarkPartiallyCompleted(DateTimeOffset utcNow)
     {
         Status = ChainExecutionStatus.PartiallyCompleted;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = utcNow.UtcDateTime;
 
         RaiseDomainEvent(new ChainExecutionCompletedEvent(
             Id, ChainDefinitionId, FamilyId, CorrelationId,
@@ -102,10 +103,10 @@ public sealed class ChainExecution : AggregateRoot<ChainExecutionId>
             _stepExecutions.Count));
     }
 
-    public void MarkFailed(string errorMessage)
+    public void MarkFailed(string errorMessage, DateTimeOffset utcNow)
     {
         Status = ChainExecutionStatus.Failed;
-        FailedAt = DateTime.UtcNow;
+        FailedAt = utcNow.UtcDateTime;
         ErrorMessage = errorMessage;
 
         var failedStep = _stepExecutions.FirstOrDefault(s => s.Status == StepExecutionStatus.Failed);
@@ -121,10 +122,10 @@ public sealed class ChainExecution : AggregateRoot<ChainExecutionId>
         Status = ChainExecutionStatus.Compensating;
     }
 
-    public void MarkCompensated()
+    public void MarkCompensated(DateTimeOffset utcNow)
     {
         Status = ChainExecutionStatus.Compensated;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = utcNow.UtcDateTime;
     }
 
     public void AddStepExecution(StepExecution stepExecution)

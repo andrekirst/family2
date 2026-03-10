@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.Security;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
@@ -14,17 +15,14 @@ public sealed class DeclineInvitationByIdCommandHandler(
     IUserRepository userRepository)
     : ICommandHandler<DeclineInvitationByIdCommand, bool>
 {
+    [SecurityCheck("IDOR")]
     public async ValueTask<bool> Handle(
         DeclineInvitationByIdCommand command,
         CancellationToken cancellationToken)
     {
-        var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken)
-            ?? throw new DomainException("Invitation not found", DomainErrorCodes.InvitationNotFound);
+        var invitation = (await invitationRepository.GetByIdAsync(command.InvitationId!.Value, cancellationToken))!;
+        var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
-        var user = await userRepository.GetByIdAsync(command.DeclininingUserId, cancellationToken)
-            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
-
-        // Security: verify the declining user's email matches the invitation
         if (user.Email != invitation.InviteeEmail)
         {
             throw new DomainException("This invitation was sent to a different email address", DomainErrorCodes.InvitationEmailMismatch);

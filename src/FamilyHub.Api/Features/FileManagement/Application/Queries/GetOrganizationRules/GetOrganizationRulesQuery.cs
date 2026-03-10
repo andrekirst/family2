@@ -4,6 +4,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetOrganizationRules;
 
-public sealed record GetOrganizationRulesQuery(
-    FamilyId FamilyId
-) : IReadOnlyQuery<List<OrganizationRuleDto>>;
+public sealed record GetOrganizationRulesQuery
+    : IReadOnlyQuery<List<OrganizationRuleDto>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

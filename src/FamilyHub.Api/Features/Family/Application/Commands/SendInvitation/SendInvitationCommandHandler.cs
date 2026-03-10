@@ -1,7 +1,5 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Common.Infrastructure.Security;
-using FamilyHub.Api.Features.Family.Application.Services;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -14,27 +12,14 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.SendInvitation;
 /// creates the invitation, and persists it (which triggers the email via domain event).
 /// </summary>
 public sealed class SendInvitationCommandHandler(
-    FamilyAuthorizationService authService,
-    IFamilyInvitationRepository invitationRepository)
+    IFamilyInvitationRepository invitationRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<SendInvitationCommand, SendInvitationResult>
 {
     public async ValueTask<SendInvitationResult> Handle(
         SendInvitationCommand command,
         CancellationToken cancellationToken)
     {
-        // Authorization: only Owner/Admin can invite
-        if (!await authService.CanInviteAsync(command.InvitedBy, command.FamilyId, cancellationToken))
-        {
-            throw new DomainException("You do not have permission to send invitations for this family", DomainErrorCodes.InsufficientPermissionToSendInvitation);
-        }
-
-        // Check for duplicate pending invitation
-        var existing = await invitationRepository.GetByEmailAndFamilyAsync(command.InviteeEmail, command.FamilyId, cancellationToken);
-        if (existing is not null)
-        {
-            throw new DomainException("An invitation has already been sent to this email for this family", DomainErrorCodes.DuplicateInvitation);
-        }
-
         // Generate secure token
         var plaintextToken = SecureTokenHelper.GenerateSecureToken();
         var tokenHash = SecureTokenHelper.ComputeSha256Hash(plaintextToken);
@@ -42,11 +27,12 @@ public sealed class SendInvitationCommandHandler(
         // Create invitation aggregate (raises InvitationSentEvent with plaintext token)
         var invitation = FamilyInvitation.Create(
             command.FamilyId,
-            command.InvitedBy,
+            command.UserId,
             command.InviteeEmail,
             command.Role,
             InvitationToken.From(tokenHash),
-            plaintextToken);
+            plaintextToken,
+            timeProvider.GetUtcNow());
 
         await invitationRepository.AddAsync(invitation, cancellationToken);
 

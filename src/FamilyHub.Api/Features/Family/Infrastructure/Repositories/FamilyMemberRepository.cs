@@ -17,6 +17,17 @@ public sealed class FamilyMemberRepository(AppDbContext context) : IFamilyMember
         return await context.FamilyMembers.FindAsync([id], cancellationToken: cancellationToken);
     }
 
+    public async Task<bool> ExistsByIdAsync(FamilyMemberId id, CancellationToken cancellationToken = default)
+    {
+        return await context.FamilyMembers.AnyAsync(fm => fm.Id == id, cancellationToken);
+    }
+
+    public async Task<bool> ExistsByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken cancellationToken = default)
+    {
+        return await context.FamilyMembers
+            .AnyAsync(fm => fm.UserId == userId && fm.FamilyId == familyId, cancellationToken);
+    }
+
     public async Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken cancellationToken = default)
     {
         return await context.FamilyMembers
@@ -34,10 +45,5 @@ public sealed class FamilyMemberRepository(AppDbContext context) : IFamilyMember
     public async Task AddAsync(FamilyMember member, CancellationToken cancellationToken = default)
     {
         await context.FamilyMembers.AddAsync(member, cancellationToken);
-    }
-
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.SaveChangesAsync(cancellationToken);
     }
 }

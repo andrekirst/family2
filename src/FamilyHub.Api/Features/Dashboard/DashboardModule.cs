@@ -7,6 +7,7 @@ using FamilyHub.Api.Features.Dashboard.Infrastructure.Repositories;
 
 namespace FamilyHub.Api.Features.Dashboard;
 
+[ModuleOrder(400)]
 public sealed class DashboardModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)

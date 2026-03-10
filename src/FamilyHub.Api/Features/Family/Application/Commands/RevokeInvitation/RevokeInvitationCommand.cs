@@ -8,6 +8,9 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.RevokeInvitation;
 /// Command to revoke a pending family invitation (by an admin/owner).
 /// </summary>
 public sealed record RevokeInvitationCommand(
-    InvitationId InvitationId,
-    UserId RevokedBy
-) : ICommand<bool>;
+    InvitationId? InvitationId
+) : ICommand<bool>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

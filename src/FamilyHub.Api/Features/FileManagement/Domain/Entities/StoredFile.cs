@@ -23,7 +23,8 @@ public sealed class StoredFile : AggregateRoot<FileId>
         Checksum checksum,
         FolderId folderId,
         FamilyId familyId,
-        UserId uploadedBy)
+        UserId uploadedBy,
+        DateTimeOffset utcNow)
     {
         var file = new StoredFile
         {
@@ -36,8 +37,8 @@ public sealed class StoredFile : AggregateRoot<FileId>
             FolderId = folderId,
             FamilyId = familyId,
             UploadedBy = uploadedBy,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         file.RaiseDomainEvent(new FileUploadedEvent(
@@ -57,21 +58,21 @@ public sealed class StoredFile : AggregateRoot<FileId>
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    public void Rename(FileName newName, UserId renamedBy)
+    public void Rename(FileName newName, UserId renamedBy, DateTimeOffset utcNow)
     {
         var oldName = Name;
         Name = newName;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
 
         RaiseDomainEvent(new FileRenamedEvent(
             Id, oldName, newName, FamilyId, renamedBy, UpdatedAt));
     }
 
-    public void MoveTo(FolderId newFolderId, UserId movedBy)
+    public void MoveTo(FolderId newFolderId, UserId movedBy, DateTimeOffset utcNow)
     {
         var fromFolderId = FolderId;
         FolderId = newFolderId;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
 
         RaiseDomainEvent(new FileMovedEvent(
             Id, fromFolderId, newFolderId, FamilyId, movedBy, UpdatedAt));

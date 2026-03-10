@@ -1,22 +1,24 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.AddFileToAlbum;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class AddFileToAlbumCommandHandlerTests
 {
-    private static (AddFileToAlbumCommandHandler handler, FakeAlbumRepository albumRepo, FakeStoredFileRepository fileRepo, FakeAlbumItemRepository itemRepo) CreateHandler()
+    private readonly IAlbumRepository _albumRepo = Substitute.For<IAlbumRepository>();
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly IAlbumItemRepository _itemRepo = Substitute.For<IAlbumItemRepository>();
+    private readonly AddFileToAlbumCommandHandler _handler;
+
+    public AddFileToAlbumCommandHandlerTests()
     {
-        var albumRepo = new FakeAlbumRepository();
-        var fileRepo = new FakeStoredFileRepository();
-        var itemRepo = new FakeAlbumItemRepository();
-        var handler = new AddFileToAlbumCommandHandler(albumRepo, fileRepo, itemRepo);
-        return (handler, albumRepo, fileRepo, itemRepo);
+        _handler = new AddFileToAlbumCommandHandler(_albumRepo, _fileRepo, _itemRepo, TimeProvider.System);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId)
@@ -29,42 +31,48 @@ public class AddFileToAlbumCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
     public async Task Handle_ShouldAddFileToAlbum()
     {
         var familyId = FamilyId.New();
-        var (handler, albumRepo, fileRepo, itemRepo) = CreateHandler();
-
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
-        albumRepo.Albums.Add(album);
-
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
 
-        var command = new AddFileToAlbumCommand(album.Id, file.Id, familyId, UserId.New());
-        var result = await handler.Handle(command, CancellationToken.None);
+        _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _itemRepo.ExistsAsync(album.Id, file.Id, Arg.Any<CancellationToken>()).Returns(false);
 
-        result.Success.Should().BeTrue();
-        itemRepo.Items.Should().HaveCount(1);
+        var command = new AddFileToAlbumCommand(album.Id, file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        await _itemRepo.Received(1).AddAsync(Arg.Any<AlbumItem>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldAutoSetCoverImage()
     {
         var familyId = FamilyId.New();
-        var (handler, albumRepo, fileRepo, itemRepo) = CreateHandler();
-
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
-        albumRepo.Albums.Add(album);
-
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
 
-        var command = new AddFileToAlbumCommand(album.Id, file.Id, familyId, UserId.New());
-        await handler.Handle(command, CancellationToken.None);
+        _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _itemRepo.ExistsAsync(album.Id, file.Id, Arg.Any<CancellationToken>()).Returns(false);
+
+        var command = new AddFileToAlbumCommand(album.Id, file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        await _handler.Handle(command, CancellationToken.None);
 
         album.CoverFileId.Should().Be(file.Id);
     }
@@ -73,53 +81,61 @@ public class AddFileToAlbumCommandHandlerTests
     public async Task Handle_ShouldBeIdempotent()
     {
         var familyId = FamilyId.New();
-        var (handler, albumRepo, fileRepo, itemRepo) = CreateHandler();
-
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
-        albumRepo.Albums.Add(album);
-
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
 
-        // Pre-add the item
-        itemRepo.Items.Add(AlbumItem.Create(album.Id, file.Id, UserId.New()));
+        _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _itemRepo.ExistsAsync(album.Id, file.Id, Arg.Any<CancellationToken>()).Returns(true);
 
-        var command = new AddFileToAlbumCommand(album.Id, file.Id, familyId, UserId.New());
-        var result = await handler.Handle(command, CancellationToken.None);
+        var command = new AddFileToAlbumCommand(album.Id, file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        itemRepo.Items.Should().HaveCount(1); // No duplicate
+        result.IsSuccess.Should().BeTrue();
+        await _itemRepo.DidNotReceive().AddAsync(Arg.Any<AlbumItem>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenAlbumNotFound()
     {
         var familyId = FamilyId.New();
-        var (handler, _, fileRepo, _) = CreateHandler();
-
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
 
-        var command = new AddFileToAlbumCommand(AlbumId.New(), file.Id, familyId, UserId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        _albumRepo.GetByIdAsync(AlbumId.New(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs((Album?)null);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.AlbumNotFound);
+        var command = new AddFileToAlbumCommand(AlbumId.New(), file.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.AlbumNotFound);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFileNotFound()
     {
         var familyId = FamilyId.New();
-        var (handler, albumRepo, _, _) = CreateHandler();
+        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
 
-        var album = Album.Create(AlbumName.From("Album"), null, familyId, UserId.New());
-        albumRepo.Albums.Add(album);
+        _albumRepo.GetByIdAsync(album.Id, Arg.Any<CancellationToken>()).Returns(album);
+        _fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs((StoredFile?)null);
 
-        var command = new AddFileToAlbumCommand(album.Id, FileId.New(), familyId, UserId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var command = new AddFileToAlbumCommand(album.Id, FileId.New())
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FileNotFound);
     }
 }

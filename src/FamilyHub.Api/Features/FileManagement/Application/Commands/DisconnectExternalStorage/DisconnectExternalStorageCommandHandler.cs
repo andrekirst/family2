@@ -6,18 +6,21 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DisconnectE
 
 public sealed class DisconnectExternalStorageCommandHandler(
     IExternalConnectionRepository connectionRepository)
-    : ICommandHandler<DisconnectExternalStorageCommand, DisconnectExternalStorageResult>
+    : ICommandHandler<DisconnectExternalStorageCommand, Result<DisconnectExternalStorageResult>>
 {
-    public async ValueTask<DisconnectExternalStorageResult> Handle(
+    public async ValueTask<Result<DisconnectExternalStorageResult>> Handle(
         DisconnectExternalStorageCommand command,
         CancellationToken cancellationToken)
     {
-        var connection = await connectionRepository.GetByIdAsync(command.ConnectionId, cancellationToken)
-            ?? throw new DomainException("External connection not found", DomainErrorCodes.ExternalConnectionNotFound);
+        var connection = await connectionRepository.GetByIdAsync(command.ConnectionId, cancellationToken);
+        if (connection is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.ExternalConnectionNotFound, "External connection not found");
+        }
 
         if (connection.FamilyId != command.FamilyId)
         {
-            throw new DomainException("External connection not found", DomainErrorCodes.ExternalConnectionNotFound);
+            return DomainError.NotFound(DomainErrorCodes.ExternalConnectionNotFound, "External connection not found");
         }
 
         connection.Disconnect();

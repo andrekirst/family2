@@ -1,7 +1,4 @@
-using System.Security.Claims;
-using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -13,34 +10,31 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UpdateSecur
 public class MutationType
 {
     [Authorize]
-    public async Task<UpdateSecureNoteResult> UpdateSecureNote(
+    public async Task<bool> UpdateSecureNote(
         Guid noteId,
         string category,
         string encryptedTitle,
         string encryptedContent,
         string iv,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
-
-        var user = await userRepository.GetByExternalIdAsync(
-            ExternalUserId.From(externalUserIdString), cancellationToken)
-            ?? throw new UnauthorizedAccessException("User not found");
-
         var noteCategory = Enum.Parse<NoteCategory>(category, ignoreCase: true);
 
         var command = new UpdateSecureNoteCommand(
             SecureNoteId.From(noteId),
-            user.Id,
             noteCategory,
             encryptedTitle,
             encryptedContent,
             iv);
 
-        return await commandBus.SendAsync(command, cancellationToken);
+        var result = await commandBus.SendAsync(command, cancellationToken);
+        return result.Match(
+            success => true,
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

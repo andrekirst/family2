@@ -5,28 +5,33 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ToggleOrganizationRule;
 
 public sealed class ToggleOrganizationRuleCommandHandler(
-    IOrganizationRuleRepository ruleRepository)
-    : ICommandHandler<ToggleOrganizationRuleCommand, ToggleOrganizationRuleResult>
+    IOrganizationRuleRepository ruleRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<ToggleOrganizationRuleCommand, Result<ToggleOrganizationRuleResult>>
 {
-    public async ValueTask<ToggleOrganizationRuleResult> Handle(
+    public async ValueTask<Result<ToggleOrganizationRuleResult>> Handle(
         ToggleOrganizationRuleCommand command,
         CancellationToken cancellationToken)
     {
-        var rule = await ruleRepository.GetByIdAsync(command.RuleId, cancellationToken)
-            ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
+        var utcNow = timeProvider.GetUtcNow();
+        var rule = await ruleRepository.GetByIdAsync(command.RuleId, cancellationToken);
+        if (rule is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.OrganizationRuleNotFound, "Organization rule not found");
+        }
 
         if (rule.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Cannot modify rule from another family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Cannot modify rule from another family");
         }
 
         if (command.IsEnabled)
         {
-            rule.Enable();
+            rule.Enable(utcNow);
         }
         else
         {
-            rule.Disable();
+            rule.Disable(utcNow);
         }
 
         return new ToggleOrganizationRuleResult(true);

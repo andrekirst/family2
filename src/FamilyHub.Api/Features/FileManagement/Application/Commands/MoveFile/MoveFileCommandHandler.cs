@@ -6,32 +6,31 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.MoveFile;
 
 public sealed class MoveFileCommandHandler(
     IStoredFileRepository storedFileRepository,
-    IFolderRepository folderRepository)
-    : ICommandHandler<MoveFileCommand, MoveFileResult>
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<MoveFileCommand, Result<MoveFileResult>>
 {
-    public async ValueTask<MoveFileResult> Handle(
+    public async ValueTask<Result<MoveFileResult>> Handle(
         MoveFileCommand command,
         CancellationToken cancellationToken)
     {
-        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.NotFound);
+        var file = (await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken))!;
 
         if (file.FamilyId != command.FamilyId)
         {
-            throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "File belongs to a different family");
         }
 
-        // Validate target folder exists and belongs to the same family
-        var targetFolder = await folderRepository.GetByIdAsync(command.TargetFolderId, cancellationToken)
-            ?? throw new DomainException("Target folder not found", DomainErrorCodes.NotFound);
+        var targetFolder = (await folderRepository.GetByIdAsync(command.TargetFolderId, cancellationToken))!;
 
         if (targetFolder.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Target folder belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Target folder belongs to a different family");
         }
 
-        file.MoveTo(command.TargetFolderId, command.MovedBy);
+        var utcNow = timeProvider.GetUtcNow();
+        file.MoveTo(command.TargetFolderId, command.UserId, utcNow);
 
-        return new MoveFileResult(file.Id);
+        return new MoveFileResult(file.Id, file);
     }
 }

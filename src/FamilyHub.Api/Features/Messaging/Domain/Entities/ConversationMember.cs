@@ -21,19 +21,21 @@ public sealed class ConversationMember
 
     public bool IsActive => LeftAt is null;
 
-    public static ConversationMember Create(UserId userId, string role = "Member")
+    public static ConversationMember Create(UserId userId, DateTimeOffset utcNow, string role = "Member")
     {
+        var now = utcNow;
         return new ConversationMember
         {
             Id = ConversationMemberId.New(),
             UserId = userId,
             Role = role,
-            JoinedAt = DateTime.UtcNow
+            JoinedAt = now.UtcDateTime
         };
     }
 
-    public void Leave()
+    public void Leave(DateTimeOffset utcNow)
     {
-        LeftAt = DateTime.UtcNow;
+        var now = utcNow;
+        LeftAt = now.UtcDateTime;
     }
 }

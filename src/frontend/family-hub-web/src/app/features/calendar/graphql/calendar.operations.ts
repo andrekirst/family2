@@ -1,9 +1,9 @@
 import { gql } from 'apollo-angular';
 
 export const GET_CALENDAR_EVENTS = gql`
-  query GetCalendarEvents($familyId: UUID!, $startDate: DateTime!, $endDate: DateTime!) {
+  query GetCalendarEvents($startDate: DateTime!, $endDate: DateTime!) {
     family {
-      calendars(familyId: $familyId, startDate: $startDate, endDate: $endDate) {
+      calendars(startDate: $startDate, endDate: $endDate) {
         id
         familyId
         createdBy

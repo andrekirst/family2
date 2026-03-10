@@ -1,7 +1,9 @@
+using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
+
 namespace FamilyHub.Api.Features.FileManagement.Models;
 
 public sealed record SetPermissionRequest(
-    string ResourceType,
+    PermissionResourceType ResourceType,
     Guid ResourceId,
     Guid MemberId,
-    int PermissionLevel);
+    FilePermissionLevel PermissionLevel);

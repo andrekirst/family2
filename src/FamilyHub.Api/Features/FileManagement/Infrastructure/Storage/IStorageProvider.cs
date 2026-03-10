@@ -9,33 +9,33 @@ public interface IStorageProvider
     /// <summary>
     /// Stores binary data and returns a unique storage key.
     /// </summary>
-    Task<string> UploadAsync(Stream data, string mimeType, CancellationToken ct = default);
+    Task<string> UploadAsync(Stream data, string mimeType, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves binary data as a stream. Returns null if not found.
     /// </summary>
-    Task<Stream?> DownloadAsync(string storageKey, CancellationToken ct = default);
+    Task<Stream?> DownloadAsync(string storageKey, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves a byte range from the stored file. Used for media streaming.
     /// Returns null if not found.
     /// </summary>
-    Task<StorageRangeResult?> DownloadRangeAsync(string storageKey, long from, long to, CancellationToken ct = default);
+    Task<StorageRangeResult?> DownloadRangeAsync(string storageKey, long from, long to, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes the stored binary data.
     /// </summary>
-    Task DeleteAsync(string storageKey, CancellationToken ct = default);
+    Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks whether a storage key exists.
     /// </summary>
-    Task<bool> ExistsAsync(string storageKey, CancellationToken ct = default);
+    Task<bool> ExistsAsync(string storageKey, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns the size in bytes of the stored file. Returns null if not found.
     /// </summary>
-    Task<long?> GetSizeAsync(string storageKey, CancellationToken ct = default);
+    Task<long?> GetSizeAsync(string storageKey, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

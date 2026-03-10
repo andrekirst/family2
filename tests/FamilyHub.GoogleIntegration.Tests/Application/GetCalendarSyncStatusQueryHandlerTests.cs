@@ -2,8 +2,9 @@ using FluentAssertions;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.GoogleIntegration.Application.Queries.GetCalendarSyncStatus;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
+using FamilyHub.Api.Features.GoogleIntegration.Domain.Repositories;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
+using NSubstitute;
 
 namespace FamilyHub.GoogleIntegration.Tests.Application;
 
@@ -19,9 +20,12 @@ public class GetCalendarSyncStatusQueryHandlerTests
             Email.From("test@gmail.com"),
             EncryptedToken.From("enc"), EncryptedToken.From("enc"),
             DateTime.UtcNow.AddHours(1),
-            GoogleScopes.From("openid https://www.googleapis.com/auth/calendar.readonly"));
+            GoogleScopes.From("openid https://www.googleapis.com/auth/calendar.readonly"), DateTimeOffset.UtcNow);
 
-        var repo = new FakeGoogleAccountLinkRepository(link);
+        var repo = Substitute.For<IGoogleAccountLinkRepository>();
+        repo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(link);
+
         var handler = new GetCalendarSyncStatusQueryHandler(repo);
 
         var result = await handler.Handle(
@@ -35,11 +39,15 @@ public class GetCalendarSyncStatusQueryHandlerTests
     [Fact]
     public async Task Handle_WithNoLinkedAccount_ShouldReturnNotLinked()
     {
-        var repo = new FakeGoogleAccountLinkRepository();
+        var userId = UserId.New();
+        var repo = Substitute.For<IGoogleAccountLinkRepository>();
+        repo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns((GoogleAccountLink?)null);
+
         var handler = new GetCalendarSyncStatusQueryHandler(repo);
 
         var result = await handler.Handle(
-            new GetCalendarSyncStatusQuery(UserId.New()), CancellationToken.None);
+            new GetCalendarSyncStatusQuery(userId), CancellationToken.None);
 
         result.IsLinked.Should().BeFalse();
         result.Status.Should().Be("NotLinked");

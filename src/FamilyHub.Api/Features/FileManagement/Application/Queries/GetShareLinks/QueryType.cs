@@ -1,7 +1,4 @@
-using System.Security.Claims;
-using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -13,21 +10,12 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetShareLink
 public class QueryType
 {
     [Authorize]
+    [HotChocolate.Types.UsePaging]
     public async Task<List<ShareLinkDto>> GetShareLinks(
-        Guid familyId,
-        ClaimsPrincipal claimsPrincipal,
         [Service] IQueryBus queryBus,
-        [Service] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
-
-        _ = await userRepository.GetByExternalIdAsync(
-            ExternalUserId.From(externalUserIdString), cancellationToken)
-            ?? throw new UnauthorizedAccessException("User not found");
-
-        var query = new GetShareLinksQuery(FamilyId.From(familyId));
+        var query = new GetShareLinksQuery();
         return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

@@ -24,15 +24,15 @@ public sealed class Family : AggregateRoot<FamilyId>
     /// <param name="name">Family name (e.g., "Smith Family")</param>
     /// <param name="ownerId">User ID of the family creator/owner</param>
     /// <returns>New Family aggregate with domain event raised</returns>
-    public static Family Create(FamilyName name, UserId ownerId)
+    public static Family Create(FamilyName name, UserId ownerId, DateTimeOffset utcNow)
     {
         var family = new Family
         {
             Id = FamilyId.New(),
             Name = name,
             OwnerId = ownerId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
 
         family.RaiseDomainEvent(new FamilyCreatedEvent(

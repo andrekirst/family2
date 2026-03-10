@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy, effect } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SchoolService, StudentDto } from '../../services/school.service';
 import { FamilyPermissionService } from '../../../../core/permissions/family-permission.service';
@@ -9,6 +9,7 @@ import { MarkAsStudentDialogComponent } from '../mark-as-student-dialog/mark-as-
 @Component({
   selector: 'app-school-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, StudentListComponent, MarkAsStudentDialogComponent],
   templateUrl: './school-page.component.html',
 })

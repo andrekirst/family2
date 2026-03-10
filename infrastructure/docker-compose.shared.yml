@@ -1,3 +1,4 @@
+# DEPRECATED: This file is kept for transition. Use docker-compose.base.yml + docker-compose.{simple|multi}.yml instead.
 # Shared services layer — Keycloak, MailHog, Infisical (runs once, shared by all environments)
 # Usage: docker compose -f infrastructure/docker-compose.shared.yml up -d
 # Requires: traefik-public network (created by docker-compose.traefik.yml)
@@ -13,7 +14,7 @@ services:
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:-keycloak}
     volumes:
       - fh-shared-keycloak-db:/var/lib/postgresql
     healthcheck:
@@ -34,12 +35,12 @@ services:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
       KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: keycloak
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:-keycloak}
       KC_PROXY_HEADERS: xforwarded
       KC_HOSTNAME_STRICT: 'false'
       KC_HTTP_ENABLED: 'true'
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_SPI_STICKY_SESSION_ENCODER_INFINISPAN_SHOULD_ATTACH_ROUTE: 'false'
     command:
       - start-dev
@@ -103,8 +104,8 @@ services:
     restart: always
     environment:
       MONGO_URL: mongodb://infisical-mongo:27017/infisical
-      ENCRYPTION_KEY: 0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f
-      AUTH_SECRET: change-me-in-production-auth-secret
+      ENCRYPTION_KEY: ${INFISICAL_ENCRYPTION_KEY:-0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f}
+      AUTH_SECRET: ${INFISICAL_AUTH_SECRET:-change-me-in-production-auth-secret}
       SITE_URL: https://secrets.localhost:4443
     depends_on:
       - infisical-mongo

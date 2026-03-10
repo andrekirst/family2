@@ -9,4 +9,4 @@ namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateLastLogin;
 public sealed record UpdateLastLoginCommand(
     ExternalUserId ExternalUserId,
     DateTime LoginTime
-) : ICommand<bool>;
+) : ICommand<bool>, IAnonymousOperation;

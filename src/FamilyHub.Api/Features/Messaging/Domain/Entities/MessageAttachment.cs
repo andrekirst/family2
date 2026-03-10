@@ -23,8 +23,9 @@ public sealed class MessageAttachment
     public DateTime AttachedAt { get; private set; }
 
     public static MessageAttachment Create(
-        FileId fileId, string fileName, string mimeType, long fileSize, string storageKey)
+        FileId fileId, string fileName, string mimeType, long fileSize, string storageKey, DateTimeOffset utcNow)
     {
+        var now = utcNow;
         return new MessageAttachment
         {
             Id = Guid.NewGuid(),
@@ -33,7 +34,7 @@ public sealed class MessageAttachment
             MimeType = mimeType,
             FileSize = fileSize,
             StorageKey = storageKey,
-            AttachedAt = DateTime.UtcNow
+            AttachedAt = now.UtcDateTime
         };
     }
 }

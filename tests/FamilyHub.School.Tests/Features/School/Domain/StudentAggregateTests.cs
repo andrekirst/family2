@@ -17,7 +17,7 @@ public class StudentAggregateTests
         var markedByUserId = UserId.New();
 
         // Act
-        var student = Student.Create(familyMemberId, familyId, markedByUserId);
+        var student = Student.Create(familyMemberId, familyId, markedByUserId, DateTimeOffset.UtcNow);
 
         // Assert
         student.Should().NotBeNull();
@@ -37,7 +37,7 @@ public class StudentAggregateTests
         var markedByUserId = UserId.New();
 
         // Act
-        var student = Student.Create(familyMemberId, familyId, markedByUserId);
+        var student = Student.Create(familyMemberId, familyId, markedByUserId, DateTimeOffset.UtcNow);
 
         // Assert
         student.DomainEvents.Should().HaveCount(1);
@@ -61,8 +61,8 @@ public class StudentAggregateTests
         var markedByUserId = UserId.New();
 
         // Act
-        var student1 = Student.Create(familyMemberId, familyId, markedByUserId);
-        var student2 = Student.Create(familyMemberId, familyId, markedByUserId);
+        var student1 = Student.Create(familyMemberId, familyId, markedByUserId, DateTimeOffset.UtcNow);
+        var student2 = Student.Create(familyMemberId, familyId, markedByUserId, DateTimeOffset.UtcNow);
 
         // Assert
         student1.Id.Should().NotBe(student2.Id);

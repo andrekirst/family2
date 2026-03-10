@@ -1,9 +1,5 @@
-using System.Security.Claims;
-using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Application.Mappers;
-using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -18,33 +14,20 @@ public class MutationType
     [Authorize]
     public async Task<FolderDto> RenameFolder(
         RenameFolderRequest input,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
-        [Service] IFolderRepository folderRepository,
         CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
-
-        var user = await userRepository.GetByExternalIdAsync(
-            ExternalUserId.From(externalUserIdString), cancellationToken)
-            ?? throw new UnauthorizedAccessException("User not found");
-
-        var familyId = user.FamilyId
-            ?? throw new UnauthorizedAccessException("User is not a member of any family");
-
         var command = new RenameFolderCommand(
             FolderId.From(input.FolderId),
-            FileName.From(input.NewName.Trim()),
-            familyId,
-            user.Id);
+            FileName.From(input.NewName.Trim()));
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-
-        var folder = await folderRepository.GetByIdAsync(result.FolderId, cancellationToken)
-            ?? throw new InvalidOperationException("Folder rename failed");
-
-        return FileManagementMapper.ToDto(folder);
+        return result.Match(
+            success => FileManagementMapper.ToDto(success.RenamedFolder),
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

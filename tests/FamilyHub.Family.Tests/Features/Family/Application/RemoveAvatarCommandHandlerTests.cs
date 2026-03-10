@@ -2,10 +2,11 @@ using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Commands.RemoveAvatar;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
-using FamilyHub.TestCommon.Fakes;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Family.Tests.Features.Family.Application;
 
@@ -17,11 +18,11 @@ public class RemoveAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var avatar = CreateTestAvatar();
-        user.SetAvatar(avatar.Id);
+        user.SetAvatar(avatar.Id, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         var (handler, _, _, _) = CreateHandler(user, existingAvatar: avatar);
-        var command = new RemoveAvatarCommand(user.Id);
+        var command = new RemoveAvatarCommand { UserId = user.Id, FamilyId = FamilyId.New() };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -37,17 +38,17 @@ public class RemoveAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var avatar = CreateTestAvatar();
-        user.SetAvatar(avatar.Id);
+        user.SetAvatar(avatar.Id, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         var (handler, _, fileStorage, _) = CreateHandler(user, existingAvatar: avatar);
-        var command = new RemoveAvatarCommand(user.Id);
+        var command = new RemoveAvatarCommand { UserId = user.Id, FamilyId = FamilyId.New() };
 
         // Act
         await handler.Handle(command, CancellationToken.None);
 
         // Assert — all variant storage keys deleted
-        fileStorage.DeletedKeys.Should().HaveCount(4);
+        await fileStorage.Received(4).DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -56,17 +57,17 @@ public class RemoveAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var avatar = CreateTestAvatar();
-        user.SetAvatar(avatar.Id);
+        user.SetAvatar(avatar.Id, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         var (handler, avatarRepo, _, _) = CreateHandler(user, existingAvatar: avatar);
-        var command = new RemoveAvatarCommand(user.Id);
+        var command = new RemoveAvatarCommand { UserId = user.Id, FamilyId = FamilyId.New() };
 
         // Act
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        avatarRepo.DeletedAvatarIds.Should().Contain(avatar.Id);
+        await avatarRepo.Received(1).DeleteAsync(avatar.Id, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -75,7 +76,7 @@ public class RemoveAvatarCommandHandlerTests
         // Arrange
         var user = CreateTestUser();
         var (handler, _, _, _) = CreateHandler(user);
-        var command = new RemoveAvatarCommand(user.Id);
+        var command = new RemoveAvatarCommand { UserId = user.Id, FamilyId = FamilyId.New() };
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -90,8 +91,8 @@ public class RemoveAvatarCommandHandlerTests
     {
         // Arrange
         var userId = UserId.New();
-        var (handler, _, _, _) = CreateHandler(user: null);
-        var command = new RemoveAvatarCommand(userId);
+        var (handler, _, _, _) = CreateHandler(user: null, userId: userId);
+        var command = new RemoveAvatarCommand { UserId = userId, FamilyId = FamilyId.New() };
 
         // Act & Assert
         var act = () => handler.Handle(command, CancellationToken.None).AsTask();
@@ -107,7 +108,7 @@ public class RemoveAvatarCommandHandlerTests
         var name = UserName.From("Test User");
         var externalId = ExternalUserId.From("test-external-id");
 
-        var user = User.Register(email, name, externalId, emailVerified: true);
+        var user = User.Register(email, name, externalId, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         return user;
@@ -123,20 +124,28 @@ public class RemoveAvatarCommandHandlerTests
             [AvatarSize.Large] = new("key-large", "image/jpeg", 1000, 512, 512),
         };
 
-        return AvatarAggregate.Create("avatar.jpg", "image/jpeg", variants);
+        return AvatarAggregate.Create("avatar.jpg", "image/jpeg", variants, DateTimeOffset.UtcNow);
     }
 
     private static (
         RemoveAvatarCommandHandler Handler,
-        FakeAvatarRepository AvatarRepo,
-        FakeFileStorageService FileStorage,
-        FakeUserRepository UserRepo
-    ) CreateHandler(User? user, AvatarAggregate? existingAvatar = null)
+        IAvatarRepository AvatarRepo,
+        IFileStorageService FileStorage,
+        IUserRepository UserRepo
+    ) CreateHandler(User? user, AvatarAggregate? existingAvatar = null, UserId? userId = null)
     {
-        var userRepo = new FakeUserRepository(user);
-        var avatarRepo = new FakeAvatarRepository(existingAvatar);
-        var fileStorage = new FakeFileStorageService();
-        var handler = new RemoveAvatarCommandHandler(userRepo, avatarRepo, fileStorage);
+        var userRepo = Substitute.For<IUserRepository>();
+        var lookupId = user?.Id ?? userId ?? UserId.New();
+        userRepo.GetByIdAsync(lookupId, CancellationToken.None).Returns(user);
+
+        var avatarRepo = Substitute.For<IAvatarRepository>();
+        if (existingAvatar is not null)
+        {
+            avatarRepo.GetByIdAsync(existingAvatar.Id, CancellationToken.None).Returns(existingAvatar);
+        }
+
+        var fileStorage = Substitute.For<IFileStorageService>();
+        var handler = new RemoveAvatarCommandHandler(userRepo, avatarRepo, fileStorage, TimeProvider.System);
         return (handler, avatarRepo, fileStorage, userRepo);
     }
 }

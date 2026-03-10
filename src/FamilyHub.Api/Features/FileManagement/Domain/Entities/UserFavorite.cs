@@ -6,13 +6,13 @@ public sealed class UserFavorite
 {
     private UserFavorite() { }
 
-    public static UserFavorite Create(UserId userId, FileId fileId)
+    public static UserFavorite Create(UserId userId, FileId fileId, DateTimeOffset utcNow)
     {
         return new UserFavorite
         {
             UserId = userId,
             FileId = fileId,
-            FavoritedAt = DateTime.UtcNow
+            FavoritedAt = utcNow.UtcDateTime
         };
     }
 

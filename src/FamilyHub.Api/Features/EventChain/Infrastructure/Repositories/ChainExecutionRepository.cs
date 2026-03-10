@@ -10,24 +10,29 @@ namespace FamilyHub.Api.Features.EventChain.Infrastructure.Repositories;
 
 public sealed class ChainExecutionRepository(AppDbContext context) : IChainExecutionRepository
 {
-    public async Task<ChainExecution?> GetByIdAsync(ChainExecutionId id, CancellationToken ct = default)
+    public async Task<ChainExecution?> GetByIdAsync(ChainExecutionId id, CancellationToken cancellationToken = default)
     {
-        return await context.ChainExecutions.FindAsync([id], cancellationToken: ct);
+        return await context.ChainExecutions.FindAsync([id], cancellationToken: cancellationToken);
     }
 
-    public async Task<ChainExecution?> GetByIdWithStepsAsync(ChainExecutionId id, CancellationToken ct = default)
+    public async Task<bool> ExistsByIdAsync(ChainExecutionId id, CancellationToken cancellationToken = default)
+    {
+        return await context.ChainExecutions.AnyAsync(e => e.Id == id, cancellationToken);
+    }
+
+    public async Task<ChainExecution?> GetByIdWithStepsAsync(ChainExecutionId id, CancellationToken cancellationToken = default)
     {
         return await context.ChainExecutions
             .Include(e => e.StepExecutions)
             .Include(e => e.ChainDefinition)
-            .FirstOrDefaultAsync(e => e.Id == id, ct);
+            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
     public async Task<IReadOnlyList<ChainExecution>> GetByFamilyIdAsync(
         FamilyId familyId,
         ChainDefinitionId? chainDefinitionId = null,
         ChainExecutionStatus? status = null,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         var query = context.ChainExecutions
             .Include(e => e.StepExecutions)
@@ -44,16 +49,16 @@ public sealed class ChainExecutionRepository(AppDbContext context) : IChainExecu
             query = query.Where(e => e.Status == status.Value);
         }
 
-        return await query.OrderByDescending(e => e.StartedAt).ToListAsync(ct);
+        return await query.OrderByDescending(e => e.StartedAt).ToListAsync(cancellationToken);
     }
 
-    public async Task<StepExecution?> GetStepExecutionAsync(Guid stepExecutionId, CancellationToken ct = default)
+    public async Task<StepExecution?> GetStepExecutionAsync(Guid stepExecutionId, CancellationToken cancellationToken = default)
     {
-        return await context.StepExecutions.FindAsync([stepExecutionId], cancellationToken: ct);
+        return await context.StepExecutions.FindAsync([stepExecutionId], cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<ChainEntityMapping>> GetEntityMappingsAsync(
-        Guid entityId, string? entityType = null, CancellationToken ct = default)
+        Guid entityId, string? entityType = null, CancellationToken cancellationToken = default)
     {
         var query = context.ChainEntityMappings.Where(m => m.EntityId == entityId);
 
@@ -62,41 +67,36 @@ public sealed class ChainExecutionRepository(AppDbContext context) : IChainExecu
             query = query.Where(m => m.EntityType == entityType);
         }
 
-        return await query.ToListAsync(ct);
+        return await query.ToListAsync(cancellationToken);
     }
 
-    public async Task AddAsync(ChainExecution execution, CancellationToken ct = default)
+    public async Task AddAsync(ChainExecution execution, CancellationToken cancellationToken = default)
     {
-        await context.ChainExecutions.AddAsync(execution, ct);
+        await context.ChainExecutions.AddAsync(execution, cancellationToken);
     }
 
-    public Task UpdateAsync(ChainExecution execution, CancellationToken ct = default)
+    public Task UpdateAsync(ChainExecution execution, CancellationToken cancellationToken = default)
     {
         // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
     }
 
-    public async Task AddEntityMappingAsync(ChainEntityMapping mapping, CancellationToken ct = default)
+    public async Task AddEntityMappingAsync(ChainEntityMapping mapping, CancellationToken cancellationToken = default)
     {
-        await context.ChainEntityMappings.AddAsync(mapping, ct);
+        await context.ChainEntityMappings.AddAsync(mapping, cancellationToken);
     }
 
-    public async Task<int> GetExecutionCountAsync(ChainDefinitionId definitionId, CancellationToken ct = default)
+    public async Task<int> GetExecutionCountAsync(ChainDefinitionId definitionId, CancellationToken cancellationToken = default)
     {
-        return await context.ChainExecutions.CountAsync(e => e.ChainDefinitionId == definitionId, ct);
+        return await context.ChainExecutions.CountAsync(e => e.ChainDefinitionId == definitionId, cancellationToken);
     }
 
-    public async Task<DateTime?> GetLastExecutedAtAsync(ChainDefinitionId definitionId, CancellationToken ct = default)
+    public async Task<DateTime?> GetLastExecutedAtAsync(ChainDefinitionId definitionId, CancellationToken cancellationToken = default)
     {
         return await context.ChainExecutions
             .Where(e => e.ChainDefinitionId == definitionId)
             .OrderByDescending(e => e.StartedAt)
             .Select(e => (DateTime?)e.StartedAt)
-            .FirstOrDefaultAsync(ct);
-    }
-
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-    {
-        return await context.SaveChangesAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

@@ -2,50 +2,30 @@ using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Services;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
-/// <summary>
-/// A list-based FamilyMemberRepository fake that supports multiple members
-/// for authorization service testing.
-/// </summary>
-internal class ListFakeFamilyMemberRepository : IFamilyMemberRepository
-{
-    public List<FamilyMember> Members { get; } = [];
-
-    public Task<FamilyMember?> GetByIdAsync(FamilyMemberId id, CancellationToken ct = default)
-        => Task.FromResult(Members.FirstOrDefault(m => m.Id == id));
-
-    public Task<FamilyMember?> GetByUserAndFamilyAsync(UserId userId, FamilyId familyId, CancellationToken ct = default)
-        => Task.FromResult(Members.FirstOrDefault(m => m.UserId == userId && m.FamilyId == familyId));
-
-    public Task<List<FamilyMember>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default)
-        => Task.FromResult(Members.Where(m => m.FamilyId == familyId).ToList());
-
-    public Task AddAsync(FamilyMember member, CancellationToken ct = default)
-    {
-        Members.Add(member);
-        return Task.CompletedTask;
-    }
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) => Task.FromResult(1);
-}
-
 public class FileManagementAuthorizationServiceTests
 {
-    private static (FileManagementAuthorizationService svc, FakeFilePermissionRepository permRepo, FakeStoredFileRepository fileRepo, FakeFolderRepository folderRepo, ListFakeFamilyMemberRepository memberRepo) CreateService()
+    private readonly IFilePermissionRepository _permRepo = Substitute.For<IFilePermissionRepository>();
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly IFolderRepository _folderRepo = Substitute.For<IFolderRepository>();
+    private readonly IFamilyMemberRepository _memberRepo = Substitute.For<IFamilyMemberRepository>();
+    private readonly FileManagementAuthorizationService _svc;
+
+    public FileManagementAuthorizationServiceTests()
     {
-        var permRepo = new FakeFilePermissionRepository();
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
-        var memberRepo = new ListFakeFamilyMemberRepository();
-        var svc = new FileManagementAuthorizationService(permRepo, fileRepo, folderRepo, memberRepo);
-        return (svc, permRepo, fileRepo, folderRepo, memberRepo);
+        _svc = new FileManagementAuthorizationService(_permRepo, _fileRepo, _folderRepo, _memberRepo);
+
+        // Default: GetAncestorsAsync returns empty list to prevent NPE in CheckFolderInheritanceAsync
+        _folderRepo.GetAncestorsAsync(FolderId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs(new List<Folder>());
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId, UserId uploadedBy, FolderId folderId)
@@ -58,7 +38,7 @@ public class FileManagementAuthorizationServiceTests
             Checksum.From("a".PadRight(64, 'a')),
             folderId,
             familyId,
-            uploadedBy);
+            uploadedBy, DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -66,12 +46,13 @@ public class FileManagementAuthorizationServiceTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (svc, _, fileRepo, _, _) = CreateService();
 
         var file = CreateTestFile(familyId, UserId.New(), FolderId.New());
-        fileRepo.Files.Add(file);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(false);
 
-        var result = await svc.HasFilePermissionAsync(
+        var result = await _svc.HasFilePermissionAsync(
             userId, file.Id, FilePermissionLevel.View, familyId);
 
         result.Should().BeTrue();
@@ -82,17 +63,17 @@ public class FileManagementAuthorizationServiceTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (svc, permRepo, fileRepo, _, _) = CreateService();
 
         var file = CreateTestFile(familyId, UserId.New(), FolderId.New());
-        fileRepo.Files.Add(file);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(true);
+        _permRepo.GetByMemberAndResourceAsync(userId, PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns((FilePermission?)null);
+        _memberRepo.GetByUserAndFamilyAsync(userId, familyId, Arg.Any<CancellationToken>())
+            .Returns((FamilyMember?)null);
 
-        // Restrict file to another user
-        permRepo.Permissions.Add(FilePermission.Create(
-            PermissionResourceType.File, file.Id.Value, UserId.New(),
-            FilePermissionLevel.View, familyId, UserId.New()));
-
-        var result = await svc.HasFilePermissionAsync(
+        var result = await _svc.HasFilePermissionAsync(
             userId, file.Id, FilePermissionLevel.View, familyId);
 
         result.Should().BeFalse();
@@ -103,16 +84,19 @@ public class FileManagementAuthorizationServiceTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (svc, permRepo, fileRepo, _, _) = CreateService();
 
         var file = CreateTestFile(familyId, UserId.New(), FolderId.New());
-        fileRepo.Files.Add(file);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(true);
 
-        permRepo.Permissions.Add(FilePermission.Create(
+        var grant = FilePermission.Create(
             PermissionResourceType.File, file.Id.Value, userId,
-            FilePermissionLevel.Edit, familyId, UserId.New()));
+            FilePermissionLevel.Edit, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _permRepo.GetByMemberAndResourceAsync(userId, PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(grant);
 
-        var result = await svc.HasFilePermissionAsync(
+        var result = await _svc.HasFilePermissionAsync(
             userId, file.Id, FilePermissionLevel.View, familyId);
 
         result.Should().BeTrue();
@@ -123,16 +107,21 @@ public class FileManagementAuthorizationServiceTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (svc, permRepo, fileRepo, _, _) = CreateService();
 
         var file = CreateTestFile(familyId, UserId.New(), FolderId.New());
-        fileRepo.Files.Add(file);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(true);
 
-        permRepo.Permissions.Add(FilePermission.Create(
+        var grant = FilePermission.Create(
             PermissionResourceType.File, file.Id.Value, userId,
-            FilePermissionLevel.View, familyId, UserId.New()));
+            FilePermissionLevel.View, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _permRepo.GetByMemberAndResourceAsync(userId, PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(grant);
+        _memberRepo.GetByUserAndFamilyAsync(userId, familyId, Arg.Any<CancellationToken>())
+            .Returns((FamilyMember?)null);
 
-        var result = await svc.HasFilePermissionAsync(
+        var result = await _svc.HasFilePermissionAsync(
             userId, file.Id, FilePermissionLevel.Edit, familyId);
 
         result.Should().BeFalse();
@@ -143,17 +132,15 @@ public class FileManagementAuthorizationServiceTests
     {
         var familyId = FamilyId.New();
         var ownerId = UserId.New();
-        var (svc, permRepo, fileRepo, _, _) = CreateService();
 
         var file = CreateTestFile(familyId, ownerId, FolderId.New());
-        fileRepo.Files.Add(file);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(true);
+        _permRepo.GetByMemberAndResourceAsync(ownerId, PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns((FilePermission?)null);
 
-        // Restrict file to another user
-        permRepo.Permissions.Add(FilePermission.Create(
-            PermissionResourceType.File, file.Id.Value, UserId.New(),
-            FilePermissionLevel.View, familyId, UserId.New()));
-
-        var result = await svc.HasFilePermissionAsync(
+        var result = await _svc.HasFilePermissionAsync(
             ownerId, file.Id, FilePermissionLevel.Manage, familyId);
 
         result.Should().BeTrue();
@@ -164,20 +151,17 @@ public class FileManagementAuthorizationServiceTests
     {
         var familyId = FamilyId.New();
         var adminId = UserId.New();
-        var (svc, permRepo, fileRepo, _, memberRepo) = CreateService();
 
         var file = CreateTestFile(familyId, UserId.New(), FolderId.New());
-        fileRepo.Files.Add(file);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(true);
+        _permRepo.GetByMemberAndResourceAsync(adminId, PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns((FilePermission?)null);
+        _memberRepo.GetByUserAndFamilyAsync(adminId, familyId, Arg.Any<CancellationToken>())
+            .Returns(FamilyMember.Create(familyId, adminId, FamilyRole.From("Admin"), DateTimeOffset.UtcNow));
 
-        // Make user a family admin
-        memberRepo.Members.Add(FamilyMember.Create(familyId, adminId, FamilyRole.From("Admin")));
-
-        // Restrict file
-        permRepo.Permissions.Add(FilePermission.Create(
-            PermissionResourceType.File, file.Id.Value, UserId.New(),
-            FilePermissionLevel.View, familyId, UserId.New()));
-
-        var result = await svc.HasFilePermissionAsync(
+        var result = await _svc.HasFilePermissionAsync(
             adminId, file.Id, FilePermissionLevel.Manage, familyId);
 
         result.Should().BeTrue();
@@ -188,22 +172,25 @@ public class FileManagementAuthorizationServiceTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (svc, permRepo, fileRepo, folderRepo, _) = CreateService();
 
-        // Create parent folder with restrictions
-        var parentFolder = Folder.Create(FileName.From("restricted"), null, "/", familyId, UserId.New());
-        folderRepo.Folders.Add(parentFolder);
-
-        // Grant permission on parent folder
-        permRepo.Permissions.Add(FilePermission.Create(
-            PermissionResourceType.Folder, parentFolder.Id.Value, userId,
-            FilePermissionLevel.Edit, familyId, UserId.New()));
-
-        // Create file in the restricted folder
+        var parentFolder = Folder.Create(FileName.From("restricted"), null, "/", familyId, UserId.New(), DateTimeOffset.UtcNow);
         var file = CreateTestFile(familyId, UserId.New(), parentFolder.Id);
-        fileRepo.Files.Add(file);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _folderRepo.GetByIdAsync(parentFolder.Id, Arg.Any<CancellationToken>()).Returns(parentFolder);
 
-        var result = await svc.HasFilePermissionAsync(
+        // File-level: restricted but no direct grant
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.File, file.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(false);
+        // Folder-level: has permissions, grant to user
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.Folder, parentFolder.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(true);
+        var folderGrant = FilePermission.Create(
+            PermissionResourceType.Folder, parentFolder.Id.Value, userId,
+            FilePermissionLevel.Edit, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _permRepo.GetByMemberAndResourceAsync(userId, PermissionResourceType.Folder, parentFolder.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(folderGrant);
+
+        var result = await _svc.HasFilePermissionAsync(
             userId, file.Id, FilePermissionLevel.View, familyId);
 
         result.Should().BeTrue();
@@ -213,12 +200,13 @@ public class FileManagementAuthorizationServiceTests
     public async Task HasFolderPermission_UnrestrictedFolder_ShouldAllowAccess()
     {
         var familyId = FamilyId.New();
-        var (svc, _, _, folderRepo, _) = CreateService();
 
-        var folder = Folder.Create(FileName.From("public"), null, "/", familyId, UserId.New());
-        folderRepo.Folders.Add(folder);
+        var folder = Folder.Create(FileName.From("public"), null, "/", familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.Folder, folder.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(false);
 
-        var result = await svc.HasFolderPermissionAsync(
+        var result = await _svc.HasFolderPermissionAsync(
             UserId.New(), folder.Id, FilePermissionLevel.View, familyId);
 
         result.Should().BeTrue();
@@ -229,17 +217,15 @@ public class FileManagementAuthorizationServiceTests
     {
         var familyId = FamilyId.New();
         var creatorId = UserId.New();
-        var (svc, permRepo, _, folderRepo, _) = CreateService();
 
-        var folder = Folder.Create(FileName.From("private"), null, "/", familyId, creatorId);
-        folderRepo.Folders.Add(folder);
+        var folder = Folder.Create(FileName.From("private"), null, "/", familyId, creatorId, DateTimeOffset.UtcNow);
+        _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.Folder, folder.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(true);
+        _permRepo.GetByMemberAndResourceAsync(creatorId, PermissionResourceType.Folder, folder.Id.Value, Arg.Any<CancellationToken>())
+            .Returns((FilePermission?)null);
 
-        // Restrict folder to another user
-        permRepo.Permissions.Add(FilePermission.Create(
-            PermissionResourceType.Folder, folder.Id.Value, UserId.New(),
-            FilePermissionLevel.View, familyId, UserId.New()));
-
-        var result = await svc.HasFolderPermissionAsync(
+        var result = await _svc.HasFolderPermissionAsync(
             creatorId, folder.Id, FilePermissionLevel.Manage, familyId);
 
         result.Should().BeTrue();
@@ -248,14 +234,11 @@ public class FileManagementAuthorizationServiceTests
     [Fact]
     public async Task IsResourceRestricted_ShouldReturnTrueWhenPermissionsExist()
     {
-        var (svc, permRepo, _, _, _) = CreateService();
         var resourceId = Guid.NewGuid();
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.File, resourceId, Arg.Any<CancellationToken>())
+            .Returns(true);
 
-        permRepo.Permissions.Add(FilePermission.Create(
-            PermissionResourceType.File, resourceId, UserId.New(),
-            FilePermissionLevel.View, FamilyId.New(), UserId.New()));
-
-        var result = await svc.IsResourceRestrictedAsync(
+        var result = await _svc.IsResourceRestrictedAsync(
             PermissionResourceType.File, resourceId);
 
         result.Should().BeTrue();
@@ -264,9 +247,10 @@ public class FileManagementAuthorizationServiceTests
     [Fact]
     public async Task IsResourceRestricted_ShouldReturnFalseWhenNoPermissions()
     {
-        var (svc, _, _, _, _) = CreateService();
+        _permRepo.HasAnyPermissionsAsync(PermissionResourceType.File, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(false);
 
-        var result = await svc.IsResourceRestrictedAsync(
+        var result = await _svc.IsResourceRestrictedAsync(
             PermissionResourceType.File, Guid.NewGuid());
 
         result.Should().BeFalse();

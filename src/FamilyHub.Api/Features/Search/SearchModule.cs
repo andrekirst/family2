@@ -3,6 +3,7 @@ using FamilyHub.Api.Common.Search;
 
 namespace FamilyHub.Api.Features.Search;
 
+[ModuleOrder(1100)]
 public sealed class SearchModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)

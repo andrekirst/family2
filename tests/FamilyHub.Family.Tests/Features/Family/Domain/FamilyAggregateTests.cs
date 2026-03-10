@@ -16,7 +16,7 @@ public class FamilyAggregateTests
         var ownerId = UserId.New();
 
         // Act
-        var family = FamilyEntity.Create(name, ownerId);
+        var family = FamilyEntity.Create(name, ownerId, DateTimeOffset.UtcNow);
 
         // Assert
         family.Should().NotBeNull();
@@ -35,7 +35,7 @@ public class FamilyAggregateTests
         var ownerId = UserId.New();
 
         // Act
-        var family = FamilyEntity.Create(name, ownerId);
+        var family = FamilyEntity.Create(name, ownerId, DateTimeOffset.UtcNow);
 
         // Assert
         family.DomainEvents.Should().HaveCount(1);
@@ -57,8 +57,8 @@ public class FamilyAggregateTests
         var ownerId = UserId.New();
 
         // Act
-        var family1 = FamilyEntity.Create(name, ownerId);
-        var family2 = FamilyEntity.Create(name, ownerId);
+        var family1 = FamilyEntity.Create(name, ownerId, DateTimeOffset.UtcNow);
+        var family2 = FamilyEntity.Create(name, ownerId, DateTimeOffset.UtcNow);
 
         // Assert
         family1.Id.Should().NotBe(family2.Id);

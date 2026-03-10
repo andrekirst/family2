@@ -8,5 +8,5 @@ public interface IQueryHandler<in TQuery, TResult>
     : Mediator.IQueryHandler<TQuery, TResult>
     where TQuery : IQuery<TResult>
 {
-    // Inherited: ValueTask<TResult> Handle(TQuery query, CancellationToken ct);
+    // Inherited: ValueTask<TResult> Handle(TQuery query, CancellationToken cancellationToken);
 }

@@ -1,6 +1,6 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.RemoveAvatar;
@@ -12,7 +12,8 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.RemoveAvatar;
 public sealed class RemoveAvatarCommandHandler(
     IUserRepository userRepository,
     IAvatarRepository avatarRepository,
-    IFileStorageService fileStorageService)
+    IFileStorageService fileStorageService,
+    TimeProvider timeProvider)
     : ICommandHandler<RemoveAvatarCommand, RemoveAvatarResult>
 {
     public async ValueTask<RemoveAvatarResult> Handle(
@@ -39,7 +40,7 @@ public sealed class RemoveAvatarCommandHandler(
         }
 
         // Clear user's avatar reference (raises UserAvatarRemovedEvent)
-        user.RemoveAvatar();
+        user.RemoveAvatar(timeProvider.GetUtcNow());
 
         return new RemoveAvatarResult(true);
     }

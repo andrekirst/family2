@@ -11,4 +11,8 @@ public sealed record GetConversationMessagesQuery(
     ConversationId ConversationId,
     int Limit = 50,
     DateTime? Before = null
-) : IReadOnlyQuery<List<MessageDto>>;
+) : IReadOnlyQuery<List<MessageDto>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

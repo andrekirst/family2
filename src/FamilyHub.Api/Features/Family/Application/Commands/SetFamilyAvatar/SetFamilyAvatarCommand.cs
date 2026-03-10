@@ -7,7 +7,9 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.SetFamilyAvatar;
 /// Command to set a per-family avatar override on a FamilyMember.
 /// </summary>
 public sealed record SetFamilyAvatarCommand(
-    UserId UserId,
-    FamilyId FamilyId,
     AvatarId AvatarId
-) : ICommand<SetFamilyAvatarResult>;
+) : ICommand<SetFamilyAvatarResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

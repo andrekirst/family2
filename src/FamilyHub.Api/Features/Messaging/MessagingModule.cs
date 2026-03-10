@@ -6,6 +6,7 @@ using FamilyHub.Api.Features.Messaging.Infrastructure.Repositories;
 
 namespace FamilyHub.Api.Features.Messaging;
 
+[ModuleOrder(800)]
 public sealed class MessagingModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)

@@ -7,8 +7,7 @@ import {
   computed,
   OnInit,
   OnChanges,
-  SimpleChanges,
-} from '@angular/core';
+  SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 
 export interface DateTimeChangeEvent {
   startTime: string;
@@ -28,6 +27,7 @@ interface CalendarDay {
 @Component({
   selector: 'app-date-time-picker',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
   template: `
     <div [attr.data-testid]="testId">

@@ -1,9 +1,12 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using FamilyHub.Common.Application;
+using FamilyHub.Api.Common.Configuration;
 using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using DomainEmail = FamilyHub.Common.Domain.ValueObjects.Email;
 using DomainExternalUserId = FamilyHub.Common.Domain.ValueObjects.ExternalUserId;
 
@@ -17,7 +20,7 @@ namespace FamilyHub.Api.Common.Development;
 /// </summary>
 public sealed class DevDataSeeder(
     IServiceScopeFactory scopeFactory,
-    IConfiguration configuration,
+    IOptions<KeycloakOptions> keycloakOptions,
     ILogger<DevDataSeeder> logger) : IHostedService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
@@ -55,13 +58,13 @@ public sealed class DevDataSeeder(
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private async Task SeedUsersAsync(string baseUrl, string realmName, CancellationToken ct)
+    private async Task SeedUsersAsync(string baseUrl, string realmName, CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        var adminToken = await GetAdminTokenAsync(baseUrl, ct);
-        var keycloakUsers = await GetRealmUsersAsync(baseUrl, realmName, adminToken, ct);
+        var adminToken = await GetAdminTokenAsync(baseUrl, cancellationToken);
+        var keycloakUsers = await GetRealmUsersAsync(baseUrl, realmName, adminToken, cancellationToken);
 
         if (keycloakUsers.Count == 0)
         {
@@ -81,7 +84,7 @@ public sealed class DevDataSeeder(
 
             var email = DomainEmail.From(kcUser.Email);
             var existingUser = await dbContext.Users
-                .FirstOrDefaultAsync(u => u.Email == email, ct);
+                .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 
             if (existingUser is not null)
             {
@@ -89,7 +92,7 @@ public sealed class DevDataSeeder(
                 var currentExternalId = DomainExternalUserId.From(kcUser.Id);
                 if (existingUser.ExternalUserId != currentExternalId)
                 {
-                    existingUser.UpdateExternalId(currentExternalId);
+                    existingUser.UpdateExternalId(currentExternalId, DateTimeOffset.UtcNow);
                     existingUser.ClearDomainEvents();
                     updated++;
                 }
@@ -107,6 +110,7 @@ public sealed class DevDataSeeder(
                 UserName.From(displayName),
                 DomainExternalUserId.From(kcUser.Id),
                 kcUser.EmailVerified,
+                DateTimeOffset.UtcNow,
                 kcUser.Username);
 
             user.ClearDomainEvents();
@@ -116,7 +120,8 @@ public sealed class DevDataSeeder(
 
         if (seeded > 0 || updated > 0)
         {
-            await dbContext.SaveChangesAsync(ct);
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         logger.LogInformation(
@@ -124,7 +129,7 @@ public sealed class DevDataSeeder(
             seeded, updated, realmName);
     }
 
-    private async Task<string> GetAdminTokenAsync(string baseUrl, CancellationToken ct)
+    private async Task<string> GetAdminTokenAsync(string baseUrl, CancellationToken cancellationToken)
     {
         using var http = new HttpClient();
         var tokenUrl = $"{baseUrl}/realms/master/protocol/openid-connect/token";
@@ -135,31 +140,31 @@ public sealed class DevDataSeeder(
             ["grant_type"] = "password",
             ["username"] = "admin",
             ["password"] = "admin",
-        }), ct);
+        }), cancellationToken);
 
         response.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
         return json.GetProperty("access_token").GetString()
             ?? throw new InvalidOperationException("No access_token in Keycloak admin token response");
     }
 
     private async Task<List<KeycloakUser>> GetRealmUsersAsync(
-        string baseUrl, string realmName, string adminToken, CancellationToken ct)
+        string baseUrl, string realmName, string adminToken, CancellationToken cancellationToken)
     {
         using var http = new HttpClient();
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
         var usersUrl = $"{baseUrl}/admin/realms/{realmName}/users?max=100";
-        var response = await http.GetAsync(usersUrl, ct);
+        var response = await http.GetAsync(usersUrl, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<List<KeycloakUser>>(JsonOptions, ct) ?? [];
+        return await response.Content.ReadFromJsonAsync<List<KeycloakUser>>(JsonOptions, cancellationToken) ?? [];
     }
 
     private (string? BaseUrl, string? RealmName) ParseKeycloakAuthority()
     {
-        var authority = configuration["Keycloak:Authority"];
+        var authority = keycloakOptions.Value.Authority;
         if (string.IsNullOrWhiteSpace(authority))
         {
             return (null, null);

@@ -1,4 +1,5 @@
 using FamilyHub.Common.Application;
+using FamilyHub.Common.Domain;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Infrastructure.Registry;
@@ -7,17 +8,22 @@ namespace FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefi
 
 public sealed class CreateChainDefinitionCommandHandler(
     IChainDefinitionRepository repository,
-    IChainRegistry registry)
-    : ICommandHandler<CreateChainDefinitionCommand, CreateChainDefinitionResult>
+    IChainRegistry registry,
+    TimeProvider timeProvider)
+    : ICommandHandler<CreateChainDefinitionCommand, Result<CreateChainDefinitionResult>>
 {
-    public async ValueTask<CreateChainDefinitionResult> Handle(
+    public async ValueTask<Result<CreateChainDefinitionResult>> Handle(
         CreateChainDefinitionCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
+
         // Validate trigger exists in registry
         if (!registry.IsValidTrigger(command.TriggerEventType))
         {
-            throw new InvalidOperationException($"Unknown trigger event type: {command.TriggerEventType}");
+            return DomainError.BusinessRule(
+                DomainErrorCodes.UnknownTriggerEventType,
+                $"Unknown trigger event type: {command.TriggerEventType}");
         }
 
         var trigger = registry.GetTrigger(command.TriggerEventType)!;
@@ -26,18 +32,20 @@ public sealed class CreateChainDefinitionCommandHandler(
             command.Name,
             command.Description,
             command.FamilyId,
-            command.CreatedByUserId,
+            command.UserId,
             command.TriggerEventType,
             trigger.Module,
             trigger.Description,
-            trigger.OutputSchema);
+            trigger.OutputSchema,
+            utcNow);
 
         // Add steps
         foreach (var stepCmd in command.Steps.OrderBy(s => s.Order))
         {
             if (!registry.IsValidAction(stepCmd.ActionType, stepCmd.ActionVersion.Value))
             {
-                throw new InvalidOperationException(
+                return DomainError.BusinessRule(
+                    DomainErrorCodes.UnknownActionType,
                     $"Unknown action: {stepCmd.ActionType}@{stepCmd.ActionVersion.Value}");
             }
 
@@ -61,6 +69,6 @@ public sealed class CreateChainDefinitionCommandHandler(
 
         await repository.AddAsync(definition, cancellationToken);
 
-        return new CreateChainDefinitionResult(definition.Id);
+        return new CreateChainDefinitionResult(definition.Id, definition);
     }
 }

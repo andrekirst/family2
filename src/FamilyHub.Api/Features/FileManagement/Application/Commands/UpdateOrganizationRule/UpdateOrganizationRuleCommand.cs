@@ -10,6 +10,9 @@ public sealed record UpdateOrganizationRuleCommand(
     string ConditionsJson,
     ConditionLogic ConditionLogic,
     RuleActionType ActionType,
-    string ActionsJson,
-    FamilyId FamilyId
-) : ICommand<UpdateOrganizationRuleResult>;
+    string ActionsJson
+) : ICommand<Result<UpdateOrganizationRuleResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

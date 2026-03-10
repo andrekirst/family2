@@ -13,4 +13,4 @@ public sealed record RegisterUserCommand(
     ExternalUserId ExternalUserId,
     bool EmailVerified,
     string? Username = null
-) : ICommand<RegisterUserResult>;
+) : ICommand<RegisterUserResult>, IAnonymousOperation;

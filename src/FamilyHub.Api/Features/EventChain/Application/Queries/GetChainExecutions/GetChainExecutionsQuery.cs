@@ -7,7 +7,10 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.EventChain.Application.Queries.GetChainExecutions;
 
 public sealed record GetChainExecutionsQuery(
-    FamilyId FamilyId,
     ChainDefinitionId? ChainDefinitionId = null,
     ChainExecutionStatus? Status = null
-) : IReadOnlyQuery<IReadOnlyList<ChainExecution>>;
+) : IReadOnlyQuery<IReadOnlyList<ChainExecution>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

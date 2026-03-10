@@ -10,44 +10,50 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.SetPermissi
 public sealed class SetPermissionCommandHandler(
     IFilePermissionRepository permissionRepository,
     IStoredFileRepository storedFileRepository,
-    IFolderRepository folderRepository)
-    : ICommandHandler<SetPermissionCommand, SetPermissionResult>
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<SetPermissionCommand, Result<SetPermissionResult>>
 {
-    public async ValueTask<SetPermissionResult> Handle(
+    public async ValueTask<Result<SetPermissionResult>> Handle(
         SetPermissionCommand command,
         CancellationToken cancellationToken)
     {
-        // Validate resource exists and belongs to the family
+        var utcNow = timeProvider.GetUtcNow();
         if (command.ResourceType == PermissionResourceType.File)
         {
             var file = await storedFileRepository.GetByIdAsync(
-                FileId.From(command.ResourceId), cancellationToken)
-                ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
+                FileId.From(command.ResourceId), cancellationToken);
+            if (file is null)
+            {
+                return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found");
+            }
 
             if (file.FamilyId != command.FamilyId)
             {
-                throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
+                return DomainError.Forbidden(DomainErrorCodes.Forbidden, "File belongs to a different family");
             }
         }
         else
         {
             var folder = await folderRepository.GetByIdAsync(
-                FolderId.From(command.ResourceId), cancellationToken)
-                ?? throw new DomainException("Folder not found", DomainErrorCodes.FolderNotFound);
+                FolderId.From(command.ResourceId), cancellationToken);
+            if (folder is null)
+            {
+                return DomainError.NotFound(DomainErrorCodes.FolderNotFound, "Folder not found");
+            }
 
             if (folder.FamilyId != command.FamilyId)
             {
-                throw new DomainException("Folder belongs to a different family", DomainErrorCodes.Forbidden);
+                return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Folder belongs to a different family");
             }
         }
 
-        // Check for existing permission — update or create
         var existing = await permissionRepository.GetByMemberAndResourceAsync(
             command.MemberId, command.ResourceType, command.ResourceId, cancellationToken);
 
         if (existing is not null)
         {
-            existing.UpdateLevel(command.PermissionLevel, command.GrantedBy);
+            existing.UpdateLevel(command.PermissionLevel, command.UserId, utcNow);
             return new SetPermissionResult(true, existing.Id.Value);
         }
 
@@ -57,7 +63,8 @@ public sealed class SetPermissionCommandHandler(
             command.MemberId,
             command.PermissionLevel,
             command.FamilyId,
-            command.GrantedBy);
+            command.UserId,
+            utcNow);
 
         await permissionRepository.AddAsync(permission, cancellationToken);
 

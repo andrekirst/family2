@@ -6,10 +6,12 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateOrgan
 
 public sealed record CreateOrganizationRuleCommand(
     string Name,
-    FamilyId FamilyId,
-    UserId UserId,
     string ConditionsJson,
     ConditionLogic ConditionLogic,
     RuleActionType ActionType,
     string ActionsJson
-) : ICommand<CreateOrganizationRuleResult>;
+) : ICommand<Result<CreateOrganizationRuleResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

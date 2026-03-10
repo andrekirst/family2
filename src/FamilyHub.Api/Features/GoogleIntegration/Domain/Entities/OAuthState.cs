@@ -14,17 +14,22 @@ public sealed class OAuthState
     public DateTime CreatedAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
 
-    public static OAuthState Create(string state, UserId userId, string codeVerifier)
+    public static OAuthState Create(string state, UserId userId, string codeVerifier, DateTimeOffset utcNow)
     {
+        var now = utcNow;
         return new OAuthState
         {
             State = state,
             UserId = userId,
             CodeVerifier = codeVerifier,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(10)
+            CreatedAt = now.UtcDateTime,
+            ExpiresAt = now.UtcDateTime.AddMinutes(10)
         };
     }
 
-    public bool IsExpired() => DateTime.UtcNow >= ExpiresAt;
+    public bool IsExpired(DateTimeOffset utcNow)
+    {
+        var now = utcNow;
+        return now.UtcDateTime >= ExpiresAt;
+    }
 }

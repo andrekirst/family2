@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Common.Infrastructure.Security;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Commands.Shared;
@@ -16,38 +15,32 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.AcceptInvitation;
 public sealed class AcceptInvitationCommandHandler(
     IFamilyInvitationRepository invitationRepository,
     IFamilyMemberRepository memberRepository,
-    IUserRepository userRepository)
+    IUserRepository userRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<AcceptInvitationCommand, AcceptInvitationResult>
 {
     public async ValueTask<AcceptInvitationResult> Handle(
         AcceptInvitationCommand command,
         CancellationToken cancellationToken)
     {
-        // Hash the plaintext token to look up the invitation
+        // Hash the plaintext token to look up the invitation (validator guarantees existence)
         var tokenHash = SecureTokenHelper.ComputeSha256Hash(command.Token);
-        var invitation = await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken)
-            ?? throw new DomainException("Invalid invitation token", DomainErrorCodes.InvalidInvitationToken);
+        var invitation = (await invitationRepository.GetByTokenHashAsync(InvitationToken.From(tokenHash), cancellationToken))!;
 
-        // Get the accepting user
-        var user = await userRepository.GetByIdAsync(command.AcceptingUserId, cancellationToken)
-            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
+        // Get the accepting user (validator guarantees existence)
+        var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
-        // Check if user is already a member of this family
-        var existingMember = await memberRepository.GetByUserAndFamilyAsync(command.AcceptingUserId, invitation.FamilyId, cancellationToken);
-        if (existingMember is not null)
-        {
-            throw new DomainException("You are already a member of this family", DomainErrorCodes.AlreadyFamilyMember);
-        }
+        var utcNow = timeProvider.GetUtcNow();
 
         // Accept the invitation (validates status + expiry, raises InvitationAcceptedEvent)
-        invitation.Accept(command.AcceptingUserId);
+        invitation.Accept(command.UserId, utcNow);
 
         // Create FamilyMember record
-        var member = FamilyMember.Create(invitation.FamilyId, command.AcceptingUserId, invitation.Role);
+        var member = FamilyMember.Create(invitation.FamilyId, command.UserId, invitation.Role, utcNow);
         await memberRepository.AddAsync(member, cancellationToken);
 
         // Assign user to family
-        user.AssignToFamily(invitation.FamilyId);
+        user.AssignToFamily(invitation.FamilyId, utcNow);
 
         return new AcceptInvitationResult(invitation.FamilyId, member.Id);
     }

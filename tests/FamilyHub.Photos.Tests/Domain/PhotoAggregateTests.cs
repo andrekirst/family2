@@ -22,7 +22,8 @@ public class PhotoAggregateTests
             "family.jpg",
             "image/jpeg",
             1024,
-            "/uploads/family.jpg");
+            "/uploads/family.jpg",
+            DateTimeOffset.UtcNow);
 
         // Assert
         photo.Id.Value.Should().NotBe(Guid.Empty);
@@ -52,6 +53,7 @@ public class PhotoAggregateTests
             "image/jpeg",
             2048,
             "/uploads/picnic.jpg",
+            DateTimeOffset.UtcNow,
             caption);
 
         // Assert
@@ -68,7 +70,8 @@ public class PhotoAggregateTests
             "sunset.jpg",
             "image/jpeg",
             4096,
-            "/uploads/sunset.jpg");
+            "/uploads/sunset.jpg",
+            DateTimeOffset.UtcNow);
 
         // Assert
         photo.DomainEvents.Should().ContainSingle()
@@ -85,12 +88,12 @@ public class PhotoAggregateTests
     {
         // Arrange
         var photo = Photo.Create(
-            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg");
+            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg", DateTimeOffset.UtcNow);
         photo.ClearDomainEvents();
         var newCaption = PhotoCaption.From("Updated caption");
 
         // Act
-        photo.UpdateCaption(newCaption);
+        photo.UpdateCaption(newCaption, DateTimeOffset.UtcNow);
 
         // Assert
         photo.Caption.Should().Be(newCaption);
@@ -102,12 +105,12 @@ public class PhotoAggregateTests
     {
         // Arrange
         var photo = Photo.Create(
-            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg");
+            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg", DateTimeOffset.UtcNow);
         photo.ClearDomainEvents();
         var newCaption = PhotoCaption.From("New caption");
 
         // Act
-        photo.UpdateCaption(newCaption);
+        photo.UpdateCaption(newCaption, DateTimeOffset.UtcNow);
 
         // Assert
         photo.DomainEvents.Should().ContainSingle()
@@ -120,11 +123,11 @@ public class PhotoAggregateTests
     {
         // Arrange
         var photo = Photo.Create(
-            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg");
-        photo.SoftDelete(TestUserId);
+            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg", DateTimeOffset.UtcNow);
+        photo.SoftDelete(TestUserId, DateTimeOffset.UtcNow);
 
         // Act & Assert
-        var act = () => photo.UpdateCaption(PhotoCaption.From("New caption"));
+        var act = () => photo.UpdateCaption(PhotoCaption.From("New caption"), DateTimeOffset.UtcNow);
         act.Should().Throw<DomainException>()
             .WithMessage("Cannot update a deleted photo");
     }
@@ -135,11 +138,12 @@ public class PhotoAggregateTests
         // Arrange
         var photo = Photo.Create(
             TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg",
+            DateTimeOffset.UtcNow,
             PhotoCaption.From("Old caption"));
         photo.ClearDomainEvents();
 
         // Act
-        photo.UpdateCaption(null);
+        photo.UpdateCaption(null, DateTimeOffset.UtcNow);
 
         // Assert
         photo.Caption.Should().BeNull();
@@ -151,11 +155,11 @@ public class PhotoAggregateTests
     {
         // Arrange
         var photo = Photo.Create(
-            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg");
+            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg", DateTimeOffset.UtcNow);
         photo.ClearDomainEvents();
 
         // Act
-        photo.SoftDelete(TestUserId);
+        photo.SoftDelete(TestUserId, DateTimeOffset.UtcNow);
 
         // Assert
         photo.IsDeleted.Should().BeTrue();
@@ -167,11 +171,11 @@ public class PhotoAggregateTests
     {
         // Arrange
         var photo = Photo.Create(
-            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg");
+            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg", DateTimeOffset.UtcNow);
         photo.ClearDomainEvents();
 
         // Act
-        photo.SoftDelete(TestUserId);
+        photo.SoftDelete(TestUserId, DateTimeOffset.UtcNow);
 
         // Assert
         photo.DomainEvents.Should().ContainSingle()
@@ -187,11 +191,11 @@ public class PhotoAggregateTests
     {
         // Arrange
         var photo = Photo.Create(
-            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg");
-        photo.SoftDelete(TestUserId);
+            TestFamilyId, TestUserId, "photo.jpg", "image/jpeg", 1024, "/uploads/photo.jpg", DateTimeOffset.UtcNow);
+        photo.SoftDelete(TestUserId, DateTimeOffset.UtcNow);
 
         // Act & Assert
-        var act = () => photo.SoftDelete(TestUserId);
+        var act = () => photo.SoftDelete(TestUserId, DateTimeOffset.UtcNow);
         act.Should().Throw<DomainException>()
             .WithMessage("Photo is already deleted");
     }

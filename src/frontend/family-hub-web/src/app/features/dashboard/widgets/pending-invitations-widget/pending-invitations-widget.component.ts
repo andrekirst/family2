@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardWidgetComponent } from '../../../../core/dashboard/dashboard-widget.interface';
 import { InvitationService } from '../../../family/services/invitation.service';
@@ -14,6 +14,7 @@ interface PendingInvitation {
 @Component({
   selector: 'app-pending-invitations-widget',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     @if (isLoading()) {

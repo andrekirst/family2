@@ -1,4 +1,4 @@
-import { Component, ElementRef, input, output, signal } from '@angular/core';
+import { Component, ElementRef, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ICONS } from '../../../../../shared/icons/icons';
@@ -12,6 +12,7 @@ export interface FolderAction {
 @Component({
   selector: 'app-folder-item',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <div

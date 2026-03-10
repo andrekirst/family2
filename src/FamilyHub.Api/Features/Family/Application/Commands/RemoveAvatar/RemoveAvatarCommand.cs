@@ -6,4 +6,8 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.RemoveAvatar;
 /// <summary>
 /// Command to remove the current user's global avatar.
 /// </summary>
-public sealed record RemoveAvatarCommand(UserId UserId) : ICommand<RemoveAvatarResult>;
+public sealed record RemoveAvatarCommand : ICommand<RemoveAvatarResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

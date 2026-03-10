@@ -7,12 +7,14 @@ namespace FamilyHub.Api.Features.EventChain.Application.Commands.CreateChainDefi
 public sealed record CreateChainDefinitionCommand(
     ChainName Name,
     string? Description,
-    FamilyId FamilyId,
-    UserId CreatedByUserId,
     string TriggerEventType,
     IReadOnlyList<CreateStepCommand> Steps,
     bool IsEnabled = true
-) : ICommand<CreateChainDefinitionResult>;
+) : ICommand<Result<CreateChainDefinitionResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}
 
 public sealed record CreateStepCommand(
     StepAlias Alias,

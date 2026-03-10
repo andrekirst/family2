@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { GoogleLinkComponent } from '../google-link/google-link.component';
 
 @Component({
   selector: 'app-integrations-panel',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [GoogleLinkComponent],
   template: `
     <div class="space-y-4">

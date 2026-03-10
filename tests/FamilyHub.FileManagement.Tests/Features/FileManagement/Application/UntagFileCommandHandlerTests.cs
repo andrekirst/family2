@@ -1,21 +1,23 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.UntagFile;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class UntagFileCommandHandlerTests
 {
-    private static (UntagFileCommandHandler handler, FakeStoredFileRepository fileRepo, FakeFileTagRepository fileTagRepo) CreateHandler()
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly IFileTagRepository _fileTagRepo = Substitute.For<IFileTagRepository>();
+    private readonly UntagFileCommandHandler _handler;
+
+    public UntagFileCommandHandlerTests()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var fileTagRepo = new FakeFileTagRepository();
-        var handler = new UntagFileCommandHandler(fileRepo, fileTagRepo);
-        return (handler, fileRepo, fileTagRepo);
+        _handler = new UntagFileCommandHandler(_fileRepo, _fileTagRepo);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId)
@@ -28,67 +30,86 @@ public class UntagFileCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
     public async Task Handle_ShouldRemoveTag()
     {
         var familyId = FamilyId.New();
-        var (handler, fileRepo, fileTagRepo) = CreateHandler();
-
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
-
         var tagId = TagId.New();
-        fileTagRepo.FileTags.Add(FileTag.Create(file.Id, tagId));
+        var fileTag = FileTag.Create(file.Id, tagId, DateTimeOffset.UtcNow);
 
-        var command = new UntagFileCommand(file.Id, tagId, familyId);
-        var result = await handler.Handle(command, CancellationToken.None);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _fileTagRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<FileTag> { fileTag });
 
-        result.Success.Should().BeTrue();
-        fileTagRepo.FileTags.Should().BeEmpty();
+        var command = new UntagFileCommand(file.Id, tagId)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        await _fileTagRepo.Received(1).RemoveAsync(
+            Arg.Is<FileTag>(ft => ft.FileId == file.Id && ft.TagId == tagId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldBeIdempotentWhenNotTagged()
     {
         var familyId = FamilyId.New();
-        var (handler, fileRepo, _) = CreateHandler();
-
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
 
-        var command = new UntagFileCommand(file.Id, TagId.New(), familyId);
-        var result = await handler.Handle(command, CancellationToken.None);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _fileTagRepo.GetByFileIdAsync(file.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<FileTag>());
 
-        result.Success.Should().BeTrue();
+        var command = new UntagFileCommand(file.Id, TagId.New())
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFileNotFound()
     {
-        var (handler, _, _) = CreateHandler();
+        _fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((StoredFile?)null);
 
-        var command = new UntagFileCommand(FileId.New(), TagId.New(), FamilyId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var command = new UntagFileCommand(FileId.New(), TagId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FileNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FileNotFound);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFileBelongsToDifferentFamily()
     {
-        var (handler, fileRepo, _) = CreateHandler();
-
         var file = CreateTestFile(FamilyId.New());
-        fileRepo.Files.Add(file);
 
-        var command = new UntagFileCommand(file.Id, TagId.New(), FamilyId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        var command = new UntagFileCommand(file.Id, TagId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

@@ -21,7 +21,7 @@ public sealed class PhotosSearchProvider(IPhotoRepository photoRepository) : ISe
             context.FamilyId.Value, skip: 0, take: 100, cancellationToken);
 
         var queryLower = context.Query.ToLowerInvariant();
-        var isGerman = context.Locale?.StartsWith("de", StringComparison.OrdinalIgnoreCase) == true;
+        var isGerman = context.IsLocale("de");
 
         return photos
             .Where(p => p.FileName.Contains(queryLower, StringComparison.OrdinalIgnoreCase) ||

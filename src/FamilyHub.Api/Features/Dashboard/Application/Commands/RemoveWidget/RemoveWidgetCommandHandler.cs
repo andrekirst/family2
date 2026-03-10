@@ -1,23 +1,22 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.Dashboard.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Dashboard.Application.Commands.RemoveWidget;
 
 public sealed class RemoveWidgetCommandHandler(
-    IDashboardLayoutRepository dashboardRepository)
+    IDashboardLayoutRepository dashboardRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<RemoveWidgetCommand, bool>
 {
     public async ValueTask<bool> Handle(
         RemoveWidgetCommand command,
         CancellationToken cancellationToken)
     {
-        var dashboard = await dashboardRepository.GetByWidgetIdAsync(command.WidgetId, cancellationToken)
-            ?? throw new DomainException($"Widget {command.WidgetId} not found");
+        var utcNow = timeProvider.GetUtcNow();
+        var dashboard = (await dashboardRepository.GetByWidgetIdAsync(command.WidgetId, cancellationToken))!;
 
-        dashboard.RemoveWidget(command.WidgetId);
+        dashboard.RemoveWidget(command.WidgetId, utcNow);
         await dashboardRepository.UpdateAsync(dashboard, cancellationToken);
-        await dashboardRepository.SaveChangesAsync(cancellationToken);
 
         return true;
     }

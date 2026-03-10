@@ -1,15 +1,24 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.RenameFile;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class RenameFileCommandHandlerTests
 {
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly RenameFileCommandHandler _handler;
+
+    public RenameFileCommandHandlerTests()
+    {
+        _handler = new RenameFileCommandHandler(_fileRepo, TimeProvider.System);
+    }
+
     private static StoredFile CreateTestFile(FamilyId familyId)
     {
         return StoredFile.Create(
@@ -20,65 +29,67 @@ public class RenameFileCommandHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
     public async Task Handle_ShouldRenameFile()
     {
         var familyId = FamilyId.New();
-        var fileRepo = new FakeStoredFileRepository();
         var file = CreateTestFile(familyId);
-        fileRepo.Files.Add(file);
-        var handler = new RenameFileCommandHandler(fileRepo);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var command = new RenameFileCommand(
             file.Id,
-            FileName.From("renamed.pdf"),
-            familyId,
-            UserId.New());
+            FileName.From("renamed.pdf"))
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.FileId.Should().Be(file.Id);
+        result.Value.FileId.Should().Be(file.Id);
         file.Name.Value.Should().Be("renamed.pdf");
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFileNotFound()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var handler = new RenameFileCommandHandler(fileRepo);
+        _fileRepo.GetByIdAsync(FileId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((StoredFile?)null);
 
         var command = new RenameFileCommand(
             FileId.New(),
-            FileName.From("renamed.pdf"),
-            FamilyId.New(),
-            UserId.New());
+            FileName.From("renamed.pdf"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.NotFound);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFileBelongsToDifferentFamily()
     {
-        var fileRepo = new FakeStoredFileRepository();
         var file = CreateTestFile(FamilyId.New());
-        fileRepo.Files.Add(file);
-        var handler = new RenameFileCommandHandler(fileRepo);
+        _fileRepo.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var command = new RenameFileCommand(
             file.Id,
-            FileName.From("renamed.pdf"),
-            FamilyId.New(), // different family
-            UserId.New());
+            FileName.From("renamed.pdf"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

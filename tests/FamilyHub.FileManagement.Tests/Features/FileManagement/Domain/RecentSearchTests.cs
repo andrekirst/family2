@@ -12,7 +12,7 @@ public class RecentSearchTests
         var userId = UserId.New();
         var query = "vacation photos";
 
-        var search = RecentSearch.Create(userId, query);
+        var search = RecentSearch.Create(userId, query, DateTimeOffset.UtcNow);
 
         search.UserId.Should().Be(userId);
         search.Query.Should().Be(query);

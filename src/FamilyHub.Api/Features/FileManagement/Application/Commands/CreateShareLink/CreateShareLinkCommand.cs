@@ -7,9 +7,11 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateShare
 public sealed record CreateShareLinkCommand(
     ShareResourceType ResourceType,
     Guid ResourceId,
-    FamilyId FamilyId,
-    UserId CreatedBy,
     DateTime? ExpiresAt,
     string? Password,
     int? MaxDownloads
-) : ICommand<CreateShareLinkResult>;
+) : ICommand<Result<CreateShareLinkResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

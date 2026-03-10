@@ -1,20 +1,22 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetFilesByTag;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class GetFilesByTagQueryHandlerTests
 {
-    private static (GetFilesByTagQueryHandler handler, FakeFileTagRepository fileTagRepo, FakeStoredFileRepository fileRepo) CreateHandler()
+    private readonly IFileTagRepository _fileTagRepo = Substitute.For<IFileTagRepository>();
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly GetFilesByTagQueryHandler _handler;
+
+    public GetFilesByTagQueryHandlerTests()
     {
-        var fileTagRepo = new FakeFileTagRepository();
-        var fileRepo = new FakeStoredFileRepository();
-        var handler = new GetFilesByTagQueryHandler(fileTagRepo, fileRepo);
-        return (handler, fileTagRepo, fileRepo);
+        _handler = new GetFilesByTagQueryHandler(_fileTagRepo, _fileRepo);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId, string name = "photo.jpg")
@@ -27,26 +29,33 @@ public class GetFilesByTagQueryHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
     public async Task Handle_ShouldReturnFilesWithSingleTag()
     {
         var familyId = FamilyId.New();
-        var (handler, fileTagRepo, fileRepo) = CreateHandler();
         var tagId = TagId.New();
 
         var file1 = CreateTestFile(familyId, "file1.jpg");
         var file2 = CreateTestFile(familyId, "file2.jpg");
-        fileRepo.Files.Add(file1);
-        fileRepo.Files.Add(file2);
 
-        fileTagRepo.FileTags.Add(FileTag.Create(file1.Id, tagId));
-        fileTagRepo.FileTags.Add(FileTag.Create(file2.Id, tagId));
+        _fileTagRepo.GetFileIdsByTagIdsAsync(
+            Arg.Is<List<TagId>>(ids => ids.Count == 1 && ids[0] == tagId),
+            Arg.Any<CancellationToken>())
+            .Returns(new List<FileId> { file1.Id, file2.Id });
+        _fileRepo.GetByIdsAsync(
+            Arg.Is<List<FileId>>(ids => ids.Count == 2),
+            Arg.Any<CancellationToken>())
+            .Returns(new List<StoredFile> { file1, file2 });
 
-        var query = new GetFilesByTagQuery([tagId], familyId);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetFilesByTagQuery([tagId])
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
     }
@@ -55,22 +64,26 @@ public class GetFilesByTagQueryHandlerTests
     public async Task Handle_ShouldReturnFilesWithAllTagsUsingAndLogic()
     {
         var familyId = FamilyId.New();
-        var (handler, fileTagRepo, fileRepo) = CreateHandler();
         var tag1 = TagId.New();
         var tag2 = TagId.New();
 
         var file1 = CreateTestFile(familyId, "both-tags.jpg");
-        var file2 = CreateTestFile(familyId, "only-tag1.jpg");
-        fileRepo.Files.Add(file1);
-        fileRepo.Files.Add(file2);
 
-        // file1 has both tags, file2 has only tag1
-        fileTagRepo.FileTags.Add(FileTag.Create(file1.Id, tag1));
-        fileTagRepo.FileTags.Add(FileTag.Create(file1.Id, tag2));
-        fileTagRepo.FileTags.Add(FileTag.Create(file2.Id, tag1));
+        _fileTagRepo.GetFileIdsByTagIdsAsync(
+            Arg.Is<List<TagId>>(ids => ids.Count == 2),
+            Arg.Any<CancellationToken>())
+            .Returns(new List<FileId> { file1.Id });
+        _fileRepo.GetByIdsAsync(
+            Arg.Any<List<FileId>>(),
+            Arg.Any<CancellationToken>())
+            .Returns(new List<StoredFile> { file1 });
 
-        var query = new GetFilesByTagQuery([tag1, tag2], familyId);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetFilesByTagQuery([tag1, tag2])
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);
         result.First().Name.Should().Be("both-tags.jpg");
@@ -79,10 +92,12 @@ public class GetFilesByTagQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnEmptyListWhenNoTagIds()
     {
-        var (handler, _, _) = CreateHandler();
-
-        var query = new GetFilesByTagQuery([], FamilyId.New());
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetFilesByTagQuery([])
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
     }
@@ -91,20 +106,25 @@ public class GetFilesByTagQueryHandlerTests
     public async Task Handle_ShouldFilterByFamily()
     {
         var familyId = FamilyId.New();
-        var otherFamilyId = FamilyId.New();
-        var (handler, fileTagRepo, fileRepo) = CreateHandler();
         var tagId = TagId.New();
 
         var myFile = CreateTestFile(familyId, "my-file.jpg");
-        var otherFile = CreateTestFile(otherFamilyId, "other-file.jpg");
-        fileRepo.Files.Add(myFile);
-        fileRepo.Files.Add(otherFile);
 
-        fileTagRepo.FileTags.Add(FileTag.Create(myFile.Id, tagId));
-        fileTagRepo.FileTags.Add(FileTag.Create(otherFile.Id, tagId));
+        _fileTagRepo.GetFileIdsByTagIdsAsync(
+            Arg.Any<List<TagId>>(),
+            Arg.Any<CancellationToken>())
+            .Returns(new List<FileId> { myFile.Id });
+        _fileRepo.GetByIdsAsync(
+            Arg.Any<List<FileId>>(),
+            Arg.Any<CancellationToken>())
+            .Returns(new List<StoredFile> { myFile });
 
-        var query = new GetFilesByTagQuery([tagId], familyId);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetFilesByTagQuery([tagId])
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);
         result.First().Name.Should().Be("my-file.jpg");
@@ -113,10 +133,17 @@ public class GetFilesByTagQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnEmptyWhenNoMatchingFiles()
     {
-        var (handler, _, _) = CreateHandler();
+        _fileTagRepo.GetFileIdsByTagIdsAsync(
+            Arg.Any<List<TagId>>(),
+            Arg.Any<CancellationToken>())
+            .Returns(new List<FileId>());
 
-        var query = new GetFilesByTagQuery([TagId.New()], FamilyId.New());
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetFilesByTagQuery([TagId.New()])
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
     }

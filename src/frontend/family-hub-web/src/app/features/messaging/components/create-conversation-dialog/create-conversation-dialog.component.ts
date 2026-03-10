@@ -1,4 +1,4 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, inject, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CreateConversationInput, MessagingService } from '../../services/messaging.service';
@@ -7,6 +7,7 @@ import { InvitationService } from '../../../family/services/invitation.service';
 @Component({
   selector: 'app-create-conversation-dialog',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule],
   template: `
     @if (isOpen()) {

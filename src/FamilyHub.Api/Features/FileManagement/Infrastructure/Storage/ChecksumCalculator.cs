@@ -15,7 +15,7 @@ public interface IChecksumCalculator
     /// <summary>
     /// Computes SHA-256 hash from a stream. Resets stream position after reading.
     /// </summary>
-    Task<string> ComputeAsync(Stream data, CancellationToken ct = default);
+    Task<string> ComputeAsync(Stream data, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Verifies that data matches the expected checksum.
@@ -32,11 +32,11 @@ public sealed class ChecksumCalculator : IChecksumCalculator
         return Convert.ToHexStringLower(hash);
     }
 
-    public async Task<string> ComputeAsync(Stream data, CancellationToken ct = default)
+    public async Task<string> ComputeAsync(Stream data, CancellationToken cancellationToken = default)
     {
         var startPosition = data.CanSeek ? data.Position : 0;
 
-        var hash = await SHA256.HashDataAsync(data, ct);
+        var hash = await SHA256.HashDataAsync(data, cancellationToken);
 
         if (data.CanSeek)
         {

@@ -1,39 +1,45 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetAlbums;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class GetAlbumsQueryHandlerTests
 {
-    private static (GetAlbumsQueryHandler handler, FakeAlbumRepository albumRepo, FakeAlbumItemRepository itemRepo) CreateHandler()
+    private readonly IAlbumRepository _albumRepo = Substitute.For<IAlbumRepository>();
+    private readonly IAlbumItemRepository _itemRepo = Substitute.For<IAlbumItemRepository>();
+    private readonly GetAlbumsQueryHandler _handler;
+
+    public GetAlbumsQueryHandlerTests()
     {
-        var albumRepo = new FakeAlbumRepository();
-        var itemRepo = new FakeAlbumItemRepository();
-        var handler = new GetAlbumsQueryHandler(albumRepo, itemRepo);
-        return (handler, albumRepo, itemRepo);
+        _handler = new GetAlbumsQueryHandler(_albumRepo, _itemRepo);
     }
 
     [Fact]
     public async Task Handle_ShouldReturnAlbumsWithItemCounts()
     {
         var familyId = FamilyId.New();
-        var (handler, albumRepo, itemRepo) = CreateHandler();
 
-        var album1 = Album.Create(AlbumName.From("Summer"), null, familyId, UserId.New());
-        var album2 = Album.Create(AlbumName.From("Winter"), null, familyId, UserId.New());
-        albumRepo.Albums.Add(album1);
-        albumRepo.Albums.Add(album2);
+        var album1 = Album.Create(AlbumName.From("Summer"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        var album2 = Album.Create(AlbumName.From("Winter"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _albumRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns([album1, album2]);
 
-        itemRepo.Items.Add(AlbumItem.Create(album1.Id, FileId.New(), UserId.New()));
-        itemRepo.Items.Add(AlbumItem.Create(album1.Id, FileId.New(), UserId.New()));
-        itemRepo.Items.Add(AlbumItem.Create(album2.Id, FileId.New(), UserId.New()));
+        _itemRepo.GetItemCountAsync(album1.Id, Arg.Any<CancellationToken>()).Returns(2);
+        _itemRepo.GetItemCountAsync(album2.Id, Arg.Any<CancellationToken>()).Returns(1);
+        _itemRepo.GetFirstImageFileIdAsync(AlbumId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((FileId?)null);
 
-        var query = new GetAlbumsQuery(familyId);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetAlbumsQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
         result.First(a => a.Name == "Summer").ItemCount.Should().Be(2);
@@ -43,10 +49,15 @@ public class GetAlbumsQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnEmptyListWhenNoAlbums()
     {
-        var (handler, _, _) = CreateHandler();
+        _albumRepo.GetByFamilyIdAsync(FamilyId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs(new List<Album>());
 
-        var query = new GetAlbumsQuery(FamilyId.New());
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetAlbumsQuery()
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
     }
@@ -55,14 +66,20 @@ public class GetAlbumsQueryHandlerTests
     public async Task Handle_ShouldOnlyReturnAlbumsForRequestedFamily()
     {
         var familyId = FamilyId.New();
-        var otherFamilyId = FamilyId.New();
-        var (handler, albumRepo, _) = CreateHandler();
 
-        albumRepo.Albums.Add(Album.Create(AlbumName.From("Mine"), null, familyId, UserId.New()));
-        albumRepo.Albums.Add(Album.Create(AlbumName.From("Other"), null, otherFamilyId, UserId.New()));
+        var album = Album.Create(AlbumName.From("Mine"), null, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _albumRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns([album]);
+        _itemRepo.GetItemCountAsync(album.Id, Arg.Any<CancellationToken>()).Returns(0);
+        _itemRepo.GetFirstImageFileIdAsync(album.Id, Arg.Any<CancellationToken>())
+            .Returns((FileId?)null);
 
-        var query = new GetAlbumsQuery(familyId);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetAlbumsQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);
         result.First().Name.Should().Be("Mine");

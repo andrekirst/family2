@@ -9,8 +9,7 @@ import {
   OnInit,
   OnChanges,
   SimpleChanges,
-  ViewChild,
-} from '@angular/core';
+  ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CalendarService, CalendarEventDto } from '../../services/calendar.service';
 import { UserService } from '../../../../core/user/user.service';
 import { InvitationService } from '../../../family/services/invitation.service';
@@ -35,6 +34,7 @@ interface FormSnapshot {
 @Component({
   selector: 'app-event-context',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [InlineEditTextComponent, DateTimePickerComponent, ConfirmationDialogComponent],
   template: `
     <div class="p-4 space-y-4" data-testid="event-context">

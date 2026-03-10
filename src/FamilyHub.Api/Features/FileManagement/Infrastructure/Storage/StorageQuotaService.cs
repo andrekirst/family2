@@ -11,10 +11,10 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Storage;
 /// </summary>
 public interface IStorageQuotaService
 {
-    Task<StorageQuotaInfo> GetQuotaAsync(FamilyId familyId, CancellationToken ct = default);
-    Task<bool> CanUploadAsync(FamilyId familyId, long fileSizeBytes, CancellationToken ct = default);
-    Task IncrementUsageAsync(FamilyId familyId, long bytes, CancellationToken ct = default);
-    Task DecrementUsageAsync(FamilyId familyId, long bytes, CancellationToken ct = default);
+    Task<StorageQuotaInfo> GetQuotaAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<bool> CanUploadAsync(FamilyId familyId, long fileSizeBytes, CancellationToken cancellationToken = default);
+    Task IncrementUsageAsync(FamilyId familyId, long bytes, CancellationToken cancellationToken = default);
+    Task DecrementUsageAsync(FamilyId familyId, long bytes, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -29,37 +29,38 @@ public sealed record StorageQuotaInfo(long UsedBytes, long MaxBytes)
 
 public sealed class StorageQuotaService(
     AppDbContext dbContext,
+    TimeProvider timeProvider,
     IOptions<StorageQuotaOptions> options) : IStorageQuotaService
 {
     private readonly StorageQuotaOptions _options = options.Value;
 
-    public async Task<StorageQuotaInfo> GetQuotaAsync(FamilyId familyId, CancellationToken ct = default)
+    public async Task<StorageQuotaInfo> GetQuotaAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
-        var quota = await GetOrCreateQuotaAsync(familyId, ct);
+        var quota = await GetOrCreateQuotaAsync(familyId, cancellationToken);
         return new StorageQuotaInfo(quota.UsedBytes, quota.MaxBytes);
     }
 
-    public async Task<bool> CanUploadAsync(FamilyId familyId, long fileSizeBytes, CancellationToken ct = default)
+    public async Task<bool> CanUploadAsync(FamilyId familyId, long fileSizeBytes, CancellationToken cancellationToken = default)
     {
-        var quota = await GetOrCreateQuotaAsync(familyId, ct);
+        var quota = await GetOrCreateQuotaAsync(familyId, cancellationToken);
         return quota.UsedBytes + fileSizeBytes <= quota.MaxBytes;
     }
 
-    public async Task IncrementUsageAsync(FamilyId familyId, long bytes, CancellationToken ct = default)
+    public async Task IncrementUsageAsync(FamilyId familyId, long bytes, CancellationToken cancellationToken = default)
     {
-        var quota = await GetOrCreateQuotaAsync(familyId, ct);
+        var quota = await GetOrCreateQuotaAsync(familyId, cancellationToken);
         quota.UsedBytes += bytes;
-        quota.UpdatedAt = DateTime.UtcNow;
+        quota.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
     }
 
-    public async Task DecrementUsageAsync(FamilyId familyId, long bytes, CancellationToken ct = default)
+    public async Task DecrementUsageAsync(FamilyId familyId, long bytes, CancellationToken cancellationToken = default)
     {
-        var quota = await GetOrCreateQuotaAsync(familyId, ct);
+        var quota = await GetOrCreateQuotaAsync(familyId, cancellationToken);
         quota.UsedBytes = Math.Max(0, quota.UsedBytes - bytes);
-        quota.UpdatedAt = DateTime.UtcNow;
+        quota.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
     }
 
-    private async Task<StorageQuota> GetOrCreateQuotaAsync(FamilyId familyId, CancellationToken ct)
+    private async Task<StorageQuota> GetOrCreateQuotaAsync(FamilyId familyId, CancellationToken cancellationToken)
     {
         // Check local change tracker first — the entity may have been added
         // in a prior call within the same scope but not yet saved to the database.
@@ -67,7 +68,7 @@ public sealed class StorageQuotaService(
             .FirstOrDefault(q => q.FamilyId == familyId.Value);
 
         quota ??= await dbContext.Set<StorageQuota>()
-            .FirstOrDefaultAsync(q => q.FamilyId == familyId.Value, ct);
+            .FirstOrDefaultAsync(q => q.FamilyId == familyId.Value, cancellationToken);
 
         if (quota is null)
         {
@@ -76,7 +77,7 @@ public sealed class StorageQuotaService(
                 FamilyId = familyId.Value,
                 UsedBytes = 0,
                 MaxBytes = _options.DefaultQuotaBytes,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = timeProvider.GetUtcNow().UtcDateTime
             };
             dbContext.Set<StorageQuota>().Add(quota);
         }

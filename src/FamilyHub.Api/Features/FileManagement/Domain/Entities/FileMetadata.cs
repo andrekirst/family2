@@ -16,7 +16,8 @@ public sealed class FileMetadata
         string? locationName,
         string? cameraModel,
         DateTime? captureDate,
-        string? rawExif)
+        string? rawExif,
+        DateTimeOffset utcNow)
     {
         return new FileMetadata
         {
@@ -27,7 +28,7 @@ public sealed class FileMetadata
             CameraModel = cameraModel,
             CaptureDate = captureDate,
             RawExif = rawExif,
-            ExtractedAt = DateTime.UtcNow
+            ExtractedAt = utcNow.UtcDateTime
         };
     }
 

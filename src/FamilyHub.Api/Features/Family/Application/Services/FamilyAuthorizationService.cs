@@ -13,9 +13,9 @@ public class FamilyAuthorizationService(IFamilyMemberRepository familyMemberRepo
     /// Checks if the user has permission to invite members to the family.
     /// Only Owner and Admin roles can send invitations.
     /// </summary>
-    public async Task<bool> CanInviteAsync(UserId userId, FamilyId familyId, CancellationToken ct = default)
+    public async Task<bool> CanInviteAsync(UserId userId, FamilyId familyId, CancellationToken cancellationToken = default)
     {
-        var member = await familyMemberRepository.GetByUserAndFamilyAsync(userId, familyId, ct);
+        var member = await familyMemberRepository.GetByUserAndFamilyAsync(userId, familyId, cancellationToken);
         return member is not null && member.IsActive && member.Role.CanInvite();
     }
 }

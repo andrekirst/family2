@@ -11,7 +11,7 @@ public class FakeThumbnailGenerationService : IThumbnailGenerationService
 
     public Task<byte[]> GenerateThumbnailAsync(
         byte[] sourceData, string mimeType, int targetWidth, int targetHeight,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         // Return a small fake thumbnail (4 bytes representing width/height)
         var result = new byte[] { (byte)(targetWidth & 0xFF), (byte)(targetHeight & 0xFF), 0x01, 0x02 };

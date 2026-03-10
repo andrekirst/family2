@@ -5,19 +5,24 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UpdateOrganizationRule;
 
 public sealed class UpdateOrganizationRuleCommandHandler(
-    IOrganizationRuleRepository ruleRepository)
-    : ICommandHandler<UpdateOrganizationRuleCommand, UpdateOrganizationRuleResult>
+    IOrganizationRuleRepository ruleRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<UpdateOrganizationRuleCommand, Result<UpdateOrganizationRuleResult>>
 {
-    public async ValueTask<UpdateOrganizationRuleResult> Handle(
+    public async ValueTask<Result<UpdateOrganizationRuleResult>> Handle(
         UpdateOrganizationRuleCommand command,
         CancellationToken cancellationToken)
     {
-        var rule = await ruleRepository.GetByIdAsync(command.RuleId, cancellationToken)
-            ?? throw new DomainException("Organization rule not found", DomainErrorCodes.OrganizationRuleNotFound);
+        var utcNow = timeProvider.GetUtcNow();
+        var rule = await ruleRepository.GetByIdAsync(command.RuleId, cancellationToken);
+        if (rule is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.OrganizationRuleNotFound, "Organization rule not found");
+        }
 
         if (rule.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Cannot modify rule from another family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Cannot modify rule from another family");
         }
 
         rule.Update(
@@ -25,7 +30,8 @@ public sealed class UpdateOrganizationRuleCommandHandler(
             command.ConditionsJson,
             command.ConditionLogic,
             command.ActionType,
-            command.ActionsJson);
+            command.ActionsJson,
+            utcNow);
 
         return new UpdateOrganizationRuleResult(true);
     }

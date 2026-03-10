@@ -7,22 +7,26 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UploadFile;
 
 public sealed class UploadFileCommandHandler(
     IStoredFileRepository storedFileRepository,
-    IFolderRepository folderRepository)
-    : ICommandHandler<UploadFileCommand, UploadFileResult>
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<UploadFileCommand, Result<UploadFileResult>>
 {
-    public async ValueTask<UploadFileResult> Handle(
+    public async ValueTask<Result<UploadFileResult>> Handle(
         UploadFileCommand command,
         CancellationToken cancellationToken)
     {
-        // Validate folder exists and belongs to the same family
-        var folder = await folderRepository.GetByIdAsync(command.FolderId, cancellationToken)
-            ?? throw new DomainException("Folder not found", DomainErrorCodes.NotFound);
+        var folder = await folderRepository.GetByIdAsync(command.FolderId, cancellationToken);
+        if (folder is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.NotFound, "Folder not found");
+        }
 
         if (folder.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Folder belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Folder belongs to a different family");
         }
 
+        var utcNow = timeProvider.GetUtcNow();
         var file = StoredFile.Create(
             command.Name,
             command.MimeType,
@@ -31,10 +35,11 @@ public sealed class UploadFileCommandHandler(
             command.Checksum,
             command.FolderId,
             command.FamilyId,
-            command.UploadedBy);
+            command.UserId,
+            utcNow);
 
         await storedFileRepository.AddAsync(file, cancellationToken);
 
-        return new UploadFileResult(file.Id);
+        return new UploadFileResult(file.Id, file);
     }
 }

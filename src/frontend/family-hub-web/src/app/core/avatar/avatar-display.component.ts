@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EnvironmentConfigService } from '../config/environment-config.service';
 
@@ -32,6 +32,7 @@ const AVATAR_COLORS = [
 @Component({
   selector: 'app-avatar-display',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     @if (showImage()) {

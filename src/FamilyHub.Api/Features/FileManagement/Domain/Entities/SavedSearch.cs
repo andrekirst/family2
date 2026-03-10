@@ -16,7 +16,8 @@ public sealed class SavedSearch
         UserId userId,
         string name,
         string query,
-        string? filtersJson)
+        string? filtersJson,
+        DateTimeOffset utcNow)
     {
         return new SavedSearch
         {
@@ -25,7 +26,7 @@ public sealed class SavedSearch
             Name = name,
             Query = query,
             FiltersJson = filtersJson,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime
         };
     }
 

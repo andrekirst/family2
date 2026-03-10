@@ -19,7 +19,7 @@ public sealed class FamilyMember
     /// <summary>
     /// Factory method to create a new family member.
     /// </summary>
-    public static FamilyMember Create(FamilyId familyId, UserId userId, FamilyRole role)
+    public static FamilyMember Create(FamilyId familyId, UserId userId, FamilyRole role, DateTimeOffset utcNow)
     {
         return new FamilyMember
         {
@@ -27,7 +27,7 @@ public sealed class FamilyMember
             FamilyId = familyId,
             UserId = userId,
             Role = role,
-            JoinedAt = DateTime.UtcNow,
+            JoinedAt = utcNow.UtcDateTime,
             IsActive = true
         };
     }

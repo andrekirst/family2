@@ -6,6 +6,7 @@ using FamilyHub.Api.Features.Photos.Infrastructure.Repositories;
 
 namespace FamilyHub.Api.Features.Photos;
 
+[ModuleOrder(900)]
 public sealed class PhotosModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)

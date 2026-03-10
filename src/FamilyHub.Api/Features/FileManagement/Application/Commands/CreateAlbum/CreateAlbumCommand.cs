@@ -6,7 +6,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateAlbum
 
 public sealed record CreateAlbumCommand(
     AlbumName Name,
-    string? Description,
-    FamilyId FamilyId,
-    UserId CreatedBy
-) : ICommand<CreateAlbumResult>;
+    string? Description
+) : ICommand<Result<CreateAlbumResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

@@ -5,6 +5,6 @@ namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 
 public interface IShareLinkAccessLogRepository
 {
-    Task<List<ShareLinkAccessLog>> GetByShareLinkIdAsync(ShareLinkId shareLinkId, CancellationToken ct = default);
-    Task AddAsync(ShareLinkAccessLog log, CancellationToken ct = default);
+    Task<List<ShareLinkAccessLog>> GetByShareLinkIdAsync(ShareLinkId shareLinkId, CancellationToken cancellationToken = default);
+    Task AddAsync(ShareLinkAccessLog log, CancellationToken cancellationToken = default);
 }

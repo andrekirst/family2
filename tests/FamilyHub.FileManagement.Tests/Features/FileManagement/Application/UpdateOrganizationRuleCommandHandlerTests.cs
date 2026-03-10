@@ -1,39 +1,49 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.UpdateOrganizationRule;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class UpdateOrganizationRuleCommandHandlerTests
 {
+    private readonly IOrganizationRuleRepository _ruleRepo = Substitute.For<IOrganizationRuleRepository>();
+    private readonly UpdateOrganizationRuleCommandHandler _handler;
+
+    public UpdateOrganizationRuleCommandHandlerTests()
+    {
+        _handler = new UpdateOrganizationRuleCommandHandler(_ruleRepo, TimeProvider.System);
+    }
+
     [Fact]
     public async Task Handle_ShouldUpdateRule()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new UpdateOrganizationRuleCommandHandler(ruleRepo);
-
         var familyId = FamilyId.New();
         var rule = OrganizationRule.Create(
             "Old name", familyId, UserId.New(),
             """[{"Type":1,"Value":".jpg"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
-        ruleRepo.Rules.Add(rule);
+            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
+        _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new UpdateOrganizationRuleCommand(
-            rule.Id, "New name",
+            rule.Id,
+            "New name",
             """[{"Type":2,"Value":"image/*"}]""",
             ConditionLogic.Or,
             RuleActionType.ApplyTags,
-            """{"TagIds":[]}""",
-            familyId);
+            """{"TagIds":[]}""")
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         rule.Name.Should().Be("New name");
         rule.ConditionLogic.Should().Be(ConditionLogic.Or);
     }
@@ -41,37 +51,42 @@ public class UpdateOrganizationRuleCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowWhenNotFound()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new UpdateOrganizationRuleCommandHandler(ruleRepo);
+        _ruleRepo.GetByIdAsync(OrganizationRuleId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((OrganizationRule?)null);
 
         var command = new UpdateOrganizationRuleCommand(
             OrganizationRuleId.New(), "Name", "[]",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", FamilyId.New());
+            ConditionLogic.And, RuleActionType.MoveToFolder, "{}")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.OrganizationRuleNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.OrganizationRuleNotFound);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenDifferentFamily()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new UpdateOrganizationRuleCommandHandler(ruleRepo);
-
         var rule = OrganizationRule.Create(
             "Name", FamilyId.New(), UserId.New(),
-            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1);
-        ruleRepo.Rules.Add(rule);
+            "[]", ConditionLogic.And, RuleActionType.MoveToFolder, "{}", 1, DateTimeOffset.UtcNow);
+        _ruleRepo.GetByIdAsync(rule.Id, Arg.Any<CancellationToken>()).Returns(rule);
 
         var command = new UpdateOrganizationRuleCommand(
             rule.Id, "Name", "[]",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}", FamilyId.New());
+            ConditionLogic.And, RuleActionType.MoveToFolder, "{}")
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

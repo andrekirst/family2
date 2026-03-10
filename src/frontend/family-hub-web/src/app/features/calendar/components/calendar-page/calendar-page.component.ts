@@ -8,6 +8,7 @@ import {
   computed,
   ViewChild,
   TemplateRef,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
@@ -33,6 +34,7 @@ import { CalendarAgendaComponent } from '../calendar-agenda/calendar-agenda.comp
 @Component({
   selector: 'app-calendar-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     RouterModule,
@@ -599,7 +601,7 @@ export class CalendarPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isLoading.set(true);
 
     this.calendarService
-      .getCalendarEvents(user.familyId, startDate.toISOString(), endDate.toISOString())
+      .getCalendarEvents(startDate.toISOString(), endDate.toISOString())
       .subscribe({
         next: (events) => {
           this.events.set(events);
@@ -623,22 +625,20 @@ export class CalendarPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isLoading.set(true);
     }
 
-    this.calendarService
-      .getCalendarEvents(user.familyId, start.toISOString(), end.toISOString())
-      .subscribe({
-        next: (events) => {
-          this.agendaEvents.set(events);
-          this.agendaLoadingMore.set(false);
-          this.isLoading.set(false);
+    this.calendarService.getCalendarEvents(start.toISOString(), end.toISOString()).subscribe({
+      next: (events) => {
+        this.agendaEvents.set(events);
+        this.agendaLoadingMore.set(false);
+        this.isLoading.set(false);
 
-          if (this.agendaBatchCount() >= AGENDA_CONSTANTS.MAX_BATCHES) {
-            this.agendaHasMore.set(false);
-          }
-        },
-        error: () => {
-          this.agendaLoadingMore.set(false);
-          this.isLoading.set(false);
-        },
-      });
+        if (this.agendaBatchCount() >= AGENDA_CONSTANTS.MAX_BATCHES) {
+          this.agendaHasMore.set(false);
+        }
+      },
+      error: () => {
+        this.agendaLoadingMore.set(false);
+        this.isLoading.set(false);
+      },
+    });
   }
 }

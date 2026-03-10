@@ -1,11 +1,13 @@
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
+using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Application.Queries.GetFamilyMessages;
 using FamilyHub.Api.Features.Messaging.Domain.Entities;
+using FamilyHub.Api.Features.Messaging.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Messaging.Tests.Features.Messaging.Application;
 
@@ -19,12 +21,20 @@ public class GetFamilyMessagesQueryHandlerTests
         var senderId = UserId.New();
         var messages = new List<Message>
         {
-            Message.Create(familyId, senderId, MessageContent.From("Message 1")),
-            Message.Create(familyId, senderId, MessageContent.From("Message 2"))
+            Message.Create(familyId, senderId, MessageContent.From("Message 1"), utcNow: DateTimeOffset.UtcNow),
+            Message.Create(familyId, senderId, MessageContent.From("Message 2"), utcNow: DateTimeOffset.UtcNow)
         };
         var user = CreateTestUser(senderId);
-        var (handler, _, _) = CreateHandler(messages, user);
-        var query = new GetFamilyMessagesQuery(familyId);
+        var (handler, messageRepo, userRepo) = CreateHandler();
+
+        // Configure: return messages in DESC order (matching real repo behavior)
+        var orderedMessages = messages.OrderByDescending(m => m.SentAt).ToList();
+        messageRepo.GetByFamilyAsync(familyId, 50, null, Arg.Any<CancellationToken>())
+            .Returns(orderedMessages);
+        userRepo.GetByIdAsync(senderId, Arg.Any<CancellationToken>())
+            .Returns(user);
+
+        var query = new GetFamilyMessagesQuery() { FamilyId = familyId, UserId = senderId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -39,9 +49,14 @@ public class GetFamilyMessagesQueryHandlerTests
     public async Task Handle_ShouldReturnEmptyListWhenNoMessages()
     {
         // Arrange
-        var user = CreateTestUser();
-        var (handler, _, _) = CreateHandler([], user);
-        var query = new GetFamilyMessagesQuery(FamilyId.New());
+        var familyId = FamilyId.New();
+        var userId = UserId.New();
+        var (handler, messageRepo, _) = CreateHandler();
+
+        messageRepo.GetByFamilyAsync(familyId, 50, null, Arg.Any<CancellationToken>())
+            .Returns(new List<Message>());
+
+        var query = new GetFamilyMessagesQuery() { FamilyId = familyId, UserId = userId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -58,11 +73,17 @@ public class GetFamilyMessagesQueryHandlerTests
         var senderId = UserId.New();
         var messages = new List<Message>
         {
-            Message.Create(familyId, senderId, MessageContent.From("Hello!"))
+            Message.Create(familyId, senderId, MessageContent.From("Hello!"), utcNow: DateTimeOffset.UtcNow)
         };
         var user = CreateTestUser(senderId);
-        var (handler, _, _) = CreateHandler(messages, user);
-        var query = new GetFamilyMessagesQuery(familyId);
+        var (handler, messageRepo, userRepo) = CreateHandler();
+
+        messageRepo.GetByFamilyAsync(familyId, 50, null, Arg.Any<CancellationToken>())
+            .Returns(messages);
+        userRepo.GetByIdAsync(senderId, Arg.Any<CancellationToken>())
+            .Returns(user);
+
+        var query = new GetFamilyMessagesQuery() { FamilyId = familyId, UserId = senderId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -79,11 +100,19 @@ public class GetFamilyMessagesQueryHandlerTests
         var familyId = FamilyId.New();
         var senderId = UserId.New();
         var messages = Enumerable.Range(1, 10)
-            .Select(i => Message.Create(familyId, senderId, MessageContent.From($"Message {i}")))
+            .Select(i => Message.Create(familyId, senderId, MessageContent.From($"Message {i}"), utcNow: DateTimeOffset.UtcNow))
             .ToList();
         var user = CreateTestUser(senderId);
-        var (handler, _, _) = CreateHandler(messages, user);
-        var query = new GetFamilyMessagesQuery(familyId, Limit: 3);
+        var (handler, messageRepo, userRepo) = CreateHandler();
+
+        // Return only 3 messages (simulating limit applied by repo)
+        var limitedMessages = messages.OrderByDescending(m => m.SentAt).Take(3).ToList();
+        messageRepo.GetByFamilyAsync(familyId, 3, null, Arg.Any<CancellationToken>())
+            .Returns(limitedMessages);
+        userRepo.GetByIdAsync(senderId, Arg.Any<CancellationToken>())
+            .Returns(user);
+
+        var query = new GetFamilyMessagesQuery(Limit: 3) { FamilyId = familyId, UserId = senderId };
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -100,17 +129,15 @@ public class GetFamilyMessagesQueryHandlerTests
             Email.From("test@example.com"),
             UserName.From("Test User"),
             ExternalUserId.From("test-external-id"),
-            emailVerified: true);
+            emailVerified: true, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
         return user;
     }
 
-    private static (GetFamilyMessagesQueryHandler Handler, FakeMessageRepository MessageRepo, FakeUserRepository UserRepo) CreateHandler(
-        List<Message> messages,
-        User? user)
+    private static (GetFamilyMessagesQueryHandler Handler, IMessageRepository MessageRepo, IUserRepository UserRepo) CreateHandler()
     {
-        var messageRepo = new FakeMessageRepository(messages);
-        var userRepo = new FakeUserRepository(user);
+        var messageRepo = Substitute.For<IMessageRepository>();
+        var userRepo = Substitute.For<IUserRepository>();
         var handler = new GetFamilyMessagesQueryHandler(messageRepo, userRepo);
         return (handler, messageRepo, userRepo);
     }

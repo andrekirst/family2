@@ -1,24 +1,29 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.EventChain.Domain.Repositories;
-using FamilyHub.EventChain.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.EventChain.Application.Commands.DisableChainDefinition;
 
 public sealed class DisableChainDefinitionCommandHandler(
-    IChainDefinitionRepository repository)
-    : ICommandHandler<DisableChainDefinitionCommand, ChainDefinitionId>
+    IChainDefinitionRepository repository,
+    TimeProvider timeProvider)
+    : ICommandHandler<DisableChainDefinitionCommand, Result<DisableChainDefinitionResult>>
 {
-    public async ValueTask<ChainDefinitionId> Handle(
+    public async ValueTask<Result<DisableChainDefinitionResult>> Handle(
         DisableChainDefinitionCommand command,
         CancellationToken cancellationToken)
     {
-        var definition = await repository.GetByIdAsync(command.Id, cancellationToken)
-            ?? throw new DomainException("Chain definition not found", DomainErrorCodes.ChainDefinitionNotFound);
+        var utcNow = timeProvider.GetUtcNow();
+        var definition = await repository.GetByIdWithStepsAsync(command.Id, cancellationToken);
 
-        definition.Disable();
+        if (definition is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.ChainDefinitionNotFound, "Chain definition not found");
+        }
+
+        definition.Disable(utcNow);
         await repository.UpdateAsync(definition, cancellationToken);
 
-        return definition.Id;
+        return new DisableChainDefinitionResult(definition.Id, definition);
     }
 }

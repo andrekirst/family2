@@ -1,11 +1,7 @@
-using System.Security.Claims;
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Api.Common.Services;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Application.Mappers;
-using FamilyHub.Api.Features.Messaging.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
 using FamilyHub.Api.Features.Messaging.Models;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -24,21 +20,12 @@ public class MutationType
     [Authorize]
     public async Task<MessageDto> SendMessage(
         SendMessageRequest input,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IMessageRepository messageRepository,
+        [Service] ICurrentUserContext currentUserContext,
         [Service] IUserRepository userRepository,
-        [Service] IUserService userService,
         [Service] ITopicEventSender topicEventSender,
         CancellationToken cancellationToken)
     {
-        var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, cancellationToken);
-
-        if (user.FamilyId is null)
-        {
-            throw new InvalidOperationException("You must be part of a family to send messages");
-        }
-
         var content = input.Content?.Trim() ?? string.Empty;
         var attachments = input.Attachments?
             .Select(a => new AttachmentData(
@@ -49,34 +36,41 @@ public class MutationType
                 a.Checksum))
             .ToList();
 
-        if (content.Length == 0 && (attachments is null || attachments.Count == 0))
-        {
-            throw new InvalidOperationException("Message must have content or at least one attachment");
-        }
-
         var conversationId = input.ConversationId.HasValue
             ? ConversationId.From(input.ConversationId.Value)
             : (ConversationId?)null;
 
         var command = new SendMessageCommand(
-            user.FamilyId.Value,
-            user.Id,
             MessageContent.From(content),
             attachments,
             conversationId);
 
         var result = await commandBus.SendAsync(command, cancellationToken);
 
-        // Fetch persisted message for DTO
-        var message = await messageRepository.GetByIdAsync(result.MessageId, cancellationToken);
-        var messageDto = MessageMapper.ToDto(message!, user.Name.Value, user.AvatarId?.Value);
+        return await result.Match(
+            async success =>
+            {
+                // Use entity from result for DTO mapping; fetch supplemental sender data
+                var message = success.SentMessage;
+                var userInfo = await currentUserContext.GetCurrentUserAsync();
+                var user = await userRepository.GetByIdAsync(userInfo.UserId, cancellationToken);
+                var messageDto = MessageMapper.ToDto(message, user!.Name.Value, user.AvatarId?.Value);
 
-        // Publish to subscription topic for real-time delivery
-        await topicEventSender.SendAsync(
-            $"MessageSent_{user.FamilyId.Value.Value}",
-            messageDto,
-            cancellationToken);
+                // Publish to subscription topic for real-time delivery
+                if (userInfo.FamilyId is not null)
+                {
+                    await topicEventSender.SendAsync(
+                        $"MessageSent_{userInfo.FamilyId.Value.Value}",
+                        messageDto,
+                        cancellationToken);
+                }
 
-        return messageDto;
+                return messageDto;
+            },
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

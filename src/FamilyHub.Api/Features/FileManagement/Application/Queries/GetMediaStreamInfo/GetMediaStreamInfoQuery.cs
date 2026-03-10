@@ -5,6 +5,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetMediaStreamInfo;
 
 public sealed record GetMediaStreamInfoQuery(
-    FileId FileId,
-    FamilyId FamilyId
-) : IReadOnlyQuery<MediaStreamInfoDto>;
+    FileId FileId
+) : IReadOnlyQuery<Result<MediaStreamInfoDto>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

@@ -5,6 +5,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.PreviewRuleMatch;
 
 public sealed record PreviewRuleMatchQuery(
-    FileId FileId,
-    FamilyId FamilyId
-) : IReadOnlyQuery<RuleMatchPreviewDto?>;
+    FileId FileId
+) : IReadOnlyQuery<Result<RuleMatchPreviewDto?>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

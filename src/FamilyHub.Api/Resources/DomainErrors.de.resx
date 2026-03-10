@@ -29,6 +29,8 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
+  <!-- General -->
+  <data name="FAMILY_MEMBERSHIP_REQUIRED" xml:space="preserve"><value>Du musst Mitglied einer Familie sein, um diese Aktion durchzuführen.</value></data>
   <!-- Auth -->
   <data name="USER_ALREADY_ASSIGNED_TO_FAMILY" xml:space="preserve"><value>Benutzer ist bereits einer Familie zugeordnet</value></data>
   <data name="USER_NOT_ASSIGNED_TO_FAMILY" xml:space="preserve"><value>Benutzer ist keiner Familie zugeordnet</value></data>
@@ -50,6 +52,7 @@
   <data name="INSUFFICIENT_PERMISSION_TO_REVOKE_INVITATION" xml:space="preserve"><value>Du hast keine Berechtigung, Einladungen für diese Familie zu widerrufen</value></data>
   <data name="DUPLICATE_INVITATION" xml:space="preserve"><value>An diese E-Mail-Adresse wurde bereits eine Einladung für diese Familie gesendet</value></data>
   <data name="MUST_BE_FAMILY_MEMBER_TO_SEND_INVITATION" xml:space="preserve"><value>Du musst Mitglied einer Familie sein, um Einladungen zu senden</value></data>
+  <data name="INSUFFICIENT_PERMISSION_TO_VIEW_INVITATIONS" xml:space="preserve"><value>Du hast keine Berechtigung, Einladungen für diese Familie anzuzeigen</value></data>
   <!-- Calendar -->
   <data name="CALENDAR_EVENT_NOT_FOUND" xml:space="preserve"><value>Kalenderereignis nicht gefunden</value></data>
   <data name="EVENT_ALREADY_CANCELLED" xml:space="preserve"><value>Ereignis ist bereits abgesagt</value></data>
@@ -62,4 +65,45 @@
   <data name="UNKNOWN_TRIGGER_EVENT_TYPE" xml:space="preserve"><value>Unbekannter Auslöser-Ereignistyp</value></data>
   <data name="UNKNOWN_ACTION_TYPE" xml:space="preserve"><value>Unbekannter Aktionstyp</value></data>
   <data name="USER_NOT_IN_FAMILY" xml:space="preserve"><value>Benutzer ist keiner Familie zugeordnet</value></data>
+  <!-- Dashboard -->
+  <data name="DASHBOARD_NOT_FOUND" xml:space="preserve"><value>Dashboard nicht gefunden</value></data>
+  <data name="WIDGET_NOT_FOUND" xml:space="preserve"><value>Widget nicht gefunden</value></data>
+  <data name="INVALID_WIDGET_TYPE" xml:space="preserve"><value>Ungültiger Widget-Typ</value></data>
+  <!-- GoogleIntegration -->
+  <data name="INVALID_OAUTH_STATE" xml:space="preserve"><value>Ungültiger OAuth-Status</value></data>
+  <data name="OAUTH_STATE_EXPIRED" xml:space="preserve"><value>OAuth-Status ist abgelaufen</value></data>
+  <data name="GOOGLE_ACCOUNT_ALREADY_LINKED" xml:space="preserve"><value>Google-Konto ist bereits verknüpft</value></data>
+  <data name="NO_GOOGLE_ACCOUNT_LINKED" xml:space="preserve"><value>Kein Google-Konto verknüpft</value></data>
+  <!-- File Management -->
+  <data name="FILE_NOT_FOUND" xml:space="preserve"><value>Datei nicht gefunden</value></data>
+  <data name="FOLDER_NOT_FOUND" xml:space="preserve"><value>Ordner nicht gefunden</value></data>
+  <data name="NOT_FOUND" xml:space="preserve"><value>Nicht gefunden</value></data>
+  <data name="FORBIDDEN" xml:space="preserve"><value>Unzureichende Berechtigungen</value></data>
+  <data name="CONFLICT" xml:space="preserve"><value>Konflikt</value></data>
+  <!-- School -->
+  <data name="FAMILY_MEMBER_ALREADY_STUDENT" xml:space="preserve"><value>Familienmitglied ist bereits als Schüler markiert</value></data>
+  <data name="FAMILY_MEMBER_NOT_FOUND" xml:space="preserve"><value>Familienmitglied nicht gefunden</value></data>
+  <!-- Messaging -->
+  <data name="MESSAGE_NOT_FOUND" xml:space="preserve"><value>Nachricht nicht gefunden</value></data>
+  <!-- File Management (extended) -->
+  <data name="TAG_NOT_FOUND" xml:space="preserve"><value>Tag nicht gefunden</value></data>
+  <data name="ALBUM_NOT_FOUND" xml:space="preserve"><value>Album nicht gefunden</value></data>
+  <data name="ORGANIZATION_RULE_NOT_FOUND" xml:space="preserve"><value>Organisationsregel nicht gefunden</value></data>
+  <data name="INBOX_FOLDER_NOT_FOUND" xml:space="preserve"><value>Posteingangsordner nicht gefunden</value></data>
+  <data name="FILE_VERSION_NOT_FOUND" xml:space="preserve"><value>Dateiversion nicht gefunden</value></data>
+  <data name="SHARE_LINK_NOT_FOUND" xml:space="preserve"><value>Freigabelink nicht gefunden</value></data>
+  <data name="SHARE_LINK_EXPIRED" xml:space="preserve"><value>Freigabelink ist abgelaufen</value></data>
+  <data name="SHARE_LINK_REVOKED" xml:space="preserve"><value>Freigabelink wurde widerrufen</value></data>
+  <data name="SHARE_LINK_PASSWORD_REQUIRED" xml:space="preserve"><value>Dieser Freigabelink erfordert ein Passwort</value></data>
+  <data name="SHARE_LINK_PASSWORD_INCORRECT" xml:space="preserve"><value>Falsches Freigabelink-Passwort</value></data>
+  <data name="SHARE_LINK_DOWNLOAD_LIMIT_REACHED" xml:space="preserve"><value>Download-Limit für diesen Freigabelink erreicht</value></data>
+  <data name="SECURE_NOTE_NOT_FOUND" xml:space="preserve"><value>Sichere Notiz nicht gefunden</value></data>
+  <data name="EXTERNAL_CONNECTION_NOT_FOUND" xml:space="preserve"><value>Externe Verbindung nicht gefunden</value></data>
+  <data name="EXTERNAL_CONNECTION_ALREADY_EXISTS" xml:space="preserve"><value>Externe Verbindung existiert bereits</value></data>
+  <data name="ZIP_JOB_NOT_FOUND" xml:space="preserve"><value>Zip-Auftrag nicht gefunden</value></data>
+  <data name="ZIP_JOB_CONCURRENT_LIMIT_REACHED" xml:space="preserve"><value>Zu viele gleichzeitige Zip-Aufträge</value></data>
+  <data name="ZIP_JOB_TOO_MANY_FILES" xml:space="preserve"><value>Zu viele Dateien für Zip-Auftrag</value></data>
+  <!-- Photos -->
+  <data name="PHOTO_NOT_FOUND" xml:space="preserve"><value>Foto nicht gefunden</value></data>
+  <data name="PHOTO_ALREADY_DELETED" xml:space="preserve"><value>Foto wurde bereits gelöscht</value></data>
 </root>

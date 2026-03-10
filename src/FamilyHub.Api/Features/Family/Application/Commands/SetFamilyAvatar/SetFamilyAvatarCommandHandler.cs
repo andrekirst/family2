@@ -1,6 +1,6 @@
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 
 namespace FamilyHub.Api.Features.Family.Application.Commands.SetFamilyAvatar;

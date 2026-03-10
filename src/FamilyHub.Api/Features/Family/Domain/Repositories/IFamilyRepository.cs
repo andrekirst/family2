@@ -1,3 +1,4 @@
+using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyEntity = FamilyHub.Api.Features.Family.Domain.Entities.Family;
 
@@ -7,40 +8,25 @@ namespace FamilyHub.Api.Features.Family.Domain.Repositories;
 /// Repository interface for Family aggregate.
 /// Abstracts data access from domain logic.
 /// </summary>
-public interface IFamilyRepository
+public interface IFamilyRepository : IWriteRepository<FamilyEntity, FamilyId>
 {
-    /// <summary>
-    /// Get family by its unique identifier.
-    /// </summary>
-    Task<FamilyEntity?> GetByIdAsync(FamilyId id, CancellationToken ct = default);
-
     /// <summary>
     /// Get family by its unique identifier with members included.
     /// </summary>
-    Task<FamilyEntity?> GetByIdWithMembersAsync(FamilyId id, CancellationToken ct = default);
+    Task<FamilyEntity?> GetByIdWithMembersAsync(FamilyId id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get family by owner ID.
     /// </summary>
-    Task<FamilyEntity?> GetByOwnerIdAsync(UserId ownerId, CancellationToken ct = default);
+    Task<FamilyEntity?> GetByOwnerIdAsync(UserId ownerId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Check if a user already owns a family.
     /// </summary>
-    Task<bool> UserHasFamilyAsync(UserId userId, CancellationToken ct = default);
-
-    /// <summary>
-    /// Add a new family to the repository.
-    /// </summary>
-    Task AddAsync(FamilyEntity family, CancellationToken ct = default);
+    Task<bool> UserHasFamilyAsync(UserId userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Update an existing family.
     /// </summary>
-    Task UpdateAsync(FamilyEntity family, CancellationToken ct = default);
-
-    /// <summary>
-    /// Save all pending changes.
-    /// </summary>
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
+    Task UpdateAsync(FamilyEntity family, CancellationToken cancellationToken = default);
 }

@@ -8,20 +8,20 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 
 public sealed class UserFavoriteRepository(AppDbContext context) : IUserFavoriteRepository
 {
-    public async Task<List<UserFavorite>> GetByUserIdAsync(UserId userId, CancellationToken ct = default)
+    public async Task<List<UserFavorite>> GetByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
         => await context.Set<UserFavorite>()
             .Where(uf => uf.UserId == userId)
             .OrderByDescending(uf => uf.FavoritedAt)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task<bool> ExistsAsync(UserId userId, FileId fileId, CancellationToken ct = default)
+    public async Task<bool> ExistsAsync(UserId userId, FileId fileId, CancellationToken cancellationToken = default)
         => await context.Set<UserFavorite>()
-            .AnyAsync(uf => uf.UserId == userId && uf.FileId == fileId, ct);
+            .AnyAsync(uf => uf.UserId == userId && uf.FileId == fileId, cancellationToken);
 
-    public async Task AddAsync(UserFavorite favorite, CancellationToken ct = default)
-        => await context.Set<UserFavorite>().AddAsync(favorite, ct);
+    public async Task AddAsync(UserFavorite favorite, CancellationToken cancellationToken = default)
+        => await context.Set<UserFavorite>().AddAsync(favorite, cancellationToken);
 
-    public Task RemoveAsync(UserFavorite favorite, CancellationToken ct = default)
+    public Task RemoveAsync(UserFavorite favorite, CancellationToken cancellationToken = default)
     {
         context.Set<UserFavorite>().Remove(favorite);
         return Task.CompletedTask;

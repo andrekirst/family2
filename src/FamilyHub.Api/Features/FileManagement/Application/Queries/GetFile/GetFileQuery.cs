@@ -5,6 +5,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFile;
 
 public sealed record GetFileQuery(
-    FileId FileId,
-    FamilyId FamilyId
-) : IReadOnlyQuery<StoredFileDto?>;
+    FileId FileId
+) : IReadOnlyQuery<StoredFileDto?>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

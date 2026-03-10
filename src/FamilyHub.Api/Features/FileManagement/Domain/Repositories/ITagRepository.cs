@@ -1,13 +1,12 @@
+using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
 
 namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 
-public interface ITagRepository
+public interface ITagRepository : IWriteRepository<Entities.Tag, TagId>
 {
-    Task<Entities.Tag?> GetByIdAsync(TagId id, CancellationToken ct = default);
-    Task<List<Entities.Tag>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken ct = default);
-    Task<Entities.Tag?> GetByNameAsync(TagName name, FamilyId familyId, CancellationToken ct = default);
-    Task AddAsync(Entities.Tag tag, CancellationToken ct = default);
-    Task RemoveAsync(Entities.Tag tag, CancellationToken ct = default);
+    Task<List<Entities.Tag>> GetByFamilyIdAsync(FamilyId familyId, CancellationToken cancellationToken = default);
+    Task<Entities.Tag?> GetByNameAsync(TagName name, FamilyId familyId, CancellationToken cancellationToken = default);
+    Task RemoveAsync(Entities.Tag tag, CancellationToken cancellationToken = default);
 }

@@ -8,6 +8,6 @@ namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 /// </summary>
 public sealed class MediatorQueryBus(Mediator.IMediator mediator) : IQueryBus
 {
-    public ValueTask<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken ct = default)
-        => mediator.Send(query, ct);
+    public ValueTask<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
+        => mediator.Send(query, cancellationToken);
 }

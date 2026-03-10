@@ -6,7 +6,10 @@ using FamilyHub.Api.Features.Photos.Models;
 namespace FamilyHub.Api.Features.Photos.Application.Queries;
 
 public sealed record GetAdjacentPhotosQuery(
-    FamilyId FamilyId,
     PhotoId CurrentPhotoId,
     DateTime CurrentCreatedAt
-) : IReadOnlyQuery<AdjacentPhotosDto>;
+) : IReadOnlyQuery<AdjacentPhotosDto>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

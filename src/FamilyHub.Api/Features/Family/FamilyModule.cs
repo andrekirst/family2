@@ -1,5 +1,5 @@
 using FamilyHub.Api.Common.Email;
-using FamilyHub.Api.Common.Infrastructure.Avatar;
+using FamilyHub.Api.Features.Family.Infrastructure.Avatar;
 using FamilyHub.Api.Common.Modules;
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Common.Widgets;
@@ -10,7 +10,8 @@ using FamilyHub.Api.Features.Family.Infrastructure.Repositories;
 
 namespace FamilyHub.Api.Features.Family;
 
-public sealed class FamilyModule : IModule
+[ModuleOrder(200)]
+public sealed class FamilyModule : IModule, IEndpointModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)
     {
@@ -19,7 +20,7 @@ public sealed class FamilyModule : IModule
         services.AddScoped<IFamilyInvitationRepository, FamilyInvitationRepository>();
         services.AddScoped<FamilyAuthorizationService>();
 
-        // Avatar infrastructure (cross-cutting, registered here as Family module owns avatar management)
+        // Avatar infrastructure (Family module owns avatar management)
         services.AddScoped<IAvatarRepository, AvatarRepository>();
         services.AddScoped<IFileStorageService, PostgresFileStorageService>();
         services.AddScoped<IAvatarProcessingService, AvatarProcessingService>();
@@ -33,5 +34,12 @@ public sealed class FamilyModule : IModule
         // Search & command palette providers
         services.AddScoped<ISearchProvider, FamilySearchProvider>();
         services.AddSingleton<ICommandPaletteProvider, FamilyCommandPaletteProvider>();
+    }
+
+    public void MapEndpoints(WebApplication app)
+    {
+        app.MapGet("/api/avatars/{avatarId:guid}/{size}",
+            AvatarEndpoints.GetAvatar)
+            .RequireAuthorization();
     }
 }

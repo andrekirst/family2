@@ -9,5 +9,5 @@ public interface ICommandBus
     /// <summary>
     /// Sends a command and awaits the result.
     /// </summary>
-    ValueTask<TResult> SendAsync<TResult>(ICommand<TResult> command, CancellationToken ct = default);
+    ValueTask<TResult> SendAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default);
 }

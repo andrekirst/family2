@@ -5,7 +5,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 namespace FamilyHub.Api.Common.Infrastructure.HealthChecks;
 
 /// <summary>
-/// Writes a detailed JSON response for the /health/auth endpoint showing per-check status.
+/// Writes a detailed JSON response for health check endpoints showing per-check status,
+/// duration, and optional exception details.
 /// </summary>
 public static class HealthCheckResponseWriter
 {
@@ -19,17 +20,25 @@ public static class HealthCheckResponseWriter
     {
         context.Response.ContentType = MediaTypeNames.Application.Json;
 
+        context.Response.StatusCode = report.Status == HealthStatus.Healthy
+            ? StatusCodes.Status200OK
+            : StatusCodes.Status503ServiceUnavailable;
+
         var checks = report.Entries.ToDictionary(
             entry => entry.Key,
             entry => new
             {
                 status = entry.Value.Status.ToString(),
-                description = entry.Value.Description ?? entry.Value.Status.ToString()
+                description = entry.Value.Description ?? entry.Value.Status.ToString(),
+                duration = entry.Value.Duration.TotalMilliseconds,
+                exception = entry.Value.Exception?.Message,
+                tags = entry.Value.Tags
             });
 
         var response = new
         {
             status = report.Status.ToString(),
+            totalDuration = report.TotalDuration.TotalMilliseconds,
             checks
         };
 

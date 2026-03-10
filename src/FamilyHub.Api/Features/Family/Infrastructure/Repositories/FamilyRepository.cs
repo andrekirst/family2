@@ -29,6 +29,11 @@ public sealed class FamilyRepository(AppDbContext context) : IFamilyRepository
             .FirstOrDefaultAsync(f => f.OwnerId == ownerId, cancellationToken);
     }
 
+    public async Task<bool> ExistsByIdAsync(FamilyId id, CancellationToken cancellationToken = default)
+    {
+        return await context.Families.AnyAsync(f => f.Id == id, cancellationToken);
+    }
+
     public async Task<bool> UserHasFamilyAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         return await context.Families
@@ -44,10 +49,5 @@ public sealed class FamilyRepository(AppDbContext context) : IFamilyRepository
     {
         // EF Core change tracker detects modifications automatically
         return Task.CompletedTask;
-    }
-
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.SaveChangesAsync(cancellationToken);
     }
 }

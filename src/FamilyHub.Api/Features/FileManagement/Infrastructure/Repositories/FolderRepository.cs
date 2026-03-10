@@ -8,32 +8,35 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 
 public sealed class FolderRepository(AppDbContext context) : IFolderRepository
 {
-    public async Task<Folder?> GetByIdAsync(FolderId id, CancellationToken ct = default)
-        => await context.Set<Folder>().FindAsync([id], cancellationToken: ct);
+    public async Task<Folder?> GetByIdAsync(FolderId id, CancellationToken cancellationToken = default)
+        => await context.Set<Folder>().FindAsync([id], cancellationToken: cancellationToken);
 
-    public async Task<Folder?> GetRootFolderAsync(FamilyId familyId, CancellationToken ct = default)
+    public async Task<bool> ExistsByIdAsync(FolderId id, CancellationToken cancellationToken = default)
+        => await context.Set<Folder>().AnyAsync(f => f.Id == id, cancellationToken);
+
+    public async Task<Folder?> GetRootFolderAsync(FamilyId familyId, CancellationToken cancellationToken = default)
         => await context.Set<Folder>()
-            .FirstOrDefaultAsync(f => f.FamilyId == familyId && f.ParentFolderId == null, ct);
+            .FirstOrDefaultAsync(f => f.FamilyId == familyId && f.ParentFolderId == null, cancellationToken);
 
-    public async Task<Folder?> GetInboxFolderAsync(FamilyId familyId, CancellationToken ct = default)
+    public async Task<Folder?> GetInboxFolderAsync(FamilyId familyId, CancellationToken cancellationToken = default)
         => await context.Set<Folder>()
-            .FirstOrDefaultAsync(f => f.FamilyId == familyId && f.IsInbox, ct);
+            .FirstOrDefaultAsync(f => f.FamilyId == familyId && f.IsInbox, cancellationToken);
 
-    public async Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken ct = default)
+    public async Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken cancellationToken = default)
         => await context.Set<Folder>()
             .Where(f => f.ParentFolderId == parentId)
             .OrderBy(f => f.Name)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task<List<Folder>> GetDescendantsAsync(string materializedPathPrefix, FamilyId familyId, CancellationToken ct = default)
+    public async Task<List<Folder>> GetDescendantsAsync(string materializedPathPrefix, FamilyId familyId, CancellationToken cancellationToken = default)
         => await context.Set<Folder>()
             .Where(f => f.FamilyId == familyId && f.MaterializedPath.StartsWith(materializedPathPrefix))
             .OrderBy(f => f.MaterializedPath)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task<List<Folder>> GetAncestorsAsync(FolderId folderId, CancellationToken ct = default)
+    public async Task<List<Folder>> GetAncestorsAsync(FolderId folderId, CancellationToken cancellationToken = default)
     {
-        var folder = await context.Set<Folder>().FindAsync([folderId], cancellationToken: ct);
+        var folder = await context.Set<Folder>().FindAsync([folderId], cancellationToken: cancellationToken);
         if (folder is null)
         {
             return [];
@@ -54,7 +57,7 @@ public sealed class FolderRepository(AppDbContext context) : IFolderRepository
 
         var ancestors = await context.Set<Folder>()
             .Where(f => pathSegments.Contains(f.Id))
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         // Order by position in path (root first)
         return pathSegments
@@ -63,14 +66,14 @@ public sealed class FolderRepository(AppDbContext context) : IFolderRepository
             .ToList()!;
     }
 
-    public async Task<long> GetTotalFileSizeAsync(FolderId folderId, string materializedPathPrefix, FamilyId familyId, CancellationToken ct = default)
+    public async Task<long> GetTotalFileSizeAsync(FolderId folderId, string materializedPathPrefix, FamilyId familyId, CancellationToken cancellationToken = default)
     {
         // Get all folder IDs in the subtree (including the folder itself)
         var descendantFolderIds = await context.Set<Folder>()
             .Where(f => f.FamilyId == familyId &&
                 (f.Id == folderId || f.MaterializedPath.StartsWith(materializedPathPrefix)))
             .Select(f => f.Id)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         if (descendantFolderIds.Count == 0)
         {
@@ -79,23 +82,23 @@ public sealed class FolderRepository(AppDbContext context) : IFolderRepository
 
         return await context.Set<StoredFile>()
             .Where(f => descendantFolderIds.Contains(f.FolderId))
-            .SumAsync(f => f.Size.Value, ct);
+            .SumAsync(f => f.Size.Value, cancellationToken);
     }
 
-    public async Task<int> GetDescendantCountAsync(string materializedPathPrefix, FamilyId familyId, CancellationToken ct = default)
+    public async Task<int> GetDescendantCountAsync(string materializedPathPrefix, FamilyId familyId, CancellationToken cancellationToken = default)
         => await context.Set<Folder>()
-            .CountAsync(f => f.FamilyId == familyId && f.MaterializedPath.StartsWith(materializedPathPrefix), ct);
+            .CountAsync(f => f.FamilyId == familyId && f.MaterializedPath.StartsWith(materializedPathPrefix), cancellationToken);
 
-    public async Task AddAsync(Folder folder, CancellationToken ct = default)
-        => await context.Set<Folder>().AddAsync(folder, ct);
+    public async Task AddAsync(Folder folder, CancellationToken cancellationToken = default)
+        => await context.Set<Folder>().AddAsync(folder, cancellationToken);
 
-    public Task RemoveAsync(Folder folder, CancellationToken ct = default)
+    public Task RemoveAsync(Folder folder, CancellationToken cancellationToken = default)
     {
         context.Set<Folder>().Remove(folder);
         return Task.CompletedTask;
     }
 
-    public Task RemoveRangeAsync(IEnumerable<Folder> folders, CancellationToken ct = default)
+    public Task RemoveRangeAsync(IEnumerable<Folder> folders, CancellationToken cancellationToken = default)
     {
         context.Set<Folder>().RemoveRange(folders);
         return Task.CompletedTask;

@@ -7,7 +7,6 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.UploadAvatar;
 /// Command to upload and process a new avatar image.
 /// </summary>
 public sealed record UploadAvatarCommand(
-    UserId UserId,
     byte[] ImageData,
     string FileName,
     string MimeType,
@@ -15,4 +14,8 @@ public sealed record UploadAvatarCommand(
     float? CropY,
     float? CropWidth,
     float? CropHeight
-) : ICommand<UploadAvatarResult>;
+) : ICommand<UploadAvatarResult>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

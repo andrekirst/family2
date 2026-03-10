@@ -1,3 +1,4 @@
+using FamilyHub.Common.Application;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Repositories;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.ValueObjects;
 using FamilyHub.Api.Features.GoogleIntegration.Models;
@@ -8,6 +9,7 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Infrastructure.Services;
 public sealed class TokenRefreshBackgroundService(
     IServiceScopeFactory scopeFactory,
     IOptions<TokenRefreshOptions> options,
+    TimeProvider timeProvider,
     ILogger<TokenRefreshBackgroundService> logger) : BackgroundService
 {
     private readonly TokenRefreshOptions _options = options.Value;
@@ -33,15 +35,15 @@ public sealed class TokenRefreshBackgroundService(
         }
     }
 
-    private async Task RefreshExpiringTokensAsync(CancellationToken ct)
+    private async Task RefreshExpiringTokensAsync(CancellationToken cancellationToken)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var linkRepository = scope.ServiceProvider.GetRequiredService<IGoogleAccountLinkRepository>();
         var oauthService = scope.ServiceProvider.GetRequiredService<IGoogleOAuthService>();
         var encryptionService = scope.ServiceProvider.GetRequiredService<ITokenEncryptionService>();
 
-        var expiringBefore = DateTime.UtcNow.AddMinutes(_options.RefreshBeforeExpiryMinutes);
-        var expiringLinks = await linkRepository.GetExpiringTokensAsync(expiringBefore, ct);
+        var expiringBefore = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_options.RefreshBeforeExpiryMinutes);
+        var expiringLinks = await linkRepository.GetExpiringTokensAsync(expiringBefore, cancellationToken);
 
         if (expiringLinks.Count == 0)
         {
@@ -55,14 +57,14 @@ public sealed class TokenRefreshBackgroundService(
             try
             {
                 var refreshToken = encryptionService.Decrypt(link.EncryptedRefreshToken.Value);
-                var tokenResponse = await oauthService.RefreshAccessTokenAsync(refreshToken, ct);
+                var tokenResponse = await oauthService.RefreshAccessTokenAsync(refreshToken, cancellationToken);
 
                 var encryptedAccessToken = EncryptedToken.From(
                     encryptionService.Encrypt(tokenResponse.AccessToken));
-                var newExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
+                var newExpiresAt = timeProvider.GetUtcNow().UtcDateTime.AddSeconds(tokenResponse.ExpiresIn);
 
-                link.RefreshAccessToken(encryptedAccessToken, newExpiresAt);
-                await linkRepository.UpdateAsync(link, ct);
+                link.RefreshAccessToken(encryptedAccessToken, newExpiresAt, timeProvider.GetUtcNow());
+                await linkRepository.UpdateAsync(link, cancellationToken);
 
                 logger.LogInformation(
                     "Refreshed Google token for user {UserId}, new expiry: {ExpiresAt}",
@@ -72,11 +74,12 @@ public sealed class TokenRefreshBackgroundService(
             {
                 logger.LogWarning(ex,
                     "Failed to refresh Google token for user {UserId}", link.UserId);
-                link.MarkRefreshFailed(ex.Message);
-                await linkRepository.UpdateAsync(link, ct);
+                link.MarkRefreshFailed(ex.Message, timeProvider.GetUtcNow());
+                await linkRepository.UpdateAsync(link, cancellationToken);
             }
         }
 
-        await linkRepository.SaveChangesAsync(ct);
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

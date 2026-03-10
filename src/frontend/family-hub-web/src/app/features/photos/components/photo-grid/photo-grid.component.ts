@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EnvironmentConfigService } from '../../../../core/config/environment-config.service';
 import { SecureSrcDirective } from '../../../../shared/directives/secure-src.directive';
@@ -7,6 +7,7 @@ import { PhotoDto } from '../../models/photos.models';
 @Component({
   selector: 'app-photo-grid',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, SecureSrcDirective],
   template: `
     @if (isLoading()) {

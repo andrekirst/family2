@@ -5,7 +5,10 @@ using FamilyHub.Api.Features.Photos.Models;
 namespace FamilyHub.Api.Features.Photos.Application.Queries;
 
 public sealed record GetPhotosQuery(
-    FamilyId FamilyId,
     int Skip,
     int Take
-) : IReadOnlyQuery<PhotosPageDto>;
+) : IReadOnlyQuery<PhotosPageDto>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

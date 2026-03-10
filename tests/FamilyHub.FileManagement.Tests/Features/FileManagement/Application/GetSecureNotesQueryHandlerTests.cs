@@ -1,31 +1,41 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetSecureNotes;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class GetSecureNotesQueryHandlerTests
 {
+    private readonly ISecureNoteRepository _noteRepo = Substitute.For<ISecureNoteRepository>();
+    private readonly GetSecureNotesQueryHandler _handler;
+
+    public GetSecureNotesQueryHandlerTests()
+    {
+        _handler = new GetSecureNotesQueryHandler(_noteRepo);
+    }
+
     [Fact]
     public async Task Handle_ShouldReturnUserNotes()
     {
-        var noteRepo = new FakeSecureNoteRepository();
-        var handler = new GetSecureNotesQueryHandler(noteRepo);
         var userId = UserId.New();
         var familyId = FamilyId.New();
 
-        noteRepo.Notes.Add(SecureNote.Create(
-            familyId, userId, NoteCategory.Passwords,
-            "note1", "content1", "iv1", "salt1", "sentinel1"));
-        noteRepo.Notes.Add(SecureNote.Create(
-            familyId, userId, NoteCategory.Financial,
-            "note2", "content2", "iv2", "salt2", "sentinel2"));
+        _noteRepo.GetByUserIdAsync(userId, familyId, Arg.Any<CancellationToken>())
+            .Returns([
+                SecureNote.Create(familyId, userId, NoteCategory.Passwords, "note1", "content1", "iv1", "salt1", "sentinel1", DateTimeOffset.UtcNow),
+                SecureNote.Create(familyId, userId, NoteCategory.Financial, "note2", "content2", "iv2", "salt2", "sentinel2", DateTimeOffset.UtcNow)
+            ]);
 
-        var query = new GetSecureNotesQuery(userId, familyId, null);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetSecureNotesQuery(null)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
     }
@@ -33,23 +43,21 @@ public class GetSecureNotesQueryHandlerTests
     [Fact]
     public async Task Handle_WithCategoryFilter_ShouldReturnFilteredNotes()
     {
-        var noteRepo = new FakeSecureNoteRepository();
-        var handler = new GetSecureNotesQueryHandler(noteRepo);
         var userId = UserId.New();
         var familyId = FamilyId.New();
 
-        noteRepo.Notes.Add(SecureNote.Create(
-            familyId, userId, NoteCategory.Passwords,
-            "pass1", "content1", "iv1", "salt1", "sentinel1"));
-        noteRepo.Notes.Add(SecureNote.Create(
-            familyId, userId, NoteCategory.Financial,
-            "fin1", "content2", "iv2", "salt2", "sentinel2"));
-        noteRepo.Notes.Add(SecureNote.Create(
-            familyId, userId, NoteCategory.Passwords,
-            "pass2", "content3", "iv3", "salt3", "sentinel3"));
+        _noteRepo.GetByUserIdAndCategoryAsync(userId, familyId, NoteCategory.Passwords, Arg.Any<CancellationToken>())
+            .Returns([
+                SecureNote.Create(familyId, userId, NoteCategory.Passwords, "pass1", "content1", "iv1", "salt1", "sentinel1", DateTimeOffset.UtcNow),
+                SecureNote.Create(familyId, userId, NoteCategory.Passwords, "pass2", "content3", "iv3", "salt3", "sentinel3", DateTimeOffset.UtcNow)
+            ]);
 
-        var query = new GetSecureNotesQuery(userId, familyId, NoteCategory.Passwords);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetSecureNotesQuery(NoteCategory.Passwords)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
         result.Should().AllSatisfy(n => n.Category.Should().Be("Passwords"));
@@ -58,16 +66,18 @@ public class GetSecureNotesQueryHandlerTests
     [Fact]
     public async Task Handle_OtherUserNotes_ShouldNotReturn()
     {
-        var noteRepo = new FakeSecureNoteRepository();
-        var handler = new GetSecureNotesQueryHandler(noteRepo);
         var familyId = FamilyId.New();
+        var userId = UserId.New();
 
-        noteRepo.Notes.Add(SecureNote.Create(
-            familyId, UserId.New(), NoteCategory.Passwords,
-            "note1", "content1", "iv1", "salt1", "sentinel1"));
+        _noteRepo.GetByUserIdAsync(userId, familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<SecureNote>());
 
-        var query = new GetSecureNotesQuery(UserId.New(), familyId, null);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetSecureNotesQuery(null)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
     }
@@ -75,17 +85,20 @@ public class GetSecureNotesQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnDtoWithAllFields()
     {
-        var noteRepo = new FakeSecureNoteRepository();
-        var handler = new GetSecureNotesQueryHandler(noteRepo);
         var userId = UserId.New();
         var familyId = FamilyId.New();
 
-        noteRepo.Notes.Add(SecureNote.Create(
-            familyId, userId, NoteCategory.Medical,
-            "enc-title", "enc-content", "my-iv", "my-salt", "my-sentinel"));
+        _noteRepo.GetByUserIdAsync(userId, familyId, Arg.Any<CancellationToken>())
+            .Returns([
+                SecureNote.Create(familyId, userId, NoteCategory.Medical, "enc-title", "enc-content", "my-iv", "my-salt", "my-sentinel", DateTimeOffset.UtcNow)
+            ]);
 
-        var query = new GetSecureNotesQuery(userId, familyId, null);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetSecureNotesQuery(null)
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         var dto = result.Single();
         dto.EncryptedTitle.Should().Be("enc-title");

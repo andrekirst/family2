@@ -8,7 +8,9 @@ public sealed record SetPermissionCommand(
     PermissionResourceType ResourceType,
     Guid ResourceId,
     UserId MemberId,
-    FilePermissionLevel PermissionLevel,
-    FamilyId FamilyId,
-    UserId GrantedBy
-) : ICommand<SetPermissionResult>;
+    FilePermissionLevel PermissionLevel
+) : ICommand<Result<SetPermissionResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

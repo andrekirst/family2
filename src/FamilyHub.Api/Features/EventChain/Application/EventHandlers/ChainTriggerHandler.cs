@@ -12,7 +12,7 @@ public sealed class ChainTriggerHandler(
     IChainOrchestrator orchestrator,
     ILogger<ChainTriggerHandler> logger) : IDomainEventObserver
 {
-    public async Task OnEventPublishedAsync(IDomainEvent @event, CancellationToken ct = default)
+    public async Task OnEventPublishedAsync(IDomainEvent @event, CancellationToken cancellationToken = default)
     {
         logger.LogDebug(
             "Chain trigger handler received event: {EventType}, EventId={EventId}",

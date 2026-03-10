@@ -8,6 +8,9 @@ public sealed record CreateFileVersionCommand(
     FileId FileId,
     StorageKey StorageKey,
     FileSize FileSize,
-    Checksum Checksum,
-    UserId UploadedBy
-) : ICommand<CreateFileVersionResult>;
+    Checksum Checksum
+) : ICommand<Result<CreateFileVersionResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

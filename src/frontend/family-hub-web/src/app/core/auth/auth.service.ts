@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, isDevMode } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { EnvironmentConfigService } from '../config/environment-config.service';
@@ -10,8 +10,8 @@ import {
   base64UrlDecode,
 } from '../../shared/utils/crypto.utils';
 
-/** Buffer in seconds before expiry to trigger proactive refresh */
-const REFRESH_BUFFER_SECONDS = 300; // 5 minutes
+/** Fraction of token lifetime at which to trigger proactive refresh (80% = refresh at 80% of lifetime) */
+const REFRESH_AT_LIFETIME_FRACTION = 0.8;
 
 /**
  * Authentication service implementing OAuth 2.0 Authorization Code Flow with PKCE
@@ -27,6 +27,7 @@ export class AuthService {
   private readonly STORAGE_ID_TOKEN = 'id_token';
   private readonly STORAGE_REFRESH_TOKEN = 'refresh_token';
   private readonly STORAGE_EXPIRES_AT = 'expires_at';
+  private readonly STORAGE_ISSUED_AT = 'issued_at';
   private readonly STORAGE_EXPECTED_ISSUER = 'expected_issuer';
 
   private readonly envConfig = inject(EnvironmentConfigService);
@@ -71,18 +72,27 @@ export class AuthService {
   }
 
   /**
-   * Schedule a proactive token refresh 5 minutes before the access token expires.
+   * Schedule a proactive token refresh at 80% of the token's lifetime.
+   * For a 5-minute token, refreshes at 4 minutes. For a 30-minute token, at 24 minutes.
    * Re-schedules itself after each successful refresh.
    */
   private scheduleTokenRefresh(): void {
     this.clearRefreshTimer();
 
     const expiresAt = localStorage.getItem(this.STORAGE_EXPIRES_AT);
+    const issuedAt = localStorage.getItem(this.STORAGE_ISSUED_AT);
     if (!expiresAt) return;
 
     const expirationTime = parseInt(expiresAt, 10);
+    const issuedTime = issuedAt ? parseInt(issuedAt, 10) : undefined;
     const now = Math.floor(Date.now() / 1000);
-    const delaySeconds = expirationTime - now - REFRESH_BUFFER_SECONDS;
+
+    // Calculate delay: refresh at 80% of token lifetime, or 60s before expiry as fallback
+    const tokenLifetime = issuedTime ? expirationTime - issuedTime : undefined;
+    const refreshAt = tokenLifetime
+      ? issuedTime! + Math.floor(tokenLifetime * REFRESH_AT_LIFETIME_FRACTION)
+      : expirationTime - 60;
+    const delaySeconds = refreshAt - now;
 
     if (delaySeconds > 0) {
       this.refreshTimer = setTimeout(async () => {
@@ -228,13 +238,9 @@ export class AuthService {
         this.userProfile.set(profile);
         this.isAuthenticated.set(true);
 
-        // Log success for debugging
-        console.log('✅ OAuth login successful!', {
-          email: profile.email,
-          name: profile.name,
-          userId: profile.userId,
-          emailVerified: profile.emailVerified,
-        });
+        if (isDevMode()) {
+          console.log('OAuth login successful', { userId: profile.userId });
+        }
       }
 
       // Clean up PKCE session storage
@@ -255,7 +261,20 @@ export class AuthService {
     const redirectUrl = sessionStorage.getItem('post_login_redirect') || '/dashboard';
     sessionStorage.removeItem('post_login_redirect');
     sessionStorage.removeItem('redirect_url');
-    return redirectUrl;
+    return this.sanitizeRedirectUrl(redirectUrl);
+  }
+
+  /**
+   * Sanitize redirect URL to prevent open redirect attacks.
+   * Only allows relative paths starting with '/'. Blocks protocol-relative URLs,
+   * absolute URLs, and javascript: URIs.
+   */
+  private sanitizeRedirectUrl(url: string): string {
+    const fallback = '/dashboard';
+    if (!url || !url.startsWith('/') || url.startsWith('//') || url.includes('://')) {
+      return fallback;
+    }
+    return url;
   }
 
   /**
@@ -379,8 +398,10 @@ export class AuthService {
     localStorage.setItem(this.STORAGE_ID_TOKEN, tokens.id_token);
     localStorage.setItem(this.STORAGE_REFRESH_TOKEN, tokens.refresh_token);
 
-    // Calculate expiration time
-    const expiresAt = Math.floor(Date.now() / 1000) + tokens.expires_in;
+    // Calculate and store issuance and expiration times
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const expiresAt = issuedAt + tokens.expires_in;
+    localStorage.setItem(this.STORAGE_ISSUED_AT, issuedAt.toString());
     localStorage.setItem(this.STORAGE_EXPIRES_AT, expiresAt.toString());
 
     // Store issuer for cross-environment stale auth detection
@@ -398,6 +419,7 @@ export class AuthService {
     localStorage.removeItem(this.STORAGE_ID_TOKEN);
     localStorage.removeItem(this.STORAGE_REFRESH_TOKEN);
     localStorage.removeItem(this.STORAGE_EXPIRES_AT);
+    localStorage.removeItem(this.STORAGE_ISSUED_AT);
     localStorage.removeItem(this.STORAGE_EXPECTED_ISSUER);
   }
 

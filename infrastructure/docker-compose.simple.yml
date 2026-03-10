@@ -1,0 +1,112 @@
+# Simple mode overlay — path-based routing on localhost:4443
+# Usage: docker compose -p fh-simple -f docker-compose.base.yml -f docker-compose.simple.yml up -d
+#
+# All services accessible via a single hostname (localhost:4443):
+#   /graphql, /api/*, /config, /health  →  API
+#   /auth/*                             →  Keycloak (KC_HTTP_RELATIVE_PATH=/auth)
+#   /*                                  →  Frontend (catch-all)
+#   mail.localhost, pgadmin.localhost, minio.localhost  →  subdomains (no path prefix support)
+
+services:
+  # ---------------------------------------------------------------------------
+  # Keycloak — serve under /auth/* via KC_HTTP_RELATIVE_PATH
+  # ---------------------------------------------------------------------------
+  keycloak:
+    environment:
+      KC_HTTP_RELATIVE_PATH: /auth
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e "GET /auth/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep -q "200 OK"',
+        ]
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.keycloak.rule=Host(`localhost`) && PathPrefix(`/auth`)'
+      - 'traefik.http.routers.keycloak.entrypoints=websecure'
+      - 'traefik.http.routers.keycloak.tls=true'
+      - 'traefik.http.routers.keycloak.priority=200'
+      - 'traefik.http.services.keycloak.loadbalancer.server.port=8080'
+
+  # ---------------------------------------------------------------------------
+  # MailHog — subdomain (doesn't support path prefix)
+  # ---------------------------------------------------------------------------
+  mailhog:
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.mailhog.rule=Host(`mail.localhost`)'
+      - 'traefik.http.routers.mailhog.entrypoints=websecure'
+      - 'traefik.http.routers.mailhog.tls=true'
+      - 'traefik.http.services.mailhog.loadbalancer.server.port=8025'
+
+  # ---------------------------------------------------------------------------
+  # pgAdmin — subdomain
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.pgadmin.rule=Host(`pgadmin.localhost`)'
+      - 'traefik.http.routers.pgadmin.entrypoints=websecure'
+      - 'traefik.http.routers.pgadmin.tls=true'
+      - 'traefik.http.services.pgadmin.loadbalancer.server.port=80'
+
+  # ---------------------------------------------------------------------------
+  # MinIO — subdomain
+  # ---------------------------------------------------------------------------
+  minio:
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.minio.rule=Host(`minio.localhost`)'
+      - 'traefik.http.routers.minio.entrypoints=websecure'
+      - 'traefik.http.routers.minio.tls=true'
+      - 'traefik.http.services.minio.loadbalancer.server.port=9001'
+
+  # ---------------------------------------------------------------------------
+  # API — path-based routing on localhost (same-origin proxy)
+  # ---------------------------------------------------------------------------
+  api:
+    environment:
+      # Keycloak (internal Docker network uses port 8080, external uses /auth path)
+      Keycloak__Authority: http://keycloak:8080/auth/realms/FamilyHub-dev
+      Keycloak__Issuers: https://localhost:4443/auth/realms/FamilyHub-dev
+      Keycloak__Audience: account
+      CORS__Origins: https://localhost:4443
+      App__FrontendUrl: https://localhost:4443
+      # Frontend config endpoint
+      FrontendConfig__ApiUrl: https://localhost:4443/graphql
+      FrontendConfig__KeycloakIssuer: https://localhost:4443/auth/realms/FamilyHub-dev
+      FrontendConfig__KeycloakClientId: familyhub-web
+      FrontendConfig__AppUrl: https://localhost:4443
+      # Google OAuth callback
+      GoogleIntegration__OAuth__RedirectUri: https://localhost:4443/api/google/callback
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.api-simple.rule=Host(`localhost`) && (PathPrefix(`/graphql`) || PathPrefix(`/api`) || Path(`/config`) || Path(`/health`))'
+      - 'traefik.http.routers.api-simple.entrypoints=websecure'
+      - 'traefik.http.routers.api-simple.tls=true'
+      - 'traefik.http.routers.api-simple.priority=200'
+      - 'traefik.http.services.api-simple.loadbalancer.server.port=5152'
+
+  # ---------------------------------------------------------------------------
+  # Frontend — catch-all on localhost (lowest priority)
+  # ---------------------------------------------------------------------------
+  frontend:
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-public'
+      - 'traefik.http.routers.fe-simple.rule=Host(`localhost`)'
+      - 'traefik.http.routers.fe-simple.entrypoints=websecure'
+      - 'traefik.http.routers.fe-simple.tls=true'
+      - 'traefik.http.routers.fe-simple.priority=1'
+      - 'traefik.http.services.fe-simple.loadbalancer.server.port=4200'
+
+  # ---------------------------------------------------------------------------
+  # Traefik — mount simple mode dynamic config (TLS only, no file-based routing)
+  # ---------------------------------------------------------------------------
+  traefik:
+    volumes:
+      - ./traefik/dynamic-simple:/etc/traefik/dynamic:ro

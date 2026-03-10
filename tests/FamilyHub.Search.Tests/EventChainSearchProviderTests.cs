@@ -2,9 +2,10 @@ using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.EventChain.Application.Search;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.EventChain.Domain.Entities;
+using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Search.Tests;
 
@@ -21,7 +22,7 @@ public class EventChainSearchProviderTests
             CreateDefinition("Welcome Email Chain", "Sends welcome email to new members"),
             CreateDefinition("Birthday Reminder", "Reminds family about upcoming birthdays")
         };
-        var repo = new FakeChainDefinitionRepository(definitions);
+        var repo = CreateRepo(definitions);
         var provider = new EventChainSearchProvider(repo);
         var context = new SearchContext(TestUserId, TestFamilyId, "welcome");
 
@@ -38,7 +39,7 @@ public class EventChainSearchProviderTests
         {
             CreateDefinition("Chain A", "Sends birthday notifications")
         };
-        var repo = new FakeChainDefinitionRepository(definitions);
+        var repo = CreateRepo(definitions);
         var provider = new EventChainSearchProvider(repo);
         var context = new SearchContext(TestUserId, TestFamilyId, "birthday");
 
@@ -52,9 +53,9 @@ public class EventChainSearchProviderTests
     {
         var enabled = CreateDefinition("Enabled Chain", "Active workflow");
         var disabled = CreateDefinition("Disabled Chain", "Inactive workflow");
-        disabled.Disable();
+        disabled.Disable(DateTimeOffset.UtcNow);
         var definitions = new List<ChainDefinition> { enabled, disabled };
-        var repo = new FakeChainDefinitionRepository(definitions);
+        var repo = CreateRepo(definitions);
         var provider = new EventChainSearchProvider(repo);
         var context = new SearchContext(TestUserId, TestFamilyId, "chain");
 
@@ -66,10 +67,18 @@ public class EventChainSearchProviderTests
     [Fact]
     public void ModuleName_ShouldBeEventChains()
     {
-        var repo = new FakeChainDefinitionRepository();
+        var repo = Substitute.For<IChainDefinitionRepository>();
         var provider = new EventChainSearchProvider(repo);
 
         provider.ModuleName.Should().Be("event-chains");
+    }
+
+    private static IChainDefinitionRepository CreateRepo(List<ChainDefinition> definitions)
+    {
+        var repo = Substitute.For<IChainDefinitionRepository>();
+        repo.GetByFamilyIdAsync(TestFamilyId, Arg.Any<bool?>(), Arg.Any<CancellationToken>())
+            .Returns(definitions.AsReadOnly());
+        return repo;
     }
 
     private static ChainDefinition CreateDefinition(string name, string? description)
@@ -82,7 +91,7 @@ public class EventChainSearchProviderTests
             "family.UserRegistered",
             "family",
             null,
-            null);
+            null, DateTimeOffset.UtcNow);
         return definition;
     }
 }

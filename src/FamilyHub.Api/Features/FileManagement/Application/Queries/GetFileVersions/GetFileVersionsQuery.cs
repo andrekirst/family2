@@ -5,6 +5,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetFileVersions;
 
 public sealed record GetFileVersionsQuery(
-    FileId FileId,
-    FamilyId FamilyId
-) : IReadOnlyQuery<List<FileVersionDto>>;
+    FileId FileId
+) : IReadOnlyQuery<Result<List<FileVersionDto>>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

@@ -1,0 +1,7 @@
+# Dynamic TLS configuration — default certificate for *.localhost and *.dev.andrekirst.de
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/local.pem
+        keyFile: /certs/local-key.pem

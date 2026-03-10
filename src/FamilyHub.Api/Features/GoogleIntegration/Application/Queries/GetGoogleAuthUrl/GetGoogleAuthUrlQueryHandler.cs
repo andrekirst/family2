@@ -7,7 +7,9 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Queries.GetGoogle
 
 public sealed class GetGoogleAuthUrlQueryHandler(
     IGoogleOAuthService oauthService,
-    IOAuthStateRepository stateRepository)
+    IOAuthStateRepository stateRepository,
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IQueryHandler<GetGoogleAuthUrlQuery, string>
 {
     public async ValueTask<string> Handle(
@@ -16,9 +18,10 @@ public sealed class GetGoogleAuthUrlQueryHandler(
     {
         var (authUrl, state, codeVerifier) = oauthService.BuildConsentUrl();
 
-        var oauthState = OAuthState.Create(state, query.UserId, codeVerifier);
+        var oauthState = OAuthState.Create(state, query.UserId, codeVerifier, timeProvider.GetUtcNow());
         await stateRepository.AddAsync(oauthState, cancellationToken);
-        await stateRepository.SaveChangesAsync(cancellationToken);
+        // Explicit save — queries skip TransactionBehavior
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return authUrl;
     }

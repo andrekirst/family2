@@ -1,8 +1,9 @@
+using FamilyHub.Api.Common.Infrastructure.Validation;
 using FluentValidation;
 
 namespace FamilyHub.Api.Features.Dashboard.Application.Commands.AddWidget;
 
-public sealed class AddWidgetCommandValidator : AbstractValidator<AddWidgetCommand>
+public sealed class AddWidgetCommandValidator : AbstractValidator<AddWidgetCommand>, IInputValidator<AddWidgetCommand>
 {
     public AddWidgetCommandValidator()
     {

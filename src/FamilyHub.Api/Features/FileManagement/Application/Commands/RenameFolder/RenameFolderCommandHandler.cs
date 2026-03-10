@@ -5,23 +5,28 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RenameFolder;
 
 public sealed class RenameFolderCommandHandler(
-    IFolderRepository folderRepository)
-    : ICommandHandler<RenameFolderCommand, RenameFolderResult>
+    IFolderRepository folderRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<RenameFolderCommand, Result<RenameFolderResult>>
 {
-    public async ValueTask<RenameFolderResult> Handle(
+    public async ValueTask<Result<RenameFolderResult>> Handle(
         RenameFolderCommand command,
         CancellationToken cancellationToken)
     {
-        var folder = await folderRepository.GetByIdAsync(command.FolderId, cancellationToken)
-            ?? throw new DomainException("Folder not found", DomainErrorCodes.FolderNotFound);
+        var utcNow = timeProvider.GetUtcNow();
+        var folder = await folderRepository.GetByIdAsync(command.FolderId, cancellationToken);
+        if (folder is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FolderNotFound, "Folder not found");
+        }
 
         if (folder.FamilyId != command.FamilyId)
         {
-            throw new DomainException("Folder belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Folder belongs to a different family");
         }
 
-        folder.Rename(command.NewName);
+        folder.Rename(command.NewName, utcNow);
 
-        return new RenameFolderResult(folder.Id);
+        return new RenameFolderResult(folder.Id, folder);
     }
 }

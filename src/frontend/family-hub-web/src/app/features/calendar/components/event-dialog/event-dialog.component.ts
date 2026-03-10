@@ -6,8 +6,7 @@ import {
   signal,
   computed,
   inject,
-  OnInit,
-} from '@angular/core';
+  OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CalendarService, CalendarEventDto } from '../../services/calendar.service';
@@ -18,6 +17,7 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/confi
 @Component({
   selector: 'app-event-dialog',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, ConfirmationDialogComponent],
   template: `
     <div

@@ -11,6 +11,6 @@ public sealed class RenameFolderCommandValidator : AbstractValidator<RenameFolde
         RuleFor(x => x.FolderId).NotNull();
         RuleFor(x => x.NewName).NotNull();
         RuleFor(x => x.FamilyId).NotNull();
-        RuleFor(x => x.RenamedBy).NotNull();
+        RuleFor(x => x.UserId).NotNull();
     }
 }

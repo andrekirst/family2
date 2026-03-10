@@ -4,7 +4,7 @@ public sealed class StepPipeline(IEnumerable<IStepMiddleware> middlewares)
 {
     private readonly IReadOnlyList<IStepMiddleware> _middlewares = middlewares.ToList().AsReadOnly();
 
-    public Task ExecuteAsync(StepPipelineContext context, CancellationToken ct)
+    public Task ExecuteAsync(StepPipelineContext context, CancellationToken cancellationToken)
     {
         StepDelegate pipeline = (_, _) => Task.CompletedTask;
 
@@ -16,6 +16,6 @@ public sealed class StepPipeline(IEnumerable<IStepMiddleware> middlewares)
             pipeline = (ctx, token) => middleware.InvokeAsync(ctx, next, token);
         }
 
-        return pipeline(context, ct);
+        return pipeline(context, cancellationToken);
     }
 }

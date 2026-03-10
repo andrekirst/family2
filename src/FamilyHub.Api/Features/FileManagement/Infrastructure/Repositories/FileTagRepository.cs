@@ -8,45 +8,45 @@ namespace FamilyHub.Api.Features.FileManagement.Infrastructure.Repositories;
 
 public sealed class FileTagRepository(AppDbContext context) : IFileTagRepository
 {
-    public async Task<List<FileTag>> GetByFileIdAsync(FileId fileId, CancellationToken ct = default)
+    public async Task<List<FileTag>> GetByFileIdAsync(FileId fileId, CancellationToken cancellationToken = default)
         => await context.Set<FileTag>()
             .Where(ft => ft.FileId == fileId)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task<List<FileTag>> GetByTagIdAsync(TagId tagId, CancellationToken ct = default)
+    public async Task<List<FileTag>> GetByTagIdAsync(TagId tagId, CancellationToken cancellationToken = default)
         => await context.Set<FileTag>()
             .Where(ft => ft.TagId == tagId)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-    public async Task<bool> ExistsAsync(FileId fileId, TagId tagId, CancellationToken ct = default)
+    public async Task<bool> ExistsAsync(FileId fileId, TagId tagId, CancellationToken cancellationToken = default)
         => await context.Set<FileTag>()
-            .AnyAsync(ft => ft.FileId == fileId && ft.TagId == tagId, ct);
+            .AnyAsync(ft => ft.FileId == fileId && ft.TagId == tagId, cancellationToken);
 
-    public async Task AddAsync(FileTag fileTag, CancellationToken ct = default)
-        => await context.Set<FileTag>().AddAsync(fileTag, ct);
+    public async Task AddAsync(FileTag fileTag, CancellationToken cancellationToken = default)
+        => await context.Set<FileTag>().AddAsync(fileTag, cancellationToken);
 
-    public async Task AddRangeAsync(IEnumerable<FileTag> fileTags, CancellationToken ct = default)
-        => await context.Set<FileTag>().AddRangeAsync(fileTags, ct);
+    public async Task AddRangeAsync(IEnumerable<FileTag> fileTags, CancellationToken cancellationToken = default)
+        => await context.Set<FileTag>().AddRangeAsync(fileTags, cancellationToken);
 
-    public Task RemoveAsync(FileTag fileTag, CancellationToken ct = default)
+    public Task RemoveAsync(FileTag fileTag, CancellationToken cancellationToken = default)
     {
         context.Set<FileTag>().Remove(fileTag);
         return Task.CompletedTask;
     }
 
-    public async Task RemoveByTagIdAsync(TagId tagId, CancellationToken ct = default)
+    public async Task RemoveByTagIdAsync(TagId tagId, CancellationToken cancellationToken = default)
     {
         var fileTags = await context.Set<FileTag>()
             .Where(ft => ft.TagId == tagId)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
         context.Set<FileTag>().RemoveRange(fileTags);
     }
 
-    public async Task<int> GetFileCountByTagIdAsync(TagId tagId, CancellationToken ct = default)
+    public async Task<int> GetFileCountByTagIdAsync(TagId tagId, CancellationToken cancellationToken = default)
         => await context.Set<FileTag>()
-            .CountAsync(ft => ft.TagId == tagId, ct);
+            .CountAsync(ft => ft.TagId == tagId, cancellationToken);
 
-    public async Task<List<FileId>> GetFileIdsByTagIdsAsync(IEnumerable<TagId> tagIds, CancellationToken ct = default)
+    public async Task<List<FileId>> GetFileIdsByTagIdsAsync(IEnumerable<TagId> tagIds, CancellationToken cancellationToken = default)
     {
         var tagIdList = tagIds.ToList();
         var tagCount = tagIdList.Count;
@@ -57,6 +57,6 @@ public sealed class FileTagRepository(AppDbContext context) : IFileTagRepository
             .GroupBy(ft => ft.FileId)
             .Where(g => g.Count() == tagCount)
             .Select(g => g.Key)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
     }
 }

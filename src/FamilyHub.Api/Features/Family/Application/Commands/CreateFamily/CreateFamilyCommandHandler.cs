@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
@@ -16,37 +15,31 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.CreateFamily;
 public sealed class CreateFamilyCommandHandler(
     IFamilyRepository familyRepository,
     IUserRepository userRepository,
-    IFamilyMemberRepository familyMemberRepository)
+    IFamilyMemberRepository familyMemberRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateFamilyCommand, CreateFamilyResult>
 {
     public async ValueTask<CreateFamilyResult> Handle(
         CreateFamilyCommand command,
         CancellationToken cancellationToken)
     {
-        // Validate: user shouldn't already own a family
-        var existingFamily = await familyRepository.GetByOwnerIdAsync(command.OwnerId, cancellationToken);
-        if (existingFamily is not null)
-        {
-            throw new DomainException("User already owns a family", DomainErrorCodes.UserAlreadyOwnsFamily);
-        }
-
-        // Get the user to link them to the new family
-        var user = await userRepository.GetByIdAsync(command.OwnerId, cancellationToken)
-            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
+        // Get the user to link them to the new family (validator guarantees existence)
+        var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
         // Create family aggregate (raises FamilyCreatedEvent)
-        var family = FamilyEntity.Create(command.Name, command.OwnerId);
+        var utcNow = timeProvider.GetUtcNow();
+        var family = FamilyEntity.Create(command.Name, command.UserId, utcNow);
 
         // Add family to repository
         await familyRepository.AddAsync(family, cancellationToken);
 
         // Create FamilyMember record with Owner role
-        var ownerMember = FamilyMember.Create(family.Id, command.OwnerId, FamilyRole.Owner);
+        var ownerMember = FamilyMember.Create(family.Id, command.UserId, FamilyRole.Owner, utcNow);
         await familyMemberRepository.AddAsync(ownerMember, cancellationToken);
 
         // Assign user to family (raises UserFamilyAssignedEvent)
-        user.AssignToFamily(family.Id);
+        user.AssignToFamily(family.Id, utcNow);
 
-        return new CreateFamilyResult(family.Id);
+        return new CreateFamilyResult(family.Id, family);
     }
 }

@@ -1,4 +1,4 @@
-import { Component, inject, output, signal, OnInit } from '@angular/core';
+import { Component, inject, output, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TagService } from '../../services/tag.service';
@@ -19,6 +19,7 @@ const DEFAULT_COLORS = [
 @Component({
   selector: 'app-tag-manager-dialog',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, TagChipComponent],
   template: `
     <div

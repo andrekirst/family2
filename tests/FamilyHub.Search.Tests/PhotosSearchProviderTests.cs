@@ -1,9 +1,10 @@
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.Photos.Application.Search;
+using FamilyHub.Api.Features.Photos.Domain.Repositories;
 using FamilyHub.Api.Features.Photos.Models;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Search.Tests;
 
@@ -20,7 +21,7 @@ public class PhotosSearchProviderTests
             CreatePhoto("vacation-beach.jpg", null),
             CreatePhoto("birthday-cake.jpg", null)
         };
-        var repo = new FakePhotoRepository(photos);
+        var repo = CreateRepo(photos);
         var provider = new PhotosSearchProvider(repo);
         var context = new SearchContext(TestUserId, TestFamilyId, "vacation");
 
@@ -37,7 +38,7 @@ public class PhotosSearchProviderTests
         {
             CreatePhoto("IMG_001.jpg", "Beautiful sunset at the beach")
         };
-        var repo = new FakePhotoRepository(photos);
+        var repo = CreateRepo(photos);
         var provider = new PhotosSearchProvider(repo);
         var context = new SearchContext(TestUserId, TestFamilyId, "sunset");
 
@@ -51,7 +52,7 @@ public class PhotosSearchProviderTests
     public async Task SearchAsync_EmptyQuery_ReturnsEmpty()
     {
         var photos = new List<PhotoDto> { CreatePhoto("test.jpg", null) };
-        var repo = new FakePhotoRepository(photos);
+        var repo = CreateRepo(photos);
         var provider = new PhotosSearchProvider(repo);
         var context = new SearchContext(TestUserId, TestFamilyId, "");
 
@@ -63,10 +64,18 @@ public class PhotosSearchProviderTests
     [Fact]
     public void ModuleName_ShouldBePhotos()
     {
-        var repo = new FakePhotoRepository();
+        var repo = Substitute.For<IPhotoRepository>();
         var provider = new PhotosSearchProvider(repo);
 
         provider.ModuleName.Should().Be("photos");
+    }
+
+    private static IPhotoRepository CreateRepo(List<PhotoDto> photos)
+    {
+        var repo = Substitute.For<IPhotoRepository>();
+        repo.GetByFamilyAsync(TestFamilyId, 0, 100, Arg.Any<CancellationToken>())
+            .Returns(photos);
+        return repo;
     }
 
     private static PhotoDto CreatePhoto(string fileName, string? caption) =>

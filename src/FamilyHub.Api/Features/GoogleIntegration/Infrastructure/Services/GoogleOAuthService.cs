@@ -49,7 +49,7 @@ public sealed class GoogleOAuthService : IGoogleOAuthService
     }
 
     public async Task<GoogleTokenResponse> ExchangeCodeForTokensAsync(
-        string code, string codeVerifier, CancellationToken ct = default)
+        string code, string codeVerifier, CancellationToken cancellationToken = default)
     {
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -61,15 +61,15 @@ public sealed class GoogleOAuthService : IGoogleOAuthService
             ["code_verifier"] = codeVerifier
         });
 
-        var response = await _httpClient.PostAsync(TokenEndpoint, content, ct);
+        var response = await _httpClient.PostAsync(TokenEndpoint, content, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<GoogleTokenResponse>(ct)
+        return await response.Content.ReadFromJsonAsync<GoogleTokenResponse>(cancellationToken)
             ?? throw new InvalidOperationException("Failed to deserialize Google token response");
     }
 
     public async Task<GoogleTokenResponse> RefreshAccessTokenAsync(
-        string refreshToken, CancellationToken ct = default)
+        string refreshToken, CancellationToken cancellationToken = default)
     {
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -79,14 +79,14 @@ public sealed class GoogleOAuthService : IGoogleOAuthService
             ["grant_type"] = "refresh_token"
         });
 
-        var response = await _httpClient.PostAsync(TokenEndpoint, content, ct);
+        var response = await _httpClient.PostAsync(TokenEndpoint, content, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<GoogleTokenResponse>(ct)
+        return await response.Content.ReadFromJsonAsync<GoogleTokenResponse>(cancellationToken)
             ?? throw new InvalidOperationException("Failed to deserialize Google token response");
     }
 
-    public async Task RevokeTokenAsync(string token, CancellationToken ct = default)
+    public async Task RevokeTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -94,18 +94,18 @@ public sealed class GoogleOAuthService : IGoogleOAuthService
         });
 
         // Google revocation endpoint returns 200 even if token is already revoked
-        await _httpClient.PostAsync(RevokeEndpoint, content, ct);
+        await _httpClient.PostAsync(RevokeEndpoint, content, cancellationToken);
     }
 
-    public async Task<GoogleUserInfo> GetUserInfoAsync(string accessToken, CancellationToken ct = default)
+    public async Task<GoogleUserInfo> GetUserInfoAsync(string accessToken, CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, UserInfoEndpoint);
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
-        var response = await _httpClient.SendAsync(request, ct);
+        var response = await _httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<GoogleUserInfo>(ct)
+        return await response.Content.ReadFromJsonAsync<GoogleUserInfo>(cancellationToken)
             ?? throw new InvalidOperationException("Failed to deserialize Google user info");
     }
 

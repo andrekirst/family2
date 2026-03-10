@@ -8,7 +8,8 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.SearchFiles;
 
 public sealed class SearchFilesQueryHandler(
     IFileSearchService fileSearchService,
-    IRecentSearchRepository recentSearchRepository)
+    IRecentSearchRepository recentSearchRepository,
+    TimeProvider timeProvider)
     : IQueryHandler<SearchFilesQuery, List<FileSearchResultDto>>
 {
     public async ValueTask<List<FileSearchResultDto>> Handle(
@@ -16,7 +17,7 @@ public sealed class SearchFilesQueryHandler(
         CancellationToken cancellationToken)
     {
         // Record the search query for recent searches
-        var recentSearch = RecentSearch.Create(query.UserId, query.Query);
+        var recentSearch = RecentSearch.Create(query.UserId, query.Query, timeProvider.GetUtcNow());
         await recentSearchRepository.AddAsync(recentSearch, cancellationToken);
         await recentSearchRepository.RemoveOldestAsync(query.UserId, 10, cancellationToken);
 

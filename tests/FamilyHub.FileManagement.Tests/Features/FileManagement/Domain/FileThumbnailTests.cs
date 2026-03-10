@@ -14,7 +14,7 @@ public class FileThumbnailTests
         var fileId = FileId.New();
         var storageKey = StorageKey.From("thumbnails/abc/200x200.webp");
 
-        var thumbnail = FileThumbnail.Create(fileId, 200, 200, storageKey);
+        var thumbnail = FileThumbnail.Create(fileId, 200, 200, storageKey, DateTimeOffset.UtcNow);
 
         thumbnail.FileId.Should().Be(fileId);
         thumbnail.Width.Should().Be(200);
@@ -29,7 +29,7 @@ public class FileThumbnailTests
         var fileId = FileId.New();
         var storageKey = StorageKey.From("thumbnails/abc/800x800.webp");
 
-        var thumbnail = FileThumbnail.Create(fileId, 800, 800, storageKey);
+        var thumbnail = FileThumbnail.Create(fileId, 800, 800, storageKey, DateTimeOffset.UtcNow);
 
         var domainEvent = thumbnail.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<ThumbnailGeneratedEvent>().Subject;
@@ -45,8 +45,8 @@ public class FileThumbnailTests
         var fileId = FileId.New();
         var storageKey = StorageKey.From("thumbnails/abc/200x200.webp");
 
-        var thumb1 = FileThumbnail.Create(fileId, 200, 200, storageKey);
-        var thumb2 = FileThumbnail.Create(fileId, 800, 800, storageKey);
+        var thumb1 = FileThumbnail.Create(fileId, 200, 200, storageKey, DateTimeOffset.UtcNow);
+        var thumb2 = FileThumbnail.Create(fileId, 800, 800, storageKey, DateTimeOffset.UtcNow);
 
         thumb1.Id.Should().NotBe(thumb2.Id);
     }

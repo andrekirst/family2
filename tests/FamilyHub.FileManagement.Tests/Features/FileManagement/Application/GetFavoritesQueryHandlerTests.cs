@@ -1,20 +1,22 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetFavorites;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class GetFavoritesQueryHandlerTests
 {
-    private static (GetFavoritesQueryHandler handler, FakeUserFavoriteRepository favRepo, FakeStoredFileRepository fileRepo) CreateHandler()
+    private readonly IUserFavoriteRepository _favRepo = Substitute.For<IUserFavoriteRepository>();
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly GetFavoritesQueryHandler _handler;
+
+    public GetFavoritesQueryHandlerTests()
     {
-        var favRepo = new FakeUserFavoriteRepository();
-        var fileRepo = new FakeStoredFileRepository();
-        var handler = new GetFavoritesQueryHandler(favRepo, fileRepo);
-        return (handler, favRepo, fileRepo);
+        _handler = new GetFavoritesQueryHandler(_favRepo, _fileRepo);
     }
 
     private static StoredFile CreateTestFile(FamilyId familyId, string name = "photo.jpg")
@@ -27,7 +29,7 @@ public class GetFavoritesQueryHandlerTests
             Checksum.From("a".PadRight(64, 'a')),
             FolderId.New(),
             familyId,
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -35,18 +37,27 @@ public class GetFavoritesQueryHandlerTests
     {
         var userId = UserId.New();
         var familyId = FamilyId.New();
-        var (handler, favRepo, fileRepo) = CreateHandler();
 
         var file1 = CreateTestFile(familyId, "fav1.jpg");
         var file2 = CreateTestFile(familyId, "fav2.jpg");
-        fileRepo.Files.Add(file1);
-        fileRepo.Files.Add(file2);
 
-        favRepo.Favorites.Add(UserFavorite.Create(userId, file1.Id));
-        favRepo.Favorites.Add(UserFavorite.Create(userId, file2.Id));
+        var favs = new List<UserFavorite>
+        {
+            UserFavorite.Create(userId, file1.Id, DateTimeOffset.UtcNow),
+            UserFavorite.Create(userId, file2.Id, DateTimeOffset.UtcNow)
+        };
+        _favRepo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(favs);
+        _fileRepo.GetByIdsAsync(
+            Arg.Is<List<FileId>>(ids => ids.Count == 2),
+            Arg.Any<CancellationToken>())
+            .Returns(new List<StoredFile> { file1, file2 });
 
-        var query = new GetFavoritesQuery(userId);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetFavoritesQuery()
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
     }
@@ -54,10 +65,16 @@ public class GetFavoritesQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnEmptyWhenNoFavorites()
     {
-        var (handler, _, _) = CreateHandler();
+        var userId = UserId.New();
+        _favRepo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(new List<UserFavorite>());
 
-        var query = new GetFavoritesQuery(UserId.New());
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetFavoritesQuery()
+        {
+            UserId = userId,
+            FamilyId = FamilyId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
     }
@@ -66,20 +83,23 @@ public class GetFavoritesQueryHandlerTests
     public async Task Handle_ShouldOnlyReturnCurrentUserFavorites()
     {
         var userId = UserId.New();
-        var otherUserId = UserId.New();
         var familyId = FamilyId.New();
-        var (handler, favRepo, fileRepo) = CreateHandler();
 
         var myFile = CreateTestFile(familyId, "my-fav.jpg");
-        var otherFile = CreateTestFile(familyId, "other-fav.jpg");
-        fileRepo.Files.Add(myFile);
-        fileRepo.Files.Add(otherFile);
 
-        favRepo.Favorites.Add(UserFavorite.Create(userId, myFile.Id));
-        favRepo.Favorites.Add(UserFavorite.Create(otherUserId, otherFile.Id));
+        var favs = new List<UserFavorite> { UserFavorite.Create(userId, myFile.Id, DateTimeOffset.UtcNow) };
+        _favRepo.GetByUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(favs);
+        _fileRepo.GetByIdsAsync(
+            Arg.Any<List<FileId>>(),
+            Arg.Any<CancellationToken>())
+            .Returns(new List<StoredFile> { myFile });
 
-        var query = new GetFavoritesQuery(userId);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetFavoritesQuery()
+        {
+            UserId = userId,
+            FamilyId = familyId
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);
         result.First().Name.Should().Be("my-fav.jpg");

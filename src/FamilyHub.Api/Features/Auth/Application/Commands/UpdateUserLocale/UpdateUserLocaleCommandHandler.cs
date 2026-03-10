@@ -1,25 +1,30 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
+using FamilyHub.Api.Common.Middleware;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateUserLocale;
 
 /// <summary>
 /// Handler for UpdateUserLocaleCommand.
-/// Looks up the user by external ID and updates their preferred locale.
+/// Looks up the user by ID and updates their preferred locale.
+/// Invalidates the locale cache so the middleware picks up the new value.
 /// </summary>
 public sealed class UpdateUserLocaleCommandHandler(
-    IUserRepository userRepository)
+    IUserRepository userRepository,
+    IMemoryCache memoryCache,
+    TimeProvider timeProvider)
     : ICommandHandler<UpdateUserLocaleCommand, UpdateUserLocaleResult>
 {
     public async ValueTask<UpdateUserLocaleResult> Handle(
         UpdateUserLocaleCommand command,
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByExternalIdAsync(command.ExternalUserId, cancellationToken)
-            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
+        var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
-        user.UpdateLocale(command.Locale);
+        user.UpdateLocale(command.Locale, timeProvider.GetUtcNow());
+
+        memoryCache.Remove($"{RequestLocaleResolutionMiddleware.CacheKeyPrefix}{user.ExternalUserId.Value}");
 
         return new UpdateUserLocaleResult(true);
     }

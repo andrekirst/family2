@@ -7,4 +7,4 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.DeclineInvitation;
 /// </summary>
 public sealed record DeclineInvitationCommand(
     string Token
-) : ICommand<bool>;
+) : ICommand<bool>, IAnonymousOperation;

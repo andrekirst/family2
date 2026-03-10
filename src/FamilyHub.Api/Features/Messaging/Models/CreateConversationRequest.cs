@@ -1,3 +1,5 @@
+using FamilyHub.Api.Features.Messaging.Domain.ValueObjects;
+
 namespace FamilyHub.Api.Features.Messaging.Models;
 
 /// <summary>
@@ -6,6 +8,6 @@ namespace FamilyHub.Api.Features.Messaging.Models;
 public class CreateConversationRequest
 {
     public string Name { get; set; } = string.Empty;
-    public string Type { get; set; } = "Group";
+    public ConversationType Type { get; set; } = ConversationType.Group;
     public List<Guid> MemberIds { get; set; } = [];
 }

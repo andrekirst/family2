@@ -8,6 +8,6 @@ namespace FamilyHub.Api.Common.Infrastructure.Messaging;
 /// </summary>
 public sealed class MediatorCommandBus(Mediator.IMediator mediator) : ICommandBus
 {
-    public ValueTask<TResult> SendAsync<TResult>(ICommand<TResult> command, CancellationToken ct = default)
-        => mediator.Send(command, ct);
+    public ValueTask<TResult> SendAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
+        => mediator.Send(command, cancellationToken);
 }

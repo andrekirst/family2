@@ -5,6 +5,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RestoreFile
 
 public sealed record RestoreFileVersionCommand(
     FileVersionId VersionId,
-    FileId FileId,
-    UserId RestoredBy
-) : ICommand<RestoreFileVersionResult>;
+    FileId FileId
+) : ICommand<Result<RestoreFileVersionResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

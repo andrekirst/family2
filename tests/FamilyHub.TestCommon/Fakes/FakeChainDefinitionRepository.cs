@@ -10,16 +10,21 @@ public class FakeChainDefinitionRepository(List<ChainDefinition>? existingDefini
     private readonly List<ChainDefinition> _definitions = existingDefinitions ?? [];
     public List<ChainDefinition> AddedDefinitions { get; } = [];
 
-    public Task<ChainDefinition?> GetByIdAsync(ChainDefinitionId id, CancellationToken ct = default) =>
-        Task.FromResult(_definitions.Concat(AddedDefinitions).FirstOrDefault(d => d.Id == id));
+    private IEnumerable<ChainDefinition> All => All;
 
-    public Task<ChainDefinition?> GetByIdWithStepsAsync(ChainDefinitionId id, CancellationToken ct = default) =>
-        GetByIdAsync(id, ct);
+    public Task<ChainDefinition?> GetByIdAsync(ChainDefinitionId id, CancellationToken cancellationToken = default) =>
+        Task.FromResult(All.FirstOrDefault(d => d.Id == id));
+
+    public Task<bool> ExistsByIdAsync(ChainDefinitionId id, CancellationToken cancellationToken = default) =>
+        Task.FromResult(All.Any(d => d.Id == id));
+
+    public Task<ChainDefinition?> GetByIdWithStepsAsync(ChainDefinitionId id, CancellationToken cancellationToken = default) =>
+        GetByIdAsync(id, cancellationToken);
 
     public Task<IReadOnlyList<ChainDefinition>> GetByFamilyIdAsync(
-        FamilyId familyId, bool? isEnabled = null, CancellationToken ct = default)
+        FamilyId familyId, bool? isEnabled = null, CancellationToken cancellationToken = default)
     {
-        var query = _definitions.Concat(AddedDefinitions)
+        var query = All
             .Where(d => d.FamilyId == familyId);
 
         if (isEnabled.HasValue)
@@ -29,28 +34,25 @@ public class FakeChainDefinitionRepository(List<ChainDefinition>? existingDefini
     }
 
     public Task<IReadOnlyList<ChainDefinition>> GetEnabledByTriggerEventTypeAsync(
-        string triggerEventType, CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<ChainDefinition>>(_definitions.Concat(AddedDefinitions)
+        string triggerEventType, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ChainDefinition>>(All
             .Where(d => d.IsEnabled && d.TriggerEventType == triggerEventType)
             .ToList().AsReadOnly());
 
-    public Task<IReadOnlyList<ChainDefinition>> GetTemplatesAsync(CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<ChainDefinition>>(_definitions.Concat(AddedDefinitions)
+    public Task<IReadOnlyList<ChainDefinition>> GetTemplatesAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<ChainDefinition>>(All
             .Where(d => d.IsTemplate)
             .ToList().AsReadOnly());
 
-    public Task AddAsync(ChainDefinition definition, CancellationToken ct = default)
+    public Task AddAsync(ChainDefinition definition, CancellationToken cancellationToken = default)
     {
         AddedDefinitions.Add(definition);
         return Task.CompletedTask;
     }
 
-    public Task UpdateAsync(ChainDefinition definition, CancellationToken ct = default) =>
+    public Task UpdateAsync(ChainDefinition definition, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
 
-    public Task DeleteAsync(ChainDefinition definition, CancellationToken ct = default) =>
+    public Task DeleteAsync(ChainDefinition definition, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

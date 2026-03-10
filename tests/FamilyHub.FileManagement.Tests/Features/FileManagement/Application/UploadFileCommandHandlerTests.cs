@@ -1,35 +1,36 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.UploadFile;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class UploadFileCommandHandlerTests
 {
-    private static (UploadFileCommandHandler handler, FakeStoredFileRepository fileRepo, FakeFolderRepository folderRepo) CreateHandler()
+    private readonly IStoredFileRepository _fileRepo = Substitute.For<IStoredFileRepository>();
+    private readonly IFolderRepository _folderRepo = Substitute.For<IFolderRepository>();
+    private readonly UploadFileCommandHandler _handler;
+
+    public UploadFileCommandHandlerTests()
     {
-        var fileRepo = new FakeStoredFileRepository();
-        var folderRepo = new FakeFolderRepository();
-        var handler = new UploadFileCommandHandler(fileRepo, folderRepo);
-        return (handler, fileRepo, folderRepo);
+        _handler = new UploadFileCommandHandler(_fileRepo, _folderRepo, TimeProvider.System);
     }
 
     private static Folder CreateTestFolder(FamilyId familyId)
     {
-        return Folder.CreateRoot(familyId, UserId.New());
+        return Folder.CreateRoot(familyId, UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
     public async Task Handle_ShouldCreateFileAndReturnResult()
     {
         var familyId = FamilyId.New();
-        var (handler, fileRepo, folderRepo) = CreateHandler();
         var folder = CreateTestFolder(familyId);
-        folderRepo.Folders.Add(folder);
+        _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var command = new UploadFileCommand(
             FileName.From("test.pdf"),
@@ -37,21 +38,24 @@ public class UploadFileCommandHandlerTests
             FileSize.From(1024),
             StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            folder.Id,
-            familyId,
-            UserId.New());
+            folder.Id)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Should().NotBeNull();
-        result.FileId.Value.Should().NotBe(Guid.Empty);
-        fileRepo.Files.Should().HaveCount(1);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.FileId.Value.Should().NotBe(Guid.Empty);
+        await _fileRepo.Received(1).AddAsync(Arg.Any<StoredFile>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFolderNotFound()
     {
-        var (handler, _, _) = CreateHandler();
+        _folderRepo.GetByIdAsync(FolderId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((Folder?)null);
 
         var command = new UploadFileCommand(
             FileName.From("test.pdf"),
@@ -59,22 +63,23 @@ public class UploadFileCommandHandlerTests
             FileSize.From(1024),
             StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            FolderId.New(),
-            FamilyId.New(),
-            UserId.New());
+            FolderId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.NotFound);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFolderBelongsToDifferentFamily()
     {
-        var (handler, _, folderRepo) = CreateHandler();
         var folder = CreateTestFolder(FamilyId.New());
-        folderRepo.Folders.Add(folder);
+        _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var command = new UploadFileCommand(
             FileName.From("test.pdf"),
@@ -82,13 +87,16 @@ public class UploadFileCommandHandlerTests
             FileSize.From(1024),
             StorageKey.New(),
             Checksum.From("a".PadRight(64, 'a')),
-            folder.Id,
-            FamilyId.New(), // different family
-            UserId.New());
+            folder.Id)
+        {
+            FamilyId = FamilyId.New(),
+            UserId =
+            UserId.New()
+        };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

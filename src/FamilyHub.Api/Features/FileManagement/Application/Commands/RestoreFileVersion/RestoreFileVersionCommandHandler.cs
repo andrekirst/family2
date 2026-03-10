@@ -7,29 +7,35 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RestoreFile
 
 public sealed class RestoreFileVersionCommandHandler(
     IFileVersionRepository versionRepository,
-    IStoredFileRepository fileRepository)
-    : ICommandHandler<RestoreFileVersionCommand, RestoreFileVersionResult>
+    IStoredFileRepository fileRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<RestoreFileVersionCommand, Result<RestoreFileVersionResult>>
 {
-    public async ValueTask<RestoreFileVersionResult> Handle(
+    public async ValueTask<Result<RestoreFileVersionResult>> Handle(
         RestoreFileVersionCommand command,
         CancellationToken cancellationToken)
     {
-        var file = await fileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
+        var utcNow = timeProvider.GetUtcNow();
+        var file = await fileRepository.GetByIdAsync(command.FileId, cancellationToken);
+        if (file is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found");
+        }
 
-        var sourceVersion = await versionRepository.GetByIdAsync(command.VersionId, cancellationToken)
-            ?? throw new DomainException("Version not found", DomainErrorCodes.FileVersionNotFound);
+        var sourceVersion = await versionRepository.GetByIdAsync(command.VersionId, cancellationToken);
+        if (sourceVersion is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FileVersionNotFound, "Version not found");
+        }
 
         if (sourceVersion.FileId != command.FileId)
         {
-            throw new DomainException("Version does not belong to this file", DomainErrorCodes.FileVersionNotFound);
+            return DomainError.NotFound(DomainErrorCodes.FileVersionNotFound, "Version does not belong to this file");
         }
 
-        // Mark current version as not current
         var currentVersion = await versionRepository.GetCurrentVersionAsync(command.FileId, cancellationToken);
         currentVersion?.MarkAsNotCurrent();
 
-        // Create a new version from the restored version's data
         var maxVersion = await versionRepository.GetMaxVersionNumberAsync(command.FileId, cancellationToken);
 
         var newVersion = FileVersion.CreateFromRestore(
@@ -39,7 +45,8 @@ public sealed class RestoreFileVersionCommandHandler(
             sourceVersion.StorageKey,
             sourceVersion.FileSize,
             sourceVersion.Checksum,
-            command.RestoredBy);
+            command.UserId,
+            utcNow);
 
         await versionRepository.AddAsync(newVersion, cancellationToken);
 

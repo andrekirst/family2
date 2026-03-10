@@ -5,6 +5,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RemoveFileF
 
 public sealed record RemoveFileFromAlbumCommand(
     AlbumId AlbumId,
-    FileId FileId,
-    FamilyId FamilyId
-) : ICommand<RemoveFileFromAlbumResult>;
+    FileId FileId
+) : ICommand<Result<RemoveFileFromAlbumResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

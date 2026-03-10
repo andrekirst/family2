@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, inject, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ICONS } from '../../../../../shared/icons/icons';
@@ -20,6 +20,7 @@ export interface FavoriteToggleEvent {
 @Component({
   selector: 'app-file-grid-item',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <div

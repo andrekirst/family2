@@ -23,6 +23,7 @@
 9. [Security & Privacy](#security--privacy)
 10. [Developer Experience](#developer-experience)
 11. [Anti-Patterns to Avoid](#anti-patterns-to-avoid)
+12. [Pipeline & Validator Conventions](#pipeline--validator-conventions)
 
 ---
 
@@ -2922,6 +2923,98 @@ public class Family
 
 ---
 
+## Pipeline & Validator Conventions
+
+### Comment Hygiene
+
+Do not add "moved to X" or "see X" comments when restructuring code. Dead references create confusion. Use `[SecurityCheck]` attribute instead of `// Requires: Permission.X` comments.
+
+```csharp
+// ❌ DON'T
+// This was moved to Features/Calendar/Application/Commands/CreateCalendarEvent/
+// Requires: Permission.ManageFamily
+
+// ✅ DO: Use SecurityCheck attribute
+[SecurityCheck("ManageFamily")]
+public sealed class SendInvitationCommandHandler { }
+```
+
+### Validator Naming Convention
+
+All FluentValidation validators must follow this naming pattern:
+
+| Suffix | Interface | Localizer | Purpose |
+|--------|-----------|-----------|---------|
+| `*CommandValidator` | `IInputValidator<T>` | `IStringLocalizer<ValidationMessages>` | Syntactic input validation |
+| `*BusinessValidator` | `IBusinessValidator<T>` | `IStringLocalizer<DomainErrors>` | Domain invariant checks |
+| `*AuthValidator` | `IAuthValidator<T>` | `IStringLocalizer<DomainErrors>` | Authorization validation |
+
+Architecture test `ValidatorNamingTests` enforces this at build time.
+
+### Family Scope Declaration
+
+All commands and queries must declare their family membership intent:
+
+```csharp
+// Option 1: Family-scoped (has FamilyId, enforces membership)
+public sealed record CreateCalendarEventCommand(
+    FamilyId FamilyId, ...
+) : ICommand<Result>, IFamilyScoped;
+
+// Option 2: Ignores family membership (auth-only operations)
+public sealed record RegisterUserCommand(...)
+    : ICommand<Result>, IIgnoreFamilyMembership;
+
+// Option 3: Fallback (user must belong to ANY family)
+// Add to AllowedFallbackTypes in FamilyScopeTests
+```
+
+Architecture test `FamilyScopeTests` enforces this at build time.
+
+### No Try-Catch in Command Handlers
+
+Handlers must not contain try-catch blocks. Exceptions propagate to pipeline behaviors (`ValidationBehavior`, `TransactionBehavior`) or middleware (`IExceptionHandler`).
+
+```csharp
+// ❌ DON'T
+public async ValueTask<Result> Handle(Command command, CancellationToken ct)
+{
+    try { /* ... */ }
+    catch (Exception ex) { /* ... */ }
+}
+
+// ✅ DO: Let pipeline behaviors handle errors
+public async ValueTask<Result> Handle(Command command, CancellationToken ct)
+{
+    var entity = (await repository.GetByIdAsync(command.Id, ct))!;
+    entity.DoSomething();
+    return new Result(true);
+}
+```
+
+Business rule checks belong in `*BusinessValidator`, not in handlers.
+
+### Handler Folder Structure
+
+All handlers must reside in the correct namespace:
+
+- Command handlers: `Features/{Module}/Application/Commands/{Name}/`
+- Query handlers: `Features/{Module}/Application/Queries/{Name}/` (or `Queries/`)
+
+Architecture test `HandlerFolderStructureTests` enforces this at build time.
+
+### Scaffolding New Commands
+
+Use the `dotnet new` template to generate command boilerplate:
+
+```bash
+dotnet new install tools/templates/command/
+dotnet new fh-command --name CreateCalendarEvent --moduleName Calendar \
+    --needsBusinessValidator true --needsAuthValidator false
+```
+
+---
+
 ## When to Deviate
 
 **These standards are guidelines, not laws.** Deviate when:
@@ -2995,6 +3088,13 @@ public class Family
 
 ## Version History
 
+- **v2.0.0** (2026-03-07): Added pipeline and validator conventions
+  - Comment hygiene: no "moved to" comments, use `[SecurityCheck]` attribute
+  - Validator naming: `*CommandValidator`, `*BusinessValidator`, `*AuthValidator`
+  - Family scope declaration: `IFamilyScoped` / `IIgnoreFamilyMembership`
+  - No try-catch in handlers: business rules in validators
+  - Handler folder structure enforcement via architecture tests
+  - Scaffolding tool: `dotnet new fh-command` template
 - **v1.0.0** (2026-01-07): Initial comprehensive coding standards
   - Based on interview results and codebase analysis
   - Covers C#, TypeScript, DDD, GraphQL, Testing, Security
@@ -3002,7 +3102,7 @@ public class Family
 
 ---
 
-**Last Updated:** 2026-01-07
+**Last Updated:** 2026-03-07
 **Status:** Living Document - Updated as patterns evolve
 **Maintainer:** Development Team + Claude Code
 

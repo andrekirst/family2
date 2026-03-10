@@ -6,21 +6,23 @@ using FamilyHub.Common.Domain;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ConnectExternalStorage;
 
 public sealed class ConnectExternalStorageCommandHandler(
-    IExternalConnectionRepository connectionRepository)
-    : ICommandHandler<ConnectExternalStorageCommand, ConnectExternalStorageResult>
+    IExternalConnectionRepository connectionRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<ConnectExternalStorageCommand, Result<ConnectExternalStorageResult>>
 {
-    public async ValueTask<ConnectExternalStorageResult> Handle(
+    public async ValueTask<Result<ConnectExternalStorageResult>> Handle(
         ConnectExternalStorageCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var existing = await connectionRepository.GetByFamilyAndProviderAsync(
             command.FamilyId, command.ProviderType, cancellationToken);
 
         if (existing is not null)
         {
-            throw new DomainException(
-                "Connection to this provider already exists",
-                DomainErrorCodes.ExternalConnectionAlreadyExists);
+            return DomainError.Conflict(
+                DomainErrorCodes.ExternalConnectionAlreadyExists,
+                "Connection to this provider already exists");
         }
 
         var connection = ExternalConnection.Create(
@@ -30,7 +32,8 @@ public sealed class ConnectExternalStorageCommandHandler(
             command.EncryptedAccessToken,
             command.EncryptedRefreshToken,
             command.TokenExpiresAt,
-            command.ConnectedBy);
+            command.UserId,
+            utcNow);
 
         await connectionRepository.AddAsync(connection, cancellationToken);
 

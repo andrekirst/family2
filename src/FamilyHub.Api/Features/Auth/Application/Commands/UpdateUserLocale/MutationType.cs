@@ -1,8 +1,5 @@
-using System.Security.Claims;
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Common.Domain.ValueObjects;
 using HotChocolate.Authorization;
 
 namespace FamilyHub.Api.Features.Auth.Application.Commands.UpdateUserLocale;
@@ -22,16 +19,10 @@ public class MutationType
     [Authorize]
     public async Task<bool> UpdateMyLocale(
         UpdateUserLocaleRequest input,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
-            ?? throw new UnauthorizedAccessException("Invalid token: missing sub claim");
-
-        var command = new UpdateUserLocaleCommand(
-            ExternalUserId.From(externalUserIdString),
-            input.Locale);
+        var command = new UpdateUserLocaleCommand(input.Locale);
 
         var result = await commandBus.SendAsync(command, cancellationToken);
         return result.Success;

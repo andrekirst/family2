@@ -10,18 +10,21 @@ public sealed class PreviewRuleMatchQueryHandler(
     IStoredFileRepository fileRepository,
     IOrganizationRuleRepository ruleRepository,
     IOrganizationRuleEngine ruleEngine)
-    : IQueryHandler<PreviewRuleMatchQuery, RuleMatchPreviewDto?>
+    : IQueryHandler<PreviewRuleMatchQuery, Result<RuleMatchPreviewDto?>>
 {
-    public async ValueTask<RuleMatchPreviewDto?> Handle(
+    public async ValueTask<Result<RuleMatchPreviewDto?>> Handle(
         PreviewRuleMatchQuery query,
         CancellationToken cancellationToken)
     {
-        var file = await fileRepository.GetByIdAsync(query.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
+        var file = await fileRepository.GetByIdAsync(query.FileId, cancellationToken);
+        if (file is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found");
+        }
 
         if (file.FamilyId != query.FamilyId)
         {
-            throw new DomainException("File does not belong to this family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "File does not belong to this family");
         }
 
         var rules = await ruleRepository.GetEnabledByFamilyIdAsync(query.FamilyId, cancellationToken);

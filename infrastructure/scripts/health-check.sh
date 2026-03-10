@@ -5,11 +5,12 @@
 #   health-check.sh shared                  Check shared services (Traefik, Keycloak, MailHog)
 #   health-check.sh env <ENV_NAME>          Check per-environment services (API, Frontend)
 #   health-check.sh all <ENV_NAME>          Check everything
+#   health-check.sh simple                  Check simple mode services (all on localhost:4443)
 #
 # Exit code 0 = all healthy, 1 = at least one service unhealthy
 set -euo pipefail
 
-MODE="${1:?Usage: health-check.sh <shared|env|all> [ENV_NAME]}"
+MODE="${1:?Usage: health-check.sh <shared|env|all|simple> [ENV_NAME]}"
 ENV_NAME="${2:-}"
 
 RED='\033[0;31m'
@@ -71,7 +72,7 @@ check_container() {
 }
 
 # ---------------------------------------------------------------------------
-# Shared services health check
+# Shared services health check (multi-env mode)
 # ---------------------------------------------------------------------------
 check_shared() {
   echo ""
@@ -87,7 +88,7 @@ check_shared() {
 }
 
 # ---------------------------------------------------------------------------
-# Per-environment health check
+# Per-environment health check (multi-env mode)
 # ---------------------------------------------------------------------------
 check_env() {
   local env_name="$1"
@@ -122,6 +123,27 @@ check_env() {
 }
 
 # ---------------------------------------------------------------------------
+# Simple mode health check (all on localhost:4443)
+# ---------------------------------------------------------------------------
+check_simple() {
+  echo ""
+  echo -e "  ${BOLD}Simple Mode (localhost:4443)${NC}"
+  echo "  ──────────────────────────────────────────"
+  check_url "Traefik Dashboard" "http://localhost:8888/api/overview"
+  check_url "Frontend" "https://localhost:4443/"
+  check_url "API /health" "https://localhost:4443/health"
+  check_url "API /graphql" "https://localhost:4443/graphql"
+  check_url "Config Endpoint" "https://localhost:4443/config"
+  check_url "Keycloak" "https://localhost:4443/auth/realms/FamilyHub-dev"
+  check_url "MailHog" "https://mail.localhost:4443"
+  check_url "pgAdmin" "https://pgadmin.localhost:4443"
+  check_url "MinIO" "https://minio.localhost:4443"
+  check_url "npm Registry" "https://npm.localhost:4443"
+  check_url "NuGet Gallery" "https://nuget.localhost:4443"
+  echo ""
+}
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 echo ""
@@ -138,8 +160,11 @@ case "$MODE" in
     check_shared
     check_env "$ENV_NAME"
     ;;
+  simple)
+    check_simple
+    ;;
   *)
-    echo "  Usage: health-check.sh <shared|env|all> [ENV_NAME]"
+    echo "  Usage: health-check.sh <shared|env|all|simple> [ENV_NAME]"
     exit 1
     ;;
 esac

@@ -17,6 +17,11 @@ public sealed class MessageRepository(AppDbContext context) : IMessageRepository
         return await context.Messages.FindAsync([id], cancellationToken: cancellationToken);
     }
 
+    public async Task<bool> ExistsByIdAsync(MessageId id, CancellationToken cancellationToken = default)
+    {
+        return await context.Messages.AnyAsync(m => m.Id == id, cancellationToken);
+    }
+
     public async Task<List<Message>> GetByFamilyAsync(
         FamilyId familyId,
         int limit = 50,
@@ -60,10 +65,5 @@ public sealed class MessageRepository(AppDbContext context) : IMessageRepository
     public async Task AddAsync(Message message, CancellationToken cancellationToken = default)
     {
         await context.Messages.AddAsync(message, cancellationToken);
-    }
-
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.SaveChangesAsync(cancellationToken);
     }
 }

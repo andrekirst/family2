@@ -1,20 +1,22 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.RemovePermission;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class RemovePermissionCommandHandlerTests
 {
-    private static (RemovePermissionCommandHandler handler, FakeFilePermissionRepository permRepo) CreateHandler()
+    private readonly IFilePermissionRepository _permRepo = Substitute.For<IFilePermissionRepository>();
+    private readonly RemovePermissionCommandHandler _handler;
+
+    public RemovePermissionCommandHandlerTests()
     {
-        var permRepo = new FakeFilePermissionRepository();
-        var handler = new RemovePermissionCommandHandler(permRepo);
-        return (handler, permRepo);
+        _handler = new RemovePermissionCommandHandler(_permRepo);
     }
 
     [Fact]
@@ -23,40 +25,47 @@ public class RemovePermissionCommandHandlerTests
         var familyId = FamilyId.New();
         var memberId = UserId.New();
         var resourceId = Guid.NewGuid();
-        var (handler, permRepo) = CreateHandler();
 
         var permission = FilePermission.Create(
             PermissionResourceType.File, resourceId, memberId,
-            FilePermissionLevel.View, familyId, UserId.New());
-        permRepo.Permissions.Add(permission);
+            FilePermissionLevel.View, familyId, UserId.New(), DateTimeOffset.UtcNow);
+        _permRepo.GetByMemberAndResourceAsync(memberId, PermissionResourceType.File, resourceId, Arg.Any<CancellationToken>())
+            .Returns(permission);
 
         var command = new RemovePermissionCommand(
             PermissionResourceType.File,
             resourceId,
-            memberId,
-            familyId);
+            memberId)
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        permRepo.Permissions.Should().BeEmpty();
+        result.IsSuccess.Should().BeTrue();
+        await _permRepo.Received(1).RemoveAsync(permission, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenPermissionNotFound()
     {
-        var (handler, _) = CreateHandler();
+        _permRepo.GetByMemberAndResourceAsync(UserId.New(), Arg.Any<PermissionResourceType>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((FilePermission?)null);
 
         var command = new RemovePermissionCommand(
             PermissionResourceType.File,
             Guid.NewGuid(),
-            UserId.New(),
-            FamilyId.New());
+            UserId.New())
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.NotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.NotFound);
     }
 
     [Fact]
@@ -64,22 +73,25 @@ public class RemovePermissionCommandHandlerTests
     {
         var memberId = UserId.New();
         var resourceId = Guid.NewGuid();
-        var (handler, permRepo) = CreateHandler();
 
         var permission = FilePermission.Create(
             PermissionResourceType.File, resourceId, memberId,
-            FilePermissionLevel.View, FamilyId.New(), UserId.New());
-        permRepo.Permissions.Add(permission);
+            FilePermissionLevel.View, FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
+        _permRepo.GetByMemberAndResourceAsync(memberId, PermissionResourceType.File, resourceId, Arg.Any<CancellationToken>())
+            .Returns(permission);
 
         var command = new RemovePermissionCommand(
             PermissionResourceType.File,
             resourceId,
-            memberId,
-            FamilyId.New()); // Different family
+            memberId)
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        }; // Different family
 
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

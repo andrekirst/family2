@@ -1,27 +1,6 @@
-# Multi-Environment Development Infrastructure
+# FamilyHub Development Infrastructure
 
-Run multiple fully-isolated FamilyHub development stacks simultaneously, each accessible via unique `*.localhost` subdomains (or `*.dev.andrekirst.de` for Google OAuth compatibility). Shared services (Keycloak, MailHog, Infisical) run once; per-environment services (Postgres, API, Frontend, pgAdmin) are isolated per branch.
-
-## Architecture
-
-```
-Shared Layer (runs once)
-  docker-compose.traefik.yml     docker-compose.shared.yml
-  ─────────────────────────      ────────────────────────
-  Traefik (4000/4443/8888)       Keycloak (auth.localhost)     <- per-env realms
-  Hub Dashboard                  Keycloak Postgres
-  Verdaccio (npm proxy)          MailHog (mail.localhost)
-  BaGet (NuGet proxy)            Infisical (secrets.localhost)
-  Docker Registry Mirrors
-
-Per-Env: fh-feature-150          Per-Env: fh-main
-  docker-compose.env.yml           docker-compose.env.yml
-  ────────────────────             ────────────────────
-  Postgres (isolated)              Postgres (isolated)
-  API (dotnet watch)               API (dotnet watch)
-  Frontend (ng serve)              Frontend (ng serve)
-  pgAdmin                          pgAdmin
-```
+Two modes for local development: **Simple** (recommended) for everyday single-branch work, and **Multi-Environment** for parallel branch isolation.
 
 ## Prerequisites
 
@@ -33,25 +12,74 @@ Per-Env: fh-feature-150          Per-Env: fh-main
 | **jq** | `sudo apt install jq` or `brew install jq` |
 | **curl** | Usually pre-installed |
 
-## Quick Start
+## Quick Start (Simple Mode)
 
 ```bash
 # 1. One-time: generate TLS certificates
 task setup:certs
 
-# 2. Start shared services (Traefik + Keycloak + MailHog + proxies)
-task shared:up
+# 2. Set simple mode (persists across sessions)
+task mode:set -- simple
 
-# 3. Start environment for your current branch
+# 3. Start everything
 task up
 
 # 4. See all URLs
 task urls
 ```
 
-`task up` automatically starts shared services if they're not running.
+That's it. Everything runs on `https://localhost:4443`.
 
-## URL Convention
+## Mode Management
+
+```bash
+task mode:set -- simple     # Switch to simple mode
+task mode:set -- multi      # Switch to multi-environment mode
+task mode:status            # Show current mode
+task mode:reset             # Clear mode (will prompt on next 'task up')
+```
+
+You can also override mode per-command: `MODE=simple task up`
+
+First `task up` without a mode set will show an interactive prompt.
+
+## Simple Mode
+
+All services on a single hostname with path-based routing:
+
+| Service | URL |
+|---------|-----|
+| Frontend | `https://localhost:4443` |
+| API (GraphQL) | `https://localhost:4443/graphql` |
+| API Health | `https://localhost:4443/health` |
+| Config | `https://localhost:4443/config` |
+| Keycloak | `https://localhost:4443/auth` |
+| MailHog | `https://mail.localhost:4443` |
+| pgAdmin | `https://pgadmin.localhost:4443` |
+| MinIO | `https://minio.localhost:4443` |
+| npm Registry | `https://npm.localhost:4443` |
+| NuGet Gallery | `https://nuget.localhost:4443` |
+| Traefik Dashboard | `http://localhost:8888` |
+
+**Keycloak realm:** `FamilyHub-dev`
+
+**What's excluded in simple mode:** Infisical, Docker registry mirrors, Hub dashboard.
+
+### Daily Workflow (Simple)
+
+```bash
+task up                # Start all services
+task status            # Health check
+task simple:logs       # Follow all logs
+task simple:logs -- api  # Follow API logs only
+task simple:ps         # Show containers
+task down              # Stop (data persists)
+task destroy           # Full reset (removes volumes + realm)
+```
+
+## Multi-Environment Mode
+
+Each git branch gets a fully isolated stack with unique subdomains. Shared services (Keycloak, MailHog, Infisical) run once.
 
 | Service | URL |
 |---------|-----|
@@ -66,51 +94,78 @@ task urls
 
 Dual-domain: Replace `.localhost` with `.dev.andrekirst.de` for Google OAuth compatibility.
 
-## Environment Names
+### Environment Names
 
 Branch names are converted to Docker-safe environment names:
 
-- `main` -> `main`
-- `feature/150-file-management` -> `feature-150-file-management`
-- `fix/bug-42` -> `fix-bug-42`
+- `main` → `main`
+- `feature/150-file-management` → `feature-150-file-management`
+- `fix/bug-42` → `fix-bug-42`
+
+### Daily Workflow (Multi)
+
+```bash
+task up                # Provision realm + start env for current branch
+task status            # Health dashboard (shared + environment)
+task env:logs          # Follow logs
+task env:logs -- api   # API logs only
+task env:ps            # Show containers
+task down              # Stop (data persists)
+task env:destroy       # Full reset (removes volumes + realm)
+task list              # List all running environments
+```
+
+### Shared Services
+
+```bash
+task shared:up         # Start shared layer (auto-started by 'task up')
+task shared:down       # Stop shared layer
+task shared:status     # Health check shared services
+task shared:logs       # Follow shared logs
+```
+
+## Switching Modes
+
+When switching modes, destroy the old mode's containers first:
+
+```bash
+# From simple → multi
+task destroy           # Clean up simple mode
+task mode:set -- multi
+task up
+
+# From multi → simple
+task destroy           # Clean up multi mode
+task mode:set -- simple
+task up
+```
+
+Volumes are mode-isolated (`fh-simple-*` vs `fh-{env}-*`), so data doesn't cross over.
+
+## URL Reference (Side-by-Side)
+
+| Service | Simple Mode | Multi-Env Mode |
+|---------|------------|----------------|
+| Frontend | `localhost:4443` | `{env}.localhost:4443` |
+| API | `localhost:4443/graphql` | `api-{env}.localhost:4443/graphql` |
+| Keycloak | `localhost:4443/auth` | `auth.localhost:4443` |
+| MailHog | `mail.localhost:4443` | `mail.localhost:4443` |
+| pgAdmin | `pgadmin.localhost:4443` | `pgadmin-{env}.localhost:4443` |
+| MinIO | `minio.localhost:4443` | `minio-{env}.localhost:4443` |
+| Realm | `FamilyHub-dev` | `FamilyHub-{env}` |
 
 ## Keycloak Realm Provisioning
 
-Each environment gets its own Keycloak realm (`FamilyHub-{env}`) provisioned via the Admin REST API:
+Each environment gets a Keycloak realm provisioned via the Admin REST API:
 
 ```bash
 # Automatic (happens during `task up`)
-# Manual provisioning:
-bash infrastructure/keycloak/provision-realm.sh feature-150-file-management
+# Manual:
+bash infrastructure/keycloak/provision-realm.sh dev --mode simple
+bash infrastructure/keycloak/provision-realm.sh feature-150 --mode multi
 
-# Delete a realm:
-bash infrastructure/keycloak/provision-realm.sh feature-150-file-management --delete
-```
-
-## Daily Workflow
-
-```bash
-# Start your environment
-task up
-
-# View logs (all services or filtered)
-task env:logs
-task env:logs -- api
-
-# Health check
-task status
-
-# Show running containers
-task env:ps
-
-# Stop (data persists in Docker volumes)
-task down
-
-# Full reset (removes volumes + Keycloak realm)
-task env:destroy
-
-# List all running environments
-task list
+# Delete:
+bash infrastructure/keycloak/provision-realm.sh dev --mode simple --delete
 ```
 
 ## Test Users
@@ -123,71 +178,34 @@ task list
 Keycloak admin: `admin` / `admin`
 pgAdmin: `admin@familyhub.dev` / `admin`
 
-## Host-Based Development (no Docker)
+## Architecture
 
-The traditional workflow still works:
+```
+Simple Mode (one compose stack: fh-simple)
+  docker-compose.base.yml + docker-compose.simple.yml
+  ─────────────────────────────────────────────────────
+  Traefik → path-based routing on localhost:4443
+  Postgres, Keycloak (+ KC DB), API, Frontend
+  MailHog, pgAdmin, MinIO, Verdaccio, BaGet
 
-```bash
-docker compose up -d          # Start postgres, keycloak, mailhog
-dotnet run --project src/FamilyHub.Api
-cd src/frontend/family-hub-web && ng serve
+Multi-Env Mode (shared + per-env stacks)
+  docker-compose.base.yml + docker-compose.multi.yml
+  ─────────────────────────────────────────────────────
+  Shared: Traefik, Keycloak (+ KC DB), MailHog, Infisical
+          Verdaccio, BaGet, Docker Registry Mirrors, Hub
+  Per-env: Postgres, API, Frontend, pgAdmin, MinIO
 ```
 
-This uses `localhost` ports directly (5432, 8080, 5152, 4200).
+## Compose File Layout
 
-## Secrets Management (Infisical)
-
-Infisical is a self-hosted secrets vault that runs as **shared infrastructure** alongside Traefik and the package caching proxies. It starts once with `task traefik:up` and serves all branch environments. The .NET API fetches secrets at startup via a custom `IConfigurationProvider`.
-
-| Access | URL |
-|--------|-----|
-| Traefik TLS | `https://infisical.dev.andrekirst.de:4443` |
-| Direct (host) | `http://localhost:8180` |
-
-### First-Time Setup
-
-```bash
-# 1. Start shared infrastructure (Infisical starts automatically)
-task traefik:up
-
-# 2. Open Infisical UI and create an account
-open http://localhost:8180
-
-# 3. Create a project (e.g., "FamilyHub")
-
-# 4. Add secrets to the project (Environment: dev, Path: /):
-#    GoogleIntegration__OAuth__ClientId=<your-google-client-id>
-#    GoogleIntegration__OAuth__ClientSecret=<your-google-client-secret>
-#    GoogleIntegration__EncryptionKey=<generate-with-openssl-rand-hex-32>
-
-# 5. Create a Machine Identity (Settings -> Machine Identities)
-#    - Auth method: Universal Auth
-#    - Copy Client ID and Client Secret
-
-# 6. Add credentials to .env (copy from .env.example)
-cp .env.example .env
-# Fill in: INFISICAL_PROJECT_ID, INFISICAL_CLIENT_ID, INFISICAL_CLIENT_SECRET
-```
-
-### Host-Based Development
-
-For the single-dev workflow (`docker compose up -d` from the project root), Infisical runs inside the root `docker-compose.yml` at `localhost:8180`.
-
-```bash
-# Export Infisical env vars, then run the API
-source .env
-dotnet run --project src/FamilyHub.Api
-```
-
-The API reads `INFISICAL_CLIENT_ID` and `INFISICAL_CLIENT_SECRET` from the environment. If these are not set, Infisical is skipped and the API uses `appsettings.json` defaults.
-
-### Multi-Environment (Docker Compose)
-
-Per-environment API containers reach Infisical via `http://infisical:8080` on the shared `traefik-public` network. Set the `INFISICAL_*` env vars in `.env` or export them before running `task up`.
-
-### Without Infisical
-
-If you don't need secrets management, simply don't set the `INFISICAL_*` env vars. The API will start normally using `appsettings.json` defaults.
+| File | Purpose |
+|------|---------|
+| `docker-compose.base.yml` | Common service definitions (no Traefik labels) |
+| `docker-compose.simple.yml` | Simple mode overlay (path-based routing) |
+| `docker-compose.multi.yml` | Multi-env overlay (subdomain routing, Infisical, registries) |
+| `docker-compose.traefik.yml` | **Deprecated** — kept for transition |
+| `docker-compose.shared.yml` | **Deprecated** — kept for transition |
+| `docker-compose.env.yml` | **Deprecated** — kept for transition |
 
 ## Troubleshooting
 
@@ -195,25 +213,22 @@ If you don't need secrets management, simply don't set the `INFISICAL_*` env var
 Install mkcert: `sudo apt install mkcert` or see [installation guide](https://github.com/FiloSottile/mkcert#installation).
 
 **"Certificate not trusted"**
-Run `mkcert -install` to add the local CA to your system trust store. Use `--force` flag with setup-certs to regenerate.
+Run `mkcert -install` to add the local CA to your system trust store.
 
 **Port 4443 already in use**
-Another Traefik instance is running. Stop it: `task shared:down`
+Another Traefik instance is running. Stop it: `task down`
 
 **Keycloak slow to start**
-First startup can take 60+ seconds. Check progress: `task shared:logs -- keycloak`
+First startup can take 60+ seconds. Check progress: `task simple:logs -- keycloak`
 
 **Realm provisioning fails**
-Keycloak must be fully healthy. Wait and retry: `bash infrastructure/keycloak/provision-realm.sh {env-name}`
+Keycloak must be fully healthy. Wait and retry: `bash infrastructure/keycloak/provision-realm.sh dev --mode simple`
 
 **Keycloak "Invalid redirect_uri"**
-The realm template uses wildcard URIs. Ensure Keycloak imported the template correctly -- check `task env:logs -- keycloak`.
+The realm template includes `localhost:4443` redirect URIs for both modes. Verify the realm imported correctly.
 
-**Hub shows "Cannot reach Traefik API"**
-Start shared services: `task shared:up`
-
-**Multiple environments**
-Each worktree can run its own environment simultaneously. Just run `task up` in each worktree.
+**No mode set**
+Run `task mode:set -- simple` to set a mode, or just run `task up` to get an interactive prompt.
 
 ---
 
@@ -248,12 +263,6 @@ Frontend (1 replica)
 | Keycloak | `http://auth-staging.familyhub.local` | `http://auth.familyhub.local` |
 | MailHog | `http://mail-staging.familyhub.local` | N/A (real SMTP) |
 
-Add to client `/etc/hosts`:
-
-```
-<manager-ip> staging.familyhub.local api-staging.familyhub.local auth-staging.familyhub.local mail-staging.familyhub.local app.familyhub.local api.familyhub.local auth.familyhub.local
-```
-
 ### CI/CD Workflows
 
 | Workflow | Trigger | Runner | Purpose |
@@ -261,39 +270,6 @@ Add to client `/etc/hosts`:
 | `ci.yml` | PR to main | GitHub-hosted | Build + test (backend + frontend) |
 | `deploy-staging.yml` | Push to main | Self-hosted ARM64 | Test, build images, deploy staging |
 | `deploy-production.yml` | Manual dispatch | Self-hosted ARM64 | Deploy to production (approval required) |
-
-### One-Time Swarm Setup
-
-Run on the Swarm manager node:
-
-```bash
-# 1. Label storage node
-docker node update --label-add storage=true <node1>
-
-# 2. Create shared overlay network
-docker network create --driver overlay --attachable traefik-public
-
-# 3. Create Swarm secrets
-bash infrastructure/scripts/setup-swarm-secrets.sh
-
-# 4. Deploy self-hosted GitHub runner
-RUNNER_TOKEN=<token> bash infrastructure/scripts/setup-runner.sh
-
-# 5. Deploy base stack (Traefik)
-docker stack deploy -c infrastructure/swarm/docker-stack.base.yml fh-base
-
-# 6. Push to main to trigger first staging deployment
-```
-
-### Manual Deployment
-
-```bash
-# Deploy staging
-bash infrastructure/scripts/deploy.sh staging sha-abc1234
-
-# Deploy production
-bash infrastructure/scripts/deploy.sh production sha-abc1234
-```
 
 ### Swarm Files
 

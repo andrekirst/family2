@@ -5,12 +5,14 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateSecureNote;
 
 public sealed record CreateSecureNoteCommand(
-    FamilyId FamilyId,
-    UserId UserId,
     NoteCategory Category,
     string EncryptedTitle,
     string EncryptedContent,
     string Iv,
     string Salt,
     string Sentinel
-) : ICommand<CreateSecureNoteResult>;
+) : ICommand<Result<CreateSecureNoteResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

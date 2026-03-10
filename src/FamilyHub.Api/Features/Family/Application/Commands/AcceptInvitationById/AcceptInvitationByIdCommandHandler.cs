@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Infrastructure.Security;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
@@ -15,41 +16,34 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.AcceptInvitationByI
 public sealed class AcceptInvitationByIdCommandHandler(
     IFamilyInvitationRepository invitationRepository,
     IFamilyMemberRepository memberRepository,
-    IUserRepository userRepository)
+    IUserRepository userRepository,
+    TimeProvider timeProvider)
     : ICommandHandler<AcceptInvitationByIdCommand, AcceptInvitationResult>
 {
+    [SecurityCheck("IDOR")]
     public async ValueTask<AcceptInvitationResult> Handle(
         AcceptInvitationByIdCommand command,
         CancellationToken cancellationToken)
     {
-        var invitation = await invitationRepository.GetByIdAsync(command.InvitationId, cancellationToken)
-            ?? throw new DomainException("Invitation not found", DomainErrorCodes.InvitationNotFound);
+        var invitation = (await invitationRepository.GetByIdAsync(command.InvitationId!.Value, cancellationToken))!;
+        var user = (await userRepository.GetByIdAsync(command.UserId, cancellationToken))!;
 
-        var user = await userRepository.GetByIdAsync(command.AcceptingUserId, cancellationToken)
-            ?? throw new DomainException("User not found", DomainErrorCodes.UserNotFound);
-
-        // Security: verify the accepting user's email matches the invitation
         if (user.Email != invitation.InviteeEmail)
         {
             throw new DomainException("This invitation was sent to a different email address", DomainErrorCodes.InvitationEmailMismatch);
         }
 
-        // Check if user is already a member of this family
-        var existingMember = await memberRepository.GetByUserAndFamilyAsync(command.AcceptingUserId, invitation.FamilyId, cancellationToken);
-        if (existingMember is not null)
-        {
-            throw new DomainException("You are already a member of this family", DomainErrorCodes.AlreadyFamilyMember);
-        }
+        var utcNow = timeProvider.GetUtcNow();
 
         // Accept the invitation (validates status + expiry, raises InvitationAcceptedEvent)
-        invitation.Accept(command.AcceptingUserId);
+        invitation.Accept(command.UserId, utcNow);
 
         // Create FamilyMember record
-        var member = FamilyMember.Create(invitation.FamilyId, command.AcceptingUserId, invitation.Role);
+        var member = FamilyMember.Create(invitation.FamilyId, command.UserId, invitation.Role, utcNow);
         await memberRepository.AddAsync(member, cancellationToken);
 
         // Assign user to family
-        user.AssignToFamily(invitation.FamilyId);
+        user.AssignToFamily(invitation.FamilyId, utcNow);
 
         return new AcceptInvitationResult(invitation.FamilyId, member.Id);
     }

@@ -1,10 +1,11 @@
-import { Component, ElementRef, ViewChild, AfterViewChecked, input, output } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewChecked, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MessageItemComponent, MessageViewModel } from '../message-item/message-item.component';
 
 @Component({
   selector: 'app-message-list',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, MessageItemComponent],
   styles: [
     `

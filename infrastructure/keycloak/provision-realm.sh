@@ -2,23 +2,35 @@
 # Provision a per-environment Keycloak realm via the Admin REST API.
 #
 # Usage:
-#   provision-realm.sh <ENV_NAME>              # Create/replace realm FamilyHub-<ENV_NAME>
-#   provision-realm.sh <ENV_NAME> --delete     # Delete realm FamilyHub-<ENV_NAME>
+#   provision-realm.sh <ENV_NAME>                          # Create realm (multi-env mode)
+#   provision-realm.sh <ENV_NAME> --delete                 # Delete realm
+#   provision-realm.sh <ENV_NAME> --mode simple            # Create realm (simple mode)
+#   provision-realm.sh <ENV_NAME> --mode simple --delete   # Delete realm (simple mode)
 #
 # Requires: curl, jq
-# Keycloak must be running and healthy at http://keycloak:8080 (Docker network)
-# or http://localhost:8080 (host network).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE="${SCRIPT_DIR}/realm-base.json"
 
-ENV_NAME="${1:?Usage: provision-realm.sh <ENV_NAME> [--delete]}"
-DELETE_FLAG="${2:-}"
+ENV_NAME="${1:?Usage: provision-realm.sh <ENV_NAME> [--mode simple|multi] [--delete]}"
+shift
+
+DELETE_FLAG=""
+PROVISION_MODE="multi"
+
+for arg in "$@"; do
+  case "$arg" in
+    --delete) DELETE_FLAG="--delete" ;;
+    --mode)   ;; # next arg handled below
+    simple)   PROVISION_MODE="simple" ;;
+    multi)    PROVISION_MODE="multi" ;;
+  esac
+done
+
 REALM_NAME="FamilyHub-${ENV_NAME}"
 
-# Keycloak base URL — auto-detect: try Traefik-proxied URL from host
-# Override with KC_URL env var if running inside Docker network
+# Keycloak base URL — auto-detect based on mode
 KC_ADMIN="${KC_ADMIN:-admin}"
 KC_ADMIN_PASS="${KC_ADMIN_PASS:-admin}"
 
@@ -26,15 +38,20 @@ MAX_RETRIES=30
 RETRY_INTERVAL=5
 
 # ---------------------------------------------------------------------------
-# Auto-detect Keycloak URL
+# Auto-detect Keycloak URL based on mode
 # ---------------------------------------------------------------------------
 detect_kc_url() {
   if [[ -n "${KC_URL:-}" ]]; then
     echo "$KC_URL"
     return
   fi
-  # Running on host — use Traefik-proxied HTTPS URL
-  echo "https://auth.localhost:4443"
+  if [[ "$PROVISION_MODE" == "simple" ]]; then
+    # Simple mode: Keycloak is behind /auth path on localhost
+    echo "https://localhost:4443/auth"
+  else
+    # Multi-env mode: Keycloak on auth.localhost subdomain
+    echo "https://auth.localhost:4443"
+  fi
 }
 
 KC_URL="$(detect_kc_url)"
@@ -167,6 +184,7 @@ echo "  Keycloak Realm Provisioning"
 echo "  ──────────────────────────────────────────"
 echo "  Environment: ${ENV_NAME}"
 echo "  Realm:       ${REALM_NAME}"
+echo "  Mode:        ${PROVISION_MODE}"
 echo ""
 
 wait_for_keycloak
@@ -190,9 +208,15 @@ create_realm "$TOKEN"
 configure_google_idp "$TOKEN"
 
 echo ""
-echo "  Realm ready:"
-echo "    Admin:  https://auth.localhost:4443/admin/master/console/#/${REALM_NAME}"
-echo "    OIDC:   https://auth.localhost:4443/realms/${REALM_NAME}"
+if [[ "$PROVISION_MODE" == "simple" ]]; then
+  echo "  Realm ready:"
+  echo "    Admin:  https://localhost:4443/auth/admin/master/console/#/${REALM_NAME}"
+  echo "    OIDC:   https://localhost:4443/auth/realms/${REALM_NAME}"
+else
+  echo "  Realm ready:"
+  echo "    Admin:  https://auth.localhost:4443/admin/master/console/#/${REALM_NAME}"
+  echo "    OIDC:   https://auth.localhost:4443/realms/${REALM_NAME}"
+fi
 echo ""
 echo "  Test users: testowner / test123 (family-owner)"
 echo "              testmember / test123 (family-member)"

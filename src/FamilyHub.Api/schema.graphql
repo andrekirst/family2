@@ -1,0 +1,1452 @@
+schema {
+  query: RootQuery
+  mutation: RootMutation
+  subscription: Subscription
+}
+
+type AcceptInvitationResultDto {
+  familyId: UUID!
+  familyMemberId: UUID!
+  success: Boolean!
+}
+
+type ActionCatalogEntryDto {
+  actionType: String!
+  module: String!
+  name: String!
+  description: String!
+  version: String!
+  inputSchema: String!
+  outputSchema: String!
+  isCompensatable: Boolean!
+  isDeprecated: Boolean!
+}
+
+type AdjacentPhotosDto {
+  previous: PhotoDto
+  next: PhotoDto
+}
+
+type AlbumDto {
+  id: UUID!
+  name: String!
+  description: String
+  coverFileId: UUID
+  familyId: UUID!
+  createdBy: UUID!
+  itemCount: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"A connection to a list of items."
+type AlbumsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [AlbumsEdge!]
+  "A flattened list of the nodes."
+  nodes: [AlbumDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type AlbumsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: AlbumDto!
+}
+
+type AttachmentDto {
+  fileId: UUID!
+  fileName: String!
+  mimeType: String!
+  fileSize: Long!
+  storageKey: String
+  attachedAt: DateTime!
+}
+
+"A connection to a list of items."
+type BreadcrumbConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [BreadcrumbEdge!]
+  "A flattened list of the nodes."
+  nodes: [FolderDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type BreadcrumbEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: FolderDto!
+}
+
+type CalendarEventAttendeeDto {
+  userId: UUID!
+}
+
+type CalendarEventDto {
+  id: UUID!
+  familyId: UUID!
+  createdBy: UUID!
+  title: String!
+  description: String
+  location: String
+  startTime: DateTime!
+  endTime: DateTime!
+  isAllDay: Boolean!
+  isCancelled: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  attendees: [CalendarEventAttendeeDto!]!
+}
+
+type ChainDefinitionDto {
+  id: UUID!
+  familyId: UUID!
+  name: String!
+  description: String
+  isEnabled: Boolean!
+  isTemplate: Boolean!
+  templateName: String
+  trigger: TriggerDefinitionDto!
+  steps: [StepDefinitionDto!]!
+  createdByUserId: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  version: Int!
+  executionCount: Int!
+  lastExecutedAt: DateTime
+}
+
+type ChainEntityMappingDto {
+  id: UUID!
+  chainExecutionId: UUID!
+  stepAlias: String!
+  entityType: String!
+  entityId: UUID!
+  module: String!
+  createdAt: DateTime!
+}
+
+type ChainExecutionDto {
+  id: UUID!
+  chainDefinitionId: UUID!
+  familyId: UUID!
+  correlationId: UUID!
+  status: String!
+  triggerEventType: String!
+  triggerPayload: String!
+  context: String!
+  startedAt: DateTime!
+  completedAt: DateTime
+  failedAt: DateTime
+  errorMessage: String
+  stepExecutions: [StepExecutionDto!]!
+}
+
+type CommandDescriptor {
+  label: String!
+  description: String!
+  keywords: [String!]!
+  route: String!
+  requiredPermissions: [String!]!
+  icon: String!
+  group: String!
+  labelDe: String
+  descriptionDe: String
+}
+
+type ConversationDto {
+  id: UUID!
+  name: String!
+  type: String!
+  familyId: UUID!
+  createdBy: UUID!
+  folderId: UUID
+  createdAt: DateTime!
+  members: [ConversationMemberDto!]!
+}
+
+type ConversationMemberDto {
+  id: UUID!
+  userId: UUID!
+  role: String!
+  joinedAt: DateTime!
+  leftAt: DateTime
+}
+
+type DashboardLayoutDto {
+  id: UUID!
+  name: String!
+  isShared: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  widgets: [DashboardWidgetDto!]!
+}
+
+type DashboardMutation {
+  updateWidgetConfig(input: UpdateWidgetConfigRequestInput!): DashboardWidgetDto! @authorize @cost(weight: "10")
+  saveLayout(input: SaveDashboardLayoutRequestInput!): DashboardLayoutDto! @authorize @cost(weight: "10")
+  resetDashboard(dashboardId: UUID!): Boolean! @authorize @cost(weight: "10")
+  removeWidget(widgetId: UUID!): Boolean! @authorize @cost(weight: "10")
+  addWidget(input: AddWidgetRequestInput!): DashboardWidgetDto! @authorize @cost(weight: "10")
+}
+
+type DashboardQuery {
+  myDashboard: DashboardLayoutDto @authorize @cost(weight: "10")
+  familyDashboard: DashboardLayoutDto @authorize @cost(weight: "10")
+  availableWidgets: [WidgetDescriptorDto!]! @authorize @cost(weight: "10")
+}
+
+type DashboardWidgetDto {
+  id: UUID!
+  widgetType: String!
+  x: Int!
+  y: Int!
+  width: Int!
+  height: Int!
+  sortOrder: Int!
+  configJson: String
+}
+
+type DeleteChainDefinitionPayload {
+  success: Boolean!
+  errors: [UserError!]
+}
+
+type EventChainMutation {
+  createChainDefinition(input: CreateChainDefinitionInput!): ChainDefinitionDto! @authorize @cost(weight: "10")
+  updateChainDefinition(id: UUID! input: UpdateChainDefinitionInput!): ChainDefinitionDto! @authorize @cost(weight: "10")
+  deleteChainDefinition(id: UUID!): DeleteChainDefinitionPayload! @authorize @cost(weight: "10")
+  enableChainDefinition(id: UUID!): ChainDefinitionDto! @authorize @cost(weight: "10")
+  disableChainDefinition(id: UUID!): ChainDefinitionDto! @authorize @cost(weight: "10")
+  executeChainManually(chainDefinitionId: UUID! triggerPayload: String!): ChainExecutionDto! @authorize @cost(weight: "10")
+}
+
+type EventChainQuery {
+  chainDefinitions(isEnabled: Boolean): [ChainDefinitionDto!]! @authorize @cost(weight: "10")
+  chainDefinition(id: UUID!): ChainDefinitionDto @authorize @cost(weight: "10")
+  chainExecutions(chainDefinitionId: UUID status: ChainExecutionStatus): [ChainExecutionDto!]! @authorize @cost(weight: "10")
+  chainExecution(id: UUID!): ChainExecutionDto @authorize @cost(weight: "10")
+  availableTriggers: [TriggerCatalogEntryDto!]! @authorize
+  availableActions(compatibleWithTrigger: String): [ActionCatalogEntryDto!]! @authorize
+  chainEntityMappings(entityId: UUID! entityType: String): [ChainEntityMappingDto!]! @authorize @cost(weight: "10")
+}
+
+type ExternalConnectionDto {
+  id: UUID!
+  familyId: UUID!
+  providerType: String!
+  displayName: String!
+  status: String!
+  isTokenExpired: Boolean!
+  tokenExpiresAt: DateTime
+  connectedBy: UUID!
+  connectedAt: DateTime!
+}
+
+"A connection to a list of items."
+type ExternalConnectionsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ExternalConnectionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [ExternalConnectionDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type ExternalConnectionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ExternalConnectionDto!
+}
+
+type FamilyCalendarMutation {
+  create(input: CreateCalendarEventRequestInput!): CalendarEventDto! @authorize @cost(weight: "10")
+  update(id: UUID! input: UpdateCalendarEventRequestInput!): CalendarEventDto! @authorize @cost(weight: "10")
+  cancel(id: UUID!): Boolean! @authorize @cost(weight: "10")
+}
+
+type FamilyDto {
+  id: UUID!
+  name: String!
+  createdAt: DateTime!
+  memberCount: Int!
+  owner: UserDto @cost(weight: "10")
+  withRoles: [FamilyMemberDto!]! @authorize @cost(weight: "10")
+  members: [UserDto!]! @cost(weight: "10")
+}
+
+type FamilyInvitationMutation {
+  revoke: Boolean! @authorize @cost(weight: "10")
+  decline: Boolean! @authorize @cost(weight: "10")
+  declineByToken(input: AcceptInvitationRequestInput!): Boolean! @authorize @cost(weight: "10")
+  accept: AcceptInvitationResultDto! @authorize @cost(weight: "10")
+  acceptByToken(input: AcceptInvitationRequestInput!): AcceptInvitationResultDto! @authorize @cost(weight: "10")
+}
+
+type FamilyMemberDto {
+  id: UUID!
+  userId: UUID!
+  userName: String!
+  userEmail: String!
+  role: String!
+  avatarId: UUID
+  joinedAt: DateTime!
+  isActive: Boolean!
+}
+
+type FamilyMutation {
+  invitation(id: UUID): FamilyInvitationMutation! @authorize
+  calendar: FamilyCalendarMutation! @authorize
+  uploadAvatar(input: UploadAvatarInput!): UploadAvatarResultDto! @authorize @cost(weight: "10")
+  setFamilyAvatar(input: SetFamilyAvatarInput!): Boolean! @authorize @cost(weight: "10")
+  invite(input: SendInvitationRequestInput!): InvitationDto! @authorize @cost(weight: "10")
+  removeAvatar: Boolean! @authorize @cost(weight: "10")
+  create(input: CreateFamilyRequestInput!): FamilyDto! @authorize @cost(weight: "10")
+}
+
+type FamilyQuery {
+  photos(skip: Int! take: Int!): PhotosPageDto! @authorize @cost(weight: "10")
+  photo(id: UUID!): PhotoDto @authorize @cost(weight: "10")
+  adjacentPhotos(currentPhotoId: UUID! currentCreatedAt: DateTime!): AdjacentPhotosDto! @authorize @cost(weight: "10")
+  calendars(startDate: DateTime! endDate: DateTime!): [CalendarEventDto!]! @authorize @cost(weight: "10")
+  calendar(id: UUID!): CalendarEventDto @authorize @cost(weight: "10")
+}
+
+"A connection to a list of items."
+type FavoritesConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [FavoritesEdge!]
+  "A flattened list of the nodes."
+  nodes: [StoredFileDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type FavoritesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: StoredFileDto!
+}
+
+type FileManagementMutation {
+  uploadFile(input: UploadFileRequestInput!): StoredFileDto! @authorize @cost(weight: "10")
+  updateTag(input: UpdateTagRequestInput!): TagDto! @authorize @cost(weight: "10")
+  updateSecureNote(noteId: UUID! category: String! encryptedTitle: String! encryptedContent: String! iv: String!): Boolean! @authorize @cost(weight: "10")
+  updateOrganizationRule(ruleId: UUID! name: String! conditionsJson: String! conditionLogic: String! actionType: String! actionsJson: String!): Boolean! @authorize @cost(weight: "10")
+  untagFile(fileId: UUID! tagId: UUID!): Boolean! @authorize @cost(weight: "10")
+  toggleOrganizationRule(ruleId: UUID! isEnabled: Boolean!): Boolean! @authorize @cost(weight: "10")
+  toggleFavorite(fileId: UUID!): Boolean! @authorize @cost(weight: "10")
+  tagFile(fileId: UUID! tagId: UUID!): Boolean! @authorize @cost(weight: "10")
+  setPermission(input: SetPermissionRequestInput!): Boolean! @authorize @cost(weight: "10")
+  saveSearch(name: String! query: String! filtersJson: String): Boolean! @authorize @cost(weight: "10")
+  revokeShareLink(shareLinkId: UUID!): Boolean! @authorize @cost(weight: "10")
+  restoreFileVersion(versionId: UUID! fileId: UUID!): Boolean! @authorize @cost(weight: "10")
+  reorderOrganizationRules(ruleIdsInOrder: [UUID!]!): Boolean! @authorize @cost(weight: "10")
+  renameFolder(input: RenameFolderRequestInput!): FolderDto! @authorize @cost(weight: "10")
+  renameFile(input: RenameFileRequestInput!): StoredFileDto! @authorize @cost(weight: "10")
+  renameAlbum(input: RenameAlbumRequestInput!): Boolean! @authorize @cost(weight: "10")
+  removePermission(resourceType: PermissionResourceType! resourceId: UUID! memberId: UUID!): Boolean! @authorize @cost(weight: "10")
+  removeFileFromAlbum(albumId: UUID! fileId: UUID!): Boolean! @authorize @cost(weight: "10")
+  processInboxFiles: Boolean! @authorize @cost(weight: "10")
+  moveFolder(input: MoveFolderRequestInput!): FolderDto! @authorize @cost(weight: "10")
+  moveFile(input: MoveFileRequestInput!): StoredFileDto! @authorize @cost(weight: "10")
+  generateThumbnails(fileId: UUID!): Boolean! @authorize @cost(weight: "10")
+  disconnectExternalStorage(connectionId: UUID!): Boolean! @authorize @cost(weight: "10")
+  deleteTag(tagId: UUID!): Boolean! @authorize @cost(weight: "10")
+  deleteSecureNote(noteId: UUID!): Boolean! @authorize @cost(weight: "10")
+  deleteSavedSearch(searchId: UUID!): Boolean! @authorize @cost(weight: "10")
+  deleteOrganizationRule(ruleId: UUID!): Boolean! @authorize @cost(weight: "10")
+  deleteFolder(folderId: UUID!): Boolean! @authorize @cost(weight: "10")
+  deleteFile(fileId: UUID!): Boolean! @authorize @cost(weight: "10")
+  deleteAlbum(albumId: UUID!): Boolean! @authorize @cost(weight: "10")
+  createZipJob(fileIds: [UUID!]!): Boolean! @authorize @cost(weight: "10")
+  createTag(input: CreateTagRequestInput!): TagDto! @authorize @cost(weight: "10")
+  createShareLink(resourceType: String! resourceId: UUID! expiresAt: DateTime password: String maxDownloads: Int): Boolean! @authorize @cost(weight: "10")
+  createSecureNote(category: String! encryptedTitle: String! encryptedContent: String! iv: String! salt: String! sentinel: String!): Boolean! @authorize @cost(weight: "10")
+  createOrganizationRule(name: String! conditionsJson: String! conditionLogic: String! actionType: String! actionsJson: String!): Boolean! @authorize @cost(weight: "10")
+  createFolder(input: CreateFolderRequestInput!): FolderDto! @authorize @cost(weight: "10")
+  createFileVersion(fileId: UUID! storageKey: String! fileSize: Long! checksum: String!): Boolean! @authorize @cost(weight: "10")
+  createAlbum(input: CreateAlbumRequestInput!): Boolean! @authorize @cost(weight: "10")
+  connectExternalStorage(providerType: String! displayName: String! encryptedAccessToken: String! encryptedRefreshToken: String tokenExpiresAt: DateTime): Boolean! @authorize @cost(weight: "10")
+  addFileToAlbum(albumId: UUID! fileId: UUID!): Boolean! @authorize @cost(weight: "10")
+  accessShareLink(token: String! password: String ipAddress: String! userAgent: String action: String!): Boolean! @cost(weight: "10")
+}
+
+type FileManagementQuery {
+  searchFiles(query: String! mimeTypes: [String!] dateFrom: DateTime dateTo: DateTime tagIds: [UUID!] folderId: UUID gpsLatitude: Float gpsLongitude: Float gpsRadiusKm: Float sortBy: String! = "relevance" skip: Int! = 0 take: Int! = 20 "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): SearchFilesConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  previewRuleMatch(fileId: UUID!): RuleMatchPreviewDto @authorize @cost(weight: "10")
+  zipJobs("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ZipJobsConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  tags("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): TagsConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  shareLinks("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ShareLinksConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  shareLinkAccessLog(shareLinkId: UUID! "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ShareLinkAccessLogConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  secureNotes(category: String "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): SecureNotesConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  savedSearches("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): SavedSearchesConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  recentSearches("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): RecentSearchesConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  processingLog(skip: Int! take: Int! "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ProcessingLogConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  permissions(resourceType: String! resourceId: UUID! "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): PermissionsConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  organizationRules("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): OrganizationRulesConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  mediaStreamInfo(fileId: UUID!): MediaStreamInfoDto! @authorize @cost(weight: "10")
+  folders(parentFolderId: UUID "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FoldersConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  folder(folderId: UUID!): FolderDto @authorize @cost(weight: "10")
+  fileVersions(fileId: UUID! "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FileVersionsConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  filesByTag(tagIds: [UUID!]! "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FilesByTagConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  files(folderId: UUID "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FilesConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  file(fileId: UUID!): StoredFileDto @authorize @cost(weight: "10")
+  favorites("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FavoritesConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  externalConnections("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExternalConnectionsConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  breadcrumb(folderId: UUID! "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BreadcrumbConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  albums("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AlbumsConnection @authorize @listSize(assumedSize: 100, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 25, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+}
+
+type FilePermissionDto {
+  id: UUID!
+  resourceType: String!
+  resourceId: UUID!
+  memberId: UUID!
+  permissionLevel: FilePermissionLevel!
+  grantedBy: UUID!
+  grantedAt: DateTime!
+}
+
+type FileSearchResultDto {
+  id: UUID!
+  name: String!
+  mimeType: String!
+  size: Long!
+  folderId: UUID!
+  highlightedName: String
+  relevance: Float
+  createdAt: DateTime!
+}
+
+type FileThumbnailDto {
+  id: UUID!
+  fileId: UUID!
+  width: Int!
+  height: Int!
+  storageKey: String!
+  generatedAt: DateTime!
+}
+
+type FileVersionDto {
+  id: UUID!
+  fileId: UUID!
+  versionNumber: Int!
+  storageKey: String!
+  fileSize: Long!
+  checksum: String!
+  uploadedBy: UUID!
+  isCurrent: Boolean!
+  uploadedAt: DateTime!
+}
+
+"A connection to a list of items."
+type FileVersionsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [FileVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [FileVersionDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type FileVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: FileVersionDto!
+}
+
+"A connection to a list of items."
+type FilesByTagConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [FilesByTagEdge!]
+  "A flattened list of the nodes."
+  nodes: [StoredFileDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type FilesByTagEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: StoredFileDto!
+}
+
+"A connection to a list of items."
+type FilesConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [FilesEdge!]
+  "A flattened list of the nodes."
+  nodes: [StoredFileDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type FilesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: StoredFileDto!
+}
+
+type FolderDto {
+  id: UUID!
+  name: String!
+  parentFolderId: UUID
+  materializedPath: String!
+  familyId: UUID!
+  createdBy: UUID!
+  createdAt: DateTime!
+}
+
+"A connection to a list of items."
+type FoldersConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [FoldersEdge!]
+  "A flattened list of the nodes."
+  nodes: [FolderDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type FoldersEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: FolderDto!
+}
+
+type GoogleCalendarSyncStatusDto {
+  isLinked: Boolean!
+  lastSyncAt: DateTime
+  hasCalendarScope: Boolean!
+  status: String!
+  errorMessage: String
+}
+
+type GoogleIntegrationMutation {
+  unlink: Boolean! @authorize @cost(weight: "10")
+  refreshToken: RefreshTokenResultDto! @authorize @cost(weight: "10")
+}
+
+type GoogleIntegrationQuery {
+  linkedAccounts: [LinkedAccountDto!]! @authorize @cost(weight: "10")
+  calendarSyncStatus: GoogleCalendarSyncStatusDto! @authorize @cost(weight: "10")
+  authUrl: String! @authorize @cost(weight: "10")
+}
+
+type InvitationDto {
+  id: UUID!
+  familyId: UUID!
+  familyName: String!
+  invitedByName: String!
+  inviteeEmail: String!
+  role: String!
+  status: String!
+  createdAt: DateTime!
+  expiresAt: DateTime!
+}
+
+type InvitationsQuery {
+  byToken(token: String!): InvitationDto @cost(weight: "10")
+  pendings: [InvitationDto!]! @authorize @cost(weight: "10")
+}
+
+type LinkedAccountDto {
+  googleAccountId: String!
+  googleEmail: String!
+  status: String!
+  grantedScopes: String!
+  lastSyncAt: DateTime
+  createdAt: DateTime!
+}
+
+type MeInvitationsQuery {
+  pendings: [InvitationDto!]! @authorize @cost(weight: "10")
+}
+
+type MeQuery {
+  invitations: MeInvitationsQuery!
+  family: FamilyDto @cost(weight: "10")
+  profile: UserDto @cost(weight: "10")
+}
+
+type MediaStreamInfoDto {
+  fileId: UUID!
+  mimeType: String!
+  fileSize: Long!
+  storageKey: String!
+  supportsRangeRequests: Boolean!
+  isStreamable: Boolean!
+  thumbnails: [FileThumbnailDto!]!
+}
+
+type MessageDto {
+  id: UUID!
+  familyId: UUID!
+  senderId: UUID!
+  senderName: String!
+  senderAvatarId: UUID
+  content: String!
+  sentAt: DateTime!
+  conversationId: UUID
+  attachments: [AttachmentDto!]!
+}
+
+type MessagingMutation {
+  sendMessage(input: SendMessageRequestInput!): MessageDto! @authorize @cost(weight: "10")
+  createConversation(input: CreateConversationRequestInput!): ConversationDto! @authorize @cost(weight: "10")
+}
+
+type MessagingQuery {
+  messages(limit: Int! = 50 before: DateTime): [MessageDto!]! @authorize @cost(weight: "10")
+  conversations: [ConversationDto!]! @authorize @cost(weight: "10")
+  conversationMessages(conversationId: UUID! limit: Int! = 50 before: DateTime): [MessageDto!]! @authorize @cost(weight: "10")
+}
+
+type OrganizationRuleDto {
+  id: UUID!
+  name: String!
+  conditionsJson: String!
+  conditionLogic: ConditionLogic!
+  actionType: RuleActionType!
+  actionsJson: String!
+  priority: Int!
+  isEnabled: Boolean!
+  createdBy: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"A connection to a list of items."
+type OrganizationRulesConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [OrganizationRulesEdge!]
+  "A flattened list of the nodes."
+  nodes: [OrganizationRuleDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type OrganizationRulesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OrganizationRuleDto!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+"A connection to a list of items."
+type PermissionsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [PermissionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [FilePermissionDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type PermissionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: FilePermissionDto!
+}
+
+type PhotoDto {
+  id: UUID!
+  familyId: UUID!
+  uploadedBy: UUID!
+  fileName: String!
+  contentType: String!
+  fileSizeBytes: Long!
+  storagePath: String!
+  caption: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type PhotosPageDto {
+  items: [PhotoDto!]!
+  totalCount: Int!
+  hasMore: Boolean!
+}
+
+"A connection to a list of items."
+type ProcessingLogConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ProcessingLogEdge!]
+  "A flattened list of the nodes."
+  nodes: [ProcessingLogEntryDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type ProcessingLogEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ProcessingLogEntryDto!
+}
+
+type ProcessingLogEntryDto {
+  id: UUID!
+  fileId: UUID!
+  fileName: String!
+  matchedRuleId: UUID
+  matchedRuleName: String
+  actionTaken: RuleActionType
+  destinationFolderId: UUID
+  appliedTagNames: String
+  success: Boolean!
+  errorMessage: String
+  processedAt: DateTime!
+}
+
+type RecentSearchDto {
+  id: UUID!
+  query: String!
+  searchedAt: DateTime!
+}
+
+"A connection to a list of items."
+type RecentSearchesConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [RecentSearchesEdge!]
+  "A flattened list of the nodes."
+  nodes: [RecentSearchDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type RecentSearchesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: RecentSearchDto!
+}
+
+type RefreshTokenResultDto {
+  success: Boolean!
+  newExpiresAt: DateTime
+}
+
+type RootMutation {
+  family: FamilyMutation! @authorize
+  dashboard: DashboardMutation! @authorize
+  eventChain: EventChainMutation! @authorize
+  fileManagement: FileManagementMutation! @authorize
+  googleIntegration: GoogleIntegrationMutation! @authorize
+  messaging: MessagingMutation! @authorize
+  school: SchoolMutation! @authorize
+  updateMyLocale(input: UpdateUserLocaleRequestInput!): Boolean! @authorize @cost(weight: "10")
+  registerUser(input: RegisterUserRequestInput!): UserDto! @authorize @cost(weight: "10")
+}
+
+type RootQuery {
+  me: MeQuery! @authorize
+  invitations: InvitationsQuery!
+  users: UsersQuery! @authorize
+  family: FamilyQuery! @authorize
+  dashboard: DashboardQuery! @authorize
+  eventChain: EventChainQuery! @authorize
+  fileManagement: FileManagementQuery! @authorize
+  googleIntegration: GoogleIntegrationQuery! @authorize
+  messaging: MessagingQuery! @authorize
+  school: SchoolQuery! @authorize
+  search: SearchQuery! @authorize
+}
+
+type RuleMatchPreviewDto {
+  matched: Boolean!
+  matchedRuleId: UUID
+  matchedRuleName: String
+  actionType: RuleActionType
+  actionsJson: String
+}
+
+type SavedSearchDto {
+  id: UUID!
+  name: String!
+  query: String!
+  filtersJson: String
+  createdAt: DateTime!
+}
+
+"A connection to a list of items."
+type SavedSearchesConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [SavedSearchesEdge!]
+  "A flattened list of the nodes."
+  nodes: [SavedSearchDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type SavedSearchesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: SavedSearchDto!
+}
+
+type SchoolMutation {
+  markAsStudent(input: MarkAsStudentRequestInput!): StudentDto! @authorize @cost(weight: "10")
+}
+
+type SchoolQuery {
+  students: [StudentDto!]! @authorize @cost(weight: "10")
+}
+
+"A connection to a list of items."
+type SearchFilesConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [SearchFilesEdge!]
+  "A flattened list of the nodes."
+  nodes: [FileSearchResultDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type SearchFilesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: FileSearchResultDto!
+}
+
+type SearchQuery {
+  universal(input: UniversalSearchRequestInput!): UniversalSearchResult! @authorize @cost(weight: "10")
+}
+
+type SearchResultItemDto {
+  title: String!
+  description: String
+  module: String!
+  icon: String!
+  route: String!
+}
+
+type SecureNoteDto {
+  id: UUID!
+  familyId: UUID!
+  userId: UUID!
+  category: String!
+  encryptedTitle: String!
+  encryptedContent: String!
+  iv: String!
+  salt: String!
+  sentinel: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"A connection to a list of items."
+type SecureNotesConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [SecureNotesEdge!]
+  "A flattened list of the nodes."
+  nodes: [SecureNoteDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type SecureNotesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: SecureNoteDto!
+}
+
+"A connection to a list of items."
+type ShareLinkAccessLogConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ShareLinkAccessLogEdge!]
+  "A flattened list of the nodes."
+  nodes: [ShareLinkAccessLogDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+type ShareLinkAccessLogDto {
+  id: UUID!
+  shareLinkId: UUID!
+  ipAddress: String!
+  userAgent: String
+  action: String!
+  accessedAt: DateTime!
+}
+
+"An edge in a connection."
+type ShareLinkAccessLogEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ShareLinkAccessLogDto!
+}
+
+type ShareLinkDto {
+  id: UUID!
+  token: String!
+  resourceType: String!
+  resourceId: UUID!
+  familyId: UUID!
+  createdBy: UUID!
+  expiresAt: DateTime
+  hasPassword: Boolean!
+  maxDownloads: Int
+  downloadCount: Int!
+  isRevoked: Boolean!
+  isExpired: Boolean!
+  isAccessible: Boolean!
+  createdAt: DateTime!
+}
+
+"A connection to a list of items."
+type ShareLinksConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ShareLinksEdge!]
+  "A flattened list of the nodes."
+  nodes: [ShareLinkDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type ShareLinksEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ShareLinkDto!
+}
+
+type StepDefinitionDto {
+  alias: String!
+  name: String!
+  actionType: String!
+  actionVersion: String!
+  module: String!
+  inputMappings: String!
+  condition: String
+  isCompensatable: Boolean!
+  compensationActionType: String
+  order: Int!
+}
+
+type StepExecutionDto {
+  id: UUID!
+  chainExecutionId: UUID!
+  stepAlias: String!
+  stepName: String!
+  actionType: String!
+  status: String!
+  inputPayload: String
+  outputPayload: String
+  errorMessage: String
+  retryCount: Int!
+  startedAt: DateTime
+  completedAt: DateTime
+  compensatedAt: DateTime
+}
+
+type StoredFileDto {
+  id: UUID!
+  name: String!
+  mimeType: String!
+  size: Long!
+  storageKey: String!
+  checksum: String!
+  folderId: UUID!
+  familyId: UUID!
+  uploadedBy: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type StudentDto {
+  id: UUID!
+  familyMemberId: UUID!
+  memberName: String!
+  familyId: UUID!
+  markedByUserId: UUID!
+  markedAt: DateTime!
+}
+
+type Subscription {
+  messageSent(familyId: UUID!): MessageDto! @authorize
+  invitationUpdated(familyId: UUID!): InvitationDto! @authorize @cost(weight: "10")
+  chainExecutionUpdated(familyId: UUID!): ChainExecutionDto! @authorize
+  stepExecutionUpdated(chainExecutionId: UUID!): StepExecutionDto! @authorize
+  calendarEventChanged(familyId: UUID!): CalendarEventDto! @authorize
+}
+
+type TagDto {
+  id: UUID!
+  name: String!
+  color: String!
+  familyId: UUID!
+  fileCount: Int!
+  createdAt: DateTime!
+}
+
+"A connection to a list of items."
+type TagsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [TagsEdge!]
+  "A flattened list of the nodes."
+  nodes: [TagDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type TagsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: TagDto!
+}
+
+type TriggerCatalogEntryDto {
+  eventType: String!
+  module: String!
+  name: String!
+  description: String!
+  outputSchema: String!
+}
+
+type TriggerDefinitionDto {
+  eventType: String!
+  module: String!
+  description: String!
+  outputSchema: String!
+}
+
+type UniversalSearchResult {
+  results: [SearchResultItemDto!]!
+  commands: [CommandDescriptor!]!
+}
+
+type UploadAvatarResultDto {
+  avatarId: UUID!
+}
+
+type UserDto {
+  id: UUID!
+  email: String!
+  name: String!
+  username: String
+  familyId: UUID
+  avatarId: UUID
+  emailVerified: Boolean!
+  isActive: Boolean!
+  createdAt: DateTime!
+  preferredLocale: String!
+  permissions: [String!]!
+}
+
+type UserError {
+  message: String!
+  code: String!
+  field: String
+}
+
+type UsersQuery {
+  byId(userId: UUID!): UserDto @cost(weight: "10")
+}
+
+type WidgetDescriptorDto {
+  widgetTypeId: String!
+  module: String!
+  name: String!
+  description: String!
+  defaultWidth: Int!
+  defaultHeight: Int!
+  minWidth: Int!
+  minHeight: Int!
+  maxWidth: Int!
+  maxHeight: Int!
+  configSchema: String
+  requiredPermissions: [String!]!
+}
+
+type ZipJobDto {
+  id: UUID!
+  familyId: UUID!
+  initiatedBy: UUID!
+  fileCount: Int!
+  status: String!
+  progress: Int!
+  zipSize: Long
+  errorMessage: String
+  createdAt: DateTime!
+  completedAt: DateTime
+  expiresAt: DateTime!
+}
+
+"A connection to a list of items."
+type ZipJobsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ZipJobsEdge!]
+  "A flattened list of the nodes."
+  nodes: [ZipJobDto!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+"An edge in a connection."
+type ZipJobsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ZipJobDto!
+}
+
+input AcceptInvitationRequestInput {
+  token: String!
+}
+
+input AddWidgetRequestInput {
+  dashboardId: UUID!
+  widgetType: String!
+  x: Int!
+  y: Int!
+  width: Int!
+  height: Int!
+  configJson: String
+}
+
+input AttachmentInput {
+  storageKey: String!
+  fileName: String!
+  mimeType: String!
+  fileSize: Long!
+  checksum: String!
+}
+
+input CreateAlbumRequestInput {
+  name: String!
+  description: String
+}
+
+input CreateCalendarEventRequestInput {
+  title: String!
+  description: String
+  location: String
+  startTime: DateTime!
+  endTime: DateTime!
+  isAllDay: Boolean!
+  attendeeIds: [UUID!]!
+}
+
+input CreateChainDefinitionInput {
+  name: String!
+  description: String
+  triggerEventType: String!
+  steps: [CreateStepInput!]!
+  isEnabled: Boolean!
+}
+
+input CreateConversationRequestInput {
+  name: String!
+  type: ConversationType!
+  memberIds: [UUID!]!
+}
+
+input CreateFamilyRequestInput {
+  name: String!
+}
+
+input CreateFolderRequestInput {
+  name: String!
+  parentFolderId: UUID
+}
+
+input CreateStepInput {
+  alias: String!
+  name: String!
+  actionType: String!
+  actionVersion: String!
+  inputMappings: String!
+  condition: String
+  order: Int!
+}
+
+input CreateTagRequestInput {
+  name: String!
+  color: String!
+}
+
+input MarkAsStudentRequestInput {
+  familyMemberId: UUID!
+}
+
+input MoveFileRequestInput {
+  fileId: UUID!
+  targetFolderId: UUID!
+}
+
+input MoveFolderRequestInput {
+  folderId: UUID!
+  targetParentFolderId: UUID!
+}
+
+input RegisterUserRequestInput {
+  email: String!
+  name: String!
+  externalUserId: String!
+  externalProvider: String!
+  emailVerified: Boolean!
+}
+
+input RenameAlbumRequestInput {
+  albumId: UUID!
+  name: String!
+}
+
+input RenameFileRequestInput {
+  fileId: UUID!
+  newName: String!
+}
+
+input RenameFolderRequestInput {
+  folderId: UUID!
+  newName: String!
+}
+
+input SaveDashboardLayoutRequestInput {
+  name: String!
+  isShared: Boolean!
+  widgets: [WidgetPositionInput!]!
+}
+
+input SendInvitationRequestInput {
+  email: String!
+  role: String!
+}
+
+input SendMessageRequestInput {
+  content: String!
+  attachments: [AttachmentInput!]
+  conversationId: UUID
+}
+
+input SetFamilyAvatarInput {
+  avatarId: UUID!
+}
+
+input SetPermissionRequestInput {
+  resourceType: PermissionResourceType!
+  resourceId: UUID!
+  memberId: UUID!
+  permissionLevel: FilePermissionLevel!
+}
+
+input UniversalSearchRequestInput {
+  query: String!
+  modules: [String!]
+  limit: Int
+  locale: String
+}
+
+input UpdateCalendarEventRequestInput {
+  title: String!
+  description: String
+  location: String
+  startTime: DateTime!
+  endTime: DateTime!
+  isAllDay: Boolean!
+  attendeeIds: [UUID!]!
+}
+
+input UpdateChainDefinitionInput {
+  name: String
+  description: String
+  isEnabled: Boolean
+  steps: [CreateStepInput!]
+}
+
+input UpdateTagRequestInput {
+  tagId: UUID!
+  name: String
+  color: String
+}
+
+input UpdateUserLocaleRequestInput {
+  locale: String!
+}
+
+input UpdateWidgetConfigRequestInput {
+  widgetId: UUID!
+  configJson: String
+}
+
+input UploadAvatarInput {
+  imageBase64: String!
+  fileName: String!
+  mimeType: String!
+  cropX: Float
+  cropY: Float
+  cropWidth: Float
+  cropHeight: Float
+}
+
+input UploadFileRequestInput {
+  name: String!
+  mimeType: String!
+  size: Long!
+  storageKey: String!
+  checksum: String!
+  folderId: UUID!
+}
+
+input WidgetPositionInput {
+  id: UUID
+  widgetType: String!
+  x: Int!
+  y: Int!
+  width: Int!
+  height: Int!
+  sortOrder: Int!
+  configJson: String
+}
+
+"Defines when a policy shall be executed."
+enum ApplyPolicy {
+  "Before the resolver was executed."
+  BEFORE_RESOLVER
+  "After the resolver was executed."
+  AFTER_RESOLVER
+  "The policy is applied in the validation step before the execution."
+  VALIDATION
+}
+
+enum ChainExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  PARTIALLY_COMPLETED
+  FAILED
+  COMPENSATING
+  COMPENSATED
+}
+
+enum ConditionLogic {
+  AND
+  OR
+}
+
+enum ConversationType {
+  FAMILY
+  DIRECT
+  GROUP
+}
+
+enum FilePermissionLevel {
+  VIEW
+  EDIT
+  MANAGE
+}
+
+enum PermissionResourceType {
+  FILE
+  FOLDER
+}
+
+enum RuleActionType {
+  MOVE_TO_FOLDER
+  APPLY_TAGS
+  MOVE_AND_TAG
+}
+
+"The authorize directive."
+directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when when the authorize directive shall be applied.By default the authorize directives are applied during the validation phase." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on OBJECT | FIELD_DEFINITION
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+
+"The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
+directive @listSize("The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field." assumedSize: Int "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments." slicingArguments: [String!] "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query." slicingArgumentDefaultValue: Int "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields." sizedFields: [String!] "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error." requireOneSlicingArgument: Boolean! = true) on FIELD_DEFINITION
+
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")

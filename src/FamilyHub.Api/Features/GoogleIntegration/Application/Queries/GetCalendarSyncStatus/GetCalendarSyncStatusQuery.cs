@@ -6,4 +6,4 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Queries.GetCalend
 
 public sealed record GetCalendarSyncStatusQuery(
     UserId UserId
-) : IReadOnlyQuery<GoogleCalendarSyncStatusDto>;
+) : IReadOnlyQuery<GoogleCalendarSyncStatusDto>, IAnonymousOperation;

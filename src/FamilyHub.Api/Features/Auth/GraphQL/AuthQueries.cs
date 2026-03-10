@@ -4,7 +4,6 @@ using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Auth.Models;
 using FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
 using FamilyHub.Api.Features.Auth.Application.Queries.GetUserById;
-using System.Security.Claims;
 
 namespace FamilyHub.Api.Features.Auth.GraphQL;
 
@@ -18,20 +17,19 @@ public class MeProfileQueryExtension
     /// Get the currently authenticated user's profile.
     /// </summary>
     public async Task<UserDto?> GetProfile(
-        ClaimsPrincipal claimsPrincipal,
+        [Service] ICurrentUserContext currentUserContext,
         [Service] IQueryBus queryBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(externalUserIdString))
+        if (!currentUserContext.IsAuthenticated)
         {
             return null;
         }
 
-        var externalUserId = ExternalUserId.From(externalUserIdString);
-        var query = new GetCurrentUserQuery(externalUserId);
+        var claims = currentUserContext.GetRawClaims();
+        var query = new GetCurrentUserQuery(claims.ExternalUserId);
 
-        return await queryBus.QueryAsync(query, ct);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 }
 
@@ -47,11 +45,11 @@ public class UsersQueryExtension
     public async Task<UserDto?> GetById(
         Guid userId,
         [Service] IQueryBus queryBus,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var userIdVo = UserId.From(userId);
-        var query = new GetUserByIdQuery(userIdVo);
+        var query = new GetUserByIdQuery(TargetUserId: userIdVo);
 
-        return await queryBus.QueryAsync(query, ct);
+        return await queryBus.QueryAsync(query, cancellationToken);
     }
 }

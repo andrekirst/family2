@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DashboardWidgetComponent } from '../../../../core/dashboard/dashboard-widget.interface';
@@ -8,6 +8,7 @@ import { FamilyService } from '../../../family/services/family.service';
 @Component({
   selector: 'app-family-overview-widget',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterModule],
   template: `
     @if (isLoading()) {

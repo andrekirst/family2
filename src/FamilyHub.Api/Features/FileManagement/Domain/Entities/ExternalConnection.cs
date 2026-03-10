@@ -22,7 +22,8 @@ public sealed class ExternalConnection : AggregateRoot<ExternalConnectionId>
         string encryptedAccessToken,
         string? encryptedRefreshToken,
         DateTime? tokenExpiresAt,
-        UserId connectedBy)
+        UserId connectedBy,
+        DateTimeOffset utcNow)
     {
         var connection = new ExternalConnection
         {
@@ -35,7 +36,7 @@ public sealed class ExternalConnection : AggregateRoot<ExternalConnectionId>
             TokenExpiresAt = tokenExpiresAt,
             ConnectedBy = connectedBy,
             Status = ConnectionStatus.Connected,
-            ConnectedAt = DateTime.UtcNow
+            ConnectedAt = utcNow.UtcDateTime
         };
 
         connection.RaiseDomainEvent(new ExternalStorageConnectedEvent(
@@ -72,7 +73,7 @@ public sealed class ExternalConnection : AggregateRoot<ExternalConnectionId>
             Id, ProviderType, FamilyId));
     }
 
-    public bool IsTokenExpired => TokenExpiresAt.HasValue && TokenExpiresAt.Value <= DateTime.UtcNow;
+    public bool IsTokenExpired(DateTimeOffset utcNow) => TokenExpiresAt.HasValue && TokenExpiresAt.Value <= utcNow.UtcDateTime;
 
     public FamilyId FamilyId { get; private set; }
     public ExternalProviderType ProviderType { get; private set; }

@@ -9,7 +9,7 @@ public class FakeProcessingLogRepository : IProcessingLogRepository
     public List<ProcessingLogEntry> Entries { get; } = [];
 
     public Task<List<ProcessingLogEntry>> GetByFamilyIdAsync(
-        FamilyId familyId, int skip = 0, int take = 50, CancellationToken ct = default)
+        FamilyId familyId, int skip = 0, int take = 50, CancellationToken cancellationToken = default)
         => Task.FromResult(Entries
             .Where(e => e.FamilyId == familyId)
             .OrderByDescending(e => e.ProcessedAt)
@@ -17,13 +17,13 @@ public class FakeProcessingLogRepository : IProcessingLogRepository
             .Take(take)
             .ToList());
 
-    public Task AddAsync(ProcessingLogEntry entry, CancellationToken ct = default)
+    public Task AddAsync(ProcessingLogEntry entry, CancellationToken cancellationToken = default)
     {
         Entries.Add(entry);
         return Task.CompletedTask;
     }
 
-    public Task AddRangeAsync(IEnumerable<ProcessingLogEntry> entries, CancellationToken ct = default)
+    public Task AddRangeAsync(IEnumerable<ProcessingLogEntry> entries, CancellationToken cancellationToken = default)
     {
         Entries.AddRange(entries);
         return Task.CompletedTask;

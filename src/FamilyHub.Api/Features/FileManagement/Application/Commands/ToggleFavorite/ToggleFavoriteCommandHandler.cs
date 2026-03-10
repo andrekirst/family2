@@ -7,26 +7,30 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.ToggleFavor
 
 public sealed class ToggleFavoriteCommandHandler(
     IStoredFileRepository storedFileRepository,
-    IUserFavoriteRepository userFavoriteRepository)
-    : ICommandHandler<ToggleFavoriteCommand, ToggleFavoriteResult>
+    IUserFavoriteRepository userFavoriteRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<ToggleFavoriteCommand, Result<ToggleFavoriteResult>>
 {
-    public async ValueTask<ToggleFavoriteResult> Handle(
+    public async ValueTask<Result<ToggleFavoriteResult>> Handle(
         ToggleFavoriteCommand command,
         CancellationToken cancellationToken)
     {
-        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new DomainException("File not found", DomainErrorCodes.FileNotFound);
+        var utcNow = timeProvider.GetUtcNow();
+        var file = await storedFileRepository.GetByIdAsync(command.FileId, cancellationToken);
+        if (file is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.FileNotFound, "File not found");
+        }
 
         if (file.FamilyId != command.FamilyId)
         {
-            throw new DomainException("File belongs to a different family", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "File belongs to a different family");
         }
 
         var isFavorited = await userFavoriteRepository.ExistsAsync(command.UserId, command.FileId, cancellationToken);
 
         if (isFavorited)
         {
-            // Unfavorite
             var favorites = await userFavoriteRepository.GetByUserIdAsync(command.UserId, cancellationToken);
             var favorite = favorites.First(f => f.FileId == command.FileId);
             await userFavoriteRepository.RemoveAsync(favorite, cancellationToken);
@@ -34,8 +38,7 @@ public sealed class ToggleFavoriteCommandHandler(
         }
         else
         {
-            // Favorite
-            var favorite = UserFavorite.Create(command.UserId, command.FileId);
+            var favorite = UserFavorite.Create(command.UserId, command.FileId, utcNow);
             await userFavoriteRepository.AddAsync(favorite, cancellationToken);
             return new ToggleFavoriteResult(true);
         }

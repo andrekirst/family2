@@ -10,8 +10,7 @@ import {
   Renderer2,
   signal,
   ViewChild,
-  AfterViewInit,
-} from '@angular/core';
+  AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
 import {
@@ -35,6 +34,7 @@ import { getStoredTimeFormat } from '../../../../core/i18n/format-preferences.ut
 @Component({
   selector: 'app-calendar-week-grid',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <!-- Day Headers -->

@@ -13,7 +13,7 @@ public class FolderInboxTests
         var userId = UserId.New();
         var rootFolderId = FolderId.New();
 
-        var inbox = Folder.CreateInbox(rootFolderId, familyId, userId);
+        var inbox = Folder.CreateInbox(rootFolderId, familyId, userId, DateTimeOffset.UtcNow);
 
         inbox.IsInbox.Should().BeTrue();
         inbox.Name.Value.Should().Be("Inbox");
@@ -29,7 +29,7 @@ public class FolderInboxTests
             FolderId.New(),
             "/root/",
             FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
 
         folder.IsInbox.Should().BeFalse();
     }
@@ -37,7 +37,7 @@ public class FolderInboxTests
     [Fact]
     public void CreateRoot_ShouldSetIsInboxFalse()
     {
-        var root = Folder.CreateRoot(FamilyId.New(), UserId.New());
+        var root = Folder.CreateRoot(FamilyId.New(), UserId.New(), DateTimeOffset.UtcNow);
 
         root.IsInbox.Should().BeFalse();
     }

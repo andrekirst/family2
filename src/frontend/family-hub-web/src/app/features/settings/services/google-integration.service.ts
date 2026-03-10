@@ -79,6 +79,19 @@ export class GoogleIntegrationService {
       )
       .subscribe((url) => {
         if (url) {
+          // Validate URL is actually from Google to prevent open redirect
+          try {
+            const parsedUrl = new URL(url);
+            if (parsedUrl.hostname !== 'accounts.google.com') {
+              this.error.set('Invalid OAuth URL received');
+              this.loading.set(false);
+              return;
+            }
+          } catch {
+            this.error.set('Invalid OAuth URL received');
+            this.loading.set(false);
+            return;
+          }
           window.location.href = url;
         }
       });

@@ -5,13 +5,15 @@ using FamilyHub.Common.Application;
 namespace FamilyHub.Api.Features.FileManagement.Application.Commands.CreateSecureNote;
 
 public sealed class CreateSecureNoteCommandHandler(
-    ISecureNoteRepository noteRepository)
-    : ICommandHandler<CreateSecureNoteCommand, CreateSecureNoteResult>
+    ISecureNoteRepository noteRepository,
+    TimeProvider timeProvider)
+    : ICommandHandler<CreateSecureNoteCommand, Result<CreateSecureNoteResult>>
 {
-    public async ValueTask<CreateSecureNoteResult> Handle(
+    public async ValueTask<Result<CreateSecureNoteResult>> Handle(
         CreateSecureNoteCommand command,
         CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         var note = SecureNote.Create(
             command.FamilyId,
             command.UserId,
@@ -20,7 +22,8 @@ public sealed class CreateSecureNoteCommandHandler(
             command.EncryptedContent,
             command.Iv,
             command.Salt,
-            command.Sentinel);
+            command.Sentinel,
+            utcNow);
 
         await noteRepository.AddAsync(note, cancellationToken);
 

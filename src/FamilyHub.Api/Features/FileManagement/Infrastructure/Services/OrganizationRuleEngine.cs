@@ -102,10 +102,21 @@ public sealed class OrganizationRuleEngine : IOrganizationRuleEngine
     {
         try
         {
-            return Regex.IsMatch(file.Name.Value, value, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+            // Limit regex pattern length to prevent ReDoS
+            if (value.Length > 200)
+            {
+                return false;
+            }
+
+            return Regex.IsMatch(file.Name.Value, value, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
         }
-        catch
+        catch (RegexMatchTimeoutException)
         {
+            return false;
+        }
+        catch (ArgumentException)
+        {
+            // Invalid regex syntax
             return false;
         }
     }

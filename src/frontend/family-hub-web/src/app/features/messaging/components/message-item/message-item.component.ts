@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AvatarDisplayComponent } from '../../../../core/avatar';
 import { FileCardComponent } from '../file-card/file-card.component';
@@ -17,6 +17,7 @@ export interface MessageViewModel {
 @Component({
   selector: 'app-message-item',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, AvatarDisplayComponent, FileCardComponent],
   template: `
     <div class="flex gap-3 px-4 py-2 hover:bg-gray-50 transition-colors" data-testid="message-item">

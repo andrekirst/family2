@@ -7,6 +7,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RemovePermi
 public sealed record RemovePermissionCommand(
     PermissionResourceType ResourceType,
     Guid ResourceId,
-    UserId MemberId,
-    FamilyId FamilyId
-) : ICommand<RemovePermissionResult>;
+    UserId MemberId
+) : ICommand<Result<RemovePermissionResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

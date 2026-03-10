@@ -17,7 +17,7 @@ public class FileMetadataTests
             "Paris, France",
             "Canon EOS R5",
             new DateTime(2025, 6, 15, 10, 30, 0, DateTimeKind.Utc),
-            null);
+            null, DateTimeOffset.UtcNow);
 
         metadata.HasGpsData.Should().BeTrue();
         metadata.GpsLatitude!.Value.Value.Should().BeApproximately(48.8566, 0.0001);
@@ -36,7 +36,7 @@ public class FileMetadataTests
             null,
             "iPhone 15 Pro",
             new DateTime(2025, 6, 15, 10, 30, 0, DateTimeKind.Utc),
-            null);
+            null, DateTimeOffset.UtcNow);
 
         metadata.HasGpsData.Should().BeFalse();
         metadata.GpsLatitude.Should().BeNull();
@@ -54,7 +54,7 @@ public class FileMetadataTests
             null,
             null,
             null,
-            null);
+            null, DateTimeOffset.UtcNow);
 
         metadata.UpdateLocationName("Paris, France");
 
@@ -65,7 +65,7 @@ public class FileMetadataTests
     public void Create_ShouldSetExtractedAtToUtcNow()
     {
         var metadata = FileMetadata.Create(
-            FileId.New(), null, null, null, null, null, null);
+            FileId.New(), null, null, null, null, null, null, DateTimeOffset.UtcNow);
 
         metadata.ExtractedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
     }

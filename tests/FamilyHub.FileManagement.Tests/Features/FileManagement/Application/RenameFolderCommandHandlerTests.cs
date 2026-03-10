@@ -1,20 +1,22 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.RenameFolder;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class RenameFolderCommandHandlerTests
 {
-    private static (RenameFolderCommandHandler handler, FakeFolderRepository folderRepo) CreateHandler()
+    private readonly IFolderRepository _folderRepo = Substitute.For<IFolderRepository>();
+    private readonly RenameFolderCommandHandler _handler;
+
+    public RenameFolderCommandHandlerTests()
     {
-        var folderRepo = new FakeFolderRepository();
-        var handler = new RenameFolderCommandHandler(folderRepo);
-        return (handler, folderRepo);
+        _handler = new RenameFolderCommandHandler(_folderRepo, TimeProvider.System);
     }
 
     [Fact]
@@ -22,50 +24,55 @@ public class RenameFolderCommandHandlerTests
     {
         var familyId = FamilyId.New();
         var userId = UserId.New();
-        var (handler, folderRepo) = CreateHandler();
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folder = Folder.Create(FileName.From("OldName"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
+        _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
-        var root = Folder.CreateRoot(familyId, userId);
-        folderRepo.Folders.Add(root);
+        var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"))
+        {
+            FamilyId = familyId,
+            UserId = userId
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        var folder = Folder.Create(FileName.From("OldName"), root.Id, $"/{root.Id.Value}/", familyId, userId);
-        folderRepo.Folders.Add(folder);
-
-        var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"), familyId, userId);
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        result.FolderId.Should().Be(folder.Id);
+        result.Value.FolderId.Should().Be(folder.Id);
         folder.Name.Value.Should().Be("NewName");
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFolderNotFound()
     {
-        var (handler, _) = CreateHandler();
+        _folderRepo.GetByIdAsync(FolderId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((Folder?)null);
 
-        var command = new RenameFolderCommand(FolderId.New(), FileName.From("NewName"), FamilyId.New(), UserId.New());
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
+        var command = new RenameFolderCommand(FolderId.New(), FileName.From("NewName"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.FolderNotFound);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.FolderNotFound);
     }
 
     [Fact]
     public async Task Handle_ShouldThrowWhenFolderBelongsToDifferentFamily()
     {
-        var (handler, folderRepo) = CreateHandler();
         var familyId = FamilyId.New();
         var userId = UserId.New();
+        var root = Folder.CreateRoot(familyId, userId, DateTimeOffset.UtcNow);
+        var folder = Folder.Create(FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId, DateTimeOffset.UtcNow);
+        _folderRepo.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
-        var root = Folder.CreateRoot(familyId, userId);
-        folderRepo.Folders.Add(root);
+        var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"))
+        {
+            FamilyId = FamilyId.New(),
+            UserId = userId
+        };
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        var folder = Folder.Create(FileName.From("Documents"), root.Id, $"/{root.Id.Value}/", familyId, userId);
-        folderRepo.Folders.Add(folder);
-
-        var command = new RenameFolderCommand(folder.Id, FileName.From("NewName"), FamilyId.New(), userId);
-        var act = () => handler.Handle(command, CancellationToken.None).AsTask();
-
-        await act.Should().ThrowAsync<DomainException>()
-            .Where(e => e.ErrorCode == DomainErrorCodes.Forbidden);
+        result.IsFailure.Should().BeTrue();
+        result.Error.ErrorCode.Should().Be(DomainErrorCodes.Forbidden);
     }
 }

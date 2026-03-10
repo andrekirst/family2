@@ -5,7 +5,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.AddFileToAl
 
 public sealed record AddFileToAlbumCommand(
     AlbumId AlbumId,
-    FileId FileId,
-    FamilyId FamilyId,
-    UserId AddedBy
-) : ICommand<AddFileToAlbumResult>;
+    FileId FileId
+) : ICommand<Result<AddFileToAlbumResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

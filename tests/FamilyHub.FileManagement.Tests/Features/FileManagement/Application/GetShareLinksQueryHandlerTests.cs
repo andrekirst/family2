@@ -1,26 +1,39 @@
 using FamilyHub.Api.Features.FileManagement.Application.Queries.GetShareLinks;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class GetShareLinksQueryHandlerTests
 {
+    private readonly IShareLinkRepository _repo = Substitute.For<IShareLinkRepository>();
+    private readonly GetShareLinksQueryHandler _handler;
+
+    public GetShareLinksQueryHandlerTests()
+    {
+        _handler = new GetShareLinksQueryHandler(_repo, TimeProvider.System);
+    }
+
     [Fact]
     public async Task Handle_ShouldReturnLinks()
     {
-        var repo = new FakeShareLinkRepository();
-        var handler = new GetShareLinksQueryHandler(repo);
-
         var familyId = FamilyId.New();
-        repo.Links.Add(ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null));
-        repo.Links.Add(ShareLink.Create(ShareResourceType.Folder, Guid.NewGuid(), familyId, UserId.New(), null, null, null));
+        _repo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns([
+                ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId, UserId.New(), null, null, null, DateTimeOffset.UtcNow),
+                ShareLink.Create(ShareResourceType.Folder, Guid.NewGuid(), familyId, UserId.New(), null, null, null, DateTimeOffset.UtcNow)
+            ]);
 
-        var query = new GetShareLinksQuery(familyId);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetShareLinksQuery()
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(2);
     }
@@ -28,11 +41,15 @@ public class GetShareLinksQueryHandlerTests
     [Fact]
     public async Task Handle_Empty_ShouldReturnEmpty()
     {
-        var repo = new FakeShareLinkRepository();
-        var handler = new GetShareLinksQueryHandler(repo);
+        _repo.GetByFamilyIdAsync(FamilyId.New(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs(new List<ShareLink>());
 
-        var query = new GetShareLinksQuery(FamilyId.New());
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetShareLinksQuery()
+        {
+            FamilyId = FamilyId.New(),
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().BeEmpty();
     }
@@ -40,16 +57,18 @@ public class GetShareLinksQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldFilterByFamily()
     {
-        var repo = new FakeShareLinkRepository();
-        var handler = new GetShareLinksQueryHandler(repo);
-
         var familyId1 = FamilyId.New();
-        var familyId2 = FamilyId.New();
-        repo.Links.Add(ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId1, UserId.New(), null, null, null));
-        repo.Links.Add(ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId2, UserId.New(), null, null, null));
+        _repo.GetByFamilyIdAsync(familyId1, Arg.Any<CancellationToken>())
+            .Returns([
+                ShareLink.Create(ShareResourceType.File, Guid.NewGuid(), familyId1, UserId.New(), null, null, null, DateTimeOffset.UtcNow)
+            ]);
 
-        var query = new GetShareLinksQuery(familyId1);
-        var result = await handler.Handle(query, CancellationToken.None);
+        var query = new GetShareLinksQuery()
+        {
+            FamilyId = familyId1,
+            UserId = UserId.New()
+        };
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().HaveCount(1);
     }

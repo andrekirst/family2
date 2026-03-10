@@ -10,7 +10,9 @@ public sealed record UploadFileCommand(
     FileSize Size,
     StorageKey StorageKey,
     Checksum Checksum,
-    FolderId FolderId,
-    FamilyId FamilyId,
-    UserId UploadedBy
-) : ICommand<UploadFileResult>;
+    FolderId FolderId
+) : ICommand<Result<UploadFileResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

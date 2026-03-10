@@ -8,5 +8,5 @@ public interface ICommandHandler<in TCommand, TResult>
     : Mediator.ICommandHandler<TCommand, TResult>
     where TCommand : ICommand<TResult>
 {
-    // Inherited: ValueTask<TResult> Handle(TCommand command, CancellationToken ct);
+    // Inherited: ValueTask<TResult> Handle(TCommand command, CancellationToken cancellationToken);
 }

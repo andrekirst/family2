@@ -1,56 +1,85 @@
 using FamilyHub.Api.Features.FileManagement.Application.Commands.CreateOrganizationRule;
+using FamilyHub.Api.Features.FileManagement.Domain.Entities;
+using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.FileManagement.Tests.Features.FileManagement.Application;
 
 public class CreateOrganizationRuleCommandHandlerTests
 {
+    private readonly IOrganizationRuleRepository _ruleRepo = Substitute.For<IOrganizationRuleRepository>();
+    private readonly CreateOrganizationRuleCommandHandler _handler;
+
+    public CreateOrganizationRuleCommandHandlerTests()
+    {
+        _handler = new CreateOrganizationRuleCommandHandler(_ruleRepo, TimeProvider.System);
+    }
+
     [Fact]
     public async Task Handle_ShouldCreateRule()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new CreateOrganizationRuleCommandHandler(ruleRepo);
+        var familyId = FamilyId.New();
+        _ruleRepo.GetMaxPriorityAsync(familyId, Arg.Any<CancellationToken>()).Returns(0);
 
         var command = new CreateOrganizationRuleCommand(
             "Move photos",
-            FamilyId.New(),
-            UserId.New(),
             """[{"Type":1,"Value":".jpg"}]""",
             ConditionLogic.And,
             RuleActionType.MoveToFolder,
-            """{"DestinationFolderId":"00000000-0000-0000-0000-000000000001"}""");
+            """{"DestinationFolderId":"00000000-0000-0000-0000-000000000001"}""")
+        {
+            FamilyId = familyId,
+            UserId = UserId.New()
+        };
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeTrue();
-        ruleRepo.Rules.Should().HaveCount(1);
-        ruleRepo.Rules.First().Name.Should().Be("Move photos");
-        ruleRepo.Rules.First().Priority.Should().Be(1);
+        result.IsSuccess.Should().BeTrue();
+        await _ruleRepo.Received(1).AddAsync(
+            Arg.Is<OrganizationRule>(r => r.Name == "Move photos" && r.Priority == 1),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldAutoIncrementPriority()
     {
-        var ruleRepo = new FakeOrganizationRuleRepository();
-        var handler = new CreateOrganizationRuleCommandHandler(ruleRepo);
         var familyId = FamilyId.New();
         var userId = UserId.New();
 
-        await handler.Handle(new CreateOrganizationRuleCommand(
-            "Rule 1", familyId, userId,
+        _ruleRepo.GetMaxPriorityAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(0, 1);
+
+        await _handler.Handle(new CreateOrganizationRuleCommand(
+            "Rule 1",
             """[{"Type":1,"Value":".jpg"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}"), CancellationToken.None);
+            ConditionLogic.And,
+            RuleActionType.MoveToFolder,
+            "{}")
+        {
+            FamilyId = familyId,
+            UserId = userId
+        }, CancellationToken.None);
 
-        await handler.Handle(new CreateOrganizationRuleCommand(
-            "Rule 2", familyId, userId,
+        await _handler.Handle(new CreateOrganizationRuleCommand(
+            "Rule 2",
             """[{"Type":1,"Value":".png"}]""",
-            ConditionLogic.And, RuleActionType.MoveToFolder, "{}"), CancellationToken.None);
+            ConditionLogic.And,
+            RuleActionType.MoveToFolder,
+            "{}")
+        {
+            FamilyId = familyId,
+            UserId = userId
+        }, CancellationToken.None);
 
-        ruleRepo.Rules.Should().HaveCount(2);
-        ruleRepo.Rules[0].Priority.Should().Be(1);
-        ruleRepo.Rules[1].Priority.Should().Be(2);
+        await _ruleRepo.Received(2).AddAsync(Arg.Any<OrganizationRule>(), Arg.Any<CancellationToken>());
+        await _ruleRepo.Received(1).AddAsync(
+            Arg.Is<OrganizationRule>(r => r.Priority == 1),
+            Arg.Any<CancellationToken>());
+        await _ruleRepo.Received(1).AddAsync(
+            Arg.Is<OrganizationRule>(r => r.Priority == 2),
+            Arg.Any<CancellationToken>());
     }
 }

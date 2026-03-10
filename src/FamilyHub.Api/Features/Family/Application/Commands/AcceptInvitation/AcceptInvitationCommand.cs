@@ -8,6 +8,8 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.AcceptInvitation;
 /// Command to accept a family invitation using the plaintext token.
 /// </summary>
 public sealed record AcceptInvitationCommand(
-    string Token,
-    UserId AcceptingUserId
-) : ICommand<AcceptInvitationResult>;
+    string Token
+) : ICommand<AcceptInvitationResult>, IRequireUser
+{
+    public UserId UserId { get; init; }
+}

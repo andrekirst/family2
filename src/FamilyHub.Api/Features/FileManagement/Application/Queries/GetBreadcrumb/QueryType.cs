@@ -1,7 +1,4 @@
-using System.Security.Claims;
-using FamilyHub.Api.Common.Infrastructure;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
@@ -13,24 +10,21 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetBreadcrum
 public class QueryType
 {
     [Authorize]
+    [UsePaging]
     public async Task<List<FolderDto>> GetBreadcrumb(
         Guid folderId,
-        ClaimsPrincipal claimsPrincipal,
         [Service] IQueryBus queryBus,
-        [Service] IUserRepository userRepository,
         CancellationToken cancellationToken)
     {
-        var externalUserIdString = claimsPrincipal.FindFirst(ClaimNames.Sub)?.Value
-            ?? throw new UnauthorizedAccessException("User not authenticated");
+        var query = new GetBreadcrumbQuery(FolderId.From(folderId));
 
-        var user = await userRepository.GetByExternalIdAsync(
-            ExternalUserId.From(externalUserIdString), cancellationToken)
-            ?? throw new UnauthorizedAccessException("User not found");
-
-        var familyId = user.FamilyId
-            ?? throw new UnauthorizedAccessException("User is not a member of any family");
-
-        var query = new GetBreadcrumbQuery(FolderId.From(folderId), familyId);
-        return await queryBus.QueryAsync(query, cancellationToken);
+        var result = await queryBus.QueryAsync(query, cancellationToken);
+        return result.Match(
+            success => success,
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

@@ -1,10 +1,11 @@
 using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.Calendar.Application.Search;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
+using FamilyHub.Api.Features.Calendar.Domain.Repositories;
 using FamilyHub.Api.Features.Calendar.Domain.ValueObjects;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.Search.Tests;
 
@@ -21,8 +22,8 @@ public class CalendarSearchProviderTests
             CreateEvent("Team Meeting", null, null, DateTime.UtcNow.AddDays(1)),
             CreateEvent("Birthday Party", null, null, DateTime.UtcNow.AddDays(2))
         };
-        var repo = new FakeCalendarEventRepository(events);
-        var provider = new CalendarSearchProvider(repo);
+        var repo = CreateRepo(events);
+        var provider = new CalendarSearchProvider(repo, TimeProvider.System);
         var context = new SearchContext(TestUserId, TestFamilyId, "meeting");
 
         var results = await provider.SearchAsync(context);
@@ -38,8 +39,8 @@ public class CalendarSearchProviderTests
         {
             CreateEvent("Event A", "Discuss quarterly budget", null, DateTime.UtcNow.AddDays(1))
         };
-        var repo = new FakeCalendarEventRepository(events);
-        var provider = new CalendarSearchProvider(repo);
+        var repo = CreateRepo(events);
+        var provider = new CalendarSearchProvider(repo, TimeProvider.System);
         var context = new SearchContext(TestUserId, TestFamilyId, "budget");
 
         var results = await provider.SearchAsync(context);
@@ -55,8 +56,8 @@ public class CalendarSearchProviderTests
         {
             CreateEvent("Meeting", null, "Conference Room B", DateTime.UtcNow.AddDays(1))
         };
-        var repo = new FakeCalendarEventRepository(events);
-        var provider = new CalendarSearchProvider(repo);
+        var repo = CreateRepo(events);
+        var provider = new CalendarSearchProvider(repo, TimeProvider.System);
         var context = new SearchContext(TestUserId, TestFamilyId, "conference");
 
         var results = await provider.SearchAsync(context);
@@ -68,10 +69,10 @@ public class CalendarSearchProviderTests
     public async Task SearchAsync_ExcludesCancelledEvents()
     {
         var cancelledEvent = CreateEvent("Cancelled Meeting", null, null, DateTime.UtcNow.AddDays(1));
-        cancelledEvent.Cancel();
+        cancelledEvent.Cancel(DateTimeOffset.UtcNow);
         var events = new List<CalendarEvent> { cancelledEvent };
-        var repo = new FakeCalendarEventRepository(events);
-        var provider = new CalendarSearchProvider(repo);
+        var repo = CreateRepo(events);
+        var provider = new CalendarSearchProvider(repo, TimeProvider.System);
         var context = new SearchContext(TestUserId, TestFamilyId, "meeting");
 
         var results = await provider.SearchAsync(context);
@@ -85,8 +86,8 @@ public class CalendarSearchProviderTests
         var events = Enumerable.Range(1, 15)
             .Select(i => CreateEvent($"Meeting {i}", null, null, DateTime.UtcNow.AddDays(i)))
             .ToList();
-        var repo = new FakeCalendarEventRepository(events);
-        var provider = new CalendarSearchProvider(repo);
+        var repo = CreateRepo(events);
+        var provider = new CalendarSearchProvider(repo, TimeProvider.System);
         var context = new SearchContext(TestUserId, TestFamilyId, "meeting", Limit: 5);
 
         var results = await provider.SearchAsync(context);
@@ -101,8 +102,8 @@ public class CalendarSearchProviderTests
         {
             CreateEvent("Team Meeting", null, null, DateTime.UtcNow.AddDays(1))
         };
-        var repo = new FakeCalendarEventRepository(events);
-        var provider = new CalendarSearchProvider(repo);
+        var repo = CreateRepo(events);
+        var provider = new CalendarSearchProvider(repo, TimeProvider.System);
         var context = new SearchContext(TestUserId, TestFamilyId, "");
 
         var results = await provider.SearchAsync(context);
@@ -113,10 +114,22 @@ public class CalendarSearchProviderTests
     [Fact]
     public void ModuleName_ShouldBeCalendar()
     {
-        var repo = new FakeCalendarEventRepository();
-        var provider = new CalendarSearchProvider(repo);
+        var repo = Substitute.For<ICalendarEventRepository>();
+        var provider = new CalendarSearchProvider(repo, TimeProvider.System);
 
         provider.ModuleName.Should().Be("calendar");
+    }
+
+    private static ICalendarEventRepository CreateRepo(List<CalendarEvent> events)
+    {
+        var repo = Substitute.For<ICalendarEventRepository>();
+        repo.GetByFamilyAndDateRangeAsync(
+                TestFamilyId,
+                Arg.Any<DateTime>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(events.Where(e => e.FamilyId == TestFamilyId).OrderBy(e => e.StartTime).ToList());
+        return repo;
     }
 
     private static CalendarEvent CreateEvent(
@@ -125,7 +138,7 @@ public class CalendarSearchProviderTests
         var evt = CalendarEvent.Create(
             TestFamilyId, TestUserId,
             EventTitle.From(title), description, location,
-            startTime, startTime.AddHours(1), false);
+            startTime, startTime.AddHours(1), false, DateTimeOffset.UtcNow);
         evt.ClearDomainEvents();
         return evt;
     }

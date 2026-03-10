@@ -16,5 +16,5 @@ public interface IFileSearchService
         string sortBy = "relevance",
         int skip = 0,
         int take = 20,
-        CancellationToken ct = default);
+        CancellationToken cancellationToken = default);
 }

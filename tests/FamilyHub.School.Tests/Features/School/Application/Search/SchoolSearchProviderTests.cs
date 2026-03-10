@@ -3,12 +3,14 @@ using FamilyHub.Api.Common.Search;
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Api.Features.Auth.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.Entities;
+using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.School.Application.Search;
 using FamilyHub.Api.Features.School.Domain.Entities;
+using FamilyHub.Api.Features.School.Domain.Repositories;
 using FamilyHub.Common.Domain.ValueObjects;
-using FamilyHub.TestCommon.Fakes;
 using FluentAssertions;
+using NSubstitute;
 
 namespace FamilyHub.School.Tests.Features.School.Application.Search;
 
@@ -120,8 +122,15 @@ public class SchoolSearchProviderTests
         List<FamilyMember> members)
     {
         var familyId = students.FirstOrDefault()?.FamilyId ?? members.FirstOrDefault()?.FamilyId ?? FamilyId.New();
-        var studentRepo = new FakeStudentRepository(students);
-        var memberRepo = new FakeFamilyMemberRepository(allMembers: members);
+
+        var studentRepo = Substitute.For<IStudentRepository>();
+        var memberRepo = Substitute.For<IFamilyMemberRepository>();
+
+        studentRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(students);
+        memberRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(members.Where(m => m.FamilyId == familyId).ToList());
+
         return new SchoolSearchProvider(studentRepo, memberRepo);
     }
 
@@ -130,20 +139,20 @@ public class SchoolSearchProviderTests
         string name)
     {
         var userId = UserId.New();
-        var member = FamilyMember.Create(familyId, userId, FamilyRole.Member);
+        var member = FamilyMember.Create(familyId, userId, FamilyRole.Member, DateTimeOffset.UtcNow);
 
         // Create a User with the given name and set it on the FamilyMember via reflection
         var user = User.Register(
             Email.From($"{name.Replace(" ", "").ToLowerInvariant()}@test.com"),
             UserName.From(name),
             ExternalUserId.From(Guid.NewGuid().ToString()),
-            emailVerified: true);
+            emailVerified: true, utcNow: DateTimeOffset.UtcNow);
 
         typeof(FamilyMember)
             .GetProperty("User")!
             .SetValue(member, user, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
 
-        var student = Student.Create(member.Id, familyId, UserId.New());
+        var student = Student.Create(member.Id, familyId, UserId.New(), DateTimeOffset.UtcNow);
         return (member, student);
     }
 }

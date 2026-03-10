@@ -14,7 +14,7 @@ public class AlbumAggregateTests
             AlbumName.From("Summer Vacation"),
             "Photos from our trip",
             familyId ?? FamilyId.New(),
-            UserId.New());
+            UserId.New(), DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class AlbumAggregateTests
         var album = CreateTestAlbum();
         var newName = AlbumName.From("Winter Vacation");
 
-        album.Rename(newName);
+        album.Rename(newName, DateTimeOffset.UtcNow);
 
         album.Name.Value.Should().Be("Winter Vacation");
     }
@@ -58,7 +58,7 @@ public class AlbumAggregateTests
         var album = CreateTestAlbum();
         var originalUpdatedAt = album.UpdatedAt;
 
-        album.Rename(AlbumName.From("New Name"));
+        album.Rename(AlbumName.From("New Name"), DateTimeOffset.UtcNow);
 
         album.UpdatedAt.Should().BeOnOrAfter(originalUpdatedAt);
     }
@@ -68,7 +68,7 @@ public class AlbumAggregateTests
     {
         var album = CreateTestAlbum();
 
-        album.UpdateDescription("New description");
+        album.UpdateDescription("New description", DateTimeOffset.UtcNow);
 
         album.Description.Should().Be("New description");
     }
@@ -79,7 +79,7 @@ public class AlbumAggregateTests
         var album = CreateTestAlbum();
         var fileId = FileId.New();
 
-        album.SetCoverImage(fileId);
+        album.SetCoverImage(fileId, DateTimeOffset.UtcNow);
 
         album.CoverFileId.Should().Be(fileId);
     }
@@ -88,9 +88,9 @@ public class AlbumAggregateTests
     public void SetCoverImage_WithNull_ShouldClearCover()
     {
         var album = CreateTestAlbum();
-        album.SetCoverImage(FileId.New());
+        album.SetCoverImage(FileId.New(), DateTimeOffset.UtcNow);
 
-        album.SetCoverImage(null);
+        album.SetCoverImage(null, DateTimeOffset.UtcNow);
 
         album.CoverFileId.Should().BeNull();
     }

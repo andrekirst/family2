@@ -7,8 +7,7 @@ import {
   Output,
   signal,
   ViewChild,
-  AfterViewInit,
-} from '@angular/core';
+  AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalendarEventDto } from '../../services/calendar.service';
 import { AgendaDayGroup } from '../../models/calendar.models';
@@ -17,6 +16,7 @@ import { groupEventsByDay, formatAgendaEventTime } from '../../utils/agenda.util
 @Component({
   selector: 'app-calendar-agenda',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     @if (dayGroups().length === 0 && !loading()) {

@@ -13,19 +13,21 @@
 #   --auto-recover     Enable auto-recovery for known failure patterns
 #   --verbose          Show detailed check output
 #   --skip-oidc        Skip full OIDC token exchange test
+#   --mode=MODE        simple or multi (default: multi)
 # =============================================================================
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-ENV_NAME="${1:?Usage: readiness-gate.sh <env-name> [--timeout=N] [--auto-recover] [--verbose] [--skip-oidc]}"
+ENV_NAME="${1:?Usage: readiness-gate.sh <env-name> [--timeout=N] [--auto-recover] [--verbose] [--skip-oidc] [--mode=simple|multi]}"
 shift
 
 TIMEOUT=300
 AUTO_RECOVER=false
 VERBOSE=false
 SKIP_OIDC=false
+RUN_MODE="multi"
 
 for arg in "$@"; do
   case "$arg" in
@@ -33,15 +35,28 @@ for arg in "$@"; do
     --auto-recover) AUTO_RECOVER=true ;;
     --verbose) VERBOSE=true ;;
     --skip-oidc) SKIP_OIDC=true ;;
+    --mode) ;; # next positional handled below
+    --mode=*) RUN_MODE="${arg#*=}" ;;
+    simple) RUN_MODE="simple" ;;
+    multi) RUN_MODE="multi" ;;
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
 
-COMPOSE_PROJECT="fh-${ENV_NAME}"
-BASE_URL="https://${ENV_NAME}.localhost:4443"
-API_URL="https://api-${ENV_NAME}.localhost:4443"
-AUTH_URL="https://auth.localhost:4443"
-REALM="FamilyHub-${ENV_NAME}"
+# URL configuration based on mode
+if [[ "$RUN_MODE" == "simple" ]]; then
+  COMPOSE_PROJECT="fh-simple"
+  BASE_URL="https://localhost:4443"
+  API_URL="https://localhost:4443"
+  AUTH_URL="https://localhost:4443/auth"
+  REALM="FamilyHub-dev"
+else
+  COMPOSE_PROJECT="fh-${ENV_NAME}"
+  BASE_URL="https://${ENV_NAME}.localhost:4443"
+  API_URL="https://api-${ENV_NAME}.localhost:4443"
+  AUTH_URL="https://auth.localhost:4443"
+  REALM="FamilyHub-${ENV_NAME}"
+fi
 
 # Curl options: insecure (self-signed certs), silent, fail on HTTP errors
 CURL_OPTS=(-sk --connect-timeout 5 --max-time 10)
@@ -168,7 +183,11 @@ check_keycloak() {
 
   # Auto-recovery: re-provision realm if Keycloak itself is healthy
   local kc_container
-  kc_container=$(docker ps --filter "name=fh-shared-keycloak" --filter "status=running" --format '{{.Names}}' | head -1)
+  kc_container=$(docker ps --filter "name=${COMPOSE_PROJECT}-keycloak" --filter "status=running" --format '{{.Names}}' | head -1)
+  if [[ -z "$kc_container" ]]; then
+    # Try shared keycloak container name (multi-env mode)
+    kc_container=$(docker ps --filter "name=fh-shared-keycloak" --filter "status=running" --format '{{.Names}}' | head -1)
+  fi
   if [[ -n "$kc_container" ]]; then
     local kc_health
     kc_health=$(docker inspect --format='{{.State.Health.Status}}' "$kc_container" 2>/dev/null || echo "unknown")
@@ -176,7 +195,11 @@ check_keycloak() {
       local script_dir
       script_dir="$(cd "$(dirname "$0")/.." && pwd)/keycloak/provision-realm.sh"
       if [[ -f "$script_dir" ]]; then
-        try_recover "keycloak" "bash $script_dir ${ENV_NAME}"
+        local mode_flag=""
+        if [[ "$RUN_MODE" == "simple" ]]; then
+          mode_flag="--mode simple"
+        fi
+        try_recover "keycloak" "bash $script_dir ${ENV_NAME} $mode_flag"
       fi
     fi
   fi
@@ -260,8 +283,14 @@ check_auth() {
     local access_token
     access_token=$(echo "$token_response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
     if [[ -n "$access_token" ]]; then
+      local gql_url
+      if [[ "$RUN_MODE" == "simple" ]]; then
+        gql_url="${BASE_URL}/graphql"
+      else
+        gql_url="${BASE_URL}/graphql"
+      fi
       local gql_response
-      gql_response=$(curl "${CURL_OPTS[@]}" "${BASE_URL}/graphql" \
+      gql_response=$(curl "${CURL_OPTS[@]}" "$gql_url" \
         -H "Authorization: Bearer $access_token" \
         -H "Content-Type: application/json" \
         -d '{"query":"{ __typename }"}' 2>/dev/null || echo "")
@@ -281,7 +310,7 @@ check_auth() {
 # Main loop
 # ---------------------------------------------------------------------------
 echo ""
-echo -e "  ${BOLD}Readiness Gate${RESET} — Environment: ${CYAN}${ENV_NAME}${RESET}"
+echo -e "  ${BOLD}Readiness Gate${RESET} — Environment: ${CYAN}${ENV_NAME}${RESET} (mode: ${RUN_MODE})"
 echo -e "  ${DIM}Timeout: ${TIMEOUT}s | Auto-recover: ${AUTO_RECOVER} | OIDC: $( $SKIP_OIDC && echo 'skip' || echo 'full' )${RESET}"
 echo ""
 
@@ -301,10 +330,17 @@ while true; do
     echo ""
     echo "  Suggested fixes:"
     [[ "${STATUS[postgres]}" != "ok" ]] && echo "    - Check postgres: docker logs ${COMPOSE_PROJECT}-postgres-1"
-    [[ "${STATUS[keycloak]}" != "ok" ]] && echo "    - Re-provision realm: bash infrastructure/keycloak/provision-realm.sh ${ENV_NAME}"
-    [[ "${STATUS[api]}" != "ok" ]] && echo "    - Check API logs: task env:logs -- api"
-    [[ "${STATUS[frontend]}" != "ok" ]] && echo "    - Check frontend logs: task env:logs -- frontend"
-    [[ "${STATUS[auth]}" != "ok" ]] && echo "    - Verify Keycloak realm: ${AUTH_URL}/admin/master/console/#/${REALM}"
+    if [[ "$RUN_MODE" == "simple" ]]; then
+      [[ "${STATUS[keycloak]}" != "ok" ]] && echo "    - Re-provision realm: bash infrastructure/keycloak/provision-realm.sh dev --mode simple"
+      [[ "${STATUS[api]}" != "ok" ]] && echo "    - Check API logs: task simple:logs -- api"
+      [[ "${STATUS[frontend]}" != "ok" ]] && echo "    - Check frontend logs: task simple:logs -- frontend"
+      [[ "${STATUS[auth]}" != "ok" ]] && echo "    - Verify Keycloak realm: ${AUTH_URL}/admin/master/console/#/${REALM}"
+    else
+      [[ "${STATUS[keycloak]}" != "ok" ]] && echo "    - Re-provision realm: bash infrastructure/keycloak/provision-realm.sh ${ENV_NAME}"
+      [[ "${STATUS[api]}" != "ok" ]] && echo "    - Check API logs: task env:logs -- api"
+      [[ "${STATUS[frontend]}" != "ok" ]] && echo "    - Check frontend logs: task env:logs -- frontend"
+      [[ "${STATUS[auth]}" != "ok" ]] && echo "    - Verify Keycloak realm: ${AUTH_URL}/admin/master/console/#/${REALM}"
+    fi
     echo ""
     exit 1
   fi

@@ -10,15 +10,15 @@ namespace FamilyHub.Api.Features.GoogleIntegration.Application.Commands.RefreshG
 public sealed class RefreshGoogleTokenCommandHandler(
     IGoogleAccountLinkRepository linkRepository,
     IGoogleOAuthService oauthService,
-    ITokenEncryptionService encryptionService)
+    ITokenEncryptionService encryptionService,
+    TimeProvider timeProvider)
     : ICommandHandler<RefreshGoogleTokenCommand, RefreshTokenResultDto>
 {
     public async ValueTask<RefreshTokenResultDto> Handle(
         RefreshGoogleTokenCommand command,
         CancellationToken cancellationToken)
     {
-        var link = await linkRepository.GetByUserIdAsync(command.UserId, cancellationToken)
-            ?? throw new DomainException("No Google account linked");
+        var link = (await linkRepository.GetByUserIdAsync(command.UserId, cancellationToken))!;
 
         try
         {
@@ -32,17 +32,17 @@ public sealed class RefreshGoogleTokenCommandHandler(
             var encryptedAccessToken = EncryptedToken.From(
                 encryptionService.Encrypt(tokenResponse.AccessToken));
 
-            var newExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
+            var newExpiresAt = timeProvider.GetUtcNow().UtcDateTime.AddSeconds(tokenResponse.ExpiresIn);
 
             // Update aggregate
-            link.RefreshAccessToken(encryptedAccessToken, newExpiresAt);
+            link.RefreshAccessToken(encryptedAccessToken, newExpiresAt, timeProvider.GetUtcNow());
             await linkRepository.UpdateAsync(link, cancellationToken);
 
             return new RefreshTokenResultDto(true, newExpiresAt);
         }
         catch (Exception ex) when (ex is not DomainException)
         {
-            link.MarkRefreshFailed(ex.Message);
+            link.MarkRefreshFailed(ex.Message, timeProvider.GetUtcNow());
             await linkRepository.UpdateAsync(link, cancellationToken);
             return new RefreshTokenResultDto(false, null);
         }

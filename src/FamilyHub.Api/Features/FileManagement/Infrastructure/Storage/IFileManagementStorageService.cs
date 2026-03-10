@@ -16,41 +16,41 @@ public interface IFileManagementStorageService
         FamilyId familyId,
         Stream data,
         string fileName,
-        CancellationToken ct = default);
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves a file as a stream.
     /// </summary>
-    Task<FileDownloadResult?> GetFileAsync(string storageKey, CancellationToken ct = default);
+    Task<FileDownloadResult?> GetFileAsync(string storageKey, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves a byte range from a file (for media streaming).
     /// </summary>
     Task<StorageRangeResult?> GetFileRangeAsync(
-        string storageKey, long from, long to, CancellationToken ct = default);
+        string storageKey, long from, long to, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes a file and decrements quota usage.
     /// </summary>
     Task DeleteFileAsync(
-        FamilyId familyId, string storageKey, long fileSize, CancellationToken ct = default);
+        FamilyId familyId, string storageKey, long fileSize, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Initiates a chunked upload session.
     /// </summary>
-    Task<string> InitiateChunkedUploadAsync(CancellationToken ct = default);
+    Task<string> InitiateChunkedUploadAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Uploads a single chunk for a chunked upload session.
     /// </summary>
     Task UploadChunkAsync(
-        string uploadId, int chunkIndex, Stream data, CancellationToken ct = default);
+        string uploadId, int chunkIndex, Stream data, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Completes a chunked upload by assembling all chunks.
     /// </summary>
     Task<FileStorageResult> CompleteChunkedUploadAsync(
-        FamilyId familyId, string uploadId, string fileName, CancellationToken ct = default);
+        FamilyId familyId, string uploadId, string fileName, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

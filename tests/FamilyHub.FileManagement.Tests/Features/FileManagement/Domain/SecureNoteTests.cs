@@ -16,7 +16,7 @@ public class SecureNoteTests
 
         var note = SecureNote.Create(
             familyId, userId, NoteCategory.Passwords,
-            "enc-title", "enc-content", "iv-123", "salt-456", "sentinel-789");
+            "enc-title", "enc-content", "iv-123", "salt-456", "sentinel-789", DateTimeOffset.UtcNow);
 
         note.FamilyId.Should().Be(familyId);
         note.UserId.Should().Be(userId);
@@ -36,7 +36,7 @@ public class SecureNoteTests
         var familyId = FamilyId.New();
         var note = SecureNote.Create(
             familyId, UserId.New(), NoteCategory.Financial,
-            "enc-title", "enc-content", "iv", "salt", "sentinel");
+            "enc-title", "enc-content", "iv", "salt", "sentinel", DateTimeOffset.UtcNow);
 
         var domainEvent = note.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<SecureNoteCreatedEvent>().Subject;
@@ -50,11 +50,11 @@ public class SecureNoteTests
     {
         var note = SecureNote.Create(
             FamilyId.New(), UserId.New(), NoteCategory.Passwords,
-            "old-title", "old-content", "old-iv", "salt", "sentinel");
+            "old-title", "old-content", "old-iv", "salt", "sentinel", DateTimeOffset.UtcNow);
 
         var originalUpdatedAt = note.UpdatedAt;
 
-        note.Update(NoteCategory.Medical, "new-title", "new-content", "new-iv");
+        note.Update(NoteCategory.Medical, "new-title", "new-content", "new-iv", DateTimeOffset.UtcNow);
 
         note.Category.Should().Be(NoteCategory.Medical);
         note.EncryptedTitle.Should().Be("new-title");
@@ -72,7 +72,7 @@ public class SecureNoteTests
         var familyId = FamilyId.New();
         var note = SecureNote.Create(
             familyId, UserId.New(), NoteCategory.Personal,
-            "enc-title", "enc-content", "iv", "salt", "sentinel");
+            "enc-title", "enc-content", "iv", "salt", "sentinel", DateTimeOffset.UtcNow);
 
         note.ClearDomainEvents();
         note.MarkDeleted();
@@ -93,7 +93,7 @@ public class SecureNoteTests
     {
         var note = SecureNote.Create(
             FamilyId.New(), UserId.New(), category,
-            "title", "content", "iv", "salt", "sentinel");
+            "title", "content", "iv", "salt", "sentinel", DateTimeOffset.UtcNow);
 
         note.Category.Should().Be(category);
     }

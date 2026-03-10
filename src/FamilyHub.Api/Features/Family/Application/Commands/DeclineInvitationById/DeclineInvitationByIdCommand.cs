@@ -9,6 +9,8 @@ namespace FamilyHub.Api.Features.Family.Application.Commands.DeclineInvitationBy
 /// Requires email verification to ensure only the intended recipient can decline.
 /// </summary>
 public sealed record DeclineInvitationByIdCommand(
-    InvitationId InvitationId,
-    UserId DeclininingUserId
-) : ICommand<bool>;
+    InvitationId? InvitationId
+) : ICommand<bool>, IRequireUser
+{
+    public UserId UserId { get; init; }
+}

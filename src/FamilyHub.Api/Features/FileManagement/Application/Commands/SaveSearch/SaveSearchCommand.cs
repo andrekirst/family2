@@ -6,6 +6,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.SaveSearch;
 public sealed record SaveSearchCommand(
     string Name,
     string Query,
-    string? FiltersJson,
-    UserId UserId
-) : ICommand<SaveSearchResult>;
+    string? FiltersJson
+) : ICommand<Result<SaveSearchResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

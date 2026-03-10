@@ -1,3 +1,4 @@
+using FamilyHub.Common.Domain;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Calendar.Domain.Entities;
 using FamilyHub.Api.Features.Calendar.Domain.Repositories;
@@ -10,25 +11,34 @@ public class FakeCalendarEventRepository(List<CalendarEvent>? existingEvents = n
     private readonly List<CalendarEvent> _events = existingEvents ?? [];
     public List<CalendarEvent> AddedEvents { get; } = [];
 
-    public Task<CalendarEvent?> GetByIdAsync(CalendarEventId id, CancellationToken ct = default) =>
-        Task.FromResult(_events.Concat(AddedEvents).FirstOrDefault(e => e.Id == id));
+    private IEnumerable<CalendarEvent> All => _events.Concat(AddedEvents);
 
-    public Task<CalendarEvent?> GetByIdWithAttendeesAsync(CalendarEventId id, CancellationToken ct = default) =>
-        GetByIdAsync(id, ct);
+    public Task<CalendarEvent?> GetByIdAsync(CalendarEventId id, CancellationToken cancellationToken = default) =>
+        Task.FromResult(All.FirstOrDefault(e => e.Id == id));
+
+    public Task<CalendarEvent?> GetByIdWithAttendeesAsync(CalendarEventId id, CancellationToken cancellationToken = default) =>
+        GetByIdAsync(id, cancellationToken);
+
+    public Task<bool> ExistsByIdAsync(CalendarEventId id, CancellationToken cancellationToken = default) =>
+        Task.FromResult(All.Any(e => e.Id == id));
+
+    public Task<bool> IsCancelledAsync(CalendarEventId id, CancellationToken cancellationToken = default)
+    {
+        var calendarEvent = All.FirstOrDefault(e => e.Id == id)
+            ?? throw new EntityNotFoundException<CalendarEvent>(id);
+        return Task.FromResult(calendarEvent.IsCancelled);
+    }
 
     public Task<List<CalendarEvent>> GetByFamilyAndDateRangeAsync(
-        FamilyId familyId, DateTime start, DateTime end, CancellationToken ct = default) =>
-        Task.FromResult(_events.Concat(AddedEvents)
+        FamilyId familyId, DateTime start, DateTime end, CancellationToken cancellationToken = default) =>
+        Task.FromResult(All
             .Where(e => e.FamilyId == familyId && e.StartTime >= start && e.StartTime <= end)
             .OrderBy(e => e.StartTime)
             .ToList());
 
-    public Task AddAsync(CalendarEvent calendarEvent, CancellationToken ct = default)
+    public Task AddAsync(CalendarEvent calendarEvent, CancellationToken cancellationToken = default)
     {
         AddedEvents.Add(calendarEvent);
         return Task.CompletedTask;
     }
-
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        Task.FromResult(1);
 }

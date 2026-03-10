@@ -1,4 +1,4 @@
-import { Component, inject, effect, OnDestroy } from '@angular/core';
+import { Component, inject, effect, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { TopBarService } from '../../../../shared/services/top-bar.service';
@@ -8,6 +8,7 @@ import { GoogleIntegrationService } from '../../services/google-integration.serv
 @Component({
   selector: 'app-user-settings',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, IntegrationsPanelComponent],
   template: `
     @if (successMessage) {

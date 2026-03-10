@@ -20,7 +20,8 @@ public sealed class ChainDefinition : AggregateRoot<ChainDefinitionId>
         string triggerEventType,
         string triggerModule,
         string? triggerDescription,
-        string? triggerOutputSchema)
+        string? triggerOutputSchema,
+        DateTimeOffset utcNow)
     {
         return new ChainDefinition
         {
@@ -36,8 +37,8 @@ public sealed class ChainDefinition : AggregateRoot<ChainDefinitionId>
             TriggerDescription = triggerDescription,
             TriggerOutputSchema = triggerOutputSchema,
             Version = 1,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = utcNow.UtcDateTime,
+            UpdatedAt = utcNow.UtcDateTime
         };
     }
 
@@ -50,11 +51,12 @@ public sealed class ChainDefinition : AggregateRoot<ChainDefinitionId>
         string triggerEventType,
         string triggerModule,
         string? triggerDescription,
-        string? triggerOutputSchema)
+        string? triggerOutputSchema,
+        DateTimeOffset utcNow)
     {
         var definition = Create(
             name, description, familyId, createdByUserId,
-            triggerEventType, triggerModule, triggerDescription, triggerOutputSchema);
+            triggerEventType, triggerModule, triggerDescription, triggerOutputSchema, utcNow);
 
         definition.IsTemplate = true;
         definition.TemplateName = templateName;
@@ -92,25 +94,25 @@ public sealed class ChainDefinition : AggregateRoot<ChainDefinitionId>
         _steps.Clear();
     }
 
-    public void Update(ChainName? name, string? description, bool? isEnabled)
+    public void Update(ChainName? name, string? description, bool? isEnabled, DateTimeOffset utcNow)
     {
         if (name.HasValue) Name = name.Value;
         if (description is not null) Description = description;
         if (isEnabled.HasValue) IsEnabled = isEnabled.Value;
 
         Version++;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void Enable()
+    public void Enable(DateTimeOffset utcNow)
     {
         IsEnabled = true;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 
-    public void Disable()
+    public void Disable(DateTimeOffset utcNow)
     {
         IsEnabled = false;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = utcNow.UtcDateTime;
     }
 }

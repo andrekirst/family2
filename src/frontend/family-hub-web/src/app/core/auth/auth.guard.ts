@@ -21,12 +21,13 @@ export const authGuard: CanActivateFn = (route, state) => {
 };
 
 /**
- * Route guard requiring family owner role
- * TODO: Implement by fetching user family data from GraphQL API
- * For now, just checks authentication
+ * Route guard requiring family owner role.
+ * Uses permission-based check: only Owners have 'family:delete'.
+ * Redirects unauthenticated users to login, insufficient role to dashboard.
  */
-export const familyOwnerGuard: CanActivateFn = (route, state) => {
+export const familyOwnerGuard: CanActivateFn = async (route, state) => {
   const authService = inject(AuthService);
+  const userService = inject(UserService);
   const router = inject(Router);
 
   if (!authService.isAuthenticated()) {
@@ -34,18 +35,22 @@ export const familyOwnerGuard: CanActivateFn = (route, state) => {
     return router.parseUrl('/login');
   }
 
-  // TODO: Query GraphQL for user's family role and check if owner
-  // For now, allow all authenticated users
-  return true;
+  const user = await userService.whenReady();
+  if (user?.permissions?.includes('family:delete')) {
+    return true;
+  }
+
+  return router.parseUrl('/dashboard');
 };
 
 /**
- * Route guard requiring family admin or owner role
- * TODO: Implement by fetching user family data from GraphQL API
- * For now, just checks authentication
+ * Route guard requiring family admin or owner role.
+ * Uses permission-based check: Owners and Admins have 'family:edit'.
+ * Redirects unauthenticated users to login, insufficient role to dashboard.
  */
-export const familyAdminGuard: CanActivateFn = (route, state) => {
+export const familyAdminGuard: CanActivateFn = async (route, state) => {
   const authService = inject(AuthService);
+  const userService = inject(UserService);
   const router = inject(Router);
 
   if (!authService.isAuthenticated()) {
@@ -53,9 +58,12 @@ export const familyAdminGuard: CanActivateFn = (route, state) => {
     return router.parseUrl('/login');
   }
 
-  // TODO: Query GraphQL for user's family role and check if admin/owner
-  // For now, allow all authenticated users
-  return true;
+  const user = await userService.whenReady();
+  if (user?.permissions?.includes('family:edit')) {
+    return true;
+  }
+
+  return router.parseUrl('/dashboard');
 };
 
 /**

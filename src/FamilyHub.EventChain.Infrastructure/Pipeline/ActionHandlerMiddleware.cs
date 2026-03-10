@@ -3,13 +3,16 @@ using FamilyHub.EventChain.Infrastructure.Registry;
 namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
 public sealed class ActionHandlerMiddleware(
-    IChainRegistry registry) : IStepMiddleware
+    IChainRegistry registry,
+    TimeProvider timeProvider) : IStepMiddleware
 {
-    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken ct)
+    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
+
         if (context.ShouldSkip)
         {
-            context.StepExecution.MarkSkipped();
+            context.StepExecution.MarkSkipped(utcNow);
             return;
         }
 
@@ -23,19 +26,19 @@ public sealed class ActionHandlerMiddleware(
                 $"No handler found for action {context.StepDefinition.ActionType}@{context.StepDefinition.ActionVersion.Value}");
         }
 
-        context.StepExecution.MarkRunning();
+        context.StepExecution.MarkRunning(utcNow);
 
         var actionContext = new ActionExecutionContext(
             context.StepExecution.InputPayload ?? "{}",
             context.ExecutionContext,
             context.CorrelationId);
 
-        var result = await handler.ExecuteAsync(actionContext, ct);
+        var result = await handler.ExecuteAsync(actionContext, cancellationToken);
         context.Result = result;
 
         if (result.Success)
         {
-            context.StepExecution.MarkCompleted(result.OutputPayload);
+            context.StepExecution.MarkCompleted(result.OutputPayload, utcNow);
 
             if (result.OutputPayload is not null)
             {
@@ -51,6 +54,6 @@ public sealed class ActionHandlerMiddleware(
         }
 
         // Continue pipeline (no-op at this point since this is the innermost middleware)
-        await next(context, ct);
+        await next(context, cancellationToken);
     }
 }

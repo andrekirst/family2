@@ -36,16 +36,22 @@ public sealed class PhotoRepository(AppDbContext context) : IPhotoRepository
         UpdatedAt = f.UpdatedAt
     };
 
-    public async Task<PhotoDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<PhotoDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var fileId = FileId.From(id);
         var file = await ImageFiles()
-            .FirstOrDefaultAsync(f => f.Id == fileId, ct);
+            .FirstOrDefaultAsync(f => f.Id == fileId, cancellationToken);
         return file is not null ? ToDto(file) : null;
     }
 
+    public async Task<bool> ExistsByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var fileId = FileId.From(id);
+        return await ImageFiles().AnyAsync(f => f.Id == fileId, cancellationToken);
+    }
+
     public async Task<List<PhotoDto>> GetByFamilyAsync(
-        FamilyId familyId, int skip, int take, CancellationToken ct = default)
+        FamilyId familyId, int skip, int take, CancellationToken cancellationToken = default)
     {
         var files = await ImageFiles()
             .Where(f => f.FamilyId == familyId)
@@ -53,19 +59,19 @@ public sealed class PhotoRepository(AppDbContext context) : IPhotoRepository
             .ThenByDescending(f => f.Id)
             .Skip(skip)
             .Take(take)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return files.Select(ToDto).ToList();
     }
 
-    public async Task<int> GetCountByFamilyAsync(FamilyId familyId, CancellationToken ct = default)
+    public async Task<int> GetCountByFamilyAsync(FamilyId familyId, CancellationToken cancellationToken = default)
     {
         return await ImageFiles()
-            .CountAsync(f => f.FamilyId == familyId, ct);
+            .CountAsync(f => f.FamilyId == familyId, cancellationToken);
     }
 
     public async Task<PhotoDto?> GetNextAsync(
-        FamilyId familyId, DateTime createdAt, Guid currentId, CancellationToken ct = default)
+        FamilyId familyId, DateTime createdAt, Guid currentId, CancellationToken cancellationToken = default)
     {
         var file = await ImageFiles()
             .Where(f => f.FamilyId == familyId)
@@ -73,12 +79,12 @@ public sealed class PhotoRepository(AppDbContext context) : IPhotoRepository
                 || (f.CreatedAt == createdAt && f.Id.Value.CompareTo(currentId) < 0))
             .OrderByDescending(f => f.CreatedAt)
             .ThenByDescending(f => f.Id)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
         return file is not null ? ToDto(file) : null;
     }
 
     public async Task<PhotoDto?> GetPreviousAsync(
-        FamilyId familyId, DateTime createdAt, Guid currentId, CancellationToken ct = default)
+        FamilyId familyId, DateTime createdAt, Guid currentId, CancellationToken cancellationToken = default)
     {
         var file = await ImageFiles()
             .Where(f => f.FamilyId == familyId)
@@ -86,7 +92,7 @@ public sealed class PhotoRepository(AppDbContext context) : IPhotoRepository
                 || (f.CreatedAt == createdAt && f.Id.Value.CompareTo(currentId) > 0))
             .OrderBy(f => f.CreatedAt)
             .ThenBy(f => f.Id)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
         return file is not null ? ToDto(file) : null;
     }
 }

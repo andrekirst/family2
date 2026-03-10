@@ -4,7 +4,7 @@ namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
 public sealed partial class RetryMiddleware(ILogger<RetryMiddleware> logger) : IStepMiddleware
 {
-    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken ct)
+    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken cancellationToken)
     {
         var maxRetries = context.StepExecution.MaxRetries;
 
@@ -12,10 +12,10 @@ public sealed partial class RetryMiddleware(ILogger<RetryMiddleware> logger) : I
         {
             try
             {
-                await next(context, ct);
+                await next(context, cancellationToken);
                 return;
             }
-            catch (Exception ex) when (context.StepExecution.CanRetry && !ct.IsCancellationRequested)
+            catch (Exception ex) when (context.StepExecution.CanRetry && !cancellationToken.IsCancellationRequested)
             {
                 context.StepExecution.IncrementRetry();
 
@@ -23,7 +23,7 @@ public sealed partial class RetryMiddleware(ILogger<RetryMiddleware> logger) : I
 
                 LogStepStepaliasFailedAttemptAttemptMaxretriesRetryingInDelayMsErrorError(logger, context.StepExecution.StepAlias, context.StepExecution.RetryCount, maxRetries, delay.TotalMilliseconds, ex.Message);
 
-                await Task.Delay(delay, ct);
+                await Task.Delay(delay, cancellationToken);
             }
         }
     }

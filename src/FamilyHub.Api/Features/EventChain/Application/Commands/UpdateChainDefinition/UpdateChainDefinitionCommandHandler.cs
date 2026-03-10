@@ -8,17 +8,23 @@ namespace FamilyHub.Api.Features.EventChain.Application.Commands.UpdateChainDefi
 
 public sealed class UpdateChainDefinitionCommandHandler(
     IChainDefinitionRepository repository,
-    IChainRegistry registry)
-    : ICommandHandler<UpdateChainDefinitionCommand, UpdateChainDefinitionResult>
+    IChainRegistry registry,
+    TimeProvider timeProvider)
+    : ICommandHandler<UpdateChainDefinitionCommand, Result<UpdateChainDefinitionResult>>
 {
-    public async ValueTask<UpdateChainDefinitionResult> Handle(
+    public async ValueTask<Result<UpdateChainDefinitionResult>> Handle(
         UpdateChainDefinitionCommand command,
         CancellationToken cancellationToken)
     {
-        var definition = await repository.GetByIdWithStepsAsync(command.Id, cancellationToken)
-            ?? throw new DomainException("Chain definition not found", DomainErrorCodes.ChainDefinitionNotFound);
+        var utcNow = timeProvider.GetUtcNow();
+        var definition = await repository.GetByIdWithStepsAsync(command.Id, cancellationToken);
 
-        definition.Update(command.Name, command.Description, command.IsEnabled);
+        if (definition is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.ChainDefinitionNotFound, "Chain definition not found");
+        }
+
+        definition.Update(command.Name, command.Description, command.IsEnabled, utcNow);
 
         if (command.Steps is not null)
         {
@@ -28,7 +34,8 @@ public sealed class UpdateChainDefinitionCommandHandler(
             {
                 if (!registry.IsValidAction(stepCmd.ActionType, stepCmd.ActionVersion.Value))
                 {
-                    throw new InvalidOperationException(
+                    return DomainError.BusinessRule(
+                        DomainErrorCodes.UnknownActionType,
                         $"Unknown action: {stepCmd.ActionType}@{stepCmd.ActionVersion.Value}");
                 }
 
@@ -53,6 +60,6 @@ public sealed class UpdateChainDefinitionCommandHandler(
 
         await repository.UpdateAsync(definition, cancellationToken);
 
-        return new UpdateChainDefinitionResult(definition.Id);
+        return new UpdateChainDefinitionResult(definition.Id, definition);
     }
 }

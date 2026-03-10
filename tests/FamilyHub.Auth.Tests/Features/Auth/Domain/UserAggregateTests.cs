@@ -18,7 +18,7 @@ public class UserAggregateTests
         var externalId = ExternalUserId.From("keycloak-123");
 
         // Act
-        var user = User.Register(email, name, externalId, emailVerified: true);
+        var user = User.Register(email, name, externalId, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
 
         // Assert
         user.Should().NotBeNull();
@@ -43,7 +43,7 @@ public class UserAggregateTests
         var externalId = ExternalUserId.From("keycloak-123");
 
         // Act
-        var user = User.Register(email, name, externalId, emailVerified: true);
+        var user = User.Register(email, name, externalId, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
 
         // Assert
         user.DomainEvents.Should().HaveCount(1);
@@ -65,7 +65,7 @@ public class UserAggregateTests
         var loginTime = DateTime.UtcNow.AddMinutes(5);
 
         // Act
-        user.UpdateLastLogin(loginTime);
+        user.UpdateLastLogin(loginTime, DateTimeOffset.UtcNow);
 
         // Assert
         user.LastLoginAt.Should().Be(loginTime);
@@ -81,7 +81,7 @@ public class UserAggregateTests
         var newName = UserName.From("Updated Name");
 
         // Act
-        user.UpdateProfile(newEmail, newName, emailVerified: true);
+        user.UpdateProfile(newEmail, newName, emailVerified: true, utcNow: DateTimeOffset.UtcNow);
 
         // Assert
         user.Email.Should().Be(newEmail);
@@ -98,7 +98,7 @@ public class UserAggregateTests
         var familyId = FamilyId.New();
 
         // Act
-        user.AssignToFamily(familyId);
+        user.AssignToFamily(familyId, DateTimeOffset.UtcNow);
 
         // Assert
         user.FamilyId.Should().Be(familyId);
@@ -119,10 +119,10 @@ public class UserAggregateTests
         var user = CreateTestUser();
         var familyId1 = FamilyId.New();
         var familyId2 = FamilyId.New();
-        user.AssignToFamily(familyId1);
+        user.AssignToFamily(familyId1, DateTimeOffset.UtcNow);
 
         // Act & Assert
-        var act = () => user.AssignToFamily(familyId2);
+        var act = () => user.AssignToFamily(familyId2, DateTimeOffset.UtcNow);
         act.Should().Throw<DomainException>()
             .WithMessage("User is already assigned to a family");
     }
@@ -133,11 +133,11 @@ public class UserAggregateTests
         // Arrange
         var user = CreateTestUser();
         var familyId = FamilyId.New();
-        user.AssignToFamily(familyId);
+        user.AssignToFamily(familyId, DateTimeOffset.UtcNow);
         user.ClearDomainEvents(); // Clear previous events
 
         // Act
-        user.RemoveFromFamily();
+        user.RemoveFromFamily(DateTimeOffset.UtcNow);
 
         // Assert
         user.FamilyId.Should().BeNull();
@@ -157,7 +157,7 @@ public class UserAggregateTests
         var user = CreateTestUser();
 
         // Act & Assert
-        var act = () => user.RemoveFromFamily();
+        var act = () => user.RemoveFromFamily(DateTimeOffset.UtcNow);
         act.Should().Throw<DomainException>()
             .WithMessage("User is not assigned to any family");
     }
@@ -169,7 +169,7 @@ public class UserAggregateTests
         var user = CreateTestUser();
 
         // Act
-        user.Deactivate();
+        user.Deactivate(DateTimeOffset.UtcNow);
 
         // Assert
         user.IsActive.Should().BeFalse();
@@ -181,10 +181,10 @@ public class UserAggregateTests
     {
         // Arrange
         var user = CreateTestUser();
-        user.Deactivate();
+        user.Deactivate(DateTimeOffset.UtcNow);
 
         // Act
-        user.Reactivate();
+        user.Reactivate(DateTimeOffset.UtcNow);
 
         // Assert
         user.IsActive.Should().BeTrue();
@@ -199,7 +199,7 @@ public class UserAggregateTests
         var avatarId = AvatarId.New();
 
         // Act
-        user.SetAvatar(avatarId);
+        user.SetAvatar(avatarId, DateTimeOffset.UtcNow);
 
         // Assert
         user.AvatarId.Should().Be(avatarId);
@@ -220,11 +220,11 @@ public class UserAggregateTests
         var user = CreateTestUser();
         var oldAvatarId = AvatarId.New();
         var newAvatarId = AvatarId.New();
-        user.SetAvatar(oldAvatarId);
+        user.SetAvatar(oldAvatarId, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         // Act
-        user.SetAvatar(newAvatarId);
+        user.SetAvatar(newAvatarId, DateTimeOffset.UtcNow);
 
         // Assert
         user.AvatarId.Should().Be(newAvatarId);
@@ -239,11 +239,11 @@ public class UserAggregateTests
         // Arrange
         var user = CreateTestUser();
         var avatarId = AvatarId.New();
-        user.SetAvatar(avatarId);
+        user.SetAvatar(avatarId, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
         // Act
-        user.RemoveAvatar();
+        user.RemoveAvatar(DateTimeOffset.UtcNow);
 
         // Assert
         user.AvatarId.Should().BeNull();
@@ -263,7 +263,7 @@ public class UserAggregateTests
         var user = CreateTestUser();
 
         // Act
-        user.RemoveAvatar();
+        user.RemoveAvatar(DateTimeOffset.UtcNow);
 
         // Assert
         user.AvatarId.Should().BeNull();
@@ -277,7 +277,7 @@ public class UserAggregateTests
         var user = CreateTestUser();
 
         // Act
-        user.UpdateLocale("de");
+        user.UpdateLocale("de", DateTimeOffset.UtcNow);
 
         // Assert
         user.PreferredLocale.Should().Be("de");
@@ -300,7 +300,7 @@ public class UserAggregateTests
         var name = UserName.From("Test User");
         var externalId = ExternalUserId.From("test-external-id");
 
-        var user = User.Register(email, name, externalId, emailVerified: false);
+        var user = User.Register(email, name, externalId, emailVerified: false, utcNow: DateTimeOffset.UtcNow);
         user.ClearDomainEvents(); // Clear registration event for cleaner tests
 
         return user;

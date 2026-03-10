@@ -10,4 +10,4 @@ namespace FamilyHub.Api.Features.Auth.Application.Queries.GetCurrentUser;
 /// </summary>
 public sealed record GetCurrentUserQuery(
     ExternalUserId ExternalUserId
-) : IReadOnlyQuery<UserDto?>;
+) : IReadOnlyQuery<UserDto?>, IAnonymousOperation;

@@ -4,11 +4,11 @@ namespace FamilyHub.Api.Features.FileManagement.Domain.Repositories;
 
 public interface IAlbumItemRepository
 {
-    Task<List<Entities.AlbumItem>> GetByAlbumIdAsync(AlbumId albumId, CancellationToken ct = default);
-    Task<bool> ExistsAsync(AlbumId albumId, FileId fileId, CancellationToken ct = default);
-    Task AddAsync(Entities.AlbumItem item, CancellationToken ct = default);
-    Task RemoveAsync(Entities.AlbumItem item, CancellationToken ct = default);
-    Task RemoveByAlbumIdAsync(AlbumId albumId, CancellationToken ct = default);
-    Task<int> GetItemCountAsync(AlbumId albumId, CancellationToken ct = default);
-    Task<FileId?> GetFirstImageFileIdAsync(AlbumId albumId, CancellationToken ct = default);
+    Task<List<Entities.AlbumItem>> GetByAlbumIdAsync(AlbumId albumId, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(AlbumId albumId, FileId fileId, CancellationToken cancellationToken = default);
+    Task AddAsync(Entities.AlbumItem item, CancellationToken cancellationToken = default);
+    Task RemoveAsync(Entities.AlbumItem item, CancellationToken cancellationToken = default);
+    Task RemoveByAlbumIdAsync(AlbumId albumId, CancellationToken cancellationToken = default);
+    Task<int> GetItemCountAsync(AlbumId albumId, CancellationToken cancellationToken = default);
+    Task<FileId?> GetFirstImageFileIdAsync(AlbumId albumId, CancellationToken cancellationToken = default);
 }

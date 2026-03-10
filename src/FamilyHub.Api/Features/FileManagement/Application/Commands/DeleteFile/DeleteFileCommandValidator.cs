@@ -10,6 +10,6 @@ public sealed class DeleteFileCommandValidator : AbstractValidator<DeleteFileCom
     {
         RuleFor(x => x.FileId).NotNull();
         RuleFor(x => x.FamilyId).NotNull();
-        RuleFor(x => x.DeletedBy).NotNull();
+        RuleFor(x => x.UserId).NotNull();
     }
 }

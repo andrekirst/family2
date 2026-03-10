@@ -16,7 +16,7 @@ public class ExternalConnectionTests
 
         var connection = ExternalConnection.Create(
             familyId, ExternalProviderType.OneDrive, "My OneDrive",
-            "enc-token", "enc-refresh", DateTime.UtcNow.AddHours(1), userId);
+            "enc-token", "enc-refresh", DateTime.UtcNow.AddHours(1), userId, DateTimeOffset.UtcNow);
 
         connection.FamilyId.Should().Be(familyId);
         connection.ProviderType.Should().Be(ExternalProviderType.OneDrive);
@@ -35,7 +35,7 @@ public class ExternalConnectionTests
 
         var connection = ExternalConnection.Create(
             familyId, ExternalProviderType.GoogleDrive, "My Drive",
-            "token", null, null, userId);
+            "token", null, null, userId, DateTimeOffset.UtcNow);
 
         var domainEvent = connection.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<ExternalStorageConnectedEvent>().Subject;
@@ -49,7 +49,7 @@ public class ExternalConnectionTests
     {
         var connection = ExternalConnection.Create(
             FamilyId.New(), ExternalProviderType.Dropbox, "Dropbox",
-            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New());
+            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New(), DateTimeOffset.UtcNow);
 
         connection.ClearDomainEvents();
         connection.Disconnect();
@@ -65,7 +65,7 @@ public class ExternalConnectionTests
     {
         var connection = ExternalConnection.Create(
             FamilyId.New(), ExternalProviderType.OneDrive, "OneDrive",
-            "old-token", "old-refresh", DateTime.UtcNow.AddMinutes(-5), UserId.New());
+            "old-token", "old-refresh", DateTime.UtcNow.AddMinutes(-5), UserId.New(), DateTimeOffset.UtcNow);
 
         connection.MarkExpired();
         connection.Status.Should().Be(ConnectionStatus.Expired);
@@ -82,9 +82,9 @@ public class ExternalConnectionTests
     {
         var connection = ExternalConnection.Create(
             FamilyId.New(), ExternalProviderType.GoogleDrive, "Drive",
-            "token", "refresh", DateTime.UtcNow.AddMinutes(-1), UserId.New());
+            "token", "refresh", DateTime.UtcNow.AddMinutes(-1), UserId.New(), DateTimeOffset.UtcNow);
 
-        connection.IsTokenExpired.Should().BeTrue();
+        connection.IsTokenExpired(DateTimeOffset.UtcNow).Should().BeTrue();
     }
 
     [Fact]
@@ -92,9 +92,9 @@ public class ExternalConnectionTests
     {
         var connection = ExternalConnection.Create(
             FamilyId.New(), ExternalProviderType.GoogleDrive, "Drive",
-            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New());
+            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New(), DateTimeOffset.UtcNow);
 
-        connection.IsTokenExpired.Should().BeFalse();
+        connection.IsTokenExpired(DateTimeOffset.UtcNow).Should().BeFalse();
     }
 
     [Fact]
@@ -102,9 +102,9 @@ public class ExternalConnectionTests
     {
         var connection = ExternalConnection.Create(
             FamilyId.New(), ExternalProviderType.PaperlessNgx, "Paperless",
-            "api-token", null, null, UserId.New());
+            "api-token", null, null, UserId.New(), DateTimeOffset.UtcNow);
 
-        connection.IsTokenExpired.Should().BeFalse();
+        connection.IsTokenExpired(DateTimeOffset.UtcNow).Should().BeFalse();
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class ExternalConnectionTests
     {
         var connection = ExternalConnection.Create(
             FamilyId.New(), ExternalProviderType.Dropbox, "Dropbox",
-            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New());
+            "token", "refresh", DateTime.UtcNow.AddHours(1), UserId.New(), DateTimeOffset.UtcNow);
 
         connection.MarkError();
 

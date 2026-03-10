@@ -6,18 +6,21 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.DeleteSaved
 
 public sealed class DeleteSavedSearchCommandHandler(
     ISavedSearchRepository savedSearchRepository)
-    : ICommandHandler<DeleteSavedSearchCommand, DeleteSavedSearchResult>
+    : ICommandHandler<DeleteSavedSearchCommand, Result<DeleteSavedSearchResult>>
 {
-    public async ValueTask<DeleteSavedSearchResult> Handle(
+    public async ValueTask<Result<DeleteSavedSearchResult>> Handle(
         DeleteSavedSearchCommand command,
         CancellationToken cancellationToken)
     {
-        var search = await savedSearchRepository.GetByIdAsync(command.SearchId, cancellationToken)
-            ?? throw new DomainException("Saved search not found", DomainErrorCodes.NotFound);
+        var search = await savedSearchRepository.GetByIdAsync(command.SearchId, cancellationToken);
+        if (search is null)
+        {
+            return DomainError.NotFound(DomainErrorCodes.NotFound, "Saved search not found");
+        }
 
         if (search.UserId != command.UserId)
         {
-            throw new DomainException("Cannot delete another user's saved search", DomainErrorCodes.Forbidden);
+            return DomainError.Forbidden(DomainErrorCodes.Forbidden, "Cannot delete another user's saved search");
         }
 
         await savedSearchRepository.RemoveAsync(search, cancellationToken);

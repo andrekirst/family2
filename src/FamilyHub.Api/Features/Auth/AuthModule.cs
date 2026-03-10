@@ -7,6 +7,7 @@ using FamilyHub.Api.Features.Auth.Infrastructure.Repositories;
 
 namespace FamilyHub.Api.Features.Auth;
 
+[ModuleOrder(100)]
 public sealed class AuthModule : IModule
 {
     public void Register(IServiceCollection services, IConfiguration configuration)

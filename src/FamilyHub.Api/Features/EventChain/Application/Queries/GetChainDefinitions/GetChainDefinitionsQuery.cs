@@ -5,6 +5,9 @@ using FamilyHub.Common.Domain.ValueObjects;
 namespace FamilyHub.Api.Features.EventChain.Application.Queries.GetChainDefinitions;
 
 public sealed record GetChainDefinitionsQuery(
-    FamilyId FamilyId,
     bool? IsEnabled = null
-) : IReadOnlyQuery<IReadOnlyList<ChainDefinition>>;
+) : IReadOnlyQuery<IReadOnlyList<ChainDefinition>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

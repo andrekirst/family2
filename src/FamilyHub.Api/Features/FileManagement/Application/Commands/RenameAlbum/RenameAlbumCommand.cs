@@ -6,6 +6,9 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RenameAlbum
 
 public sealed record RenameAlbumCommand(
     AlbumId AlbumId,
-    AlbumName NewName,
-    FamilyId FamilyId
-) : ICommand<RenameAlbumResult>;
+    AlbumName NewName
+) : ICommand<Result<RenameAlbumResult>>, IRequireFamily
+{
+    public UserId UserId { get; init; }
+    public FamilyId FamilyId { get; init; }
+}

@@ -7,8 +7,7 @@ import {
   OnInit,
   OnDestroy,
   ViewChild,
-  TemplateRef,
-} from '@angular/core';
+  TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -35,6 +34,7 @@ import { FileAction, FavoriteToggleEvent } from './file-grid-item/file-grid-item
 @Component({
   selector: 'app-browse-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,

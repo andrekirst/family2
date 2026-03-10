@@ -1,9 +1,6 @@
-using System.Security.Claims;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
-using FamilyHub.Api.Common.Services;
-using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Application.Mappers;
 using FamilyHub.Api.Features.Family.Domain.Repositories;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
@@ -22,23 +19,11 @@ public class MutationType
     [Authorize]
     public async Task<InvitationDto> Invite(
         SendInvitationRequest input,
-        ClaimsPrincipal claimsPrincipal,
         [Service] ICommandBus commandBus,
-        [Service] IUserRepository userRepository,
         [Service] IFamilyInvitationRepository invitationRepository,
-        [Service] IUserService userService,
         CancellationToken cancellationToken)
     {
-        var user = await userService.GetCurrentUser(claimsPrincipal, userRepository, cancellationToken);
-
-        if (user.FamilyId is null)
-        {
-            throw new InvalidOperationException("You must be part of a family to send invitations");
-        }
-
         var command = new SendInvitationCommand(
-            user.FamilyId.Value,
-            user.Id,
             Email.From(input.Email.Trim()),
             FamilyRole.From(input.Role));
 

@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lighthouse": "lhci autorun --config=lighthouserc.json"
   },
   "prettier": {
     "printWidth": 100,
@@ -32,6 +33,7 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
     "@apollo/client": "^4.1.6",
+    "@jsverse/transloco": "^8.2.1",
     "apollo-angular": "^13.0.0",
     "graphql": "^16.12.0",
     "graphql-ws": "^6.0.7",
@@ -42,8 +44,10 @@
     "@angular/build": "^21.2.0",
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
-    "jsdom": "^28.1.0",
+    "@lhci/cli": "^0.14.0",
     "@tailwindcss/postcss": "^4.0.0",
+    "axe-core": "^4.10.0",
+    "jsdom": "^28.1.0",
     "tailwindcss": "^4.0.0",
     "typescript": "~5.9.2",
     "vitest": "^4.0.18"

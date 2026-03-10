@@ -3,21 +3,21 @@ using Microsoft.Extensions.Logging;
 
 namespace FamilyHub.EventChain.Infrastructure.Pipeline;
 
-public sealed partial class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddleware> logger) : IStepMiddleware
+public sealed partial class CircuitBreakerMiddleware(TimeProvider timeProvider, ILogger<CircuitBreakerMiddleware> logger) : IStepMiddleware
 {
     private static readonly ConcurrentDictionary<string, CircuitState> Circuits = new();
 
     private const int FailureThreshold = 5;
     private static readonly TimeSpan RecoveryTimeout = TimeSpan.FromMinutes(1);
 
-    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken ct)
+    public async Task InvokeAsync(StepPipelineContext context, StepDelegate next, CancellationToken cancellationToken)
     {
         var actionType = context.StepExecution.ActionType;
         var state = Circuits.GetOrAdd(actionType, _ => new CircuitState());
 
         if (state.IsOpen)
         {
-            if (DateTime.UtcNow - state.LastFailure > RecoveryTimeout)
+            if (timeProvider.GetUtcNow().UtcDateTime - state.LastFailure > RecoveryTimeout)
             {
                 // Half-open: allow one request through to test recovery
                 state.IsHalfOpen = true;
@@ -33,7 +33,7 @@ public sealed partial class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddl
 
         try
         {
-            await next(context, ct);
+            await next(context, cancellationToken);
 
             // Success: reset failure count
             state.FailureCount = 0;
@@ -43,7 +43,7 @@ public sealed partial class CircuitBreakerMiddleware(ILogger<CircuitBreakerMiddl
         catch (Exception)
         {
             state.FailureCount++;
-            state.LastFailure = DateTime.UtcNow;
+            state.LastFailure = timeProvider.GetUtcNow().UtcDateTime;
 
             if (state.IsHalfOpen || state.FailureCount >= FailureThreshold)
             {

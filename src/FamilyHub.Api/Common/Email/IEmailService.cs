@@ -5,5 +5,5 @@ namespace FamilyHub.Api.Common.Email;
 /// </summary>
 public interface IEmailService
 {
-    Task SendEmailAsync(string to, string subject, string htmlBody, string textBody, CancellationToken ct = default);
+    Task SendEmailAsync(string to, string subject, string htmlBody, string textBody, CancellationToken cancellationToken = default);
 }

@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Features.Family.Domain.Events;
 using FamilyHub.Api.Features.FileManagement.Domain.Entities;
 using FamilyHub.Api.Features.FileManagement.Domain.Repositories;
@@ -12,12 +11,14 @@ namespace FamilyHub.Api.Features.FileManagement.Application.EventHandlers;
 /// </summary>
 public sealed class FamilyCreatedEventHandler(
     IFolderRepository folderRepository,
-    AppDbContext context,
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider,
     ILogger<FamilyCreatedEventHandler> logger)
     : IDomainEventHandler<FamilyCreatedEvent>
 {
     public async ValueTask Handle(FamilyCreatedEvent @event, CancellationToken cancellationToken)
     {
+        var utcNow = timeProvider.GetUtcNow();
         // Guard: skip if root/inbox already exist (idempotent)
         var existingRoot = await folderRepository.GetRootFolderAsync(@event.FamilyId, cancellationToken);
         if (existingRoot is not null)
@@ -30,18 +31,18 @@ public sealed class FamilyCreatedEventHandler(
         }
 
         // Create root folder if needed
-        var root = existingRoot ?? Folder.CreateRoot(@event.FamilyId, @event.OwnerId);
+        var root = existingRoot ?? Folder.CreateRoot(@event.FamilyId, @event.OwnerId, utcNow);
         if (existingRoot is null)
         {
             await folderRepository.AddAsync(root, cancellationToken);
         }
 
         // Create inbox folder
-        var inbox = Folder.CreateInbox(root.Id, @event.FamilyId, @event.OwnerId);
+        var inbox = Folder.CreateInbox(root.Id, @event.FamilyId, @event.OwnerId, utcNow);
         await folderRepository.AddAsync(inbox, cancellationToken);
 
         // Explicit save — event handlers run outside the TransactionBehavior pipeline
-        await context.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
             "Created root and inbox folders for family {FamilyId}",

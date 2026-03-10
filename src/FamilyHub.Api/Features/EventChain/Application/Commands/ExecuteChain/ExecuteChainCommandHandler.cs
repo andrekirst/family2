@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Common.Domain;
 using FamilyHub.EventChain.Domain.Entities;
 using FamilyHub.EventChain.Domain.Repositories;
 using FamilyHub.EventChain.Infrastructure.Orchestrator;
@@ -9,22 +8,24 @@ namespace FamilyHub.Api.Features.EventChain.Application.Commands.ExecuteChain;
 public sealed class ExecuteChainCommandHandler(
     IChainDefinitionRepository definitionRepository,
     IChainExecutionRepository executionRepository,
-    IChainOrchestrator orchestrator)
+    IChainOrchestrator orchestrator,
+    TimeProvider timeProvider)
     : ICommandHandler<ExecuteChainCommand, ExecuteChainResult>
 {
     public async ValueTask<ExecuteChainResult> Handle(
         ExecuteChainCommand command,
         CancellationToken cancellationToken)
     {
-        var definition = await definitionRepository.GetByIdWithStepsAsync(command.ChainDefinitionId, cancellationToken)
-            ?? throw new DomainException("Chain definition not found", DomainErrorCodes.ChainDefinitionNotFound);
+        var utcNow = timeProvider.GetUtcNow();
+        var definition = (await definitionRepository.GetByIdWithStepsAsync(command.ChainDefinitionId, cancellationToken))!;
 
         var execution = ChainExecution.Start(
             definition.Id,
             command.FamilyId,
             definition.TriggerEventType,
             Guid.NewGuid(), // Manual execution uses a synthetic event ID
-            command.TriggerPayload);
+            command.TriggerPayload,
+            utcNow);
 
         // Create step executions
         foreach (var step in definition.Steps.OrderBy(s => s.StepOrder))
@@ -44,6 +45,6 @@ public sealed class ExecuteChainCommandHandler(
         // Execute the chain asynchronously
         _ = Task.Run(() => orchestrator.ExecuteChainAsync(execution, definition, cancellationToken), cancellationToken);
 
-        return new ExecuteChainResult(execution.Id);
+        return new ExecuteChainResult(execution.Id, execution);
     }
 }

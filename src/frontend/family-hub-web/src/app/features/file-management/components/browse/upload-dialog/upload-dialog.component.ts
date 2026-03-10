@@ -1,4 +1,4 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, inject, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ICONS } from '../../../../../shared/icons/icons';
@@ -16,6 +16,7 @@ interface FileUploadEntry {
 @Component({
   selector: 'app-upload-dialog',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" (click)="close()">
