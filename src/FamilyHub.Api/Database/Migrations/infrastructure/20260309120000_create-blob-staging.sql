@@ -1,3 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS common;
+
 CREATE TABLE IF NOT EXISTS common.blob_staging (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     module TEXT NOT NULL,

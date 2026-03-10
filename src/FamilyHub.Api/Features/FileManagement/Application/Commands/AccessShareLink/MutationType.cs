@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
@@ -12,7 +11,7 @@ public class MutationType
     /// Public mutation -- no authentication required.
     /// Validates share link token, password, expiration, and download limits.
     /// </summary>
-    public async Task<object> AccessShareLink(
+    public async Task<bool> AccessShareLink(
         string token,
         string? password,
         string ipAddress,
@@ -31,8 +30,12 @@ public class MutationType
             parsedAction);
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-        return result.Match<object>(
-            success => success,
-            error => MutationError.FromDomainError(error));
+        return result.Match(
+            success => true,
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

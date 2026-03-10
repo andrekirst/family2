@@ -1,3 +1,4 @@
+using FamilyHub.Api.Common.Database;
 using FamilyHub.Api.Common.Modules;
 using FamilyHub.Common.Application;
 using FamilyHub.Common.Domain;
@@ -7,14 +8,15 @@ using Microsoft.EntityFrameworkCore;
 namespace FamilyHub.Api.Common.Infrastructure.Behaviors;
 
 /// <summary>
-/// Pipeline behavior that calls IUnitOfWork.SaveChangesAsync() after the handler.
-/// This removes the need for individual handlers to call SaveChangesAsync.
+/// Pipeline behavior that wraps command handlers in a database transaction.
+/// Uses CreateExecutionStrategy().ExecuteAsync() to be compatible with
+/// NpgsqlRetryingExecutionStrategy (EnableRetryOnFailure).
 ///
 /// Handles DbUpdateConcurrencyException by converting it to a ConflictException,
 /// providing clear feedback when optimistic concurrency conflicts occur.
 /// </summary>
 [PipelinePriority(PipelinePriorities.Transaction)]
-public sealed class TransactionBehavior<TMessage, TResponse>(IUnitOfWork unitOfWork)
+public sealed class TransactionBehavior<TMessage, TResponse>(IUnitOfWork unitOfWork, AppDbContext dbContext)
     : IPipelineBehavior<TMessage, TResponse>
     where TMessage : IMessage
 {
@@ -29,26 +31,30 @@ public sealed class TransactionBehavior<TMessage, TResponse>(IUnitOfWork unitOfW
             return await next(message, cancellationToken);
         }
 
-        await unitOfWork.BeginTransactionAsync(cancellationToken);
-        try
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async ct =>
         {
-            var response = await next(message, cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            await unitOfWork.CommitAsync(cancellationToken);
-            return response;
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            await unitOfWork.RollbackAsync(cancellationToken);
+            await unitOfWork.BeginTransactionAsync(ct);
+            try
+            {
+                var response = await next(message, ct);
+                await unitOfWork.SaveChangesAsync(ct);
+                await unitOfWork.CommitAsync(ct);
+                return response;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await unitOfWork.RollbackAsync(ct);
 
-            // Extract the entity type from the concurrency exception for a clear error message
-            var entityType = ex.Entries.FirstOrDefault()?.Metadata.ClrType.Name ?? "Entity";
-            throw new ConflictException(entityType);
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync(cancellationToken);
-            throw;
-        }
+                // Extract the entity type from the concurrency exception for a clear error message
+                var entityType = ex.Entries.FirstOrDefault()?.Metadata.ClrType.Name ?? "Entity";
+                throw new ConflictException(entityType);
+            }
+            catch
+            {
+                await unitOfWork.RollbackAsync(ct);
+                throw;
+            }
+        }, cancellationToken);
     }
 }

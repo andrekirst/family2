@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
 using FamilyHub.Api.Features.School.Application.Mappers;
@@ -12,7 +11,7 @@ namespace FamilyHub.Api.Features.School.Application.Commands.MarkAsStudent;
 public class MutationType
 {
     [Authorize]
-    public async Task<object> MarkAsStudent(
+    public async Task<StudentDto> MarkAsStudent(
         MarkAsStudentRequest input,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
@@ -21,8 +20,12 @@ public class MutationType
         var command = new MarkAsStudentCommand(familyMemberId);
         var result = await commandBus.SendAsync(command, cancellationToken);
 
-        return result.Match<object>(
+        return result.Match(
             success => StudentMapper.ToDto(success.CreatedStudent),
-            error => MutationError.FromDomainError(error));
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

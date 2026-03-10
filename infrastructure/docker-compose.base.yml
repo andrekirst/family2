@@ -160,7 +160,7 @@ services:
   # Jaeger — distributed tracing (OpenTelemetry collector + UI)
   # ---------------------------------------------------------------------------
   jaeger:
-    image: jaegertracing/jaeger:2.6
+    image: jaegertracing/jaeger:2.16.0
     restart: unless-stopped
     environment:
       COLLECTOR_OTLP_ENABLED: 'true'

@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -11,8 +10,8 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetBreadcrum
 public class QueryType
 {
     [Authorize]
-    [HotChocolate.Types.UsePaging]
-    public async Task<object> GetBreadcrumb(
+    [UsePaging]
+    public async Task<List<FolderDto>> GetBreadcrumb(
         Guid folderId,
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)
@@ -20,8 +19,12 @@ public class QueryType
         var query = new GetBreadcrumbQuery(FolderId.From(folderId));
 
         var result = await queryBus.QueryAsync(query, cancellationToken);
-        return result.Match<object>(
+        return result.Match(
             success => success,
-            error => MutationError.FromDomainError(error));
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

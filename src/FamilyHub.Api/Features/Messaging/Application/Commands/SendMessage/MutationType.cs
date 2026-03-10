@@ -1,5 +1,4 @@
 using FamilyHub.Common.Application;
-using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.Auth.Domain.Repositories;
 using FamilyHub.Api.Features.Messaging.Application.Mappers;
@@ -19,7 +18,7 @@ public class MutationType
     /// Publishes to the subscription topic for real-time delivery.
     /// </summary>
     [Authorize]
-    public async Task<object> SendMessage(
+    public async Task<MessageDto> SendMessage(
         SendMessageRequest input,
         [Service] ICommandBus commandBus,
         [Service] ICurrentUserContext currentUserContext,
@@ -48,7 +47,7 @@ public class MutationType
 
         var result = await commandBus.SendAsync(command, cancellationToken);
 
-        return await result.Match<Task<object>>(
+        return await result.Match(
             async success =>
             {
                 // Use entity from result for DTO mapping; fetch supplemental sender data
@@ -68,6 +67,10 @@ public class MutationType
 
                 return messageDto;
             },
-            error => Task.FromResult<object>(MutationError.FromDomainError(error)));
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

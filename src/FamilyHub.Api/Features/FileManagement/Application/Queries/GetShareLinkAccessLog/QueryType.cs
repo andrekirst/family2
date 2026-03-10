@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -11,8 +10,8 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Queries.GetShareLink
 public class QueryType
 {
     [Authorize]
-    [HotChocolate.Types.UsePaging]
-    public async Task<object> GetShareLinkAccessLog(
+    [UsePaging]
+    public async Task<List<ShareLinkAccessLogDto>> GetShareLinkAccessLog(
         Guid shareLinkId,
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)
@@ -21,8 +20,12 @@ public class QueryType
             ShareLinkId.From(shareLinkId));
 
         var result = await queryBus.QueryAsync(query, cancellationToken);
-        return result.Match<object>(
+        return result.Match(
             success => success,
-            error => MutationError.FromDomainError(error));
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

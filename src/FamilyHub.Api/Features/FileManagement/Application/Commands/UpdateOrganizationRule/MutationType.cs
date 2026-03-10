@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
 using FamilyHub.Common.Application;
@@ -11,7 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.UpdateOrgan
 public class MutationType
 {
     [Authorize]
-    public async Task<object> UpdateOrganizationRule(
+    public async Task<bool> UpdateOrganizationRule(
         Guid ruleId,
         string name,
         string conditionsJson,
@@ -33,8 +32,12 @@ public class MutationType
             actionsJson);
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-        return result.Match<object>(
-            success => success,
-            error => MutationError.FromDomainError(error));
+        return result.Match(
+            success => true,
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

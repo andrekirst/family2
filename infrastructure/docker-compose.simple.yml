@@ -14,6 +14,12 @@ services:
   keycloak:
     environment:
       KC_HTTP_RELATIVE_PATH: /auth
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e "GET /auth/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep -q "200 OK"',
+        ]
     labels:
       - 'traefik.enable=true'
       - 'traefik.docker.network=traefik-public'

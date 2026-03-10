@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Application.Mappers;
 using FamilyHub.Api.Features.FileManagement.Models;
@@ -12,7 +11,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.MoveFile;
 public class MutationType
 {
     [Authorize]
-    public async Task<object> MoveFile(
+    public async Task<StoredFileDto> MoveFile(
         MoveFileRequest input,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
@@ -22,8 +21,12 @@ public class MutationType
             FolderId.From(input.TargetFolderId));
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-        return result.Match<object>(
+        return result.Match(
             success => FileManagementMapper.ToDto(success.MovedFile),
-            error => MutationError.FromDomainError(error));
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

@@ -11,8 +11,11 @@ namespace FamilyHub.Api.Common.Middleware;
 /// This avoids a circular dependency where querying auth.users via EF Core would itself
 /// be subject to the RLS policy that requires app.current_user_id to already be set.
 ///
-/// Includes a single retry (500ms) to handle the race condition during first login,
-/// where RegisterUser may not have committed the user record yet.
+/// Opens the database connection explicitly so all SQL within a request uses the
+/// same connection — ensuring set_config() variables persist for subsequent queries.
+///
+/// On first login (user not yet in auth.users), proceeds without RLS to allow
+/// RegisterUser to create the user record.
 /// </summary>
 public class PostgresRlsMiddleware(RequestDelegate next, ILogger<PostgresRlsMiddleware> logger)
 {
@@ -30,6 +33,14 @@ public class PostgresRlsMiddleware(RequestDelegate next, ILogger<PostgresRlsMidd
             {
                 var safeExternalUserId = parsedId.ToString();
 
+                // Open connection explicitly so set_config() and all subsequent queries
+                // in this request use the same PostgreSQL session.
+                var connection = dbContext.Database.GetDbConnection();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    await connection.OpenAsync(context.RequestAborted);
+                }
+
                 await SetRlsSessionVariables(dbContext, safeExternalUserId);
 
                 // Check if user was found; if not, retry once after 500ms.
@@ -43,17 +54,14 @@ public class PostgresRlsMiddleware(RequestDelegate next, ILogger<PostgresRlsMidd
                     await Task.Delay(500, context.RequestAborted);
                     await SetRlsSessionVariables(dbContext, safeExternalUserId);
 
-                    // After retry, verify RLS was set. If not, reject the request
-                    // rather than proceeding without row-level security.
+                    // After retry, verify RLS was set. If still not found, proceed
+                    // without RLS — this allows RegisterUser to create the user on first login.
                     currentUserId = await GetCurrentSessionUserId(dbContext);
                     if (string.IsNullOrEmpty(currentUserId))
                     {
                         logger.LogWarning(
-                            "RLS context could not be set for {ExternalUserId} after retry",
+                            "RLS context could not be set for {ExternalUserId} after retry — proceeding without RLS (likely first login)",
                             safeExternalUserId);
-                        context.Response.StatusCode = 503;
-                        await context.Response.WriteAsJsonAsync(new { error = "Service temporarily unavailable. Please retry." });
-                        return;
                     }
                 }
             }

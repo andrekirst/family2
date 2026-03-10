@@ -12,7 +12,6 @@ public class GetConversationsQueryType
     /// Get all conversations the current user belongs to.
     /// </summary>
     [Authorize]
-    [HotChocolate.Types.UsePaging]
     public async Task<List<ConversationDto>> Conversations(
         [Service] IQueryBus queryBus = default!,
         CancellationToken cancellationToken = default)

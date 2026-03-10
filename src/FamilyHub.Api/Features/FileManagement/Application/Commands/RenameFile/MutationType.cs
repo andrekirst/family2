@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Application.Mappers;
 using FamilyHub.Api.Features.FileManagement.Domain.ValueObjects;
@@ -13,7 +12,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.RenameFile;
 public class MutationType
 {
     [Authorize]
-    public async Task<object> RenameFile(
+    public async Task<StoredFileDto> RenameFile(
         RenameFileRequest input,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
@@ -23,8 +22,12 @@ public class MutationType
             FileName.From(input.NewName.Trim()));
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-        return result.Match<object>(
+        return result.Match(
             success => FileManagementMapper.ToDto(success.RenamedFile),
-            error => MutationError.FromDomainError(error));
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

@@ -55,11 +55,11 @@ export interface UpdateCalendarEventInput {
 export class CalendarService {
   private apollo = inject(Apollo);
 
-  getCalendarEvents(familyId: string, startDate: string, endDate: string) {
+  getCalendarEvents(startDate: string, endDate: string) {
     return this.apollo
       .query<{ family: { calendars: CalendarEventDto[] } }>({
         query: GET_CALENDAR_EVENTS,
-        variables: { familyId, startDate, endDate },
+        variables: { startDate, endDate },
         fetchPolicy: 'network-only',
       })
       .pipe(

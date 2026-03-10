@@ -9,7 +9,6 @@ namespace FamilyHub.Api.Features.Dashboard.Application.Queries.GetAvailableWidge
 public class QueryType
 {
     [Authorize]
-    [HotChocolate.Types.UsePaging]
     public async Task<IReadOnlyList<WidgetDescriptorDto>> AvailableWidgets(
         [Service] IQueryBus queryBus,
         CancellationToken cancellationToken)

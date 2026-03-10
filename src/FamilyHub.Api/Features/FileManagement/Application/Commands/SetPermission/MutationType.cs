@@ -1,4 +1,3 @@
-using FamilyHub.Api.Common.Infrastructure.GraphQL;
 using FamilyHub.Api.Common.Infrastructure.GraphQL.NamespaceTypes;
 using FamilyHub.Api.Features.FileManagement.Models;
 using FamilyHub.Common.Application;
@@ -11,7 +10,7 @@ namespace FamilyHub.Api.Features.FileManagement.Application.Commands.SetPermissi
 public class MutationType
 {
     [Authorize]
-    public async Task<object> SetPermission(
+    public async Task<bool> SetPermission(
         SetPermissionRequest input,
         [Service] ICommandBus commandBus,
         CancellationToken cancellationToken)
@@ -23,8 +22,12 @@ public class MutationType
             input.PermissionLevel);
 
         var result = await commandBus.SendAsync(command, cancellationToken);
-        return result.Match<object>(
-            success => success,
-            error => MutationError.FromDomainError(error));
+        return result.Match(
+            success => true,
+            error => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .SetCode(error.ErrorCode)
+                    .Build()));
     }
 }

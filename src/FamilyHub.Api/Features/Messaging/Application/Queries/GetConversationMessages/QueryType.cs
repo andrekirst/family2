@@ -15,7 +15,6 @@ public class GetConversationMessagesQueryType
     /// Validates that the current user is a member of the conversation.
     /// </summary>
     [Authorize]
-    [HotChocolate.Types.UsePaging]
     public async Task<List<MessageDto>> ConversationMessages(
         Guid conversationId,
         int limit = 50,
