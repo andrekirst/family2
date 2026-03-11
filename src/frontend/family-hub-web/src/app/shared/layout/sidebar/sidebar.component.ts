@@ -1,4 +1,11 @@
-import { Component, inject, signal, computed, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  HostListener,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -242,6 +249,12 @@ export class SidebarComponent {
       label: $localize`:@@nav.automations:Automations`,
       icon: this.trustHtml(ICONS.BOLT),
       matchPrefix: '/event-chains',
+    },
+    {
+      path: '/base-data/federal-states',
+      label: $localize`:@@nav.baseData:Base Data`,
+      icon: this.trustHtml(ICONS.DOCUMENT),
+      matchPrefix: '/base-data',
     },
     {
       path: '/settings',

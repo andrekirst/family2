@@ -80,6 +80,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/school/school.routes').then((m) => m.SCHOOL_ROUTES),
       },
       {
+        path: 'base-data',
+        loadChildren: () =>
+          import('./features/base-data/base-data.routes').then((m) => m.BASE_DATA_ROUTES),
+      },
+      {
         path: 'settings',
         loadChildren: () =>
           import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),

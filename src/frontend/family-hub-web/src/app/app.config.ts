@@ -20,6 +20,7 @@ import { provideSettingsFeature } from './features/settings/settings.providers';
 import { locale } from '../main';
 import { provideProfileFeature } from './features/profile/profile.providers';
 import { provideSchoolFeature } from './features/school/school.providers';
+import { provideBaseDataFeature } from './features/base-data/base-data.providers';
 import { EnvironmentConfigService } from './core/config/environment-config.service';
 import { AppErrorHandler } from './core/error-handling/app-error-handler';
 
@@ -36,6 +37,7 @@ export const appConfig: ApplicationConfig = {
     ...provideFileManagementFeature(),
     ...provideMessagingFeature(),
     ...provideSchoolFeature(),
+    ...provideBaseDataFeature(),
     ...provideSettingsFeature(),
     ...provideProfileFeature(),
     { provide: ErrorHandler, useClass: AppErrorHandler },

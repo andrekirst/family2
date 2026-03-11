@@ -12,6 +12,7 @@
     "logout": "Abmelden",
     "language": "Sprache",
     "settings": "Einstellungen",
+    "baseData": "Stammdaten",
     "files": "Dateien"
   },
   "login": {
@@ -427,6 +428,17 @@
       "selected": "ausgewählt",
       "selectAll": "Alle auswählen",
       "downloadZip": "ZIP herunterladen"
+    }
+  },
+  "baseData": {
+    "title": "Stammdaten",
+    "tabs": {
+      "federalStates": "Bundesländer"
+    },
+    "federalStates": {
+      "empty": "Keine Bundesländer gefunden.",
+      "columnName": "Name",
+      "columnIsoCode": "ISO-Code"
     }
   },
   "messaging": {
