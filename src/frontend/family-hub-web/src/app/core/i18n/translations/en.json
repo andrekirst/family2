@@ -196,7 +196,14 @@
   "automations.table.statusPaused": "Paused",
   "automations.table.neverRun": "Never",
 
+  "nav.baseData": "Base Data",
   "nav.files": "Files",
+
+  "baseData.title": "Base Data",
+  "baseData.tabs.federalStates": "Federal States",
+  "baseData.federalStates.empty": "No federal states found.",
+  "baseData.federalStates.columnName": "Name",
+  "baseData.federalStates.columnIsoCode": "ISO Code",
 
   "files.title": "Files",
   "files.comingSoon": "Coming soon",

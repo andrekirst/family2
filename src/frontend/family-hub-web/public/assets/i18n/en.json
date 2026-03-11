@@ -12,6 +12,7 @@
     "logout": "Logout",
     "language": "Language",
     "settings": "Settings",
+    "baseData": "Base Data",
     "files": "Files"
   },
   "login": {
@@ -427,6 +428,17 @@
       "selected": "selected",
       "selectAll": "Select All",
       "downloadZip": "Download ZIP"
+    }
+  },
+  "baseData": {
+    "title": "Base Data",
+    "tabs": {
+      "federalStates": "Federal States"
+    },
+    "federalStates": {
+      "empty": "No federal states found.",
+      "columnName": "Name",
+      "columnIsoCode": "ISO Code"
     }
   },
   "messaging": {

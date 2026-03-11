@@ -9,6 +9,7 @@ using FamilyHub.Api.Features.Family.Domain.Entities;
 using FamilyHub.Api.Features.FileManagement.Infrastructure.Data;
 using FamilyHub.Api.Features.GoogleIntegration.Domain.Entities;
 using FamilyHub.Api.Features.Messaging.Domain.Entities;
+using FamilyHub.Api.Features.BaseData.Domain.Entities;
 using FamilyHub.Api.Features.School.Domain.Entities;
 using FamilyHub.Api.Features.Photos.Domain.Entities;
 using FamilyHub.EventChain.Domain.Entities;
@@ -127,6 +128,9 @@ public class AppDbContext : DbContext, IUnitOfWork
     // Messaging entities
     public DbSet<Message> Messages { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
+
+    // Base Data entities
+    public DbSet<FederalState> FederalStates { get; set; }
 
     // School entities
     public DbSet<Student> Students { get; set; }

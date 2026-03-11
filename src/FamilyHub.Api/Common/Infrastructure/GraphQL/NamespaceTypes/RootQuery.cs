@@ -72,4 +72,10 @@ public class RootQuery
     /// </summary>
     [Authorize]
     public SearchQuery Search() => new();
+
+    /// <summary>
+    /// Base data queries (federal states, reference data).
+    /// </summary>
+    [Authorize]
+    public BaseDataQuery BaseData() => new();
 }

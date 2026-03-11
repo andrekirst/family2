@@ -68,6 +68,11 @@ type AttachmentDto {
   attachedAt: DateTime!
 }
 
+type BaseDataQuery {
+  federalStates: [FederalStateDto!]! @authorize @cost(weight: "10")
+  federalStateByIso3166(code: String!): FederalStateDto @authorize @cost(weight: "10")
+}
+
 "A connection to a list of items."
 type BreadcrumbConnection {
   "Information to aid in pagination."
@@ -344,6 +349,12 @@ type FavoritesEdge {
   cursor: String!
   "The item at the end of the edge."
   node: StoredFileDto!
+}
+
+type FederalStateDto {
+  id: UUID!
+  name: String!
+  iso3166Code: String!
 }
 
 type FileManagementMutation {
@@ -810,6 +821,7 @@ type RootQuery {
   messaging: MessagingQuery! @authorize
   school: SchoolQuery! @authorize
   search: SearchQuery! @authorize
+  baseData: BaseDataQuery! @authorize
 }
 
 type RuleMatchPreviewDto {

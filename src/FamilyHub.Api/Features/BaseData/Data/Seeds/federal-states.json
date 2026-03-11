@@ -1,0 +1,18 @@
+[
+  { "name": "Baden-Württemberg", "iso3166Code": "DE-BW" },
+  { "name": "Bayern", "iso3166Code": "DE-BY" },
+  { "name": "Berlin", "iso3166Code": "DE-BE" },
+  { "name": "Brandenburg", "iso3166Code": "DE-BB" },
+  { "name": "Bremen", "iso3166Code": "DE-HB" },
+  { "name": "Hamburg", "iso3166Code": "DE-HH" },
+  { "name": "Hessen", "iso3166Code": "DE-HE" },
+  { "name": "Mecklenburg-Vorpommern", "iso3166Code": "DE-MV" },
+  { "name": "Niedersachsen", "iso3166Code": "DE-NI" },
+  { "name": "Nordrhein-Westfalen", "iso3166Code": "DE-NW" },
+  { "name": "Rheinland-Pfalz", "iso3166Code": "DE-RP" },
+  { "name": "Saarland", "iso3166Code": "DE-SL" },
+  { "name": "Sachsen", "iso3166Code": "DE-SN" },
+  { "name": "Sachsen-Anhalt", "iso3166Code": "DE-ST" },
+  { "name": "Schleswig-Holstein", "iso3166Code": "DE-SH" },
+  { "name": "Thüringen", "iso3166Code": "DE-TH" }
+]

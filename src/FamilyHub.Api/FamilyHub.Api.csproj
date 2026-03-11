@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Database\Migrations\**\*.sql" />
+    <EmbeddedResource Include="Features\BaseData\Data\Seeds\federal-states.json" />
   </ItemGroup>
 
   <ItemGroup>
