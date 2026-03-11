@@ -93,10 +93,15 @@ export class CallbackComponent implements OnInit {
           // Sync user with backend (also populates _readyPromise for whenReady())
           await this.userService.registerUser();
 
-          // Navigate to intended destination
-          const redirectUrl = this.authService.consumePostLoginRedirect();
-          const separator = redirectUrl.includes('?') ? '&' : '?';
-          await this.router.navigateByUrl(`${redirectUrl}${separator}login=success`);
+          // Navigate to onboarding if no family, otherwise to intended destination
+          const user = this.userService.currentUser();
+          if (!user?.familyId) {
+            await this.router.navigate(['/family/onboarding']);
+          } else {
+            const redirectUrl = this.authService.consumePostLoginRedirect();
+            const separator = redirectUrl.includes('?') ? '&' : '?';
+            await this.router.navigateByUrl(`${redirectUrl}${separator}login=success`);
+          }
         } catch (err: any) {
           this.error =
             err.message || $localize`:@@callback.failedAuth:Failed to complete authentication`;

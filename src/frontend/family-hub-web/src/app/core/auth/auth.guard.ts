@@ -88,7 +88,31 @@ export const familyMemberGuard: CanActivateFn = async () => {
   const user = await userService.whenReady();
 
   if (!user?.familyId) {
-    return router.parseUrl('/family');
+    return router.parseUrl('/family/onboarding');
+  }
+
+  return true;
+};
+
+/**
+ * Route guard requiring user to NOT belong to a family.
+ * Used on the onboarding page to prevent users who already have
+ * a family from accessing it (e.g. via manual URL or stale bookmark).
+ * Redirects to dashboard if user already has a family.
+ */
+export const noFamilyGuard: CanActivateFn = async () => {
+  const authService = inject(AuthService);
+  const userService = inject(UserService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    return router.parseUrl('/login');
+  }
+
+  const user = await userService.whenReady();
+
+  if (user?.familyId) {
+    return router.parseUrl('/dashboard');
   }
 
   return true;

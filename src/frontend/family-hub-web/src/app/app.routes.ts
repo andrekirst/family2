@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, familyMemberGuard } from './core/auth/auth.guard';
+import { authGuard, familyMemberGuard, noFamilyGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -28,6 +28,16 @@ export const routes: Routes = [
       ),
   },
 
+  // Onboarding gate (authenticated, full-screen, no layout shell)
+  {
+    path: 'family/onboarding',
+    canActivate: [authGuard, noFamilyGuard],
+    loadComponent: () =>
+      import('./features/family/components/family-onboarding/family-onboarding.component').then(
+        (m) => m.FamilyOnboardingComponent,
+      ),
+  },
+
   // Protected routes (group-level authGuard, wrapped in layout shell)
   {
     path: '',
@@ -36,6 +46,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
+        canActivate: [familyMemberGuard],
         loadChildren: () =>
           import('./features/dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
       },
