@@ -134,6 +134,9 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     // School entities
     public DbSet<Student> Students { get; set; }
+    public DbSet<FamilyHub.Api.Features.School.Domain.Entities.School> Schools { get; set; }
+    public DbSet<FamilyHub.Api.Features.School.Domain.Entities.SchoolYear> SchoolYears { get; set; }
+    public DbSet<FamilyHub.Api.Features.School.Domain.Entities.ClassAssignment> ClassAssignments { get; set; }
 
     // Idempotency keys (deduplication for at-least-once delivery)
     public DbSet<IdempotencyRecord> IdempotencyKeys { get; set; }

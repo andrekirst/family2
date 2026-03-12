@@ -12,6 +12,9 @@ public sealed class SchoolModule : IModule
     public void Register(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IStudentRepository, StudentRepository>();
+        services.AddScoped<ISchoolRepository, SchoolRepository>();
+        services.AddScoped<ISchoolYearRepository, SchoolYearRepository>();
+        services.AddScoped<IClassAssignmentRepository, ClassAssignmentRepository>();
         services.AddSingleton<ICommandPaletteProvider, SchoolCommandPaletteProvider>();
         services.AddScoped<ISearchProvider, SchoolSearchProvider>();
     }

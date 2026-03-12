@@ -7,6 +7,7 @@ using FamilyHub.Api.Features.School.Domain.Entities;
 using FamilyHub.Api.Features.School.Domain.Repositories;
 using FluentAssertions;
 using NSubstitute;
+using SchoolEntity = FamilyHub.Api.Features.School.Domain.Entities.School;
 
 namespace FamilyHub.School.Tests.Features.School.Application;
 
@@ -23,13 +24,22 @@ public class GetStudentsQueryHandlerTests
 
         var studentRepo = Substitute.For<IStudentRepository>();
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        var classAssignmentRepo = Substitute.For<IClassAssignmentRepository>();
+        var schoolRepo = Substitute.For<ISchoolRepository>();
+        var schoolYearRepo = Substitute.For<ISchoolYearRepository>();
 
         studentRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([student]);
         memberRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns([targetMember]);
+        classAssignmentRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<ClassAssignment>());
+        schoolRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<SchoolEntity>());
+        schoolYearRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
+            .Returns(new List<SchoolYear>());
 
-        var handler = new GetStudentsQueryHandler(studentRepo, memberRepo);
+        var handler = new GetStudentsQueryHandler(studentRepo, memberRepo, classAssignmentRepo, schoolRepo, schoolYearRepo);
         var query = new GetStudentsQuery { FamilyId = familyId };
 
         // Act
@@ -50,11 +60,14 @@ public class GetStudentsQueryHandlerTests
         var familyId = FamilyId.New();
         var studentRepo = Substitute.For<IStudentRepository>();
         var memberRepo = Substitute.For<IFamilyMemberRepository>();
+        var classAssignmentRepo = Substitute.For<IClassAssignmentRepository>();
+        var schoolRepo = Substitute.For<ISchoolRepository>();
+        var schoolYearRepo = Substitute.For<ISchoolYearRepository>();
 
         studentRepo.GetByFamilyIdAsync(familyId, Arg.Any<CancellationToken>())
             .Returns(new List<Student>());
 
-        var handler = new GetStudentsQueryHandler(studentRepo, memberRepo);
+        var handler = new GetStudentsQueryHandler(studentRepo, memberRepo, classAssignmentRepo, schoolRepo, schoolYearRepo);
         var query = new GetStudentsQuery { FamilyId = familyId };
 
         // Act

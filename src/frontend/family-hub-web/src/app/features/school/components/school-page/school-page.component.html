@@ -1,5 +1,26 @@
 <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">
-  <app-student-list [students]="students()" [isLoading]="isLoading()" />
+  <!-- Tab Navigation -->
+  <div class="border-b border-gray-200 mb-6">
+    <nav class="flex space-x-8">
+      @for (tab of visibleTabs(); track tab.path) {
+        <a
+          [routerLink]="tab.path"
+          routerLinkActive
+          #rla="routerLinkActive"
+          class="pb-3 px-1 text-sm font-medium border-b-2"
+          [class.border-blue-500]="rla.isActive"
+          [class.text-blue-600]="rla.isActive"
+          [class.border-transparent]="!rla.isActive"
+          [class.text-gray-500]="!rla.isActive"
+        >
+          {{ tab.label }}
+        </a>
+      }
+    </nav>
+  </div>
+
+  <!-- Tab Content -->
+  <router-outlet />
 
   @if (showMarkDialog()) {
     <app-mark-as-student-dialog

@@ -11,7 +11,7 @@ public class FakeStudentRepository(List<Student>? seededStudents = null) : IStud
     private readonly List<Student> _seeded = seededStudents ?? [];
     public List<Student> AddedStudents { get; } = [];
 
-    private IEnumerable<Student> All => All;
+    private IEnumerable<Student> All => _seeded.Concat(AddedStudents);
 
     public Task<Student?> GetByIdAsync(StudentId id, CancellationToken cancellationToken = default) =>
         Task.FromResult(All.FirstOrDefault(s => s.Id == id));

@@ -57,6 +57,39 @@ public class FamilyMemberConfiguration : IEntityTypeConfiguration<FamilyMember>
                 value => value.HasValue ? AvatarId.From(value.Value) : null)
             .IsRequired(false);
 
+        // Address owned type (nullable — all columns nullable)
+        builder.OwnsOne(fm => fm.Address, address =>
+        {
+            address.Property(a => a.Street)
+                .HasColumnName("address_street")
+                .HasMaxLength(200)
+                .IsRequired(false);
+
+            address.Property(a => a.HouseNumber)
+                .HasColumnName("address_house_number")
+                .HasMaxLength(20)
+                .IsRequired(false);
+
+            address.Property(a => a.PostalCode)
+                .HasColumnName("address_postal_code")
+                .HasMaxLength(20)
+                .IsRequired(false);
+
+            address.Property(a => a.City)
+                .HasColumnName("address_city")
+                .HasMaxLength(100)
+                .IsRequired(false);
+
+            address.Property(a => a.Country)
+                .HasColumnName("address_country")
+                .HasMaxLength(100)
+                .IsRequired(false);
+
+            address.Property(a => a.FederalStateId)
+                .HasColumnName("address_federal_state_id")
+                .IsRequired(false);
+        });
+
         // Unique constraint: a user can only be a member of a family once
         builder.HasIndex(fm => new { fm.FamilyId, fm.UserId })
             .IsUnique();

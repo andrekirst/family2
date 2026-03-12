@@ -1,6 +1,7 @@
 using FamilyHub.Api.Features.Auth.Domain.Entities;
 using FamilyHub.Common.Domain.ValueObjects;
 using FamilyHub.Api.Features.Family.Domain.ValueObjects;
+using Address = FamilyHub.Common.Domain.ValueObjects.Address;
 
 namespace FamilyHub.Api.Features.Family.Domain.Entities;
 
@@ -45,6 +46,12 @@ public sealed class FamilyMember
     /// </summary>
     public AvatarId? AvatarId { get; private set; }
 
+    /// <summary>
+    /// Optional address for this family member.
+    /// Mapped as an EF Core owned type (address_* columns).
+    /// </summary>
+    public Address? Address { get; private set; }
+
     // Navigation properties
     public Family Family { get; private set; } = null!;
     public User User { get; private set; } = null!;
@@ -63,5 +70,21 @@ public sealed class FamilyMember
     public void RemoveFamilyAvatar()
     {
         AvatarId = null;
+    }
+
+    /// <summary>
+    /// Set or update the address for this family member.
+    /// </summary>
+    public void SetAddress(Address address)
+    {
+        Address = address;
+    }
+
+    /// <summary>
+    /// Remove the address from this family member.
+    /// </summary>
+    public void RemoveAddress()
+    {
+        Address = null;
     }
 }

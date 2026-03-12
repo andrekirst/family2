@@ -1,0 +1,209 @@
+<div class="max-w-4xl mx-auto">
+  @if (isLoading()) {
+    <div class="animate-pulse space-y-6">
+      <div class="h-24 bg-gray-200 rounded-lg"></div>
+      <div class="h-64 bg-gray-200 rounded-lg"></div>
+    </div>
+  } @else if (!student()) {
+    <div class="text-center py-12">
+      <p class="text-gray-500" i18n="@@school.studentDetail.notFound">Student not found.</p>
+      <a routerLink="/school/students" class="mt-4 inline-block text-blue-600 hover:underline text-sm" i18n="@@school.studentDetail.backToList">
+        Back to students
+      </a>
+    </div>
+  } @else {
+    <!-- Student Info Header -->
+    <div class="bg-white border rounded-lg p-6 mb-6">
+      <div class="flex items-center gap-4">
+        <div class="flex-shrink-0 w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-xl font-medium text-blue-700">
+          {{ student()!.memberName.charAt(0).toUpperCase() }}
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900">{{ student()!.memberName }}</h2>
+          <div class="flex items-center gap-2 mt-1">
+            @if (student()!.currentSchoolName) {
+              <span class="text-sm text-gray-500">{{ student()!.currentSchoolName }}</span>
+            }
+            @if (student()!.currentClassName) {
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                {{ student()!.currentClassName }}
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assign Class Section -->
+    @if (permissions.canManageSchools()) {
+      <div class="bg-white border rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-semibold text-gray-900" i18n="@@school.studentDetail.assignClass">Assign to Class</h3>
+          <button
+            type="button"
+            (click)="showAssignDialog.set(true)"
+            class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            data-testid="assign-class-button"
+            i18n="@@school.studentDetail.newAssignment"
+          >
+            New Assignment
+          </button>
+        </div>
+
+        <!-- Inline Quick Assignment -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- School Picker -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" i18n="@@school.studentDetail.school">School</label>
+            <select
+              class="w-full rounded-lg border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500"
+              [value]="quickAssign.schoolId()"
+              (change)="quickAssign.schoolId.set(asInputValue($event))"
+              data-testid="quick-school-picker"
+            >
+              <option value="" i18n="@@school.studentDetail.selectSchool">-- Select school --</option>
+              @for (s of schools(); track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- School Year Picker -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" i18n="@@school.studentDetail.schoolYear">School Year</label>
+            <select
+              class="w-full rounded-lg border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500"
+              [value]="quickAssign.schoolYearId()"
+              (change)="quickAssign.schoolYearId.set(asInputValue($event))"
+              data-testid="quick-school-year-picker"
+            >
+              <option value="" i18n="@@school.studentDetail.selectSchoolYear">-- Select school year --</option>
+              @for (sy of schoolYears(); track sy.id) {
+                <option [value]="sy.id">{{ sy.startYear }}/{{ sy.endYear }} ({{ sy.federalStateName }})</option>
+              }
+            </select>
+          </div>
+
+          <!-- Class Name -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" i18n="@@school.studentDetail.className">Class</label>
+            <div class="flex gap-2">
+              <input
+                type="text"
+                class="flex-1 rounded-lg border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500"
+                [value]="quickAssign.className()"
+                (input)="quickAssign.className.set(asInputValue($event))"
+                placeholder="e.g. 1a"
+                data-testid="quick-class-name-input"
+              />
+              <button
+                type="button"
+                [disabled]="!canQuickAssign() || isAssigning()"
+                (click)="onQuickAssign()"
+                class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="quick-assign-button"
+                i18n="@@school.studentDetail.assign"
+              >
+                Assign
+              </button>
+            </div>
+          </div>
+        </div>
+
+        @if (assignError()) {
+          <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
+            {{ assignError() }}
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Class Assignment History -->
+    <div class="bg-white border rounded-lg p-6">
+      <h3 class="text-base font-semibold text-gray-900 mb-4" i18n="@@school.studentDetail.history">Class Assignment History</h3>
+
+      @if (isLoadingAssignments()) {
+        <div class="animate-pulse space-y-3">
+          <div class="h-12 bg-gray-200 rounded"></div>
+          <div class="h-12 bg-gray-200 rounded"></div>
+        </div>
+      } @else if (assignments().length === 0) {
+        <p class="text-sm text-gray-500" i18n="@@school.studentDetail.noAssignments">
+          No class assignments yet.
+        </p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" i18n="@@school.studentDetail.headerSchool">School</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" i18n="@@school.studentDetail.headerClass">Class</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" i18n="@@school.studentDetail.headerYear">School Year</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" i18n="@@school.studentDetail.headerStatus">Status</th>
+                @if (permissions.canManageSchools()) {
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" i18n="@@school.studentDetail.headerActions">Actions</th>
+                }
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (assignment of assignments(); track assignment.id) {
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm text-gray-900">{{ assignment.schoolName }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ assignment.className }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-500">{{ assignment.schoolYearLabel }}</td>
+                  <td class="px-4 py-3">
+                    @if (assignment.isCurrent) {
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800" i18n="@@school.studentDetail.current">
+                        Current
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600" i18n="@@school.studentDetail.past">
+                        Past
+                      </span>
+                    }
+                  </td>
+                  @if (permissions.canManageSchools()) {
+                    <td class="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        (click)="onRemoveAssignment(assignment.id)"
+                        class="text-sm text-red-600 hover:text-red-800"
+                        data-testid="remove-assignment-button"
+                        i18n="@@school.studentDetail.remove"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  @if (showAssignDialog()) {
+    <app-assign-class-dialog
+      [studentId]="studentId()"
+      [schools]="schools()"
+      [schoolYears]="schoolYears()"
+      (assigned)="onAssignmentCreated()"
+      (dialogClosed)="showAssignDialog.set(false)"
+    />
+  }
+
+  @if (showRemoveConfirmation()) {
+    <app-confirmation-dialog
+      [title]="removeConfirmTitle"
+      [message]="removeConfirmMessage"
+      confirmLabel="Remove"
+      variant="danger"
+      icon="trash"
+      [isLoading]="isRemoving()"
+      (confirmed)="onConfirmRemove()"
+      (cancelled)="showRemoveConfirmation.set(false)"
+    />
+  }
+</div>

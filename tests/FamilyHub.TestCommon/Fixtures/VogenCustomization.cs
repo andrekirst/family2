@@ -41,6 +41,9 @@ public class VogenCustomization : ICustomization
         fixture.RegisterVogenId(FamilyHub.Api.Features.Dashboard.Domain.ValueObjects.DashboardWidgetId.From);
         fixture.RegisterVogenId(FamilyHub.Api.Features.Photos.Domain.ValueObjects.PhotoId.From);
         fixture.RegisterVogenId(FamilyHub.Api.Features.School.Domain.ValueObjects.StudentId.From);
+        fixture.RegisterVogenId(FamilyHub.Api.Features.School.Domain.ValueObjects.SchoolId.From);
+        fixture.RegisterVogenId(FamilyHub.Api.Features.School.Domain.ValueObjects.SchoolYearId.From);
+        fixture.RegisterVogenId(FamilyHub.Api.Features.School.Domain.ValueObjects.ClassAssignmentId.From);
         fixture.RegisterVogenId(FamilyHub.Api.Features.BaseData.Domain.ValueObjects.FederalStateId.From);
 
         // String-based value objects
@@ -51,5 +54,7 @@ public class VogenCustomization : ICustomization
         fixture.RegisterVogenString(FamilyHub.Api.Features.Calendar.Domain.ValueObjects.EventTitle.From, "Event {0}");
         fixture.RegisterVogenString(FamilyHub.Api.Features.BaseData.Domain.ValueObjects.FederalStateName.From, "State {0}");
         fixture.RegisterVogenString(FamilyHub.Api.Features.BaseData.Domain.ValueObjects.Iso3166Code.From, "DE-X");
+        fixture.RegisterVogenString(FamilyHub.Api.Features.School.Domain.ValueObjects.SchoolName.From, "School {0}");
+        fixture.RegisterVogenString(FamilyHub.Api.Features.School.Domain.ValueObjects.ClassName.From, "Class {0}");
     }
 }

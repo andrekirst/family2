@@ -8,4 +8,6 @@ public class StudentDto
     public Guid FamilyId { get; set; }
     public Guid MarkedByUserId { get; set; }
     public DateTime MarkedAt { get; set; }
+    public string? CurrentSchoolName { get; set; }
+    public string? CurrentClassName { get; set; }
 }

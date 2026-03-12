@@ -66,4 +66,13 @@
   <data name="InviteeEmailRequired" xml:space="preserve"><value>E-Mail des Eingeladenen ist erforderlich</value></data>
   <data name="InviteeEmailInvalidFormat" xml:space="preserve"><value>Ungültiges E-Mail-Format</value></data>
   <data name="InvitationRoleInvalid" xml:space="preserve"><value>Einladungsrolle muss 'Admin' oder 'Member' sein (Eigentümerrolle kann nicht per Einladung vergeben werden)</value></data>
+  <!-- School -->
+  <data name="FamilyMemberIdRequired" xml:space="preserve"><value>Familienmitglied-ID ist erforderlich</value></data>
+  <data name="MarkedByUserIdRequired" xml:space="preserve"><value>Markiert-von-Benutzer-ID ist erforderlich</value></data>
+  <data name="SchoolNameRequired" xml:space="preserve"><value>Schulname ist erforderlich</value></data>
+  <data name="SchoolIdRequired" xml:space="preserve"><value>Schul-ID ist erforderlich</value></data>
+  <data name="SchoolYearIdRequired" xml:space="preserve"><value>Schuljahr-ID ist erforderlich</value></data>
+  <data name="ClassNameRequired" xml:space="preserve"><value>Klassenname ist erforderlich</value></data>
+  <data name="StudentIdRequired" xml:space="preserve"><value>Schüler-ID ist erforderlich</value></data>
+  <data name="ClassAssignmentIdRequired" xml:space="preserve"><value>Klassenzuordnungs-ID ist erforderlich</value></data>
 </root>

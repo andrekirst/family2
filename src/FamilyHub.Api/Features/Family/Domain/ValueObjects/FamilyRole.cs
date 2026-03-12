@@ -37,6 +37,7 @@ public readonly partial struct FamilyRole
     public bool CanDeleteFamily() => Value is "Owner";
     public bool CanManageRoles() => Value is "Owner";
     public bool CanManageStudents() => Value is "Owner" or "Admin";
+    public bool CanManageSchools() => Value is "Owner" or "Admin";
 
     public List<string> GetPermissions()
     {
@@ -74,6 +75,11 @@ public readonly partial struct FamilyRole
         if (CanManageStudents())
         {
             permissions.Add("school:manage-students");
+        }
+
+        if (CanManageSchools())
+        {
+            permissions.Add("school:manage-schools");
         }
 
         return permissions;

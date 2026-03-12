@@ -76,6 +76,13 @@ public static class DomainErrorCodes
     // School
     public const string FamilyMemberAlreadyStudent = "FAMILY_MEMBER_ALREADY_STUDENT";
     public const string FamilyMemberNotFound = "FAMILY_MEMBER_NOT_FOUND";
+    public const string SchoolNotFound = "SCHOOL_NOT_FOUND";
+    public const string SchoolInUse = "SCHOOL_IN_USE";
+    public const string SchoolYearNotFound = "SCHOOL_YEAR_NOT_FOUND";
+    public const string SchoolYearInUse = "SCHOOL_YEAR_IN_USE";
+    public const string ClassAssignmentNotFound = "CLASS_ASSIGNMENT_NOT_FOUND";
+    public const string StudentNotFound = "STUDENT_NOT_FOUND";
+    public const string InsufficientPermissionToManageSchools = "INSUFFICIENT_PERMISSION_TO_MANAGE_SCHOOLS";
 
     // EventChain
     public const string ChainDefinitionNotFound = "CHAIN_DEFINITION_NOT_FOUND";

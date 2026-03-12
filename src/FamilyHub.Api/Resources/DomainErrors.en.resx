@@ -83,6 +83,13 @@
   <!-- School -->
   <data name="FAMILY_MEMBER_ALREADY_STUDENT" xml:space="preserve"><value>Family member is already marked as a student</value></data>
   <data name="FAMILY_MEMBER_NOT_FOUND" xml:space="preserve"><value>Family member not found</value></data>
+  <data name="SCHOOL_NOT_FOUND" xml:space="preserve"><value>School not found</value></data>
+  <data name="SCHOOL_IN_USE" xml:space="preserve"><value>School cannot be deleted because it is referenced by class assignments</value></data>
+  <data name="SCHOOL_YEAR_NOT_FOUND" xml:space="preserve"><value>School year not found</value></data>
+  <data name="SCHOOL_YEAR_IN_USE" xml:space="preserve"><value>School year cannot be deleted because it is referenced by class assignments</value></data>
+  <data name="CLASS_ASSIGNMENT_NOT_FOUND" xml:space="preserve"><value>Class assignment not found</value></data>
+  <data name="STUDENT_NOT_FOUND" xml:space="preserve"><value>Student not found</value></data>
+  <data name="INSUFFICIENT_PERMISSION_TO_MANAGE_SCHOOLS" xml:space="preserve"><value>You do not have permission to manage schools</value></data>
   <!-- Messaging -->
   <data name="MESSAGE_NOT_FOUND" xml:space="preserve"><value>Message not found</value></data>
   <!-- File Management (extended) -->
