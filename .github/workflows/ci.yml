@@ -33,7 +33,7 @@ jobs:
         run: dotnet test FamilyHub.slnx --no-build -c Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "FullyQualifiedName!~IntegrationTests"
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-test-results
